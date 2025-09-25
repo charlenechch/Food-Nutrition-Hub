@@ -1,0 +1,263 @@
+/* ===== Global ===== */
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ===== Page Layout ===== */
+.login-register-page {
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(to bottom right, #f9fafb, #e9f2ef);
+}
+
+/* ===== Left Image Section ===== */
+.lrp-image-section {
+  flex: 2;
+  position: relative;
+  display: none;
+}
+@media (min-width: 1024px) {
+  .lrp-image-section {
+    display: block;
+    min-height: 100vh; 
+  }
+}
+.lrp-image-section img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.lrp-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(139, 69, 19, 0.8), rgba(139, 69, 19, 0.2), transparent);
+}
+.lrp-image-text {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  right: 2rem;
+  color: #fff;
+}
+.lrp-image-text h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.lrp-image-text p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+}
+
+/* ===== Right Form Section ===== */
+.lrp-form-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7f2ed;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 2rem;
+}
+
+.lrp-card {
+  width: 100%;
+  max-width: 500px;  
+  background: #fff;
+  border: 1px solid #dbcebc;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1023px) {
+  .lrp-form-section {
+    padding: 2rem; /* reduce padding so content stretches more */
+  }
+
+  .lrp-card {
+    max-width: 100%; /* allow the card to stretch */
+    border-radius: 12px; /* optional: smaller corners on mobile */
+    padding: 1.5rem; /* reduce internal spacing for mobile */
+  }
+}
+
+.lrp-card-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.lrp-card-header .lrp-logo {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  background: #8B4513;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #fff;
+}
+.lrp-card-header h2 {
+  font-size: 1.6rem;
+  margin: 0;
+}
+.lrp-card-header .lrp-description {
+  font-size: 0.9rem;
+  color: #777;
+  margin-top: 0.25rem;
+}
+
+/* ===== Tabs ===== */
+.lrp-tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 1rem;
+  background: #f7f2ed;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.lrp-tab {
+  flex: 1;
+  padding: 0.3rem;
+  text-align: center;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 16px;
+  border: none;
+  background: #f7f2ed;
+  transition: background 0.2s ease, color 0.2s ease;
+  color: black;
+  margin: 0.2rem;
+}
+.lrp-tab:hover {
+  background: #e6d5c0;
+}
+.lrp-tab.active {
+  background: #ffffff;
+  color: black;
+}
+.lrp-tab:focus {
+  outline: none;
+}
+
+
+/* ===== Form ===== */
+.lrp-form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.lrp-form-content label {
+  font-size: 0.85rem;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+.lrp-form-content input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+.lrp-form-content input:focus {
+  border-color: #8B4513;
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.15);
+  outline: none;
+}
+/* Apply grid layout */
+.lrp-form-content .lrp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Make each input full width and with background */
+.lrp-form-content input,
+.lrp-form-content textarea {
+  width: 100%;
+  background-color: #f7f2ed;
+  padding: 0.5rem;
+  box-sizing: border-box;
+  display: block;
+}
+
+/* Make placeholder appear on a new line */
+.lrp-form-content input::placeholder,
+.lrp-form-content textarea::placeholder {
+  display: block;
+  margin-bottom: 0.5rem; /* space between placeholder and typed text */
+}
+
+/* ===== Buttons ===== */
+.lrp-btn {
+  display: inline-block;
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+.lrp-btn-primary {
+  background: #8B4513;
+  color: white;
+  border: none;
+}
+.lrp-btn-primary:hover {
+  background: #5C2E0C;
+}
+.lrp-btn-outline {
+  background: #f7f2ed;
+  border: 1px solid #dbcebc;
+}
+.lrp-btn-outline:hover {
+  background: #dbcebc;
+}
+.lrp-btn:focus {
+  outline: none; 
+}
+
+/* ===== Divider ===== */
+.lrp-divider {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+.lrp-divider::before,
+.lrp-divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #ddd;
+}
+.lrp-divider::before {
+  left: 0;
+}
+.lrp-divider::after {
+  right: 0;
+}
+.lrp-divider span {
+  background: #fff;
+  padding: 0 0.5rem;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+/* ===== Footer Text ===== */
+.lrp-footer-text {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 1rem;
+}
