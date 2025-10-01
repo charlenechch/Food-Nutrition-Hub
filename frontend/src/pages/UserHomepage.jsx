@@ -59,11 +59,11 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       </header>
 
      {/* Next Section */}
-      <section id="about-section" className="about-section">
+      {/* <section id="about-section" className="about-section">
         <h2 className="about-title">🌏 Our Purpose</h2>
-        <div className="about-container">
+        <div className="about-container"> */}
           {/* Left side - text */}
-          <div className="about-text">
+          {/* <div className="about-text">
             <p>
               SarawakEats was created to preserve and celebrate Sarawak’s
               rich culinary heritage. Many traditional dishes are passed down
@@ -80,14 +80,14 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               with Sarawak’s unique food culture.
             </p>
             <button className="about-btn">Learn More</button>
-          </div>
+          </div> */}
 
           {/* Right side - image */}
-          <div className="about-image">
+          {/* <div className="about-image">
             <img src="../assets/homepage.jpg" alt="Sarawak Culture" />
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* <Footer /> */}
     </div>
