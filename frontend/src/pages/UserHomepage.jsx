@@ -15,7 +15,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
       {/* Hero Section */}
       <header className="hero">
-        <h1>Welcome to SarawakEats</h1>
+        <h1 className="userh1" >Welcome to SarawakEats</h1>
         <p>Discover and preserve Sarawak's rich culinary heritage</p>
 
       {/* Feature Cards */}
