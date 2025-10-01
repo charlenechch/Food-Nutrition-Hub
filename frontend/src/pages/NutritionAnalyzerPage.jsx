@@ -1,10 +1,12 @@
 import React from "react";
 import "../css/NutritionAnalyzer.css";
+import Header from "../components/Header";
 import { FaWandMagicSparkles, FaCamera } from "react-icons/fa6";
 
 export default function NutritionAnalyzer() {
   return (
     <div className="nutrition-page">
+      <Header />
       {/* Title */}
       <h1 className="page-title">AI Nutrition Analyzer</h1>
       <p className="page-subtitle">
