@@ -1,15 +1,25 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginRegisterPage from "./pages/LoginRegisterPage";
 import UserHomepage from "./pages/UserHomepage";
+import LoginRegisterPage from "./pages/LoginRegisterPage";
+import UserHomepage from "./pages/UserHomepage";
+import ExploreFoodsPage from "./pages/ExploreFoodPage";
+import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
+import RecipesPage from "./pages/RecipesPage";
+import CommunityPage from "./pages/Community";
+import UserProfilePage from "./pages/UserProfile";
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Default page */}
+        {/* Redirect root (/) to loginregister */}
+        <Route path="/" element={<Navigate to="/loginregister" replace />} />
+
+        {/* Default login/register page */}
         <Route path="/loginregister" element={<LoginRegisterPage />} />
 
-        {/* Future routes (placeholders) */}
+        {/* Other pages */}
         <Route path="/foods" element={<ExploreFoodsPage />} />
         <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
