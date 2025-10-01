@@ -45,13 +45,14 @@ export default function Header() {
 
       {/* Right side */}
       <div className="navbar-actions">
-        <button className="lang-btn">
-          <FaGlobe /> EN
-        </button>
-        <button className="logout-btn">
-          <FaSignOutAlt /> Logout
-        </button>
-      </div>
+      <button className="lang-btn" onClick={() => navigate("/language")}>
+        <FaGlobe /> EN
+      </button>
+
+      <button className="logout-btn" onClick={() => navigate("/userregister")}>
+        <FaSignOutAlt /> Logout
+      </button>
+    </div>
     </nav>
   );
 }
