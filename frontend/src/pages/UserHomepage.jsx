@@ -37,7 +37,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       <div className="feature-card">
         <div className="feature-icon">👤</div>
         <h3>My Profile</h3>
-        <p>Manage your preferences and saved foods</p>
+        <p>Manage your preferences, dietary restrictions, and saved foods</p>
         <button className="feature-btn">View Profile</button>
       </div>
       </section>
