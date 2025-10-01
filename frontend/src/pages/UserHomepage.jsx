@@ -17,6 +17,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       <header className="hero">
         <h1>Welcome to SarawakEats</h1>
         <p>Discover and preserve Sarawak's rich culinary heritage</p>
+      </header>
 
       {/* Feature Cards */}
       <section className="features">
@@ -47,16 +48,17 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         className="scroll-down"
         onClick={() => {
           const section = document.getElementById("about-section");
-          const yOffset = -80; // adjust this to match navbar height
-          const y =
-            section.getBoundingClientRect().top + window.pageYOffset + yOffset;
-
-          window.scrollTo({ top: y, behavior: "smooth" });
+          if (section) {
+            const yOffset = -80;
+            const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: "smooth" });
+          }
         }}
+
       >
         <FaAnglesDown />
       </div>
-      </header>
+      
 
      {/* Next Section */}
       {/* <section id="about-section" className="about-section">
