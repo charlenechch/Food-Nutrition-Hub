@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
 import "../css/LoginRegisterPage.css";
+import LoginFood from "../assets/LoginFood.png";
 
 export default function LoginRegisterPage() {
   const [activeTab, setActiveTab] = useState("login");
@@ -16,7 +17,7 @@ export default function LoginRegisterPage() {
     <div className="login-register-page">
       {/* Left Section with Image */}
       <div className="lrp-image-section">
-        <img src="src/assets/LoginFood.png" alt="Login Food" />
+        <img src={LoginFood} alt="Login Food" />
         <div className="lrp-image-overlay"></div>
         <div className="lrp-image-text">
           <h1>Sarawak Food Heritage</h1>
