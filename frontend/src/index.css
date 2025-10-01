@@ -8,11 +8,16 @@
 html, body, #root {
   height: 100%;
   width: 100%;
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Poppins", sans-serif;  /* ✅ use Poppins here */
   background: #f9fafb; /* keep it neutral, your Main.css background will show */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  padding: 0;
 }
 
 /* ===== Optional link styles (if you still need them) ===== */

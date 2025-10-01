@@ -1,0 +1,25 @@
+.footer {
+  display: flex;
+  justify-content: space-around;
+  padding: 40px 20px;
+  background-color: #fff;
+  border-top: 1px solid #ddd;
+}
+
+.footer h3, .footer h4 {
+  color: #6b3e26;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links li {
+  cursor: pointer;
+  margin: 6px 0;
+}
+
+.footer-links li:hover {
+  color: #8b5e3c;
+}

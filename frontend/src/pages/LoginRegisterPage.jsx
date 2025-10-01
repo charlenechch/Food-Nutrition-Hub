@@ -1,8 +1,16 @@
 import React, { useState } from "react";
-import "./LoginRegisterPage.css";
+import { useNavigate } from "react-router-dom"; 
+import "../css/LoginRegisterPage.css";
 
 export default function LoginRegisterPage() {
   const [activeTab, setActiveTab] = useState("login");
+  const navigate = useNavigate();
+
+  
+  // Function to handle guest navigation
+  const handleGuest = () => {
+    navigate("/home");  // goes to UserHomepage
+  };
 
   return (
     <div className="login-register-page">
@@ -66,7 +74,7 @@ export default function LoginRegisterPage() {
                 <div className="lrp-divider">
                   <span>or</span>
                 </div>
-                <button className="lrp-btn lrp-btn-outline">
+                <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
                   Continue as Guest
                 </button>
               </>
