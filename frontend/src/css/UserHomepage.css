@@ -1,35 +1,61 @@
 /* UserHomepage.css */
 
 .homepage {
+  height: 100vh; /* full viewport height */
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
   font-family: "Poppins", sans-serif;
-  background-color: #faf9f7;
+  background: linear-gradient(135deg, #f5efea, #ffffff);
   color: #333;
 }
 
+.section {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  scroll-snap-align: start;
+}
+
+/* header {
+  background: url("../assets/1.jpg");
+  background-size:  contain;   /* fills the whole section */
+  /* background-position: center; /* centers the subject */
+  /* background-repeat: no-repeat; /* stops tiling */
+  /* opacity: 0.9;
+  position: relative;
+background-color: #f9f9f9; /* fallback background */
+
 h1 {
   text-align: center;
-  margin: 20px 0;
+  margin: 35px 0;
   color: #916848;
+  font-size: 52px;
 }
 
 .hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;   
+  align-items: center;
+  padding-top: 50px;  
   text-align: center;
-  margin: 40px 0;
-  font-size: 1.2rem;
-  color: #6b3e26;
-}
+  font-size: 22px;
+} 
 
 .features {
   display: flex;
   justify-content: center;    /* center all cards */
   align-items: stretch;       /* make heights equal */
   gap: 30px;                  /* spacing between cards */
-  margin: 40px auto;
+  margin-top: 75px;
   min-height: 300px;  
   max-width: 1200px;          /* keep layout centered */
   flex-wrap: wrap;            /* responsive: stack on small screens */
 }
-
 
 .feature-card {
   flex: 1 1 300px;
@@ -76,7 +102,7 @@ h1 {
 }
 
 .feature-card p {
-  font-size: 14px;
+  font-size: 12px;
   color: #555;
   margin-bottom: 20px;
 }
@@ -88,14 +114,45 @@ h1 {
   border-radius: 6px;
   padding: 10px 20px;
   width: 100%;  /* ✅ button stretches full width */
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  font-size: 18px;
 }
 
 .feature-btn:hover {
   background-color: #6b3e26;
 }
+
+.scroll-down {
+  margin-top: 30px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 28px;   /* ✅ Bigger arrow */
+  color: #6b3e26;
+  padding: 10px 16px;
+  display: inline-block;
+  transition: all 0.3s ease-in-out;
+  animation: bounce 1.5s infinite;
+}
+
+.scroll-down:hover {
+  transform: scale(1.15); /* ✅ Smooth enlargement */
+}
+
+/* Bounce effect */
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(8px);
+  }
+  60% {
+    transform: translateY(4px);
+  }
+}
+
 
 .content-section {
   display: flex;

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../css/UserHomepage.css"; // keep styling consistent
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { FaAnglesDown } from "react-icons/fa6";
 
 
 export default function UserHomepage({ recentFoods = [], stats = {} }) {
@@ -16,7 +17,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       <header className="hero">
         <h1>Welcome to SarawakEats</h1>
         <p>Discover and preserve Sarawak's rich culinary heritage</p>
-      </header>
 
       {/* Feature Cards */}
       <section className="features">
@@ -42,49 +42,54 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       </div>
       </section>
 
-      {/* Featured + Recently Added */}
-      <section className="content-section">
-        <div className="featured">
-          <img src="https://placehold.co/600x300" alt="Featured Food" />
-          <h4>Featured This Week</h4>
-          <p><b>Manok Pansoh</b> – Traditional Iban chicken cooked in bamboo with aromatic herbs</p>
-          <button>Learn More</button>
-        </div>
+        {/* Scroll Button */}
+        <div
+        className="scroll-down"
+        onClick={() => {
+          const section = document.getElementById("about-section");
+          const yOffset = -80; // adjust this to match navbar height
+          const y =
+            section.getBoundingClientRect().top + window.pageYOffset + yOffset;
 
-        <div className="recent-foods">
-          <h4>Recently Added Foods</h4>
-          <ul>
-            {recentFoods.map((food, i) => (
-              <li key={i} onClick={() => navigate(`/foods/${food.name}`)}>
-                <img src={food.image} alt={food.name} />
-                <div>
-                  <p>{food.name}</p>
-                  <span>{food.category}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <button onClick={() => navigate("/foods")}>Explore Now</button>
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }}
+      >
+        <FaAnglesDown />
+      </div>
+      </header>
+
+     {/* Next Section */}
+      <section id="about-section" className="about-section">
+        <h2 className="about-title">🌏 Our Purpose</h2>
+        <div className="about-container">
+          {/* Left side - text */}
+          <div className="about-text">
+            <p>
+              SarawakEats was created to preserve and celebrate Sarawak’s
+              rich culinary heritage. Many traditional dishes are passed down
+              only through word of mouth, and risk being forgotten in the modern era.
+            </p>
+            <p>
+              Our goal is to digitize and share these recipes, cultural stories,
+              and nutritional insights so that future generations can learn,
+              appreciate, and sustain this heritage.
+            </p>
+            <p>
+              By combining tradition with technology, we provide both locals
+              and the global community a way to explore, analyze, and connect
+              with Sarawak’s unique food culture.
+            </p>
+            <button className="about-btn">Learn More</button>
+          </div>
+
+          {/* Right side - image */}
+          <div className="about-image">
+            <img src="../assets/homepage.jpg" alt="Sarawak Culture" />
+          </div>
         </div>
       </section>
 
-      {/* Community Stats */}
-      <section className="stats">
-        <div>
-          <h2>{stats.dishes || 0}</h2>
-          <p>Traditional Dishes</p>
-        </div>
-        <div>
-          <h2>{stats.recipes || 0}</h2>
-          <p>Community Recipes</p>
-        </div>
-        <div>
-          <h2>{stats.members || 0}</h2>
-          <p>Active Members</p>
-        </div>
-      </section>
-
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }
