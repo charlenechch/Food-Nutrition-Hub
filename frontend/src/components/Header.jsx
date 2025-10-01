@@ -49,7 +49,7 @@ export default function Header() {
         <FaGlobe /> EN
       </button>
 
-      <button className="logout-btn" onClick={() => navigate("/userregister")}>
+      <button className="logout-btn" onClick={() => navigate("/loginregister")}>
         <FaSignOutAlt /> Logout
       </button>
     </div>
