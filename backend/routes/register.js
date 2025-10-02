@@ -1,13 +1,13 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const db = require('../config/db');
 
 // Register route
 router.post('/', async (req, res) => {
-  const { firstname, lastname, email, password, role } = req.body;
+  const { firstname, lastname, email, password } = req.body;
 
   // Input validation
-  if (!firstname || !lastname || !email || !password || !role) {
+  if (!firstname || !lastname || !email || !password) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
     // Check if username or email already exists
     const [existing] = await db.promise().query(
       'SELECT * FROM user WHERE email = ? LIMIT 1',
-      [username, email]
+      [email]
     );
 
     if (existing.length > 0) {
@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
       INSERT INTO user (firstname, lastname, email, password, role)
       VALUES (?, ?, ?, ?, ?)
     `;
-    const values = [firstname, lastname, email, password, role];
+    const values = [firstname, lastname, email, password, "member"];
 
     const [result] = await db.promise().query(sql, values);
 
@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
         firstname,
         lastname,
         email,
-        role
+        role: 'member'
       }
     });
 

@@ -18,7 +18,7 @@ export default function LoginRegisterPage() {
   // Handle login
   const handleLogin = async () => {
     try {
-      const res = await fetch("https://food-nutrition-aajtkoqej-fyp-group10-fnh.vercel.app/api/routes/login", {
+      const res = await fetch("http://localhost:5000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -40,12 +40,12 @@ export default function LoginRegisterPage() {
   // Handle register
   const handleRegister = async () => {
     try {
-      const res = await fetch("https://food-nutrition-aajtkoqej-fyp-group10-fnh.vercel.app/api/routes/register", {
+      const res = await fetch("http://localhost:5000/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName,
-          lastName,
+          firstname: firstName,
+          lastname: lastName,
           email: regEmail,
           password: regPassword
         })
@@ -128,7 +128,9 @@ export default function LoginRegisterPage() {
                   <label>Password</label>
                   <input type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
-                <button className="lrp-btn lrp-btn-primary">Sign In</button>
+                <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
+                  Sign In
+                </button>
                 <div className="lrp-divider">
                   <span>or</span>
                 </div>
@@ -156,7 +158,9 @@ export default function LoginRegisterPage() {
                   <label>Password</label>
                   <input type="password" placeholder="Create a password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}/>
                 </div>
-                <button className="lrp-btn lrp-btn-primary">Create Account</button>
+                <button onClick={handleRegister} className="lrp-btn lrp-btn-primary">
+                  Create Account
+                </button>
                 <div className="lrp-divider">
                   <span>or</span>
                 </div>
