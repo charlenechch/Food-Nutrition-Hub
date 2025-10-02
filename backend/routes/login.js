@@ -11,13 +11,11 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Email and password required' });
   }
 
-  const cleanUsername = username.trim();
-
   try {
     // Check User table
     const [users] = await db.promise().query(
       'SELECT * FROM user WHERE email = ? AND password = ? LIMIT 1',
-      [cleanUsername, password]  
+      [email, password]
     );
 
     if (users.length > 0) {

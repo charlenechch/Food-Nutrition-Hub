@@ -5,9 +5,66 @@ import LoginFood from "../assets/LoginFood.png";
 
 export default function LoginRegisterPage() {
   const [activeTab, setActiveTab] = useState("login");
+  //login state
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  // Register state
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
   const navigate = useNavigate();
 
-  
+  // Handle login
+  const handleLogin = async () => {
+    try {
+      const res = await fetch("https://food-nutrition-aajtkoqej-fyp-group10-fnh.vercel.app/api/routes/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        console.log("Login successful:", data);
+        navigate("/home");  // redirect to UserHomepage
+      } else {
+        alert(data.message || "Login failed!");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Something went wrong!");
+    }
+  };
+
+  // Handle register
+  const handleRegister = async () => {
+    try {
+      const res = await fetch("https://food-nutrition-aajtkoqej-fyp-group10-fnh.vercel.app/api/routes/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email: regEmail,
+          password: regPassword
+        })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        console.log("Registration successful:", data);
+        alert("Account created! Welcome to SarawakEats!.");
+        setActiveTab("login"); // switch back to login tab
+      } else {
+        alert(data.message || "Registration failed!");
+      }
+    } catch (err) {
+      console.error("Register error:", err);
+      alert("Something went wrong during registration.");
+    }
+  };
+
   // Function to handle guest navigation
   const handleGuest = () => {
     navigate("/home");  // goes to UserHomepage
@@ -65,11 +122,11 @@ export default function LoginRegisterPage() {
               <>
                 <div>
                   <label>Email</label>
-                  <input type="email" placeholder="Enter your email" />
+                  <input type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)}  />
                 </div>
                 <div>
                   <label>Password</label>
-                  <input type="password" placeholder="Enter your password" />
+                  <input type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 <button className="lrp-btn lrp-btn-primary">Sign In</button>
                 <div className="lrp-divider">
@@ -84,20 +141,20 @@ export default function LoginRegisterPage() {
                 <div className="lrp-grid">
                   <div>
                     <label>First Name</label>
-                    <input type="text" placeholder="First name" />
+                    <input type="text" placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                   </div>
                   <div>
                     <label>Last Name</label>
-                    <input type="text" placeholder="Last name" />
+                    <input type="text" placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)}/>
                   </div>
                 </div>
                 <div>
                   <label>Email</label>
-                  <input type="email" placeholder="Enter your email" />
+                  <input type="email" placeholder="Enter your email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)}  />
                 </div>
                 <div>
                   <label>Password</label>
-                  <input type="password" placeholder="Create a password" />
+                  <input type="password" placeholder="Create a password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}/>
                 </div>
                 <button className="lrp-btn lrp-btn-primary">Create Account</button>
                 <div className="lrp-divider">
