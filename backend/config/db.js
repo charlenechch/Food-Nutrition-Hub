@@ -33,7 +33,8 @@ const app = express();
 
 // -- CREATE TABLE user (
 // --     userID INT AUTO_INCREMENT PRIMARY KEY,
-// --     username VARCHAR(255) NOT NULL,
+// --     firstname VARCHAR(255) NOT NULL,
+// --     lastname VARCHAR(255) NOT NULL,
 // --     email VARCHAR(255) UNIQUE NOT NULL,
 // --     password VARCHAR(255) NOT NULL,
 // --     role ENUM('admin', 'member') NOT NULL
@@ -53,38 +54,11 @@ const app = express();
 // --     name VARCHAR(20) NOT NULL,
 // --     origin ENUM('Malay','Chinese','Iban','Melanau','Kadazan', 'Bidayuh', 'Dayak') NOT NULL,
 // --     Energy_kcal DECIMAL(6,2),
-// --     Water_g DECIMAL(6,2),
 // --     Protein_g DECIMAL(6,2),
 // --     Fat_g DECIMAL(6,2),
 // --     Carbohydrates_g DECIMAL(6,2),
 // --     Fiber_g DECIMAL(6,2),
-// --     Ash_g DECIMAL(6,2),
-// --     Sugar_g DECIMAL(6,2),
-// --     VitaminC_mg DECIMAL(6,2),
-// --     Cholesterol_mg DECIMAL(6,2),
-// --     Calcium_mg DECIMAL(6,2),
-// --     Iron_mg DECIMAL(6,2),
-// --     Magnesium_mg DECIMAL(6,2),
-// --     Phosphorus_mg DECIMAL(6,2),
-// --     Potassium_mg DECIMAL(6,2),
-// --     Sodium_mg DECIMAL(6,2),
-// --     Zinc_mg DECIMAL(6,2),
-// --     Copper_g DECIMAL(6,2),
-// --     Lipids_g DECIMAL(6,2),
-// --     Iodine_ug DECIMAL(6,2),
-// --     Thiamin_mg DECIMAL(6,2),
-// --     Riboflavin_mg DECIMAL(6,2),
-// --     Niacin_mg DECIMAL(6,2),
-// --     Retinol_ug DECIMAL(6,2),
-// --     Carotenes_ug DECIMAL(6,2),
-// --     Choline_mg DECIMAL(6,2),
-// --     RetinolEq_ug DECIMAL(6,2),
-// --     VitaminA_ug DECIMAL(6,2),
-// --     AlphaTocopherol_ug DECIMAL(6,2),
-// --     Cholecalciferol_ug DECIMAL(6,2),
-// --     Choline_ug DECIMAL(6,2),
-// --     Manganese_ug DECIMAL(6,2),
-// --     VitaminK_ug DECIMAL(6,2)
+// --     VitaminC_mg DECIMAL(6,2)
 // -- );
 
 // -- CREATE TABLE recipe (
@@ -136,6 +110,9 @@ const app = express();
 // --     FOREIGN KEY (recipeID) REFERENCES recipe(recipeID) ON UPDATE CASCADE ON DELETE CASCADE,	
 // --     FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON UPDATE CASCADE ON DELETE CASCADE
 // -- );
+
+// -- USE fypdb;
+// -- SELECT * FROM recipe;
 
 
 

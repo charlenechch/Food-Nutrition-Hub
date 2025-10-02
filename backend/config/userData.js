@@ -13,16 +13,16 @@ function insertUsers() {
 
     const user = userData[index];
     const sql = `
-      INSERT INTO user (username, email, password, role)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO user (firstname, lastname, email, password, role)
+      VALUES (?, ?, ?, ?, ?)
     `;
-    const values = [user.username, user.email, user.password, user.role];
+    const values = [user.firstname, user.lastname, user.email, user.password, user.role];
 
     db.query(sql, values, (err) => {
       if (err) {
-        console.error(`❌ Error inserting user ${user.username}:`, err);
+        console.error(`❌ Error inserting user ${user.firstname}:`, err);
       } else {
-        console.log(`Inserted user ${index + 1}: ${user.username}`);
+        console.log(`Inserted user ${index + 1}: ${user.firstname}`);
       }
       index++;
       insertNext();
