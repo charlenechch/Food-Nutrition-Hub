@@ -42,7 +42,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       </div>
       </section>
 
-        {/* Scroll Button */}
+        {/* Scroll Button
         <div
         className="scroll-down"
         onClick={() => {
@@ -53,7 +53,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         }
       >
         <FaAnglesDown />
-      </div>
+      </div> */}
       </header>
 
      {/* Next Section */}
