@@ -15,8 +15,40 @@ export default function LoginRegisterPage() {
   const [regPassword, setRegPassword] = useState("");
   const navigate = useNavigate();
 
+  const validatePassword = (password) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (password.length < minLength) {
+      return `Password must be at least ${minLength} characters long`;
+    }
+    if (!hasUpperCase) {
+      return "Password must contain at least one uppercase letter";
+    }
+    if (!hasLowerCase) {
+      return "Password must contain at least one lowercase letter";
+    }
+    if (!hasNumber) {
+      return "Password must contain at least one number";
+    }
+    if (!hasSpecialChar) {
+      return "Password must contain at least one special character (!@#$%^&*...)";
+    }
+
+    return null;
+  };
+
   // Handle login
   const handleLogin = async () => {
+    // Validation
+    if (!email || !password) {
+        alert("Please fill in all fields");
+        return;
+      }
+
     try {
       const res = await fetch("http://localhost:5000/api/login", {
         method: "POST",
@@ -39,6 +71,25 @@ export default function LoginRegisterPage() {
 
   // Handle register
   const handleRegister = async () => {
+    //Validation
+    if (!firstName || !lastName || !regEmail || !regPassword) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(regEmail)) {
+      alert("Please enter a valid email address");
+      return;
+    }
+
+    // Password validation with requirements
+    const passwordError = validatePassword(regPassword);
+    if (passwordError) {
+      alert(passwordError);
+      return;
+    }
+    
     try {
       const res = await fetch("http://localhost:5000/api/register", {
         method: "POST",
@@ -55,6 +106,13 @@ export default function LoginRegisterPage() {
       if (res.ok) {
         console.log("Registration successful:", data);
         alert("Account created! Welcome to SarawakEats!.");
+
+        // Clear form fields
+        setFirstName("");
+        setLastName("");
+        setRegEmail("");
+        setRegPassword("");
+
         setActiveTab("login"); // switch back to login tab
       } else {
         alert(data.message || "Registration failed!");
@@ -157,6 +215,7 @@ export default function LoginRegisterPage() {
                 <div>
                   <label>Password</label>
                   <input type="password" placeholder="Create a password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}/>
+                  <p className="password-hint">Password must be at least 8 characters with uppercase, lowercase, number, and symbol</p>
                 </div>
                 <button onClick={handleRegister} className="lrp-btn lrp-btn-primary">
                   Create Account

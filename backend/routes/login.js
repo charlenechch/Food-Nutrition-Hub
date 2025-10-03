@@ -35,11 +35,17 @@ router.post('/', async (req, res) => {
     }
 
     // If no matches
-    return res.status(401).json({ error: 'Invalid email or password' });
+    return res.status(401).json({ 
+      success: false,
+      message: 'Invalid email or password'
+    });
 
   } catch (err) {
     console.error('Login error:', err);
-    return res.status(500).json({ error: 'Authentication error' });
+    return res.status(500).json({ 
+      success: false,
+      message: 'Authentication error'
+    });
   }
 });
 
