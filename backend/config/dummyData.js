@@ -137,6 +137,17 @@ export const foods = [
     Carbohydrates_g: 23,
     Fiber_g: 17,
     VitaminC_mg: 25,
+  },
+
+  {
+    name: "Ayam Pansuh",
+    origin: "Dayak",
+    Energy_kcal: 178.04,
+    Protein_g: 30.22,
+    Fat_g: 5.22,
+    Carbohydrates_g: 0,
+    Fiber_g: 0,
+    VitaminC_mg: 0,
   }
 
 ];
@@ -398,4 +409,34 @@ export const recipeData = [
           5. Add in small amount of water. Add in salt to taste. Serve immediately. \
           ",
   },
+
+  {
+    foodID: 10,
+    description: "Deep within the cultural tapestry of Sarawak, an iconic dish known as Manok Pansoh (also called manuk pansuh/ayam pansuh) holds a special place among the Dayak community (Iban, Bidayuh, and Ulu people of Sarawak).\
+    The name itself, “Manok Pansoh,” translates to “chicken bamboo” in the Iban language, offering a glimpse into the essence of this traditional delicacy.",
+    images: [
+      "ayam_pansuh.jpg"
+    ],
+    ingredients: "Ingredients:\
+                  1 Chicken\
+                  1 bundle of umbut tepus\
+                  A kantan flower\
+                  10 daun ubi\
+                  1 stick of lemongrass\
+                  3 wite onion\
+                  2 red onion\
+                  50g ginger\
+                  1 turmeric leaf\
+                  1 bamboo stick\
+                  50ml Water\
+                  1tsp Aji No Moto \
+                  2tsp Salt",
+    steps:"Method:\
+          1. Cut the chickens into pieces\
+          2.Prepare all the ingredients by cutting, washing, and draining them. Mix the chicken and spices thoroughly.\
+          3.Clean the bamboo and place the ingredients inside. Add a little water to create the broth.\
+          4.Traditionally, the bamboo is cooked over an open fire. In this case, it was grilled over a gas stove due to heavy rain. Keep a steady fire and watch closely until you hear the broth bubbling inside the bamboo.\
+          5.Seal the top of the bamboo with yam leaves (traditional method) or aluminum foil as an alternative.\
+          ",
+  }
 ];
