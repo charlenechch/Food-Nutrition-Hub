@@ -4,6 +4,8 @@
   text-align: center;
   background: #fdfbf9;
   color: #333;
+  padding-top: 45px;     
+  min-height: 100vh;
 }
 
 .page-title {
