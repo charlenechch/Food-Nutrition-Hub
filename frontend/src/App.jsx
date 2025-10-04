@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginRegisterPage from "./pages/LoginRegisterPage";
+import AdminHomepage from './pages/AdminHomepage';
 import UserHomepage from "./pages/UserHomepage";
 import ExploreFoodsPage from "./pages/ExploreFoodPage";
 import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
@@ -22,6 +23,7 @@ function App() {
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/profile" element={<UserProfilePage />} />
+        <Route path="/admin" element={<AdminHomepage />} />
       </Routes>
     </Router>
   );

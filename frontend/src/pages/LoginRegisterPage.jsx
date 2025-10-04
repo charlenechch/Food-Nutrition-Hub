@@ -59,7 +59,13 @@ export default function LoginRegisterPage() {
 
       if (res.ok) {
         console.log("Login successful:", data);
-        navigate("/home");  // redirect to UserHomepage
+
+        // Redirect based on role
+        if (data.user.role === 'admin') {
+          navigate("/admin");
+        } else {
+          navigate("/home");
+        }
       } else {
         alert(data.message || "Login failed!");
       }
