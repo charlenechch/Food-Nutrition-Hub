@@ -21,16 +21,19 @@ router.post('/', async (req, res) => {
     if (users.length > 0) {
       const user = users[0];
 
+      // Store user in session
+      req.session.user = {
+        userID: user.userID,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        role: user.role
+      };
+
       return res.json({
         success: true,
         message: 'Login successful',
-        user: {
-          id: user.userID,
-          firstname: user.firstname,
-          lastname: user.lastname,
-          email: user.email,
-          role: user.role
-        }
+        user: req.session.user
       });
     }
 
