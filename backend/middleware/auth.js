@@ -1,8 +1,8 @@
-const ROLES = require('./roles');
-const rolePermissions = require('./rolePermissions');
+const ROLES = require('../config/roles');
+const rolePermissions = require('../config/rolespermission');
 
 /**
- * Middleware: Require the user to be authenticated.
+ * Require authentication (Session-based)
  */
 const requireAuth = (req, res, next) => {
   if (!req.session || !req.session.user) {
@@ -15,8 +15,7 @@ const requireAuth = (req, res, next) => {
 };
 
 /**
- * Middleware: Allow access based on specified roles.
- * Example: allowRoles(ROLES.ADMIN) or allowRoles(ROLES.ADMIN, ROLES.MEMBER)
+ * Allow access for specific roles
  */
 const allowRoles = (...allowedRoles) => {
   return (req, res, next) => {
@@ -42,7 +41,7 @@ const allowRoles = (...allowedRoles) => {
 };
 
 /**
- * Middleware: Check if user owns the resource OR is admin.
+ * Allow if self OR admin
  */
 const allowSelfOrAdmin = (getTargetUserId) => {
   return (req, res, next) => {
@@ -59,9 +58,7 @@ const allowSelfOrAdmin = (getTargetUserId) => {
     const isAdmin = user.role === ROLES.ADMIN;
     const isSelf = String(user.id) === targetId;
 
-    if (isAdmin || isSelf) {
-      return next();
-    }
+    if (isAdmin || isSelf) return next();
 
     console.warn(`[Ownership] User ${user.id} (${user.role}) attempted to access user ${targetId}`);
     return res.status(403).json({
@@ -72,7 +69,7 @@ const allowSelfOrAdmin = (getTargetUserId) => {
 };
 
 /**
- * Middleware: Attach the logged-in user to req.user
+ * Attach user to req.user
  */
 const attachUser = (req, res, next) => {
   req.user = req.session?.user || null;
@@ -80,7 +77,7 @@ const attachUser = (req, res, next) => {
 };
 
 /**
- * Middleware: Check feature/page access based on rolePermissions
+ * Page-based access control
  */
 const allowPageAccess = (page) => {
   return (req, res, next) => {
@@ -99,102 +96,35 @@ const allowPageAccess = (page) => {
   };
 };
 
+/**
+ * Require admin role only
+ */
+const requireAdmin = (req, res, next) => {
+  const user = req.session?.user;
+
+  if (!user) {
+    return res.status(401).json({
+      error: 'Authentication required',
+      message: 'Please log in to continue'
+    });
+  }
+
+  if (user.role !== 'admin') {
+    console.warn(`[Admin Only] Access denied for user ${user.id} (${user.role})`);
+    return res.status(403).json({
+      error: 'Access denied',
+      message: 'Admin privileges required'
+    });
+  }
+
+  next();
+};
+
 module.exports = {
   requireAuth,
   allowRoles,
   allowSelfOrAdmin,
   attachUser,
-  allowPageAccess
+  allowPageAccess,
+  requireAdmin // ✅ Added this export
 };
-
-
-const express = require('express');
-const router = express.Router();
-const {
-  requireAuth,
-  allowRoles,
-  allowSelfOrAdmin,
-  attachUser,
-  allowPageAccess
-} = require('../authMiddleware');
-const ROLES = require('../roles');
-
-// -------------------------
-// ADMIN DASHBOARD
-// -------------------------
-router.get('/admin/dashboard',
-  requireAuth,
-  allowRoles(ROLES.ADMIN),
-  (req, res) => res.send('Welcome, Admin!')
-);
-
-// -------------------------
-// MEMBER DASHBOARD
-// -------------------------
-router.get('/member/home',
-  requireAuth,
-  allowRoles(ROLES.MEMBER),
-  (req, res) => res.send('Welcome, Member!')
-);
-
-// -------------------------
-// GUEST & MEMBER ACCESS (Explore + Recipe)
-// -------------------------
-router.get('/explore',
-  attachUser,
-  allowPageAccess('explore'),
-  (req, res) => res.send('Explore Food Page')
-);
-
-router.get('/recipe',
-  attachUser,
-  allowPageAccess('recipe'),
-  (req, res) => res.send('Recipe Page')
-);
-
-// -------------------------
-// MEMBER ONLY (Analyser + Community)
-// -------------------------
-router.get('/analyser',
-  requireAuth,
-  allowPageAccess('analyser'),
-  (req, res) => res.send('Nutrition Analyser Page')
-);
-
-router.get('/community',
-  requireAuth,
-  allowPageAccess('community'),
-  (req, res) => res.send('Community Page')
-);
-
-// -------------------------
-// PROFILE OWNERSHIP (View/Edit/Delete)
-// -------------------------
-router.get('/users/:id',
-  requireAuth,
-  attachUser,
-  allowSelfOrAdmin(req => req.params.id),
-  (req, res) => res.send(`Viewing profile for user ${req.params.id}`)
-);
-
-router.put('/users/:id',
-  requireAuth,
-  attachUser,
-  allowSelfOrAdmin(req => req.params.id),
-  (req, res) => {
-    if (req.user.role !== ROLES.ADMIN) {
-      delete req.body.role;
-      delete req.body.id;
-    }
-    res.send(`Profile for user ${req.params.id} updated`);
-  }
-);
-
-router.delete('/users/:id',
-  requireAuth,
-  attachUser,
-  allowSelfOrAdmin(req => req.params.id),
-  (req, res) => res.send(`User ${req.params.id} deleted`)
-);
-
-module.exports = router;

@@ -8,35 +8,35 @@ const foodRoutes = require("./routes/foods");
 const app = express();
 const PORT = 5000;
 
-// middleware 
-app.use(cors({ 
+// Middleware
+app.use(cors({
   origin: "http://localhost:5173",
   credentials: true
 }));
 app.use(express.json());
 
-// Add session middleware
+// Session setup
 app.use(session({
   secret: '9c6bb5d5342ccf81bb30c08874ac5eca58ed5d6f80e8c88e74228b1c3bccaa37',
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: false,
-    maxAge: 24 * 60 * 60 * 1000
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
   }
 }));
 
-// Simple API route
+// Basic test route
 app.get("/", (req, res) => {
   res.send("Hello from Node.js backend!");
 });
 
-// ✅ routes must come after middleware
+// API routes
 app.use("/api/login", loginRoutes);
 app.use("/api/register", registerRoutes);
 app.use("/api/foods", foodRoutes);
 
-// start server
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`✅ Server running at http://localhost:${PORT}`);
 });
