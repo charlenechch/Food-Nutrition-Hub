@@ -3,6 +3,7 @@ const cors = require("cors");
 const session = require("express-session");
 const loginRoutes = require("./routes/login");
 const registerRoutes = require("./routes/register");
+const foodRoutes = require("./routes/foods");
 
 const app = express();
 const PORT = 5000;
@@ -33,6 +34,7 @@ app.get("/", (req, res) => {
 // ✅ routes must come after middleware
 app.use("/api/login", loginRoutes);
 app.use("/api/register", registerRoutes);
+app.use("/api/foods", foodRoutes);
 
 // start server
 app.listen(PORT, () => {
