@@ -24,21 +24,27 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         <div className="feature-icon">🔍</div>
         <h3>Explore Foods</h3>
         <p>Discover traditional Sarawakian dishes and their stories</p>
-        <button className="feature-btn">Explore Now</button>
+        <button className="feature-btn"  onClick={() => navigate("/foods")}>
+          Explore Now
+        </button>
       </div>
 
       <div className="feature-card">
         <div className="feature-icon">🧠</div>
         <h3>Nutrition Analyzer</h3>
         <p>Get AI-powered nutrition analysis and healthy alternatives</p>
-        <button className="feature-btn">Start Analysis</button>
+        <button className="feature-btn" onClick={() => navigate("/analyzer")}>
+          Start Analysis
+        </button>
       </div>
 
       <div className="feature-card">
         <div className="feature-icon">👤</div>
         <h3>My Profile</h3>
         <p>Manage your preferences, dietary restrictions, and saved foods</p>
-        <button className="feature-btn">View Profile</button>
+        <button className="feature-btn" onClick={() => navigate("/profile")}>
+          View Profile
+        </button>
       </div>
       </section>
 
