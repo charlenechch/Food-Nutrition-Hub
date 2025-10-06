@@ -2,12 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const helmet = require("helmet");
-const rateLimit = require("express-rate-limit"); // For brute-force protection
+const rateLimit = require("express-rate-limit");
 
 const loginRoutes = require("./routes/login");
 const registerRoutes = require("./routes/register");
 const foodRoutes = require("./routes/foods");
-const authRoutes = require('./routes/auth');
+const authRoutes = require("./routes/auth");
 
 const app = express();
 const PORT = 5000;
@@ -15,13 +15,13 @@ const PORT = 5000;
 // Helmet middleware (security headers)
 app.use(helmet());
 
-// CORS setup (restrict in production)
+// CORS setup
 app.use(cors({
-  origin: "http://localhost:5173", // change to your frontend domain in prod
+  origin: "http://localhost:5173", // frontend origin
   credentials: true
 }));
 
-// Body parser
+// JSON body parser
 app.use(express.json());
 
 // Session setup
@@ -30,38 +30,36 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
+    httpOnly: true,       // prevent client JS access
+    secure: false,        // set true in production (HTTPS)
+    sameSite: "strict",   // strong CSRF protection
     maxAge: 24 * 60 * 60 * 1000 // 1 day
   }
 }));
 
-// ✅ Rate limiter for login & register
+// Rate limiter for login & register
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 3, // Block after 3 attempts
+  max: 3, // block after 3 requests
   message: { error: "Too many attempts, please try again after 5 minutes." },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res, next, options) => {
-    console.warn(`[RateLimit] Blocked IP: ${req.ip} after too many attempts on ${req.originalUrl}`);
+    console.warn(`[RateLimit] Blocked IP: ${req.ip} on ${req.originalUrl}`);
     res.status(options.statusCode).json(options.message);
   }
 });
 
-// Apply limiter only to login & register
+// Routes
 app.use("/api/login", authLimiter, loginRoutes);
 app.use("/api/register", authLimiter, registerRoutes);
 app.use("/api/foods", foodRoutes);
+app.use("/api/auth", authRoutes);
 
-// Basic test route
+// Test route
 app.get("/", (req, res) => {
   res.send("Hello from Node.js backend with security and rate limiting!");
 });
-
-// API routes
-app.use("/api/login", loginRoutes);
-app.use("/api/register", registerRoutes);
-app.use("/api/foods", foodRoutes);
 
 // Start server
 app.listen(PORT, () => {
