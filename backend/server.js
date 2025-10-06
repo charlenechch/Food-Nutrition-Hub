@@ -7,6 +7,7 @@ const rateLimit = require("express-rate-limit"); // For brute-force protection
 const loginRoutes = require("./routes/login");
 const registerRoutes = require("./routes/register");
 const foodRoutes = require("./routes/foods");
+const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = 5000;
@@ -29,9 +30,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    httpOnly: true,   // prevent JS from reading cookies
-    secure: false,    // set to true in production with HTTPS
-    sameSite: "strict", // helps prevent CSRF
+    secure: false,
     maxAge: 24 * 60 * 60 * 1000 // 1 day
   }
 }));
@@ -58,6 +57,11 @@ app.use("/api/foods", foodRoutes);
 app.get("/", (req, res) => {
   res.send("Hello from Node.js backend with security and rate limiting!");
 });
+
+// API routes
+app.use("/api/login", loginRoutes);
+app.use("/api/register", registerRoutes);
+app.use("/api/foods", foodRoutes);
 
 // Start server
 app.listen(PORT, () => {

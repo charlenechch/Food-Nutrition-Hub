@@ -1,9 +1,7 @@
 const ROLES = require('../config/roles');
 const rolePermissions = require('../config/rolespermission');
 
-/**
- * Require authentication (Session-based)
- */
+// Require authentication (Session-based)
 const requireAuth = (req, res, next) => {
   if (!req.session || !req.session.user) {
     return res.status(401).json({
@@ -14,9 +12,7 @@ const requireAuth = (req, res, next) => {
   next();
 };
 
-/**
- * Allow access for specific roles
- */
+// Allow access for specific roles
 const allowRoles = (...allowedRoles) => {
   return (req, res, next) => {
     const user = req.session?.user;
@@ -40,9 +36,7 @@ const allowRoles = (...allowedRoles) => {
   };
 };
 
-/**
- * Allow if self OR admin
- */
+// Allow if self OR admin
 const allowSelfOrAdmin = (getTargetUserId) => {
   return (req, res, next) => {
     const user = req.session?.user;
@@ -68,17 +62,13 @@ const allowSelfOrAdmin = (getTargetUserId) => {
   };
 };
 
-/**
- * Attach user to req.user
- */
+// Attach user to req.user
 const attachUser = (req, res, next) => {
   req.user = req.session?.user || null;
   next();
 };
 
-/**
- * Page-based access control
- */
+// Page-based access control
 const allowPageAccess = (page) => {
   return (req, res, next) => {
     const user = req.session?.user || { role: ROLES.GUEST };
@@ -96,9 +86,7 @@ const allowPageAccess = (page) => {
   };
 };
 
-/**
- * Require admin role only
- */
+// Require admin role only
 const requireAdmin = (req, res, next) => {
   const user = req.session?.user;
 
@@ -126,5 +114,5 @@ module.exports = {
   allowSelfOrAdmin,
   attachUser,
   allowPageAccess,
-  requireAdmin // ✅ Added this export
+  requireAdmin,
 };
