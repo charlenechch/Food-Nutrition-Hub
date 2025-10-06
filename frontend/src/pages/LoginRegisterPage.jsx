@@ -46,16 +46,24 @@ export default function LoginRegisterPage() {
     try {
       const res = await fetch("http://localhost:5000/api/login", {
         method: "POST",
+        credentials: "include", // include cookies for session
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
       });
+
+      // ✅ Handle rate limiting
+      if (res.status === 429) {
+        const data = await res.json();
+        alert(data.error || "Login unavailable, please try again later.");
+        return;
+      }
 
       const data = await res.json();
 
       if (res.ok) {
         console.log("Login successful:", data);
 
-        login(data.user); // 👈 Store in context and localStorage
+        login(data.user); // Store in context and localStorage
 
         // Navigate based on role
         if (data.user.role === "admin") {
@@ -64,7 +72,7 @@ export default function LoginRegisterPage() {
           navigate("/home");
         }
       } else {
-        alert(data.message || "Login failed!");
+        alert(data.error || data.message || "Login failed!");
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -74,7 +82,6 @@ export default function LoginRegisterPage() {
 
   // ✅ Handle registration
   const handleRegister = async () => {
-    // Validation
     if (!firstName || !lastName || !regEmail || !regPassword) {
       alert("Please fill in all fields");
       return;
@@ -86,7 +93,6 @@ export default function LoginRegisterPage() {
       return;
     }
 
-    // Password validation
     const passwordError = validatePassword(regPassword);
     if (passwordError) {
       alert(passwordError);
@@ -96,6 +102,7 @@ export default function LoginRegisterPage() {
     try {
       const res = await fetch("http://localhost:5000/api/register", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstname: firstName,
@@ -104,6 +111,13 @@ export default function LoginRegisterPage() {
           password: regPassword
         })
       });
+
+      // ✅ Handle rate limiting
+      if (res.status === 429) {
+        const data = await res.json();
+        alert(data.error || "Registration temporarily unavailable. Please try again later.");
+        return;
+      }
 
       const data = await res.json();
 
@@ -120,7 +134,7 @@ export default function LoginRegisterPage() {
         // Switch back to login tab
         setActiveTab("login");
       } else {
-        alert(data.message || "Registration failed!");
+        alert(data.error || data.message || "Registration failed!");
       }
     } catch (err) {
       console.error("Registration error:", err);
@@ -130,7 +144,7 @@ export default function LoginRegisterPage() {
 
   // ✅ Handle Guest Login (tracks guest with role)
   const handleGuest = () => {
-    login({ role: "guest" }); // 👈 Track guest
+    login({ role: "guest" }); // Track guest
     console.log("Logged in as guest");
     navigate("/home");
   };
@@ -159,8 +173,18 @@ export default function LoginRegisterPage() {
 
           {/* Tabs */}
           <div className="lrp-tabs">
-            <button className={`lrp-tab ${activeTab === "login" ? "active" : ""}`} onClick={() => setActiveTab("login")}>Login</button>
-            <button className={`lrp-tab ${activeTab === "register" ? "active" : ""}`} onClick={() => setActiveTab("register")}>Register</button>
+            <button
+              className={`lrp-tab ${activeTab === "login" ? "active" : ""}`}
+              onClick={() => setActiveTab("login")}
+            >
+              Login
+            </button>
+            <button
+              className={`lrp-tab ${activeTab === "register" ? "active" : ""}`}
+              onClick={() => setActiveTab("register")}
+            >
+              Register
+            </button>
           </div>
 
           {/* Form Content */}
@@ -169,40 +193,80 @@ export default function LoginRegisterPage() {
               <>
                 <div>
                   <label>Email</label>
-                  <input type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <div>
                   <label>Password</label>
-                  <input type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <input
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
                 </div>
-                <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">Sign In</button>
+                <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
+                  Sign In
+                </button>
                 <div className="lrp-divider"><span>or</span></div>
-                <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">Continue as Guest</button>
+                <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
+                  Continue as Guest
+                </button>
               </>
             ) : (
               <>
                 <div className="lrp-grid">
                   <div>
                     <label>First Name</label>
-                    <input type="text" placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                    <input
+                      type="text"
+                      placeholder="First name"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                    />
                   </div>
                   <div>
                     <label>Last Name</label>
-                    <input type="text" placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                    <input
+                      type="text"
+                      placeholder="Last name"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
                   </div>
                 </div>
                 <div>
                   <label>Email</label>
-                  <input type="email" placeholder="Enter your email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} />
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                  />
                 </div>
                 <div>
                   <label>Password</label>
-                  <input type="password" placeholder="Create a password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} />
-                  <p className="password-hint">Password must be at least 8 characters with uppercase, lowercase, number, and symbol</p>
+                  <input
+                    type="password"
+                    placeholder="Create a password"
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                  />
+                  <p className="password-hint">
+                    Password must be at least 8 characters with uppercase, lowercase, number, and symbol
+                  </p>
                 </div>
-                <button onClick={handleRegister} className="lrp-btn lrp-btn-primary">Create Account</button>
+                <button onClick={handleRegister} className="lrp-btn lrp-btn-primary">
+                  Create Account
+                </button>
                 <div className="lrp-divider"><span>or</span></div>
-                <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">Continue as Guest</button>
+                <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
+                  Continue as Guest
+                </button>
               </>
             )}
           </div>
