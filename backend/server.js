@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
-const helmet = require("helmet");
-const rateLimit = require("express-rate-limit");
+const helmet = require("helmet"); //Helmet for security headers
+const rateLimit = require("express-rate-limit"); //blocks spam
 
 const loginRoutes = require("./routes/login");
 const registerRoutes = require("./routes/register");
