@@ -1,3 +1,4 @@
+// src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginRegisterPage from "./pages/LoginRegisterPage";
 import AdminHomepage from './pages/AdminHomepage';
@@ -7,27 +8,44 @@ import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
 import RecipesPage from "./pages/RecipesPage";
 import CommunityPage from "./pages/Community";
 import UserProfilePage from "./pages/UserProfile";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Redirect root path to loginregister */}
         <Route path="/" element={<Navigate to="/loginregister" replace />} />
         <Route path="/loginregister" element={<LoginRegisterPage />} />
 
-        {/* Other pages */}
+        {/* Public Pages */}
         <Route path="/home" element={<UserHomepage />} />
         <Route path="/foods" element={<ExploreFoodsPage />} />
-        <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/community" element={<CommunityPage />} />
-        <Route path="/profile" element={<UserProfilePage />} />
-        <Route path="/admin" element={<AdminHomepage />} />
+
+        {/* Nutrition Analyzer is PUBLIC (page visible to guests),
+            the page itself will disable upload/analyze for guests. */}
+        <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
+
+        {/* Protected Pages - profile and admin remain protected */}
+        <Route
+          path="/profile"
+          element={
+              <UserProfilePage />
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminHomepage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-
