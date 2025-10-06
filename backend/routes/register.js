@@ -51,6 +51,14 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Email already exists" });
     }
 
+    // Check if this is the first user
+    const [userCount] = await db.promise().query(
+      'SELECT COUNT(*) as count FROM user'
+    );
+    
+    // If first user, make them as admin
+    const role = userCount[0].count === 0 ? 'admin' : 'member';
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -59,7 +67,7 @@ router.post("/", async (req, res) => {
       INSERT INTO user (firstname, lastname, email, password, role)
       VALUES (?, ?, ?, ?, ?)
     `;
-    const values = [firstname, lastname, email, hashedPassword, "member"];
+    const values = [firstname, lastname, email, hashedPassword, role];
 
     const [result] = await db.promise().query(sql, values);
 
@@ -71,7 +79,7 @@ router.post("/", async (req, res) => {
         firstname,
         lastname,
         email,
-        role: "member"
+        role
       }
     });
 

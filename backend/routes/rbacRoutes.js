@@ -9,27 +9,23 @@ const {
 } = require('../middleware/auth');
 const ROLES = require('../config/roles');
 
-// -------------------------
-// ADMIN DASHBOARD
-// -------------------------
+// Admin dashboard
 router.get('/admin/dashboard',
   requireAuth,
   allowRoles(ROLES.ADMIN),
   (req, res) => res.send('Welcome, Admin!')
 );
 
-// -------------------------
-// MEMBER DASHBOARD
-// -------------------------
+// Member dashboard
+
 router.get('/member/home',
   requireAuth,
   allowRoles(ROLES.MEMBER),
   (req, res) => res.send('Welcome, Member!')
 );
 
-// -------------------------
-// GUEST & MEMBER ACCESS (Explore + Recipe)
-// -------------------------
+// Guest & member access (Explore + Recipe)
+
 router.get('/explore',
   attachUser,
   allowPageAccess('explore'),
@@ -42,9 +38,7 @@ router.get('/recipe',
   (req, res) => res.send('Recipe Page')
 );
 
-// -------------------------
-// MEMBER ONLY (Analyser + Community)
-// -------------------------
+// Member only (Analyser + Community)
 router.get('/analyser',
   requireAuth,
   allowPageAccess('analyser'),
@@ -57,9 +51,7 @@ router.get('/community',
   (req, res) => res.send('Community Page')
 );
 
-// -------------------------
-// PROFILE OWNERSHIP (View/Edit/Delete)
-// -------------------------
+// Profile ownership (View/Edit/Delete)
 router.get('/users/:id',
   requireAuth,
   attachUser,

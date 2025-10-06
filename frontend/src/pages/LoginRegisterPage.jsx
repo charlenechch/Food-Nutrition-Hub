@@ -74,6 +74,7 @@ export default function LoginRegisterPage() {
 
   // ✅ Handle registration
   const handleRegister = async () => {
+    // Validation
     if (!firstName || !lastName || !regEmail || !regPassword) {
       alert("Please fill in all fields");
       return;
@@ -85,6 +86,7 @@ export default function LoginRegisterPage() {
       return;
     }
 
+    // Password validation
     const passwordError = validatePassword(regPassword);
     if (passwordError) {
       alert(passwordError);
@@ -109,11 +111,13 @@ export default function LoginRegisterPage() {
         console.log("Registration successful:", data);
         alert("Account created! Welcome to SarawakEats.");
 
+        // Clear form fields
         setFirstName("");
         setLastName("");
         setRegEmail("");
         setRegPassword("");
 
+        // Switch back to login tab
         setActiveTab("login");
       } else {
         alert(data.message || "Registration failed!");
@@ -133,7 +137,7 @@ export default function LoginRegisterPage() {
 
   return (
     <div className="login-register-page">
-      {/* Left Image */}
+      {/* Left Section with Image */}
       <div className="lrp-image-section">
         <img src={LoginFood} alt="Login Food" />
         <div className="lrp-image-overlay"></div>
@@ -144,7 +148,7 @@ export default function LoginRegisterPage() {
         </div>
       </div>
 
-      {/* Right Form */}
+      {/* Right Section with Form */}
       <div className="lrp-form-section">
         <div className="lrp-card">
           <div className="lrp-card-header">
@@ -159,7 +163,7 @@ export default function LoginRegisterPage() {
             <button className={`lrp-tab ${activeTab === "register" ? "active" : ""}`} onClick={() => setActiveTab("register")}>Register</button>
           </div>
 
-          {/* Tab Form Content */}
+          {/* Form Content */}
           <div className="lrp-form-content">
             {activeTab === "login" ? (
               <>
@@ -203,6 +207,7 @@ export default function LoginRegisterPage() {
             )}
           </div>
 
+          {/* Footer Text */}
           <p className="lrp-footer-text">
             Join our community to contribute recipes and preserve Sarawak's food culture
           </p>
