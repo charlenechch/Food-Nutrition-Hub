@@ -4,6 +4,7 @@ const session = require("express-session");
 const loginRoutes = require("./routes/login");
 const registerRoutes = require("./routes/register");
 const foodRoutes = require("./routes/foods");
+const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = 5000;
@@ -22,6 +23,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     secure: false,
+    httpOnly: true,
+    sameSite: "lax",
     maxAge: 24 * 60 * 60 * 1000 // 1 day
   }
 }));
@@ -35,6 +38,7 @@ app.get("/", (req, res) => {
 app.use("/api/login", loginRoutes);
 app.use("/api/register", registerRoutes);
 app.use("/api/foods", foodRoutes);
+app.use('/api/auth', authRoutes);
 
 // Start server
 app.listen(PORT, () => {

@@ -36,7 +36,7 @@ export default function LoginRegisterPage() {
     return null;
   };
 
-  // ✅ Handle login
+  // Handle login
   const handleLogin = async () => {
     if (!email || !password) {
       alert("Please fill in all fields");
@@ -46,6 +46,7 @@ export default function LoginRegisterPage() {
     try {
       const res = await fetch("http://localhost:5000/api/login", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
       });
@@ -72,7 +73,7 @@ export default function LoginRegisterPage() {
     }
   };
 
-  // ✅ Handle registration
+  // Handle registration
   const handleRegister = async () => {
     // Validation
     if (!firstName || !lastName || !regEmail || !regPassword) {
