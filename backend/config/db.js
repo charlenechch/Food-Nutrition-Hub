@@ -8,7 +8,7 @@ const db = mysql.createConnection({
     user: 'root',
     password: 'root', 
     database: 'fypdb',
-    port: 3307  //mine is 3307, but most used is 3306
+    port: 3306  //mine is 3307, but most used is 3306
 }); //make sure the setting here is match with ur own database connection
 
 // Connect to MySQL

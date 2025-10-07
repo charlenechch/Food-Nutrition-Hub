@@ -10,14 +10,17 @@ const foodRoutes = require("./routes/foods");
 const authRoutes = require("./routes/auth");
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // Helmet middleware (security headers)
 app.use(helmet());
 
 // CORS setup
 app.use(cors({
-  origin: "http://localhost:5173", // frontend origin
+    origin: [
+    "http://localhost:5173",
+    "https://food-nutrition-hub.vercel.app/" // replace with your actual deployed frontend URL
+  ],
   credentials: true
 }));
 
