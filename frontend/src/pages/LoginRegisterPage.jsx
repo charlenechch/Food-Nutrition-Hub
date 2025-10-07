@@ -6,6 +6,7 @@ import LoginFood from "../assets/LoginFood.png";
 
 export default function LoginRegisterPage() {
   const [activeTab, setActiveTab] = useState("login");
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   // Login state
   const [email, setEmail] = useState("");
@@ -44,7 +45,7 @@ export default function LoginRegisterPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch(`${API_BASE_URL}/api/login`, {
         method: "POST",
         credentials: "include", // include cookies for session
         headers: { "Content-Type": "application/json" },
