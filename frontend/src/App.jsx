@@ -1,7 +1,6 @@
-// src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginRegisterPage from "./pages/LoginRegisterPage";
-import AdminHomepage from './pages/AdminHomepage';
+import AdminHomepage from "./pages/AdminHomepage";
 import UserHomepage from "./pages/UserHomepage";
 import ExploreFoodsPage from "./pages/ExploreFoodPage";
 import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
@@ -14,6 +13,7 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Default route */}
         <Route path="/" element={<Navigate to="/loginregister" replace />} />
         <Route path="/loginregister" element={<LoginRegisterPage />} />
 
@@ -23,15 +23,16 @@ function App() {
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/community" element={<CommunityPage />} />
 
-        {/* Nutrition Analyzer is PUBLIC (page visible to guests),
-            the page itself will disable upload/analyze for guests. */}
+        {/* Nutrition Analyzer is public but guest has limited actions */}
         <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
 
-        {/* Protected Pages - profile and admin remain protected */}
+        {/* Protected Pages */}
         <Route
           path="/profile"
           element={
+            <ProtectedRoute allowedRoles={["member", "admin"]}>
               <UserProfilePage />
+            </ProtectedRoute>
           }
         />
 
