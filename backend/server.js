@@ -17,29 +17,47 @@ const PORT = process.env.PORT || 5000;
 // ✅ Security headers (Helmet)
 app.use(helmet());
 
-// CORS setup
-app.use(cors({
+// ✅ CORS setup
+app.use(
+  cors({
     origin: [
-    "http://localhost:5173",
-    "https://food-nutrition-hub.vercel.app/" // replace with your actual deployed frontend URL
-  ],
-  credentials: true
-}));
+      "http://localhost:5173",             // local frontend
+      "https://food-nutrition-hub.vercel.app" // deployed frontend
+    ],
+    credentials: true,
+  })
+);
 
 // ✅ JSON parser
 app.use(express.json());
 
-// ✅ MySQL session store config
-const dbOptions = {
-  host: "localhost",
-  port: 3306, // change if your MySQL runs on 3307
-  user: "root",
-  password: "",
-  database: "fypdb",
-};
+// ✅ MySQL session store config (Local + Production)
+let dbOptions;
+
+// Automatically detect Railway environment
+if (process.env.RAILWAY_ENVIRONMENT) {
+  console.log("🌐 Using Railway MySQL configuration");
+  dbOptions = {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+  };
+} else {
+  console.log("💻 Using LOCAL MySQL configuration");
+  dbOptions = {
+    host: "localhost",
+    port: 3306, // change if your MySQL runs on 3307
+    user: "root",
+    password: "",
+    database: "fypdb",
+  };
+}
+
+// ✅ Session Store
 const sessionStore = new MySQLStore(dbOptions);
 
-// ✅ Session middleware (stored in MySQL)
 app.use(
   session({
     secret:
@@ -49,8 +67,8 @@ app.use(
     store: sessionStore,
     cookie: {
       httpOnly: true,
-      secure: false, // true in production (HTTPS)
-      sameSite: "strict",
+      secure: process.env.RAILWAY_ENVIRONMENT ? true : false, // secure cookies only on HTTPS
+      sameSite: process.env.RAILWAY_ENVIRONMENT ? "none" : "strict",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
@@ -66,17 +84,14 @@ function requireRole(role) {
   };
 }
 
-// ✅ Hybrid Rate Limiter (IP + Email) 👇
+// ✅ Hybrid Rate Limiter (IP + Email)
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
   max: 3, // block after 3 attempts
   message: { error: "Too many attempts, please try again after 5 minutes." },
   keyGenerator: (req, res) => {
-    // Generate safe key for IPv4/IPv6
     const ipKey = ipKeyGenerator(req, res);
-    // Use email if provided, otherwise fall back to "guest"
     const emailKey = req.body?.email || "guest";
-    // Hybrid: IP + Email = unique key
     return `${ipKey}-${emailKey}`;
   },
   standardHeaders: true,
@@ -103,7 +118,7 @@ app.get("/", (req, res) => {
   res.send("Hello from Node.js backend with MySQL session store + hybrid rate limiting!");
 });
 
-// Start server
+// ✅ Start server
 app.listen(PORT, () => {
   console.log(`✅ Secure server running at http://localhost:${PORT}`);
 });
