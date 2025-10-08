@@ -34,18 +34,24 @@ app.use(express.json());
 // ✅ MySQL session store config (Local + Production)
 let dbOptions;
 
-// Automatically detect Railway environment
-if (process.env.RAILWAY_ENVIRONMENT) {
+// ✅ Detect Railway automatically
+const isRailway = !!process.env.MYSQLHOST || !!process.env.DB_HOST;
+
+if (isRailway) {
   console.log("🌐 Using Railway MySQL configuration");
+
   dbOptions = {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    host: process.env.MYSQLHOST || process.env.DB_HOST,
+    port: process.env.MYSQLPORT || process.env.DB_PORT,
+    user: process.env.MYSQLUSER || process.env.DB_USER,
+    password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
+    database: process.env.MYSQLDATABASE || process.env.DB_NAME,
   };
+
+  console.log("🧩 DB Options:", dbOptions); // Debugging
 } else {
   console.log("💻 Using LOCAL MySQL configuration");
+
   dbOptions = {
     host: "localhost",
     port: 3306, // change if your MySQL runs on 3307
@@ -54,6 +60,7 @@ if (process.env.RAILWAY_ENVIRONMENT) {
     database: "fypdb",
   };
 }
+
 
 // ✅ Session Store
 const sessionStore = new MySQLStore(dbOptions);
