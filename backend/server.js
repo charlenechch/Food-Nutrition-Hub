@@ -58,6 +58,21 @@ if (process.env.RAILWAY_ENVIRONMENT) {
 // ✅ Session Store
 const sessionStore = new MySQLStore(dbOptions);
 
+// ✅ Test DB Connection
+const mysql = require("mysql2/promise");
+
+(async () => {
+  try {
+    const connection = await mysql.createConnection(dbOptions);
+    await connection.query("SELECT 1");
+    console.log("✅ MySQL connection successful!");
+    await connection.end();
+  } catch (err) {
+    console.error("❌ Error connecting to MySQL:", err.message);
+  }
+})();
+
+// ✅ Express Session Middleware
 app.use(
   session({
     secret:
