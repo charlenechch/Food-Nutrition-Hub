@@ -1,7 +1,7 @@
 const mysql = require("mysql2");
 require("dotenv").config();
 
-// ✅ Create a promise-based connection pool
+// ✅ Create a promise-based pool
 const pool = mysql.createPool({
   host: process.env.MYSQLHOST || "localhost",
   port: process.env.MYSQLPORT || 3306,
@@ -11,7 +11,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-}).promise(); // <-- directly export promise pool
+}).promise(); // <-- export promise pool directly
 
 // ✅ Test connection
 (async () => {
@@ -19,12 +19,11 @@ const pool = mysql.createPool({
     await pool.query("SELECT 1");
     console.log("✅ MySQL pool is ready!");
   } catch (err) {
-    console.error("❌ MySQL pool connection failed:", err.message);
+    console.error("❌ MySQL pool error:", err.message);
   }
 })();
 
 module.exports = pool;
-
 
 
 // open MySQL workbench, copy paste the tables below
