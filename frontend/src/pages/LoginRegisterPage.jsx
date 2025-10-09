@@ -6,7 +6,7 @@ import LoginFood from "../assets/LoginFood.png";
 
 export default function LoginRegisterPage() {
   const [activeTab, setActiveTab] = useState("login");
-  const API_BASE = "https://food-nutrition-hub-production.up.railway.app";
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   // Login state
   const [email, setEmail] = useState("");

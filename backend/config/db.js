@@ -1,41 +1,28 @@
-const mysql = require("mysql2");
-require("dotenv").config();
+const mysql = require('mysql2');
+const express = require('express');
+require('dotenv').config();
 
-let dbConfig;
+// Create MySQL connection
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'root', 
+    database: 'fypdb',
+    port: 3306  //mine is 3307, but most used is 3306
+}); //make sure the setting here is match with ur own database connection
 
-// Detect Railway or Local DB
-if (process.env.MYSQLHOST || process.env.DB_HOST) {
-  console.log("🌐 Using Railway DB config");
-  dbConfig = {
-    host: process.env.MYSQLHOST || process.env.DB_HOST,
-    user: process.env.MYSQLUSER || process.env.DB_USER,
-    password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
-    database: process.env.MYSQLDATABASE || process.env.DB_NAME,
-    port: process.env.MYSQLPORT || process.env.DB_PORT || 3306,
-  };
-} else {
-  console.log("💻 Using Local DB config");
-  dbConfig = {
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "fypdb",
-    port: 3306,
-  };
-}
-
-const db = mysql.createConnection(dbConfig);
-
-db.connect((err) => {
-  if (err) {
-    console.error("❌ DB Connection Error:", err.message);
-    return;
-  }
-  console.log("✅ MySQL connected!");
+// Connect to MySQL
+db.connect(err => {
+    if (err) {
+        console.error('Error connecting to MySQL:', err);
+        return;
+    }
+    console.log('MySQL connected!');
 });
 
 module.exports = db;
 
+const app = express();
 
 // open MySQL workbench, copy paste the tables below
 
