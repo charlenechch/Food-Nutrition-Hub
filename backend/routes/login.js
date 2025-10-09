@@ -5,51 +5,51 @@ const db = require("../config/db");
 
 // Login route
 router.post("/", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password required" });
+  }
+
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password required" });
-    }
-
-    // Get user
+    // Get user by email
     const [users] = await db.promise().query(
       "SELECT * FROM user WHERE email = ? LIMIT 1",
       [email]
     );
 
     if (users.length === 0) {
-      console.warn(`❌ Login failed: No user found for ${email}`);
-      return res.status(401).json({ error: "Invalid email or password" });
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
     const user = users[0];
+
+    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log("🔍 bcrypt.compare result:", isMatch); // debug log
 
     if (!isMatch) {
-      console.warn(`❌ Login failed: Wrong password for ${email}`);
-      return res.status(401).json({ error: "Invalid email or password" });
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
-    // Save session
+    // Store session
     req.session.user = {
       userID: user.userID,
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
-      role: user.role,
+      role: user.role
     };
-
-    console.log(`✅ Login successful for ${email}`);
 
     return res.json({
       success: true,
       message: "Login successful",
-      user: req.session.user,
+      user: req.session.user
     });
+
   } catch (err) {
-    console.error("❌ Login route error:", err);
-    return res.status(500).json({ error: "Server error", details: err.message });
+    console.error("Login error:", err);
+    return res.status(500).json({ success: false, message: "Authentication error" });
   }
 });
 
