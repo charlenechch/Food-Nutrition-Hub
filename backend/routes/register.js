@@ -50,14 +50,9 @@ router.post("/", async (req, res) => {
     if (existing.length > 0) {
       return res.status(400).json({ error: "Email already exists" });
     }
-
-    // Check if this is the first user
-    const [userCount] = await db.promise().query(
-      'SELECT COUNT(*) as count FROM user'
-    );
     
-    // If first user, make them as admin
-    const role = userCount[0].count === 0 ? 'admin' : 'member';
+    // Default role for all registered users
+    const role = "member";
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, saltRounds);
