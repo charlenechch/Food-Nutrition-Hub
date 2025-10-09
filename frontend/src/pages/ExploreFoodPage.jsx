@@ -22,6 +22,16 @@ const sarawakFoods = [
     preparationTime: 120,
     difficulty: "medium",
     foodType: "main-dish",
+    ingredients: [
+      "chicken",
+      "lemongrass",
+      "ginger",
+      "garlic",
+      "bamboo",
+      "salt",
+      "tapioca leaves",
+      "shallots"
+    ],
   },
   {
     id: 2,
@@ -41,6 +51,16 @@ const sarawakFoods = [
     preparationTime: 30,
     difficulty: "easy",
     foodType: "appetizer",
+    ingredients: [
+      "fresh fish",
+      "lime juice",
+      "onion",
+      "chili",
+      "salt",
+      "sugar",
+      "ginger",
+      "coriander leaves"
+    ],
   },
   {
     id: 3,
@@ -60,6 +80,16 @@ const sarawakFoods = [
     preparationTime: 1440,
     difficulty: "hard",
     foodType: "preserved",
+    ingredients: [
+      "pork",
+      "salt",
+      "rice wine",
+      "garlic",
+      "ginger",
+      "pepper",
+      "onion",
+      "sugar"
+    ],
   },
   {
     id: 4,
@@ -74,15 +104,19 @@ const sarawakFoods = [
     fat: 4,
     fiber: 5,
     sodium: 280,
-    dietaryTags: [
-      "vegetarian",
-      "gluten-free",
-      "dairy-free",
-      "high-fiber",
-    ],
+    dietaryTags: ["vegetarian", "gluten-free", "dairy-free", "high-fiber"],
     preparationTime: 15,
     difficulty: "easy",
     foodType: "vegetable",
+    ingredients: [
+      "midin fern",
+      "belacan (shrimp paste)",
+      "garlic",
+      "chili",
+      "onion",
+      "salt",
+      "oil"
+    ],
   },
   {
     id: 5,
@@ -101,6 +135,13 @@ const sarawakFoods = [
     preparationTime: 60,
     difficulty: "medium",
     foodType: "dessert",
+    ingredients: [
+      "sago starch",
+      "boiling water",
+      "grated coconut",
+      "palm sugar",
+      "salt"
+    ],
   },
   {
     id: 6,
@@ -121,6 +162,18 @@ const sarawakFoods = [
     preparationTime: 180,
     difficulty: "medium",
     foodType: "main-dish",
+    ingredients: [
+      "rice",
+      "coconut milk",
+      "lemongrass",
+      "shallots",
+      "chili paste",
+      "ginger",
+      "turmeric",
+      "beef",
+      "carrot",
+      "celery"
+    ],
   },
   {
     id: 7,
@@ -139,6 +192,15 @@ const sarawakFoods = [
     preparationTime: 150,
     difficulty: "hard",
     foodType: "main-dish",
+    ingredients: [
+      "chicken",
+      "bamboo",
+      "lemongrass",
+      "ginger",
+      "garlic",
+      "tapioca leaves",
+      "salt"
+    ],
   },
   {
     id: 8,
@@ -158,6 +220,16 @@ const sarawakFoods = [
     preparationTime: 240,
     difficulty: "hard",
     foodType: "dessert",
+    ingredients: [
+      "butter",
+      "flour",
+      "eggs",
+      "condensed milk",
+      "sugar",
+      "food coloring",
+      "spices",
+      "vanilla extract"
+    ],
   },
   {
     id: 9,
@@ -178,6 +250,17 @@ const sarawakFoods = [
     preparationTime: 60,
     difficulty: "medium",
     foodType: "main-dish",
+    ingredients: [
+      "rice vermicelli",
+      "coconut milk",
+      "prawns",
+      "chicken",
+      "bean sprouts",
+      "egg",
+      "sambal belacan",
+      "lime",
+      "spices"
+    ],
   },
   {
     id: 10,
@@ -198,11 +281,24 @@ const sarawakFoods = [
     preparationTime: 40,
     difficulty: "easy",
     foodType: "side-dish",
+    ingredients: [
+      "terung dayak (yellow eggplant)",
+      "lemongrass",
+      "dried prawns",
+      "garlic",
+      "onion",
+      "salt",
+      "oil",
+      "turmeric"
+    ],
   },
 ];
 
 export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedFoodType, setSelectedFoodType] = useState("all");
+  const [selectedPrepTime, setSelectedPrepTime] = useState("all");
+  const [selectedDietaryTags, setSelectedDietaryTags] = useState([]);
   const itemsPerPage = 9;
 
   // Filters
@@ -218,7 +314,9 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     return sarawakFoods.filter((food) => {
       const matchesSearch =
         food.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        food.origin.toLowerCase().includes(searchQuery.toLowerCase());
+        food.origin.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (food.ingredients &&
+          food.ingredients.join(" ").toLowerCase().includes(searchQuery.toLowerCase()));
 
       const matchesCategory =
         selectedCategory === "all" || food.category === selectedCategory;
@@ -237,6 +335,19 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         (nutritionFocus === "high-protein" && food.protein >= 25) ||
         (nutritionFocus === "low-fat" && food.fat <= 5) ||
         (nutritionFocus === "high-fiber" && food.fiber >= 4);
+      
+      const matchesFoodType =
+        selectedFoodType === "all" || food.foodType === selectedFoodType;
+
+      const matchesPrepTime =
+        selectedPrepTime === "all" ||
+        (selectedPrepTime === "under30" && food.preparationTime <= 30) ||
+        (selectedPrepTime === "under120" && food.preparationTime <= 120) ||
+        (selectedPrepTime === "over120" && food.preparationTime > 120);
+
+      const matchesDietary =
+        selectedDietaryTags.length === 0 ||
+        selectedDietaryTags.every((tag) => food.dietaryTags.includes(tag));
 
       return (
         matchesSearch &&
@@ -244,7 +355,10 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         matchesOrigin &&
         matchesCalories &&
         matchesDifficulty &&
-        matchesNutrition
+        matchesNutrition &&
+        matchesFoodType &&
+        matchesPrepTime &&
+        matchesDietary
       );
     });
   }, [
@@ -317,6 +431,9 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   setCalorieRange([0, 500]);
                   setSelectedDifficulty("all");
                   setNutritionFocus("all");
+                  setSelectedFoodType("all");
+                  setSelectedPrepTime("all");
+                  setSelectedDietaryTags([]);
                 }}
                 className="efp-btn"
               >
@@ -353,68 +470,151 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
           {/* Expanded Filter Panel */}
           {showFilters && (
             <div className="efp-filters">
-              <div className="efp-filter-item">
-                <label>Origin</label>
-                <select
-                  value={selectedOrigin}
-                  onChange={(e) => setSelectedOrigin(e.target.value)}
-                  className="efp-select"
-                >
-                  <option value="all">All Origins</option>
-                  <option value="Iban">Iban</option>
-                  <option value="Melanau">Melanau</option>
-                  <option value="Dayak">Dayak</option>
-                  <option value="Native">Native</option>
-                  <option value="Chinese-Malay">Chinese-Malay</option>
-                  <option value="Bidayuh">Bidayuh</option>
-                </select>
+
+              {/* Row 1: Origin, Food Type, Nutrition Focus */}
+              <div className="efp-grid-3">
+                <div className="efp-filter-item">
+                  <label className="efp-label">Cultural Origin</label>
+                  <select
+                    value={selectedOrigin}
+                    onChange={(e) => setSelectedOrigin(e.target.value)}
+                    className="efp-select"
+                  >
+                    <option value="all">All Origins</option>
+                    <option value="Iban">Iban</option>
+                    <option value="Melanau">Melanau</option>
+                    <option value="Dayak">Dayak</option>
+                    <option value="Native">Native</option>
+                    <option value="Chinese-Malay">Chinese-Malay</option>
+                    <option value="Bidayuh">Bidayuh</option>
+                  </select>
+                </div>
+
+                <div className="efp-filter-item">
+                  <label className="efp-label">Food Type</label>
+                  <select
+                    value={selectedFoodType}
+                    onChange={(e) => setSelectedFoodType(e.target.value)}
+                    className="efp-select"
+                  >
+                    <option value="all">All Categories</option>
+                    <option value="main-dish">Main Dish</option>
+                    <option value="appetizer">Appetizer</option>
+                    <option value="vegetable">Vegetable</option>
+                    <option value="dessert">Dessert</option>
+                    <option value="preserved">Preserved</option>
+                    <option value="side-dish">Side Dish</option>
+                    <option value="noodles">Noodles</option>
+                    <option value="soup">Soup</option>
+                  </select>
+                </div>
+
+                <div className="efp-filter-item">
+                  <label className="efp-label">Nutrition Focus</label>
+                  <select
+                    value={nutritionFocus}
+                    onChange={(e) => setNutritionFocus(e.target.value)}
+                    className="efp-select"
+                  >
+                    <option value="all">All Categories</option>
+                    <option value="high-protein">High Protein</option>
+                    <option value="low-fat">Low Fat</option>
+                    <option value="high-fiber">High Fiber</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="efp-filter-item">
-                <label>Difficulty</label>
-                <select
-                  value={selectedDifficulty}
-                  onChange={(e) => setSelectedDifficulty(e.target.value)}
-                  className="efp-select"
-                >
-                  <option value="all">All Levels</option>
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
-                </select>
-              </div>
+              <hr className="efp-sep" />
 
-              <div className="efp-filter-item">
-                <label>Nutrition Focus</label>
-                <select
-                  value={nutritionFocus}
-                  onChange={(e) => setNutritionFocus(e.target.value)}
-                  className="efp-select"
-                >
-                  <option value="all">All</option>
-                  <option value="high-protein">High Protein</option>
-                  <option value="low-fat">Low Fat</option>
-                  <option value="high-fiber">High Fiber</option>
-                </select>
-              </div>
-
+              {/* Row 2: Calorie slider */}
               <div className="efp-filter-item efp-filter-wide">
-                <label>
-                  Calories (max): <b>{calorieRange[1]} kcal</b>
+                <label className="efp-label">
+                  Calorie Range: 0 - {calorieRange[1]} calories
                 </label>
                 <input
                   type="range"
                   min="0"
                   max="500"
                   value={calorieRange[1]}
-                  onChange={(e) =>
-                    setCalorieRange([0, Number(e.target.value)])
-                  }
+                  onChange={(e) => setCalorieRange([0, Number(e.target.value)])}
                   className="efp-range"
                 />
               </div>
+
+              <hr className="efp-sep" />
+
+              {/* Row 3: Dietary preferences (checkbox grid) */}
+              <div>
+                <label className="efp-label">Dietary Preferences</label>
+                <div className="efp-checkbox-grid">
+                  {[
+                    "vegetarian",
+                    "gluten-free",
+                    "dairy-free",
+                    "low-fat",
+                    "high-protein",
+                    "high-fiber",
+                    "spicy",
+                    "paleo",
+                  ].map((tag) => (
+                    <label key={tag} className="efp-checkbox-item">
+                      <input
+                        type="checkbox"
+                        className="efp-checkbox"
+                        checked={selectedDietaryTags.includes(tag)}
+                        onChange={() =>
+                          setSelectedDietaryTags((prev) =>
+                            prev.includes(tag)
+                              ? prev.filter((t) => t !== tag)
+                              : [...prev, tag]
+                          )
+                        }
+                      />
+                      <span className="efp-checkbox-text">
+                        {tag
+                          .replace("-", " ")
+                          .replace(/\b\w/g, (c) => c.toUpperCase())}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <hr className="efp-sep" />
+
+              {/* Row 4: Difficulty + Prep Time */}
+              <div className="efp-grid-2">
+                <div className="efp-filter-item">
+                  <label className="efp-label">Difficulty</label>
+                  <select
+                    value={selectedDifficulty}
+                    onChange={(e) => setSelectedDifficulty(e.target.value)}
+                    className="efp-select"
+                  >
+                    <option value="all">All Categories</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </div>
+
+                <div className="efp-filter-item">
+                  <label className="efp-label">Prep Time</label>
+                  <select
+                    value={selectedPrepTime}
+                    onChange={(e) => setSelectedPrepTime(e.target.value)}
+                    className="efp-select"
+                  >
+                    <option value="all">All Categories</option>
+                    <option value="under30">Under 30 minutes</option>
+                    <option value="under120">Under 2 hours</option>
+                    <option value="over120">Over 2 hours</option>
+                  </select>
+                </div>
+              </div>
             </div>
           )}
+
         </div>
 
         {/* Results */}
