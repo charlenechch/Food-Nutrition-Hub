@@ -1,30 +1,34 @@
-/* ===== Global ===== */
+ /* Global   */
 body, html, #root {
   margin: 0;
   padding: 0;
-  padding-top: 0;
   height: 100%;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* ===== Page Layout ===== */
+ /* Page Layout   */
 .login-register-page {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   background: linear-gradient(to bottom right, #f9fafb, #e9f2ef);
-  overflow: hidden;
 }
 
-/* ===== Left Image Section ===== */
+/* Left Image Section */
 .lrp-image-section {
   flex: 2;
   position: relative;
   display: none;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
 }
 @media (min-width: 1024px) {
   .lrp-image-section {
     display: block;
     min-height: 100vh; 
+    min-width: 60%; 
+    max-width: 60%;
+    height: 100vh;
   }
 }
 .lrp-image-section img {
@@ -32,6 +36,7 @@ body, html, #root {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
 }
 .lrp-image-overlay {
   position: absolute;
@@ -56,16 +61,18 @@ body, html, #root {
   margin-top: 0.25rem;
 }
 
-/* ===== Right Form Section ===== */
+/* Right Form Section */
 .lrp-form-section {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   background: #f7f2ed;
   min-height: 100vh;
   box-sizing: border-box;
   padding: 2rem;
+  max-height: 100vh;
+  overflow-y: auto;
 }
 
 .lrp-card {
@@ -81,13 +88,13 @@ body, html, #root {
 
 @media (max-width: 1023px) {
   .lrp-form-section {
-    padding: 2rem; /* reduce padding so content stretches more */
+    padding: 2rem; 
   }
 
   .lrp-card {
-    max-width: 100%; /* allow the card to stretch */
-    border-radius: 12px; /* optional: smaller corners on mobile */
-    padding: 1.5rem; /* reduce internal spacing for mobile */
+    max-width: 100%; 
+    border-radius: 12px; 
+    padding: 1.5rem;
   }
 }
 
@@ -117,7 +124,7 @@ body, html, #root {
   margin-top: 0.25rem;
 }
 
-/* ===== Tabs ===== */
+ /* Tabs   */
 .lrp-tabs {
   display: flex;
   border-bottom: 1px solid #ddd;
@@ -151,7 +158,7 @@ body, html, #root {
 }
 
 
-/* ===== Form ===== */
+ /* Form   */
 .lrp-form-content {
   display: flex;
   flex-direction: column;
@@ -197,7 +204,7 @@ body, html, #root {
   margin-bottom: 0.5rem; /* space between placeholder and typed text */
 }
 
-/* ===== Buttons ===== */
+ /* Buttons   */
 .lrp-btn {
   display: inline-block;
   width: 100%;
@@ -228,11 +235,11 @@ body, html, #root {
   outline: none; 
 }
 
-/* ===== Divider ===== */
+ /* Divider   */
 .lrp-divider {
   position: relative;
   text-align: center;
-  margin: 1.5rem 0;
+  margin: 0.5rem 0;
 }
 .lrp-divider::before,
 .lrp-divider::after {
@@ -256,7 +263,7 @@ body, html, #root {
   font-size: 0.9rem;
 }
 
-/* ===== Footer Text ===== */
+ /* Footer Text   */
 .lrp-footer-text {
   text-align: center;
   font-size: 0.8rem;
@@ -264,7 +271,7 @@ body, html, #root {
   margin-top: 1rem;
 }
 
-/* ===== Password hint on registration form ===== */
+ /* Password hint on registration form   */
 .password-hint {
   font-size: 12px;
   color: #666;
