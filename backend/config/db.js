@@ -1,3 +1,4 @@
+// backend/config/db.js
 const mysql = require("mysql2/promise");
 require("dotenv").config();
 
@@ -29,20 +30,20 @@ if (process.env.MYSQLHOST || process.env.DB_HOST) {
   };
 }
 
-// ✅ Create a shared connection pool
 const pool = mysql.createPool(dbConfig);
 
-// Quick test
+// ✅ Quick test
 (async () => {
   try {
-    await pool.query("SELECT 1");
-    console.log("✅ MySQL pool is ready!");
+    const [rows] = await pool.query("SELECT 1");
+    console.log("✅ MySQL connection test OK");
   } catch (err) {
-    console.error("❌ DB connection failed:", err.message);
+    console.error("❌ MySQL connection test FAILED:", err.message);
   }
 })();
 
 module.exports = pool;
+
 
 
 
