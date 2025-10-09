@@ -1,9 +1,8 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const router = express.Router();
-const db = require("../config/db"); // promise pool
+const db = require("../config/db"); // shared promise pool
 
-// ✅ POST /api/login
 router.post("/", async (req, res) => {
   const { email, password } = req.body;
 
@@ -12,23 +11,15 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    console.log("📥 Login request body:", req.body);
-
-    const [users] = await db.query(
-      "SELECT * FROM user WHERE email = ? LIMIT 1",
-      [email]
-    );
-
+    // ✅ Fetch user
+    const [users] = await db.query("SELECT * FROM user WHERE email = ? LIMIT 1", [email]);
     if (users.length === 0) {
-      console.warn(`⚠️ Login failed: No user found for email ${email}`);
       return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
     const user = users[0];
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (!isMatch) {
-      console.warn(`⚠️ Login failed: Wrong password for ${email}`);
       return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
@@ -41,17 +32,17 @@ router.post("/", async (req, res) => {
       role: user.role || "member",
     };
 
-    console.log(`✅ User logged in: ${user.email} (${req.session.user.role})`);
+    console.log(`✅ Login success: ${user.email}`);
 
-    return res.json({
+    res.json({
       success: true,
       message: "Login successful",
       user: req.session.user,
     });
 
   } catch (err) {
-    console.error("❌ Login error:", err);
-    return res.status(500).json({ success: false, message: "Authentication error" });
+    console.error("❌ Login error:", err.message);
+    res.status(500).json({ success: false, message: "Authentication error" });
   }
 });
 

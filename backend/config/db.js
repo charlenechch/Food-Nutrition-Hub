@@ -1,37 +1,46 @@
-const mysql = require("mysql2");
+const mysql = require("mysql2/promise");
 require("dotenv").config();
 
-// ✅ Create a promise-based pool
-const pool = mysql.createPool({
-  host: process.env.MYSQLHOST || "localhost",
-  port: process.env.MYSQLPORT || 3306,
-  user: process.env.MYSQLUSER || "root",
-  password: process.env.MYSQLPASSWORD || "",
-  database: process.env.MYSQLDATABASE || "fypdb",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-}).promise();
+let dbConfig;
 
-// ✅ Test connection once
+if (process.env.MYSQLHOST || process.env.DB_HOST) {
+  console.log("🌐 Using Railway DB config");
+  dbConfig = {
+    host: process.env.MYSQLHOST || process.env.DB_HOST,
+    port: process.env.MYSQLPORT || process.env.DB_PORT,
+    user: process.env.MYSQLUSER || process.env.DB_USER,
+    password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
+    database: process.env.MYSQLDATABASE || process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+  };
+} else {
+  console.log("💻 Using LOCAL DB config");
+  dbConfig = {
+    host: "localhost",
+    port: 3306, // change to 3307 if needed
+    user: "root",
+    password: "",
+    database: "fypdb",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+  };
+}
+
+// ✅ Create a shared connection pool
+const pool = mysql.createPool(dbConfig);
+
+// Quick test
 (async () => {
   try {
     await pool.query("SELECT 1");
     console.log("✅ MySQL pool is ready!");
   } catch (err) {
-    console.error("❌ MySQL pool connection failed:", err.message);
+    console.error("❌ DB connection failed:", err.message);
   }
 })();
-
-// ✅ Keep-alive ping to prevent Railway idle disconnects
-setInterval(async () => {
-  try {
-    await pool.query("SELECT 1");
-    console.log("🔄 DB keep-alive ping");
-  } catch (err) {
-    console.error("⚠️ Keep-alive error:", err.message);
-  }
-}, 30000);
 
 module.exports = pool;
 
