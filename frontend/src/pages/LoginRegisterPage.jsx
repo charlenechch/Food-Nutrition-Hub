@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // make sure this hook is exported
+import { useAuth } from "../context/AuthContext"; 
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
 
@@ -19,7 +19,7 @@ export default function LoginRegisterPage() {
   const [regPassword, setRegPassword] = useState("");
 
   const navigate = useNavigate();
-  const { login } = useAuth(); // from AuthContext
+  const { login } = useAuth();
 
   const validatePassword = (password) => {
     const minLength = 8;
@@ -37,7 +37,7 @@ export default function LoginRegisterPage() {
     return null;
   };
 
-  // Handle login
+  // ✅ Handle login
   const handleLogin = async () => {
     if (!email || !password) {
       alert("Please fill in all fields");
@@ -47,12 +47,11 @@ export default function LoginRegisterPage() {
     try {
       const res = await fetch(`${API_BASE_URL}/api/login`, {
         method: "POST",
-        credentials: "include", // include cookies for session
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
-      // Handle rate limiting
       if (res.status === 429) {
         const data = await res.json();
         alert(data.error || "Login unavailable, please try again later.");
@@ -62,11 +61,9 @@ export default function LoginRegisterPage() {
       const data = await res.json();
 
       if (res.ok) {
-        console.log("Login successful:", data);
+        console.log("✅ Login successful:", data);
+        login(data.user);
 
-        login(data.user); // Store in context and localStorage
-
-        // Navigate based on role
         if (data.user.role === "admin") {
           navigate("/admin");
         } else {
@@ -76,12 +73,12 @@ export default function LoginRegisterPage() {
         alert(data.error || data.message || "Login failed!");
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("❌ Login error:", err);
       alert("Something went wrong!");
     }
   };
 
-  // Handle registration
+  // ✅ Handle registration
   const handleRegister = async () => {
     if (!firstName || !lastName || !regEmail || !regPassword) {
       alert("Please fill in all fields");
@@ -101,7 +98,7 @@ export default function LoginRegisterPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
+      const res = await fetch(`${API_BASE_URL}/api/register`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -109,11 +106,10 @@ export default function LoginRegisterPage() {
           firstname: firstName,
           lastname: lastName,
           email: regEmail,
-          password: regPassword
-        })
+          password: regPassword,
+        }),
       });
 
-      // Handle rate limiting
       if (res.status === 429) {
         const data = await res.json();
         alert(data.error || "Registration temporarily unavailable. Please try again later.");
@@ -123,31 +119,33 @@ export default function LoginRegisterPage() {
       const data = await res.json();
 
       if (res.ok) {
-        console.log("Registration successful:", data);
+        console.log("✅ Registration successful:", data);
         alert("Account created! Welcome to SarawakEats.");
 
-        // Clear form fields
         setFirstName("");
         setLastName("");
         setRegEmail("");
         setRegPassword("");
-
-        // Switch back to login tab
         setActiveTab("login");
       } else {
         alert(data.error || data.message || "Registration failed!");
       }
     } catch (err) {
-      console.error("Registration error:", err);
+      console.error("❌ Registration error:", err);
       alert("Something went wrong during registration.");
     }
   };
 
-  // Handle Guest Login (tracks guest with role)
+  // ✅ Handle Guest
   const handleGuest = () => {
-    login({ role: "guest" }); // Track guest
+    login({ role: "guest" });
     console.log("Logged in as guest");
     navigate("/home");
+  };
+
+  // ✅ Placeholder for forgot password
+  const handleForgotPassword = () => {
+    alert("Forgot password feature is not implemented yet.");
   };
 
   return (
@@ -213,8 +211,8 @@ export default function LoginRegisterPage() {
                 <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
                   Sign In
                 </button>
-                <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
-                  Forget Password
+                <button onClick={handleForgotPassword} className="lrp-btn lrp-btn-secondary">
+                  Forgot Password
                 </button>
                 <div className="lrp-divider"><span>or</span></div>
                 <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
@@ -275,7 +273,6 @@ export default function LoginRegisterPage() {
             )}
           </div>
 
-          {/* Footer Text */}
           <p className="lrp-footer-text">
             Join our community to contribute recipes and preserve Sarawak's food culture
           </p>
