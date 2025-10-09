@@ -2,7 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const helmet = require("helmet");
-const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+const rateLimit = require("express-rate-limit");
+const { ipKeyGenerator } = require("express-rate-limit"); // correct import
 const MySQLStore = require("express-mysql-session")(session);
 require("dotenv").config();
 
@@ -22,7 +23,7 @@ app.use(helmet());
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",              // Local frontend
+      "http://localhost:5173",               // Local frontend
       "https://food-nutrition-hub.vercel.app" // Deployed frontend
     ],
     credentials: true,
@@ -69,8 +70,8 @@ app.use(
     store: sessionStore,
     cookie: {
       httpOnly: true,
-      secure: process.env.RAILWAY_ENVIRONMENT ? true : false, // HTTPS only in production
-      sameSite: process.env.RAILWAY_ENVIRONMENT ? "none" : "strict",
+      secure: isRailway, // HTTPS only in Railway
+      sameSite: isRailway ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
@@ -82,7 +83,6 @@ const authLimiter = rateLimit({
   max: 5, // block after 5 attempts
   message: { error: "Too many attempts, please try again after 5 minutes." },
   keyGenerator: (req, res) => {
-    // ✅ Use ipKeyGenerator for IPv4 + IPv6 safety
     const ipKey = ipKeyGenerator(req, res);
     const emailKey = req.body?.email || "guest";
     return `${ipKey}-${emailKey}`;

@@ -11,19 +11,30 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-}).promise(); // <-- export promise pool directly
+}).promise();
 
-// ✅ Test connection
+// ✅ Test connection once
 (async () => {
   try {
     await pool.query("SELECT 1");
     console.log("✅ MySQL pool is ready!");
   } catch (err) {
-    console.error("❌ MySQL pool error:", err.message);
+    console.error("❌ MySQL pool connection failed:", err.message);
   }
 })();
 
+// ✅ Keep-alive ping to prevent Railway idle disconnects
+setInterval(async () => {
+  try {
+    await pool.query("SELECT 1");
+    console.log("🔄 DB keep-alive ping");
+  } catch (err) {
+    console.error("⚠️ Keep-alive error:", err.message);
+  }
+}, 30000);
+
 module.exports = pool;
+
 
 
 // open MySQL workbench, copy paste the tables below
