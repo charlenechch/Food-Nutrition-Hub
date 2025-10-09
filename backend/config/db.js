@@ -1,28 +1,30 @@
-const mysql = require('mysql2');
-const express = require('express');
-require('dotenv').config();
+const mysql = require("mysql2");
+require("dotenv").config();
 
-// Create MySQL connection
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'root', 
-    database: 'fypdb',
-    port: 3306  //mine is 3307, but most used is 3306
-}); //make sure the setting here is match with ur own database connection
-
-// Connect to MySQL
-db.connect(err => {
-    if (err) {
-        console.error('Error connecting to MySQL:', err);
-        return;
-    }
-    console.log('MySQL connected!');
+// ✅ Use a connection pool (stable for production + Railway)
+const pool = mysql.createPool({
+  host: process.env.MYSQLHOST || "localhost",
+  port: process.env.MYSQLPORT || 3306, // change to 3307 if needed locally
+  user: process.env.MYSQLUSER || "root",
+  password: process.env.MYSQLPASSWORD || "",
+  database: process.env.MYSQLDATABASE || "fypdb",
+  waitForConnections: true,
+  connectionLimit: 10, // allow multiple concurrent connections
+  queueLimit: 0,
 });
 
-module.exports = db;
+// ✅ Test connection once at startup
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.error("❌ Error connecting to MySQL:", err.message);
+  } else {
+    console.log("✅ MySQL connected!");
+    connection.release();
+  }
+});
 
-const app = express();
+module.exports = pool;
+
 
 // open MySQL workbench, copy paste the tables below
 

@@ -1,19 +1,19 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const router = express.Router();
-const db = require("../config/db");
+const db = require("../config/db"); // this is the pool now
 
 // ✅ POST /api/login
 router.post("/", async (req, res) => {
   const { email, password } = req.body;
 
-  // Input validation
+  // ✅ Input validation
   if (!email || !password) {
     return res.status(400).json({ success: false, message: "Email and password are required" });
   }
 
   try {
-    // 🔎 Fetch user by email
+    // ✅ Query DB for user
     const [users] = await db.promise().query(
       "SELECT * FROM user WHERE email = ? LIMIT 1",
       [email]
@@ -25,21 +25,21 @@ router.post("/", async (req, res) => {
 
     const user = users[0];
 
-    // 🔑 Compare hashed password
+    // ✅ Compare hashed password
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log("🔍 bcrypt.compare result:", isMatch); // debug log
+    console.log("🔍 bcrypt.compare result:", isMatch);
 
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
-    // 📝 Save minimal session data
+    // ✅ Save user into session
     req.session.user = {
-      id: user.userID,              // standardized key = id
+      id: user.userID,
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
-      role: user.role || "member", // default role if missing
+      role: user.role || "member",
     };
 
     console.log(`✅ User logged in: ${user.email} (${req.session.user.role})`);
@@ -49,7 +49,6 @@ router.post("/", async (req, res) => {
       message: "Login successful",
       user: req.session.user,
     });
-
   } catch (err) {
     console.error("❌ Login error:", err);
     return res.status(500).json({ success: false, message: "Authentication error" });
