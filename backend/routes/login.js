@@ -1,20 +1,19 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const router = express.Router();
-const db = require("../config/db"); // this is the pool now
+const db = require("../config/db"); // now db is already a promise pool
 
 // ✅ POST /api/login
 router.post("/", async (req, res) => {
   const { email, password } = req.body;
 
-  // ✅ Input validation
   if (!email || !password) {
     return res.status(400).json({ success: false, message: "Email and password are required" });
   }
 
   try {
-    // ✅ Query DB for user
-    const [users] = await db.promise().query(
+    // ✅ Query DB with promise pool (no .promise() needed anymore)
+    const [users] = await db.query(
       "SELECT * FROM user WHERE email = ? LIMIT 1",
       [email]
     );
@@ -25,15 +24,13 @@ router.post("/", async (req, res) => {
 
     const user = users[0];
 
-    // ✅ Compare hashed password
+    // ✅ Compare password
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log("🔍 bcrypt.compare result:", isMatch);
-
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
-    // ✅ Save user into session
+    // ✅ Save session
     req.session.user = {
       id: user.userID,
       firstname: user.firstname,

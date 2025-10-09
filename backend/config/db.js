@@ -1,29 +1,30 @@
 const mysql = require("mysql2");
 require("dotenv").config();
 
-// ✅ Use a connection pool (stable for production + Railway)
+// ✅ Create a promise-based connection pool
 const pool = mysql.createPool({
   host: process.env.MYSQLHOST || "localhost",
-  port: process.env.MYSQLPORT || 3306, // change to 3307 if needed locally
+  port: process.env.MYSQLPORT || 3306,
   user: process.env.MYSQLUSER || "root",
   password: process.env.MYSQLPASSWORD || "",
   database: process.env.MYSQLDATABASE || "fypdb",
   waitForConnections: true,
-  connectionLimit: 10, // allow multiple concurrent connections
+  connectionLimit: 10,
   queueLimit: 0,
-});
+}).promise(); // <-- directly export promise pool
 
-// ✅ Test connection once at startup
-pool.getConnection((err, connection) => {
-  if (err) {
-    console.error("❌ Error connecting to MySQL:", err.message);
-  } else {
-    console.log("✅ MySQL connected!");
-    connection.release();
+// ✅ Test connection
+(async () => {
+  try {
+    await pool.query("SELECT 1");
+    console.log("✅ MySQL pool is ready!");
+  } catch (err) {
+    console.error("❌ MySQL pool connection failed:", err.message);
   }
-});
+})();
 
 module.exports = pool;
+
 
 
 // open MySQL workbench, copy paste the tables below
