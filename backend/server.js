@@ -5,98 +5,90 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { ipKeyGenerator } = require("express-rate-limit");
 const MySQLStore = require("express-mysql-session")(session);
+const mysql = require("mysql2/promise");
 
+// Import routes
 const loginRoutes = require("./routes/login");
 const registerRoutes = require("./routes/register");
 const foodRoutes = require("./routes/foods");
 const authRoutes = require("./routes/auth");
+const rbacRoutes = require("./routes/rbacRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Security headers (Helmet)
+// ✅ Helmet security headers
 app.use(helmet());
 
-// ✅ CORS setup
+// ✅ CORS setup (Local + Vercel frontend)
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",             // local frontend
-      "https://food-nutrition-hub.vercel.app" // deployed frontend
+      "http://localhost:5173",                 // local frontend
+      "https://food-nutrition-hub.vercel.app", // deployed frontend
     ],
     credentials: true,
   })
 );
 
-// ✅ JSON parser
+// ✅ Automatically handle all OPTIONS preflight requests
+// (No need for app.options("*", cors()))
 app.use(express.json());
 
-// ✅ MySQL session store config (Local + Production)
+// ✅ MySQL config for Railway OR Local
 let dbOptions;
-
-// ✅ Detect Railway automatically
-const isRailway = !!process.env.MYSQLHOST || !!process.env.DB_HOST;
-
-if (isRailway) {
-  console.log("🌐 Using Railway MySQL configuration");
-
+if (process.env.MYSQLHOST || process.env.DB_HOST) {
+  console.log("🌐 Railway DB config detected");
   dbOptions = {
     host: process.env.MYSQLHOST || process.env.DB_HOST,
-    port: process.env.MYSQLPORT || process.env.DB_PORT,
     user: process.env.MYSQLUSER || process.env.DB_USER,
     password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
     database: process.env.MYSQLDATABASE || process.env.DB_NAME,
+    port: process.env.MYSQLPORT || process.env.DB_PORT || 3306,
   };
-
-  console.log("🧩 DB Options:", dbOptions); // Debugging
 } else {
-  console.log("💻 Using LOCAL MySQL configuration");
-
+  console.log("💻 Local DB config in use");
   dbOptions = {
     host: "localhost",
-    port: 3306, // change if your MySQL runs on 3307
+    port: 3306,
     user: "root",
     password: "",
     database: "fypdb",
   };
 }
 
-
-// ✅ Session Store
+// ✅ Session store
 const sessionStore = new MySQLStore(dbOptions);
 
-// ✅ Test DB Connection
-const mysql = require("mysql2/promise");
-
+// ✅ Test DB connection on startup
 (async () => {
   try {
     const connection = await mysql.createConnection(dbOptions);
     await connection.query("SELECT 1");
-    console.log("✅ MySQL connection successful!");
+    console.log("✅ MySQL connected successfully!");
     await connection.end();
   } catch (err) {
-    console.error("❌ Error connecting to MySQL:", err.message);
+    console.error("❌ DB connection error:", err.message);
   }
 })();
 
-// ✅ Express Session Middleware
+// ✅ Session middleware
 app.use(
   session({
-    secret:
-      "9c6bb5d5342ccf81bb30c08874ac5eca58ed5d6f80e8c88e74228b1c3bccaa37",
+    secret: process.env.SESSION_SECRET || "fallbackSecret",
     resave: false,
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
       httpOnly: true,
-      secure: process.env.RAILWAY_ENVIRONMENT ? true : false, // secure cookies only on HTTPS
-      sameSite: process.env.RAILWAY_ENVIRONMENT ? "none" : "strict",
+      secure: process.env.NODE_ENV === "production", // HTTPS only in prod
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
 );
 
-// ✅ Role-based middleware
+// ✅ Role check middleware
 function requireRole(role) {
   return (req, res, next) => {
     if (!req.session.user || req.session.user.role !== role) {
@@ -108,9 +100,9 @@ function requireRole(role) {
 
 // ✅ Hybrid Rate Limiter (IP + Email)
 const authLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 3, // block after 3 attempts
-  message: { error: "Too many attempts, please try again after 5 minutes." },
+  windowMs: 5 * 60 * 1000,
+  max: 3,
+  message: { error: "Too many attempts, please try again later." },
   keyGenerator: (req, res) => {
     const ipKey = ipKeyGenerator(req, res);
     const emailKey = req.body?.email || "guest";
@@ -124,23 +116,36 @@ const authLimiter = rateLimit({
   },
 });
 
-// ✅ Routes
+// ✅ API Routes
 app.use("/api/login", authLimiter, loginRoutes);
 app.use("/api/register", authLimiter, registerRoutes);
 app.use("/api/foods", foodRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/rbac", rbacRoutes);
 
-// Example admin-only API
+// ✅ Example protected route
 app.get("/api/admin/data", requireRole("admin"), (req, res) => {
-  res.json({ secret: "This is admin-only data." });
+  res.json({ secret: "This is admin-only data" });
 });
 
-// ✅ Test route
+// ✅ Health check
+app.get("/api/health", async (req, res) => {
+  try {
+    const connection = await mysql.createConnection(dbOptions);
+    await connection.query("SELECT 1");
+    await connection.end();
+    res.json({ status: "ok", db: "connected" });
+  } catch (err) {
+    res.status(500).json({ status: "error", db: err.message });
+  }
+});
+
+// ✅ Root test route
 app.get("/", (req, res) => {
-  res.send("Hello from Node.js backend with MySQL session store + hybrid rate limiting!");
+  res.send("🚀 Food-Nutrition-Hub backend running on Railway!");
 });
 
 // ✅ Start server
 app.listen(PORT, () => {
-  console.log(`✅ Secure server running at http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
