@@ -2,28 +2,28 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const helmet = require("helmet");
-const rateLimit = require("express-rate-limit");
-const { ipKeyGenerator } = require("express-rate-limit");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 const MySQLStore = require("express-mysql-session")(session);
+require("dotenv").config();
 
+// Routes
 const loginRoutes = require("./routes/login");
-const logoutRoutes = require("./routes/logout");
 const registerRoutes = require("./routes/register");
-const foodRoutes = require("./routes/foods");
 const authRoutes = require("./routes/auth");
+const foodRoutes = require("./routes/foods");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Security headers (Helmet)
+// ✅ Security headers
 app.use(helmet());
 
-// ✅ CORS setup
+// ✅ CORS setup (frontend whitelist)
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",             // local frontend
-      "https://food-nutrition-hub.vercel.app" // deployed frontend
+      "http://localhost:5173",              // Local frontend
+      "https://food-nutrition-hub.vercel.app" // Deployed frontend
     ],
     credentials: true,
   })
@@ -32,15 +32,12 @@ app.use(
 // ✅ JSON parser
 app.use(express.json());
 
-// ✅ MySQL session store config (Local + Production)
+// ✅ MySQL config (local or Railway)
 let dbOptions;
-
-// ✅ Detect Railway automatically
 const isRailway = !!process.env.MYSQLHOST || !!process.env.DB_HOST;
 
 if (isRailway) {
-  console.log("🌐 Using Railway MySQL configuration");
-
+  console.log("🌐 Using Railway DB config");
   dbOptions = {
     host: process.env.MYSQLHOST || process.env.DB_HOST,
     port: process.env.MYSQLPORT || process.env.DB_PORT,
@@ -48,39 +45,21 @@ if (isRailway) {
     password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
     database: process.env.MYSQLDATABASE || process.env.DB_NAME,
   };
-
-  console.log("🧩 DB Options:", dbOptions); // Debugging
 } else {
-  console.log("💻 Using LOCAL MySQL configuration");
-
+  console.log("💻 Using LOCAL DB config");
   dbOptions = {
     host: "localhost",
-    port: 3306, // change if your MySQL runs on 3307
+    port: 3306, // Change to 3307 if your MySQL runs there
     user: "root",
     password: "",
     database: "fypdb",
   };
 }
 
-
-// ✅ Session Store
+// ✅ Session store in MySQL
 const sessionStore = new MySQLStore(dbOptions);
 
-// ✅ Test DB Connection
-const mysql = require("mysql2/promise");
-
-(async () => {
-  try {
-    const connection = await mysql.createConnection(dbOptions);
-    await connection.query("SELECT 1");
-    console.log("✅ MySQL connection successful!");
-    await connection.end();
-  } catch (err) {
-    console.error("❌ Error connecting to MySQL:", err.message);
-  }
-})();
-
-// ✅ Express Session Middleware
+// ✅ Express-session middleware
 app.use(
   session({
     secret:
@@ -90,29 +69,20 @@ app.use(
     store: sessionStore,
     cookie: {
       httpOnly: true,
-      secure: process.env.RAILWAY_ENVIRONMENT ? true : false, // secure cookies only on HTTPS
+      secure: process.env.RAILWAY_ENVIRONMENT ? true : false, // HTTPS only in production
       sameSite: process.env.RAILWAY_ENVIRONMENT ? "none" : "strict",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
 );
 
-// ✅ Role-based middleware
-function requireRole(role) {
-  return (req, res, next) => {
-    if (!req.session.user || req.session.user.role !== role) {
-      return res.status(403).json({ error: "Forbidden: Access denied" });
-    }
-    next();
-  };
-}
-
 // ✅ Hybrid Rate Limiter (IP + Email)
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 3, // block after 3 attempts
+  max: 5, // block after 5 attempts
   message: { error: "Too many attempts, please try again after 5 minutes." },
   keyGenerator: (req, res) => {
+    // ✅ Use ipKeyGenerator for IPv4 + IPv6 safety
     const ipKey = ipKeyGenerator(req, res);
     const emailKey = req.body?.email || "guest";
     return `${ipKey}-${emailKey}`;
@@ -127,22 +97,30 @@ const authLimiter = rateLimit({
 
 // ✅ Routes
 app.use("/api/login", authLimiter, loginRoutes);
-app.use("/api/logout", logoutRoutes);
-app.use("/api/register", authLimiter, registerRoutes);
+app.use("/api/register", registerRoutes);
+app.use("/api/auth", authRoutes);   // session + logout
 app.use("/api/foods", foodRoutes);
-app.use("/api/auth", authRoutes);
 
-// Example admin-only API
-app.get("/api/admin/data", requireRole("admin"), (req, res) => {
+// ✅ Example admin-only route
+app.get("/api/admin/data", (req, res) => {
+  if (!req.session?.user || req.session.user.role !== "admin") {
+    return res.status(403).json({ error: "Forbidden: Admins only" });
+  }
   res.json({ secret: "This is admin-only data." });
 });
 
-// ✅ Test route
+// ✅ Health check route
 app.get("/", (req, res) => {
-  res.send("Hello from Node.js backend with MySQL session store + hybrid rate limiting!");
+  res.send("🚀 Backend is running with sessions + MySQL!");
+});
+
+// ✅ Error handler
+app.use((err, req, res, next) => {
+  console.error("❌ Server error:", err.stack);
+  res.status(500).json({ error: "Internal Server Error" });
 });
 
 // ✅ Start server
 app.listen(PORT, () => {
-  console.log(`✅ Secure server running at http://localhost:${PORT}`);
+  console.log(`✅ Server running at http://localhost:${PORT}`);
 });
