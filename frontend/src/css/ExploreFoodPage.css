@@ -23,6 +23,7 @@
 
 /* ----- Page scaffold ----- */
 .explore-page {
+  padding-top: 70px;
   min-height: 100vh;
   background: var(--bg);
   color: var(--ink);

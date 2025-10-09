@@ -37,7 +37,7 @@ export default function LoginRegisterPage() {
     return null;
   };
 
-  // ✅ Handle login
+  // Handle login
   const handleLogin = async () => {
     if (!email || !password) {
       alert("Please fill in all fields");
@@ -52,7 +52,7 @@ export default function LoginRegisterPage() {
         body: JSON.stringify({ email, password })
       });
 
-      // ✅ Handle rate limiting
+      // Handle rate limiting
       if (res.status === 429) {
         const data = await res.json();
         alert(data.error || "Login unavailable, please try again later.");
@@ -81,7 +81,7 @@ export default function LoginRegisterPage() {
     }
   };
 
-  // ✅ Handle registration
+  // Handle registration
   const handleRegister = async () => {
     if (!firstName || !lastName || !regEmail || !regPassword) {
       alert("Please fill in all fields");
@@ -113,7 +113,7 @@ export default function LoginRegisterPage() {
         })
       });
 
-      // ✅ Handle rate limiting
+      // Handle rate limiting
       if (res.status === 429) {
         const data = await res.json();
         alert(data.error || "Registration temporarily unavailable. Please try again later.");
@@ -143,7 +143,7 @@ export default function LoginRegisterPage() {
     }
   };
 
-  // ✅ Handle Guest Login (tracks guest with role)
+  // Handle Guest Login (tracks guest with role)
   const handleGuest = () => {
     login({ role: "guest" }); // Track guest
     console.log("Logged in as guest");
@@ -212,6 +212,9 @@ export default function LoginRegisterPage() {
                 </div>
                 <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
                   Sign In
+                </button>
+                <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
+                  Forget Password
                 </button>
                 <div className="lrp-divider"><span>or</span></div>
                 <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">

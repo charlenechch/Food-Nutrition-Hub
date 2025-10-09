@@ -2,15 +2,17 @@
 body, html, #root {
   margin: 0;
   padding: 0;
+  padding-top: 0;
   height: 100%;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* ===== Page Layout ===== */
 .login-register-page {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   background: linear-gradient(to bottom right, #f9fafb, #e9f2ef);
+  overflow: hidden;
 }
 
 /* ===== Left Image Section ===== */
