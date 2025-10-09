@@ -1,6 +1,11 @@
 /* no black outline for buttons after pressed */
-button{
-  outline: none;
+.explore-foods-page button,
+.explore-foods-page button:focus,
+.explore-foods-page button:focus-visible,
+.explore-foods-page button::-moz-focus-inner {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent; /* removes mobile tap highlight */
 }
 
 /* Page scaffold */
@@ -12,19 +17,32 @@ button{
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-/* main container spacing (keeps your max-width classes if you use them) */
+/* Main container responsive spacing */
 .explore-foods-page .efp-container {
-  padding: 2rem 1rem;
+  width: 100%;
+  margin: 0 auto;
+  padding-block: 2rem; 
+  box-sizing: border-box;
 }
 
-@media (min-width: 640px) {
-  .explore-foods-page .efp-container { 
-    padding: 2.5rem 1.5rem; 
+/* Medium screens (tablet and small laptop) */
+@media (min-width: 768px) {
+  .explore-foods-page .efp-container {
+    max-width: 1000px;
   }
 }
-@media (min-width: 1024px) {
-  .explore-foods-page .efp-container { 
-    padding: 3rem 2rem; 
+
+/* Large screens (desktop) */
+@media (min-width: 1200px) {
+  .explore-foods-page .efp-container {
+    max-width: 1200px;
+  }
+}
+
+/* Extra large screens (ultrawide monitors) */
+@media (min-width: 1600px) {
+  .explore-foods-page .efp-container {
+    max-width: 1400px;
   }
 }
 
@@ -111,12 +129,92 @@ button{
 .explore-foods-page .efp-filters {
   padding: 1.25rem;
   margin-bottom: 1.25rem;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #eadfd2; /* soft sand border */
 }
 
-.explore-foods-page .efp-section-title {
-  font-size: 0.95rem;
+.explore-foods-page .efp-label {
+  display: block;
   font-weight: 600;
+  color: #6a4a2f; /* warm brown */
   margin-bottom: 0.5rem;
+}
+
+.explore-foods-page .efp-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 768px) {
+  .explore-foods-page .efp-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .explore-foods-page .efp-grid-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+.explore-foods-page .efp-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 768px) {
+  .explore-foods-page .efp-grid-2 { grid-template-columns: repeat(2, 1fr); }
+}
+
+.explore-foods-page .efp-checkbox-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem 2rem;
+}
+@media (min-width: 1024px) {
+  .explore-foods-page .efp-checkbox-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.explore-foods-page .efp-checkbox-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.explore-foods-page .efp-checkbox-text {
+  color: #3b2b1e;
+}
+
+.explore-foods-page .efp-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #a06a39;
+  border-radius: 999px;
+}
+.explore-foods-page .efp-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #a06a39;
+  box-shadow: 0 0 0 1px #a06a39;
+  cursor: pointer;
+}
+.explore-foods-page .efp-range::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #a06a39;
+  box-shadow: 0 0 0 1px #a06a39;
+  cursor: pointer;
+}
+
+/* Divider line between rows */
+.explore-foods-page .efp-sep {
+  height: 1px;
+  background: #eadfd2;
+  border: 0;
+  margin: 1rem 0;
 }
 
 /* Separator substitute */
@@ -208,6 +306,9 @@ button{
 .explore-foods-page .efp-btn:active { 
   transform: translateY(1px); 
 }
+.explore-foods-page .efp-btn:focus {
+  outline: none;
+}
 
 .explore-foods-page .efp-btn--primary {
   border-color: #8b5e3c;
@@ -231,6 +332,10 @@ button{
   background: #8b5e3c;
   border-color: #8b5e3c;
   color: #fff;
+}
+
+.explore-foods-page .efp-chip:focus {
+  outline: none;
 }
 
 /* removable chip */
@@ -287,26 +392,36 @@ button{
 
 /* inline badges on image */
 .explore-foods-page .efp-badges {
-  position: absolute; top: .75rem; left: .75rem;
-  display: flex; flex-direction: column; gap: .4rem;
+  position: absolute; 
+  top: .75rem; 
+  left: .75rem;
+  display: flex; 
+  flex-direction: column; 
+  gap: .4rem;
 }
 .explore-foods-page .efp-badge {
   display: inline-block;
   font-size: .72rem;
   padding: .2rem .5rem;
-  border-radius: 999px;
+  border-radius: 8px;
   background: #ffffffeb;
   border: 1px solid #eeeeee;
 }
-.explore-foods-page .efp-badge--ok { color: #057a55; }       /* green text */
-.explore-foods-page .efp-badge--warn { color: #8a6d00; }     /* yellow text */
-.explore-foods-page .efp-badge--high { color: #9b1c1c; }     /* red text */
+.explore-foods-page .efp-badge--ok { 
+  color: #057a55; 
+}       /* green text */
+.explore-foods-page .efp-badge--warn { 
+  color: #8a6d00; 
+}     /* yellow text */
+.explore-foods-page .efp-badge--high { 
+  color: #9b1c1c; 
+}     /* red text */
 
 .explore-foods-page .efp-badge-topright {
   position: absolute; top: .75rem; right: .75rem;
   font-size: .72rem;
   padding: .2rem .5rem;
-  border-radius: 999px;
+  border-radius: 8px;
   background: #e8f6ea;
   color: #166534;
   border: 1px solid #c5e6cc;
@@ -390,7 +505,12 @@ button{
   color: #fff;
   border-color: #8b5e3c;
 }
-.explore-foods-page .efp-card-cta:active { transform: translateY(1px); }
+.explore-foods-page .efp-card-cta:active { 
+  transform: translateY(1px); 
+}
+.explore-foods-page .efp-card-cta:focus {
+  outline: none;
+}
 
 /* Empty state */
 .explore-foods-page .efp-empty {
