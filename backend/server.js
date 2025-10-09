@@ -7,6 +7,7 @@ const { ipKeyGenerator } = require("express-rate-limit");
 const MySQLStore = require("express-mysql-session")(session);
 
 const loginRoutes = require("./routes/login");
+const logoutRoutes = require("./routes/logout");
 const registerRoutes = require("./routes/register");
 const foodRoutes = require("./routes/foods");
 const authRoutes = require("./routes/auth");
@@ -126,6 +127,7 @@ const authLimiter = rateLimit({
 
 // ✅ Routes
 app.use("/api/login", authLimiter, loginRoutes);
+app.use("/api/logout", logoutRoutes);
 app.use("/api/register", authLimiter, registerRoutes);
 app.use("/api/foods", foodRoutes);
 app.use("/api/auth", authRoutes);
