@@ -201,7 +201,7 @@ body, html, #root {
 .lrp-form-content input::placeholder,
 .lrp-form-content textarea::placeholder {
   display: block;
-  margin-bottom: 0.5rem; /* space between placeholder and typed text */
+  margin-bottom: 0.5rem;
 }
 
  /* Buttons   */
