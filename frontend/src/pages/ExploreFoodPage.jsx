@@ -295,6 +295,15 @@ const sarawakFoods = [
 ];
 
 export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
+  // Dynamically derive the max calories from the dataset
+  const rawCalMax = useMemo(
+    () => sarawakFoods.reduce((m, f) => Math.max(m, f.calories), 0),
+    []
+  );
+
+  // (Optional) round up to a nicer number, e.g. to the next 50
+  const calMax = useMemo(() => Math.ceil(rawCalMax / 50) * 50, [rawCalMax]);
+  const calMin = 0;
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedFoodType, setSelectedFoodType] = useState("all");
   const [selectedPrepTime, setSelectedPrepTime] = useState("all");
@@ -305,10 +314,14 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedOrigin, setSelectedOrigin] = useState("all");
-  const [calorieRange, setCalorieRange] = useState([0, 500]);
+  const [calorieRange, setCalorieRange] = useState([calMin, calMax]);
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [nutritionFocus, setNutritionFocus] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    setCalorieRange(([lo, hi]) => [Math.min(lo, calMax), Math.min(hi, calMax)]);
+  }, [calMax]);
 
   const filteredFoods = useMemo(() => {
     return sarawakFoods.filter((food) => {
@@ -394,6 +407,26 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     return "High";
   };
 
+  // Dual-range slider config
+  const STEP = 5;
+  const MIN_GAP = 10; // minimum distance between thumbs (calories)
+
+  const pct = (v) => calMax === calMin ? 0 : ((v - calMin) * 100) / (calMax - calMin);
+
+  const handleMinCalInput = (e) => {
+    const raw = Number(e.target.value);
+    if (Number.isNaN(raw)) return;
+    const clamped = Math.max(calMin, Math.min(raw, calorieRange[1] - MIN_GAP));
+    setCalorieRange([clamped, calorieRange[1]]);
+  };
+
+  const handleMaxCalInput = (e) => {
+    const raw = Number(e.target.value);
+    if (Number.isNaN(raw)) return;
+    const clamped = Math.min(calMax, Math.max(raw, calorieRange[0] + MIN_GAP));
+    setCalorieRange([calorieRange[0], clamped]);
+  };
+
   return (
     <div className="explore-foods-page">
       <Header />
@@ -428,7 +461,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   setSearchQuery("");
                   setSelectedCategory("all");
                   setSelectedOrigin("all");
-                  setCalorieRange([0, 500]);
+                  setCalorieRange([calMin, calMax]);
                   setSelectedDifficulty("all");
                   setNutritionFocus("all");
                   setSelectedFoodType("all");
@@ -528,17 +561,79 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
               {/* Row 2: Calorie slider */}
               <div className="efp-filter-item efp-filter-wide">
-                <label className="efp-label">
-                  Calorie Range: 0 - {calorieRange[1]} calories
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="500"
-                  value={calorieRange[1]}
-                  onChange={(e) => setCalorieRange([0, Number(e.target.value)])}
-                  className="efp-range"
-                />
+                <label className="efp-label">Calorie Range</label>
+
+                {/* Min/Max numeric inputs (step=5) */}
+                <div className="efp-range-controls">
+                  <input
+                    type="number"
+                    className="efp-input"
+                    min={calMin}
+                    max={calorieRange[1] - MIN_GAP}
+                    step={STEP}
+                    value={calorieRange[0]}
+                    onChange={handleMinCalInput}
+                    aria-label="Minimum calories"
+                  />
+                  <span className="efp-range-sep">–</span>
+                  <input
+                    type="number"
+                    className="efp-input"
+                    min={calorieRange[0] + MIN_GAP}
+                    max={calMax}
+                    step={STEP}
+                    value={calorieRange[1]}
+                    onChange={handleMaxCalInput}
+                    aria-label="Maximum calories"
+                  />
+                  <span className="efp-range-unit">kcal</span>
+                </div>
+
+                {/* Dual slider (step=5) */}
+                <div className="efp-dual-range">
+                  <div className="efp-range-track" />
+                  <div
+                    className="efp-range-progress"
+                    style={{
+                      left: `${pct(calorieRange[0])}%`,
+                      right: `${100 - pct(calorieRange[1])}%`,
+                    }}
+                  />
+                  <input
+                    type="range"
+                    min={calMin}
+                    max={calMax}
+                    step={STEP}
+                    value={calorieRange[0]}
+                    onChange={(e) =>
+                      setCalorieRange(([_, hi]) => [
+                        Math.min(Number(e.target.value), hi - MIN_GAP),
+                        hi,
+                      ])
+                    }
+                    className="efp-range efp-range--left"
+                    aria-label="Minimum calories slider"
+                  />
+                  <input
+                    type="range"
+                    min={calMin}
+                    max={calMax}
+                    step={STEP}
+                    value={calorieRange[1]}
+                    onChange={(e) =>
+                      setCalorieRange(([lo, _]) => [
+                        lo,
+                        Math.max(Number(e.target.value), lo + MIN_GAP),
+                      ])
+                    }
+                    className="efp-range efp-range--right"
+                    aria-label="Maximum calories slider"
+                  />
+                </div>
+
+                <div className="efp-range-summary">
+                  {calorieRange[0]} – {calorieRange[1]} kcal
+                </div>
               </div>
 
               <hr className="efp-sep" />
@@ -614,7 +709,6 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
               </div>
             </div>
           )}
-
         </div>
 
         {/* Results */}
