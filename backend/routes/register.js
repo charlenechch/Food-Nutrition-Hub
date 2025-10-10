@@ -1,11 +1,11 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const router = express.Router();
-const db = require("../config/db");
+const db = require("../config/db"); // shared promise pool
 
 const saltRounds = 10;
 
-// Password validation function
+// Password validation
 const validatePassword = (password) => {
   const minLength = 8;
   const hasUpperCase = /[A-Z]/.test(password);
@@ -18,10 +18,10 @@ const validatePassword = (password) => {
   if (!hasLowerCase) return "Password must contain at least one lowercase letter";
   if (!hasNumber) return "Password must contain at least one number";
   if (!hasSpecialChar) return "Password must contain at least one special character";
-  return null; // Valid
+  return null;
 };
 
-// Register route
+// ✅ POST /api/register
 router.post("/", async (req, res) => {
   const { firstname, lastname, email, password } = req.body;
 
@@ -29,44 +29,35 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "All fields are required" });
   }
 
-  // Email format validation
+  // Email check
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return res.status(400).json({ success: false, error: "Invalid email format" });
+    return res.status(400).json({ error: "Invalid email format" });
   }
 
+  // Password check
   const passwordError = validatePassword(password);
   if (passwordError) {
-    return res.status(400).json({ success: false, error: passwordError });
+    return res.status(400).json({ error: passwordError });
   }
 
   try {
-    // Check if email exists
-    const [existing] = await db.promise().query(
-      "SELECT * FROM user WHERE email = ? LIMIT 1",
-      [email]
-    );
-
+    // ✅ Check if email already exists
+    const [existing] = await db.query("SELECT 1 FROM user WHERE email = ? LIMIT 1", [email]);
     if (existing.length > 0) {
       return res.status(400).json({ error: "Email already exists" });
     }
-    
-    // Default role for all registered users
-    const role = "member";
 
-    // Hash password
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Insert user
-    const sql = `
-      INSERT INTO user (firstname, lastname, email, password, role)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    const values = [firstname, lastname, email, hashedPassword, role];
+    // ✅ Insert user
+    const [result] = await db.query(
+      "INSERT INTO user (firstname, lastname, email, password, role) VALUES (?, ?, ?, ?, ?)",
+      [firstname, lastname, email, hashedPassword, "member"]
+    );
 
-    const [result] = await db.promise().query(sql, values);
-
-    return res.json({
+    res.json({
       success: true,
       message: "Registration successful",
       user: {
@@ -74,13 +65,13 @@ router.post("/", async (req, res) => {
         firstname,
         lastname,
         email,
-        role
-      }
+        role: "member",
+      },
     });
 
   } catch (err) {
-    console.error("Register error:", err);
-    return res.status(500).json({ error: "Registration failed" });
+    console.error("❌ Register error:", err.message);
+    res.status(500).json({ error: "Registration failed" });
   }
 });
 

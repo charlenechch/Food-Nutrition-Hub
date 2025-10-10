@@ -1,28 +1,51 @@
-const mysql = require('mysql2');
-const express = require('express');
-require('dotenv').config();
+// backend/config/db.js
+const mysql = require("mysql2/promise");
+require("dotenv").config();
 
-// Create MySQL connection
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'root', 
-    database: 'fypdb',
-    port: 3306  //mine is 3307, but most used is 3306
-}); //make sure the setting here is match with ur own database connection
+let dbConfig;
 
-// Connect to MySQL
-db.connect(err => {
-    if (err) {
-        console.error('Error connecting to MySQL:', err);
-        return;
-    }
-    console.log('MySQL connected!');
-});
+if (process.env.MYSQLHOST || process.env.DB_HOST) {
+  console.log("🌐 Using Railway DB config");
+  dbConfig = {
+    host: process.env.MYSQLHOST || process.env.DB_HOST,
+    port: process.env.MYSQLPORT || process.env.DB_PORT,
+    user: process.env.MYSQLUSER || process.env.DB_USER,
+    password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
+    database: process.env.MYSQLDATABASE || process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+  };
+} else {
+  console.log("💻 Using LOCAL DB config");
+  dbConfig = {
+    host: "localhost",
+    port: 3306, // change to 3307 if needed
+    user: "root",
+    password: "",
+    database: "fypdb",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+  };
+}
 
-module.exports = db;
+const pool = mysql.createPool(dbConfig);
 
-const app = express();
+// ✅ Quick test
+(async () => {
+  try {
+    const [rows] = await pool.query("SELECT 1");
+    console.log("✅ MySQL connection test OK");
+  } catch (err) {
+    console.error("❌ MySQL connection test FAILED:", err.message);
+  }
+})();
+
+module.exports = pool;
+
+
+
 
 // open MySQL workbench, copy paste the tables below
 
