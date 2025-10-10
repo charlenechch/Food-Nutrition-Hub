@@ -1,13 +1,3 @@
-/* no black outline for buttons after pressed */
-.explore-foods-page button,
-.explore-foods-page button:focus,
-.explore-foods-page button:focus-visible,
-.explore-foods-page button::-moz-focus-inner {
-  outline: none !important;
-  box-shadow: none !important;
-  -webkit-tap-highlight-color: transparent; /* removes mobile tap highlight */
-}
-
 /* Page scaffold */
 .explore-foods-page {
   padding-top: 70px;
@@ -168,7 +158,9 @@
   gap: 0.85rem 2rem;
 }
 @media (min-width: 1024px) {
-  .explore-foods-page .efp-checkbox-grid { grid-template-columns: repeat(4, 1fr); }
+  .explore-foods-page .efp-checkbox-grid { 
+    grid-template-columns: repeat(4, 1fr); 
+  }
 }
 
 .explore-foods-page .efp-checkbox-item {
@@ -180,6 +172,56 @@
 
 .explore-foods-page .efp-checkbox-text {
   color: #3b2b1e;
+}
+
+.explore-foods-page .efp-filters-card {
+  margin-top: 0.75rem; 
+}
+
+.explore-foods-page .efp-filters-card .efp-filters {
+  margin-bottom: 0;
+}
+
+.explore-foods-page .efp-filters-card {
+  overflow: hidden;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+.explore-foods-page .efp-filters-header {
+  display: flex;
+  align-items: center;         
+  justify-content: flex-start;  
+  gap: .5rem;                   
+  margin-bottom: .75rem;
+}
+
+.explore-foods-page .efp-filter-icon {
+  flex: 0 0 auto;
+  color: #6a4a2f;               
+}
+
+/* Title style */
+.explore-foods-page .efp-filters-title {
+  margin: 0;
+  line-height: 1;              
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #6a4a2f;
+}
+
+.explore-foods-page .efp-active-filters {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .4rem;
+  margin-left: auto;          
+  flex-wrap: wrap;             
+  max-width: 70ch;             
+}
+
+/* Make the x icon/buttons feel clickable */
+.explore-foods-page .efp-chip--removable:hover {
+  background: #f7f7f7;
 }
 
 /* Divider line between rows */
@@ -205,7 +247,7 @@
   width: 100%;
   border: 1px solid #dddddd;
   border-radius: 10px;
-  background: #fff;
+  background: #f7f2ed;
   outline: none;
   transition: box-shadow .2s ease, border-color .2s ease;
 }
@@ -216,26 +258,39 @@
 
 .explore-foods-page .efp-select {
   padding: 0.55rem 0.75rem;
-  appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, #666666 50%), linear-gradient(135deg, #666666 50%, transparent 50%);
-  background-position: calc(100% - 16px) calc(1em + 2px), calc(100% - 11px) calc(1em + 2px);
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-}
-
-.explore-foods-page .efp-input:focus,
-.explore-foods-page .efp-select:focus {
-  border-color: #8b5e3c;
-  box-shadow: 0 0 0 4px #8b5e3c1a;
 }
 
 .explore-foods-page .efp-checkbox {
+  appearance: none;
   accent-color: #8b5e3c;
+  background: #f7f2ed; 
+  border: 0.5px solid #eadfd2;
+  border-radius: 3px; 
   width: 16px;
   height: 16px;
+  position: relative;          
+  cursor: pointer;
 }
 
-/* --- Dual range (two thumbs) --- */
+/* Checked fill */
+.explore-foods-page .efp-checkbox:checked {
+  background: #8b5e3c;           
+  border-color: #8b5e3c;
+}
+
+.explore-foods-page .efp-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;                 
+  height: 8px;                 
+  transform: translate(-50%, -60%) rotate(45deg);
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+}
+
+/*Dual range (two thumbs)*/
 .explore-foods-page .efp-dual-range {
   position: relative;
   height: 36px;
@@ -271,16 +326,20 @@
   top: 0; left: 0;
   width: 100%;
   height: 36px;
-  background: none;             /* IMPORTANT: no background on the input */
-  pointer-events: none;         /* only thumbs should be draggable */
+  background: none;          
+  pointer-events: none;         
   -webkit-appearance: none;
   appearance: none;
   margin: 0;
 }
 
 /* hide default tracks */
-.explore-foods-page .efp-dual-range .efp-range::-webkit-slider-runnable-track { background: transparent; }
-.explore-foods-page .efp-dual-range .efp-range::-moz-range-track { background: transparent; }
+.explore-foods-page .efp-dual-range .efp-range::-webkit-slider-runnable-track { 
+  background: transparent; 
+}
+.explore-foods-page .efp-dual-range .efp-range::-moz-range-track { 
+  background: transparent; 
+}
 
 /* thumbs */
 .explore-foods-page .efp-dual-range .efp-range::-webkit-slider-thumb {
@@ -328,7 +387,12 @@
   color: #666; 
   font-size: .9rem; 
 }
-
+.explore-foods-page .efp-range-summary { 
+  color: #666; 
+  font-size: .9rem; 
+  padding-top: 10px;
+  padding-left: 7px;
+}
 
 /* Buttons / Chips */
 .explore-foods-page .efp-btn {
@@ -339,7 +403,7 @@
   padding: .55rem 1rem;
   border-radius: 10px;
   border: 1px solid #dddddd;
-  background: #fff;
+  background: #f7f2ed;
   color: #333333;
   cursor: pointer;
   transition: background .2s ease, color .2s ease, border-color .2s ease, transform .06s ease;
@@ -368,7 +432,7 @@
   border-radius: 10px;
   font-size: .85rem;
   border: 1px solid #dddddd;
-  background: #fff;
+  background: #f7f2ed;
   color: #333333;
   cursor: pointer;
   transition: background .2s ease, color .2s ease, border-color .2s ease;
@@ -385,7 +449,9 @@
 
 /* removable chip */
 .explore-foods-page .efp-chip--removable {
-  display: inline-flex; align-items: center; gap: .35rem;
+  display: inline-flex; 
+  align-items: center; 
+  gap: .35rem;
   padding: .3rem .6rem;
   font-size: .8rem;
 }
@@ -426,7 +492,7 @@
 /* image area */
 .explore-foods-page .efp-food-media {
   position: relative;
-  height: 12rem; /* ~h-48 */
+  height: 12rem; 
   overflow: hidden;
 }
 .explore-foods-page .efp-food-media img {
@@ -516,7 +582,7 @@
 }
 .explore-foods-page .efp-nutri-item {
   text-align: center;
-  background: #f7f7f7;
+  background: #f7f2ed;
   border-radius: 8px;
   padding: .45rem;
   font-size: .8rem;
@@ -524,13 +590,25 @@
 .explore-foods-page .efp-nutri-item .muted { color: #777777; }
 
 /* dietary tags row */
-.explore-foods-page .efp-tags { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .4rem; }
+.explore-foods-page .efp-tags { 
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: .25rem; 
+  margin-top: .4rem; 
+}
 .explore-foods-page .efp-tag {
   font-size: .72rem;
-  border: 1px solid #dddddd;
+  border: 1px solid #eadfd2;
+  color: #6a4a2f;
   padding: .2rem .45rem;
-  border-radius: 999px;
+  border-radius: 10px;
   background: #fff;
+}
+.explore-foods-page .efp-tag:hover {
+  background: #eadfd2;
+}
+.explore-foods-page .efp-tag:focus {
+  outline: none;
 }
 
 /* CTA button in card */
@@ -541,7 +619,7 @@
   border-radius: 10px;
   border: 1px solid #8b5e3c;
   color: #8b5e3c;
-  background: #fff;
+  background: #f7f2ed;
   cursor: pointer;
   transition: background .2s ease, color .2s ease, transform .06s ease, border-color .2s ease;
 }

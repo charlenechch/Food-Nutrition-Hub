@@ -211,7 +211,7 @@ export default function LoginRegisterPage() {
                 <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
                   Sign In
                 </button>
-                <button onClick={handleForgotPassword} className="lrp-btn lrp-btn-secondary">
+                <button onClick={handleForgotPassword} className="lrp-btn lrp-btn-primary">
                   Forgot Password
                 </button>
                 <div className="lrp-divider"><span>or</span></div>

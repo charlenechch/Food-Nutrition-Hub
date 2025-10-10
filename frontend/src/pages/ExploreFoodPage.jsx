@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/ExploreFoodPage.css";
+import { Filter, Sliders, X } from "lucide-react";
 
 const sarawakFoods = [
   {
@@ -315,6 +316,8 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedOrigin, setSelectedOrigin] = useState("all");
   const [calorieRange, setCalorieRange] = useState([calMin, calMax]);
+  const [minCalInput, setMinCalInput] = useState(String(calMin));
+  const [maxCalInput, setMaxCalInput] = useState(String(calMax));
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [nutritionFocus, setNutritionFocus] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
@@ -322,6 +325,11 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   useEffect(() => {
     setCalorieRange(([lo, hi]) => [Math.min(lo, calMax), Math.min(hi, calMax)]);
   }, [calMax]);
+
+  useEffect(() => {
+    setMinCalInput(String(calorieRange[0]));
+    setMaxCalInput(String(calorieRange[1]));
+  }, [calorieRange]);
 
   const filteredFoods = useMemo(() => {
     return sarawakFoods.filter((food) => {
@@ -381,6 +389,9 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     calorieRange,
     selectedDifficulty,
     nutritionFocus,
+    selectedDietaryTags,
+    selectedFoodType, 
+    selectedPrepTime  
   ]);
 
   const totalPages = Math.ceil(filteredFoods.length / itemsPerPage);
@@ -399,6 +410,9 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     calorieRange,
     selectedDifficulty,
     nutritionFocus,
+    selectedDietaryTags,   
+    selectedFoodType,     
+    selectedPrepTime 
   ]);
 
   const getCalorieRangeLabel = (cal) => {
@@ -413,18 +427,37 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
   const pct = (v) => calMax === calMin ? 0 : ((v - calMin) * 100) / (calMax - calMin);
 
-  const handleMinCalInput = (e) => {
-    const raw = Number(e.target.value);
-    if (Number.isNaN(raw)) return;
+  const clampToStep = (v) => Math.round(v / STEP) * STEP;
+
+  const commitMin = () => {
+    let raw = parseInt(minCalInput, 10);
+    if (Number.isNaN(raw)) raw = calMin;
+    raw = clampToStep(raw);
     const clamped = Math.max(calMin, Math.min(raw, calorieRange[1] - MIN_GAP));
     setCalorieRange([clamped, calorieRange[1]]);
+    setMinCalInput(String(clamped)); // normalize display
   };
 
-  const handleMaxCalInput = (e) => {
-    const raw = Number(e.target.value);
-    if (Number.isNaN(raw)) return;
+  const commitMax = () => {
+    let raw = parseInt(maxCalInput, 10);
+    if (Number.isNaN(raw)) raw = calMax;
+    raw = clampToStep(raw);
     const clamped = Math.min(calMax, Math.max(raw, calorieRange[0] + MIN_GAP));
     setCalorieRange([calorieRange[0], clamped]);
+    setMaxCalInput(String(clamped)); // normalize display
+  };
+
+  const onMinKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commitMin();
+    }
+  };
+  const onMaxKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commitMax();
+    }
   };
 
   return (
@@ -454,6 +487,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                 onClick={() => setShowFilters(!showFilters)}
                 className="efp-btn"
               >
+                <Sliders size={18} aria-hidden="true" />
                 Filters
               </button>
               <button
@@ -470,6 +504,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                 }}
                 className="efp-btn"
               >
+                <X size={18} aria-hidden="true" />
                 Clear All
               </button>
             </div>
@@ -499,11 +534,16 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
               </button>
             ))}
           </div>
+        </div>
 
-          {/* Expanded Filter Panel */}
-          {showFilters && (
+        {/* Expanded Filter Panel */}
+        {showFilters && (
+          <div className="efp-card efp-filters-card" id="filters-panel" role="region" aria-label="Filters">
             <div className="efp-filters">
-
+              <div className="efp-filters-header">
+                <Filter className="efp-filter-icon" size={18} aria-hidden="true" />
+                <h2 id="filters-heading" className="efp-filters-title">Filter</h2>
+              </div>
               {/* Row 1: Origin, Food Type, Nutrition Focus */}
               <div className="efp-grid-3">
                 <div className="efp-filter-item">
@@ -571,19 +611,23 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                     min={calMin}
                     max={calorieRange[1] - MIN_GAP}
                     step={STEP}
-                    value={calorieRange[0]}
-                    onChange={handleMinCalInput}
+                    value={minCalInput}
+                    onChange={(e) =>setMinCalInput(e.target.value)}
+                    onBlur={commitMin}                               
+                    onKeyDown={onMinKeyDown}                         
                     aria-label="Minimum calories"
                   />
-                  <span className="efp-range-sep">–</span>
+                  <span className="efp-range-sep">-</span>
                   <input
                     type="number"
                     className="efp-input"
                     min={calorieRange[0] + MIN_GAP}
                     max={calMax}
                     step={STEP}
-                    value={calorieRange[1]}
-                    onChange={handleMaxCalInput}
+                    value={maxCalInput}
+                    onChange={(e) => setMaxCalInput(e.target.value)}
+                    onBlur={commitMax}
+                    onKeyDown={onMaxKeyDown}
                     aria-label="Maximum calories"
                   />
                   <span className="efp-range-unit">kcal</span>
@@ -632,7 +676,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                 </div>
 
                 <div className="efp-range-summary">
-                  {calorieRange[0]} – {calorieRange[1]} kcal
+                  {calorieRange[0]} - {calorieRange[1]} kcal
                 </div>
               </div>
 
@@ -708,14 +752,33 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Results */}
         <div className="efp-result-head">
           <p className="efp-results-count">
             {filteredFoods.length} dishes found
           </p>
+          {selectedDietaryTags.length > 0 && (
+            <div className="efp-active-filters" aria-label="Active dietary filters">
+              {selectedDietaryTags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className="efp-chip efp-chip--removable"
+                  onClick={() =>
+                    setSelectedDietaryTags((prev) => prev.filter((t) => t !== tag))
+                  }
+                  aria-label={`Remove ${tag.replace("-", " ")}`}
+                  title={`Remove ${tag.replace("-", " ")}`}
+                >
+                  <span>{tag.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</span>
+                  <X size={14} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="efp-grid">
@@ -776,6 +839,26 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                       <div className="muted">Fat</div>
                     </div>
                   </div>
+
+                  {/* Dietary tags row */}
+                  {food.dietaryTags?.length > 0 && (
+                    <div className="efp-tags" aria-label={`${food.name} dietary tags`}>
+                      {food.dietaryTags.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          className="efp-tag"
+                          onClick={(e) => {
+                            e.stopPropagation(); // don’t trigger card click
+                            setSelectedDietaryTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
+                          }}
+                          title={`Filter by ${tag}`}
+                        >
+                          {tag.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   <button
                     className="efp-card-cta"
