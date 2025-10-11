@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import LoginFood from "../assets/LoginFood.png";
 import "../css/ForgotPasswordPage.css";
 
@@ -8,7 +8,6 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  // UI-only: no real API calls — purely presentational
   const handleSubmit = (e) => {
     e.preventDefault();
     // pretend success for UI preview

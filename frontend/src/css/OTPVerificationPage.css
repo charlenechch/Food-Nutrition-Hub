@@ -1,0 +1,135 @@
+.otp-container {
+    min-height: 100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(to bottom right, #f9fafb, #e9f2ef);
+    padding:2rem;
+}
+.otp-card {
+    width:100%;
+    max-width:500px;
+    background:#fff;
+    border:1px solid #dbcebc;
+    border-radius:16px;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+    padding:2rem;
+    box-sizing:border-box;
+}
+.otp-center {
+    text-align:center;
+}
+
+.otp-header {
+    text-align:center;
+    margin-bottom:1rem;
+}
+.otp-logo {
+    width:64px;
+    height:64px;
+    margin:0 auto 1rem;
+    background:#8B4513;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.8rem;
+    color:#fff;
+}
+.otp-title {
+    margin:.25rem 0;
+    font-size:1.6rem;
+    color:#000;
+}
+.otp-subtitle {
+    color:#777;
+    margin:0;
+}
+
+.otp-body {
+    display:flex;
+    flex-direction:column;
+    gap:1rem;
+}
+.otp-email-block {
+    text-align:center;
+}
+.otp-muted {
+    color:#666;
+    font-size:.95rem;
+}
+.otp-badge {
+    display:inline-block;
+    padding:.35rem .6rem;
+    border:1px solid #dbcebc;
+    background:#f7f2ed;
+    border-radius:999px;
+    font-size:.9rem;
+}
+
+.otp-form {
+    display:flex;
+    flex-direction:column;
+    gap:.75rem;
+}
+.otp-label {
+    font-size:.9rem;
+    color:#333;
+}
+.otp-input {
+  width:100%;
+    text-align:center;
+    letter-spacing:.35em;
+    padding:.8rem;
+    font-size:1.25rem;
+  border:1px solid #ddd;
+    border-radius:10px;
+    background:#f7f2ed;
+}
+.otp-input:focus {
+    border-color:#8B4513;
+    box-shadow:0 0 0 3px rgba(139,69,19,.15);
+    outline:none;
+}
+
+.otp-error {
+    background:#fde8e8;
+    border:1px solid #f5c2c2;
+    color:#7a1c1c;
+    border-radius:8px;
+    padding:.6rem .75rem;
+    font-size:.9rem;
+}
+
+.otp-remember {
+    display:flex;
+    align-items:center;
+    gap:.5rem;
+    font-size:.9rem;
+    color:#333;
+}
+
+.otp-actions {
+    display:flex;
+    flex-direction:column;
+    gap:.5rem;
+    align-items:stretch;
+    text-align:center;
+}
+
+.otp-success-icon {
+    width:56px;
+    height:56px;
+    margin:0 auto .75rem;
+    border-radius:50%;
+    border:2px solid #4caf50;
+    color:#4caf50;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:1.25rem;
+}
+.otp-actions .lrp-btn-outline{
+    margin-top:.8rem;
+}

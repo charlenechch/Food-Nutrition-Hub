@@ -9,6 +9,7 @@ import CommunityPage from "./pages/Community";
 import UserProfilePage from "./pages/UserProfile";
 import ForgetPassword from "./pages/ForgotPasswordPage";
 import ResetPassword from "./pages/ResetPasswordPage";
+import OTPVerification from "./pages/OTPVerificationPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         {/* Public Pages */}
         <Route path="/forgotpassword" element={<ForgetPassword />} />
         <Route path="/resetpassword" element={<ResetPassword />} />
+        <Route path="/otpverification" element={<OTPVerification />} />
         <Route path="/home" element={<UserHomepage />} />
         <Route path="/foods" element={<ExploreFoodsPage />} />
         <Route path="/recipes" element={<RecipesPage />} />

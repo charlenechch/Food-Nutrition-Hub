@@ -37,7 +37,7 @@ export default function LoginRegisterPage() {
     return null;
   };
 
-  // ✅ Handle login
+  // Handle login
   const handleLogin = async () => {
     if (!email || !password) {
       alert("Please fill in all fields");
@@ -78,7 +78,7 @@ export default function LoginRegisterPage() {
     }
   };
 
-  // ✅ Handle registration
+  // Handle registration
   const handleRegister = async () => {
     if (!firstName || !lastName || !regEmail || !regPassword) {
       alert("Please fill in all fields");
@@ -119,7 +119,7 @@ export default function LoginRegisterPage() {
       const data = await res.json();
 
       if (res.ok) {
-        console.log("✅ Registration successful:", data);
+        console.log("Registration successful:", data);
         alert("Account created! Welcome to SarawakEats.");
 
         setFirstName("");
@@ -131,12 +131,12 @@ export default function LoginRegisterPage() {
         alert(data.error || data.message || "Registration failed!");
       }
     } catch (err) {
-      console.error("❌ Registration error:", err);
+      console.error("Registration error:", err);
       alert("Something went wrong during registration.");
     }
   };
 
-  // ✅ Handle Guest
+  // Handle Guest
   const handleGuest = () => {
     login({ role: "guest" });
     console.log("Logged in as guest");
@@ -203,7 +203,7 @@ export default function LoginRegisterPage() {
                     onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
-                <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
+                <button onClick={() => navigate(`/otpverification?email=${encodeURIComponent(email)}`)} className="lrp-btn lrp-btn-primary">
                   Sign In
                 </button>
                 <button onClick={() => navigate("/forgotpassword")} className="lrp-btn lrp-btn-primary">
