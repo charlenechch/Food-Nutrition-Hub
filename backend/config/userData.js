@@ -2,34 +2,28 @@ import db from './db.js';
 import { userData } from './dummyData.js';
 
 function insertUsers() {
-  let index = 0;
+  const sql = `
+    INSERT INTO user (firstname, lastname, email, password, role)
+    VALUES ?
+  `;
 
-  function insertNext() {
-    if (index >= userData.length) {
-      console.log('✅ Finished inserting all users!');
-      db.end();
-      return;
+  // Convert JSON array to array of arrays
+  const values = userData.map(user => [
+    user.firstname,
+    user.lastname,
+    user.email,
+    user.password,
+    user.role
+  ]);
+
+  db.query(sql, [values], (err, result) => {
+    if (err) {
+      console.error('❌ Error inserting users:', err);
+    } else {
+      console.log(`✅ Successfully inserted ${result.affectedRows} users!`);
     }
-
-    const user = userData[index];
-    const sql = `
-      INSERT INTO user (firstname, lastname, email, password, role)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    const values = [user.firstname, user.lastname, user.email, user.password, user.role];
-
-    db.query(sql, values, (err) => {
-      if (err) {
-        console.error(`❌ Error inserting user ${user.firstname}:`, err);
-      } else {
-        console.log(`Inserted user ${index + 1}: ${user.firstname}`);
-      }
-      index++;
-      insertNext();
-    });
-  }
-
-  insertNext();
+    db.end();
+  });
 }
 
 insertUsers();
