@@ -143,11 +143,6 @@ export default function LoginRegisterPage() {
     navigate("/home");
   };
 
-  // ✅ Placeholder for forgot password
-  const handleForgotPassword = () => {
-    alert("Forgot password feature is not implemented yet.");
-  };
-
   return (
     <div className="login-register-page">
       {/* Left Section with Image */}
@@ -211,7 +206,7 @@ export default function LoginRegisterPage() {
                 <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
                   Sign In
                 </button>
-                <button onClick={handleForgotPassword} className="lrp-btn lrp-btn-primary">
+                <button onClick={() => navigate("/forgotpassword")} className="lrp-btn lrp-btn-primary">
                   Forgot Password
                 </button>
                 <div className="lrp-divider"><span>or</span></div>

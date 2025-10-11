@@ -461,8 +461,8 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   };
 
   const trackBoxRef = useRef(null); 
-  const trackRef     = useRef(null); 
-  const progressRef  = useRef(null); 
+  const trackRef = useRef(null); 
+  const progressRef = useRef(null); 
 
   const updateProgress = useCallback(() => {
     const track = trackRef.current;

@@ -8,7 +8,7 @@
 }
 
 /* Main container responsive spacing */
-.explore-foods-page .efp-container {
+.efp-container {
   width: 100%;
   margin: 0 auto;
   padding-block: 1rem; 
@@ -18,7 +18,7 @@
 
 /* Medium screens (tablet and small laptop) */
 @media (min-width: 768px) {
-  .explore-foods-page .efp-container {
+  .efp-container {
     max-width: 1000px;
     padding-inline: 1.5rem;
   }
@@ -26,7 +26,7 @@
 
 /* Large screens (desktop) */
 @media (min-width: 1200px) {
-  .explore-foods-page .efp-container {
+  .efp-container {
     max-width: 1320px;         
     padding-inline: 2rem;
   }
@@ -34,14 +34,14 @@
 
 /* Extra large screens (ultrawide monitors) */
 @media (min-width: 1600px) {
-  .explore-foods-page .efp-container {
+  .efp-container {
     max-width: 1600px;          
     padding-inline: 3rem;
   }
 }
 
 /* Page head */
-.explore-foods-page .efp-title {
+.efp-title {
   text-align: center;
   font-size: clamp(1.6rem, 2.5vw, 2rem);
   font-weight: 600;
@@ -50,7 +50,7 @@
   margin: 0 0 0.25rem 0;
 }
 
-.explore-foods-page .efp-subtitle {
+.efp-subtitle {
   text-align: center;
   color: #666666;
   font-size: 0.95rem;
@@ -58,30 +58,30 @@
 }
 
 /* Cards / Panels */
-.explore-foods-page .efp-card {
+.efp-card {
   background: #ffffff;
   border: 1px solid #eeeeee;
   border-radius: 14px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 
-.explore-foods-page .efp-card:hover {
+.efp-card:hover {
   box-shadow: 0 6px 18px rgba(0,0,0,0.08);
   transition: box-shadow .25s ease;
 }
 
 /* Search / Actions */
-.explore-foods-page .efp-controls {
+.efp-controls {
   padding: 1rem;
   margin-bottom: 1.25rem;
 }
 
 @media (min-width: 640px) {
-  .explore-foods-page .efp-controls { padding: 1.25rem; }
+  .efp-controls { padding: 1.25rem; }
 }
 
 /* Search bar + buttons row */
-.explore-foods-page .efp-search-row {
+.efp-search-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -90,13 +90,13 @@
 }
 
 /* Search input takes the remaining space */
-.explore-foods-page .efp-search-row .efp-input {
+.efp-search-row .efp-input {
   flex: 1;
   min-width: 250px;
 }
 
 /* Group for Filter + Clear All buttons */
-.explore-foods-page .efp-btn-group {
+.efp-btn-group {
   display: flex;
   gap: 0.5rem;
   flex-shrink: 0;
@@ -104,14 +104,14 @@
 
 /* Responsive layout for small screens */
 @media (max-width: 640px) {
-  .explore-foods-page .efp-search-row {
+  .efp-search-row {
     flex-wrap: wrap;
     flex-direction: column;
     align-items: stretch;
     gap: 0.75rem;
   }
 
-  .explore-foods-page .efp-btn-group {
+  .efp-btn-group {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -120,7 +120,7 @@
 }
 
 /* Advanced filters panel */
-.explore-foods-page .efp-filters {
+.efp-filters {
   padding: 1.25rem;
   margin-bottom: 1.25rem;
   background: #fff;
@@ -128,70 +128,70 @@
   border: 1px solid #eadfd2; /* soft sand border */
 }
 
-.explore-foods-page .efp-label {
+.efp-label {
   display: block;
   font-weight: 600;
   color: #6a4a2f; /* warm brown */
   margin-bottom: 0.5rem;
 }
 
-.explore-foods-page .efp-grid-3 {
+.efp-grid-3 {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
 }
 @media (min-width: 768px) {
-  .explore-foods-page .efp-grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .efp-grid-3 { grid-template-columns: repeat(2, 1fr); }
 }
 @media (min-width: 1024px) {
-  .explore-foods-page .efp-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .efp-grid-3 { grid-template-columns: repeat(3, 1fr); }
 }
 
-.explore-foods-page .efp-grid-2 {
+.efp-grid-2 {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
 }
 @media (min-width: 768px) {
-  .explore-foods-page .efp-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .efp-grid-2 { grid-template-columns: repeat(2, 1fr); }
 }
 
-.explore-foods-page .efp-checkbox-grid {
+.efp-checkbox-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.85rem 2rem;
 }
 @media (min-width: 1024px) {
-  .explore-foods-page .efp-checkbox-grid { 
+  .efp-checkbox-grid { 
     grid-template-columns: repeat(4, 1fr); 
   }
 }
 
-.explore-foods-page .efp-checkbox-item {
+.efp-checkbox-item {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   user-select: none;
 }
 
-.explore-foods-page .efp-checkbox-text {
+.efp-checkbox-text {
   color: #3b2b1e;
 }
 
-.explore-foods-page .efp-filters-card {
+.efp-filters-card {
   margin-top: 0.75rem; 
 }
 
-.explore-foods-page .efp-filters-card .efp-filters {
+.efp-filters-card .efp-filters {
   margin-bottom: 0;
 }
 
-.explore-foods-page .efp-filters-card {
+.efp-filters-card {
   overflow: hidden;
   transition: transform .2s ease, opacity .2s ease;
 }
 
-.explore-foods-page .efp-filters-header {
+.efp-filters-header {
   display: flex;
   align-items: center;         
   justify-content: flex-start;  
@@ -199,13 +199,13 @@
   margin-bottom: .75rem;
 }
 
-.explore-foods-page .efp-filter-icon {
+.efp-filter-icon {
   flex: 0 0 auto;
   color: #6a4a2f;               
 }
 
 /* Title style */
-.explore-foods-page .efp-filters-title {
+.efp-filters-title {
   margin: 0;
   line-height: 1;              
   font-size: 1.05rem;
@@ -213,7 +213,7 @@
   color: #6a4a2f;
 }
 
-.explore-foods-page .efp-active-filters {
+.efp-active-filters {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -224,12 +224,12 @@
 }
 
 /* Make the x icon/buttons feel clickable */
-.explore-foods-page .efp-chip--removable:hover {
+.efp-chip--removable:hover {
   background: #f7f7f7;
 }
 
 /* Divider line between rows */
-.explore-foods-page .efp-sep {
+.efp-sep {
   height: 1px;
   background: #eadfd2;
   border: 0;
@@ -237,7 +237,7 @@
 }
 
 /* Separator substitute */
-.explore-foods-page .efp-sep {
+.efp-sep {
   height: 1px;
   background: #eeeeee;
   margin: 1rem 0;
@@ -245,8 +245,8 @@
 }
 
 /* Inputs / Selects / Checkboxes */
-.explore-foods-page .efp-input,
-.explore-foods-page .efp-select {
+.efp-input,
+.efp-select {
   width: 100%;
   border: 1px solid #dddddd;
   border-radius: 10px;
@@ -255,15 +255,15 @@
   transition: box-shadow .2s ease, border-color .2s ease;
 }
 
-.explore-foods-page .efp-input {
+.efp-input {
   padding: 0.6rem 0.75rem;
 }
 
-.explore-foods-page .efp-select {
+.efp-select {
   padding: 0.55rem 0.75rem;
 }
 
-.explore-foods-page .efp-checkbox {
+.efp-checkbox {
   appearance: none;
   accent-color: #8b5e3c;
   background: #f7f2ed; 
@@ -276,12 +276,12 @@
 }
 
 /* Checked fill */
-.explore-foods-page .efp-checkbox:checked {
+.efp-checkbox:checked {
   background: #8b5e3c;           
   border-color: #8b5e3c;
 }
 
-.explore-foods-page .efp-checkbox:checked::after {
+.efp-checkbox:checked::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -294,14 +294,14 @@
 }
 
 /*Dual range (two thumbs)*/
-.explore-foods-page .efp-dual-range {
+.efp-dual-range {
   position: relative;
   height: 28px;
   margin-top: .25rem;
 }
 
 /* base grey track */
-.explore-foods-page .efp-dual-range .efp-range-track {
+.efp-dual-range .efp-range-track {
   position: absolute;
   top: 50%;
   left: 0; 
@@ -314,7 +314,7 @@
 }
 
 /* filled segment between thumbs */
-.explore-foods-page .efp-dual-range .efp-range-progress {
+.efp-dual-range .efp-range-progress {
   position: absolute;
   top: 50%;
   left: 0; 
@@ -327,7 +327,7 @@
 }
 
 /* overlay both sliders */
-.explore-foods-page .efp-dual-range .efp-range {
+.efp-dual-range .efp-range {
   position: absolute;
   inset: 0;
   background: none;
@@ -338,12 +338,12 @@
 }
 
 /* hide default tracks */
-.explore-foods-page .efp-dual-range .efp-range::-webkit-slider-runnable-track { 
+.efp-dual-range .efp-range::-webkit-slider-runnable-track { 
   background: transparent; 
 }
 
 /* thumbs */
-.explore-foods-page .efp-dual-range .efp-range::-webkit-slider-thumb {
+.efp-dual-range .efp-range::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 18px; 
   height: 18px;
@@ -355,31 +355,31 @@
 }
 
 /* z-index so left thumb stays on top when overlapping */
-.explore-foods-page .efp-dual-range .efp-range--left { 
+.efp-dual-range .efp-range--left { 
   z-index: 2; 
 }
-.explore-foods-page .efp-dual-range .efp-range--right { 
+.efp-dual-range .efp-range--right { 
   z-index: 4; 
 }
 
-.explore-foods-page .efp-range-controls {
+.efp-range-controls {
   display: flex;
   align-items: center;
   gap: .5rem;
   margin-bottom: .5rem;
 }
-.explore-foods-page .efp-range-controls .efp-input {
+.efp-range-controls .efp-input {
   max-width: 110px;
 }
-.explore-foods-page .efp-range-sep { 
+.efp-range-sep { 
   padding: 0 .25rem; 
   color: #666; 
 }
-.explore-foods-page .efp-range-unit { 
+.efp-range-unit { 
   color: #666; 
   font-size: .9rem; 
 }
-.explore-foods-page .efp-range-summary { 
+.efp-range-summary { 
   color: #666; 
   font-size: .9rem; 
   padding-top: 10px;
@@ -387,7 +387,7 @@
 }
 
 /* Buttons / Chips */
-.explore-foods-page .efp-btn {
+.efp-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -401,24 +401,24 @@
   transition: background .2s ease, color .2s ease, border-color .2s ease, transform .06s ease;
   user-select: none;
 }
-.explore-foods-page .efp-btn:hover { 
+.efp-btn:hover { 
   background: #f7f7f7; 
 }
-.explore-foods-page .efp-btn:active { 
+.efp-btn:active { 
   transform: translateY(1px); 
 }
-.explore-foods-page .efp-btn:focus {
+.efp-btn:focus {
   outline: none;
 }
 
-.explore-foods-page .efp-btn--primary {
+.efp-btn--primary {
   border-color: #8b5e3c;
   background: #8b5e3c;
   color: #fff;
 }
-.explore-foods-page .efp-btn--primary:hover { background: #6f4a2f; border-color: #6f4a2f; }
+.efp-btn--primary:hover { background: #6f4a2f; border-color: #6f4a2f; }
 
-.explore-foods-page .efp-chip {
+.efp-chip {
   margin: 0.25rem 0.25rem 0 0;
   padding: .4rem .8rem;
   border-radius: 10px;
@@ -429,18 +429,18 @@
   cursor: pointer;
   transition: background .2s ease, color .2s ease, border-color .2s ease;
 }
-.explore-foods-page .efp-chip.is-active {
+.efp-chip.is-active {
   background: #8b5e3c;
   border-color: #8b5e3c;
   color: #fff;
 }
 
-.explore-foods-page .efp-chip:focus {
+.efp-chip:focus {
   outline: none;
 }
 
 /* removable chip */
-.explore-foods-page .efp-chip--removable {
+.efp-chip--removable {
   display: inline-flex; 
   align-items: center; 
   gap: .35rem;
@@ -449,25 +449,25 @@
 }
 
 /* Grid & Cards */
-.explore-foods-page .efp-result-head {
+.efp-result-head {
   display: flex; align-items: center; justify-content: space-between;
   margin: .5rem 0 1rem 0;
   gap: 1rem;
 }
 
-.explore-foods-page .efp-grid {
+.efp-grid {
   display: grid;
   gap: 1.25rem;
   grid-template-columns: 1fr;
 }
 @media (min-width: 768px) {
-  .explore-foods-page .efp-grid { grid-template-columns: repeat(2, 1fr); }
+  .efp-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (min-width: 1024px) {
-  .explore-foods-page .efp-grid { grid-template-columns: repeat(3, 1fr); }
+  .efp-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
-.explore-foods-page .efp-food-card {
+.efp-food-card {
   background: #ffffff;
   border: 1px solid #eeeeee;
   border-radius: 14px;
@@ -476,25 +476,25 @@
   transition: box-shadow .25s ease, transform .08s ease;
   cursor: pointer;
 }
-.explore-foods-page .efp-food-card:hover {
+.efp-food-card:hover {
   box-shadow: 0 6px 18px rgba(0,0,0,0.08);
   transform: translateY(-1px);
 }
 
 /* image area */
-.explore-foods-page .efp-food-media {
+.efp-food-media {
   position: relative;
   height: 12rem; 
   overflow: hidden;
 }
-.explore-foods-page .efp-food-media img {
+.efp-food-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
 /* inline badges on image */
-.explore-foods-page .efp-badges {
+.efp-badges {
   position: absolute; 
   top: .75rem; 
   left: .75rem;
@@ -502,7 +502,7 @@
   flex-direction: column; 
   gap: .4rem;
 }
-.explore-foods-page .efp-badge {
+.efp-badge {
   display: inline-block;
   font-size: .72rem;
   padding: .2rem .5rem;
@@ -510,17 +510,17 @@
   background: #ffffffeb;
   border: 1px solid #eeeeee;
 }
-.explore-foods-page .efp-badge--ok { 
+.efp-badge--ok { 
   color: #057a55; 
 }       /* green text */
-.explore-foods-page .efp-badge--warn { 
+.efp-badge--warn { 
   color: #8a6d00; 
 }     /* yellow text */
-.explore-foods-page .efp-badge--high { 
+.efp-badge--high { 
   color: #9b1c1c; 
 }     /* red text */
 
-.explore-foods-page .efp-badge-topright {
+.efp-badge-topright {
   position: absolute; top: .75rem; right: .75rem;
   font-size: .72rem;
   padding: .2rem .5rem;
@@ -531,17 +531,17 @@
 }
 
 /* card body */
-.explore-foods-page .efp-food-body {
+.efp-food-body {
   padding: 1rem;
 }
-.explore-foods-page .efp-food-headline {
+.efp-food-headline {
   display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem;
 }
-.explore-foods-page .efp-food-title {
+.efp-food-title {
   font-weight: 600;
   font-size: 1rem;
 }
-.explore-foods-page .efp-badge-cat {
+.efp-badge-cat {
   font-size: .72rem;
   border: 1px solid #dddddd;
   background: #fff;
@@ -549,46 +549,46 @@
   border-radius: 999px;
 }
 
-.explore-foods-page .efp-desc {
+.efp-desc {
   color: #666666;
   font-size: .92rem;
   margin-top: .25rem;
 }
 
-.explore-foods-page .efp-meta {
+.efp-meta {
   display: flex; justify-content: space-between; align-items: center;
   margin-top: .6rem;
   font-size: .88rem;
 }
-.explore-foods-page .efp-cal {
+.efp-cal {
   color: #8b5e3c;
   font-weight: 600;
 }
 
 /* quick nutrition trio */
-.explore-foods-page .efp-nutri {
+.efp-nutri {
   margin-top: .5rem;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: .4rem;
 }
-.explore-foods-page .efp-nutri-item {
+.efp-nutri-item {
   text-align: center;
   background: #f7f2ed;
   border-radius: 8px;
   padding: .45rem;
   font-size: .8rem;
 }
-.explore-foods-page .efp-nutri-item .muted { color: #777777; }
+.efp-nutri-item .muted { color: #777777; }
 
 /* dietary tags row */
-.explore-foods-page .efp-tags { 
+.efp-tags { 
   display: flex; 
   flex-wrap: wrap; 
   gap: .25rem; 
   margin-top: .4rem; 
 }
-.explore-foods-page .efp-tag {
+.efp-tag {
   font-size: .72rem;
   border: 1px solid #eadfd2;
   color: #6a4a2f;
@@ -596,15 +596,15 @@
   border-radius: 10px;
   background: #fff;
 }
-.explore-foods-page .efp-tag:hover {
+.efp-tag:hover {
   background: #eadfd2;
 }
-.explore-foods-page .efp-tag:focus {
+.efp-tag:focus {
   outline: none;
 }
 
 /* CTA button in card */
-.explore-foods-page .efp-card-cta {
+.efp-card-cta {
   width: 100%;
   margin-top: .5rem;
   padding: .55rem .9rem;
@@ -615,34 +615,34 @@
   cursor: pointer;
   transition: background .2s ease, color .2s ease, transform .06s ease, border-color .2s ease;
 }
-.explore-foods-page .efp-card-cta:hover {
+.efp-card-cta:hover {
   background: #8b5e3c;
   color: #fff;
   border-color: #8b5e3c;
 }
-.explore-foods-page .efp-card-cta:active { 
+.efp-card-cta:active { 
   transform: translateY(1px); 
 }
-.explore-foods-page .efp-card-cta:focus {
+.efp-card-cta:focus {
   outline: none;
 }
 
 /* Empty state */
-.explore-foods-page .efp-empty {
+.efp-empty {
   text-align: center;
   padding: 3rem 0;
 }
-.explore-foods-page .efp-empty p { 
+.efp-empty p { 
   color: #666666; 
 }
 
 /* pagination */
-.explore-foods-page .efp-pagination {
+.efp-pagination {
   text-align: center;
   margin: 1rem auto 2rem;
 }
 
-.explore-foods-page .efp-pagination .efp-btn {
+.efp-pagination .efp-btn {
   display: inline-block;
   margin: 0 .25rem;
 }

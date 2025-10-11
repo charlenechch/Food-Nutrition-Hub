@@ -7,6 +7,7 @@ import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
 import RecipesPage from "./pages/RecipesPage";
 import CommunityPage from "./pages/Community";
 import UserProfilePage from "./pages/UserProfile";
+import ForgetPassword from "./pages/ForgotPasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="/loginregister" element={<LoginRegisterPage />} />
 
         {/* Public Pages */}
+        <Route path="/forgotpassword" element={<ForgetPassword />} />
         <Route path="/home" element={<UserHomepage />} />
         <Route path="/foods" element={<ExploreFoodsPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
