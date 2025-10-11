@@ -74,15 +74,25 @@ export default function ForgotPasswordPage() {
                 password reset link. The link will expire after a short time.
               </p>
               <div className="fpp-success-actions">
-                <Link to="/" className="lrp-btn lrp-btn-primary">Back to Login</Link>
-                <button type="button" className="lrp-btn lrp-btn-outline" onClick={() => setSubmitted(false)}>
-                  Use a different email
+                <button
+                  type="button"
+                  className="lrp-btn lrp-btn-primary"
+                  onClick={() => navigate("/loginregister")}
+                >
+                  Back to Login
                 </button>
               </div>
               <ul className="fpp-tips">
                 <li>Didn't get it? Check your spam folder.</li>
                 <li>Still no email? Try again or contact support.</li>
               </ul>
+              <button
+                type="button"
+                className="lrp-btn lrp-btn-primary"
+                onClick={() => navigate("/resetpassword?token=demo")}
+              >
+                Open reset page (demo) (Remember to delete this button when applying backend, only accessible with reset password link sent to their email)
+              </button>
             </div>
           )}
 

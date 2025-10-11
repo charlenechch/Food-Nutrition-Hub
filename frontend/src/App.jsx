@@ -8,6 +8,7 @@ import RecipesPage from "./pages/RecipesPage";
 import CommunityPage from "./pages/Community";
 import UserProfilePage from "./pages/UserProfile";
 import ForgetPassword from "./pages/ForgotPasswordPage";
+import ResetPassword from "./pages/ResetPasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
 
         {/* Public Pages */}
         <Route path="/forgotpassword" element={<ForgetPassword />} />
+        <Route path="/resetpassword" element={<ResetPassword />} />
         <Route path="/home" element={<UserHomepage />} />
         <Route path="/foods" element={<ExploreFoodsPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
