@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/ExploreFoodPage.css";
@@ -302,7 +302,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     []
   );
 
-  // (Optional) round up to a nicer number, e.g. to the next 50
+  // round up to a nicer number to the next 50
   const calMax = useMemo(() => Math.ceil(rawCalMax / 50) * 50, [rawCalMax]);
   const calMin = 0;
   const [currentPage, setCurrentPage] = useState(1);
@@ -459,6 +459,57 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
       commitMax();
     }
   };
+
+  const trackBoxRef = useRef(null); 
+  const trackRef     = useRef(null); 
+  const progressRef  = useRef(null); 
+
+  const updateProgress = useCallback(() => {
+    const track = trackRef.current;
+    const bar   = progressRef.current;
+    if (!track || !bar) return;
+
+    const rect = track.getBoundingClientRect();
+    const pad   = 10.5;
+
+    const usable = Math.max(0, rect.width - 2 * pad);
+    const norm   = v => (v - calMin) / (calMax - calMin);
+
+    const loPx = pad + norm(calorieRange[0]) * usable;
+    const hiPx = pad + norm(calorieRange[1]) * usable;
+
+
+    bar.style.left  = `${loPx}px`;
+    bar.style.right = `${Math.max(0, rect.width - hiPx)}px`;
+    bar.style.removeProperty('width'); 
+  }, [calorieRange, calMin, calMax]);
+
+  // Recalculate when values or bounds change
+  useLayoutEffect(() => { updateProgress(); }, [updateProgress]);
+
+  // Recalculate on container resize + window resize
+  useEffect(() => {
+    const box = trackBoxRef.current;
+    if (!box) return;
+
+    const ro = new ResizeObserver(() => {
+      // next frame ensures layout numbers are final after CSS changes
+      requestAnimationFrame(updateProgress);
+    });
+    ro.observe(box);
+
+    const onWinResize = () => requestAnimationFrame(updateProgress);
+    window.addEventListener('resize', onWinResize);
+
+    // also run once in next frame after first paint (fonts, etc.)
+    const raf = requestAnimationFrame(updateProgress);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', onWinResize);
+      cancelAnimationFrame(raf);
+    };
+  }, [updateProgress]);
 
   return (
     <div className="explore-foods-page">
@@ -634,14 +685,11 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                 </div>
 
                 {/* Dual slider (step=5) */}
-                <div className="efp-dual-range">
-                  <div className="efp-range-track" />
+                <div className="efp-dual-range" ref={trackBoxRef}>
+                  <div ref={trackRef} className="efp-range-track" />
                   <div
+                    ref={progressRef}
                     className="efp-range-progress"
-                    style={{
-                      left: `${pct(calorieRange[0])}%`,
-                      right: `${100 - pct(calorieRange[1])}%`,
-                    }}
                   />
                   <input
                     type="range"
