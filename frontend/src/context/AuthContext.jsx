@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const res = await fetch("${API_URL}/auth/session", {
+        const res = await fetch(`${API_URL}/auth/session`, {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await fetch("${API_URL}/auth/logout", {
+    await fetch(`${API_URL}/auth/logout`, {
       method: "POST",
       credentials: "include",
       headers: {
