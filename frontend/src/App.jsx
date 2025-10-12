@@ -5,7 +5,7 @@ import UserHomepage from "./pages/UserHomepage";
 import ExploreFoodsPage from "./pages/ExploreFoodPage";
 import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
 import RecipesPage from "./pages/RecipesPage";
-import CommunityPage from "./pages/Community";
+import CommunityPage from "./pages/CommunityPage";
 import UserProfilePage from "./pages/UserProfile";
 import ForgetPassword from "./pages/ForgotPasswordPage";
 import ResetPassword from "./pages/ResetPasswordPage";
