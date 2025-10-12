@@ -1,4 +1,8 @@
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const isDevelopment = import.meta.env.MODE === 'development';
+
+export const API_URL = isDevelopment 
+  ? "http://localhost:5000/api"
+  : "https://food-nutrition-hub-production.up.railway.app/api";
 
 export const fetchWithCredentials = async (endpoint, options = {}) => {
   return fetch(`${API_URL}${endpoint}`, {
