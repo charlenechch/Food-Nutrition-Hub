@@ -1,59 +1,73 @@
-/* ========== Page Layout ========== */
+/* ===============================
+   PAGE LAYOUT
+=============================== */
 .nutrition-page {
   font-family: "Poppins", sans-serif;
   text-align: center;
   background: #fdfbf9;
   color: #333;
-  padding-top: 10px;     
   min-height: 100vh;
+  padding-top: clamp(70px, 6vw, 100px);
+  padding-bottom: clamp(40px, 5vw, 80px);
+  box-sizing: border-box;
 }
 
+/* ===============================
+   PAGE TITLES
+=============================== */
 .page-title {
-  font-size: 36px;
-  font-weight: bold;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 700;
   color: #916848;
   margin-bottom: 0.5rem;
-  margin-top: 100px;
 }
 
 .page-subtitle {
-  font-size: 16px;
-  margin-bottom: 2rem;
+  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
   color: #6d6d6d;
+  margin-bottom: clamp(1.5rem, 3vw, 2rem);
 }
 
+/* ===============================
+   GRID CONTAINER
+=============================== */
 .analyzer-container {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* two equal columns */
-  gap: 40px;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
   max-width: 1200px;
+  width: 90%;
   margin: 0 auto;
-  align-items: start;
+  align-items: flex-start;
 }
 
+/* ===============================
+   FORM SECTION
+=============================== */
 .food-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;   /* space between Food Info, Upload Photo, and Button */
+  gap: 1.5rem;
 }
 
-/* ========== Card Styling ========== */
 .food-input-card,
 .upload-card,
 .result-card {
   background: #fff;
-  padding: 1.5rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
   border-radius: 12px;
   border: 1px solid #e9c8a6;
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
-  text-align: left; /* important: align content left */
+  text-align: left;
   gap: 1.2rem;
 }
 
-/* ========== Section Title ========== */
+/* ===============================
+   SECTION TITLES
+=============================== */
 .section-title {
-  font-size: 16px;
-  font-weight: bold;
+  font-size: clamp(0.9rem, 1vw, 1rem);
+  font-weight: 600;
   margin-bottom: 0.75rem;
   color: #916848;
   display: flex;
@@ -61,38 +75,43 @@
   gap: 8px;
 }
 
-/* ========== Form Inputs ========== */
+/* ===============================
+   FORM INPUTS
+=============================== */
 .food-input-card label {
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 1vw, 0.95rem);
   display: block;
   color: #333;
   text-align: left;
+  font-weight: 500;
 }
 
 .food-input-card input,
 .food-input-card textarea {
   width: 100%;
-  padding: 0.75rem;
-  border: none;                    /* no border */
+  padding: clamp(0.65rem, 1vw, 0.75rem);
+  border: none;
   border-radius: 8px;
-  background-color: #f6f1e8;       /* beige background like wireframe */
-  font-size: 14px;
+  background-color: #f6f1e8;
+  font-size: clamp(0.85rem, 1vw, 0.95rem);
   color: #333;
-  margin-bottom: 0.6rem; 
+  margin-bottom: 0.6rem;
   outline: none;
-  resize: none;                    /* prevent textarea resizing */
+  resize: none;
 }
 
 .food-input-card input::placeholder,
 .food-input-card textarea::placeholder {
   color: #999;
-  font-size: 14px;
+  font-size: clamp(0.85rem, 1vw, 0.95rem);
 }
 
-/* ========== Upload Section ========== */
+/* ===============================
+   UPLOAD SECTION
+=============================== */
 .upload-card p {
   color: #555;
-  font-size: 0.9rem;
+  font-size: clamp(0.85rem, 1vw, 0.95rem);
   margin-bottom: 1rem;
 }
 
@@ -100,16 +119,16 @@
   position: relative;
   border: 2px dashed #916848;
   border-radius: 12px;
-  padding: 1.5rem;
-  align-items: center;
+  padding: clamp(1rem, 2vw, 1.5rem);
   text-align: center;
   cursor: pointer;
   background-color: #fdfbf9;
-  transition: background 0.3s;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .upload-box:hover {
   background: #faf3ef;
+  transform: scale(1.02);
 }
 
 .upload-box input[type="file"] {
@@ -118,53 +137,91 @@
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0;        /* invisible but clickable */
+  opacity: 0;
   cursor: pointer;
 }
 
-/* ========== Button ========== */
+/* ===============================
+   BUTTON
+=============================== */
 .analyze-btn {
   background: #b8926a;
   color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 1vw, 1rem);
   cursor: pointer;
-  text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: background 0.3s;
-  margin-bottom:  100px;
+  padding: clamp(0.7rem, 1vw, 0.85rem);
+  transition: background 0.3s ease, transform 0.2s ease;
+  margin-bottom: clamp(60px, 6vw, 100px);
 }
 
 .analyze-btn:hover {
   background: #916848;
+  transform: translateY(-2px);
 }
 
-/* ========== Right Column Result ========== */
+/* ===============================
+   RESULT CARD (RIGHT COLUMN)
+=============================== */
 .result-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;   /* centers vertically */
+  justify-content: center;
   color: #777;
   text-align: center;
-  background: #fff;
-  padding: 1.5rem;
-  border-radius: 12px;
-  height: 60%;
-  align-self: stretch;
+  height: fit-content;
+  min-height: 350px;
 }
+
 .result-icon {
   color: #916848;
+  font-size: clamp(1.5rem, 3vw, 2rem);
   margin-bottom: 1rem;
 }
 
-/* ========== Responsive ========== */
+/* ===============================
+   RESPONSIVE BEHAVIOUR
+=============================== */
+
+/* Tablet */
 @media (max-width: 992px) {
   .analyzer-container {
-    grid-template-columns: 1fr; /* stack columns */
+    grid-template-columns: 1fr;
+  }
+
+  .result-card {
+    margin-top: 1.5rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .page-title {
+    font-size: 1.8rem;
+    margin-top: 70px;
+  }
+
+  .page-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .upload-box {
+    padding: 1rem;
+  }
+
+  .food-input-card input,
+  .food-input-card textarea {
+    font-size: 0.9rem;
+  }
+
+  .analyze-btn {
+    width: 100%;
+    font-size: 0.95rem;
   }
 }
