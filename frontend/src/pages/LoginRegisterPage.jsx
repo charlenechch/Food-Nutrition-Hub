@@ -61,16 +61,16 @@ export default function LoginRegisterPage() {
       const data = await res.json();
 
       if (res.ok) {
-        console.log("Login successful:", data);
-        login(data.user);
-
-        if (data.user.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/home");
-        }
+        console.log("Password validation successful:", data);
+      
+      // Password is correct. Redirect to OTP verification
+      sessionStorage.setItem('pendingUser', JSON.stringify(data.user));
+      
+      // Navigate to OTP page
+      navigate(`/otpverification?email=${encodeURIComponent(email)}`);
       } else {
-        alert(data.error || data.message || "Login failed!");
+        // Wrong password or email
+        alert(data.message || "Invalid email or password!");
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -203,7 +203,7 @@ export default function LoginRegisterPage() {
                     onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
-                <button onClick={() => navigate(`/otpverification?email=${encodeURIComponent(email)}`)} className="lrp-btn lrp-btn-primary">
+                <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
                   Sign In
                 </button>
                 <button onClick={() => navigate("/forgotpassword")} className="lrp-btn lrp-btn-primary">
