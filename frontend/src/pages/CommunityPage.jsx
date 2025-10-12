@@ -3,9 +3,12 @@ import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { FaCamera } from "react-icons/fa"; 
+import { useNavigate } from "react-router-dom";
+
 
 export default function Community() {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
    const [preview, setPreview] = useState(null); // to show uploaded image
 
   const handleImageUpload = (e) => {
@@ -170,7 +173,7 @@ export default function Community() {
                 </div>
                 <button
                   className="view-btn"
-                  onClick={() => window.location.href = `/community/${c.id}`}
+                 onClick={() => navigate(`/community/${c.id}`)}
                 >
                   View More
                 </button>
