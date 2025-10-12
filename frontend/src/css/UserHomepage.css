@@ -1,91 +1,91 @@
-/* UserHomepage.css */
-
+/* ===============================
+   HOMEPAGE CONTAINER
+=============================== */
 .homepage {
-  height: 100vh; /* take full viewport height */
-  overflow: hidden; /* prevent scrolling */
+  min-height: 100vh; 
   display: flex;
   flex-direction: column;
-  justify-content: center; /* vertically center content */
+  justify-content: center;
   align-items: center;
   font-family: "Poppins", sans-serif;
   background: linear-gradient(135deg, #f5efea, #ffffff);
   color: #333;
   box-sizing: border-box;
-  padding-top: 65px;
+  padding-top: clamp(60px, 6vw, 80px); /* responsive top padding */
+  overflow-x: hidden;
 }
 
-.section {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  scroll-snap-align: start;
-}
-
-.userh1 {
-  text-align: center;
-  margin: 35px 0;
-  color: #916848;
-  font-size: 52px;
-}
-
+/* ===============================
+   HERO SECTION
+=============================== */
 .hero {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;   
+  justify-content: flex-start;
   align-items: center;
-  padding-top: 50px;  
   text-align: center;
-  font-size: 22px;
-} 
+  font-size: clamp(1rem, 1.2vw + 0.4rem, 1.3rem);
+  padding-top: clamp(40px, 5vw, 60px);
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
+.userh1 {
+  text-align: center;
+  margin: clamp(20px, 3vw, 40px) 0;
+  color: #916848;
+  font-size: clamp(2rem, 3vw + 1rem, 3.25rem);
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+/* ===============================
+   FEATURE CARDS
+=============================== */
 .features {
   display: flex;
-  justify-content: center;    /* center all cards */
-  align-items: stretch;       /* make heights equal */
-  gap: 30px;                  /* spacing between cards */
-  margin-top: 75px;
-  min-height: 300px;  
-  max-width: 1200px;          /* keep layout centered */
-  flex-wrap: wrap;            /* responsive: stack on small screens */
+  justify-content: center;
+  align-items: stretch;
+  gap: clamp(20px, 3vw, 30px);
+  margin-top: clamp(50px, 6vw, 75px);
+  flex-wrap: wrap;
+  max-width: 1200px;
+  width: 90%;
 }
 
 .feature-card {
   flex: 1 1 300px;
   max-width: 380px;
-  padding: 24px;
+  padding: clamp(18px, 2vw, 24px);
   border-radius: 12px;
-  background: white;
+  background: #fff;
   text-align: center;
-
-  /* ✅ Border + shadow */
-  border: 1px solid #e0e0e0;   /* light grey border */
+  border: 1px solid #e0e0e0;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-
-  /* ✅ consistent height */
   min-height: 280px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
 }
 
 .feature-icon {
-  background-color: #f5f1eb;  /* soft beige circle */
-  color: #8b5e3c;             /* brown icon */
-  width: 60px;
-  height: 60px;
+  background-color: #f5f1eb;
+  color: #8b5e3c;
+  width: clamp(50px, 5vw, 60px);
+  height: clamp(50px, 5vw, 60px);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: clamp(20px, 2vw, 28px);
   margin: 0 auto 16px;
 }
 
@@ -93,13 +93,15 @@
   font-family: "Poppins", sans-serif;
   font-weight: 600;
   color: #333;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  font-size: clamp(1rem, 1vw + 0.4rem, 1.25rem);
 }
 
 .feature-card p {
-  font-size: 12px;
+  font-size: clamp(0.8rem, 1vw, 0.95rem);
   color: #555;
   margin-bottom: 20px;
+  line-height: 1.5;
 }
 
 .feature-btn {
@@ -107,96 +109,74 @@
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 10px 20px;
-  width: 100%;  
+  padding: clamp(8px, 1vw, 10px) clamp(14px, 2vw, 20px);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-size: 18px;
+  transition: background-color 0.25s ease, transform 0.2s ease;
+  font-size: clamp(0.95rem, 1vw, 1.1rem);
 }
 
 .feature-btn:hover {
   background-color: #6b3e26;
+  transform: scale(1.03);
 }
 
+/* ===============================
+   RESPONSIVE BEHAVIOUR
+=============================== */
+
+/* Tablet */
 @media (max-width: 992px) {
   .homepage {
-    height: auto;          /* allow natural height */
-    overflow-y: auto;      /* re-enable scroll */
-    padding-bottom: 40px;  /* breathing room */
+    min-height: auto;
+    padding-bottom: 40px;
+    overflow-y: auto;
   }
 
   .features {
-    flex-wrap: wrap;       /* stack cards on small screens */
+    gap: 24px;
   }
 }
 
-/* .scroll-down {
-  margin-top: 30px;
-  text-align: center;
-  cursor: pointer;
-  font-size: 28px;   
-  color: #6b3e26;
-  padding: 10px 16px;
-  display: inline-block;
-  transition: all 0.3s ease-in-out;
-  animation: bounce 1.5s infinite;
-}
-
-.scroll-down:hover {
-  transform: scale(1.15); 
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
+/* Mobile */
+@media (max-width: 768px) {
+  .hero {
+    padding-top: 30px;
+    font-size: 1rem;
   }
-  40% {
-    transform: translateY(8px);
+
+  .userh1 {
+    font-size: 2rem;
+    margin-top: 20px;
   }
-  60% {
-    transform: translateY(4px);
+
+  .features {
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+    width: 95%;
+  }
+
+  .feature-card {
+    width: 100%;
+    max-width: 380px;
   }
 }
 
+/* Small Mobile */
+@media (max-width: 480px) {
+  .feature-btn {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+  }
 
-.content-section {
-  display: flex;
-  justify-content: space-around;
-  margin: 40px;
+  .feature-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+  }
+
+  .userh1 {
+    font-size: 1.8rem;
+  }
 }
-
-.featured, .recent-foods {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 45%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.recent-foods ul {
-  list-style: none;
-  padding: 0;
-}
-
-.recent-foods li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-  cursor: pointer;
-}
-
-.recent-foods img {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-}
-
-.stats {
-  display: flex;
-  justify-content: space-around;
-  margin: 40px;
-  text-align: center;
-} */
-
