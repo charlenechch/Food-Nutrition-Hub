@@ -353,9 +353,9 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
       const matchesNutrition =
         nutritionFocus === "all" ||
-        (nutritionFocus === "high-protein" && food.protein >= 25) ||
-        (nutritionFocus === "low-fat" && food.fat <= 5) ||
-        (nutritionFocus === "high-fiber" && food.fiber >= 4);
+        (nutritionFocus === "high-protein" && food.protein >= 20) ||
+        (nutritionFocus === "low-fat" && food.fat <= 10) ||
+        (nutritionFocus === "high-fiber" && food.fiber >= 5);
       
       const matchesFoodType =
         selectedFoodType === "all" || food.foodType === selectedFoodType;
