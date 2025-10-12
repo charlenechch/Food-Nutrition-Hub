@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { API_URL } from "../config/api";
 
 const AuthContext = createContext();
 
@@ -10,8 +11,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const fetchSession = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/session", {
-          credentials: "include"
+        const res = await fetch(`${API_URL}/auth/session`, {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
         const data = await res.json();
         if (data?.user) {
@@ -32,9 +36,12 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await fetch("http://localhost:5000/api/auth/logout", {
+    await fetch(`${API_URL}/auth/logout`, {
       method: "POST",
-      credentials: "include"
+      credentials: "include",
+      headers: {
+          "Content-Type": "application/json",
+        },
     });
     setUser(null);
     localStorage.removeItem("user");

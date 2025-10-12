@@ -17,10 +17,10 @@ const exploreFoodRoutes = require("./routes/exploreFood");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Security headers
+// Security headers
 app.use(helmet());
 
-// ✅ CORS (frontend whitelist)
+// CORS (frontend whitelist)
 app.use(
   cors({
     origin: [
@@ -33,10 +33,10 @@ app.use(
   })
 );
 
-// ✅ JSON parser
+// JSON parser
 app.use(express.json());
 
-// ✅ Session store config
+// Session store config
 let dbOptions;
 if (process.env.MYSQLHOST || process.env.DB_HOST) {
   dbOptions = {
@@ -58,7 +58,7 @@ if (process.env.MYSQLHOST || process.env.DB_HOST) {
 
 const sessionStore = new MySQLStore(dbOptions);
 
-// ✅ Express-session middleware
+// Express-session middleware
 app.use(
   session({
     secret: "supersecretkey", // change for production
@@ -74,7 +74,7 @@ app.use(
   })
 );
 
-// ✅ Rate Limiter
+// Rate Limiter
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 min
   max: 5,
@@ -86,14 +86,14 @@ const authLimiter = rateLimit({
   },
 });
 
-// ✅ Routes
+// Routes
 app.use("/api/login", authLimiter, loginRoutes);
 app.use("/api/register", registerRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/foods", foodRoutes);
 app.use("/api/exploreFood", exploreFoodRoutes);
 
-// ✅ Example admin route
+// Example admin route
 app.get("/api/admin/data", (req, res) => {
   if (!req.session?.user || req.session.user.role !== "admin") {
     return res.status(403).json({ error: "Forbidden: Admins only" });
@@ -101,18 +101,18 @@ app.get("/api/admin/data", (req, res) => {
   res.json({ secret: "This is admin-only data." });
 });
 
-// ✅ Health check
+// Health check
 app.get("/", (req, res) => {
   res.send("🚀 Backend running with MySQL + sessions!");
 });
 
-// ✅ Error handler
+// Error handler
 app.use((err, req, res, next) => {
   console.error("❌ Server error:", err.stack);
   res.status(500).json({ error: "Internal Server Error" });
 });
 
-// ✅ Start server
+// Start server
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
 });

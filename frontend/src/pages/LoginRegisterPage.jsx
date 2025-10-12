@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext"; 
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
+import { API_URL } from "../config/api";
 
 export default function LoginRegisterPage() {
   const [activeTab, setActiveTab] = useState("login");
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   // Login state
   const [email, setEmail] = useState("");
@@ -45,7 +45,7 @@ export default function LoginRegisterPage() {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/login`, {
+      const res = await fetch(`${API_URL}/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -61,7 +61,7 @@ export default function LoginRegisterPage() {
       const data = await res.json();
 
       if (res.ok) {
-        console.log("✅ Login successful:", data);
+        console.log("Login successful:", data);
         login(data.user);
 
         if (data.user.role === "admin") {
@@ -73,7 +73,7 @@ export default function LoginRegisterPage() {
         alert(data.error || data.message || "Login failed!");
       }
     } catch (err) {
-      console.error("❌ Login error:", err);
+      console.error("Login error:", err);
       alert("Something went wrong!");
     }
   };
@@ -98,7 +98,7 @@ export default function LoginRegisterPage() {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/register`, {
+      const res = await fetch(`${API_URL}/register`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
