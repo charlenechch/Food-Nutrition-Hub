@@ -573,6 +573,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
               "Rice Dish",
               "Noodles",
               "Soup",
+              "Meat",
             ].map((c) => (
               <button
                 key={c}
@@ -609,7 +610,8 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                     <option value="Melanau">Melanau</option>
                     <option value="Dayak">Dayak</option>
                     <option value="Native">Native</option>
-                    <option value="Chinese-Malay">Chinese-Malay</option>
+                    <option value="Chinese">Chinese</option>
+                    <option value="Malay">Malay</option>
                     <option value="Bidayuh">Bidayuh</option>
                   </select>
                 </div>

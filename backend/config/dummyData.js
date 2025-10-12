@@ -1,170 +1,7 @@
-//userData.js
-export const userData = [
-  { firstname: "Irita", lastname: "Yong", email: "idymott0@huffingtonpost.com", password: "qQ6%O|G}O~", role: "member" },
-  { firstname: "Lucien", lastname: "Chan", email: "lhillhouse1@wunderground.com", password: "xZ9\"+MitZ", role: "member" },
-  { firstname: "Elita", lastname: "Swift", email: "echillcot2@privacy.gov.au", password: "tS6,<s@+", role: "admin" },
-  { firstname: "Alayne", lastname: "Gomez", email: "ahardaway3@xing.com", password: "bS5+XiJpM", role: "admin" },
-  { firstname: "Fifine", lastname: "Chai", email: "fjerrold4@wiley.com", password: "kI3`3gOLIqD.=", role: "member" },
-  { firstname: "Virgie", lastname: "Tan", email: "vbenjafield5@ebay.com", password: "nE8*(yX?Ofg\\s", role: "member" },
-  { firstname: "Bogey", lastname: "Chin", email: "blaurencot6@ucsd.edu", password: "fO1!Y<#u*bcoOf", role: "admin" },
-  { firstname: "Violette", lastname: "Wong", email: "vguisby7@bigcartel.com", password: "rB1@/Q/kykW", role: "admin" },
-  { firstname: "Vanessa", lastname: "Lai", email: "vfeilden8@businessinsider.com", password: "lS9,c\"+V", role: "member" },
-  { firstname: "Laughton", lastname: "Smift", email: "ldebischop9@blog.com", password: "nW3=F+mAts", role: "member" },
-  { firstname: "Eunice", lastname: "Bong", email: "ecarmonta@ihg.com", password: "oS0)MWoF9|W", role: "member" },
-  { firstname: "Beauregard", lastname: "Brown", email: "bheazelb@cam.ac.uk", password: "sQ8_|MIB_B|y", role: "member" },
-  { firstname: "Kale", lastname: "Jones", email: "ktootellc@networksolutions.com", password: "nM1~B&wJc7", role: "admin" },
-  { firstname: "Lurette", lastname: "Johnson", email: "lcossonsd@sakura.ne.jp", password: "nV5+M/E.TBfnzN(", role: "member" },
-  { firstname: "Farris", lastname: "Hill", email: "fdebankee@dmoz.org", password: "mK4.0J7KxLBA{G", role: "admin" },
-  { firstname: "Mei", lastname: "Ling", email: "mkemstonf@lulu.com", password: "kN0=N#S+tXb", role: "member" },
-  { firstname: "Cassondra", lastname: "Miller", email: "ckittredgeg@chronoengine.com", password: "gR4~D'qpx(i_S", role: "admin" },
-  { firstname: "Marcus", lastname: "Lewis", email: "mcordeyh@geocities.jp", password: "kH1+/38$gk/cL*.k", role: "admin" },
-  { firstname: "Alexi", lastname: "Corr", email: "alayei@google.ca", password: "dW7%Yawe,/{cf", role: "member" },
-  { firstname: "Domenic", lastname: "Watson", email: "dpauluschj@fotki.com", password: "pV0(Y8t=~3N/qT7Q", role: "member" }
-];
-
-//userProfile.js
-export const userProfile = [
-  {userID: 1, preference: "Low Sugar", dietaryHabits: "Pescatarian", allergy: "None"},
-  {userID: 2, preference: "None", dietaryHabits: "Keto", allergy: "Honey"},
-  {userID: 5, preference: "Balanced Diet", dietaryHabits: "Halal", allergy: "Peanuts"},
-  {userID: 6, preference: "High Protein", dietaryHabits: "Pescatarian", allergy: "None"},
-  {userID: 9, preference: "Healthy fats", dietaryHabits: "Vegan", allergy: "Shellfish"},
-  {userID: 10, preference: "Balanced Diet", dietaryHabits: "Omnivore", allergy: "Milk"},
-  {userID: 11, preference: "None", dietaryHabits: "Vegan", allergy: "None"},
-  {userID: 12, preference: "Low Sugar", dietaryHabits: "Pescatarian", allergy: "Sesame"},
-  {userID: 14, preference: "Balanced Diet", dietaryHabits: "Omnivore", allergy: "None"},
-  {userID: 16, preference: "Low Carb Lifestyle", dietaryHabits: "Keto", allergy: "Soy"},
-  {userID: 19, preference: "Healthy fats", dietaryHabits: "Pescatarian", allergy: "None"},
-  {userID: 20, preference: "High Protein", dietaryHabits: "Halal", allergy: "Wheat"}
-];
-
-//foodData.js
-export const foods = [
-  {
-    name: "Linut",
-    origin: "Melanau",
-    Energy_kcal: 344.91,
-    Protein_g: 21.977,
-    Fat_g: 1.632,
-    Carbohydrates_g: 60.528,
-    Fiber_g: 1.189,
-    VitaminC_mg: 11.6
-  },
-
-  {
-    name: "Kolo Mee",
-    origin: "Chinese",
-    Energy_kcal: 1103.14,
-    Protein_g: 30.764,
-    Fat_g: 60.483,
-    Carbohydrates_g: 27.094,
-    Fiber_g: 2.786,
-    VitaminC_mg: 12.54
-  },
-
-  {
-    name: "Umai",
-    origin: "Melanau",
-    Energy_kcal: 583.39,
-    Protein_g: 70.95,
-    Fat_g: 7.6,
-    Carbohydrates_g: 43.43,
-    Fiber_g: 3.1,
-    VitaminC_mg: 109
-  },
-
-  {
-    name: "Nasi Aruk",
-    origin: "Malay",
-    Energy_kcal: 81,
-    Protein_g: 6.88,
-    Fat_g: 2.02,
-    Carbohydrates_g: 9.24,
-    Fiber_g: 0.2,
-    VitaminC_mg: 13.8
-  },
-
-  {
-    name: "Asam Siok",
-    origin: "Bidayuh",
-    Energy_kcal: 1559,
-    Protein_g: 204.3,
-    Fat_g: 57.3,
-    Carbohydrates_g: 55.99,
-    Fiber_g: 1.98,
-    VitaminC_mg: 81.34
-  },
-
-  {
-    name: "Belacan Bihun",
-    origin: "Chinese", 
-    Energy_kcal: 1815,
-    Protein_g: 190.15,
-    Fat_g: 9.2,
-    Carbohydrates_g: 242.29,
-    Fiber_g: 7.15,
-    VitaminC_mg: 52.9
-  },
-
-  {
-    name: "Daun Ubi Tumbuk",
-    origin: "Iban",
-    Energy_kcal: 212.8,
-    Protein_g: 26.47,
-    Fat_g: 3.64,
-    Carbohydrates_g: 37.3,
-    Fiber_g: 4.89,
-    VitaminC_mg: 84.415
-  },
-
-  {
-    name: "Manicai",
-    origin: "Chinese",
-    Energy_kcal: 316.6,
-    Protein_g: 27.68,
-    Fat_g: 14,
-    Carbohydrates_g: 19.64,
-    Fiber_g: 3.98,
-    VitaminC_mg: 273.12
-  },
-
-  {
-    name: "Midin Belacan",
-    origin: "Bidayuh",
-    Energy_kcal: 195,
-    Protein_g: 17,
-    Fat_g: 4.8,
-    Carbohydrates_g: 23,
-    Fiber_g: 17,
-    VitaminC_mg: 25,
-  },
-
-  {
-    name: "Ayam Pansuh",
-    origin: "Dayak",
-    Energy_kcal: 178.04,
-    Protein_g: 30.22,
-    Fat_g: 5.22,
-    Carbohydrates_g: 0,
-    Fiber_g: 0,
-    VitaminC_mg: 0,
-  }
-
-];
-
-
 // recipeData.js
-export const recipeData = [
+const recipeData = [
   {
-    foodID: 1,
-    description: "Linut is a traditional cuisine that is especially popular among the Indigenous Dayak communities. \
-                  This staple dish is an important part of Dayak cuisine and is frequently served at traditional events and community feasts. \
-                  The dish is made from sago, a type of starch produced from the sago palm. \
-                  Sago is mixed with water to produce a thick, sticky paste, which is then steamed to get its gelatinous and chewy texture. \
-                  Linut is usually bland, making it a great carrier for savoury side dishes such as meat stews, spicy sambal, or rich gravies prepared using meat or seafood.",
-    images: [
-      "Linut.jpg",
-    ],
+    foodID: 1, //linut
     ingredients: "33 g sago flour\
                   67-100 ml water\
                   1/3 cup anchovies\
@@ -188,14 +25,7 @@ export const recipeData = [
   },
 
   {
-    foodID: 2,
-    description: "The origin of Kolo Mee is still unclear, but it likely originated from Kuching, the capital of Sarawak. \
-    “Kolo Mee” may also have derived from the Hokkien and Cantonese words for “dry mixed” noodles. \
-    In Hokkien, “kolo” (干捞) means “dry mix,” while in Cantonese, “gorn lo” has a similar meaning. \
-    This theory suggests that the name “Kolo Mee” come from how the dish is prepared, which involves tossing the noodles with the sauce and toppings in a dry manner.",
-    images: [
-      "Kolo_mee.jpg"
-    ],
+    foodID: 2, //kolo mee
     ingredients: "Ingredients A (The minced meat)\
                   75g minced meat\
                   1 tsp light soy sauce\
@@ -242,15 +72,7 @@ export const recipeData = [
   },
 
   {
-    foodID: 3,
-    description: "Umai is a traditional Sarawakian raw fish salad popular with the Dayak and Melanau communities. \
-    It highlights local methods of food preparation and preservation using fresh ingredients. \
-    Raw tenggiri (mackerel) is sliced or cubed and marinated in lime juice, allowing the acidity to “cook” the fish. \
-    Chopped onions, chillies, and tomatoes are added and seasoned with salt, sugar, and soy or fish sauce. \
-    The dish tastes fresh and tangy with a slight heat and is served chilled or at room temperature, often alongside rice.",
-    images: [
-      "Umai.jpg",
-    ],
+    foodID: 3, //umai
     ingredients: "300 g very fresh raw prawns, shelled, intestinal tract removed\
                   6 limes (5 juiced, 1 thinly sliced)\
                   ½ tsp salt\
@@ -270,13 +92,7 @@ export const recipeData = [
   },
 
   {
-    foodID: 4,
-    description: "Unlike typical fried rice, Nasi Aruk is prepared without any oil or fat and is tossed in a hot pan until the grains are well-toasted, creating a deep smoky, slightly charred scent. \
-    Its name, “Aruk,” drawn from the Sarawakian Malay dialect, literally signifies “charred,” a nod to this distinctive method. \
-    The dish is composed simply of rice combined with anchovies, fragrant torch ginger, turmeric leaves, and the heat of bird’s-eye chilli.",
-    images: [
-      "Nasi_Aruk.jpg"
-    ],
+    foodID: 4, //nasi aruk
     ingredients: "A handful of anchovies (ikan bilis)\
                   2 red shallots (sliced)\
                   3 cloves of garlic (sliced)\
@@ -291,12 +107,7 @@ export const recipeData = [
   },
 
   {
-    foodID: 5,
-    description: "Asam siok, also known as chicken with rice in bamboo, is a traditional Bidayuh dish that is served during special events like Gawai, get-togethers, or the welcome of VIPs or special visitors. \
-    Using bamboo is a natural cooking method that retains tastes and creates incredibly tender chicken that is scented with bamboo and lemongrass.",
-    images: [
-      "Asam_Siok.jpg"
-    ],
+    foodID: 5, //asam siok
     ingredients: "Ingredients for one pot of asam siok:\
                   1kg whole chicken\
                   20g ginger\
@@ -318,11 +129,7 @@ export const recipeData = [
   },
 
   {
-    foodID: 6,
-    description: "Belacan bihun is a unique, flavorful rice vermicelli dish from Kuching, Sarawak, featuring rice noodles served with a spicy, umami-rich gravy made from belacan",
-    images: [
-      "Belacan_Bihun.jpg"
-    ],
+    foodID: 6, //belacan bihun
     ingredients: "Ingredients for 3-4 servings:\
                   200g rice vermicelli\
                   8 small chilli\
@@ -344,12 +151,7 @@ export const recipeData = [
   },
 
   {
-    foodID: 7,
-    description: "Daun ubi tumbuk (pounded cassava leaves) is a popular vegetable dish from Borneo where cassava leaves are pounded using wooden mortar and pestle and cooked in a variety of ways, often with coconut milk or in a curry. \
-    This dish are widely eaten among Sarawak's native communities.",
-    images: [
-      "daun_ubi_tumbuk.jpg"
-    ],
+    foodID: 7, //daun ubi tumbuk
     ingredients: "200 grams Daun Ubi (Cassava Leaves)\
                   30 grams Anchovies\
                   750 ml Water\
@@ -366,12 +168,7 @@ export const recipeData = [
   },
 
   {
-    foodID: 8,
-    description: "Manicai, also known as Sayur Manis, Cekur Manis, or Sweet Leaf, is a leafy vegetable from Southeast Asia that is eaten stir-fried or boiled, often with eggs in dishes like Mani Cai with Eggs. \
-    While nutritious, containing protein and antioxidants, the leaves contain compounds that can cause severe lung damage if consumed raw or in large quantities, making thorough cooking essential",
-    images: [
-      "Manicai.jpg"
-    ],
+    foodID: 8, //manicai
     ingredients: "Ingredients:\
                   200g Manicai (plucked from stalks)\
                   1 tablespoon salt\
@@ -386,12 +183,7 @@ export const recipeData = [
   },
 
   {
-    foodID: 9,
-    description: "Midin Belacan is a beloved Sarawakian dish celebrated for its simplicity and flavour, prepared by blanching the crisp midin fern before stir-frying it with fragrant garlic, shallots, and belacan, \
-    then finishing with seasonings like salt, sugar, and calamansi juice, with optional variations such as rice wine or red bell pepper adding depth while keeping true to its humble roots.",
-    images: [
-      "Midin_Belacan.jpg"
-    ],
+    foodID: 9, //midin belacan
     ingredients: "Ingredients:\
                   2 bunch of Midin (cut to about 15cm from the curled head and washed)\
                   2 cloves of Garlic\
@@ -411,12 +203,7 @@ export const recipeData = [
   },
 
   {
-    foodID: 10,
-    description: "Deep within the cultural tapestry of Sarawak, an iconic dish known as Manok Pansoh (also called manuk pansuh/ayam pansuh) holds a special place among the Dayak community (Iban, Bidayuh, and Ulu people of Sarawak).\
-    The name itself, “Manok Pansoh,” translates to “chicken bamboo” in the Iban language, offering a glimpse into the essence of this traditional delicacy.",
-    images: [
-      "ayam_pansuh.jpg"
-    ],
+    foodID: 10, //ayam pansuh
     ingredients: "Ingredients:\
                   1 Chicken\
                   1 bundle of umbut tepus\
@@ -440,3 +227,4 @@ export const recipeData = [
           ",
   }
 ];
+module.exports = recipeData;

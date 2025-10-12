@@ -49,11 +49,11 @@ if (process.env.MYSQLHOST || process.env.DB_HOST) {
   };
 } else {
   dbOptions = {
-    host: "localhost",
-    port: 3306, // change if you use 3307
+    host: "interchange.proxy.rlwy.net",
+    port: 13361, 
     user: "root",
-    password: "",
-    database: "fypdb",
+    password: "GsdEstbgiDCzValxnvDLiDfoEdCPoWyh",
+    database: "railway",
   };
 }
 
