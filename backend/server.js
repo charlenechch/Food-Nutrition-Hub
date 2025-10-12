@@ -27,6 +27,8 @@ app.use(
       "https://food-nutrition-hub.vercel.app", // Deployed frontend
     ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"], 
   })
 );
 
