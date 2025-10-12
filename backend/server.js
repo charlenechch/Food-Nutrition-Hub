@@ -13,6 +13,7 @@ const registerRoutes = require("./routes/register");
 const authRoutes = require("./routes/auth");
 const foodRoutes = require("./routes/foods");
 const exploreFoodRoutes = require("./routes/exploreFood");
+const otpRoutes = require("./routes/otp");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -90,6 +91,7 @@ const authLimiter = rateLimit({
 app.use("/api/login", authLimiter, loginRoutes);
 app.use("/api/register", registerRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/otp", otpRoutes);
 app.use("/api/foods", foodRoutes);
 app.use("/api/exploreFood", exploreFoodRoutes);
 

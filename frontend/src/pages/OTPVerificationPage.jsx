@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { API_URL } from "../config/api";
 import "../css/OTPVerificationPage.css";
 
 export default function OTPVerificationPage({ email: emailProp }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const email = emailProp || params.get("email") || "";
+  const { login } = useAuth();
 
   const [otp, setOtp] = useState("");
   const [rememberDevice, setRememberDevice] = useState(false);
@@ -13,6 +16,34 @@ export default function OTPVerificationPage({ email: emailProp }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // Auto-send OTP when page loads
+  useEffect(() => {
+    const sendOTP = async () => {
+      if (email) {
+        try {
+          const res = await fetch(`${API_URL}/otp/send`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          });
+          
+          const data = await res.json();
+          console.log("OTP sent:", data.message);
+          
+          // In development, show the OTP in console
+          if (data.devOTP) {
+            console.log("Dev OTP:", data.devOTP);
+          }
+        } catch (err) {
+          console.error("Failed to send OTP:", err);
+        }
+      }
+    };
+    
+    sendOTP();
+  }, [email]);
 
   // countdown for resend
   useEffect(() => {
@@ -36,26 +67,45 @@ export default function OTPVerificationPage({ email: emailProp }) {
 
   const handleVerify = async (e) => {
     e?.preventDefault();
-    if (otp.length !== 6) { setError("Please enter the 6-digit code."); return; }
+    if (otp.length !== 6) { 
+      setError("Please enter the 6-digit code."); 
+      return; 
+    }
+    
     setIsLoading(true);
     setError("");
+    
     try {
-      await new Promise((r) => setTimeout(r, 900));
+      // Call backend to verify OTP
+      const res = await fetch(`${API_URL}/otp/verify`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
 
-      // Demo outcomes (Change it when applying backend !!!!!!!!!!)
-      if (otp === "123456") {
+      const data = await res.json();
+
+      if (res.ok) {
         setSuccess(true);
-        if (rememberDevice && email) {
-          localStorage.setItem("sarawakeats_remember_device", JSON.stringify({ email, ts: Date.now(), ttl: 7 * 24 * 60 * 60 * 1000 }));
+        
+        // Get pending user data
+        const pendingUserData = sessionStorage.getItem('pendingUser');
+        
+        if (pendingUserData) {
+          const userData = JSON.parse(pendingUserData);
+          login(userData);
+          sessionStorage.removeItem('pendingUser');
+          
+          setTimeout(() => {
+            navigate(userData.role === "admin" ? "/admin" : "/home");
+          }, 1500);
         }
-        setTimeout(() => navigate("/home"), 1500); // change to whatever route after verified
-      } else if (otp === "000000") {
-        setError("Code expired. Please request a new one.");
-      } else if (otp === "999999") {
-        setError("Too many attempts. Try again later.");
       } else {
-        setError("Invalid verification code. Please try again.");
+        setError(data.error || "Invalid verification code");
       }
+    } catch (err) {
+      setError("Verification failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -65,8 +115,25 @@ export default function OTPVerificationPage({ email: emailProp }) {
     setResendCooldown(60);
     setError("");
     setOtp("");
-    await new Promise((r) => setTimeout(r, 600));
-    console.log("OTP resent to:", email || "(demo)");
+    
+    try {
+      const res = await fetch(`${API_URL}/otp/send`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      
+      const data = await res.json();
+      console.log("OTP resent:", data.message);
+      
+      if (data.devOTP) {
+        console.log("Dev OTP:", data.devOTP);
+      }
+    } catch (err) {
+      console.error("Failed to resend OTP:", err);
+      setError("Failed to resend code. Please try again.");
+    }
   };
 
   if (success) {
