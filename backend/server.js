@@ -12,6 +12,7 @@ const loginRoutes = require("./routes/login");
 const registerRoutes = require("./routes/register");
 const authRoutes = require("./routes/auth");
 const foodRoutes = require("./routes/foods");
+const exploreFoodRoutes = require("./routes/exploreFood");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -90,6 +91,7 @@ app.use("/api/login", authLimiter, loginRoutes);
 app.use("/api/register", registerRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/foods", foodRoutes);
+app.use("/api/exploreFood", exploreFoodRoutes);
 
 // Example admin route
 app.get("/api/admin/data", (req, res) => {
