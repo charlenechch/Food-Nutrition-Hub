@@ -11,6 +11,7 @@ import ForgetPassword from "./pages/ForgotPasswordPage";
 import ResetPassword from "./pages/ResetPasswordPage";
 import OTPVerification from "./pages/OTPVerificationPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CommunityPost from "./pages/CommunityPostPage";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/foods" element={<ExploreFoodsPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/community" element={<CommunityPage />} />
+        <Route path="/community/:id" element={<CommunityPost />} />
 
         {/* Nutrition Analyzer is public but guest has limited actions */}
         <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
