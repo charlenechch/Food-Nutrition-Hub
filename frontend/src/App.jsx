@@ -1,8 +1,8 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import LoginRegisterPage from "./pages/LoginRegisterPage";
 import AdminHomepage from "./pages/AdminHomepage";
 import UserHomepage from "./pages/UserHomepage";
-import ExploreFoodsPage from "./pages/ExploreFoodPage";
+import ExploreFoodsPage, { sarawakFoods } from "./pages/ExploreFoodPage";
 import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
 import RecipesPage from "./pages/RecipesPage";
 import CommunityPage from "./pages/CommunityPage";
@@ -11,25 +11,41 @@ import ForgetPassword from "./pages/ForgotPasswordPage";
 import ResetPassword from "./pages/ResetPasswordPage";
 import OTPVerification from "./pages/OTPVerificationPage";
 import FoodDetail from "./pages/FoodDetailPage";
+import FoodDiscussion from "./pages/FoodDiscussionPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CommunityPost from "./pages/CommunityPostPage";
 
 function FoodDetailRoute() {
   const { state } = useLocation();
+  const [params] = useSearchParams();
   const navigate = useNavigate();
-  const food = state?.food;
 
-  if (!food) {
-    // No food passed? Go back to list.
-    return <Navigate to="/foods" replace />;
-  }
+  const fromState = state?.food;
+  const id = params.get("id");
+  const fromQuery = id ? sarawakFoods.find(f => String(f.id) === String(id)) : null;
+
+  const food = fromState || fromQuery;
+  if (!food) return <Navigate to="/foods" replace />;
+
+  return <FoodDetail food={food} onBack={() => navigate("/foods")} onViewDiscussion={() =>navigate(`/fooddiscussion?id=${food.id}`, { state: { food } })} />;
+}
+
+function FoodDiscussionRoute() {
+  const { state } = useLocation();
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+
+  const id = params.get("id");
+  const fromState = state?.food;
+  const fromQuery = id ? sarawakFoods.find(f => String(f.id) === String(id)) : null;
+  const food = fromState || fromQuery;
+
+  if (!food) return <Navigate to="/foods" replace />;
 
   return (
-    <FoodDetail
+    <FoodDiscussion
       food={food}
-      onBack={() => navigate("/foods")}
-      // havent add this page!!!!!!!!
-      // onViewDiscussion={() => navigate("/FoodDiscussionPage")}
+      onBack={() => navigate(`/fooddetail?id=${food.id}`)}
     />
   );
 }
@@ -49,6 +65,7 @@ function App() {
         <Route path="/home" element={<UserHomepage />} />
         <Route path="/foods" element={<ExploreFoodsPage />} />
         <Route path="/fooddetail" element={<FoodDetailRoute />} />
+        <Route path="/fooddiscussion" element={<FoodDiscussionRoute/>} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:id" element={<CommunityPost />} />
