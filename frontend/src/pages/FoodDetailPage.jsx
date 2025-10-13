@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/FoodDetailPage.css";
 import { DEFAULT_COMMENTS_BY_FOOD } from "./FoodDiscussionPage";
-import { Share2, Info, TriangleAlert, MessagesSquare, ShoppingBasket, Cross } from "lucide-react";
+import { Share2, Info, TriangleAlert, MessagesSquare, ShoppingBasket, Cross, ScrollText } from "lucide-react";
 
 export default function FoodDetailPage({ food, onBack, onViewDiscussion }) {
   const foodComments = DEFAULT_COMMENTS_BY_FOOD[food.id]?? [];
@@ -96,7 +96,10 @@ export default function FoodDetailPage({ food, onBack, onViewDiscussion }) {
                 <button type="button" className="lrp-btn lrp-btn-primary fdp-save" onClick={() => setSaved((s) => !s)}>
                 {saved ? "✓ Saved" : "❤ Save Food"}
                 </button>
-                <button type="button" className="lrp-btn lrp-btn-outline fdp-share" onClick={handleShare}><Share2 size={18} /></button>
+                <button type="button" className="lrp-btn lrp-btn-primary fdp-share" onClick={handleShare}><Share2 size={18} /></button>
+            </div>
+            <div className="fdp-actions">
+                <button type="button" className="lrp-btn lrp-btn-outline"><ScrollText size={18} /> Go to Recipe</button>
             </div>
 
             {/* Nutrition */}
