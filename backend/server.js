@@ -13,6 +13,7 @@ const registerRoutes = require("./routes/register");
 const authRoutes = require("./routes/auth");
 const foodRoutes = require("./routes/foods");
 const exploreFoodRoutes = require("./routes/exploreFood");
+const communityPostRoutes = require("./routes/communityPost");
 const otpRoutes = require("./routes/otp");
 
 const app = express();
@@ -92,8 +93,12 @@ app.use("/api/login", authLimiter, loginRoutes);
 app.use("/api/register", registerRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes);
-app.use("/api/foods", foodRoutes);
 app.use("/api/exploreFood", exploreFoodRoutes);
+app.use("/api/communityPost", communityPostRoutes);
+
+//admin routes
+app.use("/api/foods", foodRoutes);
+
 
 // Example admin route
 app.get("/api/admin/data", (req, res) => {

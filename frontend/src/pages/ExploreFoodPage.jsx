@@ -318,7 +318,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         Carbohydrates_g: parseFloat(food.Carbohydrates_g) || 0,
         Fiber_g: parseFloat(food.Fiber_g) || 0,
         VitaminC_mg: parseFloat(food.VitaminC_mg) || 0,
-        category: food.category || 'Unknown',
+        category: food.category || '',
         dietaryTags: Array.isArray(food.dietaryTags) ? food.dietaryTags : []
       }));
         

@@ -230,7 +230,7 @@ const foods = [
       await db.query(sql, values);
     }
 
-    console.log("✅ All dummy data inserted successfully!");
+    console.log("✅ All data inserted successfully!");
     process.exit(0);
   } catch (err) {
     console.error("❌ Error inserting data:", err.message);
