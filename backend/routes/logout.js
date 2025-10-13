@@ -11,7 +11,12 @@ router.post("/", (req, res) => {
       }
       
       // Clear session cookie
-      res.clearCookie('connect.sid'); 
+      res.clearCookie('connect.sid', {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+      }); 
       console.log("User logged out successfully");
       
       return res.json({ 
