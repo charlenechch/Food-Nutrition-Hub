@@ -19,6 +19,9 @@ const otpRoutes = require("./routes/otp");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust the reverse proxy (e.g., from Railway)
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet());
 
