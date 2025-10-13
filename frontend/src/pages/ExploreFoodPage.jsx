@@ -5,325 +5,339 @@ import Footer from "../components/Footer";
 import "../css/ExploreFoodPage.css";
 import { Filter, Sliders, X } from "lucide-react";
 
-export const sarawakFoods = [
-  {
-    id: 1,
-    name: "Manok Pansoh",
-    category: "Poultry",
-    origin: "Iban",
-    description:
-      "Traditional Iban chicken cooked in bamboo with aromatic herbs and spices",
-    image: "https://images.unsplash.com/photo-1643185720431-9c050eebbc9a",
-    calories: 285,
-    protein: 35,
-    carbs: 8,
-    fat: 12,
-    fiber: 2,
-    sodium: 450,
-    dietaryTags: ["gluten-free", "dairy-free"],
-    preparationTime: 120,
-    difficulty: "medium",
-    foodType: "main-dish",
-    ingredients: [
-      "chicken",
-      "lemongrass",
-      "ginger",
-      "garlic",
-      "bamboo",
-      "salt",
-      "tapioca leaves",
-      "shallots"
-    ],
-    culturalSignificance: "Commonly served during Gawai and family gatherings; symbolizes sharing and community.",
-    traditionalPreparation: "Seasoned chicken is stuffed into bamboo with herbs and tapioca leaves, sealed, and slow-cooked over fire."
-  },
-  {
-    id: 2,
-    name: "Umai",
-    category: "Seafood",
-    origin: "Melanau",
-    description:
-      "Fresh fish salad marinated with lime juice, onions, and chilies",
-    image: "https://images.unsplash.com/photo-1612755657417-9c6885e5ece9",
-    calories: 165,
-    protein: 28,
-    carbs: 6,
-    fat: 3,
-    fiber: 1,
-    sodium: 320,
-    dietaryTags: ["gluten-free", "dairy-free", "low-fat"],
-    preparationTime: 30,
-    difficulty: "easy",
-    foodType: "appetizer",
-    ingredients: [
-      "fresh fish",
-      "lime juice",
-      "onion",
-      "chili",
-      "salt",
-      "sugar",
-      "ginger",
-      "coriander leaves"
-    ],
-    culturalSignificance: "A coastal staple among Melanau communities, often eaten fresh after fishing.",
-    traditionalPreparation: "Thinly slice very fresh fish; marinate in lime juice, then toss with onions, chilies, and seasoning. No heat used."
-  },
-  {
-    id: 3,
-    name: "Kasam Babi",
-    category: "Fermented",
-    origin: "Dayak",
-    description:
-      "Fermented pork with salt and rice wine, aged for several months",
-    image: "https://images.unsplash.com/photo-1658218615053-955e8af55947",
-    calories: 320,
-    protein: 42,
-    carbs: 2,
-    fat: 15,
-    fiber: 0,
-    sodium: 890,
-    dietaryTags: ["gluten-free", "dairy-free", "high-protein"],
-    preparationTime: 1440,
-    difficulty: "hard",
-    foodType: "preserved",
-    ingredients: [
-      "pork",
-      "salt",
-      "rice wine",
-      "garlic",
-      "ginger",
-      "pepper",
-      "onion",
-      "sugar"
-    ],
-    culturalSignificance: "Preservation technique for meat, providing food security and distinctive festive flavors.",
-    traditionalPreparation: "Cure pork with salt and tuak, pack tightly in sealed jars, and ferment for weeks to months before cooking."
-  },
-  {
-    id: 4,
-    name: "Midin Belacan",
-    category: "Vegetables",
-    origin: "Native",
-    description: "Jungle fern stir-fried with shrimp paste and chilies",
-    image: "https://images.unsplash.com/photo-1741004580357-15d116ef4ba3",
-    calories: 95,
-    protein: 8,
-    carbs: 12,
-    fat: 4,
-    fiber: 5,
-    sodium: 280,
-    dietaryTags: ["vegetarian", "gluten-free", "dairy-free", "high-fiber"],
-    preparationTime: 15,
-    difficulty: "easy",
-    foodType: "vegetable",
-    ingredients: [
-      "midin fern",
-      "belacan (shrimp paste)",
-      "garlic",
-      "chili",
-      "onion",
-      "salt",
-      "oil"
-    ],
-    culturalSignificance: "Beloved local vegetable highlighting Sarawak’s rainforest produce; common in kopitiams and home cooking.",
-    traditionalPreparation: "Rinse young fern tips; stir-fry quickly on high heat with belacan, garlic, and chilies to keep them crisp."
-  },
-  {
-    id: 5,
-    name: "Linut",
-    category: "Dessert",
-    origin: "Bidayuh",
-    description: "Sticky rice balls served with grated coconut and palm sugar",
-    image: "https://images.unsplash.com/photo-1708597523963-40b30f846281",
-    calories: 210,
-    protein: 4,
-    carbs: 42,
-    fat: 6,
-    fiber: 2,
-    sodium: 15,
-    dietaryTags: ["vegetarian", "gluten-free", "dairy-free"],
-    preparationTime: 60,
-    difficulty: "medium",
-    foodType: "dessert",
-    ingredients: [
-      "sago starch",
-      "boiling water",
-      "grated coconut",
-      "palm sugar",
-      "salt"
-    ],
-    culturalSignificance: "Sago-based delicacy reflecting traditional staple foods of interior communities.",
-    traditionalPreparation: "Stir sago starch with hot water until elastic and glossy; serve with grated coconut and palm sugar syrup."
-  },
-  {
-    id: 6,
-    name: "Bubur Pedas",
-    category: "Rice Dish",
-    origin: "Dayak",
-    description:
-      "Spicy rice porridge cooked with coconut milk and aromatic spices",
-    image:
-      "https://munchmalaysia.com/wp-content/uploads/2023/11/sarawak-spicy-porridge.jpg",
-    calories: 245,
-    protein: 12,
-    carbs: 38,
-    fat: 8,
-    fiber: 3,
-    sodium: 520,
-    dietaryTags: ["gluten-free", "spicy"],
-    preparationTime: 180,
-    difficulty: "medium",
-    foodType: "main-dish",
-    ingredients: [
-      "rice",
-      "coconut milk",
-      "lemongrass",
-      "shallots",
-      "chili paste",
-      "ginger",
-      "turmeric",
-      "beef",
-      "carrot",
-      "celery"
-    ],
-    culturalSignificance: "Often prepared in Ramadan bazaars and communal events; comfort food with local spice blends.",
-    traditionalPreparation: "Toast rice and spices, grind to paste, then simmer with coconut milk, aromatics, and optional meat/vegetables."
-  },
-  {
-    id: 7,
-    name: "Ayam Pansuh",
-    category: "Poultry",
-    origin: "Dayak",
-    description: "Chicken cooked in bamboo with lemongrass and tapioca leaves",
-    image: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6",
-    calories: 290,
-    protein: 32,
-    carbs: 5,
-    fat: 14,
-    fiber: 1,
-    sodium: 380,
-    dietaryTags: ["gluten-free", "dairy-free", "paleo"],
-    preparationTime: 150,
-    difficulty: "hard",
-    foodType: "main-dish",
-    ingredients: [
-      "chicken",
-      "bamboo",
-      "lemongrass",
-      "ginger",
-      "garlic",
-      "tapioca leaves",
-      "salt"
-    ],
-    culturalSignificance: "Often prepared in Ramadan bazaars and communal events; comfort food with local spice blends.",
-    traditionalPreparation: "Toast rice and spices, grind to paste, then simmer with coconut milk, aromatics, and optional meat/vegetables."
-  },
-  {
-    id: 8,
-    name: "Kek Lapis Sarawak",
-    category: "Dessert",
-    origin: "Chinese-Malay",
-    description:
-      "Colorful layered cake with intricate patterns and flavors",
-    image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e",
-    calories: 385,
-    protein: 6,
-    carbs: 52,
-    fat: 18,
-    fiber: 1,
-    sodium: 220,
-    dietaryTags: ["vegetarian"],
-    preparationTime: 240,
-    difficulty: "hard",
-    foodType: "dessert",
-    ingredients: [
-      "butter",
-      "flour",
-      "eggs",
-      "condensed milk",
-      "sugar",
-      "food coloring",
-      "spices",
-      "vanilla extract"
-    ],
-    culturalSignificance: "Often prepared in Ramadan bazaars and communal events; comfort food with local spice blends.",
-    traditionalPreparation: "Toast rice and spices, grind to paste, then simmer with coconut milk, aromatics, and optional meat/vegetables."
-  },
-  {
-    id: 9,
-    name: "Laksa Sarawak",
-    category: "Noodles",
-    origin: "Chinese-Malay",
-    description:
-      "Rich and spicy noodle soup made with rice vermicelli, coconut milk, prawns, chicken, and sambal belacan.",
-    image:
-      "https://asianinspirations.com.au/wp-content/uploads/2018/08/R01024_Sarawak-Laksa-940x627.jpg",
-    calories: 430,
-    protein: 24,
-    carbs: 48,
-    fat: 18,
-    fiber: 3,
-    sodium: 720,
-    dietaryTags: ["spicy", "dairy-free"],
-    preparationTime: 60,
-    difficulty: "medium",
-    foodType: "main-dish",
-    ingredients: [
-      "rice vermicelli",
-      "coconut milk",
-      "prawns",
-      "chicken",
-      "bean sprouts",
-      "egg",
-      "sambal belacan",
-      "lime",
-      "spices"
-    ],
-    culturalSignificance: "Often prepared in Ramadan bazaars and communal events; comfort food with local spice blends.",
-    traditionalPreparation: "Toast rice and spices, grind to paste, then simmer with coconut milk, aromatics, and optional meat/vegetables."
-  },
-  {
-    id: 10,
-    name: "Terung Dayak Soup",
-    category: "Soup",
-    origin: "Dayak",
-    description:
-      "Sour soup made from native yellow eggplant (Terung Dayak) cooked with lemongrass and dried fish or prawns.",
-    image:
-      "https://www.periuk.my/static/54323c3fc953cc12ea8264c2fd746856/f6085/PRec-Terung-Dayak-with-Mackerel.jpg",
-    calories: 180,
-    protein: 10,
-    carbs: 15,
-    fat: 6,
-    fiber: 4,
-    sodium: 300,
-    dietaryTags: ["gluten-free", "dairy-free", "high-fiber"],
-    preparationTime: 40,
-    difficulty: "easy",
-    foodType: "side-dish",
-    ingredients: [
-      "terung dayak (yellow eggplant)",
-      "lemongrass",
-      "dried prawns",
-      "garlic",
-      "onion",
-      "salt",
-      "oil",
-      "turmeric"
-    ],
-    culturalSignificance: "Often prepared in Ramadan bazaars and communal events; comfort food with local spice blends.",
-    traditionalPreparation: "Toast rice and spices, grind to paste, then simmer with coconut milk, aromatics, and optional meat/vegetables."
-  },
-];
+// const sarawakFoods = [
+//   {
+//     id: 1,
+//     name: "Manok Pansoh",
+//     category: "Poultry",
+//     origin: "Iban",
+//     description:
+//       "Traditional Iban chicken cooked in bamboo with aromatic herbs and spices",
+//     image: "https://images.unsplash.com/photo-1643185720431-9c050eebbc9a",
+//     calories: 285,
+//     protein: 35,
+//     carbs: 8,
+//     fat: 12,
+//     fiber: 2,
+//     sodium: 450,
+//     dietaryTags: ["gluten-free", "dairy-free"],
+//     preparationTime: 120,
+//     difficulty: "medium",
+//     foodType: "main-dish",
+//     ingredients: [
+//       "chicken",
+//       "lemongrass",
+//       "ginger",
+//       "garlic",
+//       "bamboo",
+//       "salt",
+//       "tapioca leaves",
+//       "shallots"
+//     ],
+//   },
+//   {
+//     id: 2,
+//     name: "Umai",
+//     category: "Seafood",
+//     origin: "Melanau",
+//     description:
+//       "Fresh fish salad marinated with lime juice, onions, and chilies",
+//     image: "https://images.unsplash.com/photo-1612755657417-9c6885e5ece9",
+//     calories: 165,
+//     protein: 28,
+//     carbs: 6,
+//     fat: 3,
+//     fiber: 1,
+//     sodium: 320,
+//     dietaryTags: ["gluten-free", "dairy-free", "low-fat"],
+//     preparationTime: 30,
+//     difficulty: "easy",
+//     foodType: "appetizer",
+//     ingredients: [
+//       "fresh fish",
+//       "lime juice",
+//       "onion",
+//       "chili",
+//       "salt",
+//       "sugar",
+//       "ginger",
+//       "coriander leaves"
+//     ],
+//   },
+//   {
+//     id: 3,
+//     name: "Kasam Babi",
+//     category: "Fermented",
+//     origin: "Dayak",
+//     description:
+//       "Fermented pork with salt and rice wine, aged for several months",
+//     image: "https://images.unsplash.com/photo-1658218615053-955e8af55947",
+//     calories: 320,
+//     protein: 42,
+//     carbs: 2,
+//     fat: 15,
+//     fiber: 0,
+//     sodium: 890,
+//     dietaryTags: ["gluten-free", "dairy-free", "high-protein"],
+//     preparationTime: 1440,
+//     difficulty: "hard",
+//     foodType: "preserved",
+//     ingredients: [
+//       "pork",
+//       "salt",
+//       "rice wine",
+//       "garlic",
+//       "ginger",
+//       "pepper",
+//       "onion",
+//       "sugar"
+//     ],
+//   },
+//   {
+//     id: 4,
+//     name: "Midin Belacan",
+//     category: "Vegetables",
+//     origin: "Native",
+//     description: "Jungle fern stir-fried with shrimp paste and chilies",
+//     image: "https://images.unsplash.com/photo-1741004580357-15d116ef4ba3",
+//     calories: 95,
+//     protein: 8,
+//     carbs: 12,
+//     fat: 4,
+//     fiber: 5,
+//     sodium: 280,
+//     dietaryTags: ["vegetarian", "gluten-free", "dairy-free", "high-fiber"],
+//     preparationTime: 15,
+//     difficulty: "easy",
+//     foodType: "vegetable",
+//     ingredients: [
+//       "midin fern",
+//       "belacan (shrimp paste)",
+//       "garlic",
+//       "chili",
+//       "onion",
+//       "salt",
+//       "oil"
+//     ],
+//   },
+//   {
+//     id: 5,
+//     name: "Linut",
+//     category: "Dessert",
+//     origin: "Bidayuh",
+//     description: "Sticky rice balls served with grated coconut and palm sugar",
+//     image: "https://images.unsplash.com/photo-1708597523963-40b30f846281",
+//     calories: 210,
+//     protein: 4,
+//     carbs: 42,
+//     fat: 6,
+//     fiber: 2,
+//     sodium: 15,
+//     dietaryTags: ["vegetarian", "gluten-free", "dairy-free"],
+//     preparationTime: 60,
+//     difficulty: "medium",
+//     foodType: "dessert",
+//     ingredients: [
+//       "sago starch",
+//       "boiling water",
+//       "grated coconut",
+//       "palm sugar",
+//       "salt"
+//     ],
+//   },
+//   {
+//     id: 6,
+//     name: "Bubur Pedas",
+//     category: "Rice Dish",
+//     origin: "Dayak",
+//     description:
+//       "Spicy rice porridge cooked with coconut milk and aromatic spices",
+//     image:
+//       "https://munchmalaysia.com/wp-content/uploads/2023/11/sarawak-spicy-porridge.jpg",
+//     calories: 245,
+//     protein: 12,
+//     carbs: 38,
+//     fat: 8,
+//     fiber: 3,
+//     sodium: 520,
+//     dietaryTags: ["gluten-free", "spicy"],
+//     preparationTime: 180,
+//     difficulty: "medium",
+//     foodType: "main-dish",
+//     ingredients: [
+//       "rice",
+//       "coconut milk",
+//       "lemongrass",
+//       "shallots",
+//       "chili paste",
+//       "ginger",
+//       "turmeric",
+//       "beef",
+//       "carrot",
+//       "celery"
+//     ],
+//   },
+//   {
+//     id: 7,
+//     name: "Ayam Pansuh",
+//     category: "Poultry",
+//     origin: "Dayak",
+//     description: "Chicken cooked in bamboo with lemongrass and tapioca leaves",
+//     image: "https://images.unsplash.com/photo-1598103442097-8b74394b95c6",
+//     calories: 290,
+//     protein: 32,
+//     carbs: 5,
+//     fat: 14,
+//     fiber: 1,
+//     sodium: 380,
+//     dietaryTags: ["gluten-free", "dairy-free", "paleo"],
+//     preparationTime: 150,
+//     difficulty: "hard",
+//     foodType: "main-dish",
+//     ingredients: [
+//       "chicken",
+//       "bamboo",
+//       "lemongrass",
+//       "ginger",
+//       "garlic",
+//       "tapioca leaves",
+//       "salt"
+//     ],
+//   },
+//   {
+//     id: 8,
+//     name: "Kek Lapis Sarawak",
+//     category: "Dessert",
+//     origin: "Chinese-Malay",
+//     description:
+//       "Colorful layered cake with intricate patterns and flavors",
+//     image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e",
+//     calories: 385,
+//     protein: 6,
+//     carbs: 52,
+//     fat: 18,
+//     fiber: 1,
+//     sodium: 220,
+//     dietaryTags: ["vegetarian"],
+//     preparationTime: 240,
+//     difficulty: "hard",
+//     foodType: "dessert",
+//     ingredients: [
+//       "butter",
+//       "flour",
+//       "eggs",
+//       "condensed milk",
+//       "sugar",
+//       "food coloring",
+//       "spices",
+//       "vanilla extract"
+//     ],
+//   },
+//   {
+//     id: 9,
+//     name: "Laksa Sarawak",
+//     category: "Noodles",
+//     origin: "Chinese-Malay",
+//     description:
+//       "Rich and spicy noodle soup made with rice vermicelli, coconut milk, prawns, chicken, and sambal belacan.",
+//     image:
+//       "https://asianinspirations.com.au/wp-content/uploads/2018/08/R01024_Sarawak-Laksa-940x627.jpg",
+//     calories: 430,
+//     protein: 24,
+//     carbs: 48,
+//     fat: 18,
+//     fiber: 3,
+//     sodium: 720,
+//     dietaryTags: ["spicy", "dairy-free"],
+//     preparationTime: 60,
+//     difficulty: "medium",
+//     foodType: "main-dish",
+//     ingredients: [
+//       "rice vermicelli",
+//       "coconut milk",
+//       "prawns",
+//       "chicken",
+//       "bean sprouts",
+//       "egg",
+//       "sambal belacan",
+//       "lime",
+//       "spices"
+//     ],
+//   },
+//   {
+//     id: 10,
+//     name: "Terung Dayak Soup",
+//     category: "Soup",
+//     origin: "Dayak",
+//     description:
+//       "Sour soup made from native yellow eggplant (Terung Dayak) cooked with lemongrass and dried fish or prawns.",
+//     image:
+//       "https://www.periuk.my/static/54323c3fc953cc12ea8264c2fd746856/f6085/PRec-Terung-Dayak-with-Mackerel.jpg",
+//     calories: 180,
+//     protein: 10,
+//     carbs: 15,
+//     fat: 6,
+//     fiber: 4,
+//     sodium: 300,
+//     dietaryTags: ["gluten-free", "dairy-free", "high-fiber"],
+//     preparationTime: 40,
+//     difficulty: "easy",
+//     foodType: "side-dish",
+//     ingredients: [
+//       "terung dayak (yellow eggplant)",
+//       "lemongrass",
+//       "dried prawns",
+//       "garlic",
+//       "onion",
+//       "salt",
+//       "oil",
+//       "turmeric"
+//     ],
+//   },
+// ];
 
 export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
-  const navigate = useNavigate();
+  const [foods, setFoods] = useState([]); 
+  const [loading, setLoading] = useState(true); // Fetch food data from backend 
+  useEffect(() => { 
+    const fetchFoods = async () => { 
+      try { const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"; 
+        const res = await fetch(`${API_BASE_URL}/api/exploreFood`); 
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json(); 
+        console.log("Raw fetched foods:", data);
+        console.log("Number of foods:", data.length);
+
+        const transformedData = data.map(food => ({
+        ...food,
+        // Convert all nutritional values to numbers
+        Energy_kcal: parseFloat(food.Energy_kcal) || 0,
+        Protein_g: parseFloat(food.Protein_g) || 0,
+        Fat_g: parseFloat(food.Fat_g) || 0,
+        Carbohydrates_g: parseFloat(food.Carbohydrates_g) || 0,
+        Fiber_g: parseFloat(food.Fiber_g) || 0,
+        VitaminC_mg: parseFloat(food.VitaminC_mg) || 0,
+        category: food.category || 'Unknown',
+        dietaryTags: Array.isArray(food.dietaryTags) ? food.dietaryTags : []
+      }));
+        
+        setFoods(transformedData);
+      } catch (err) { 
+        console.error("Failed to fetch foods:", err); 
+        setFoods([]); // Set empty array on error
+      } finally { 
+        setLoading(false); 
+        } }; 
+        fetchFoods(); 
+    }, []);
 
   // Dynamically derive the max calories from the dataset
   const rawCalMax = useMemo(
-    () => sarawakFoods.reduce((m, f) => Math.max(m, f.calories), 0),
-    []
-  );
+  () => foods.reduce((m, f) => Math.max(m, parseFloat(f.Energy_kcal) || 0), 0),
+  [foods]
+);
 
   // round up to a nicer number to the next 50
   const calMax = useMemo(() => Math.ceil(rawCalMax / 50) * 50, [rawCalMax]);
@@ -345,6 +359,16 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   const [nutritionFocus, setNutritionFocus] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
 
+  // useEffect(() => {
+  //   setCalorieRange(([lo, hi]) => [Math.min(lo, calMax), Math.min(hi, calMax)]);
+  // }, [calMax]);
+
+  // useEffect(() => {
+  //   setMinCalInput(String(calorieRange[0]));
+  //   setMaxCalInput(String(calorieRange[1]));
+  // }, [calorieRange]);
+// ... other state
+
   useEffect(() => {
     setCalorieRange(([lo, hi]) => [Math.min(lo, calMax), Math.min(hi, calMax)]);
   }, [calMax]);
@@ -354,45 +378,76 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     setMaxCalInput(String(calorieRange[1]));
   }, [calorieRange]);
 
-  const filteredFoods = useMemo(() => {
-    return sarawakFoods.filter((food) => {
-      const matchesSearch =
-        food.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        food.origin.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (food.ingredients &&
-          food.ingredients.join(" ").toLowerCase().includes(searchQuery.toLowerCase()));
+  useEffect(() => {
+    if (foods.length > 0 && calMax > 0) {
+      setCalorieRange([0, calMax]);
+      setMinCalInput("0");
+      setMaxCalInput(String(calMax));
+    }
+  }, [foods, calMax]);
 
+  const filteredFoods = useMemo(() => {
+    console.log("=== FILTERING DEBUG ===");
+    console.log("Total foods:", foods.length);
+    console.log("First food item:", foods[0]);
+    
+    const result = foods.filter((food) => {
+
+      const matchesSearch =
+        food.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        food.origin?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory =
         selectedCategory === "all" || food.category === selectedCategory;
 
       const matchesOrigin =
         selectedOrigin === "all" || food.origin === selectedOrigin;
 
-      const matchesCalories =
-        food.calories >= calorieRange[0] && food.calories <= calorieRange[1];
+        const foodCalories = parseFloat(food.Energy_kcal) || 0;
+      const matchesCalories = foodCalories >= calorieRange[0] && foodCalories <= calorieRange[1];
+        console.log(`Food: ${food.name}, Calories: ${foodCalories}, Range: [${calorieRange[0]}, ${calorieRange[1]}], In range: ${matchesCalories}`);
+
+        console.log(`Food: ${food.name}, Calories: ${food.Energy_kcal}, In range: ${matchesCalories}`);
 
       const matchesDifficulty =
         selectedDifficulty === "all" || food.difficulty === selectedDifficulty;
 
       const matchesNutrition =
         nutritionFocus === "all" ||
-        (nutritionFocus === "high-protein" && food.protein >= 25) ||
-        (nutritionFocus === "low-fat" && food.fat <= 5) ||
-        (nutritionFocus === "high-fiber" && food.fiber >= 4);
+        (nutritionFocus === "high-protein" && (parseFloat(food.Protein_g) || 0) >= 20) ||
+        (nutritionFocus === "low-fat" && (parseFloat(food.Fat_g) || 0) <= 10) ||
+        (nutritionFocus === "high-fiber" && (parseFloat(food.Fiber_g) || 0) >= 5);
       
       const matchesFoodType =
         selectedFoodType === "all" || food.foodType === selectedFoodType;
 
       const matchesPrepTime =
         selectedPrepTime === "all" ||
-        (selectedPrepTime === "under30" && food.preparationTime <= 30) ||
-        (selectedPrepTime === "under120" && food.preparationTime <= 120) ||
-        (selectedPrepTime === "over120" && food.preparationTime > 120);
+        (selectedPrepTime === "under30" && food.prepTime <= 30) ||
+        (selectedPrepTime === "under120" && food.prepTime <= 120) ||
+        (selectedPrepTime === "over120" && food.prepTime > 120);
 
       const matchesDietary =
         selectedDietaryTags.length === 0 ||
         selectedDietaryTags.every((tag) => food.dietaryTags.includes(tag));
 
+        // Debug logging for each filter
+      console.log(`Food: ${food.name}`, {
+        matchesSearch,
+        matchesCategory,
+        matchesOrigin,
+        matchesCalories,
+        matchesDifficulty,
+        matchesNutrition,
+        matchesFoodType,
+        matchesPrepTime,
+        matchesDietary,
+        searchQuery,
+        selectedCategory,
+        selectedOrigin,
+        calorieRange,
+        foodCalories: food.Energy_kcal
+      });
+      
       return (
         matchesSearch &&
         matchesCategory &&
@@ -405,7 +460,11 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         matchesDietary
       );
     });
+    console.log("Filtered results:", result.length);
+    console.log("Filtered foods:", result);
+    return result;
   }, [
+    foods,
     searchQuery,
     selectedCategory,
     selectedOrigin,
@@ -424,9 +483,14 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     startIndex + itemsPerPage
   );
 
+  console.log("Current foods to display:", currentFoods);
+  console.log("Total pages:", totalPages);
+  console.log("Current page:", currentPage);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [
+    foods,
     searchQuery,
     selectedCategory,
     selectedOrigin,
@@ -445,15 +509,16 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   };
 
   // Dual-range slider config
-  const STEP = 5;
+  const STEP = 1;
   const MIN_GAP = 10; // minimum distance between thumbs (calories)
 
   const pct = (v) => calMax === calMin ? 0 : ((v - calMin) * 100) / (calMax - calMin);
 
   const clampToStep = (v) => Math.round(v / STEP) * STEP;
+  
 
   const commitMin = () => {
-    let raw = parseInt(minCalInput, 10);
+    let raw = parseFloat(minCalInput, 10);
     if (Number.isNaN(raw)) raw = calMin;
     raw = clampToStep(raw);
     const clamped = Math.max(calMin, Math.min(raw, calorieRange[1] - MIN_GAP));
@@ -462,7 +527,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   };
 
   const commitMax = () => {
-    let raw = parseInt(maxCalInput, 10);
+    let raw = parseFloat(maxCalInput, 10);
     if (Number.isNaN(raw)) raw = calMax;
     raw = clampToStep(raw);
     const clamped = Math.min(calMax, Math.max(raw, calorieRange[0] + MIN_GAP));
@@ -596,6 +661,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
               "Rice Dish",
               "Noodles",
               "Soup",
+              "Meat",
             ].map((c) => (
               <button
                 key={c}
@@ -632,7 +698,8 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                     <option value="Melanau">Melanau</option>
                     <option value="Dayak">Dayak</option>
                     <option value="Native">Native</option>
-                    <option value="Chinese-Malay">Chinese-Malay</option>
+                    <option value="Chinese">Chinese</option>
+                    <option value="Malay">Malay</option>
                     <option value="Bidayuh">Bidayuh</option>
                   </select>
                 </div>
@@ -854,7 +921,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
         <div className="efp-grid">
           {currentFoods.map((food) => {
-            const calorieLabel = getCalorieRangeLabel(food.calories);
+            const calorieLabel = getCalorieRangeLabel(food.Energy_kcal);
             const calorieClass =
               calorieLabel === "Low"
                 ? "efp-badge efp-badge--ok"
@@ -864,7 +931,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
             return (
               <div
-                key={food.id}
+                key={food.foodID}
                 className="efp-food-card"
                 onClick={() => onFoodSelect(food)}
               >
@@ -893,20 +960,20 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
                   <div className="efp-meta">
                     <span className="muted">Origin: {food.origin}</span>
-                    <span className="efp-cal">{food.calories} calories</span>
+                    <span className="efp-cal">{food.Energy_kcal} calories</span>
                   </div>
 
                   <div className="efp-nutri">
                     <div className="efp-nutri-item">
-                      <div>{food.protein}g</div>
+                      <div>{food.Protein_g}g</div>
                       <div className="muted">Protein</div>
                     </div>
                     <div className="efp-nutri-item">
-                      <div>{food.carbs}g</div>
+                      <div>{food.Carbohydrates_g}g</div>
                       <div className="muted">Carbs</div>
                     </div>
                     <div className="efp-nutri-item">
-                      <div>{food.fat}g</div>
+                      <div>{food.Fat_g}g</div>
                       <div className="muted">Fat</div>
                     </div>
                   </div>
