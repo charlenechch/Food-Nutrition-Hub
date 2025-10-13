@@ -77,7 +77,7 @@ router.post("/verify", async (req, res) => {
     const tempUser = req.session.tempUser;
 
     if (!tempUser) {
-    return res.status(400).json({ error: "Session expired. Please login again." });
+      return res.status(400).json({ error: "Session expired. Please login again." });
     }
 
     // Complete the login. Move tempUser to user
