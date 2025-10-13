@@ -306,12 +306,28 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         const data = await res.json(); 
-        console.log("Fetched foods:", data); //debug log
-        setFoods(data)
-        } catch (err) { 
-          console.error("Failed to fetch foods:", err); 
-        } finally { 
-          setLoading(false); 
+        console.log("Raw fetched foods:", data);
+        console.log("Number of foods:", data.length);
+
+        const transformedData = data.map(food => ({
+        ...food,
+        // Convert all nutritional values to numbers
+        Energy_kcal: parseFloat(food.Energy_kcal) || 0,
+        Protein_g: parseFloat(food.Protein_g) || 0,
+        Fat_g: parseFloat(food.Fat_g) || 0,
+        Carbohydrates_g: parseFloat(food.Carbohydrates_g) || 0,
+        Fiber_g: parseFloat(food.Fiber_g) || 0,
+        VitaminC_mg: parseFloat(food.VitaminC_mg) || 0,
+        category: food.category || 'Unknown',
+        dietaryTags: Array.isArray(food.dietaryTags) ? food.dietaryTags : []
+      }));
+        
+        setFoods(transformedData);
+      } catch (err) { 
+        console.error("Failed to fetch foods:", err); 
+        setFoods([]); // Set empty array on error
+      } finally { 
+        setLoading(false); 
         } }; 
         fetchFoods(); 
     }, []);
@@ -342,6 +358,16 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   const [nutritionFocus, setNutritionFocus] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
 
+  // useEffect(() => {
+  //   setCalorieRange(([lo, hi]) => [Math.min(lo, calMax), Math.min(hi, calMax)]);
+  // }, [calMax]);
+
+  // useEffect(() => {
+  //   setMinCalInput(String(calorieRange[0]));
+  //   setMaxCalInput(String(calorieRange[1]));
+  // }, [calorieRange]);
+// ... other state
+
   useEffect(() => {
     setCalorieRange(([lo, hi]) => [Math.min(lo, calMax), Math.min(hi, calMax)]);
   }, [calMax]);
@@ -351,29 +377,44 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     setMaxCalInput(String(calorieRange[1]));
   }, [calorieRange]);
 
+  useEffect(() => {
+    if (foods.length > 0 && calMax > 0) {
+      setCalorieRange([0, calMax]);
+      setMinCalInput("0");
+      setMaxCalInput(String(calMax));
+    }
+  }, [foods, calMax]);
+
   const filteredFoods = useMemo(() => {
-    return foods.filter((food) => {
+    console.log("=== FILTERING DEBUG ===");
+    console.log("Total foods:", foods.length);
+    console.log("First food item:", foods[0]);
+    
+    const result = foods.filter((food) => {
 
       const matchesSearch =
-        food.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        food.origin.toLowerCase().includes(searchQuery.toLowerCase());
+        food.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        food.origin?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory =
         selectedCategory === "all" || food.category === selectedCategory;
 
       const matchesOrigin =
         selectedOrigin === "all" || food.origin === selectedOrigin;
 
-      const matchesCalories =
-        food.Energy_kcal >= calorieRange[0] && food.Energy_kcal <= calorieRange[1];
+        const foodCalories = parseFloat(food.Energy_kcal) || 0;
+      const matchesCalories = foodCalories >= calorieRange[0] && foodCalories <= calorieRange[1];
+        console.log(`Food: ${food.name}, Calories: ${foodCalories}, Range: [${calorieRange[0]}, ${calorieRange[1]}], In range: ${matchesCalories}`);
+
+        console.log(`Food: ${food.name}, Calories: ${food.Energy_kcal}, In range: ${matchesCalories}`);
 
       const matchesDifficulty =
         selectedDifficulty === "all" || food.difficulty === selectedDifficulty;
 
       const matchesNutrition =
         nutritionFocus === "all" ||
-        (nutritionFocus === "high-protein" && food.Protein_g >= 20) ||
-        (nutritionFocus === "low-fat" && food.Fat_g <= 10) ||
-        (nutritionFocus === "high-fiber" && food.Fiber_g >= 5);
+        (nutritionFocus === "high-protein" && (parseFloat(food.Protein_g) || 0) >= 20) ||
+        (nutritionFocus === "low-fat" && (parseFloat(food.Fat_g) || 0) <= 10) ||
+        (nutritionFocus === "high-fiber" && (parseFloat(food.Fiber_g) || 0) >= 5);
       
       const matchesFoodType =
         selectedFoodType === "all" || food.foodType === selectedFoodType;
@@ -388,6 +429,24 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         selectedDietaryTags.length === 0 ||
         selectedDietaryTags.every((tag) => food.dietaryTags.includes(tag));
 
+        // Debug logging for each filter
+      console.log(`Food: ${food.name}`, {
+        matchesSearch,
+        matchesCategory,
+        matchesOrigin,
+        matchesCalories,
+        matchesDifficulty,
+        matchesNutrition,
+        matchesFoodType,
+        matchesPrepTime,
+        matchesDietary,
+        searchQuery,
+        selectedCategory,
+        selectedOrigin,
+        calorieRange,
+        foodCalories: food.Energy_kcal
+      });
+      
       return (
         matchesSearch &&
         matchesCategory &&
@@ -400,7 +459,11 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         matchesDietary
       );
     });
+    console.log("Filtered results:", result.length);
+    console.log("Filtered foods:", result);
+    return result;
   }, [
+    foods,
     searchQuery,
     selectedCategory,
     selectedOrigin,
@@ -418,6 +481,10 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     startIndex,
     startIndex + itemsPerPage
   );
+
+  console.log("Current foods to display:", currentFoods);
+  console.log("Total pages:", totalPages);
+  console.log("Current page:", currentPage);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -441,15 +508,16 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   };
 
   // Dual-range slider config
-  const STEP = 5;
+  const STEP = 1;
   const MIN_GAP = 10; // minimum distance between thumbs (calories)
 
   const pct = (v) => calMax === calMin ? 0 : ((v - calMin) * 100) / (calMax - calMin);
 
   const clampToStep = (v) => Math.round(v / STEP) * STEP;
+  
 
   const commitMin = () => {
-    let raw = parseInt(minCalInput, 10);
+    let raw = parseFloat(minCalInput, 10);
     if (Number.isNaN(raw)) raw = calMin;
     raw = clampToStep(raw);
     const clamped = Math.max(calMin, Math.min(raw, calorieRange[1] - MIN_GAP));
@@ -458,7 +526,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   };
 
   const commitMax = () => {
-    let raw = parseInt(maxCalInput, 10);
+    let raw = parseFloat(maxCalInput, 10);
     if (Number.isNaN(raw)) raw = calMax;
     raw = clampToStep(raw);
     const clamped = Math.min(calMax, Math.max(raw, calorieRange[0] + MIN_GAP));
@@ -852,7 +920,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
         <div className="efp-grid">
           {currentFoods.map((food) => {
-            const calorieLabel = getCalorieRangeLabel(food.calories);
+            const calorieLabel = getCalorieRangeLabel(food.Energy_kcal);
             const calorieClass =
               calorieLabel === "Low"
                 ? "efp-badge efp-badge--ok"
