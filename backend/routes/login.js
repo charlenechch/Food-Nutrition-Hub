@@ -55,10 +55,20 @@ router.post("/", async (req, res) => {
       role: user.role
     };
 
-    res.json({
-      success: true,
-      message: "Password verified. OTP required.",
-      requiresOTP: true
+    // Force session save
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({ success: false, message: "Session error" });
+      }
+      
+      console.log("Session saved with tempUser");
+      
+      res.json({
+        success: true,
+        message: "Password verified. OTP required.",
+        requiresOTP: true
+      });
     });
 
   } catch (err) {
