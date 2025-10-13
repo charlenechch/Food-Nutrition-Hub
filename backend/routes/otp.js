@@ -49,36 +49,48 @@ router.post("/send", async (req, res) => {
 // Verify OTP
 router.post("/verify", async (req, res) => {
   console.log("OTP VERIFY ROUTE HIT!");
+  console.log("OTP VERIFY ROUTE HIT!");
+  console.log("Request body:", req.body);
+  console.log("Session:", req.session);
+  console.log("OTP Store:", Array.from(otpStore.entries()))
 
   const { email, otp, rememberDevice } = req.body;
 
   if (!email || !otp) {
+    console.log("Missing email or OTP");
     return res.status(400).json({ error: "Email and OTP required" });
   }
 
   try {
     const stored = otpStore.get(email);
+    console.log("Stored OTP for", email, ":", stored);
 
     if (!stored) {
+      console.log("OTP not found in store");
       return res.status(401).json({ error: "OTP not found or expired" });
     }
 
     if (Date.now() > stored.expires) {
+      console.log("OTP expired");
       otpStore.delete(email);
       return res.status(401).json({ error: "OTP expired" });
     }
 
     if (stored.code !== otp) {
+      console.log("Invalid OTP. Expected:", stored.code, "Got:", otp);
       return res.status(401).json({ error: "Invalid OTP" });
     }
 
     // OTP is valid. Clears it
+    console.log("OTP is valid!");
     otpStore.delete(email);
 
     // Get temp user from session (stored during login)
     const tempUser = req.session.tempUser;
+    console.log("Temp user:", tempUser)
 
     if (!tempUser) {
+      console.log("No temp user in session");
       return res.status(400).json({ error: "Session expired. Please login again." });
     }
 
@@ -95,6 +107,7 @@ router.post("/verify", async (req, res) => {
     } else {
       // Session expires when browser closes
       req.session.cookie.maxAge = null;
+      console.log(`OTP verified for ${email} - session only`);
     }
     
     res.json({ 
