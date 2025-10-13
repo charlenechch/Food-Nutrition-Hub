@@ -53,12 +53,6 @@ export default function OTPVerificationPage({ email: emailProp }) {
     }
   }, [resendCooldown]);
 
-  // auto-verify when 6 digits filled
-  useEffect(() => {
-    if (otp.length === 6) handleVerify();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otp]);
-
   const handleOtpChange = (value) => {
     const clean = value.replace(/\D/g, "").slice(0, 6);
     setOtp(clean);
@@ -158,7 +152,7 @@ export default function OTPVerificationPage({ email: emailProp }) {
           <div className="otp-email-block">
             <p className="otp-muted">Code sent to:</p>
             {/* remember to change your email to a variable that shows what their email is !!! */}
-            <span className="otp-badge">your email</span>
+            <span className="otp-badge">{email || "your email"}</span>
           </div>
 
           <form onSubmit={handleVerify} className="otp-form" noValidate>

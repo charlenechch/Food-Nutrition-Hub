@@ -68,8 +68,8 @@ app.use(
     store: sessionStore,
     cookie: {
       httpOnly: true,
-      secure: process.env.RAILWAY_ENVIRONMENT ? true : false,
-      sameSite: process.env.RAILWAY_ENVIRONMENT ? "none" : "strict",
+      secure: true,
+      sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
