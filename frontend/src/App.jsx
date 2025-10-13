@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import LoginRegisterPage from "./pages/LoginRegisterPage";
 import AdminHomepage from "./pages/AdminHomepage";
 import UserHomepage from "./pages/UserHomepage";
@@ -10,7 +10,28 @@ import UserProfilePage from "./pages/UserProfile";
 import ForgetPassword from "./pages/ForgotPasswordPage";
 import ResetPassword from "./pages/ResetPasswordPage";
 import OTPVerification from "./pages/OTPVerificationPage";
+import FoodDetail from "./pages/FoodDetailPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+function FoodDetailRoute() {
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  const food = state?.food;
+
+  if (!food) {
+    // No food passed? Go back to list.
+    return <Navigate to="/foods" replace />;
+  }
+
+  return (
+    <FoodDetail
+      food={food}
+      onBack={() => navigate("/foods")}
+      // havent add this page!!!!!!!!
+      // onViewDiscussion={() => navigate("/FoodDiscussionPage")}
+    />
+  );
+}
 
 function App() {
   return (
@@ -26,6 +47,7 @@ function App() {
         <Route path="/otpverification" element={<OTPVerification />} />
         <Route path="/home" element={<UserHomepage />} />
         <Route path="/foods" element={<ExploreFoodsPage />} />
+        <Route path="/fooddetail" element={<FoodDetailRoute />} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/community" element={<CommunityPage />} />
 
