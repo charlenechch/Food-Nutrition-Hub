@@ -31,16 +31,11 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"], 
-    exposedHeaders: ["Set-Cookie"],
-    preflightContinue: false,
-    optionsSuccessStatus: 204
   })
 );
 
 // JSON parser
 app.use(express.json());
-//Handle OPTIONS preflight for all routes
-app.options('*', cors());
 
 // Session store config
 let dbOptions;
