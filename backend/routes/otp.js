@@ -28,7 +28,7 @@ router.post("/send", async (req, res) => {
       code: otp,
       expires: Date.now() + 5 * 60 * 1000
     });
-
+    
     // TODO: Send email with OTP
     // For now, just log it (you'll need to set up email service)
     console.log(`OTP for ${email}: ${otp}`);
@@ -49,12 +49,6 @@ router.post("/send", async (req, res) => {
 
 // Verify OTP
 router.post("/verify", async (req, res) => {
-  console.log("OTP VERIFY ROUTE HIT!");
-  console.log("OTP VERIFY ROUTE HIT!");
-  console.log("Request body:", req.body);
-  console.log("Session:", req.session);
-  console.log("OTP Store:", Array.from(otpStore.entries()))
-
   const { email, otp, rememberDevice } = req.body;
 
   if (!email || !otp) {
@@ -64,10 +58,8 @@ router.post("/verify", async (req, res) => {
 
   try {
     const stored = otpStore.get(email);
-    console.log("Stored OTP for", email, ":", stored);
 
     if (!stored) {
-      console.log("OTP not found in store");
       return res.status(401).json({ error: "OTP not found or expired" });
     }
 
@@ -104,11 +96,11 @@ router.post("/verify", async (req, res) => {
       req.session.trustedDevice = true;
       req.session.trustedUntil = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
       req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
-      console.log(`Device trusted for 7 days for ${email}`);
+      console.log("Device trusted for 7 days");
     } else {
       // Session expires when browser closes
       req.session.cookie.maxAge = null;
-      console.log(`OTP verified for ${email} - session only`);
+      console.log("OTP verified");
     }
     
     res.json({ 

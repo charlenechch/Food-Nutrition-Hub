@@ -25,7 +25,7 @@ router.post("/", async (req, res) => {
 
     // Check if device is trusted (remembered)
     if (req.session.trustedDevice && req.session.trustedUntil > Date.now()) {
-      console.log(`Trusted device detected for ${email} - skipping OTP`);
+      console.log("Trusted device detected, skipping OTP.");
       
       // Complete login immediately
       req.session.user = {
@@ -45,7 +45,7 @@ router.post("/", async (req, res) => {
     }
 
     // Device not trusted, store user temporarily and require OTP
-    console.log(`Login success: ${user.email} - OTP required`);
+    console.log("Password verified, OTP required.");
 
     req.session.tempUser = {
       userID: user.userID,
@@ -62,7 +62,6 @@ router.post("/", async (req, res) => {
           console.error("Session save error:", err);
           reject(err);
         } else {
-          console.log("Session saved with tempUser:", req.session.tempUser);
           resolve();
         }
       });

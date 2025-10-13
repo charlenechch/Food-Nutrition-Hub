@@ -80,15 +80,6 @@ app.use(
   })
 );
 
-// Session debugging middleware
-app.use((req, res, next) => {
-  console.log('=== SESSION DEBUG ===');
-  console.log('Session ID:', req.sessionID);
-  console.log('Session data:', req.session);
-  console.log('=====================');
-  next();
-});
-
 // Rate Limiter
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 min

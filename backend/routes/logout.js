@@ -20,7 +20,7 @@ router.post("/", (req, res) => {
         sameSite: 'none'
       }); 
 
-      console.log(`Logout successful: Session ${sessionID} has been destroyed.`);
+      console.log("Logout successful: Session has been destroyed.");
       
       return res.json({ 
         success: true, 
