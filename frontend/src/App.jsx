@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import LoginRegisterPage from "./pages/LoginRegisterPage";
 import AdminHomepage from "./pages/AdminHomepage";
 import UserHomepage from "./pages/UserHomepage";
@@ -10,8 +10,45 @@ import UserProfilePage from "./pages/UserProfile";
 import ForgetPassword from "./pages/ForgotPasswordPage";
 import ResetPassword from "./pages/ResetPasswordPage";
 import OTPVerification from "./pages/OTPVerificationPage";
+import FoodDetail from "./pages/FoodDetailPage";
+import FoodDiscussion from "./pages/FoodDiscussionPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CommunityPost from "./pages/CommunityPostPage";
+
+function FoodDetailRoute() {
+  const { state } = useLocation();
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+
+  const fromState = state?.food;
+  const id = params.get("id");
+  const fromQuery = id ? sarawakFoods.find(f => String(f.id) === String(id)) : null;
+
+  const food = fromState || fromQuery;
+  if (!food) return <Navigate to="/foods" replace />;
+
+  return <FoodDetail food={food} onBack={() => navigate("/foods")} onViewDiscussion={() =>navigate(`/fooddiscussion?id=${food.id}`, { state: { food } })} />;
+}
+
+function FoodDiscussionRoute() {
+  const { state } = useLocation();
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+
+  const id = params.get("id");
+  const fromState = state?.food;
+  const fromQuery = id ? sarawakFoods.find(f => String(f.id) === String(id)) : null;
+  const food = fromState || fromQuery;
+
+  if (!food) return <Navigate to="/foods" replace />;
+
+  return (
+    <FoodDiscussion
+      food={food}
+      onBack={() => navigate(`/fooddetail?id=${food.id}`)}
+    />
+  );
+}
 
 function App() {
   return (
@@ -27,6 +64,8 @@ function App() {
         <Route path="/otpverification" element={<OTPVerification />} />
         <Route path="/home" element={<UserHomepage />} />
         <Route path="/foods" element={<ExploreFoodsPage />} />
+        <Route path="/fooddetail" element={<FoodDetailRoute />} />
+        <Route path="/fooddiscussion" element={<FoodDiscussionRoute/>} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:id" element={<CommunityPost />} />

@@ -52,13 +52,13 @@ export default function LoginRegisterPage() {
         body: JSON.stringify({ email, password })
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (data.success) {
+      if (res.ok && data.success) {
         if (data.skipOTP) {
-          // Device is trusted. Skip OTP and go straight to dashboard
+          // Device is trusted, skip OTP
           console.log("Trusted device - skipping OTP");
-          login(data.user);  // Call AuthContext login
+          login(data.user);
           navigate(data.user.role === "admin" ? "/admin" : "/home");
         } else {
           // Device not trusted, require OTP

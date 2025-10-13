@@ -1,0 +1,116 @@
+.food-discussion-page {
+  min-height: 100vh;
+  margin-top: 70px;
+}
+
+.fdp-disc-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.fdp-disc-topbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+/* Cards */
+.fd-card {
+  background: #fff;
+  border: 1px solid #dbcebc;
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.fd-title { margin: 0 0 0.25rem 0; font-size: 1.25rem; }
+.fd-section-title { margin: 0 0 .5rem 0; font-weight: 600; }
+.fd-muted { color: #666; font-size: .95rem; }
+
+.fd-right { display: flex; justify-content: flex-end; }
+
+/* Summary */
+.fd-summary { display: flex; align-items: center; }
+.fd-sum-left { display: flex; align-items: center; gap: .75rem; }
+.fd-sum-thumb {
+  width: 56px; height: 56px; border-radius: 12px;
+  background: #8B4513; color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
+}
+.fd-sum-stats { display: flex; gap: 1rem; margin-top: .35rem; color: #555; font-size: .9rem; }
+
+/* Inputs */
+.fd-input {
+  width: 100%;
+  min-height: 88px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: .75rem;
+  background: #f7f2ed;
+  font-size: .95rem;
+  resize: vertical;
+}
+.fd-input:focus {
+  outline: none;
+  border-color: #8B4513;
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
+}
+
+/* Comment item */
+.fd-disc-comment {
+  display: flex;
+  gap: .6rem;
+}
+.fd-disc-reply {
+  margin-left: .75rem;
+  padding-left: .75rem;
+  border-left: 2px solid #eee;
+}
+
+.fd-disc-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #8B4513; color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; font-weight: 600; flex: 0 0 auto;
+}
+
+.fd-disc-body { flex: 1; }
+.fd-disc-meta {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .35rem;
+  font-size: .85rem;
+}
+.fd-disc-user { font-weight: 600; }
+.fd-disc-badge {
+  color: #2b7a0b; background: #eaf7ea; border: 1px solid #cceccc;
+  padding: 2px 6px; border-radius: 999px; font-size: .7rem;
+}
+.fd-disc-role { color: #555; font-size: .78rem; }
+.fd-disc-time { color: #888; font-size: .78rem; }
+
+.fd-disc-text { margin: .35rem 0 .25rem; color: #333; }
+
+.fd-disc-actions { display: flex; gap: .75rem; }
+.fd-link-btn {
+  background: transparent; border: 0; padding: 0;
+  color: #666; font-size: .85rem; cursor: pointer;
+}
+.fd-link-btn:hover { color: #8B4513; }
+.fd-link-btn:focus { outline: none;}
+.fd-reply-box { margin-top: .5rem; }
+.fd-reply-actions { display: flex; gap: .5rem; margin-top: .5rem; }
+
+.fd-disc-replies { margin-top: .5rem; display: grid; gap: .6rem; }
+
+.fd-divider {
+  border: 0; border-top: 1px solid #eee; margin: .75rem 0;
+}
+
+/* empty */
+.fd-empty { text-align: center; padding: 1.5rem 0; }
+.fd-empty-icon { font-size: 2rem; margin-bottom: .35rem; }
+
+@media (max-width: 520px) {
+  .fdp-disc-container { padding: .75rem; }
+  .fd-sum-thumb { width: 48px; height: 48px; font-size: 1.4rem; }
+}

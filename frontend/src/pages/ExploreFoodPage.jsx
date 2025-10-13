@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/ExploreFoodPage.css";
@@ -999,10 +1000,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
                   <button
                     className="efp-card-cta"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onFoodSelect(food);
-                    }}
+                    onClick={() => navigate(`/fooddetail?id=${food.id}`, { state: { food } })}
                   >
                     View Details
                   </button>
