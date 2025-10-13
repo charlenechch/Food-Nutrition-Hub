@@ -9,6 +9,7 @@ require("dotenv").config();
 
 // Import routes
 const loginRoutes = require("./routes/login");
+const logoutRoutes = require("./routes/logout");
 const registerRoutes = require("./routes/register");
 const authRoutes = require("./routes/auth");
 const foodRoutes = require("./routes/foods");
@@ -102,6 +103,7 @@ const authLimiter = rateLimit({
 
 // Routes
 app.use("/api/login", authLimiter, loginRoutes);
+app.use("/api/logout", logoutRoutes);
 app.use("/api/register", registerRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes);
