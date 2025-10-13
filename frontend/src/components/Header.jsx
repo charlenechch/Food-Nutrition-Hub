@@ -1,14 +1,35 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FaGlobe, FaSignOutAlt } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
+import { API_URL } from "../config/api";
 import "./Header.css";
 
 export default function Header() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      // Call the backend to destroy the session
+      await fetch(`${API_URL}/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      // Clear client-side user state
+      logout();
+      // Redirect to the login page
+      navigate("/loginregister");
+    }
+  };
 
   return (
     <nav className="navbar">
@@ -52,7 +73,7 @@ export default function Header() {
         <button className="lang-btn" onClick={() => navigate("/language")}>
           <FaGlobe /> EN
         </button>
-        <button className="logout-btn" onClick={() => navigate("/loginregister")}>
+        <button className="logout-btn" onClick={handleLogout}>
           <FaSignOutAlt /> Logout
         </button>
       </div>

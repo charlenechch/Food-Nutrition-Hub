@@ -4,6 +4,8 @@ const router = express.Router();
 // Logout route
 router.post("/", (req, res) => {
   if (req.session) {
+    const sessionID = req.sessionID;
+
     req.session.destroy((err) => {
       if (err) {
         console.error("Logout error:", err);
@@ -17,7 +19,8 @@ router.post("/", (req, res) => {
         secure: true,
         sameSite: 'none'
       }); 
-      console.log("User logged out successfully");
+
+      console.log(`Logout successful: Session ${sessionID} has been destroyed.`);
       
       return res.json({ 
         success: true, 
