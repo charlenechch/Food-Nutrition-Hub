@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -8,54 +8,211 @@ export default function CommunityPost() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [currentImg, setCurrentImg] = useState(0);
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const posts = [
-    {
-      id: 1,
-      title: "Midin Goreng Kampung",
-      author: "Sarah Lintang",
-      daysAgo: "2 days ago",
-      category: "Bidayuh",
-      images: [
-        "https://images.unsplash.com/photo-1638569099509-2f46eb4bb94e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1074",
-        "https://plus.unsplash.com/premium_photo-1666662655178-14d8c6a099b0?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=687",
-        "https://images.unsplash.com/photo-1647998270792-69ac80570183?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=735",
-      ],
-      desc: `My grandmother taught me this recipe when I was seven.
-      We would go to the jungle to pick fresh midin ferns at dawn.
-      The secret is frying with belacan (shrimp paste) for that smoky aroma.`,
-      recipe: `Ingredients:
-- Midin (jungle fern)
-- Garlic, chili, belacan
-- Oil, salt, and pepper
+  useEffect(() => {
+    fetchPost();
+  }, [id]);
 
-Steps:
-1. Heat oil, fry garlic and chili.
-2. Add belacan and stir until fragrant.
-3. Toss in midin and stir-fry for 2–3 minutes.`,
-      likes: 24,
-      comments: [
-        { user: "Joey", text: "This brings back childhood memories!" },
-        { user: "Brian", text: "Love how you describe the aroma 🔥" },
-      ],
-    },
-  ];
+  const fetchPost = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const response = await fetch(`${API_BASE_URL}/api/communityPost/${id}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setPost(result.data);
+      } else {
+        throw new Error(result.message || 'Failed to fetch post');
+      }
+    } catch (err) {
+      setError(err.message || 'Error connecting to server');
+      console.error('Error fetching post:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const post = posts.find((p) => p.id === parseInt(id));
+  // Helper function to safely render recipe content
+  const renderRecipeContent = (content, type = 'ingredients') => {
+    if (!content) return '';
+    
+    console.log(`Rendering ${type}:`, content); // Debug log
+    
+    if (typeof content === 'string') {
+      // Common prefixes to remove
+      const prefixes = ['Ingredients:', 'Instructions:'];
+      
+      let processedContent = content;
+      
+      // Remove any known prefixes
+      prefixes.forEach(prefix => {
+        const regex = new RegExp(`^${prefix}\\s*`, 'i');
+        if (regex.test(processedContent)) {
+          processedContent = processedContent.replace(regex, '').trim();
+        }
+      });
+      
+      // Split by newlines and clean up
+      const lines = processedContent
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line !== '');
+      
+      console.log(`Processed lines for ${type}:`, lines); // Debug log
+      
+      // Display as list if multiple lines
+      if (lines.length > 1) {
+        // For INGREDIENTS: use ul/li with bullets
+        if (type === 'ingredients') {
+          return (
+            <ul className="ingredients-list">
+              {lines.map((line, index) => (
+                <li key={index}>{line}</li>
+              ))}
+            </ul>
+          );
+        }
+        
+        // For INSTRUCTIONS/STEPS: use div without bullets
+        if (type === 'instructions' || type === 'steps') {
+          return (
+            <div className="instructions-list">
+              {lines.map((line, index) => (
+                <div key={index} className="instruction-item">
+                  {line}
+                </div>
+              ))}
+            </div>
+          );
+        }
+      }
+      
+      // Single line content
+      return (
+        <div className="single-line-content">
+          {processedContent}
+        </div>
+      );
+    }
+    
+    // Handle objects and arrays
+    if (typeof content === 'object') {
+      try {
+        if (Array.isArray(content)) {
+          // For INGREDIENTS arrays: use ul/li with bullets
+          if (type === 'ingredients') {
+            return (
+              <ul className="ingredients-list">
+                {content.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            );
+          }
+          
+          // For INSTRUCTIONS/STEPS arrays: use div without bullets
+          if (type === 'instructions' || type === 'steps') {
+            return (
+              <div className="instructions-list">
+                {content.map((item, index) => (
+                  <div key={index} className="instruction-item">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            );
+          }
+        }
+        // If it's a recipe object with nested properties
+        if (content.ingredients || content.steps) {
+          return (
+            <div className="nested-recipe">
+              {content.ingredients && (
+                <div className="nested-ingredients">
+                  <h5>Ingredients:</h5>
+                  {renderRecipeContent(content.ingredients, 'ingredients')}
+                </div>
+              )}
+              {content.steps && (
+                <div className="nested-instructions">
+                  <h5>Instructions:</h5>
+                  {renderRecipeContent(content.steps, 'steps')}
+                </div>
+              )}
+            </div>
+          );
+        }
+        return JSON.stringify(content, null, 2);
+      } catch (e) {
+        return String(content);
+      }
+    }
+    
+    return String(content);
+  };
 
   const nextImg = () => {
-    setCurrentImg((prev) =>
-      prev === post.images.length - 1 ? 0 : prev + 1
-    );
+    if (post && post.images) {
+      setCurrentImg((prev) =>
+        prev === post.images.length - 1 ? 0 : prev + 1
+      );
+    }
   };
 
   const prevImg = () => {
-    setCurrentImg((prev) =>
-      prev === 0 ? post.images.length - 1 : prev - 1
-    );
+    if (post && post.images) {
+      setCurrentImg((prev) =>
+        prev === 0 ? post.images.length - 1 : prev - 1
+      );
+    }
   };
 
-  if (!post)
+  // Loading state
+  if (loading) {
+    return (
+      <div className="community-page">
+        <Header />
+        <div className="loading">Loading post...</div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="community-page">
+        <Header />
+        <div className="error">
+          <h2>Error loading post</h2>
+          <p>{error}</p>
+          <div className="button-group">
+            <button onClick={fetchPost} className="retry-btn">
+              Try Again
+            </button>
+            <button onClick={() => navigate("/community")} className="back-btn">
+              Back to Community
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Post not found state
+  if (!post) {
     return (
       <div className="community-page">
         <Header />
@@ -68,6 +225,7 @@ Steps:
         <Footer />
       </div>
     );
+  }
 
   return (
     <div className="community-page">
@@ -79,24 +237,24 @@ Steps:
           {/* IMAGE CAROUSEL */}
           <div className="image-carousel">
             <img
-              src={post.images[currentImg]}
+              src={post.images && post.images.length > 0 ? post.images[currentImg] : "https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=800&q=80"}
               alt={post.title}
               className="post-img-small"
             />
 
             {/* Arrows (only show if >1 image) */}
-            {post.images.length > 1 && (
+            {post.images && post.images.length > 1 && (
               <>
                 <button className="arrow left" onClick={prevImg} aria-label="Previous photo">
-                <svg viewBox="0 0 24 24" className="chev">
+                  <svg viewBox="0 0 24 24" className="chev">
                     <path d="M15 6L9 12l6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
+                  </svg>
                 </button>
 
                 <button className="arrow right" onClick={nextImg} aria-label="Next photo">
-                <svg viewBox="0 0 24 24" className="chev">
+                  <svg viewBox="0 0 24 24" className="chev">
                     <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
+                  </svg>
                 </button>
 
                 {/* Dots */}
@@ -118,14 +276,35 @@ Steps:
             <h1>{post.title}</h1>
             <p className="meta">
               by <b>{post.author}</b> • {post.daysAgo} •{" "}
-              <span>{post.category}</span>
+              <span className="category-badge">{post.category}</span>
             </p>
             <p className="desc">{post.desc}</p>
 
-            <div className="recipe-box">
-              <h3>Recipe</h3>
-              <pre>{post.recipe}</pre>
-            </div>
+            {/* Recipe Section - Only show if recipe exists */}
+            {(post.recipe || (post.ingredients && post.steps)) && (
+              <div className="recipe-box">
+                <h3>Recipe</h3>
+                <div className="recipe-content">
+                  {/* Handle post.recipe object */}
+                  {post.recipe && post.recipe.ingredients && (
+                    <div className="ingredients">
+                      <h4>Ingredients:</h4>
+                      <div className="ingredients-content">
+                        {renderRecipeContent(post.recipe.ingredients, 'ingredients')}
+                      </div>
+                    </div>
+                  )}
+                  {post.recipe && post.recipe.steps && (
+                    <div className="instructions">
+                      <h4>Instructions:</h4>
+                      <div className="instruction-content">
+                        {renderRecipeContent(post.recipe.steps, 'steps')}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <button onClick={() => navigate("/community")} className="back-btn">
@@ -135,34 +314,41 @@ Steps:
 
         {/* RIGHT COLUMN (COMMENTS + LIKES) */}
         <div className="post-right">
-            {/* Likes count at top */}
-            <div className="likes-bar">
-                ❤️ <span>{post.likes}</span> likes
-            </div>
+          {/* Likes count at top */}
+          <div className="likes-bar">
+            ❤️ <span>{post.likeCount || post.likes || 0}</span> likes
+          </div>
 
-            <h3>Comments</h3>
+          <h3>Comments ({post.commentCount || post.comments?.length || 0})</h3>
 
-            <div className="comments-section">
-                {post.comments.map((c, index) => (
-                <div key={index} className="comment">
-                    <b>{c.user}</b>
-                    <p>{c.text}</p>
+          <div className="comments-section">
+            {post.comments && post.comments.length > 0 ? (
+              post.comments.map((comment, index) => (
+                <div key={comment.id || index} className="comment">
+                  <b>{comment.author || comment.user}</b>
+                  <p>{comment.text || comment.commentText}</p>
+                  {comment.daysAgo && (
+                    <small className="comment-time">{comment.daysAgo}</small>
+                  )}
                 </div>
-                ))}
-            </div>
+              ))
+            ) : (
+              <p className="no-comments">No comments yet. Be the first to comment!</p>
+            )}
+          </div>
 
-            <form className="comment-form">
-                <textarea
-                placeholder="Add a comment..."
-                rows="3"
-                className="comment-input"
-                />
-                <button type="submit" className="comment-btn">
-                Post
-                </button>
-            </form>
+          <form className="comment-form">
+            <textarea
+              placeholder="Add a comment..."
+              rows="3"
+              className="comment-input"
+            />
+            <button type="submit" className="comment-btn">
+              Post Comment
+            </button>
+          </form>
         </div>
-        </div>
+      </div>
 
       <Footer />
     </div>

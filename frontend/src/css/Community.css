@@ -445,6 +445,55 @@
   color: #4d3d2f;
 }
 
+/* Recipe styling */
+.recipe-content {
+  margin-top: 1rem;
+}
+
+.ingredients, .instructions {
+  margin-bottom: 1.5rem;
+}
+
+.ingredients h4, .instructions h4 {
+  color: #2d5016;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+/* Ingredients list with bullets */
+.ingredients-list {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+  padding-left: 0;
+}
+
+.ingredients-list li {
+  margin-bottom: 0.3rem;
+  line-height: 1.4;
+}
+
+/* Single line content */
+.single-line-content {
+  line-height: 1.6;
+}
+
+/* Instructions - each step on new line */
+.instructions-list {
+  margin-left: 0;
+  padding-left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; 
+}
+
+.instruction-item {
+  line-height: 1.2;
+  padding: 0.2rem 0;
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
+
 /* RIGHT: Comments & Likes */
 .post-right {
   background: #fff;
