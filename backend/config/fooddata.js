@@ -5,10 +5,9 @@ const foods = [
     name: "Linut",
     origin: "Melanau",
     category: "Rice Dish",
-    foodType: "Main Dish",
-    difficulty: "Medium",
-    nutritionFocus: null,
-    dietaryTags: "Gluten Free, Dairy Free, Nut Free,  Paleo, High Protein, Low Fat",
+    foodType: "main-dish",
+    difficulty: "medium",
+    dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat"],
     description: "Linut is a traditional cuisine that is especially popular among the Indigenous Dayak communities.\
                   This staple dish is an important part of Dayak cuisine and is frequently served at traditional events and community feasts. \
                   The dish is made from sago, a type of starch produced from the sago palm. \
@@ -28,10 +27,9 @@ const foods = [
     name: "Kolo Mee",
     origin: "Chinese",
     category: "Noodles",
-    foodType: "Noodles",
-    difficulty: "Medium",
-    nutritionFocus: null,
-    dietaryTags: "Dairy Free, Nut Free, High Protein",
+    foodType: "noodles",
+    difficulty: "medium",
+    dietaryTags: ["dairy-free", "high-protein"],
     description: "The origin of Kolo Mee is still unclear, but it likely originated from Kuching, the capital of Sarawak. \
     “Kolo Mee” may also have derived from the Hokkien and Cantonese words for “dry mixed” noodles. \
     In Hokkien, “kolo” (干捞) means “dry mix,” while in Cantonese, “gorn lo” has a similar meaning. \
@@ -50,10 +48,9 @@ const foods = [
     name: "Umai",
     origin: "Melanau",
     category: "Seafood",
-    foodType: "Appetizer",
-    difficulty: "Easy",
-    nutritionFocus: null,
-    dietaryTags: "Gluten Free, Dairy Free, Nut Free,  Paleo, High Protein, Low Fat, Low Fiber",
+    foodType: "appetizer",
+    difficulty: "easy",
+    dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat", "low-fiber"],
     description: "Umai is a traditional Sarawakian raw fish salad popular with the Dayak and Melanau communities. \
     It highlights local methods of food preparation and preservation using fresh ingredients. \
     Raw tenggiri (mackerel) is sliced or cubed and marinated in lime juice, allowing the acidity to “cook” the fish. \
@@ -73,10 +70,9 @@ const foods = [
     name: "Nasi Aruk",
     origin: "Malay",
     category: "Rice Dish",
-    foodType: "Main Dish",
-    difficulty: "Easy",
-    nutritionFocus: null,
-    dietaryTags: "Gluten Free, Dairy Free, Nut Free, Low Fat",
+    foodType: "main-dish",
+    difficulty: "easy",
+    dietaryTags: ["gluten-free", "dairy-free", "low-fat"],
     description: "Unlike typical fried rice, Nasi Aruk is prepared without any oil or fat and is tossed in a hot pan until the grains are well-toasted, creating a deep smoky, slightly charred scent. \
     Its name, “Aruk,” drawn from the Sarawakian Malay dialect, literally signifies “charred,” a nod to this distinctive method. \
     The dish is composed simply of rice combined with anchovies, fragrant torch ginger, turmeric leaves, and the heat of bird’s-eye chilli.",
@@ -94,10 +90,9 @@ const foods = [
     name: "Asam Siok",
     origin: "Bidayuh",
     category: "Poultry",
-    foodType: "Main Dish",
-    difficulty: "Medium",
-    nutritionFocus: null,
-    dietaryTags: "Gluten Free, Dairy Free, High Protein",
+    foodType: "main-dish",
+    difficulty: "medium",
+    dietaryTags: ["gluten-free", "dairy-free", "high-protein"],
     description: "Asam siok, also known as chicken with rice in bamboo, is a traditional Bidayuh dish that is served during special events like Gawai, get-togethers, or the welcome of VIPs or special visitors. \
     Using bamboo is a natural cooking method that retains tastes and creates incredibly tender chicken that is scented with bamboo and lemongrass.",
     image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgzvn3mAtq5B52L9bQtt6ZQDZcQGCXMl7rTQ0wtElx5y8NyUO8QVyCABx45sLrIPUy0qvL3J5QRZViwwJn_9t4opFUsQjJ4UGC1FZjgV_giHlOCmejb9AiRRE3otlN5qeIKZ1jmVP5MKt4/s320/ayam+pansuh+1.jpg",
@@ -114,10 +109,9 @@ const foods = [
     name: "Belacan Bihun",
     origin: "Chinese", 
     category: "Noodles",
-    foodType: "Noodles",
-    difficulty: "Medium",
-    nutritionFocus: null,
-    dietaryTags: "Gluten Free, Dairy Free, Low Fat, High Fiber",
+    foodType: "noodles",
+    difficulty: "medium",
+    dietaryTags: ["gluten-free", "dairy-free", "low-fat", "high-fiber"],
     description: "Belacan bihun is a unique, flavorful rice vermicelli dish from Kuching, Sarawak, featuring rice noodles served with a spicy, umami-rich gravy made from belacan",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5ICw3THB2c69u4iOIFVFM0X79tAR6_GDfVQ&s",
     prepTime: 45,
@@ -133,10 +127,9 @@ const foods = [
     name: "Daun Ubi Tumbuk",
     origin: "Iban",
     category: "Vegetables",
-    foodType: "Side Dish",
-    difficulty: "Medium",
-    nutritionFocus: null,
-    dietaryTags: "Vegetarian, Gluten Free, Dairy Free, High Fiber",
+    foodType: "side-dish",
+    difficulty: "medium",
+    dietaryTags: ["vegetarian", "gluten-free", "dairy-free", "high-fiber"],
     description: "Daun ubi tumbuk (pounded cassava leaves) is a popular vegetable dish from Borneo where cassava leaves are pounded using wooden mortar and pestle and cooked in a variety of ways, often with coconut milk or in a curry. \
     This dish are widely eaten among Sarawak's native communities.",
     image: "https://st3.depositphotos.com/34780080/37246/i/450/depositphotos_372467348-stock-photo-daun-ubi-tumbuk-daun-singkong.jpg",
@@ -153,10 +146,9 @@ const foods = [
     name: "Manicai",
     origin: "Chinese",
     category: "Vegetables",
-    foodType: "Side Dish",
-    difficulty: "Easy",
-    nutritionFocus: null,
-    dietaryTags: "Vegetarian, Gluten Free, Dairy Free, High Fiber, Low Fat",
+    foodType: "side-dish",
+    difficulty: "easy",
+    dietaryTags: ["vegetarian", "gluten-free", "dairy-free", "high-fiber", "low-fat"],
     description: "Manicai, also known as Sayur Manis, Cekur Manis, or Sweet Leaf, is a leafy vegetable from Southeast Asia that is eaten stir-fried or boiled, often with eggs in dishes like Mani Cai with Eggs. \
     While nutritious, containing protein and antioxidants, the leaves contain compounds that can cause severe lung damage if consumed raw or in large quantities, making thorough cooking essential",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9TBKvQXOSVwHgIOpR7WyGXpmj7Uv3Gk9f8OkrqnZh0_Xu4TrlZf0KNCNVE-gR_9AGrJw&usqp=CAU",
@@ -173,10 +165,9 @@ const foods = [
     name: "Midin Belacan",
     origin: "Bidayuh",
     category: "Vegetables",
-    foodType: "Side Dish",
-    difficulty: "Easy",
-    nutritionFocus: null,
-    dietaryTags: "Gluten Free, Dairy Free, High Fiber, Low Fat, Spicy",
+    foodType: "side-dish",
+    difficulty: "easy",
+    dietaryTags: ["gluten-free", "dairy-free", "high-fiber", "low-fat", "spicy"],
     description: "Midin Belacan is a beloved Sarawakian dish celebrated for its simplicity and flavour, prepared by blanching the crisp midin fern before stir-frying it with fragrant garlic, shallots, and belacan, \
     then finishing with seasonings like salt, sugar, and calamansi juice, with optional variations such as rice wine or red bell pepper adding depth while keeping true to its humble roots.",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRc1lwR63ujDfGCJq52PM8bONbSU-FZqAl3cA&s",
@@ -193,10 +184,9 @@ const foods = [
     name: "Ayam Pansuh",
     origin: "Dayak",
     category: "Meat",
-    foodType: "Main Dish",
-    difficulty: "Medium",
-    nutritionFocus: null,
-    dietaryTags: "Gluten Free, Dairy Free, High Protein",
+    foodType: "main-dish",
+    difficulty: "medium",
+    dietaryTags: ["gluten-free", "dairy-free", "high-protein"],
     description: "Deep within the cultural tapestry of Sarawak, an iconic dish known as Manok Pansoh (also called manuk pansuh/ayam pansuh) holds a special place among the Dayak community (Iban, Bidayuh, and Ulu people of Sarawak).\
     The name itself, “Manok Pansoh,” translates to “chicken bamboo” in the Iban language, offering a glimpse into the essence of this traditional delicacy.",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkbjK4YZPkQhHoK4G3g8vvDVPOTbxnPc8u_g&s",
@@ -216,8 +206,8 @@ const foods = [
     for (const food of foods) {
       const sql = `
         INSERT INTO food 
-        (name, origin, category, foodType, difficulty, nutritionFocus, dietaryTags, description, image, prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (name, origin, category, foodType, difficulty, dietaryTags, description, image, prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const values = [
         food.name,
@@ -225,8 +215,7 @@ const foods = [
         food.category,
         food.foodType,
         food.difficulty,
-        food.nutritionFocus,
-        food.dietaryTags,
+        food.dietaryTags.join(', '),
         food.description,
         food.image,
         food.prepTime,

@@ -49,32 +49,30 @@ export default function LoginRegisterPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password })
       });
 
-      if (res.status === 429) {
-        const data = await res.json();
-        alert(data.error || "Login unavailable, please try again later.");
-        return;
-      }
+      const data = await response.json();
 
-      const data = await res.json();
-
-      if (res.ok) {
-        console.log("Password validation successful:", data);
-      
-      // Password is correct. Redirect to OTP verification
-      sessionStorage.setItem('pendingUser', JSON.stringify(data.user));
-      
-      // Navigate to OTP page
-      navigate(`/otpverification?email=${encodeURIComponent(email)}`);
+      if (data.success) {
+        if (data.skipOTP) {
+          // Device is trusted. Skip OTP and go straight to dashboard
+          console.log("Trusted device - skipping OTP");
+          login(data.user);  // Call AuthContext login
+          navigate(data.user.role === "admin" ? "/admin" : "/home");
+        } else {
+          // Device not trusted, require OTP
+          console.log("OTP required");
+          // Navigate to OTP page
+          navigate(`/otpverification?email=${encodeURIComponent(email)}`);
+        }
       } else {
-        // Wrong password or email
-        alert(data.message || "Invalid email or password!");
+        //Wrong email or password
+        alert(data.message || "Invalid email or password");
       }
     } catch (err) {
       console.error("Login error:", err);
-      alert("Something went wrong!");
+      alert("Login failed. Please try again.");
     }
   };
 

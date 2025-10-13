@@ -81,7 +81,7 @@ export default function OTPVerificationPage({ email: emailProp }) {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ email, otp, rememberDevice }),
       });
 
       const data = await res.json();
@@ -89,16 +89,12 @@ export default function OTPVerificationPage({ email: emailProp }) {
       if (res.ok) {
         setSuccess(true);
         
-        // Get pending user data
-        const pendingUserData = sessionStorage.getItem('pendingUser');
-        
-        if (pendingUserData) {
-          const userData = JSON.parse(pendingUserData);
-          login(userData);
-          sessionStorage.removeItem('pendingUser');
+        // Get user from API response
+        if (data.user) {
+          login(data.user);
           
           setTimeout(() => {
-            navigate(userData.role === "admin" ? "/admin" : "/home");
+            navigate(data.user.role === "admin" ? "/admin" : "/home");
           }, 1500);
         }
       } else {

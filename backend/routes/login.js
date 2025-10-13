@@ -11,7 +11,7 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    // ✅ Fetch user
+    // Fetch user
     const [users] = await db.query("SELECT * FROM user WHERE email = ? LIMIT 1", [email]);
     if (users.length === 0) {
       return res.status(401).json({ success: false, message: "Invalid email or password" });
@@ -23,25 +23,46 @@ router.post("/", async (req, res) => {
       return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
-    // ✅ Save session
-    req.session.user = {
-      id: user.userID,
+    // Check if device is trusted (remembered)
+    if (req.session.trustedDevice && req.session.trustedUntil > Date.now()) {
+      console.log(`Trusted device detected for ${email} - skipping OTP`);
+      
+      // Complete login immediately
+      req.session.user = {
+        userID: user.userID,
+        email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        role: user.role
+      };
+
+      return res.json({
+        success: true,
+        message: "Login successful",
+        skipOTP: true,
+        user: req.session.user
+      });
+    }
+
+    // Device not trusted, store user temporarily and require OTP
+    console.log(`Login success: ${user.email} - OTP required`);
+
+    req.session.tempUser = {
+      userID: user.userID,
+      email: user.email,
       firstname: user.firstname,
       lastname: user.lastname,
-      email: user.email,
-      role: user.role || "member",
+      role: user.role
     };
-
-    console.log(`✅ Login success: ${user.email}`);
 
     res.json({
       success: true,
-      message: "Login successful",
-      user: req.session.user,
+      message: "Password verified. OTP required.",
+      requiresOTP: true
     });
 
   } catch (err) {
-    console.error("❌ Login error:", err.message);
+    console.error("Login error:", err.message);
     res.status(500).json({ success: false, message: "Authentication error" });
   }
 });

@@ -48,7 +48,7 @@ router.post("/send", async (req, res) => {
 
 // Verify OTP
 router.post("/verify", async (req, res) => {
-  const { email, otp } = req.body;
+  const { email, otp, rememberDevice } = req.body;
 
   if (!email || !otp) {
     return res.status(400).json({ error: "Email and OTP required" });
@@ -70,12 +70,36 @@ router.post("/verify", async (req, res) => {
       return res.status(401).json({ error: "Invalid OTP" });
     }
 
-    // OTP is valid
+    // OTP is valid. Clears it
     otpStore.delete(email);
+
+    // Get temp user from session (stored during login)
+    const tempUser = req.session.tempUser;
+
+    if (!tempUser) {
+    return res.status(400).json({ error: "Session expired. Please login again." });
+    }
+
+    // Complete the login. Move tempUser to user
+    req.session.user = tempUser;
+    delete req.session.tempUser;
+    
+    // If "Remember Device" is checked, mark session as trusted
+    if (rememberDevice) {
+      req.session.trustedDevice = true;
+      req.session.trustedUntil = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+      req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+      console.log(`Device trusted for 7 days for ${email}`);
+    } else {
+      // Session expires when browser closes
+      req.session.cookie.maxAge = null;
+    }
     
     res.json({ 
       success: true, 
-      message: "OTP verified successfully" 
+      message: "OTP verified successfully",
+      trustedDevice: rememberDevice,
+      user: req.session.user
     });
 
   } catch (err) {
