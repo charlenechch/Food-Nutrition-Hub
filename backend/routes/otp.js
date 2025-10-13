@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const nodemailer = require("nodemailer"); // You'll need to install this
+const nodemailer = require("nodemailer");
+const db = require("../config/db");
 
 // Store OTPs temporarily
 const otpStore = new Map();

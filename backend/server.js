@@ -59,10 +59,19 @@ if (process.env.MYSQLHOST || process.env.DB_HOST) {
 
 const sessionStore = new MySQLStore(dbOptions);
 
+// Session debugging middleware
+app.use((req, res, next) => {
+  console.log('=== SESSION DEBUG ===');
+  console.log('Session ID:', req.sessionID);
+  console.log('Session data:', req.session);
+  console.log('=====================');
+  next();
+});
+
 // Express-session middleware
 app.use(
   session({
-    secret: "supersecretkey", // change for production
+    secret: process.env.SESSION_SECRET || "supersecretkey",
     resave: false,
     saveUninitialized: false,
     store: sessionStore,
