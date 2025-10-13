@@ -48,6 +48,10 @@ router.post("/send", async (req, res) => {
 
 // Verify OTP
 router.post("/verify", async (req, res) => {
+  console.log("🔴 OTP VERIFY ROUTE HIT!");
+  console.log("🔴 Request body:", req.body);
+  console.log("🔴 Session:", req.session);
+
   const { email, otp, rememberDevice } = req.body;
 
   if (!email || !otp) {
