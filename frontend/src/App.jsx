@@ -5,6 +5,7 @@ import UserHomepage from "./pages/UserHomepage";
 import ExploreFoodsPage from "./pages/ExploreFoodPage";
 import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
 import RecipesPage from "./pages/RecipesPage";
+import RecipeDetailPage from "./pages/RecipeDetailPage";
 import CommunityPage from "./pages/CommunityPage";
 import UserProfilePage from "./pages/UserProfile";
 import ForgetPassword from "./pages/ForgotPasswordPage";
@@ -67,6 +68,7 @@ function App() {
         <Route path="/fooddetail" element={<FoodDetailRoute />} />
         <Route path="/fooddiscussion" element={<FoodDiscussionRoute/>} />
         <Route path="/recipes" element={<RecipesPage />} />
+        <Route path="/recipedetail" element={<RecipeDetailPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:id" element={<CommunityPost />} />
 
