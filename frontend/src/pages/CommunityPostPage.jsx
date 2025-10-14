@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 import "../css/Community.css";
+// import axios from "axios";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -11,6 +13,7 @@ export default function CommunityPost() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useAuth(null); 
 
   useEffect(() => {
     fetchPost();
@@ -47,15 +50,13 @@ export default function CommunityPost() {
   const renderRecipeContent = (content, type = 'ingredients') => {
     if (!content) return '';
     
-    console.log(`Rendering ${type}:`, content); // Debug log
+    console.log(`Rendering ${type}:`, content);
     
     if (typeof content === 'string') {
-      // Common prefixes to remove
       const prefixes = ['Ingredients:', 'Instructions:'];
       
       let processedContent = content;
       
-      // Remove any known prefixes
       prefixes.forEach(prefix => {
         const regex = new RegExp(`^${prefix}\\s*`, 'i');
         if (regex.test(processedContent)) {
@@ -63,17 +64,12 @@ export default function CommunityPost() {
         }
       });
       
-      // Split by newlines and clean up
       const lines = processedContent
         .split('\n')
         .map(line => line.trim())
         .filter(line => line !== '');
       
-      console.log(`Processed lines for ${type}:`, lines); // Debug log
-      
-      // Display as list if multiple lines
       if (lines.length > 1) {
-        // For INGREDIENTS: use ul/li with bullets
         if (type === 'ingredients') {
           return (
             <ul className="ingredients-list">
@@ -84,7 +80,6 @@ export default function CommunityPost() {
           );
         }
         
-        // For INSTRUCTIONS/STEPS: use div without bullets
         if (type === 'instructions' || type === 'steps') {
           return (
             <div className="instructions-list">
@@ -98,7 +93,6 @@ export default function CommunityPost() {
         }
       }
       
-      // Single line content
       return (
         <div className="single-line-content">
           {processedContent}
@@ -106,11 +100,9 @@ export default function CommunityPost() {
       );
     }
     
-    // Handle objects and arrays
     if (typeof content === 'object') {
       try {
         if (Array.isArray(content)) {
-          // For INGREDIENTS arrays: use ul/li with bullets
           if (type === 'ingredients') {
             return (
               <ul className="ingredients-list">
@@ -121,7 +113,6 @@ export default function CommunityPost() {
             );
           }
           
-          // For INSTRUCTIONS/STEPS arrays: use div without bullets
           if (type === 'instructions' || type === 'steps') {
             return (
               <div className="instructions-list">
@@ -134,7 +125,7 @@ export default function CommunityPost() {
             );
           }
         }
-        // If it's a recipe object with nested properties
+        
         if (content.ingredients || content.steps) {
           return (
             <div className="nested-recipe">
@@ -177,6 +168,166 @@ export default function CommunityPost() {
       );
     }
   };
+
+const CommentSection = ({ postId }) => {
+  const [comment, setComment] = useState('');
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
+
+  // Fetch comments when component mounts
+  useEffect(() => {
+    if (postId) {
+      fetchComments();
+    }
+  }, [postId]);
+
+  const fetchComments = async () => {
+  try {
+    setFetchLoading(true);
+    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    
+    console.log('Fetching comments for post:', postId);
+    const response = await fetch(`${API_BASE_URL}/api/communityPost/comments/${postId}`);
+    
+    // Get the response text first to see the actual error
+    const responseText = await response.text();
+    console.log('Raw API response:', responseText);
+    
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Failed to parse JSON:', parseError);
+      throw new Error(`Invalid JSON response: ${responseText}`);
+    }
+    
+    console.log('Parsed API response:', result);
+    
+    if (!response.ok) {
+      throw new Error(result.message || result.error || `HTTP error! status: ${response.status}`);
+    }
+    
+    if (result.success) {
+      setComments(result.comments);
+    } else {
+      throw new Error(result.message || 'Failed to fetch comments');
+    }
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    console.error('Full error:', error);
+    alert('Failed to load comments: ' + error.message);
+  } finally {
+    setFetchLoading(false);
+  }
+};
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!comment.trim()) return;
+    if (!user) {
+      alert('Please log in to comment');
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      
+      const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: comment,
+          postId: postId,
+          userProfileID: user.userProfileID 
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Post comment response:', result);
+
+      if (result.success) {
+        // Add new comment to the list
+        setComments(prevComments => [...prevComments, result.comment]);
+        setComment(''); // Clear the textarea
+      } else {
+        throw new Error(result.message || 'Failed to post comment');
+      }
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      alert('Failed to post comment: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="comment-section">
+      {/* Comment Form */}
+      <form className="comment-form" onSubmit={handleSubmit}>
+        <textarea
+          placeholder="Add a comment..."
+          rows="3"
+          className="comment-input"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          disabled={loading || !user}
+        />
+        <button 
+          type="submit" 
+          className="comment-btn"
+          disabled={loading || !comment.trim() || !user}
+        >
+          {loading ? 'Posting...' : 'Post Comment'}
+        </button>
+        {!user && (
+          <p style={{ color: '#666', fontSize: '14px', marginTop: '10px' }}>
+            Please log in to comment
+          </p>
+        )}
+      </form>
+
+      {/* Comments List */}
+      <div className="comments-list">
+        {fetchLoading ? (
+          <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>
+            Loading comments...
+          </p>
+        ) : (
+          <>
+            {comments.map((comment) => (
+              <div key={comment.id} className="comment-item">
+                <div className="comment-header">
+                  <span className="comment-author">{comment.author}</span>
+                  <span className="comment-date">
+                    {comment.daysAgo}
+                  </span>
+                </div>
+                <div className="comment-content">
+                  {comment.text}
+                </div>
+              </div>
+            ))}
+            {comments.length === 0 && (
+              <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>
+                No comments yet. Be the first to comment!
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
 
   // Loading state
   if (loading) {
@@ -321,32 +472,8 @@ export default function CommunityPost() {
 
           <h3>Comments ({post.commentCount || post.comments?.length || 0})</h3>
 
-          <div className="comments-section">
-            {post.comments && post.comments.length > 0 ? (
-              post.comments.map((comment, index) => (
-                <div key={comment.id || index} className="comment">
-                  <b>{comment.author || comment.user}</b>
-                  <p>{comment.text || comment.commentText}</p>
-                  {comment.daysAgo && (
-                    <small className="comment-time">{comment.daysAgo}</small>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className="no-comments">No comments yet. Be the first to comment!</p>
-            )}
-          </div>
-
-          <form className="comment-form">
-            <textarea
-              placeholder="Add a comment..."
-              rows="3"
-              className="comment-input"
-            />
-            <button type="submit" className="comment-btn">
-              Post Comment
-            </button>
-          </form>
+          {/* Use the CommentSection component */}
+          <CommentSection postId={post.id} />
         </div>
       </div>
 
