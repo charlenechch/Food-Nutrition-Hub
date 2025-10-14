@@ -1,12 +1,11 @@
-// =====================
-// 🌐 BACKEND SERVER.JS
-// =====================
+// BACKEND SERVER.JS
 
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const helmet = require("helmet");
-const { rateLimit, ipKeyGenerator } = require("express-rate-limit"); // ✅ single, correct import
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+const csrf = require("csurf");
 const MySQLStore = require("express-mysql-session")(session);
 require("dotenv").config();
 
@@ -126,7 +125,7 @@ app.use(
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "CSRF-Token"],
   })
 );
 
@@ -144,7 +143,6 @@ if (process.env.MYSQLHOST || process.env.DB_HOST) {
   };
   console.log("💻 Using ENV DB config");
 } else {
-  // ✅ Default fallback for Railway (ensure credentials are valid)
   dbOptions = {
     host: "interchange.proxy.rlwy.net",
     port: 13361,
@@ -171,12 +169,23 @@ app.use(
     store: sessionStore,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // ✅ HTTPS only in prod
+      secure: process.env.NODE_ENV === "production", // HTTPS only in production
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
 );
+
+// =====================
+// 🧩 CSRF PROTECTION
+// =====================
+const csrfProtection = csrf({ cookie: false }); // uses session instead of cookie
+app.use(csrfProtection);
+
+// ✅ Endpoint to provide CSRF token to frontend
+app.get("/api/csrf-token", (req, res) => {
+  res.status(200).json({ csrfToken: req.csrfToken() });
+});
 
 // =====================
 // 🚦 RATE LIMITER (Anti-brute-force)
@@ -186,7 +195,7 @@ const authLimiter = rateLimit({
   max: 5, // Limit each IP/email to 5 requests
   message: { error: "Too many attempts, please try again later." },
   keyGenerator: (req, res) => {
-    const ipKey = ipKeyGenerator(req, res); // ✅ IPv6-safe helper
+    const ipKey = ipKeyGenerator(req, res);
     const emailKey = req.body?.email || "guest";
     return `${ipKey}-${emailKey}`;
   },
@@ -217,7 +226,22 @@ app.get("/", (req, res) => {
   res
     .status(200)
     .type("text/plain")
-    .send("🚀 Backend running with MySQL + sessions!");
+    .send("🚀 Backend running with MySQL + sessions + CSRF protection!");
+});
+
+// =====================
+// ⚠️ CSRF ERROR HANDLER
+// =====================
+app.use((err, req, res, next) => {
+  if (err.code === "EBADCSRFTOKEN") {
+    console.warn("⚠️ Invalid or missing CSRF token");
+    return res.status(403).json({
+      success: false,
+      error: "Invalid CSRF token",
+      message: "Your session may have expired. Please refresh and try again.",
+    });
+  }
+  next(err);
 });
 
 // =====================
