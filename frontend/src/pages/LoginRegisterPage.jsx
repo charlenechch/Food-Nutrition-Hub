@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
-import { API_URL } from "../config/api";
+import { fetchWithCredentials } from "../config/api"; // ✅ updated import
 
 export default function LoginRegisterPage() {
   const [activeTab, setActiveTab] = useState("login");
@@ -33,7 +33,6 @@ export default function LoginRegisterPage() {
     if (!hasLowerCase) return "Password must contain at least one lowercase letter";
     if (!hasNumber) return "Password must contain at least one number";
     if (!hasSpecialChar) return "Password must contain at least one special character (!@#$%^&*...)";
-
     return null;
   };
 
@@ -45,30 +44,22 @@ export default function LoginRegisterPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/login`, {
+      const res = await fetchWithCredentials("/login", {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        if (data.skipOTP) {
-          // Device is trusted, skip OTP
+      if (res.success) {
+        if (res.skipOTP) {
           console.log("Trusted device - skipping OTP");
-          login(data.user);
-          navigate(data.user.role === "admin" ? "/admin" : "/home");
+          login(res.user);
+          navigate(res.user.role === "admin" ? "/admin" : "/home");
         } else {
-          // Device not trusted, require OTP
           console.log("OTP required");
-          // Navigate to OTP page
           navigate(`/otpverification?email=${encodeURIComponent(email)}`);
         }
       } else {
-        //Wrong email or password
-        alert(data.message || "Invalid email or password");
+        alert(res.message || "Invalid email or password");
       }
     } catch (err) {
       console.error("Login error:", err);
@@ -96,10 +87,8 @@ export default function LoginRegisterPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/register`, {
+      const res = await fetchWithCredentials("/register", {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstname: firstName,
           lastname: lastName,
@@ -108,33 +97,26 @@ export default function LoginRegisterPage() {
         }),
       });
 
-      if (res.status === 429) {
-        const data = await res.json();
-        alert(data.error || "Registration temporarily unavailable. Please try again later.");
+      if (res.error) {
+        alert(res.error || res.message || "Registration failed!");
         return;
       }
 
-      const data = await res.json();
+      console.log("Registration successful:", res);
+      alert("Account created! Welcome to SarawakEats.");
 
-      if (res.ok) {
-        console.log("Registration successful:", data);
-        alert("Account created! Welcome to SarawakEats.");
-
-        setFirstName("");
-        setLastName("");
-        setRegEmail("");
-        setRegPassword("");
-        setActiveTab("login");
-      } else {
-        alert(data.error || data.message || "Registration failed!");
-      }
+      setFirstName("");
+      setLastName("");
+      setRegEmail("");
+      setRegPassword("");
+      setActiveTab("login");
     } catch (err) {
       console.error("Registration error:", err);
       alert("Something went wrong during registration.");
     }
   };
 
-  // Handle Guest
+  // Handle Guest login
   const handleGuest = () => {
     login({ role: "guest" });
     console.log("Logged in as guest");
