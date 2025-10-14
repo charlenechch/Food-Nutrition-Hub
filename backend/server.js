@@ -1,13 +1,16 @@
 // backend/server.js
-const express = require("express");
-const cors = require("cors");
-const session = require("express-session");
-const helmet = require("helmet");
-const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
-const MySQLStore = require("express-mysql-session")(session);
+/* eslint-disable no-console */
 require("dotenv").config();
 
-// Import routes
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const session = require("express-session");
+const MySQLStore = require("express-mysql-session")(session);
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+const csrf = require("csurf");
+const hpp = require("hpp");
+
 const loginRoutes = require("./routes/login");
 const logoutRoutes = require("./routes/logout");
 const registerRoutes = require("./routes/register");
@@ -19,71 +22,143 @@ const otpRoutes = require("./routes/otp");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const IS_PROD = process.env.NODE_ENV === "production";
 
-// Trust the reverse proxy (e.g., from Railway)
-app.set('trust proxy', 1);
+// ---------- 1) Proxy & security headers ----------
+app.set("trust proxy", 1); // behind Railway/Vercel proxy
 
-// Security headers
-app.use(helmet());
-
-// CORS (frontend whitelist)
+// Helmet base (CSP + extra hardening)
 app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",              // Local frontend
-      "https://food-nutrition-hub.vercel.app", // Deployed frontend
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"], 
+  helmet({
+    crossOriginEmbedderPolicy: false, // for dev tools/Vite iframes
   })
 );
 
-// JSON parser
-app.use(express.json());
-
-// Session store config
-let dbOptions;
-if (process.env.MYSQLHOST || process.env.DB_HOST) {
-  dbOptions = {
-    host: process.env.MYSQLHOST || process.env.DB_HOST,
-    port: process.env.MYSQLPORT || process.env.DB_PORT,
-    user: process.env.MYSQLUSER || process.env.DB_USER,
-    password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
-    database: process.env.MYSQLDATABASE || process.env.DB_NAME,
-  };
-} else {
-  dbOptions = {
-    host: "interchange.proxy.rlwy.net",
-    port: 13361, 
-    user: "root",
-    password: "GsdEstbgiDCzValxnvDLiDfoEdCPoWyh",
-    database: "railway",
-  };
-}
-
-const sessionStore = new MySQLStore(dbOptions);
-
-// Express-session middleware
+// Content Security Policy (tune if you add more domains)
 app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "supersecretkey",
-    resave: false,
-    saveUninitialized: true,
-    store: sessionStore,
-    cookie: {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      "default-src": ["'self'"],
+      "script-src": [
+        "'self'",
+        "'unsafe-inline'", // allow Vite dev inline in DEV
+        "http://localhost:5173",
+        "https://food-nutrition-hub.vercel.app",
+      ],
+      "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      "font-src": ["'self'", "https://fonts.gstatic.com"],
+      "img-src": ["'self'", "data:", "blob:"],
+      "connect-src": [
+        "'self'",
+        "http://localhost:5173",
+        "https://food-nutrition-hub.vercel.app",
+      ],
+      "frame-ancestors": ["'none'"], // block clickjacking
     },
   })
 );
 
-// Rate Limiter
+// HSTS only when HTTPS is guaranteed (prod)
+if (IS_PROD) {
+  app.use(
+    helmet.hsts({
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    })
+  );
+}
+
+app.use(helmet.noSniff());
+app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
+
+// ---------- 2) Strict CORS (with credentials) ----------
+const allowlist = [
+  "http://localhost:5173",
+  "https://food-nutrition-hub.vercel.app",
+  process.env.FRONTEND_ORIGIN, // optional override
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, cb) {
+      // Allow server-to-server / curl (no origin) and allowlisted sites
+      if (!origin || allowlist.includes(origin)) return cb(null, true);
+      return cb(new Error("CORS: Origin not allowed"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+    optionsSuccessStatus: 204,
+  })
+);
+
+// ---------- 3) Body parsers & HPP ----------
+app.use(express.json({ limit: "1mb" })); // small limit reduces DoS surface
+app.use(express.urlencoded({ extended: false, limit: "1mb" }));
+app.use(hpp()); // HTTP Parameter Pollution guard
+
+// ---------- 4) Sessions (MySQL store) ----------
+const dbOptions = {
+  host: process.env.MYSQLHOST || process.env.DB_HOST,
+  port: Number(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
+  user: process.env.MYSQLUSER || process.env.DB_USER,
+  password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
+  database: process.env.MYSQLDATABASE || process.env.DB_NAME,
+  clearExpired: true,
+  checkExpirationInterval: 15 * 60 * 1000, // cleanup every 15 min
+  expiration: 24 * 60 * 60 * 1000, // absolute 24h expiry
+};
+
+// ⚠️ Strongly recommended: remove any hard-coded DB fallbacks in production.
+const sessionStore = new MySQLStore(dbOptions);
+
+app.use(
+  session({
+    name: "sid",
+    secret: process.env.SESSION_SECRET || "change-me-in-.env",
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false, // don't create empty sessions
+    rolling: true, // refresh cookie on activity
+    cookie: {
+      httpOnly: true,
+      sameSite: "none", // cross-site with Vercel frontend
+      secure: true, // requires HTTPS + trust proxy
+      maxAge: 60 * 60 * 1000, // IDLE timeout: 1h (absolute 24h via store.expiration)
+    },
+  })
+);
+
+// ---------- 5) CSRF for state-changing requests ----------
+const csrfProtection = csrf({ cookie: false }); // uses session
+
+// Token endpoint for the SPA to fetch a token and send it via X-CSRF-Token
+app.get("/api/auth/csrf-token", (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
+// Apply CSRF ONLY to mutating methods to keep GET/OPTIONS simple
+app.use((req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+  return csrfProtection(req, res, next);
+});
+
+// ---------- 6) Rate limiting ----------
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300, // generous global cap
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(globalLimiter);
+
 const authLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000, // 5 min
-  max: 5,
+  windowMs: 10 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: { error: "Too many attempts, try again later." },
   keyGenerator: (req, res) => {
     const ipKey = ipKeyGenerator(req, res);
@@ -92,20 +167,17 @@ const authLimiter = rateLimit({
   },
 });
 
-// Routes
+// ---------- 7) Routes ----------
 app.use("/api/login", authLimiter, loginRoutes);
 app.use("/api/logout", logoutRoutes);
-app.use("/api/register", registerRoutes);
+app.use("/api/register", authLimiter, registerRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/exploreFood", exploreFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
+app.use("/api/foods", foodRoutes); // admin routes under /api/foods
 
-//admin routes
-app.use("/api/foods", foodRoutes);
-
-
-// Example admin route
+// Example admin guard (kept from your version)
 app.get("/api/admin/data", (req, res) => {
   if (!req.session?.user || req.session.user.role !== "admin") {
     return res.status(403).json({ error: "Forbidden: Admins only" });
@@ -115,16 +187,27 @@ app.get("/api/admin/data", (req, res) => {
 
 // Health check
 app.get("/", (req, res) => {
-  res.send("🚀 Backend running with MySQL + sessions!");
+  res.send("🚀 Backend running with advanced security, MySQL & sessions!");
 });
 
-// Error handler
+// ---------- 8) 404 + Error handler ----------
+app.use((req, res) => {
+  res.status(404).json({ error: "Not Found" });
+});
+
 app.use((err, req, res, next) => {
-  console.error("❌ Server error:", err.stack);
-  res.status(500).json({ error: "Internal Server Error" });
+  // CSRF errors are common; return a clear message
+  if (err.code === "EBADCSRFTOKEN") {
+    return res.status(403).json({ error: "Invalid CSRF token" });
+  }
+  console.error("❌ Server error:", err);
+  const status = err.status || 500;
+  res.status(status).json({
+    error: status === 500 ? "Internal Server Error" : err.message,
+  });
 });
 
-// Start server
+// ---------- 9) Start server ----------
 app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT} (mode: ${process.env.NODE_ENV || "dev"})`);
 });
