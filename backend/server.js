@@ -1,9 +1,12 @@
-// backend/server.js
+// =====================
+// 🌐 BACKEND SERVER.JS
+// =====================
+
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const helmet = require("helmet");
-const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit"); // ✅ single, correct import
 const MySQLStore = require("express-mysql-session")(session);
 require("dotenv").config();
 
@@ -14,7 +17,9 @@ const sanitizeHtml = require("sanitize-html");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Import routes
+// =====================
+// 📦 Route Imports
+// =====================
 const loginRoutes = require("./routes/login");
 const logoutRoutes = require("./routes/logout");
 const registerRoutes = require("./routes/register");
@@ -23,27 +28,41 @@ const foodRoutes = require("./routes/foods");
 const exploreFoodRoutes = require("./routes/exploreFood");
 const communityPostRoutes = require("./routes/communityPost");
 const otpRoutes = require("./routes/otp");
-
-// Trust the reverse proxy (e.g., Railway)
-app.set("trust proxy", 1);
-
 const rbacRoutes = require("./routes/rbacRoutes");
+
+// =====================
+// ⚙️ Basic App Setup
+// =====================
+app.set("trust proxy", 1); // Required for Railway or any reverse proxy
 app.use("/api/rbac", rbacRoutes);
 
 // =====================
-// 🧩 Security Middleware Stack
+// 🧩 SECURITY MIDDLEWARE STACK
 // =====================
 
-// 1️⃣ Helmet (HTTP security headers)
+// 1️⃣ Helmet (Security headers)
 app.use(
   helmet({
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
         "default-src": ["'self'"],
-        "img-src": ["'self'", "data:", "blob:", "https://food-nutrition-hub.vercel.app"],
-        "script-src": ["'self'", "'unsafe-inline'", "https://food-nutrition-hub.vercel.app"],
-        "connect-src": ["'self'", "https://food-nutrition-hub.vercel.app", "http://localhost:5173"],
+        "img-src": [
+          "'self'",
+          "data:",
+          "blob:",
+          "https://food-nutrition-hub.vercel.app",
+        ],
+        "script-src": [
+          "'self'",
+          "'unsafe-inline'",
+          "https://food-nutrition-hub.vercel.app",
+        ],
+        "connect-src": [
+          "'self'",
+          "https://food-nutrition-hub.vercel.app",
+          "http://localhost:5173",
+        ],
       },
     },
     crossOriginEmbedderPolicy: false,
@@ -54,10 +73,10 @@ app.use(
 // 2️⃣ Prevent HTTP Parameter Pollution
 app.use(hpp());
 
-// 3️⃣ JSON parser (must come before sanitizers)
+// 3️⃣ JSON Parser (must come before sanitizers)
 app.use(express.json());
 
-// 4️⃣ Sanitize user input against XSS (replaces xss-clean)
+// 4️⃣ Sanitize user input (XSS protection)
 app.use((req, res, next) => {
   const clean = (obj) => {
     if (obj && typeof obj === "object") {
@@ -79,32 +98,31 @@ app.use((req, res, next) => {
   next();
 });
 
-// 5️⃣ Manual Mongo-style Injection Sanitizer (replaces express-mongo-sanitize)
+// 5️⃣ Mongo-style injection prevention (no $ or . keys)
 app.use((req, res, next) => {
   const sanitizeNoDollar = (obj) => {
     if (obj && typeof obj === "object") {
       for (const key in obj) {
         if (key.startsWith("$") || key.includes(".")) {
-          delete obj[key]; // remove dangerous Mongo-style operators
+          delete obj[key];
         } else if (typeof obj[key] === "object") {
-          sanitizeNoDollar(obj[key]); // recursively sanitize nested objects
+          sanitizeNoDollar(obj[key]);
         }
       }
     }
   };
-
   sanitizeNoDollar(req.body);
   sanitizeNoDollar(req.query);
   sanitizeNoDollar(req.params);
   next();
 });
 
-// 6️⃣ CORS (Frontend Whitelist)
+// 6️⃣ CORS Configuration
 app.use(
   cors({
     origin: [
       "http://localhost:5173", // Local frontend
-      "https://food-nutrition-hub.vercel.app", // Deployed frontend
+      "https://food-nutrition-hub.vercel.app", // Production frontend
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -113,7 +131,7 @@ app.use(
 );
 
 // =====================
-// 🧩 MySQL + Session Configuration (DO NOT CHANGE)
+// 🗄️ MYSQL + SESSION CONFIGURATION
 // =====================
 let dbOptions;
 if (process.env.MYSQLHOST || process.env.DB_HOST) {
@@ -124,7 +142,9 @@ if (process.env.MYSQLHOST || process.env.DB_HOST) {
     password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
     database: process.env.MYSQLDATABASE || process.env.DB_NAME,
   };
+  console.log("💻 Using ENV DB config");
 } else {
+  // ✅ Default fallback for Railway (ensure credentials are valid)
   dbOptions = {
     host: "interchange.proxy.rlwy.net",
     port: 13361,
@@ -132,10 +152,17 @@ if (process.env.MYSQLHOST || process.env.DB_HOST) {
     password: "GsdEstbgiDCzValxnvDLiDfoEdCPoWyh",
     database: "railway",
   };
+  console.log("💻 Using FALLBACK Railway DB config");
 }
 
 const sessionStore = new MySQLStore(dbOptions);
 
+// ✅ Handle DB connection errors gracefully
+sessionStore.on("error", (err) => {
+  console.error("❌ MySQL session store error:", err);
+});
+
+// ✅ Secure Session Middleware (with HTTPS check)
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "supersecretkey",
@@ -143,30 +170,30 @@ app.use(
     saveUninitialized: true,
     store: sessionStore,
     cookie: {
-      httpOnly: true, // cannot be accessed via JS
-      secure: true, // HTTPS only
-      sameSite: "none", // allow cross-site cookies (Vercel <-> Railway)
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // ✅ HTTPS only in prod
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
 );
 
 // =====================
-// 🧩 Rate Limiter (Brute-force protection)
+// 🚦 RATE LIMITER (Anti-brute-force)
 // =====================
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 5, // 5 requests per window per IP/email
+  max: 5, // Limit each IP/email to 5 requests
   message: { error: "Too many attempts, please try again later." },
   keyGenerator: (req, res) => {
-    const ipKey = ipKeyGenerator(req, res);
+    const ipKey = ipKeyGenerator(req, res); // ✅ IPv6-safe helper
     const emailKey = req.body?.email || "guest";
     return `${ipKey}-${emailKey}`;
   },
 });
 
 // =====================
-// 🧩 Routes
+// 🧩 ROUTES
 // =====================
 app.use("/api/login", authLimiter, loginRoutes);
 app.use("/api/logout", logoutRoutes);
@@ -175,11 +202,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/exploreFood", exploreFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
-
-// Admin routes
 app.use("/api/foods", foodRoutes);
 
-// Example Admin Endpoint
+// 🧩 Admin Example Endpoint
 app.get("/api/admin/data", (req, res) => {
   if (!req.session?.user || req.session.user.role !== "admin") {
     return res.status(403).json({ error: "Forbidden: Admins only" });
@@ -187,25 +212,31 @@ app.get("/api/admin/data", (req, res) => {
   res.json({ secret: "This is admin-only data." });
 });
 
-// Health Check Endpoint
+// 🩺 Health Check Endpoint
 app.get("/", (req, res) => {
-  res.status(200).type("text/plain").send("🚀 Backend running with MySQL + sessions!");
+  res
+    .status(200)
+    .type("text/plain")
+    .send("🚀 Backend running with MySQL + sessions!");
 });
 
 // =====================
-// 🧩 Centralized Secure Error Handler
+// 🧩 CENTRALIZED ERROR HANDLER
 // =====================
 app.use((err, req, res, next) => {
   console.error("❌ Server error:", err.stack);
   res.status(err.status || 500).json({
     success: false,
     error: "Internal Server Error",
-    message: process.env.NODE_ENV === "development" ? err.message : "Something went wrong",
+    message:
+      process.env.NODE_ENV === "development"
+        ? err.message
+        : "Something went wrong",
   });
 });
 
 // =====================
-// 🧩 Start Server
+// 🚀 START SERVER
 // =====================
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
