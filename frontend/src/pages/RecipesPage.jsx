@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams  } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/RecipesPage.css";
@@ -346,6 +346,12 @@ const PER_PAGE = 9;
 
 export default function RecipesPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialQ = searchParams.get("q") || "";
+  const [searchQuery, setSearchQuery] = useState(initialQ);
+  useEffect(() => {
+    setSearchQuery(searchParams.get("q") || "");
+  }, [searchParams]);
 
   // Load + persist
   const [recipes, setRecipes] = useState(() => {
@@ -384,7 +390,6 @@ export default function RecipesPage() {
   });
 
   // Filters
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrigin, setSelectedOrigin] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [showFilters, setShowFilters] = useState(false);

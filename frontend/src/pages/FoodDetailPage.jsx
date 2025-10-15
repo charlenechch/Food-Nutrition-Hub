@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/FoodDetailPage.css";
@@ -7,6 +8,36 @@ import { Share2, Info, TriangleAlert, MessagesSquare, ShoppingBasket, Cross, Scr
 
 export default function FoodDetailPage({ food, onBack, onViewDiscussion }) {
   const foodComments = DEFAULT_COMMENTS_BY_FOOD[food.id]?? [];
+  const navigate = useNavigate();
+  const { state } = useLocation();
+
+  const goToRecipe = () => {
+    if (!food) return;
+
+    // 1) If you already store a direct recipeId on the food, use it
+    if (food.recipeId) {
+      navigate(`/recipes/${food.recipeId}`);
+      return;
+    }
+
+    // 2) Otherwise, try to find by name in your recipes list
+    let recipes = [];
+    try {
+      const raw = localStorage.getItem(LS_RECIPES);
+      recipes = raw ? JSON.parse(raw) : [];
+    } catch {}
+
+    const match = recipes.find(
+      (r) => r.name?.trim().toLowerCase() === food.name?.trim().toLowerCase()
+    );
+
+    if (match?.id) {
+      navigate(`/recipes/${match.id}`);
+    } else {
+      // 3) Fallback: send them to the Recipes page with a search query
+      navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`);
+    }
+  };
 
   if (!food) return null;
 
@@ -63,7 +94,7 @@ export default function FoodDetailPage({ food, onBack, onViewDiscussion }) {
 
             {/* Cultural / Preparation */}
             <div className="fdp-card">
-                <p className="fdp-section-title"><Info size={18} color={"#8B4513"}/> Cultural Heritage</p>
+                <h3 className="fdp-section-title"><Info size={18} color={"#6a4a2f"}/> Cultural Heritage</h3>
                 {food.culturalSignificance  && (
                 <div className="fdp-block">
                     <p className="fdp-block-title">Cultural Significance</p>
@@ -79,7 +110,7 @@ export default function FoodDetailPage({ food, onBack, onViewDiscussion }) {
             {/* Ingredients */}
             {ingredients.length > 0 && (
                 <div className="fdp-card">
-                <p className="fdp-section-title"><ShoppingBasket size={18} color="#8B4513"/> Common Ingredients</p>
+                <h3 className="fdp-section-title"><ShoppingBasket size={18} color={"#6a4a2f"}/> Common Ingredients</h3>
                 <div className="fdp-chip-grid">
                     {ingredients.map((ing, i) => (
                     <span key={i} className="fdp-chip">{ing}</span>
@@ -99,12 +130,12 @@ export default function FoodDetailPage({ food, onBack, onViewDiscussion }) {
                 <button type="button" className="lrp-btn lrp-btn-primary fdp-share" onClick={handleShare}><Share2 size={18} /></button>
             </div>
             <div className="fdp-actions">
-                <button type="button" className="lrp-btn lrp-btn-outline"><ScrollText size={18} /> Go to Recipe</button>
+                <button type="button" className="lrp-btn lrp-btn-outline" onClick={goToRecipe}><ScrollText size={18} /> Go to Recipe</button>
             </div>
 
             {/* Nutrition */}
             <div className="fdp-card">
-                <p className="fdp-section-title"><Cross size={18} color="#8B4513"/> Nutritional Information</p>
+                <h3 className="fdp-section-title"><Cross size={18} color={"#6a4a2f"}/> Nutritional Information</h3>
                 <p className="fdp-muted">Per serving</p>
                 <div className="fdp-nutri-grid">
                 <div className="fdp-nutri">
@@ -129,7 +160,7 @@ export default function FoodDetailPage({ food, onBack, onViewDiscussion }) {
             {/* Health alerts */}
             {healthAlerts.length > 0 && (
                 <div className="fdp-card">
-                <p className="fdp-section-title"><TriangleAlert size={18} color={"#8B4513"}/> Health Information</p>
+                <h3 className="fdp-section-title"><TriangleAlert size={18} color={"#6a4a2f"}/> Health Information</h3>
                 <div className="fdp-alerts">
                     {healthAlerts.map((a, idx) => (
                     <div key={idx} className={`fdp-alert ${a.type === "warning" ? "fdp-alert-warn" : "fdp-alert-info"}`}>
@@ -143,7 +174,7 @@ export default function FoodDetailPage({ food, onBack, onViewDiscussion }) {
             {/* Discussion preview */}
             <div className="fdp-card">
                 <div className="fdp-disc-header">
-                <p className="fdp-section-title"><MessagesSquare size={18} color={"#8B4513"}/> Community Discussion</p>
+                <h3 className="fdp-section-title"><MessagesSquare size={18} color={"#6a4a2f"}/> Community Discussion</h3>
                 </div>
                 {onViewDiscussion ? (
                 <div className="fdp-comments">
