@@ -1,0 +1,306 @@
+/* Page shell */
+.recipes-page {
+  font-family: "Poppins", sans-serif;
+  background: #fdfbf9;
+  color: #3d2b1f;
+  padding: 120px 5% 80px;
+}
+
+.rp-header {
+  text-align: center;
+  margin-bottom: 22px;
+}
+.rp-title {
+  font-size: clamp(20px, 4vw, 34px);
+  font-weight: 700;
+  color: #916848;
+  margin: 0 0 6px;
+}
+.rp-sub {
+  font-size: clamp(14px, 2.3vw, 16px);
+  color: #5f5040;
+}
+
+/* Card */
+.rp-card {
+  background: #faf7f4;
+  border: 1px solid #e8dccf;
+  border-radius: 14px;
+  max-width: 1100px;
+  margin: 0 auto 3rem;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  transition: all 0.4s ease;
+}
+
+/* expandable */
+.rp-card.is-open {
+  overflow: hidden;
+}
+
+.rp-filter-card {
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  max-width: 1100px;
+  margin: 0 auto 1.3rem;
+}
+
+/* Add form header */
+.rp-card-head {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.rp-card-head h3 {
+  margin: 0;
+  color: #7a4d2a;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.rp-card-head h3::before {
+  content: "+";
+  font-weight: 700;
+  color: #7a4d2a;
+  font-size: 1.2rem;
+}
+.rp-card-head p {
+  color: #5f5040;
+  font-size: 0.95rem;
+  margin-bottom: 0.8rem;
+  line-height: 1.5;
+}
+
+/* Buttons */
+.rp-btn {
+  background: #8b5e3c;
+  color: #fff;
+  border: 1px solid transparent;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, transform .15s;
+}
+.rp-btn:hover { background: #6b3e26; transform: translateY(-1px); }
+.rp-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.rp-btn-muted {
+  background: none;
+  border: 1px solid #c4b5a0;
+  color: #5a4636;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.rp-btn-muted:hover { background: #f3ede7; transform: none; }
+.rp-btn:focus{
+    outline: none;
+}
+.rp-ghost {
+  background: transparent;
+  color: #7a4d2a;
+  border: 1px solid #d5c2ac;
+}
+.rp-ghost:hover { background: #f3e6d9; }
+
+/* Form */
+.rp-form {
+  margin-top: 10px;
+  display: grid;
+  gap: 14px;
+}
+
+.rp-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.rp-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 760px) {
+  .rp-grid-2, .rp-grid-3 { grid-template-columns: 1fr; }
+}
+
+.rp-field {
+  display: grid;
+  gap: 6px;
+}
+.rp-field label {
+  font-weight: 600;
+  color: #5a3f2d;
+  font-size: 0.95rem;
+}
+.rp-field input,
+.rp-field select,
+.rp-field textarea,
+.rp-input {
+  background: #fdfaf6;
+  border: 1px solid #efe4d7;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  color: #3d2b1f;
+}
+.rp-field textarea {
+  height: 140px;
+  min-height: 140px; 
+  resize: vertical;           
+  overflow: auto;
+}
+.rp-field input::placeholder,
+.rp-field textarea::placeholder,
+.rp-input::placeholder { color: #a18a75; }
+
+.rp-field input:focus, textarea:focus{
+  outline: none;
+}
+
+.rp-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+.rp-actions .rp-submit {
+  flex: 1 1 auto;
+}
+.rp-actions .rp-btn-muted {
+  margin-left: auto;          /* this shoves Clear (and Close after it) to the right */
+}
+
+/* Dietary checkbox grid */
+.rp-diet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+}
+@media (min-width: 800px) {
+  .rp-diet-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.rp-diet-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  color: #3d2b1f;
+}
+.rp-diet-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #8b5e3c; /* warm brown */
+}
+
+.rp-diet-other {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Tags on cards */
+.rp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+.rp-tag {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f3e6d9;
+  color: #6a4a2f;
+  border: 1px solid #eadfd2;
+}
+
+/* Results grid */
+.rp-results-head {
+  max-width: 1100px;
+  margin: 6px auto 10px;
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  color: #6b5c4d;
+  font-size: 0.95rem;
+}
+
+.rp-grid {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .rp-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .rp-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Empty + Pagination */
+.rp-empty {
+  max-width: 1100px;
+  margin: 10px auto 24px;
+  text-align: center;
+  color: #6b5c4d;
+}
+
+.rp-btn.is-active {
+  background: #7a4d2a;
+  border-color: #7a4d2a;
+}
+
+/* place the plus neatly beside the title */
+.rp-card-head h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Upload area css */
+.upload-box {
+  border: 2px dashed #b58a64;
+  border-radius: 10px;
+  padding: 1.25rem;
+  width: 100%;
+  min-height: 140px;
+  background: #fefcfb;
+  color: #7a4d2a;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.25s ease;
+}
+.upload-box:hover { background: #f8f2ec; }
+
+.preview-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.upload-placeholder {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  color: #7a4d2a;
+}
+
+/* Dietary chip row under search */
+.rp-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  margin: 8px 0 0.25rem;
+}
+
