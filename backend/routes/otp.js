@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const nodemailer = require("nodemailer");
+const sendEmail = require("../config/mailer");
 const db = require("../config/db");
 
 // Store OTPs temporarily
@@ -28,17 +28,34 @@ router.post("/send", async (req, res) => {
       code: otp,
       expires: Date.now() + 5 * 60 * 1000
     });
-    
-    // TODO: Send email with OTP
-    // For now, just log it (you'll need to set up email service)
+
+    // Send OTP code (for testing only, remove when implementing email
     console.log(`OTP for ${email}: ${otp}`);
     
-    // In development, you can return the OTP (remove in production!)
+    // Create the content for your email
+    const emailSubject = "Your SarawakEats Verification Code";
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; text-align: center; color: #333;">
+        <h2>Email Verification</h2>
+        <p>Your verification code is:</p>
+        <p style="font-size: 36px; letter-spacing: 8px; margin: 20px; font-weight: bold;">
+          ${otp}
+        </p>
+        <p>This code will expire in 5 minutes.</p>
+      </div>
+    `;
+
+    // Send the email
+    await sendEmail({
+      to: email,
+      subject: emailSubject,
+      html: emailHtml,
+    });
+
     res.json({ 
       success: true, 
-      message: "OTP sent",
-      // Remove this in production!
-      devOTP: process.env.NODE_ENV === 'development' ? otp : undefined
+      message: "OTP sent to your email",
+      devOTP: process.env.NODE_ENV !== 'production' ? otp : undefined
     });
 
   } catch (err) {
@@ -70,7 +87,6 @@ router.post("/verify", async (req, res) => {
     }
 
     if (stored.code !== otp) {
-      console.log("Invalid OTP. Expected:", stored.code, "Got:", otp);
       return res.status(401).json({ error: "Invalid OTP" });
     }
 
@@ -80,7 +96,6 @@ router.post("/verify", async (req, res) => {
 
     // Get temp user from session (stored during login)
     const tempUser = req.session.tempUser;
-    console.log("Temp user:", tempUser)
 
     if (!tempUser) {
       console.log("No temp user in session");
@@ -100,7 +115,6 @@ router.post("/verify", async (req, res) => {
     } else {
       // Session expires when browser closes
       req.session.cookie.maxAge = null;
-      console.log("OTP verified");
     }
     
     res.json({ 

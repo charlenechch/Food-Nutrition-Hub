@@ -1,6 +1,6 @@
 // backend/server.js
 /* eslint-disable no-console */
-require("dotenv").config();
+require('dotenv').config();
 
 const express = require("express");
 const cors = require("cors");
