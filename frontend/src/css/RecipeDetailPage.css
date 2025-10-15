@@ -1,0 +1,186 @@
+/* Layout */
+.recipe-detail-page{
+    margin-top: 70px;
+}
+.rdp-wrap { 
+    max-width: 1100px; 
+    margin: 0 auto; 
+    padding: 1rem; 
+}
+.rdp-grid { 
+    display: grid; 
+    grid-template-columns: 1fr; 
+    gap: 1rem; 
+}
+@media (min-width: 1024px) {
+  .rdp-grid { 
+    grid-template-columns: 2fr 1fr; 
+    align-items: start; 
+}
+}
+.rdp-main { 
+    display: grid; 
+    gap: 1rem; 
+}
+
+.rdp-back {
+    margin-bottom: 1rem;
+}
+
+/* Cards */
+.rdp-card { 
+    background: #fff; 
+    border: 1px solid #eadfd2; 
+    border-radius: 12px; 
+}
+.rdp-card2{
+    border-radius: 12px; 
+    background: #fff; 
+    padding: 1.3rem 1.8rem; 
+}
+.rdp-card3 { 
+    background: #fff; 
+    border: 1px solid #eadfd2; 
+    border-radius: 12px; 
+    padding: 1.8rem; 
+}
+
+/* Hero */
+.rdp-hero { 
+    padding: 0; 
+    overflow: hidden; 
+    position: relative; 
+}
+.rdp-hero-img { 
+    width: 100%; 
+    height: 260px; 
+    object-fit: cover; 
+    display: block; 
+    border-radius: 12px 12px 0 0;
+}
+.rdp-hero-overlay { 
+    position: absolute; 
+    inset: 0; 
+    background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0) 55%); 
+}
+.rdp-hero-text { 
+    position: absolute; 
+    left: 16px; 
+    right: 16px; 
+    bottom: 16px; 
+    color: #fff; 
+}
+.rdp-title { 
+    margin: 0; 
+    font-size: 1.6rem; 
+    font-weight: 800; 
+}
+.rdp-sub { 
+    margin: 6px 0 0; 
+    opacity: .95; 
+}
+
+/* Meta strip */
+.rdp-meta {
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: .75rem; 
+}
+.rdp-meta-item { 
+    background: #fffaf3; 
+    border: 1px solid #f0e6d9; 
+    border-radius: 10px; 
+    padding: .75rem; 
+    text-align: center; 
+}
+.rdp-meta-label { 
+    color: #6a4a2f; 
+    font-size: .8rem; 
+}
+.rdp-meta-val { 
+    font-weight: 700; 
+    margin-top: .25rem; 
+}
+
+/* Tags */
+.rdp-tags { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: .4rem; 
+}
+.rdp-tag { 
+    background:#f7efe6; 
+    color:#3b2b1e; 
+    border:1px solid #eadfd2; 
+    padding:.2rem .5rem; 
+    border-radius:999px; 
+    font-size:.85rem; 
+}
+
+/* Ingredients */
+.rdp-sec-title { 
+    margin: 0 0 1.5rem; 
+    color: #6a4a2f; 
+}
+.rdp-list { 
+    margin: 0; 
+    padding: 0 1.1rem; 
+    list-style: disc;
+    padding-left: 1.25rem; /* keep indentation */
+}
+.rdp-list li { 
+    margin: .5rem 0; 
+}
+.rdp-list li::marker {
+  color: #6a4a2f; /* warm brown */
+}
+
+/* Instructions */
+.rdp-steps { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+}
+.rdp-steps li { 
+    display: grid; 
+    grid-template-columns: 28px 1fr; 
+    gap: .6rem; 
+    align-items: start; 
+    margin: .45rem 0; 
+}
+.rdp-step-index { 
+    width: 28px; 
+    height: 28px; 
+    border-radius: 50%; 
+    background: #8b5e34; 
+    color: #fff; 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+    font-weight:700; 
+}
+
+/* Sidebar */
+.rdp-aside { 
+    display: grid; 
+    gap: 1rem; 
+}
+/* Notes */
+.rdp-note { 
+    background: #fff; 
+}
+.rdp-note-warm { 
+    background: #fffdf7; 
+}
+.rdp-note-head { 
+    display: flex; 
+    align-items: center; 
+    gap: .5rem; 
+    font-weight: 700; 
+    color:#6a4a2f; 
+    margin-bottom: 1.5rem; 
+}
+.rdp-note-text { 
+    margin: 0; 
+    color:#3b2b1e; 
+}

@@ -1,57 +1,70 @@
 // backend/config/db.js
 const mysql = require("mysql2/promise");
 require("dotenv").config();
+const path = require('path');
+
+// Load environment variables from the backend root directory
+require('dotenv').config({ 
+  path: path.resolve(__dirname, '..', '.env') 
+});
+
 
 let dbConfig;
 
-if (process.env.MYSQLHOST || process.env.DB_HOST) {
+// Priority: Railway env vars -> Traditional DB vars -> Fallback local
+if (process.env.MYSQLHOST) {
   console.log("🌐 Using Railway DB config");
   dbConfig = {
-    host: process.env.MYSQLHOST || process.env.DB_HOST,
-    port: process.env.MYSQLPORT || process.env.DB_PORT,
-    user: process.env.MYSQLUSER || process.env.DB_USER,
-    password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
-    database: process.env.MYSQLDATABASE || process.env.DB_NAME,
+    host: process.env.MYSQLHOST,
+    port: process.env.MYSQLPORT || 3306,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
+    connectTimeout: 60000,
+    acquireTimeout: 60000,
+    timeout: 60000,
+    reconnect: true
+  };
+} else if (process.env.DB_HOST) {
+  console.log("💻 Using DB config from environment");
+  dbConfig = {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    connectTimeout: 60000,
+    acquireTimeout: 60000,
+    timeout: 60000,
+    reconnect: true
   };
 } else {
-  console.log("💻 Using LOCAL DB config");
-  dbConfig = {
-    host: "interchange.proxy.rlwy.net",
-    port: 13361, 
-    user: "root",
-    password: "GsdEstbgiDCzValxnvDLiDfoEdCPoWyh",
-    database: "railway",
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-  };
+  console.log("❌ No database configuration found!");
+  console.log("Available environment variables:", Object.keys(process.env).filter(key => 
+    key.includes('DB') || key.includes('MYSQL')
+  ));
+  throw new Error("No database configuration available");
 }
 
+// Create pool - THIS WAS COMMENTED OUT!
 const pool = mysql.createPool(dbConfig);
 
-// ✅ Quick test
+// Test connection
 (async () => {
   try {
-    const [rows] = await pool.query("SELECT 1");
+    const connection = await pool.getConnection();
     console.log("✅ MySQL connection test OK");
+    connection.release();
   } catch (err) {
     console.error("❌ MySQL connection test FAILED:", err.message);
+    console.error("Full error details:", err);
   }
 })();
 
 module.exports = pool;
-
-
-
-
-
-
-    
-    
-
-
-
-

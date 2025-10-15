@@ -1,82 +1,134 @@
-const express = require('express');
+// backend/routes/rbacRoutes.js
+const express = require("express");
 const router = express.Router();
 const {
   requireAuth,
   allowRoles,
   allowSelfOrAdmin,
   attachUser,
-  allowPageAccess
-} = require('../middleware/auth');
-const ROLES = require('../config/roles');
+  allowPageAccess,
+} = require("../middleware/auth");
+const ROLES = require("../config/roles");
 
-// Admin dashboard
-router.get('/admin/dashboard',
+// 🧩 Admin Dashboard
+router.get(
+  "/admin/dashboard",
   requireAuth,
   allowRoles(ROLES.ADMIN),
-  (req, res) => res.send('Welcome, Admin!')
+  (req, res) => {
+    res.status(200).json({
+      message: "✅ Welcome, Admin!",
+      user: req.session.user,
+      access: "Full control granted",
+    });
+  }
 );
 
-// Member dashboard
-
-router.get('/member/home',
+// 🧩 Member Dashboard
+router.get(
+  "/member/home",
   requireAuth,
   allowRoles(ROLES.MEMBER),
-  (req, res) => res.send('Welcome, Member!')
+  (req, res) => {
+    res.status(200).json({
+      message: "👋 Welcome, Member!",
+      user: req.session.user,
+      access: "Analyser and community enabled",
+    });
+  }
 );
 
-// Guest & member access (Explore + Recipe)
-
-router.get('/explore',
+// 🧩 Public Pages — Accessible by guests & members
+router.get(
+  "/explore",
   attachUser,
-  allowPageAccess('explore'),
-  (req, res) => res.send('Explore Food Page')
+  allowPageAccess("explore"),
+  (req, res) => {
+    res.status(200).json({
+      message: "🍽️ Explore Food Page — Public access",
+      role: req.user?.role || "guest",
+    });
+  }
 );
 
-router.get('/recipe',
+router.get(
+  "/recipe",
   attachUser,
-  allowPageAccess('recipe'),
-  (req, res) => res.send('Recipe Page')
+  allowPageAccess("recipe"),
+  (req, res) => {
+    res.status(200).json({
+      message: "🥗 Recipe Page — Public access",
+      role: req.user?.role || "guest",
+    });
+  }
 );
 
-// Member only (Analyser + Community)
-router.get('/analyser',
+// 🧩 Member-only features (Analyser + Community)
+router.get(
+  "/analyser",
   requireAuth,
-  allowPageAccess('analyser'),
-  (req, res) => res.send('Nutrition Analyser Page')
+  allowPageAccess("analyser"),
+  (req, res) => {
+    res.status(200).json({
+      message: "🥦 Nutrition Analyser Page — Members/Admins only",
+      role: req.session.user.role,
+    });
+  }
 );
 
-router.get('/community',
+router.get(
+  "/community",
   requireAuth,
-  allowPageAccess('community'),
-  (req, res) => res.send('Community Page')
+  allowPageAccess("community"),
+  (req, res) => {
+    res.status(200).json({
+      message: "💬 Community Page — Members/Admins only",
+      role: req.session.user.role,
+    });
+  }
 );
 
-// Profile ownership (View/Edit/Delete)
-router.get('/users/:id',
+// 🧩 Profile (Self or Admin only)
+router.get(
+  "/users/:id",
   requireAuth,
   attachUser,
-  allowSelfOrAdmin(req => req.params.id),
-  (req, res) => res.send(`Viewing profile for user ${req.params.id}`)
+  allowSelfOrAdmin((req) => req.params.id),
+  (req, res) => {
+    res.status(200).json({
+      message: `👤 Viewing profile for user ${req.params.id}`,
+      viewedBy: req.session.user.id,
+    });
+  }
 );
 
-router.put('/users/:id',
+router.put(
+  "/users/:id",
   requireAuth,
   attachUser,
-  allowSelfOrAdmin(req => req.params.id),
+  allowSelfOrAdmin((req) => req.params.id),
   (req, res) => {
     if (req.user.role !== ROLES.ADMIN) {
       delete req.body.role;
       delete req.body.id;
     }
-    res.send(`Profile for user ${req.params.id} updated`);
+    res.status(200).json({
+      message: `✅ Profile for user ${req.params.id} updated`,
+    });
   }
 );
 
-router.delete('/users/:id',
+router.delete(
+  "/users/:id",
   requireAuth,
   attachUser,
-  allowSelfOrAdmin(req => req.params.id),
-  (req, res) => res.send(`User ${req.params.id} deleted`)
+  allowSelfOrAdmin((req) => req.params.id),
+  (req, res) => {
+    res.status(200).json({
+      message: `🗑️ User ${req.params.id} deleted`,
+      performedBy: req.session.user.id,
+    });
+  }
 );
 
 module.exports = router;

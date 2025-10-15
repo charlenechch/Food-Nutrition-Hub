@@ -1,27 +1,187 @@
 import { useParams, useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+
+// Move CommentSection outside the main component
+const CommentSection = ({ postId, user, comments, onCommentAdded }) => { // ✅ Add props
+  const [comment, setComment] = useState(''); // ✅ Uncomment this line
+  const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
+
+  useEffect(() => {
+    if (postId) {
+      fetchComments();
+    }
+  }, [postId]);
+
+  const fetchComments = async () => {
+    try {
+      setFetchLoading(true);
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      
+      console.log('Fetching comments for post:', postId);
+      const response = await fetch(`${API_BASE_URL}/api/communityPost/comments/${postId}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('Parsed API response:', result);
+      
+      if (result.success) {
+        console.log('Fetched comments:', result.comments);
+      } else {
+        throw new Error(result.message || 'Failed to fetch comments');
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      alert('Failed to load comments: ' + error.message);
+    } finally {
+      setFetchLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!comment.trim()) return;
+    if (!user) {
+      alert('Please log in to comment');
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      
+      const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: comment,
+          postId: postId,
+          userProfileID: user.userProfileID 
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Post comment response:', result);
+
+      if (result.success) {
+        // ✅ Use the parent's callback to add the new comment
+        if (onCommentAdded) {
+          onCommentAdded(result.comment);
+        }
+        setComment('');
+      } else {
+        throw new Error(result.message || 'Failed to post comment');
+      }
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      alert('Failed to post comment: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="comment-section">
+      <form className="comment-form" onSubmit={handleSubmit}>
+        <textarea
+          placeholder="Add a comment..."
+          rows="3"
+          className="comment-input"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          disabled={loading || !user}
+        />
+        <button 
+          type="submit" 
+          className="comment-btn"
+          disabled={loading || !comment.trim() || !user}
+        >
+          {loading ? 'Posting...' : 'Post Comment'}
+        </button>
+        {!user && (
+          <p style={{ color: '#666', fontSize: '14px', marginTop: '10px' }}>
+            Please log in to comment
+          </p>
+        )}
+      </form>
+
+      <div className="comments-list">
+        {fetchLoading ? (
+          <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>
+            Loading comments...
+          </p>
+        ) : (
+          <>
+            {/* ✅ Use the comments passed from parent */}
+            {comments.map((comment) => (
+              <div key={`comment-${comment.id}-${comment.userProfileID}-${comment.created_at}`} className="comment-item">
+                <div className="comment-header">
+                  <span className="comment-author">{comment.author}</span>
+                  <span className="comment-date">
+                    {comment.daysAgo}
+                  </span>
+                </div>
+                <div className="comment-content">
+                  {comment.text}
+                </div>
+              </div>
+            ))}
+            {comments.length === 0 && (
+              <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>
+                No comments yet. Be the first to comment!
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default function CommunityPost() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [currentImg, setCurrentImg] = useState(0);
   const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useAuth(null); 
+
+  // 🔴 ADD DEBUG LOGS
+  console.log('🔴 CommunityPost Component Rendered');
+  console.log('🔴 useParams ID:', id);
+  console.log('🔴 Current URL:', window.location.href);
+  console.log('🔴 Current state - loading:', loading, 'post:', post, 'error:', error);
 
   useEffect(() => {
     fetchPost();
   }, [id]);
 
   const fetchPost = async () => {
+    console.log('🟢 fetchPost called with ID:', id);
     try {
       setLoading(true);
       setError(null);
       
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      console.log('📡 Fetching post from:', `${API_BASE_URL}/api/communityPost/${id}`);
+      
       const response = await fetch(`${API_BASE_URL}/api/communityPost/${id}`);
       
       if (!response.ok) {
@@ -29,9 +189,11 @@ export default function CommunityPost() {
       }
       
       const result = await response.json();
+      console.log('📨 Post API Response:', result);
       
       if (result.success) {
         setPost(result.data);
+        setComments(result.data.comments || []);
       } else {
         throw new Error(result.message || 'Failed to fetch post');
       }
@@ -43,123 +205,17 @@ export default function CommunityPost() {
     }
   };
 
-  // Helper function to safely render recipe content
-  const renderRecipeContent = (content, type = 'ingredients') => {
-    if (!content) return '';
-    
-    console.log(`Rendering ${type}:`, content); // Debug log
-    
-    if (typeof content === 'string') {
-      // Common prefixes to remove
-      const prefixes = ['Ingredients:', 'Instructions:'];
-      
-      let processedContent = content;
-      
-      // Remove any known prefixes
-      prefixes.forEach(prefix => {
-        const regex = new RegExp(`^${prefix}\\s*`, 'i');
-        if (regex.test(processedContent)) {
-          processedContent = processedContent.replace(regex, '').trim();
-        }
-      });
-      
-      // Split by newlines and clean up
-      const lines = processedContent
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line !== '');
-      
-      console.log(`Processed lines for ${type}:`, lines); // Debug log
-      
-      // Display as list if multiple lines
-      if (lines.length > 1) {
-        // For INGREDIENTS: use ul/li with bullets
-        if (type === 'ingredients') {
-          return (
-            <ul className="ingredients-list">
-              {lines.map((line, index) => (
-                <li key={index}>{line}</li>
-              ))}
-            </ul>
-          );
-        }
-        
-        // For INSTRUCTIONS/STEPS: use div without bullets
-        if (type === 'instructions' || type === 'steps') {
-          return (
-            <div className="instructions-list">
-              {lines.map((line, index) => (
-                <div key={index} className="instruction-item">
-                  {line}
-                </div>
-              ))}
-            </div>
-          );
-        }
+  // And make sure onCommentAdded works correctly:
+  const handleNewComment = (newComment) => {
+    setComments(prev => {
+      // ✅ Prevent duplicates by checking if comment already exists
+      const exists = prev.some(comment => comment.id === newComment.id);
+      if (exists) {
+        console.log('⚠️ Comment already exists, skipping duplicate');
+        return prev;
       }
-      
-      // Single line content
-      return (
-        <div className="single-line-content">
-          {processedContent}
-        </div>
-      );
-    }
-    
-    // Handle objects and arrays
-    if (typeof content === 'object') {
-      try {
-        if (Array.isArray(content)) {
-          // For INGREDIENTS arrays: use ul/li with bullets
-          if (type === 'ingredients') {
-            return (
-              <ul className="ingredients-list">
-                {content.map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
-              </ul>
-            );
-          }
-          
-          // For INSTRUCTIONS/STEPS arrays: use div without bullets
-          if (type === 'instructions' || type === 'steps') {
-            return (
-              <div className="instructions-list">
-                {content.map((item, index) => (
-                  <div key={index} className="instruction-item">
-                    {item}
-                  </div>
-                ))}
-              </div>
-            );
-          }
-        }
-        // If it's a recipe object with nested properties
-        if (content.ingredients || content.steps) {
-          return (
-            <div className="nested-recipe">
-              {content.ingredients && (
-                <div className="nested-ingredients">
-                  <h5>Ingredients:</h5>
-                  {renderRecipeContent(content.ingredients, 'ingredients')}
-                </div>
-              )}
-              {content.steps && (
-                <div className="nested-instructions">
-                  <h5>Instructions:</h5>
-                  {renderRecipeContent(content.steps, 'steps')}
-                </div>
-              )}
-            </div>
-          );
-        }
-        return JSON.stringify(content, null, 2);
-      } catch (e) {
-        return String(content);
-      }
-    }
-    
-    return String(content);
+      return [...prev, newComment];
+    });
   };
 
   const nextImg = () => {
@@ -238,7 +294,7 @@ export default function CommunityPost() {
           <div className="image-carousel">
             <img
               src={post.images && post.images.length > 0 ? post.images[currentImg] : "https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=800&q=80"}
-              alt={post.title}
+              alt={post.foodName || post.title}
               className="post-img-small"
             />
 
@@ -271,45 +327,37 @@ export default function CommunityPost() {
             )}
           </div>
 
-          {/* TEXT INFO */}
+          {/* POST CONTENT */}
           <div className="post-info">
-            <h1>{post.title}</h1>
+            <h1>{post.foodName || post.title}</h1>
             <p className="meta">
               by <b>{post.author}</b> • {post.daysAgo} •{" "}
-              <span className="category-badge">{post.category}</span>
+              <span className="category-badge">{post.culturalOrigin || post.category}</span>
             </p>
-            <p className="desc">{post.desc}</p>
+            
+            <div className="story-section">
+              <h3>Cultural Story</h3>
+              <p className="desc">{post.culturalStory || post.desc}</p>
+            </div>
 
-            {/* Recipe Section - Only show if recipe exists */}
-            {(post.recipe || (post.ingredients && post.steps)) && (
+            {/* RECIPE SECTION - Only show if recipe exists */}
+            {post.recipe && post.recipe.trim() !== "" && (
               <div className="recipe-box">
                 <h3>Recipe</h3>
                 <div className="recipe-content">
-                  {/* Handle post.recipe object */}
-                  {post.recipe && post.recipe.ingredients && (
-                    <div className="ingredients">
-                      <h4>Ingredients:</h4>
-                      <div className="ingredients-content">
-                        {renderRecipeContent(post.recipe.ingredients, 'ingredients')}
-                      </div>
-                    </div>
-                  )}
-                  {post.recipe && post.recipe.steps && (
-                    <div className="instructions">
-                      <h4>Instructions:</h4>
-                      <div className="instruction-content">
-                        {renderRecipeContent(post.recipe.steps, 'steps')}
-                      </div>
-                    </div>
-                  )}
+                  {post.recipe.split('\n').map((line, index) => (
+                    <p key={index} className="recipe-line">
+                      {line}
+                    </p>
+                  ))}
                 </div>
               </div>
             )}
-          </div>
 
-          <button onClick={() => navigate("/community")} className="back-btn">
-            ← Back to Community
-          </button>
+            <button onClick={() => navigate("/community")} className="back-btn">
+              ← Back to Community
+            </button>
+          </div>
         </div>
 
         {/* RIGHT COLUMN (COMMENTS + LIKES) */}
@@ -321,32 +369,13 @@ export default function CommunityPost() {
 
           <h3>Comments ({post.commentCount || post.comments?.length || 0})</h3>
 
-          <div className="comments-section">
-            {post.comments && post.comments.length > 0 ? (
-              post.comments.map((comment, index) => (
-                <div key={comment.id || index} className="comment">
-                  <b>{comment.author || comment.user}</b>
-                  <p>{comment.text || comment.commentText}</p>
-                  {comment.daysAgo && (
-                    <small className="comment-time">{comment.daysAgo}</small>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className="no-comments">No comments yet. Be the first to comment!</p>
-            )}
-          </div>
-
-          <form className="comment-form">
-            <textarea
-              placeholder="Add a comment..."
-              rows="3"
-              className="comment-input"
-            />
-            <button type="submit" className="comment-btn">
-              Post Comment
-            </button>
-          </form>
+         {/* Use the CommentSection component */}
+          <CommentSection 
+            postId={post.id} 
+            user={user}
+            comments={comments}
+            onCommentAdded={handleNewComment} 
+          />
         </div>
       </div>
 
