@@ -86,7 +86,7 @@ router.get("/counts", async (req, res) => {
             ORDER BY p.created_at DESC
         `;
 
-        const [posts] = await req.db.execute(query);
+        const [posts] = await db.execute(query);
         console.log(`✅ Found ${posts.length} approved posts`);
 
         // Format the response data with correct field names
@@ -154,7 +154,7 @@ router.get("/:id", async (req, res) => {
         `;
 
         console.log('Executing post query...');
-        const [posts] = await req.db.execute(postQuery, [postId]);
+        const [posts] = await db.execute(postQuery, [postId]);
         console.log(`Query result: ${posts.length} posts found`);
 
         if (posts.length === 0) {
@@ -184,7 +184,7 @@ router.get("/:id", async (req, res) => {
         `;
 
         console.log('Fetching comments...');
-        const [comments] = await req.db.execute(commentsQuery, [postId]);
+        const [comments] = await db.execute(commentsQuery, [postId]);
         console.log(`Found ${comments.length} comments`);
 
         // Format the post with correct field names
@@ -249,7 +249,7 @@ router.post('/comments', async (req, res) => {
       VALUES (?, ?, ?, NOW())
     `;
     
-    const [result] = await req.db.execute(insertQuery, [content, postId, userProfileID]);
+    const [result] = await db.execute(insertQuery, [content, postId, userProfileID]);
     
     console.log('✅ Comment inserted with ID:', result.insertId);
 
@@ -267,7 +267,7 @@ router.post('/comments', async (req, res) => {
       WHERE c.commentID = ?
     `;
 
-    const [comments] = await req.db.execute(commentQuery, [result.insertId]);
+    const [comments] = await db.execute(commentQuery, [result.insertId]);
     
     if (comments.length === 0) {
       throw new Error('Failed to retrieve created comment');
@@ -318,7 +318,7 @@ router.get('/comments/:postId', async (req, res) => {
       ORDER BY c.created_at ASC
     `;
 
-    const [comments] = await req.db.execute(commentsQuery, [postId]);
+    const [comments] = await db.execute(commentsQuery, [postId]);
     
     console.log(`✅ Found ${comments.length} comments for post ${postId}`);
 
@@ -416,7 +416,7 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
     console.log('🚀 Executing insert query...');
     console.log('Query values:', [foodName, culturalOrigin, userProfileID, culturalStory, photosString, recipe || '']);
     
-    const [result] = await req.db.execute(insertQuery, [
+    const [result] = await db.execute(insertQuery, [
       foodName,
       culturalOrigin,
       userProfileID,
@@ -446,7 +446,7 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
       WHERE p.postID = ?
     `;
 
-    const [posts] = await req.db.execute(postQuery, [result.insertId]);
+    const [posts] = await db.execute(postQuery, [result.insertId]);
     
     if (posts.length === 0) {
       throw new Error('Failed to retrieve created post');

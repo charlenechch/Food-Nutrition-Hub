@@ -1,6 +1,13 @@
 // backend/config/db.js
 const mysql = require("mysql2/promise");
 require("dotenv").config();
+const path = require('path');
+
+// Load environment variables from the backend root directory
+require('dotenv').config({ 
+  path: path.resolve(__dirname, '..', '.env') 
+});
+
 
 let dbConfig;
 
@@ -44,13 +51,6 @@ if (process.env.MYSQLHOST) {
   ));
   throw new Error("No database configuration available");
 }
-
-console.log("🔧 Database Config:", {
-  host: dbConfig.host,
-  port: dbConfig.port,
-  user: dbConfig.user,
-  database: dbConfig.database
-});
 
 // Create pool - THIS WAS COMMENTED OUT!
 const pool = mysql.createPool(dbConfig);
