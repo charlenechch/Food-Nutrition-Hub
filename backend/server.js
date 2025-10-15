@@ -1,8 +1,6 @@
 // backend/server.js
 /* eslint-disable no-console */
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
-}
+require('dotenv').config();
 
 const express = require("express");
 const cors = require("cors");
@@ -14,6 +12,7 @@ const csrf = require("csurf");
 const hpp = require("hpp");
 const mysql = require('mysql2');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const loginRoutes = require("./routes/login");
 const logoutRoutes = require("./routes/logout");
