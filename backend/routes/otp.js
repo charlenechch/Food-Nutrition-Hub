@@ -28,6 +28,9 @@ router.post("/send", async (req, res) => {
       code: otp,
       expires: Date.now() + 5 * 60 * 1000
     });
+
+    // Send OTP code (for testing only, remove when implementing email
+    console.log(`OTP for ${email}: ${otp}`);
     
     // Create the content for your email
     const emailSubject = "Your SarawakEats Verification Code";
@@ -42,7 +45,7 @@ router.post("/send", async (req, res) => {
       </div>
     `;
 
-    // 3. Send the email!
+    // Send the email
     await sendEmail({
       to: email,
       subject: emailSubject,
