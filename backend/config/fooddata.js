@@ -20,7 +20,13 @@ const foods = [
     Fat_g: 1.632,
     Carbohydrates_g: 60.528,
     Fiber_g: 1.189,
-    VitaminC_mg: 11.6
+    VitaminC_mg: 11.6,
+    culturalSignificance: "A traditional staple of the Melanau people, Linut is a direct link to Sarawak's sago-producing heritage, representing a time when sago was a primary carbohydrate source in the coastal regions.",
+    traditionalPreparation: "It is made by gradually mixing hot water into sago starch and vigorously stirring it with a special fork until it achieves a unique, sticky, and translucent gel-like consistency, often eaten with your hands.",
+    commonIngredients: ["Sago flour, Water, Anchovies, Chilies, Belacan, Sugar, Salt, Mango"],
+    alternative: "Tapioca starch",
+    altDescription: "Tapioca starch can be used as a substitute, producing a slightly clearer and chewier gel.",
+    healthTips: "High in carbohydrates but gluten-free. Low in protein and vitamins, so it should be paired with other nutritious foods.",
   },
 
   {
@@ -41,7 +47,13 @@ const foods = [
     Fat_g: 60.483,
     Carbohydrates_g: 27.094,
     Fiber_g: 2.786,
-    VitaminC_mg: 12.54
+    VitaminC_mg: 12.54,
+    culturalSignificance: "The quintessential everyday food of Sarawak, Kolo Mee is a symbol of Kuching's food culture. Its Chinese origins are deeply woven into the state's identity, commonly eaten for breakfast and a must-try for visitors.",
+    traditionalPreparation: "Springy egg noodles are blanched and tossed in a simple seasoning of lard (or oil), light soy sauce, and vinegar, then topped with seasoned minced pork, sliced char siu, and spring onions.",
+    commonIngredients: ["Soy sauce, Egg noodles, Char siu, Spring onions, Shallot oil"],
+    alternative: "Vegetable oil, Chicken or shrimp, Dried mushrooms (vegetarian)",
+    altDescription: "For a healthier version, use vegetable oil instead of lard and chicken or mushrooms instead of pork.",
+    healthTips: "Opt for a version with less lard and more vegetables to reduce saturated fat and increase fiber.",
   },
 
   {
@@ -63,7 +75,13 @@ const foods = [
     Fat_g: 7.6,
     Carbohydrates_g: 43.43,
     Fiber_g: 3.1,
-    VitaminC_mg: 109
+    VitaminC_mg: 109,
+    culturalSignificance: "Known as the 'Sarawakian ceviche', Umai is a traditional Melanau fisherman's dish, prepared fresh on boats as a quick and nutritious meal. It showcases the reliance on the state's abundant fresh seafood.",
+    traditionalPreparation: "Thinly sliced raw fish (like mackerel or bawal) is 'cooked' by marinating it in a mixture of lime juice, onions, chillies, and salt. It is often mixed with grated dried sago powder for texture.",
+    commonIngredients: ["Prawns, Chilies, Ginger, Sugar, Salt, Shallots, Cucumber"],
+    alternative: "Fresh salmon or tuna, Lemon juice",
+    altDescription: "Any very fresh, sashimi-grade fish can be used. Lemon juice can replace lime for a different citrus note.",
+    healthTips: "Ensure the fish is extremely fresh and handled hygienically to avoid foodborne illness. Rich in protein and omega-3 fatty acids.",
   },
 
   {
@@ -83,7 +101,13 @@ const foods = [
     Fat_g: 2.02,
     Carbohydrates_g: 9.24,
     Fiber_g: 0.2,
-    VitaminC_mg: 13.8
+    VitaminC_mg: 13.8,
+    culturalSignificance: "Sarawak's version of fried rice, Nasi Aruk is distinct for being a Malay community specialty. It is a beloved dish for supper and gatherings, known for its intense, smoky flavour without using any oil or liquid in the frying process.",
+    traditionalPreparation: "Day-old rice is fried in a dry wok with garlic, shallots, and belacan (shrimp paste), constantly stirred over high heat until it becomes fragrant, dry, and slightly toasted.",
+    commonIngredients: ["Anchovies, Garlic, Chilies, Salt, White pepper, Day-old rice"],
+    alternative: "Fresh rice (dried out in the fridge), Dried shrimp powder (if belacan is unavailable)",
+    altDescription: "If cannot achieve the dry texture without oil, a minimal amount of oil can be used. Dried shrimp can add a similar umami if belacan is unavailable.",
+    healthTips: "A relatively low-fat fried rice option due to the no-oil cooking method, but high in sodium from belacan and salt.",
   },
 
   {
@@ -102,7 +126,13 @@ const foods = [
     Fat_g: 57.3,
     Carbohydrates_g: 55.99,
     Fiber_g: 1.98,
-    VitaminC_mg: 81.34
+    VitaminC_mg: 81.34,
+    culturalSignificance: "A specialty of the Sarawakian Chinese community, particularly in Sibu, known for its bold and tangy profile. It reflects the local adaptation of Chinese noodle dishes using indigenous ingredients like asam (sour) fruits.",
+    traditionalPreparation: "A rich, sour, and spicy broth is made from tamarind (asam jawa) or other souring agents, then poured over noodles and topped with shredded chicken, prawns, and mint leaves.",
+    commonIngredients: ["Chicken, Ginger, Shallot, Garlic, Tapioca leaves, Rice"],
+    alternative: "Lime or calamansi juice, Fish or tofu, Vermicelli or egg noodles",
+    altDescription: "Other souring agents like lime can be used if tamarind is unavailable. The protein can be easily swapped to preference or dietary needs.",
+    healthTips: "The tamarind-based broth is low in fat. Using skinless chicken and adding more vegetables can make this a very balanced and healthy meal.",
   },
 
   {
@@ -120,7 +150,13 @@ const foods = [
     Fat_g: 9.2,
     Carbohydrates_g: 242.29,
     Fiber_g: 7.15,
-    VitaminC_mg: 52.9
+    VitaminC_mg: 52.9,
+    culturalSignificance: "A simple yet powerful noodle dish that highlights the central role of belacan in Sarawakian cuisine. It's a common and comforting meal found in many local eateries.",
+    traditionalPreparation: "Rice vermicelli (bihun) is blanched and then tossed or stir-fried with a robust sauce made primarily from pounded chillies and belacan, creating a spicy, salty, and umami-rich flavour.",
+    commonIngredients: ["Soya bean sprout, Shrimp, Shallot, Rice vermicelli, Chili, Tamarind paste, Brown sugar, Cucumber, Cuttlefish"],
+    alternative: "Rice noodles or angel hair pasta, Sambal oelek or chili-garlic paste",
+    altDescription: "Other thin noodles can be used. A prepared chili paste can be a quick substitute for the belacan mixture.",
+    healthTips: "The sodium content is high due to belacan. Balance the meal by adding side vegetables and a lean protein.",
   },
 
   {
@@ -139,7 +175,13 @@ const foods = [
     Fat_g: 3.64,
     Carbohydrates_g: 37.3,
     Fiber_g: 4.89,
-    VitaminC_mg: 84.415
+    VitaminC_mg: 84.415,
+    culturalSignificance: "A traditional dish for the Iban community, often prepared during festivals like Gawai. The laborious process of pounding the leaves signifies community effort and the preservation of culinary heritage.",
+    traditionalPreparation: "Cassava leaves are pounded using a mortar and pestle to soften them and release their flavour, then cooked with spices, lemongrass, and sometimes anchovies or meat in a bamboo tube over an open fire.",
+    commonIngredients: ["Cassava leaves, Lemongrass, Galangal, Shallots, Chili, Garlic, Salt, Water"],
+    alternative: "Spinach or kale (no need pounding), Chicken or turkey",
+    altDescription: "Less fibrous greens can be used but will result in a different texture. Various proteins can be used based on preference.",
+    healthTips: "Cassava leaves must be cooked thoroughly to remove naturally occurring cyanide compounds. They are an excellent source of protein and iron.",
   },
 
   {
@@ -158,7 +200,13 @@ const foods = [
     Fat_g: 14,
     Carbohydrates_g: 19.64,
     Fiber_g: 3.98,
-    VitaminC_mg: 273.12
+    VitaminC_mg: 273.12,
+    culturalSignificance: "A common and beloved vegetable dish among the Iban and Bidayuh communities, it represents the practice of growing and consuming sustainable, homegrown produce from the garden or farm.",
+    traditionalPreparation: "The tender leaves and shoots are simply stir-fried with aromatics like garlic, shallots, and sometimes dried shrimp or belacan. It can also be boiled and served with a sambal dip.",
+    commonIngredients: ["Eggs, Soy sauce, Salt, Manicai"],
+    alternative: "Spinach or water spinach, Fresh shrimp or anchovies",
+    altDescription: "Almost any tender leafy green can be prepared using this method. Fresh seafood can be used instead of dried.",
+    healthTips: "Sweet potato leaves (Manicai) are rich in vitamins A, C, and K. A very nutritious and low-calorie dish, especially when prepared with little oil.",
   },
 
   {
@@ -178,6 +226,12 @@ const foods = [
     Carbohydrates_g: 23,
     Fiber_g: 17,
     VitaminC_mg: 25,
+    culturalSignificance: "This is the most iconic jungle fern dish of Sarawak. Midin is foraged from the wild, representing the close relationship between Sarawakians and their rich rainforest ecosystem.",
+    traditionalPreparation: "The crisp midin ferns are quickly stir-fried in a hot wok with a pungent and savoury paste made from chillies, garlic, and belacan (shrimp paste).",
+    commonIngredients: ["Midin, Garlic, Chilies, Shrimp paste, Salt, Shallot"],
+    alternative: "Water spinach (kangkung) or other sturdy greens, Dried shrimp paste in oil (as a belacan substitute)",
+    altDescription: "If midin is unavailable, kangkung makes a good alternative, though the texture will be softer.",
+    healthTips: "Midin is a good source of fiber. Using less belacan can help control sodium intake.",
   },
 
   {
@@ -197,6 +251,12 @@ const foods = [
     Carbohydrates_g: 0,
     Fiber_g: 0,
     VitaminC_mg: 0,
+    culturalSignificance: "The most famous Iban ceremonial dish, traditionally prepared during Gawai. Cooking in a bamboo tube over an open fire imparts a unique aroma and symbolizes unity, skill, and connection to nature.",
+    traditionalPreparation: "Chicken is marinated with lemongrass, ginger, tapioca leaves, and minimal water, then stuffed into a bamboo tube sealed with tapioca leaves. The tube is then slanted over an open fire to cook.",
+    commonIngredients: ["Chicken, Kantan flower, Lemongrass, Umbut tepus, White onion, Ginger, Bamboo stick, Aji No Moto, Salt, Red onion, Daun ubi"],
+    alternative: "Fish or prawns, Banana leaves (if bamboo is unavailable), Spring onions",
+    altDescription: "The cooking method can be simulated in a steamer or oven-safe dish wrapped in banana leaves if bamboo is not available.",
+    healthTips: "A very healthy cooking method as it uses no oil, steaming the chicken in its own juices, resulting in a lean and flavorful dish.",
   }
 
 ];
@@ -206,8 +266,8 @@ const foods = [
     for (const food of foods) {
       const sql = `
         INSERT INTO food 
-        (name, origin, category, foodType, difficulty, dietaryTags, description, image, prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (name, origin, category, foodType, difficulty, dietaryTags, description, image, prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, culturalSignificance, traditionalPreparation, commonIngredients, alternative, altDescription, healthTips)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const values = [
         food.name,
@@ -225,6 +285,12 @@ const foods = [
         food.Carbohydrates_g,
         food.Fiber_g,
         food.VitaminC_mg,
+        food.culturalSignificance,
+        food.traditionalPreparation,
+        food.commonIngredients,
+        food.alternative,
+        food.altDescription,
+        food.healthTips,
       ];
 
       await db.query(sql, values);
