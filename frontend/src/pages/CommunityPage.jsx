@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { FaCamera } from "react-icons/fa"; 
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Community() {
   const [expanded, setExpanded] = useState(false);
@@ -12,6 +13,7 @@ export default function Community() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user, isAuthenticated, login } = useAuth();
   const [formData, setFormData] = useState({
     foodName: '',
     culturalOrigin: '',
@@ -77,12 +79,30 @@ export default function Community() {
     }
   };
 
+  // Handle expand - check authentication first
+  const handleExpand = () => {
+    if (!isAuthenticated) {
+      const proceed = confirm("You need to log in to share your story. Would you like to log in now?");
+      if (proceed) {
+        login(); // Or navigate to login page: navigate('/login');
+      }
+      return;
+    }
+    setExpanded(true);
+  };
+
   const handleSubmit = async (e) => {
   e.preventDefault();
   
   console.log('🚀 Starting form submission...');
   console.log('📋 Form data:', formData);
   console.log('📁 Selected file:', selectedFile);
+
+  // Check authentication
+  if (!isAuthenticated || !user) {
+    alert("Please log in to submit a contribution.");
+      return;
+  }
   
   // Validation - recipe is optional, so only check required fields
   if (!formData.foodName || !formData.culturalOrigin || !formData.culturalStory) {
@@ -104,6 +124,8 @@ export default function Community() {
     submitData.append('culturalOrigin', formData.culturalOrigin);
     submitData.append('culturalStory', formData.culturalStory);
     submitData.append('recipe', formData.recipe || ''); // Ensure recipe is always sent, even if empty
+    submitData.append('userProfileID', user.id || user.userId || user._id); // Use actual user ID from auth
+    submitData.append('author', user.name || user.username || user.email); // Add author name
     
     // Append image file if selected
     if (selectedFile) {
@@ -209,19 +231,32 @@ export default function Community() {
         Celebrate Sarawak's rich heritage by sharing your recipes and stories
       </p>
 
+      {/* User welcome message */}
+      {isAuthenticated && user && (
+        <div className="user-welcome">
+          Welcome, <strong>{user.name || user.username || user.email}</strong>! Share your culinary heritage with the community.
+        </div>
+      )}
+
       {/* Expandable Share Card */}
       <section className={`share-card ${expanded ? "expanded" : ""}`}>
         <h3>Share Your Heritage</h3>
         <p>Upload recipes, photos, and stories to preserve our culture</p>
 
         {!expanded && (
-          <button className="share-btn" onClick={() => setExpanded(true)}>
-            Add Your Story
+          <button className="share-btn" onClick={handleExpand}>
+            {isAuthenticated ? 'Add Your Story' : 'Log In to Share Your Story'}
           </button>
         )}
 
         {expanded && (
           <form className="heritage-form" onSubmit={handleSubmit}>
+            {/* Show user info when form is expanded */}
+            {isAuthenticated && user && (
+              <div className="user-submission-info">
+                <p>Posting as: <strong>{user.name || user.username || user.email}</strong></p>
+              </div>
+            )}
             <div className="form-row">
               <div className="form-group">
                 <label>Food Name *</label>
@@ -313,6 +348,20 @@ export default function Community() {
                 Cancel
               </button>
             </div>
+
+            {/* Show login prompt if not authenticated */}
+            {!isAuthenticated && expanded && (
+              <div className="auth-prompt">
+                <p>You need to be logged in to submit a contribution.</p>
+                <button 
+                  type="button" 
+                  className="login-btn"
+                  onClick={login}
+                >
+                  Log In Now
+                </button>
+              </div>
+            )}
           </form>
         )}
       </section>
@@ -326,8 +375,8 @@ export default function Community() {
         ) : posts.length === 0 ? (
           <div className="no-posts">
             <p>No contributions yet. Be the first to share!</p>
-            <button className="share-btn" onClick={() => setExpanded(true)}>
-              Share Your First Story
+            <button className="share-btn" onClick={handleExpand}>
+              {isAuthenticated ? 'Share Your First Story' : 'Log In to Share'}
             </button>
           </div>
         ) : (
@@ -337,22 +386,27 @@ export default function Community() {
                 <div className="card-image">
                   <img 
                     src={post.images && post.images.length > 0 ? post.images[0] : "https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=800&q=80"} 
-                    alt={post.title} 
+                    alt={post.foodName} 
                   />
                   <div className="badge-group">
-                    <span className="category">{post.category || "Uncategorized"}</span>
+                    <span className="category">{post.culturalOrigin || "Uncategorized"}</span>
                   </div>
                 </div>
 
                 <div className="card-content">
-                  <h3>{post.title}</h3>
+                  <h3>{post.foodName}</h3>
                   <p className="meta">
                     by <b>{post.author}</b> • {post.daysAgo}
                   </p>
-                  <p className="desc">{post.desc}</p>
+                  <p className="desc">{post.culturalStory}</p>
                   <div className="card-footer">
                     <span>❤️ {post.likeCount} likes</span>
-                    <span>💬 {post.commentCount} comments</span>
+                    <span 
+                      style={{cursor: 'pointer'}}
+                      onClick={() => navigate(`/community/${post.id}`)}
+                    >
+                      💬 {post.commentCount} comments
+                    </span>
                   </div>
                   <button
                     className="view-btn"

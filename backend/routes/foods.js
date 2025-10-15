@@ -6,7 +6,7 @@ const { requireAuth, requireAdmin } = require('../middleware/auth');
 // Get all foods (PUBLIC - anyone can view)
 router.get('/', async (req, res) => {
   try {
-    const [foods] = await db.promise().query('SELECT * FROM food');
+    const [foods] = await req.db.promise().query('SELECT * FROM food');
     
     return res.json({
       success: true,

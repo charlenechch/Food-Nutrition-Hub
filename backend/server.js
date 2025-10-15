@@ -1,6 +1,7 @@
 // backend/server.js
 /* eslint-disable no-console */
 require("dotenv").config();
+const mysql = require('mysql2');
 
 const express = require("express");
 const cors = require("cors");
@@ -23,6 +24,48 @@ const otpRoutes = require("./routes/otp");
 const app = express();
 const PORT = process.env.PORT || 5000;
 const IS_PROD = process.env.NODE_ENV === "production";
+
+// ---------- Environment Validation ----------
+const requiredEnvVars = ['MYSQLHOST', 'MYSQLUSER', 'MYSQLPASSWORD', 'MYSQLDATABASE'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingEnvVars);
+  console.error('💡 Please check your .env file or Railway environment variables');
+  process.exit(1);
+}
+
+// ---------- Database Connection ----------
+const dbConfig = {
+  host: process.env.MYSQLHOST,
+  port: process.env.MYSQLPORT || 3306,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD, // From environment only!
+  database: process.env.MYSQLDATABASE,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+};
+
+console.log('🔧 Database Config:', {
+  host: dbConfig.host,
+  port: dbConfig.port,
+  user: dbConfig.user,
+  database: dbConfig.database
+  // Never log passwords!
+});
+
+const db = mysql.createPool(dbConfig);
+const promiseDb = db.promise();
+
+// Test database connection
+promiseDb.execute('SELECT 1 as test')
+  .then(([rows]) => {
+    console.log('✅ Database connection test successful');
+  })
+  .catch(err => {
+    console.error('❌ Database connection test failed:', err.message);
+  });
 
 // ---------- 1) Proxy & security headers ----------
 app.set("trust proxy", 1); // behind Railway/Vercel proxy
@@ -100,50 +143,60 @@ app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 app.use(hpp()); // HTTP Parameter Pollution guard
 
 // ---------- 4) Sessions (MySQL store) ----------
-const dbOptions = {
-  host: process.env.MYSQLHOST || process.env.DB_HOST,
-  port: Number(process.env.MYSQLPORT || process.env.DB_PORT) || 3306,
-  user: process.env.MYSQLUSER || process.env.DB_USER,
-  password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
-  database: process.env.MYSQLDATABASE || process.env.DB_NAME,
+const sessionStore = new MySQLStore({
+  host: process.env.MYSQLHOST,
+  port: process.env.MYSQLPORT || 3306,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD, // From environment
+  database: process.env.MYSQLDATABASE,
   clearExpired: true,
-  checkExpirationInterval: 15 * 60 * 1000, // cleanup every 15 min
-  expiration: 24 * 60 * 60 * 1000, // absolute 24h expiry
-};
-
-// ⚠️ Strongly recommended: remove any hard-coded DB fallbacks in production.
-const sessionStore = new MySQLStore(dbOptions);
+  checkExpirationInterval: 15 * 60 * 1000,
+  expiration: 24 * 60 * 60 * 1000,
+});
 
 app.use(
   session({
     name: "sid",
-    secret: process.env.SESSION_SECRET || "change-me-in-.env",
+    secret: process.env.SESSION_SECRET || "change-me-in-production",
     store: sessionStore,
     resave: false,
-    saveUninitialized: false, // don't create empty sessions
-    rolling: true, // refresh cookie on activity
+    saveUninitialized: false,
+    rolling: true,
     cookie: {
       httpOnly: true,
-      sameSite: "none", // cross-site with Vercel frontend
-      secure: true, // requires HTTPS + trust proxy
-      maxAge: 60 * 60 * 1000, // IDLE timeout: 1h (absolute 24h via store.expiration)
+      sameSite: "none",
+      secure: IS_PROD,
+      maxAge: 60 * 60 * 1000,
     },
   })
 );
 
-// ---------- 5) CSRF for state-changing requests ----------
-const csrfProtection = csrf({ cookie: false }); // uses session
-
-// Token endpoint for the SPA to fetch a token and send it via X-CSRF-Token
-app.get("/api/auth/csrf-token", (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
-
-// Apply CSRF ONLY to mutating methods to keep GET/OPTIONS simple
+// Make db available to all routes
 app.use((req, res, next) => {
-  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
-  return csrfProtection(req, res, next);
+  req.db = promiseDb;
+  next();
 });
+
+// ---------- 5) CSRF for state-changing requests ----------
+// const csrfProtection = csrf({ 
+//   cookie: false // Use sessions instead of cookies
+// });
+
+// // Token endpoint for the SPA to fetch a token
+// app.get("/api/auth/csrf-token", csrfProtection, (req, res) => {
+//   res.json({ 
+//     csrfToken: req.csrfToken(),
+//     message: "CSRF token generated successfully"
+//   });
+// });
+
+// // Apply CSRF to all non-GET requests
+// app.use((req, res, next) => {
+//   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+//     return next();
+//   }
+//   return csrfProtection(req, res, next);
+// });
 
 // ---------- 6) Rate limiting ----------
 const globalLimiter = rateLimit({
@@ -211,3 +264,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT} (mode: ${process.env.NODE_ENV || "dev"})`);
 });
+
+

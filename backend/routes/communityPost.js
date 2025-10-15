@@ -2,45 +2,66 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+// const path = require('path');
+// const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
 
-// ✅ AUTO-CREATE UPLOADS DIRECTORY
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('📁 Created uploads directory automatically');
-}
-
-// ✅ Configure multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
-  }
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: function (req, file, cb) {
-    const filetypes = /jpeg|jpg|png|gif/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
+// Use memory storage for multer
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+// // ✅ AUTO-CREATE UPLOADS DIRECTORY
+// const uploadsDir = path.join(__dirname, 'uploads');
+// if (!fs.existsSync(uploadsDir)) {
+//   fs.mkdirSync(uploadsDir, { recursive: true });
+//   console.log('📁 Created uploads directory automatically');
+// }
+
+// // ✅ Configure multer
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, uploadsDir);
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
+//   }
+// });
+
+// const upload = multer({ 
+//   storage: storage,
+//   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+//   fileFilter: function (req, file, cb) {
+//     const filetypes = /jpeg|jpg|png|gif/;
+//     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+//     const mimetype = filetypes.test(file.mimetype);
     
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed'));
-    }
-  }
+//     if (mimetype && extname) {
+//       return cb(null, true);
+//     } else {
+//       cb(new Error('Only image files are allowed'));
+//     }
+//   }
+// });
+
+
+// ✅ Add database middleware to ensure req.db is available
+router.use((req, res, next) => {
+  req.db = db;
+  next();
 });
 
 // Get all approved posts with joined data including like/comment counts
 router.get("/counts", async (req, res) => {
     try {
+        console.log('📥 Fetching all approved posts with counts...');
+        
         const query = `
             SELECT 
                 p.postID,
@@ -48,10 +69,9 @@ router.get("/counts", async (req, res) => {
                 p.created_at,
                 p.culturalStory,
                 p.photos,
-                p.foodName AS title,
-                p.origin AS category,
-                p.ingredients,
-                p.steps,
+                p.foodName,
+                p.origin AS culturalOrigin,
+                p.recipe,
                 up.userProfileID,
                 CONCAT(u.firstname, ' ', u.lastname) AS author,
                 COUNT(DISTINCT l.likeID) as likeCount,
@@ -66,21 +86,21 @@ router.get("/counts", async (req, res) => {
             ORDER BY p.created_at DESC
         `;
 
-        const [posts] = await db.execute(query);
+        const [posts] = await req.db.execute(query);
+        console.log(`✅ Found ${posts.length} approved posts`);
 
-        // Format the response data
+        // Format the response data with correct field names
         const formattedPosts = posts.map(post => ({
             id: post.postID,
-            title: post.foodName, // Fixed: use foodName instead of title
+            foodName: post.foodName, // ✅ Use foodName instead of title
             author: post.author,
             daysAgo: getTimeAgo(post.created_at),
-            category: post.origin, // Fixed: use origin instead of category
+            culturalOrigin: post.culturalOrigin, // ✅ Use culturalOrigin instead of category
             images: post.photos ? post.photos.split(',').map(photo => photo.trim()) : [],
-            desc: post.culturalStory,
+            culturalStory: post.culturalStory, // ✅ Use culturalStory instead of desc
             likeCount: post.likeCount,
             commentCount: post.commentCount, 
-            ingredients: post.ingredients,
-            steps: post.steps,    
+            recipe: post.recipe,    
             userProfile: {
                 id: post.userProfileID,
                 name: post.author
@@ -94,10 +114,11 @@ router.get("/counts", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error fetching posts:", error);
+        console.error("❌ Error fetching posts:", error);
         res.status(500).json({
             success: false,
-            message: "Internal server error"
+            message: "Internal server error",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
@@ -117,9 +138,8 @@ router.get("/:id", async (req, res) => {
                 p.culturalStory,
                 p.photos,
                 p.foodName,
-                p.origin,
-                p.ingredients,
-                p.steps,
+                p.origin AS culturalOrigin,
+                p.recipe,
                 up.userProfileID,
                 CONCAT(u.firstname, ' ', u.lastname) AS author,
                 COUNT(DISTINCT l.likeID) as likeCount,
@@ -134,7 +154,7 @@ router.get("/:id", async (req, res) => {
         `;
 
         console.log('Executing post query...');
-        const [posts] = await db.execute(postQuery, [postId]);
+        const [posts] = await req.db.execute(postQuery, [postId]);
         console.log(`Query result: ${posts.length} posts found`);
 
         if (posts.length === 0) {
@@ -152,7 +172,7 @@ router.get("/:id", async (req, res) => {
         const commentsQuery = `
             SELECT 
                 c.commentID,
-                c.comment AS commentText,
+                c.comment AS text,
                 c.created_at,
                 up.userProfileID,
                 CONCAT(u.firstname, ' ', u.lastname) AS author
@@ -164,45 +184,28 @@ router.get("/:id", async (req, res) => {
         `;
 
         console.log('Fetching comments...');
-        const [comments] = await db.execute(commentsQuery, [postId]);
+        const [comments] = await req.db.execute(commentsQuery, [postId]);
         console.log(`Found ${comments.length} comments`);
 
-        // Get users who liked this post
-        const likesQuery = `
-            SELECT 
-                l.likeID,
-                up.userProfileID,
-                CONCAT(u.firstname, ' ', u.lastname) AS username
-            FROM likes l
-            JOIN userProfile up ON l.userProfileID = up.userProfileID
-            JOIN user u ON up.userID = u.userID
-            WHERE l.postID = ?
-        `;
-
-        console.log('Fetching likes...');
-        const [likes] = await db.execute(likesQuery, [postId]);
-        console.log(`Found ${likes.length} likes`);
-
+        // Format the post with correct field names
         const formattedPost = {
             id: post.postID,
-            title: post.foodName, // Fixed: use foodName
+            foodName: post.foodName, 
             author: post.author,
             daysAgo: getTimeAgo(post.created_at),
-            category: post.origin, // Fixed: use origin
+            culturalOrigin: post.culturalOrigin, 
             images: post.photos ? post.photos.split(',').map(photo => photo.trim()) : [],
-            desc: post.culturalStory,
+            culturalStory: post.culturalStory, 
             likeCount: post.likeCount,
             commentCount: post.commentCount,
-            likes: likes,
             comments: comments.map(comment => ({
                 id: comment.commentID,
-                text: comment.commentText,
+                text: comment.text,
                 author: comment.author,
                 daysAgo: getTimeAgo(comment.created_at),
                 userProfileID: comment.userProfileID
             })),            
-            ingredients: post.ingredients,
-            steps: post.steps,           
+            recipe: post.recipe,           
             userProfile: {
                 id: post.userProfileID,
                 name: post.author
@@ -217,11 +220,10 @@ router.get("/:id", async (req, res) => {
 
     } catch (error) {
         console.error("❌ Error fetching post:", error);
-        console.error("Error stack:", error.stack);
         res.status(500).json({
             success: false,
             message: "Internal server error",
-            error: error.message
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
@@ -247,7 +249,7 @@ router.post('/comments', async (req, res) => {
       VALUES (?, ?, ?, NOW())
     `;
     
-    const [result] = await db.execute(insertQuery, [content, postId, userProfileID]);
+    const [result] = await req.db.execute(insertQuery, [content, postId, userProfileID]);
     
     console.log('✅ Comment inserted with ID:', result.insertId);
 
@@ -255,7 +257,7 @@ router.post('/comments', async (req, res) => {
     const commentQuery = `
       SELECT 
         c.commentID,
-        c.comment AS commentText,
+        c.comment AS text,
         c.created_at,
         up.userProfileID,
         CONCAT(u.firstname, ' ', u.lastname) AS author
@@ -265,7 +267,7 @@ router.post('/comments', async (req, res) => {
       WHERE c.commentID = ?
     `;
 
-    const [comments] = await db.execute(commentQuery, [result.insertId]);
+    const [comments] = await req.db.execute(commentQuery, [result.insertId]);
     
     if (comments.length === 0) {
       throw new Error('Failed to retrieve created comment');
@@ -274,7 +276,7 @@ router.post('/comments', async (req, res) => {
     const newComment = comments[0];
     const formattedComment = {
       id: newComment.commentID,
-      text: newComment.commentText,
+      text: newComment.text,
       author: newComment.author,
       daysAgo: getTimeAgo(newComment.created_at),
       userProfileID: newComment.userProfileID
@@ -291,7 +293,7 @@ router.post('/comments', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error posting comment',
-      error: error.message
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -305,7 +307,7 @@ router.get('/comments/:postId', async (req, res) => {
     const commentsQuery = `
       SELECT 
         c.commentID,
-        c.comment AS commentText,
+        c.comment AS text,
         c.created_at,
         up.userProfileID,
         CONCAT(u.firstname, ' ', u.lastname) AS author
@@ -316,13 +318,13 @@ router.get('/comments/:postId', async (req, res) => {
       ORDER BY c.created_at ASC
     `;
 
-    const [comments] = await db.execute(commentsQuery, [postId]);
+    const [comments] = await req.db.execute(commentsQuery, [postId]);
     
     console.log(`✅ Found ${comments.length} comments for post ${postId}`);
 
     const formattedComments = comments.map(comment => ({
       id: comment.commentID,
-      text: comment.commentText,
+      text: comment.text,
       author: comment.author,
       daysAgo: getTimeAgo(comment.created_at),
       userProfileID: comment.userProfileID
@@ -338,19 +340,19 @@ router.get('/comments/:postId', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching comments',
-      error: error.message
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
 
-// In your create endpoint, replace the current try-catch with this:
+// Create new post
 router.post('/create', upload.array('images', 5), async (req, res) => {
   console.log('=== STARTING POST CREATION ===');
   console.log('📦 Request body:', req.body);
   console.log('📁 Uploaded files:', req.files ? req.files.map(f => f.filename) : 'No files');
   
   try {
-    const { foodName, culturalOrigin, culturalStory, ingredients, steps, userProfileID } = req.body;
+    const { foodName, culturalOrigin, culturalStory, recipe, userProfileID } = req.body;
     
     // Validate required fields with more detailed error messages
     if (!foodName) {
@@ -381,35 +383,46 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
     console.log('✅ All required fields present');
 
     // Get uploaded file paths
-    const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
-    const photosString = images.join(',');
+    // const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+    // const photosString = images.join(',');
 
-    console.log('🖼️ Processed images:', images);
-    console.log('📸 Photos string:', photosString);
+    // console.log('🖼️ Processed images:', images);
+    // console.log('📸 Photos string:', photosString);
 
-    // Test database connection first
-    console.log('🔌 Testing database connection...');
-    const [testResult] = await db.execute('SELECT 1 as test');
-    console.log('✅ Database connection successful');
+    // Upload images to Cloudinary
+    const imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const uploadResult = await cloudinary.uploader.upload(
+          `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+          {
+            folder: 'food-heritage',
+            resource_type: 'image'
+          }
+        );
+        imageUrls.push(uploadResult.secure_url);
+      }
+    }
+
+    const photosString = imageUrls.join(',');
 
     // Insert into posts table
     const insertQuery = `
       INSERT INTO posts 
-        (foodName, origin, userProfileID, status, culturalStory, photos, ingredients, steps, created_at) 
-      VALUES (?, ?, ?, 'Pending', ?, ?, ?, ?, NOW())
+        (foodName, origin, userProfileID, status, culturalStory, photos, recipe, created_at) 
+      VALUES (?, ?, ?, 'Pending', ?, ?, ?, NOW())
     `;
     
     console.log('🚀 Executing insert query...');
-    console.log('Query values:', [foodName, culturalOrigin, userProfileID, culturalStory, photosString, ingredients || '', steps || '']);
+    console.log('Query values:', [foodName, culturalOrigin, userProfileID, culturalStory, photosString, recipe || '']);
     
-    const [result] = await db.execute(insertQuery, [
+    const [result] = await req.db.execute(insertQuery, [
       foodName,
       culturalOrigin,
       userProfileID,
       culturalStory,
       photosString,
-      ingredients || '',
-      steps || ''
+      recipe || ''
     ]);
 
     console.log('✅ Post inserted with ID:', result.insertId);
@@ -419,12 +432,11 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
       SELECT 
         p.postID,
         p.foodName,
-        p.origin,
+        p.origin AS culturalOrigin,
         p.status,
         p.culturalStory,
         p.photos,
-        p.ingredients,
-        p.steps,
+        p.recipe,
         p.created_at,
         up.userProfileID,
         CONCAT(u.firstname, ' ', u.lastname) AS author
@@ -434,7 +446,7 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
       WHERE p.postID = ?
     `;
 
-    const [posts] = await db.execute(postQuery, [result.insertId]);
+    const [posts] = await req.db.execute(postQuery, [result.insertId]);
     
     if (posts.length === 0) {
       throw new Error('Failed to retrieve created post');
@@ -448,13 +460,13 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
       message: 'Your heritage story has been submitted for admin approval! It will appear on the website once approved.',
       data: {
         postId: newPost.postID,
-        title: newPost.foodName,
+        foodName: newPost.foodName,
         author: newPost.author,
-        category: newPost.origin,
+        culturalOrigin: newPost.culturalOrigin,
         status: newPost.status.toLowerCase(),
-        images: newPost.photos ? newPost.photos.split(',') : [],
-        ingredients: newPost.ingredients,
-        steps: newPost.steps,
+        //images: newPost.photos ? newPost.photos.split(',') : [],
+        images: imageUrls,
+        recipe: newPost.recipe,
         userProfileID: newPost.userProfileID
       }
     });
@@ -464,17 +476,6 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
     console.error('Error message:', error.message);
     console.error('Error code:', error.code);
     console.error('Error stack:', error.stack);
-    
-    // Check for specific MySQL errors
-    if (error.code === 'ER_NO_SUCH_TABLE') {
-      console.error('Table does not exist');
-    } else if (error.code === 'ER_BAD_FIELD_ERROR') {
-      console.error('Field does not exist:', error.message);
-    } else if (error.code === 'ER_ACCESS_DENIED_ERROR') {
-      console.error('Database access denied');
-    } else if (error.code === 'ER_DUP_ENTRY') {
-      console.error('Duplicate entry');
-    }
     
     let errorMessage = 'Failed to submit post';
     
