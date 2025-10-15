@@ -163,11 +163,18 @@ export default function CommunityPost() {
   const [error, setError] = useState(null);
   const { user } = useAuth(null); 
 
+  // 🔴 ADD DEBUG LOGS
+  console.log('🔴 CommunityPost Component Rendered');
+  console.log('🔴 useParams ID:', id);
+  console.log('🔴 Current URL:', window.location.href);
+  console.log('🔴 Current state - loading:', loading, 'post:', post, 'error:', error);
+
   useEffect(() => {
     fetchPost();
   }, [id]);
 
   const fetchPost = async () => {
+    console.log('🟢 fetchPost called with ID:', id);
     try {
       setLoading(true);
       setError(null);
