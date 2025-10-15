@@ -68,7 +68,7 @@ function App() {
         <Route path="/fooddetail" element={<FoodDetailRoute />} />
         <Route path="/fooddiscussion" element={<FoodDiscussionRoute/>} />
         <Route path="/recipes" element={<RecipesPage />} />
-        <Route path="/recipedetail" element={<RecipeDetailPage />} />
+        <Route path="/recipes/:id" element={<RecipeDetailPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:id" element={<CommunityPost />} />
 
