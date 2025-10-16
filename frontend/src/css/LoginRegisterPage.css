@@ -313,3 +313,30 @@ body, html, #root {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* 🔁 Progressive lockout timer and hint */
+.lrp-timer {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #a94442;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.lrp-hint {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #8b5e3c;
+  font-style: italic;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Enhance locked button look */
+.lrp-btn[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: #b58b66;
+  border: 1px solid #9c7252;
+  transition: background 0.3s ease;
+}
