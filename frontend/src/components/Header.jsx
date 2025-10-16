@@ -4,14 +4,31 @@ import { FaGlobe, FaSignOutAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../config/api";
 import "./Header.css";
+import { User } from "lucide-react";
 
 export default function Header() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
+
+  const getProfileSlug = () => {
+    const name =
+      user?.username ||
+      user?.name ||
+      (user?.email ? user.email.split("@")[0] : null);
+
+    if (!name) return null;
+    return String(name).trim().toLowerCase().replace(/\s+/g, "");
+  };
+
+  const goToMyProfile = () => {
+    const slug = getProfileSlug();
+    if (!slug) return navigate("/loginregister");
+    navigate(`/profile/${slug}`);
+  };
 
   // Handle logout
   const handleLogout = async () => {
@@ -66,12 +83,20 @@ export default function Header() {
         <li>
           <NavLink to="/community" onClick={closeMenu}>Community</NavLink>
         </li>
+        <li>
+          <button className="linklike-btn" onClick={() => { closeMenu(); goToMyProfile(); }}>
+            My Profile
+          </button>
+        </li>
       </ul>
 
       {/* Right Side Buttons */}
       <div className="navbar-actions">
         <button className="lang-btn" onClick={() => navigate("/language")}>
           <FaGlobe /> EN
+        </button>
+        <button onClick={goToMyProfile}>
+          <User size={20}/> Profile
         </button>
         <button className="logout-btn" onClick={handleLogout}>
           <FaSignOutAlt /> Logout

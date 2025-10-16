@@ -7,7 +7,6 @@ import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
 import RecipesPage from "./pages/RecipesPage";
 import RecipeDetailPage from "./pages/RecipeDetailPage";
 import CommunityPage from "./pages/CommunityPage";
-import UserProfilePage from "./pages/UserProfile";
 import ForgetPassword from "./pages/ForgotPasswordPage";
 import ResetPassword from "./pages/ResetPasswordPage";
 import OTPVerification from "./pages/OTPVerificationPage";
@@ -15,6 +14,8 @@ import FoodDetail from "./pages/FoodDetailPage";
 import FoodDiscussion from "./pages/FoodDiscussionPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CommunityPost from "./pages/CommunityPostPage";
+import UserProfilePage from "./pages/UserProfilePage";
+import ReviseContributionPage from "./pages/ReviseContributionPage";
 
 function FoodDetailRoute() {
   const { state } = useLocation();
@@ -71,6 +72,8 @@ function App() {
         <Route path="/recipes/:id" element={<RecipeDetailPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:id" element={<CommunityPost />} />
+        <Route path="/profile/:username" element={<UserProfilePage />} />
+        <Route path="/revise/:id" element={<ReviseContributionPage />} />
 
         {/* Nutrition Analyzer is public but guest has limited actions */}
         <Route path="/analyzer" element={<NutritionAnalyzerPage />} />

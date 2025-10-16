@@ -197,3 +197,12 @@
     display: none;
   }
 }
+.linklike-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+.linklike-btn:hover { text-decoration: underline; }
