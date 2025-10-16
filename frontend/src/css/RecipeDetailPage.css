@@ -16,7 +16,7 @@
   .rdp-grid { 
     grid-template-columns: 2fr 1fr; 
     align-items: start; 
-}
+    }
 }
 .rdp-main { 
     display: grid; 
@@ -161,13 +161,18 @@
 }
 
 /* Sidebar */
+.fdp-actions { 
+    order: 0; 
+}
 .rdp-aside { 
-    display: grid; 
+    display: flex;
+    flex-direction: column;
     gap: 1rem; 
 }
 /* Notes */
 .rdp-note { 
-    background: #fff; 
+    background: #fff;
+    order: 0; 
 }
 .rdp-note-warm { 
     background: #fffdf7; 
@@ -183,4 +188,9 @@
 .rdp-note-text { 
     margin: 0; 
     color:#3b2b1e; 
+}
+@media (max-width: 1024px) {
+  .rdp-aside { gap: 14px; }
+  .rdp-note { order: 1; }
+  .fdp-actions { order: 2; }
 }
