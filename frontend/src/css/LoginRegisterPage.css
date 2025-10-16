@@ -278,3 +278,38 @@ body, html, #root {
   margin-top: 4px;
   margin-bottom: 0;
 }
+
+/* 🔴 Instagram-style error box */
+.lrp-error-box {
+  background: rgba(237, 73, 86, 0.12);
+  color: #d63031;
+  border: 1px solid rgba(237, 73, 86, 0.3);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in-out;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 6px rgba(237, 73, 86, 0.15);
+}
+
+/* 🔒 countdown timer */
+.lrp-timer {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #a94442;
+  font-weight: 500;
+}
+
+/* Dim disabled fields/buttons */
+.lrp-btn[disabled],
+.lrp-form-content input[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
 import { API_URL } from "../config/api";
@@ -11,15 +11,44 @@ export default function LoginRegisterPage() {
   // Login state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
 
   // Register state
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [registerError, setRegisterError] = useState("");
+
+  // Lockout state (rate limiter)
+  const [lockoutUntil, setLockoutUntil] = useState(null);
+  const [remainingTime, setRemainingTime] = useState(0);
 
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  // Countdown timer for lockout
+  useEffect(() => {
+    if (!lockoutUntil) return;
+
+    const timer = setInterval(() => {
+      const diff = Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 1000));
+      setRemainingTime(diff);
+      if (diff <= 0) {
+        setLockoutUntil(null);
+        setLoginError("");
+        clearInterval(timer);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [lockoutUntil]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   const validatePassword = (password) => {
     const minLength = 8;
@@ -33,14 +62,16 @@ export default function LoginRegisterPage() {
     if (!hasLowerCase) return "Password must contain at least one lowercase letter";
     if (!hasNumber) return "Password must contain at least one number";
     if (!hasSpecialChar) return "Password must contain at least one special character (!@#$%^&*...)";
-
     return null;
   };
 
-  // Handle login
+  // Handle Login
   const handleLogin = async () => {
+    setLoginError("");
+
+    if (lockoutUntil) return; // prevent login if locked out
     if (!email || !password) {
-      alert("Please fill in all fields");
+      setLoginError("Please fill in all fields.");
       return;
     }
 
@@ -49,49 +80,56 @@ export default function LoginRegisterPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
+
+      // Handle Rate Limiter
+      if (res.status === 429) {
+        const data = await res.json();
+        setLoginError(data.error || "Too many attempts. Please wait before retrying.");
+
+        const unlockTime = Date.now() + 10 * 60 * 1000; // 10 minutes
+        setLockoutUntil(unlockTime);
+        setRemainingTime(600);
+        return;
+      }
 
       const data = await res.json();
 
       if (res.ok && data.success) {
         if (data.skipOTP) {
-          // Device is trusted, skip OTP
-          console.log("Trusted device - skipping OTP");
           login(data.user);
           navigate(data.user.role === "admin" ? "/admin" : "/home");
         } else {
-          // Device not trusted, require OTP
-          console.log("OTP required");
-          // Navigate to OTP page
           navigate(`/otpverification?email=${encodeURIComponent(email)}`);
         }
       } else {
-        //Wrong email or password
-        alert(data.message || "Invalid email or password");
+        setLoginError(data.message || "Invalid email or password.");
       }
     } catch (err) {
       console.error("Login error:", err);
-      alert("Login failed. Please try again.");
+      setLoginError("Login failed. Please try again later.");
     }
   };
 
-  // Handle registration
+  // Handle Registration
   const handleRegister = async () => {
+    setRegisterError("");
+
     if (!firstName || !lastName || !regEmail || !regPassword) {
-      alert("Please fill in all fields");
+      setRegisterError("Please fill in all fields.");
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(regEmail)) {
-      alert("Please enter a valid email address");
+      setRegisterError("Please enter a valid email address.");
       return;
     }
 
     const passwordError = validatePassword(regPassword);
     if (passwordError) {
-      alert(passwordError);
+      setRegisterError(passwordError);
       return;
     }
 
@@ -110,40 +148,36 @@ export default function LoginRegisterPage() {
 
       if (res.status === 429) {
         const data = await res.json();
-        alert(data.error || "Registration temporarily unavailable. Please try again later.");
+        setRegisterError(data.error || "Too many registration attempts. Try again later.");
         return;
       }
 
       const data = await res.json();
 
       if (res.ok) {
-        console.log("Registration successful:", data);
-        alert("Account created! Welcome to SarawakEats.");
-
         setFirstName("");
         setLastName("");
         setRegEmail("");
         setRegPassword("");
         setActiveTab("login");
       } else {
-        alert(data.error || data.message || "Registration failed!");
+        setRegisterError(data.error || data.message || "Registration failed!");
       }
     } catch (err) {
       console.error("Registration error:", err);
-      alert("Something went wrong during registration.");
+      setRegisterError("Something went wrong during registration.");
     }
   };
 
-  // Handle Guest
+  // Handle Guest Login
   const handleGuest = () => {
     login({ role: "guest" });
-    console.log("Logged in as guest");
     navigate("/home");
   };
 
   return (
     <div className="login-register-page">
-      {/* Left Section with Image */}
+      {/* Left Section */}
       <div className="lrp-image-section">
         <img src={LoginFood} alt="Login Food" />
         <div className="lrp-image-overlay"></div>
@@ -154,7 +188,7 @@ export default function LoginRegisterPage() {
         </div>
       </div>
 
-      {/* Right Section with Form */}
+      {/* Right Section */}
       <div className="lrp-form-section">
         <div className="lrp-card">
           <div className="lrp-card-header">
@@ -179,92 +213,117 @@ export default function LoginRegisterPage() {
             </button>
           </div>
 
-          {/* Form Content */}
-          <div className="lrp-form-content">
-            {activeTab === "login" ? (
-              <>
+          {/* Login Form */}
+          {activeTab === "login" ? (
+            <div className="lrp-form-content">
+              {loginError && (
+                <div className="lrp-error-box">
+                  {loginError}
+                  {lockoutUntil && remainingTime > 0 && (
+                    <p className="lrp-timer">Try again in {formatTime(remainingTime)}</p>
+                  )}
+                </div>
+              )}
+
+              <div>
+                <label>Email</label>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={!!lockoutUntil}
+                />
+              </div>
+              <div>
+                <label>Password</label>
+                <input
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={!!lockoutUntil}
+                />
+              </div>
+
+              <button
+                onClick={handleLogin}
+                className="lrp-btn lrp-btn-primary"
+                disabled={!!lockoutUntil}
+              >
+                {lockoutUntil ? "Locked" : "Sign In"}
+              </button>
+
+              <button
+                onClick={() => navigate("/forgotpassword")}
+                className="lrp-btn lrp-btn-primary"
+                disabled={!!lockoutUntil}
+              >
+                Forgot Password
+              </button>
+
+              <div className="lrp-divider"><span>or</span></div>
+              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
+                Continue as Guest
+              </button>
+            </div>
+          ) : (
+            // Register Form
+            <div className="lrp-form-content">
+              {registerError && <div className="lrp-error-box">{registerError}</div>}
+
+              <div className="lrp-grid">
                 <div>
-                  <label>Email</label>
+                  <label>First Name</label>
                   <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    placeholder="First name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
                   />
                 </div>
                 <div>
-                  <label>Password</label>
+                  <label>Last Name</label>
                   <input
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    type="text"
+                    placeholder="Last name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
                   />
                 </div>
-                <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
-                  Sign In
-                </button>
-                <button onClick={() => navigate("/forgotpassword")} className="lrp-btn lrp-btn-primary">
-                  Forgot Password
-                </button>
-                <div className="lrp-divider"><span>or</span></div>
-                <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
-                  Continue as Guest
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="lrp-grid">
-                  <div>
-                    <label>First Name</label>
-                    <input
-                      type="text"
-                      placeholder="First name"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label>Last Name</label>
-                    <input
-                      type="text"
-                      placeholder="Last name"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label>Password</label>
-                  <input
-                    type="password"
-                    placeholder="Create a password"
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                  />
-                  <p className="password-hint">
-                    Password must be at least 8 characters with uppercase, lowercase, number, and symbol
-                  </p>
-                </div>
-                <button onClick={handleRegister} className="lrp-btn lrp-btn-primary">
-                  Create Account
-                </button>
-                <div className="lrp-divider"><span>or</span></div>
-                <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
-                  Continue as Guest
-                </button>
-              </>
-            )}
-          </div>
+              </div>
+
+              <div>
+                <label>Email</label>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <label>Password</label>
+                <input
+                  type="password"
+                  placeholder="Create a password"
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
+                />
+                <p className="password-hint">
+                  Password must be at least 8 characters with uppercase, lowercase, number, and symbol
+                </p>
+              </div>
+
+              <button onClick={handleRegister} className="lrp-btn lrp-btn-primary">
+                Create Account
+              </button>
+              <div className="lrp-divider"><span>or</span></div>
+              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
+                Continue as Guest
+              </button>
+            </div>
+          )}
 
           <p className="lrp-footer-text">
             Join our community to contribute recipes and preserve Sarawak's food culture
