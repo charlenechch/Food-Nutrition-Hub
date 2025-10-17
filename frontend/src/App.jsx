@@ -65,8 +65,8 @@ function App() {
         <Route path="/otpverification" element={<OTPVerification />} />
         <Route path="/home" element={<UserHomepage />} />
         <Route path="/foods" element={<ExploreFoodsPage />} />
-        <Route path="/fooddetail" element={<FoodDetailRoute />} />
-        <Route path="/fooddiscussion" element={<FoodDiscussionRoute/>} />
+        <Route path="/fooddetail/:id" element={<FoodDetail />} />
+        <Route path="/fooddiscussion/:foodId" element={<FoodDiscussionRoute/>} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/recipes/:id" element={<RecipeDetailPage />} />
         <Route path="/community" element={<CommunityPage />} />

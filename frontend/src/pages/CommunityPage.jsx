@@ -84,7 +84,7 @@ export default function Community() {
     if (!isAuthenticated) {
       const proceed = confirm("You need to log in to share your story. Would you like to log in now?");
       if (proceed) {
-        login(); // Or navigate to login page: navigate('/login');
+        navigate('/loginregister'); 
       }
       return;
     }
