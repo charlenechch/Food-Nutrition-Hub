@@ -67,11 +67,6 @@ export default function Header() {
         <li>
           <NavLink to="/community" onClick={closeMenu}>Community</NavLink>
         </li>
-        <li>
-          <button className="linklike-btn" onClick={() => navigate("/profile/john")}>
-            My Profile
-          </button>
-        </li>
       </ul>
 
       {/* Right Side Buttons */}

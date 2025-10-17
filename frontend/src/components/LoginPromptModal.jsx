@@ -1,6 +1,7 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
+import { CiLock } from "react-icons/ci";
 
 export default function LoginPromptModal({ show, onClose }) {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ export default function LoginPromptModal({ show, onClose }) {
             marginBottom: "12px",
           }}
         >
-          🔒 Login Required
+          <CiLock /> Login Required
         </h2>
         <p
           style={{
