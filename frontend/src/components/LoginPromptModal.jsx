@@ -1,7 +1,7 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { CiLock } from "react-icons/ci";
+import { FaLock } from "react-icons/fa";
 
 export default function LoginPromptModal({ show, onClose }) {
   const navigate = useNavigate();
@@ -52,13 +52,18 @@ export default function LoginPromptModal({ show, onClose }) {
       >
         <h2
           style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px", // space between icon and text
             fontSize: "1.25rem",
             fontWeight: "600",
             color: "#916848",
             marginBottom: "12px",
           }}
         >
-          <CiLock /> Login Required
+          <FaLock style={{ fontSize: "1.5rem" }} />
+          Login Required
         </h2>
         <p
           style={{
