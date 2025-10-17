@@ -14,22 +14,6 @@ export default function Header() {
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
 
-  const getProfileSlug = () => {
-    const name =
-      user?.username ||
-      user?.name ||
-      (user?.email ? user.email.split("@")[0] : null);
-
-    if (!name) return null;
-    return String(name).trim().toLowerCase().replace(/\s+/g, "");
-  };
-
-  const goToMyProfile = () => {
-    const slug = getProfileSlug();
-    if (!slug) return navigate("/loginregister");
-    navigate(`/profile/${slug}`);
-  };
-
   // Handle logout
   const handleLogout = async () => {
     try {
@@ -84,7 +68,7 @@ export default function Header() {
           <NavLink to="/community" onClick={closeMenu}>Community</NavLink>
         </li>
         <li>
-          <button className="linklike-btn" onClick={() => { closeMenu(); goToMyProfile(); }}>
+          <button className="linklike-btn" onClick={() => navigate("/profile/john")}>
             My Profile
           </button>
         </li>
@@ -95,7 +79,7 @@ export default function Header() {
         <button className="lang-btn" onClick={() => navigate("/language")}>
           <FaGlobe /> EN
         </button>
-        <button onClick={goToMyProfile}>
+        <button onClick={() => navigate("/profile/john")}>
           <User size={20}/> Profile
         </button>
         <button className="logout-btn" onClick={handleLogout}>
