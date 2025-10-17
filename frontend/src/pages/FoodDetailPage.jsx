@@ -1,26 +1,175 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/FoodDetailPage.css";
-import { DEFAULT_COMMENTS_BY_FOOD } from "./FoodDiscussionPage";
 import { Share2, Info, TriangleAlert, MessagesSquare, ShoppingBasket, Cross, ScrollText } from "lucide-react";
 
-export default function FoodDetailPage({ food, onBack, onViewDiscussion }) {
-  const foodComments = DEFAULT_COMMENTS_BY_FOOD[food.id]?? [];
+const LS_RECIPES = 'savedRecipes';
+
+export default function FoodDetailPage() {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { state } = useLocation();
+  const [food, setFood] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [saved, setSaved] = useState(false);
+  const [foodComments, setFoodComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [savedLoading, setSavedLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchFood = async () => {
+      try { 
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"; 
+        const res = await fetch(`${API_BASE_URL}/api/foodDetail/${id}`); 
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        const result = await res.json();
+        
+        if (result.success) {
+          setFood(result.data);
+          // Fetch comments after food data is loaded
+          fetchFoodComments(result.data.id || id);
+        } else {
+          setError(result.message || 'Food not found');
+        }
+      } catch (err) {
+        setError('Failed to fetch food details');
+        console.error('Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchFood();
+    }
+  }, [id]);
+
+  const fetchFoodComments = async (foodId) => {
+    try {
+      setCommentsLoading(true);
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_BASE_URL}/api/foodDiscussion/food/${foodId}`);
+      
+      if (res.ok) {
+        const result = await res.json();
+        if (result.success) {
+          setFoodComments(result.data);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching comments:', err);
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  // Check if food is saved on component mount
+useEffect(() => {
+  if (id) {
+    checkSavedStatus();
+  }
+}, [id]);
+
+const checkSavedStatus = async () => {
+  try {
+    // Check if user is logged in FIRST
+    if (!isLoggedIn()) {
+      console.log('User not logged in, skipping save status check');
+      setSaved(false); // Default to not saved
+      return; // Stop here, don't call API
+    }
+
+    const userProfileID = getUserId();
+    
+    // Double check we have a valid user ID
+    if (!userProfileID) {
+      console.log('No user ID found, skipping save status check');
+      setSaved(false);
+      return;
+    }
+
+    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${userProfileID}`;
+    
+    const response = await fetch(url);
+    
+    if (response.ok) {
+      const data = await response.json();
+      setSaved(data.saved);
+    } else {
+      console.error('Failed to check saved status');
+      setSaved(false);
+    }
+  } catch (error) {
+    console.error('Error checking saved status:', error);
+    setSaved(false);
+  }
+};
+
+const handleSaveFood = async () => {
+  // Check if user is logged in
+  if (!isLoggedIn()) {
+    alert('Please log in to save foods');
+    navigate('/loginregister'); // Redirect to login page
+    return;
+  }
+
+  setSavedLoading(true);
+  try {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const response = await fetch(`${API_BASE_URL}/api/saveFood/${id}`, { 
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setSaved(data.saved);
+      
+      // Show toast notification
+      if (data.saved) {
+        console.log('Food saved successfully!');
+        // You can add a toast notification here
+      } else {
+        console.log('Food unsaved successfully!');
+      }
+    } else {
+      console.error('Failed to save food');
+    }
+  } catch (error) {
+    console.error('Error saving food:', error);
+  } finally {
+    setSavedLoading(false);
+  }
+};
+
+  // Check if user is logged in 
+  const isLoggedIn = () => {
+    // Replace this with your actual authentication logic
+    return localStorage.getItem('userToken') !== null;
+    // Or: return !!localStorage.getItem('userProfileID');
+  };
+
+  const handleViewDiscussion = () => {
+    navigate(`/fooddiscussion/${id}`, { state: { food } });
+  };
 
   const goToRecipe = () => {
     if (!food) return;
 
-    // 1) If you already store a direct recipeId on the food, use it
     if (food.recipeId) {
       navigate(`/recipes/${food.recipeId}`);
       return;
     }
 
-    // 2) Otherwise, try to find by name in your recipes list
     let recipes = [];
     try {
       const raw = localStorage.getItem(LS_RECIPES);
@@ -34,172 +183,245 @@ export default function FoodDetailPage({ food, onBack, onViewDiscussion }) {
     if (match?.id) {
       navigate(`/recipes/${match.id}`);
     } else {
-      // 3) Fallback: send them to the Recipes page with a search query
       navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`);
     }
   };
 
-  if (!food) return null;
-
-  const [saved, setSaved] = useState(false);
-
-  const getHealthAlerts = (f) => {
-    const alerts = [];
-    if (Number(f.calories) > 250) alerts.push({ type: "warning", message: "High calorie dish - consume in moderation" });
-    if (Number(f.protein) > 25) alerts.push({ type: "info", message: "Excellent source of protein" });
-    if ((f.name || "").includes("Kasam") || (f.name || "").includes("Belacan")) alerts.push({ type: "warning", message: "High in sodium - limit if hypertensive" });
-    if (f.category === "Vegetables") alerts.push({ type: "info", message: "Rich in dietary fiber" });
-    return alerts;
+  const handleBack = () => {
+    navigate(-1);
   };
-
-  const healthAlerts = getHealthAlerts(food);
-  const ingredients = food.ingredients  || [];
-
+  
   const handleShare = async () => {
-    const url = `${window.location.origin}/fooddetail?id=${food.id}`;
+    const url = `${window.location.origin}/fooddetail/${food.id}`;
     if (navigator.share) {
-      try { await navigator.share({ title: food.name, text: food.description, url }); return; } catch {}
+      try { 
+        await navigator.share({ 
+          title: food.name, 
+          text: food.description, 
+          url 
+        }); 
+        return; 
+      } catch {}
     }
     await navigator.clipboard.writeText(url);
     alert("Link copied to clipboard");
   };
 
-  return (
-    <div className="food-detail-page">
+  // Add loading state
+  if (loading) {
+    return (
+      <div className="food-detail-page">
         <Header />
         <div className="fdp-container">
+          <div className="fdp-center">Loading food details...</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Add error state
+  if (error || !food) {
+    return (
+      <div className="food-detail-page">
+        <Header />
+        <div className="fdp-container">
+          <div className="fdp-topbar">
+            <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
+              ← Back to Foods
+            </button>
+          </div>
+          <div className="fdp-center">
+            <h2>Food not found</h2>
+            <p>{error || 'The requested food item could not be found.'}</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const ingredients = food.commonIngredients || [];
+
+  return (
+    <div className="food-detail-page">
+      <Header />
+      <div className="fdp-container">
         {/* Top bar */}
         <div className="fdp-topbar">
-            <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={onBack}>← Back to Foods</button>
+          <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
+            ← Back to Foods
+          </button>
         </div>
 
         <div className="fdp-grid">
-            {/* Left column */}
-            <div className="fdp-left">
+          {/* Left column */}
+          <div className="fdp-left">
             {/* Hero */}
             <div className="fdp-card fdp-hero">
-                <div className="fdp-hero-media">
+              <div className="fdp-hero-media">
                 <img src={food.image} alt={food.name} />
                 <div className="fdp-hero-overlay" />
                 <div className="fdp-hero-text">
-                    <div className="fdp-badges">
+                  <div className="fdp-badges">
                     {food.origin && <span className="fdp-badge">{food.origin}</span>}
                     {food.category && <span className="fdp-badge">{food.category}</span>}
-                    </div>
-                    <h1 className="fdp-title">{food.name}</h1>
-                    {food.description && <p className="fdp-desc">{food.description}</p>}
+                  </div>
+                  <h1 className="fdp-title">{food.name}</h1>
+                  {food.description && <p className="fdp-desc">{food.description}</p>}
                 </div>
-                </div>
+              </div>
             </div>
 
             {/* Cultural / Preparation */}
             <div className="fdp-card">
-                <h3 className="fdp-section-title"><Info size={18} color={"#6a4a2f"}/> Cultural Heritage</h3>
-                {food.culturalSignificance  && (
+              <h3 className="fdp-section-title">
+                <Info size={18} color={"#6a4a2f"}/> Cultural Heritage
+              </h3>
+              {food.culturalSignificance && (
                 <div className="fdp-block">
-                    <p className="fdp-block-title">Cultural Significance</p>
-                    <p className="fdp-text">{food.culturalSignificance}</p>
+                  <p className="fdp-block-title">Cultural Significance</p>
+                  <p className="fdp-text">{food.culturalSignificance}</p>
                 </div>
-                )}
-                <div className="fdp-block">
+              )}
+              <div className="fdp-block">
                 <p className="fdp-block-title">Traditional Preparation</p>
                 <p className="fdp-text">{food.traditionalPreparation}</p>
-                </div>
+              </div>
             </div>
 
             {/* Ingredients */}
             {ingredients.length > 0 && (
-                <div className="fdp-card">
-                <h3 className="fdp-section-title"><ShoppingBasket size={18} color={"#6a4a2f"}/> Common Ingredients</h3>
+              <div className="fdp-card">
+                <h3 className="fdp-section-title">
+                  <ShoppingBasket size={18} color={"#6a4a2f"}/> Common Ingredients
+                </h3>
                 <div className="fdp-chip-grid">
-                    {ingredients.map((ing, i) => (
+                  {ingredients.map((ing, i) => (
                     <span key={i} className="fdp-chip">{ing}</span>
-                    ))}
+                  ))}
                 </div>
-                </div>
+              </div>
             )}
-            </div>
+          </div>
 
-            {/* Right column */}
-            <div className="fdp-right">
+          {/* Right column */}
+          <div className="fdp-right">
             {/* Actions */}
             <div className="fdp-actions">
-                <button type="button" className="lrp-btn lrp-btn-primary fdp-save" onClick={() => setSaved((s) => !s)}>
-                {saved ? "✓ Saved" : "❤ Save Food"}
-                </button>
-                <button type="button" className="lrp-btn lrp-btn-primary fdp-share" onClick={handleShare}><Share2 size={18} /></button>
+              <button 
+                type="button" 
+                className={`lrp-btn lrp-btn-primary fdp-save ${saved ? 'saved' : ''}`}
+                onClick={handleSaveFood}
+                disabled={savedLoading}
+              >
+                {savedLoading ? "..." : saved ? "✓ Saved" : "❤ Save Food"}
+              </button>
             </div>
             <div className="fdp-actions">
-                <button type="button" className="lrp-btn lrp-btn-outline" onClick={goToRecipe}><ScrollText size={18} /> Go to Recipe</button>
+              <button type="button" className="lrp-btn lrp-btn-outline" onClick={goToRecipe}>
+                <ScrollText size={18} /> Go to Recipe
+              </button>
             </div>
 
             {/* Nutrition */}
             <div className="fdp-card">
-                <h3 className="fdp-section-title"><Cross size={18} color={"#6a4a2f"}/> Nutritional Information</h3>
-                <p className="fdp-muted">Per serving</p>
-                <div className="fdp-nutri-grid">
+              <h3 className="fdp-section-title">
+                <Cross size={18} color={"#6a4a2f"}/> Nutritional Information
+              </h3>
+              <p className="fdp-muted">Per serving</p>
+              <div className="fdp-nutri-grid">
                 <div className="fdp-nutri">
-                    <div className="fdp-nutri-value">{food.calories ?? "-"}</div>
-                    <div className="fdp-nutri-label">Calories</div>
-                </div>
-                <div className="fdp-nutri">
-                    <div className="fdp-nutri-value">{food.protein ?? "-"}g</div>
-                    <div className="fdp-nutri-label">Protein</div>
+                  <div className="fdp-nutri-value">{food.calories ?? "-"}</div>
+                  <div className="fdp-nutri-label">Calories</div>
                 </div>
                 <div className="fdp-nutri">
-                    <div className="fdp-nutri-value">{food.carbs ?? "-"}g</div>
-                    <div className="fdp-nutri-label">Carbohydrates</div>
+                  <div className="fdp-nutri-value">{food.protein ?? "-"}g</div>
+                  <div className="fdp-nutri-label">Protein</div>
                 </div>
                 <div className="fdp-nutri">
-                    <div className="fdp-nutri-value">{food.fat ?? "-"}g</div>
-                    <div className="fdp-nutri-label">Fat</div>
+                  <div className="fdp-nutri-value">{food.carbs ?? "-"}g</div>
+                  <div className="fdp-nutri-label">Carbohydrates</div>
                 </div>
+                <div className="fdp-nutri">
+                  <div className="fdp-nutri-value">{food.fat ?? "-"}g</div>
+                  <div className="fdp-nutri-label">Fat</div>
                 </div>
+              </div>
             </div>
 
-            {/* Health alerts */}
-            {healthAlerts.length > 0 && (
-                <div className="fdp-card">
-                <h3 className="fdp-section-title"><TriangleAlert size={18} color={"#6a4a2f"}/> Health Information</h3>
-                <div className="fdp-alerts">
-                    {healthAlerts.map((a, idx) => (
-                    <div key={idx} className={`fdp-alert ${a.type === "warning" ? "fdp-alert-warn" : "fdp-alert-info"}`}>
-                        {a.message}
-                    </div>
-                    ))}
+            {/* Health Information */}
+            <div className="fdp-card">
+              <h3 className="fdp-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '8px' }}>
+                  <path d="M12 9V14" stroke="#6a4a2f" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M12 17V17.5" stroke="#6a4a2f" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M12 2L22 20H2L12 2Z" stroke="#6a4a2f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                </svg>
+                Health Information
+              </h3>
+              <div className="fdp-alerts">
+                <div className="fdp-alert fdp-alert-info">
+                  <div className="fdp-alert-content">
+                    {food.healthTips ? (
+                      <p className="fdp-alert-text">{food.healthTips}</p>
+                    ) : (
+                      <p className="fdp-alert-empty">No health tips available</p>
+                    )}
+                  </div>
                 </div>
-                </div>
-            )}
+              </div>
+            </div>
 
             {/* Discussion preview */}
             <div className="fdp-card">
-                <div className="fdp-disc-header">
-                <h3 className="fdp-section-title"><MessagesSquare size={18} color={"#6a4a2f"}/> Community Discussion</h3>
-                </div>
-                {onViewDiscussion ? (
-                <div className="fdp-comments">
+              <div className="fdp-disc-header">
+                <h3 className="fdp-section-title">
+                  <MessagesSquare size={18} color={"#6a4a2f"}/> Community Discussion
+                </h3>
+              </div>
+              
+              <div className="fdp-comments">
+                {commentsLoading ? (
+                  <p className="fdp-muted fdp-center">Loading comments...</p>
+                ) : foodComments.length > 0 ? (
+                  <>
                     {foodComments.slice(0, 2).map((c) => (
-                    <div key={c.id} className="fdp-comment">
+                      <div key={c.id} className="fdp-comment">
                         <div className="fdp-comment-head">
-                        <span className="fdp-avatar">{c.avatar}</span>
-                        <span className="fdp-user">{c.user}</span>
-                        <span className="fdp-time">{c.timeAgo}</span>
+                          <span className="fdp-avatar">{c.avatar}</span>
+                          <span className="fdp-user">{c.user}</span>
+                          <span className="fdp-time">{c.timeAgo}</span>
                         </div>
                         <p className="fdp-comment-text">{c.content}</p>
-                    </div>
+                      </div>
                     ))}
-                    <button type="button" className="lrp-btn lrp-btn-outline" onClick={onViewDiscussion}>
-                    View More ({foodComments.length} comments)
+                    <button 
+                      type="button" 
+                      className="lrp-btn lrp-btn-outline" 
+                      onClick={handleViewDiscussion}
+                    >
+                      View Full Discussion ({foodComments.length} comments)
                     </button>
-                </div>
+                  </>
                 ) : (
-                <p className="fdp-muted fdp-center">Sign in to view and join community discussions.</p>
+                  <div className="fdp-no-comments">
+                    <p className="fdp-muted fdp-center">No comments yet</p>
+                    <button 
+                      type="button" 
+                      className="lrp-btn lrp-btn-primary" 
+                      onClick={handleViewDiscussion}
+                    >
+                      Start Discussion
+                    </button>
+                  </div>
                 )}
+              </div>
             </div>
-            </div>
+          </div>
         </div>
-        </div>
-        <Footer />
+      </div>
+      <Footer />
     </div>
   );
 }
