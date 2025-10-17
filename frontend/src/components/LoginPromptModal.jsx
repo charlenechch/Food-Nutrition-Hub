@@ -1,7 +1,7 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { FaLock } from "react-icons/fa";
+// import { FaLock } from "react-icons/fa";
 
 export default function LoginPromptModal({ show, onClose }) {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ export default function LoginPromptModal({ show, onClose }) {
             marginBottom: "12px",
           }}
         >
-          <FaLock style={{ fontSize: "1.5rem" }} />
+          {/* <FaLock style={{ fontSize: "1.5rem" }} /> */}
           Login Required
         </h2>
         <p
