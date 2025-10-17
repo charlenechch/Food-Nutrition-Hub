@@ -675,7 +675,7 @@ function toggleDiet(tag) {
             <div className="rp-grid-2">
               <div className="rp-field">
                 <label>Description *</label>
-                <textarea name="description" value={form.description} onChange={onChangeForm} placeholder="A short description about the dish" required/>
+                <textarea name="description" className="rp-desc" value={form.description} onChange={onChangeForm} placeholder="A short description about the dish" required/>
               </div>
                 <div className="rp-field">
                   <label>Upload Photo *</label>

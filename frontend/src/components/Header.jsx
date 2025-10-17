@@ -4,10 +4,11 @@ import { FaGlobe, FaSignOutAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../config/api";
 import "./Header.css";
+import { User } from "lucide-react";
 
 export default function Header() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
@@ -72,6 +73,9 @@ export default function Header() {
       <div className="navbar-actions">
         <button className="lang-btn" onClick={() => navigate("/language")}>
           <FaGlobe /> EN
+        </button>
+        <button onClick={() => navigate("/profile/john")}>
+          <User size={20}/> Profile
         </button>
         <button className="logout-btn" onClick={handleLogout}>
           <FaSignOutAlt /> Logout
