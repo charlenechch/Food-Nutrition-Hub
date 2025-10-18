@@ -42,11 +42,14 @@ router.post("/", async (req, res) => {
     // Check if "Remember account" was checked
     if (rememberDevice) {
       // Set longer session (7 days)
-      req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+      req.session.cookie.maxAge = sevenDays;
+      req.session.cookie.expires = new Date(Date.now() + sevenDays);
       console.log("Account trusted for 7 days");
     } else {
       // Session expires when browser closes
       req.session.cookie.maxAge = null;
+      req.session.cookie.expires = false;
       console.log("Session-only cookie set");
     }
 
