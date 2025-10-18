@@ -27,14 +27,23 @@ router.get('/session', (req, res) => {
   });
 });
 
-// ✅ Logout
+// Logout
 router.post('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
-      console.error("❌ Logout error:", err);
+      console.error("Logout error:", err);
       return res.status(500).json({ error: "Logout failed" });
     }
-    res.clearCookie("connect.sid"); // important
+    
+    // Clear cookie with same options as when it was created
+    res.clearCookie("sid", {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none'
+    });
+    
+    console.log("Logout successful");
     res.json({ message: "Logged out successfully" });
   });
 });
