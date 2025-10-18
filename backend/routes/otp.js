@@ -44,7 +44,7 @@ router.post("/send", async (req, res) => {
       attempts: 0
     });
 
-    console.log("OTP resent");
+    console.log(`OTP resent: ${otp}`);
     
     // Use shared email template
     const emailSubject = getVerificationEmailSubject(true); // true = resend

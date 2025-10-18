@@ -13,7 +13,7 @@ router.post("/", (req, res) => {
       }
       
       // Clear session cookie
-      res.clearCookie('connect.sid', {
+      res.clearCookie('sid', {
         path: '/',
         httpOnly: true,
         secure: true,
