@@ -1,10 +1,20 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
+const sendEmail = require("../config/mailer");
+const { getVerificationEmailHTML, getVerificationEmailSubject } = require("../utils/emailTemplates");
 const { body, validationResult } = require("express-validator");
 const router = express.Router();
 const db = require("../config/db"); // shared promise pool
 
 const saltRounds = 10;
+
+// Store OTPs temporarily
+const otpStore = new Map();
+
+// Generate 6-digit OTP
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 // Password validation
 const validatePassword = (password) => {
@@ -22,7 +32,7 @@ const validatePassword = (password) => {
   return null;
 };
 
-// ✅ POST /api/register
+// POST /api/register
 router.post("/", async (req, res) => {
   const { firstname, lastname, email, password } = req.body;
 
@@ -43,37 +53,73 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    // ✅ Check if email already exists
+    // Check if email already exists
     const [existing] = await db.query("SELECT 1 FROM user WHERE email = ? LIMIT 1", [email]);
     if (existing.length > 0) {
       return res.status(400).json({ error: "Email already exists" });
     }
 
-    // ✅ Hash password
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // ✅ Insert user
+    // Insert user
     const [result] = await db.query(
       "INSERT INTO user (firstname, lastname, email, password, role) VALUES (?, ?, ?, ?, ?)",
       [firstname, lastname, email, hashedPassword, "member"]
     );
 
-    res.json({
+    console.log(`User registered: ${email} (ID: ${result.insertId})`);
+
+    // Generate OTP
+    const otp = generateOTP();
+
+    // Store OTP with expiration (5 minutes)
+    otpStore.set(email, {
+      code: otp,
+      expires: Date.now() + 5 * 60 * 1000,
+      attempts: 0
+    });
+
+    console.log(`OTP generated for ${email}: ${otp}`);
+
+    // Send verification email
+    const emailSubject = getVerificationEmailSubject(false); // false = not a resend
+    const emailHtml = getVerificationEmailHTML({
+      otp: otp,
+      firstName: firstname,
+      isResend: false
+    });
+
+    try {
+      const emailResult = await sendEmail({
+        to: email,
+        subject: emailSubject,
+        html: emailHtml,
+      });
+
+      // Log email status but don't block registration
+      if (emailResult && emailResult.success) {
+        console.log("Verification email sent");
+      } else {
+        console.error("Email failed to send, but user can resend from OTP page");
+      }
+    } catch (emailError) {
+      console.error("Email error (non-blocking):", emailError.message);
+    }
+
+    // Return success (user will be redirected to OTP page)
+    return res.json({
       success: true,
-      message: "Registration successful",
-      user: {
-        id: result.insertId,
-        firstname,
-        lastname,
-        email,
-        role: "member",
-      },
+      message: "Registration successful. Please check your email for verification code.",
+      email: email,
+      devOTP: process.env.NODE_ENV !== 'production' ? otp : undefined
     });
 
   } catch (err) {
-    console.error("❌ Register error:", err.message);
+    console.error("Register error:", err.message);
     res.status(500).json({ error: "Registration failed" });
   }
 });
 
 module.exports = router;
+module.exports.otpStore = otpStore;

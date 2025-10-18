@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { createPortal } from "react-dom";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
 import { API_URL } from "../config/api";
@@ -9,7 +10,10 @@ export default function LoginRegisterPage() {
   const [activeTab, setActiveTab] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberDevice, setRememberDevice] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
 
   // Register fields
   const [firstName, setFirstName] = useState("");
@@ -18,7 +22,7 @@ export default function LoginRegisterPage() {
   const [regPassword, setRegPassword] = useState("");
   const [registerError, setRegisterError] = useState("");
 
-  // 🔐 Per-account lockout
+  // Per-account lockout
   const [lockouts, setLockouts] = useState(() => {
     const saved = localStorage.getItem("accountLockouts");
     return saved ? JSON.parse(saved) : {};
@@ -28,7 +32,7 @@ export default function LoginRegisterPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // 🔄 Sync lockouts across tabs
+  // Sync lockouts across tabs
   useEffect(() => {
     const syncLockouts = (e) => {
       if (e.key === "accountLockouts") {
@@ -39,12 +43,12 @@ export default function LoginRegisterPage() {
     return () => window.removeEventListener("storage", syncLockouts);
   }, []);
 
-  // 💾 Persist lockouts
+  // Persist lockouts
   useEffect(() => {
     localStorage.setItem("accountLockouts", JSON.stringify(lockouts));
   }, [lockouts]);
 
-  // ⏳ Countdown + auto-unlock (promote after unlock)
+  // Countdown + auto-unlock (promote after unlock)
   useEffect(() => {
     if (!email || !lockouts[email]?.unlockAt) return;
 
@@ -84,62 +88,95 @@ export default function LoginRegisterPage() {
     return `${m}:${s}`;
   };
 
-  // 🔑 Login handler
+  // Login handler
   const handleLogin = async () => {
-    setLoginError("");
+  setLoginError("");
 
-    const locked = lockouts[email];
-    if (locked?.unlockAt && locked.unlockAt > Date.now()) {
-      setLoginError(
-        `Account locked. Try again in ${formatTime(
-          Math.ceil((locked.unlockAt - Date.now()) / 1000)
-        )}.`
-      );
-      return;
-    }
+  const locked = lockouts[email];
+  if (locked?.unlockAt && locked.unlockAt > Date.now()) {
+    setLoginError(
+      `Account locked. Try again in ${formatTime(
+        Math.ceil((locked.unlockAt - Date.now()) / 1000)
+      )}.`
+    );
+    return;
+  }
 
-    if (!email || !password) {
-      setLoginError("Please fill in all fields.");
-      return;
-    }
+  if (!email || !password) {
+    setLoginError("Please fill in all fields.");
+    return;
+  }
 
-    try {
-      const res = await fetch(`${API_URL}/login`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+  try {
+    const res = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        email, 
+        password,
+        rememberDevice
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      // Success → clear lockout
+      setLockouts((prev) => {
+        const updated = { ...prev };
+        delete updated[email];
+        return updated;
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        // ✅ Success → clear lockout
-        setLockouts((prev) => {
-          const updated = { ...prev };
-          delete updated[email];
-          return updated;
-        });
-
-        if (data.skipOTP) {
-          login(data.user);
-          navigate(data.user.role === "admin" ? "/admin" : "/home");
-        } else {
-          navigate(`/otpverification?email=${encodeURIComponent(email)}`);
-        }
-        return;
-      }
-
-      // ❌ Wrong credentials
-      handleFailedAttempt(email);
-      setLoginError("Invalid email or password.");
-    } catch (err) {
-      console.error("Login error:", err);
-      setLoginError("Login failed. Please try again later.");
+      login(data.user);
+      navigate(data.user.role === "admin" ? "/admin" : "/home");
+      return;
     }
-  };
 
-  // ⚙️ Failed attempt + progressive lock (fixed with promotion delay)
+    // Check if user is not verified
+    if (data.notVerified) {
+      setUnverifiedEmail(data.email);
+      setShowVerificationModal(true);
+      return;
+    }
+
+    // Wrong credentials
+    handleFailedAttempt(email);
+    setLoginError(data.message || "Invalid email or password.");
+  } catch (err) {
+    console.error("Login error:", err);
+    setLoginError("Login failed. Please try again later.");
+  }
+};
+
+// Handle resend verification from login
+const handleResendVerification = async () => {
+  try {
+    const res = await fetch(`${API_URL}/otp/send`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: unverifiedEmail }),
+    });
+
+    const data = await res.json();
+    
+    if (res.ok) {
+      console.log("Verification email sent");
+      setShowVerificationModal(false);
+      // Navigate to OTP verification page
+      navigate(`/otpverification?email=${encodeURIComponent(unverifiedEmail)}`);
+    } else {
+      alert(data.error || "Failed to send verification email");
+    }
+  } catch (err) {
+    console.error("Resend error:", err);
+    alert("Failed to resend verification email");
+  }
+};
+
+  // Failed attempt + progressive lock (fixed with promotion delay)
   const handleFailedAttempt = (email) => {
     setLockouts((prev) => {
       const entry =
@@ -185,7 +222,7 @@ export default function LoginRegisterPage() {
     });
   };
 
-  // 🧾 Password validation
+  // Password validation
   const validatePassword = (password) => {
     const minLength = 8;
     const hasUpper = /[A-Z]/.test(password);
@@ -203,54 +240,63 @@ export default function LoginRegisterPage() {
     return null;
   };
 
-  // 🧾 Register
+  // Register
   const handleRegister = async () => {
-    setRegisterError("");
-    if (!firstName || !lastName || !regEmail || !regPassword) {
-      setRegisterError("Please fill in all fields.");
-      return;
-    }
+  setRegisterError("");
+  if (!firstName || !lastName || !regEmail || !regPassword) {
+    setRegisterError("Please fill in all fields.");
+    return;
+  }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(regEmail)) {
-      setRegisterError("Please enter a valid email address.");
-      return;
-    }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(regEmail)) {
+    setRegisterError("Please enter a valid email address.");
+    return;
+  }
 
-    const passwordError = validatePassword(regPassword);
-    if (passwordError) {
-      setRegisterError(passwordError);
-      return;
-    }
+  const passwordError = validatePassword(regPassword);
+  if (passwordError) {
+    setRegisterError(passwordError);
+    return;
+  }
 
-    try {
-      const res = await fetch(`${API_URL}/register`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstname: firstName,
-          lastname: lastName,
-          email: regEmail,
-          password: regPassword,
-        }),
-      });
+  try {
+    const res = await fetch(`${API_URL}/register`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstname: firstName,
+        lastname: lastName,
+        email: regEmail,
+        password: regPassword,
+      }),
+    });
 
-      const data = await res.json();
-      if (res.ok) {
-        setFirstName("");
-        setLastName("");
-        setRegEmail("");
-        setRegPassword("");
-        setActiveTab("login");
-      } else {
-        setRegisterError(data.error || data.message || "Registration failed!");
-      }
-    } catch (err) {
-      console.error("Registration error:", err);
-      setRegisterError("Something went wrong during registration.");
+    const data = await res.json();
+    
+    if (res.ok) {
+      console.log("Registration successful, redirecting to OTP verification");
+      
+      // Get email from response or use the form email
+      const emailToVerify = data.email || regEmail;
+
+      // Clear form
+      setFirstName("");
+      setLastName("");
+      setRegEmail("");
+      setRegPassword("");
+      
+      // Redirect to OTP verification page
+      navigate(`/otpverification?email=${encodeURIComponent(emailToVerify)}`);
+    } else {
+      setRegisterError(data.error || data.message || "Registration failed!");
     }
-  };
+  } catch (err) {
+    console.error("Registration error:", err);
+    setRegisterError("Something went wrong during registration.");
+  }
+};
 
   // 👤 Guest login
   const handleGuest = () => {
@@ -258,7 +304,7 @@ export default function LoginRegisterPage() {
     navigate("/home");
   };
 
-  // 🏷️ Lock label
+  // Lock label
   const getLockLabel = (stage) => {
     if (stage === 0) return "2 minutes lock";
     if (stage === 1) return "5 minutes lock";
@@ -340,6 +386,17 @@ export default function LoginRegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+              </div>
+
+              <div className="otp-remember">
+              <input
+                id="remember-device"
+                type="checkbox"
+                className="efp-checkbox"
+                checked={rememberDevice}
+                onChange={(e) => setRememberDevice(e.target.checked)}
+              />
+              <label htmlFor="remember-device">Remember me on this device for 7 days</label>
               </div>
 
               <button
@@ -441,6 +498,52 @@ export default function LoginRegisterPage() {
           </p>
         </div>
       </div>
+
+      {showVerificationModal && createPortal(
+        <>
+          {/* Dimmed Overlay */}
+          <div
+            className="verification-overlay"
+            onClick={() => setShowVerificationModal(false)}
+          ></div>
+
+          {/* Centered Popup */}
+          <div className="verification-modal-card">
+            <h2 className="verification-modal-title">
+              <span className="verification-icon">✉️</span>
+              Email Verification Required
+            </h2>
+            
+            <p className="verification-modal-text">
+              Your account is not verified yet. Please verify your email to continue.
+            </p>
+
+            <div className="verification-email-box">
+              <p className="verification-email-text">{unverifiedEmail}</p>
+            </div>
+
+            <p className="verification-modal-hint">
+              Didn't receive the email? Click below to resend the verification code.
+            </p>
+
+            <div className="verification-modal-actions">
+              <button
+                onClick={handleResendVerification}
+                className="verification-btn-primary"
+              >
+                Verify Email
+              </button>
+              <button
+                onClick={() => setShowVerificationModal(false)}
+                className="verification-btn-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
     </div>
   );
 }

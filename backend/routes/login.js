@@ -4,7 +4,7 @@ const router = express.Router();
 const db = require("../config/db"); // shared promise pool
 
 router.post("/", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, rememberDevice } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ success: false, message: "Email and password are required" });
@@ -18,36 +18,40 @@ router.post("/", async (req, res) => {
     }
 
     const user = users[0];
+
+    // Verify password first
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
-    // Check if device is trusted (remembered)
-    if (req.session.trustedDevice && req.session.trustedUntil > Date.now()) {
-      console.log("Trusted device detected, skipping OTP.");
-      
-      // Complete login immediately
-      req.session.user = {
-        userID: user.userID,
+    // Check if email is verified
+    if (user.verified === 'False') {
+      console.log("Login blocked for unverified user");
+      return res.status(403).json({ 
+        success: false, 
+        notVerified: true,  // Special flag for frontend
         email: user.email,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        role: user.role
-      };
-
-      return res.json({
-        success: true,
-        message: "Login successful",
-        skipOTP: true,
-        user: req.session.user
+        message: "Please verify your email first"
       });
     }
 
-    // Device not trusted, store user temporarily and require OTP
-    console.log("Password verified, OTP required.");
+    // If user is verified, proceed with login
+    console.log("Password verified, proceeding with login");
 
-    req.session.tempUser = {
+    // Check if "Remember account" was checked
+    if (rememberDevice) {
+      // Set longer session (7 days)
+      req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000;
+      console.log("Account trusted for 7 days");
+    } else {
+      // Session expires when browser closes
+      req.session.cookie.maxAge = null;
+      console.log("Session-only cookie set");
+    }
+
+    // Complete login, set user in session
+    req.session.user = {
       userID: user.userID,
       email: user.email,
       firstname: user.firstname,
@@ -55,7 +59,7 @@ router.post("/", async (req, res) => {
       role: user.role
     };
 
-    // Force immediate session save
+    // Force session save
     await new Promise((resolve, reject) => {
       req.session.save((err) => {
         if (err) {
@@ -67,10 +71,12 @@ router.post("/", async (req, res) => {
       });
     });
 
-    res.json({
+    console.log("Login successful!");
+
+    return res.json({
       success: true,
-      message: "Password verified. OTP required.",
-      requiresOTP: true
+      message: "Login successful!",
+      user: req.session.user
     });
 
   } catch (err) {

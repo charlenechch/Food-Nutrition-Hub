@@ -101,14 +101,6 @@
     font-size:.9rem;
 }
 
-.otp-remember {
-    display:flex;
-    align-items:center;
-    gap:.5rem;
-    font-size:.9rem;
-    color:#333;
-}
-
 .otp-actions {
     display:flex;
     flex-direction:column;

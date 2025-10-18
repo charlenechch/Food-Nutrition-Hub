@@ -11,39 +11,10 @@ export default function OTPVerificationPage({ email: emailProp }) {
   const { login } = useAuth();
 
   const [otp, setOtp] = useState("");
-  const [rememberDevice, setRememberDevice] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-
-  // Auto-send OTP when page loads
-  useEffect(() => {
-    const sendOTP = async () => {
-      if (email) {
-        try {
-          const res = await fetch(`${API_URL}/otp/send`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
-          });
-          
-          const data = await res.json();
-          console.log("OTP sent:", data.message);
-          
-          // In development, show the OTP in console
-          if (data.devOTP) {
-            console.log("Dev OTP:", data.devOTP);
-          }
-        } catch (err) {
-          console.error("Failed to send OTP:", err);
-        }
-      }
-    };
-    
-    sendOTP();
-  }, [email]);
 
   // countdown for resend
   useEffect(() => {
@@ -59,6 +30,7 @@ export default function OTPVerificationPage({ email: emailProp }) {
     setError("");
   };
 
+  // Handle verify
   const handleVerify = async (e) => {
     e?.preventDefault();
     if (otp.length !== 6) { 
@@ -75,23 +47,19 @@ export default function OTPVerificationPage({ email: emailProp }) {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp, rememberDevice }),
+        body: JSON.stringify({ email, otp }),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        setSuccess(true);
-        
-        // Get user from API response
-        if (data.user) {
-          login(data.user);
-          
-          setTimeout(() => {
-            navigate(data.user.role === "admin" ? "/admin" : "/home");
-          }, 1500);
-        }
-      } else {
+      if (res.ok && data.success) {
+      setSuccess(true);
+      
+      // Redirect to login page after verification
+      setTimeout(() => {
+        navigate("/loginregister");
+      }, 2000);
+    } else {
         setError(data.error || "Invalid verification code");
       }
     } catch (err) {
@@ -101,6 +69,7 @@ export default function OTPVerificationPage({ email: emailProp }) {
     }
   };
 
+  //Handle resend OTP
   const handleResend = async () => {
     setResendCooldown(60);
     setError("");
@@ -131,8 +100,8 @@ export default function OTPVerificationPage({ email: emailProp }) {
       <div className="otp-container">
         <div className="otp-card otp-center">
           <div className="otp-success-icon" aria-hidden>✓</div>
-          <h2 className="otp-title">Email verified</h2>
-          <p className="otp-muted">Redirecting…</p>
+          <h2 className="otp-title">Email verified!</h2>
+          <p className="otp-muted">Redirecting to login page…</p>
         </div>
       </div>
     );
@@ -172,18 +141,6 @@ export default function OTPVerificationPage({ email: emailProp }) {
             />
 
             {error && <div className="otp-error" role="alert">{error}</div>}
-
-            <div className="otp-remember">
-              <input
-                id="remember-device"
-                type="checkbox"
-                className="efp-checkbox"
-                checked={rememberDevice}
-                onChange={(e) => setRememberDevice(e.target.checked)}
-                disabled={isLoading}
-              />
-              <label htmlFor="remember-device">Remember this device for 7 days</label>
-            </div>
 
             <button type="submit" className="lrp-btn lrp-btn-primary" disabled={otp.length !== 6 || isLoading}>
               {isLoading ? "Verifying…" : "Verify"}

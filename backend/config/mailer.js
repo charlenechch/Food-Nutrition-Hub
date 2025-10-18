@@ -22,6 +22,8 @@ const sendEmail = async ({ to, subject, html }) => {
   console.log(`To: ${to}`);
   console.log(`Subject: ${subject}`);
   console.log("------------------------------------------");
+
+  return { success: true };
   //try {
     //await resend.emails.send({
       // Resend's default address for testing
