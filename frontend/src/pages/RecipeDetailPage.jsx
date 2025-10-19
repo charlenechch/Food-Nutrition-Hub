@@ -1,11 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/RecipeDetailPage.css";
 import { NotebookText, Share2, ShoppingBasket } from "lucide-react";
-
-const LS_KEY = "recipes_data_v2";
 
 // prefer label fields if present, else pretty-print minutes
 const fmtTime = (n, label) => {
@@ -18,7 +16,7 @@ const fmtTime = (n, label) => {
   return `${m} min`;
 };
 
-// tiny inline icons so we don’t import any libs
+// tiny inline icons so we don't import any libs
 const Lightbulb = (props) => (
   <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" {...props}>
     <path d="M9 21h6v-1H9v1Zm3-20a7 7 0 0 0-4 12.9V16a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.1A7 7 0 0 0 12 1Zm3 11.2V15h-6v-2.8a1 1 0 0 0-.4-.8A5 5 0 1 1 15.4 11a1 1 0 0 0-.4 1.2Z"/>
@@ -35,24 +33,71 @@ export default function RecipeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
+  const [recipe, setRecipe] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const recipes = useMemo(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
+  // Fetch recipe from backend
+  useEffect(() => {
+    const fetchRecipe = async () => {
+      try {
+        //setLoading(true);
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        console.log('Fetching recipe from:', `${API_BASE_URL}/api/recipe/recipes/${id}`);
+        
+        const res = await fetch(`${API_BASE_URL}/api/recipe/recipes/${id}`);
+        
+        console.log('Response status:', res.status);
+        console.log('Response ok:', res.ok);
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Response error:', errorText);
+          throw new Error(`Failed to fetch recipe: ${res.status} ${errorText}`);
+        }
+        
+        const data = await res.json();
+        console.log('Received recipe data:', data);
+        setRecipe(data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching recipe:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchRecipe();
     }
-  }, []);
+  }, [id]);
 
-  const recipe = recipes.find(r => String(r.id) === String(id));
-
-  if (!recipe) {
+  if (loading) {
     return (
-      <div className="rdp-wrap">
-        <button className="lrp-btn lrp-btn-outline fdp-back" onClick={() => navigate("/recipes")}>← Back to Recipes</button>
-        <h2 style={{ marginTop: 12 }}>Recipe not found</h2>
-        <p>It may have been removed or your data was cleared.</p>
+      <div className="recipe-detail-page">
+        <Header />
+        <div className="rdp-wrap">
+          <button className="lrp-btn lrp-btn-outline fdp-back rdp-back" onClick={() => navigate(-1)}>
+            ← Back to Recipes
+          </button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !recipe) {
+    return (
+      <div className="recipe-detail-page">
+        <Header />
+        <div className="rdp-wrap">
+          <button className="lrp-btn lrp-btn-outline fdp-back rdp-back" onClick={() => navigate(-1)}>
+            ← Back to Recipes
+          </button>
+          <h2 style={{ marginTop: 12 }}>Recipe not found</h2>
+          <p>{error || "The recipe you're looking for doesn't exist."}</p>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -73,7 +118,7 @@ export default function RecipeDetailPage() {
   async function handleShare() {
     if (!recipe) return;
 
-    const url   = `${window.location.origin}/recipes/${recipe.id}`;
+    const url   = `${window.location.origin}/recipe/${recipe.id}`;
     const title = recipe.name || "Recipe";
     const text  = recipe.description || "Check out this Sarawakian recipe!";
 
@@ -96,8 +141,7 @@ export default function RecipeDetailPage() {
         // 3) Last-resort prompt (older browsers / permissions blocked)
         window.prompt("Copy this link:", url);
     }
-    }
-
+  }
 
   return (
     <div className="recipe-detail-page">
@@ -195,7 +239,7 @@ export default function RecipeDetailPage() {
             {recipe.chefTips && (
                 <div className="rdp-card3 rdp-note">
                 <div className="rdp-note-head">
-                    <ChefHat size={18} color="#6a4a2f"/> <span>Chef’s Tips</span>
+                    <ChefHat size={18} color="#6a4a2f"/> <span>Chef's Tips</span>
                 </div>
                 <p className="rdp-note-text">{recipe.chefTips}</p>
                 </div>
