@@ -107,6 +107,4 @@ router.get('/user/saved', async (req, res) => {
   }
 });
 
-// Remove the duplicate select route since we already have /check
-
 module.exports = router;

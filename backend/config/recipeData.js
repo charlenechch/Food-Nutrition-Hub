@@ -24,10 +24,10 @@ const recipeData = [
             6. Mix well and add enough hot water. Stir well. Sambal Asam is ready.
             7. How to serve, spoon the linut/ambuyat in a small bowl and drizzle with sambal asam.
             `,
-    cookTime: null,
+    cookTime: 15,
     servings: 1,
-    DidYouKnow: null,
-    chefTips: null,
+    DidYouKnow: "Linut is also known as ambuyat in Brunei and is considered a national dish there. The sago starch used comes from the sago palm, which is abundant in Borneo.",
+    chefTips: "For the perfect linut consistency, stir continuously while cooking and adjust water gradually. The final texture should be smooth and glue-like.",
   },
 
   {
@@ -75,10 +75,10 @@ const recipeData = [
           10.	Add the minced meat sauce, sliced char siu, fish balls, and choy sum.
           11.	Sprinkle the spring onions and fried shallots on top of the noodles.
           `,
-    cookTime: null,
+    cookTime: 20,
     servings: 1,
-    DidYouKnow: null,
-    chefTips: null,
+    DidYouKnow: "Kolo Mee is unique to Sarawak and differs from Peninsular Malaysian wantan mee. The name comes from the Cantonese 'gàn lò mihn' meaning 'dry-tossed noodles'.",
+    chefTips: "For authentic Kuching-style kolo mee, use fresh yellow egg noodles and don't overcook them. The noodles should be springy (QQ texture).",
   },
 
   {
@@ -99,10 +99,10 @@ const recipeData = [
     steps:`1. Coarsely chop all the paste ingredients and pound them together into a rough paste.
            2. Chop the prawns roughly and mix them with the paste in a bowl. Add lime juice, salt, and sugar, then let it sit for 10 minutes.
            3. Just before serving, stir in the shallots, chili, ginger, and lime slices. Serve immediately with cucumber and tomato on the side.`,
-    cookTime: null,
+    cookTime: 0,
     servings: 1,
-    DidYouKnow: null,
-    chefTips: null,
+    DidYouKnow: "Umai is often called the 'Sarawakian ceviche'. The Melanau people traditionally used freshly caught fish from the South China Sea, with the lime juice 'cooking' the protein.",
+    chefTips: "Use only the freshest seafood possible. The lime juice should turn the prawns opaque within 10 minutes. If not, the prawns may not be fresh enough.",
   },
 
   {
@@ -118,10 +118,10 @@ const recipeData = [
            3. Add cold/leftover rice. Mix until evenly combined.
            4. Add the fried anchovies and bird’s-eye chillies. Season with salt and ground white pepper. Stir until everything is well mixed and the rice is fairly dry. Turn off the heat.
            5. Ready to serve.`,
-    cookTime: null,
+    cookTime: 15,
     servings: 1,
-    DidYouKnow: null,
-    chefTips: null,
+    DidYouKnow: "Nasi Aruk is unique because it's cooked without any additional oil - the rice is toasted in its own natural oils and the residual oil from frying ingredients.",
+    chefTips: "Use day-old rice for best results as it's drier. The key is to keep stirring until each grain is separate and slightly toasted.",
   },
 
   {
@@ -143,10 +143,10 @@ const recipeData = [
            5. Cook the chicken by standing the bamboo log sealed side up over burning wood or charcoal for 30 minutes. ( Remember to turn the bamboo to keep the content evenly cooked )
            6. After 30 minutes, when the chicken have been cooked, the burnt outer layer of the bamboo is skinned off.
            7. Split the bamboo to extract the chicken and  serve it with a soup.`,
-    cookTime: null,
+    cookTime: 120,
     servings: 4,
-    DidYouKnow: null,
-    chefTips: null,
+    DidYouKnow: "Asam Siok is a traditional Bidayuh method of cooking where the bamboo not only serves as a cooking vessel but also imparts a unique smoky, earthy flavor to the dish.",
+    chefTips: "Choose young, green bamboo for cooking as it contains natural moisture that creates steam. Older, drier bamboo may burn too quickly.",
   },
 
   {
@@ -168,10 +168,10 @@ const recipeData = [
            5. Bring to boil. Once boil, lower the heat to medium and let it simmer for at least 15-20 minutes. Take a tablespoon and taste some. Add additional sugar and salt if desired.
            6. For assembly, have a bowl or plate, put some rice vermicelli, pour some gravy on top until it covers the rice vermicelli. 
            7. Drizzle with special sauces (as explained in ingredients, if desired). Garnish with some century eggs, shredded cucumber, cuttlefish and beansprouts.`,
-    cookTime: null,
+    cookTime: 25,
     servings: 3,
-    DidYouKnow: null,
-    chefTips: null,
+    DidYouKnow: "Belacan Bihun is a Kuching specialty that combines Chinese rice vermicelli with Malay-style belacan gravy, showcasing Sarawak's cultural fusion.",
+    chefTips: "Toast the belacan properly until fragrant but not burnt. The gravy should be thick enough to coat the noodles but still pourable.",
   },
 
   {
@@ -189,10 +189,10 @@ const recipeData = [
     steps:`1. Mash the shallots, garlic and local chilli and set it aside.
            2. Mash the cassava leaves with torch ginger flower.
            3. Prepare a pan with water, then add the lemongrass, galangal, and bird-eyed anchovies. Simmer it for 10 minutes over low heat.`,
-    cookTime: null,
+    cookTime: 20,
     servings: 1,
-    DidYouKnow: null,
-    chefTips: null,
+    DidYouKnow: "Cassava leaves must be thoroughly cooked as they contain cyanogenic glycosides which can be toxic when raw. Traditional pounding helps break down these compounds.",
+    chefTips: "Young cassava leaves are more tender and less bitter. Always cook cassava leaves for at least 15-20 minutes to ensure safety.",
   },
 
   {
@@ -207,10 +207,10 @@ const recipeData = [
     steps:`1. Wash the leaves thoroughly and add the salt. Leave for several minutes, then squeeze all the juice out. Rinse, and squeeze again. Place the leaves on chopping board and dice into small pieces. Set aside.
            2. In a wok/pan, heat 3-4 tablespoons of oil. Once it’s hot, cook the garlic until aromatic. Stir in the leaves and cook for about a minute till wilt. Add water when it starts to look quite dry (about halfway through).
            3. Make a well in the middle, crack the eggs in and beat with chopsticks to mix. Once the eggs are starting to set, start mixing everything together, adding more water if needed. Turn off the heat after about a minute or so. Serve while hot.`,
-    cookTime: null,
+    cookTime: 10,
     servings: 1,
-    DidYouKnow: null,
-    chefTips: null,
+    DidYouKnow: "Manicai (Sauropus androgynus) is also called 'Sweet Leaf' or 'Cekur Manis'. It's rich in vitamins A, B, and C, and contains more protein than most leafy vegetables.",
+    chefTips: "Don't overcook manicai as it becomes bitter. The salting process helps reduce its natural sliminess and enhances the flavor.",
   },
 
   {
@@ -230,10 +230,10 @@ const recipeData = [
           4. Stir in the midin for about a minute. Careful not to overcook.
           5. Add in small amount of water. Add in salt to taste. Serve immediately. 
           `,
-    cookTime: null,
+    cookTime: 8,
     servings: 1,
-    DidYouKnow: null,
-    chefTips: null,
+    DidYouKnow: "Midin is a wild fern found only in Sarawak and is considered a delicacy. The fiddleheads are harvested young when they're still curled up.",
+    chefTips: "Midin cooks very quickly - just blanch or stir-fry for 1-2 minutes. Overcooking makes it slimy. Always choose tightly curled fiddleheads.",
   },
 
   {
@@ -257,10 +257,10 @@ const recipeData = [
           4.Traditionally, the bamboo is cooked over an open fire. In this case, it was grilled over a gas stove due to heavy rain. Keep a steady fire and watch closely until you hear the broth bubbling inside the bamboo.
           5.Seal the top of the bamboo with yam leaves (traditional method) or aluminum foil as an alternative.
           `,
-    cookTime: null,
+    cookTime: 90,
     servings: 4,
-    DidYouKnow: null,
-    chefTips: null,
+    DidYouKnow: "Ayam Pansuh (or Manok Pansoh) is the ultimate Iban hospitality dish. It's traditionally served to honored guests during Gawai festivals and special occasions.",
+    chefTips: "Use fresh bamboo for authentic flavor. The bamboo should be green and moist inside. Listen for the bubbling sound - it means the dish is cooking properly inside the sealed bamboo.",
   }
 ];
 
