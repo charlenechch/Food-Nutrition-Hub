@@ -6,6 +6,15 @@ import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
 import { API_URL } from "../config/api";
 
+// Firebase imports
+import { 
+  createUserWithEmailAndPassword, 
+  sendEmailVerification,
+  onAuthStateChanged,
+  signInWithEmailAndPassword
+} from "firebase/auth";
+import { auth } from "../config/firebase";
+
 export default function LoginRegisterPage() {
   const [activeTab, setActiveTab] = useState("login");
   const [email, setEmail] = useState("");
@@ -82,6 +91,38 @@ export default function LoginRegisterPage() {
     return () => clearInterval(interval);
   }, [email, lockouts]);
 
+  // Listen for Firebase email verification
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user && user.emailVerified) {
+        console.log("Email verified in Firebase!");
+        
+        // Sync verification status to your MySQL database
+        try {
+          const res = await fetch(`${API_URL}/verify-email/sync`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: user.email }),
+          });
+
+          const data = await res.json();
+          
+          if (res.ok) {
+            console.log("Verification synced to database");
+          } else {
+            console.error("Failed to sync verification:", data.error);
+          }
+        } catch (err) {
+          console.error("Sync error:", err);
+        }
+      }
+    });
+
+    // Cleanup subscription
+    return () => unsubscribe();
+  }, []);
+
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, "0");
     const s = (seconds % 60).toString().padStart(2, "0");
@@ -134,10 +175,29 @@ export default function LoginRegisterPage() {
       return;
     }
 
-    // Check if user is not verified
+    // Check if user is not verified and auto-resend
+    // Check if user is not verified - auto-send immediately
     if (data.notVerified) {
-      setUnverifiedEmail(data.email);
-      setShowVerificationModal(true);
+      console.log("User not verified, auto-sending verification email...");
+      
+      try {
+        // Sign in to Firebase and send email RIGHT NOW
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        if (!user.emailVerified) {
+          await sendEmailVerification(user, {
+            url: window.location.origin + "/loginregister",
+            handleCodeInApp: false
+          });
+          
+          setLoginError("Your email is not verified. We've sent you a new verification email. Please check your inbox and spam folder.");
+        }
+      } catch (firebaseErr) {
+        console.error("Auto-send failed:", firebaseErr);
+        setLoginError("Your email is not verified. Please check your inbox for the verification email.");
+      }
+      
       return;
     }
 
@@ -150,31 +210,21 @@ export default function LoginRegisterPage() {
   }
 };
 
+/*
 // Handle resend verification from login
 const handleResendVerification = async () => {
   try {
-    const res = await fetch(`${API_URL}/otp/send`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: unverifiedEmail }),
-    });
-
-    const data = await res.json();
+    console.log("Resending verification via Firebase for:", unverifiedEmail);
     
-    if (res.ok) {
-      console.log("Verification email sent");
-      setShowVerificationModal(false);
-      // Navigate to OTP verification page
-      navigate(`/otpverification?email=${encodeURIComponent(unverifiedEmail)}`);
-    } else {
-      alert(data.error || "Failed to send verification email");
-    }
+    setShowVerificationModal(false);
+    alert("Please check your email inbox (and spam folder) for the verification link. If you still can't find it, try registering again.");
+    
   } catch (err) {
     console.error("Resend error:", err);
     alert("Failed to resend verification email");
   }
 };
+*/
 
   // Failed attempt + progressive lock (fixed with promotion delay)
   const handleFailedAttempt = (email) => {
@@ -242,61 +292,90 @@ const handleResendVerification = async () => {
 
   // Register
   const handleRegister = async () => {
-  setRegisterError("");
-  if (!firstName || !lastName || !regEmail || !regPassword) {
-    setRegisterError("Please fill in all fields.");
-    return;
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(regEmail)) {
-    setRegisterError("Please enter a valid email address.");
-    return;
-  }
-
-  const passwordError = validatePassword(regPassword);
-  if (passwordError) {
-    setRegisterError(passwordError);
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_URL}/register`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        firstname: firstName,
-        lastname: lastName,
-        email: regEmail,
-        password: regPassword,
-      }),
-    });
-
-    const data = await res.json();
-    
-    if (res.ok) {
-      console.log("Registration successful, redirecting to OTP verification");
-      
-      // Get email from response or use the form email
-      const emailToVerify = data.email || regEmail;
-
-      // Clear form
-      setFirstName("");
-      setLastName("");
-      setRegEmail("");
-      setRegPassword("");
-      
-      // Redirect to OTP verification page
-      navigate(`/otpverification?email=${encodeURIComponent(emailToVerify)}`);
-    } else {
-      setRegisterError(data.error || data.message || "Registration failed!");
+    setRegisterError("");
+    if (!firstName || !lastName || !regEmail || !regPassword) {
+      setRegisterError("Please fill in all fields.");
+      return;
     }
-  } catch (err) {
-    console.error("Registration error:", err);
-    setRegisterError("Something went wrong during registration.");
-  }
-};
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(regEmail)) {
+      setRegisterError("Please enter a valid email address.");
+      return;
+    }
+
+    const passwordError = validatePassword(regPassword);
+    if (passwordError) {
+      setRegisterError(passwordError);
+      return;
+    }
+
+    try {
+      // Step 1: Register user in YOUR database first
+      const res = await fetch(`${API_URL}/register`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstname: firstName,
+          lastname: lastName,
+          email: regEmail,
+          password: regPassword,
+        }),
+      });
+
+      const data = await res.json();
+      
+      if (res.ok) {
+        console.log("Registration successful in database");
+        
+        try {
+          // Step 2: Create Firebase user
+          const userCredential = await createUserWithEmailAndPassword(
+            auth, 
+            regEmail, 
+            regPassword
+          );
+          
+          console.log("Firebase user created:", userCredential.user.uid);
+
+          // Step 3: Send verification email via Firebase
+          await sendEmailVerification(userCredential.user, {
+            url: window.location.origin + "/loginregister", // Redirect after verification
+            handleCodeInApp: false
+          });
+
+          console.log("Verification email sent via Firebase");
+
+          // Clear form
+          setFirstName("");
+          setLastName("");
+          setRegEmail("");
+          setRegPassword("");
+          
+          // Show success message
+          alert("Registration successful! Please check your email to verify your account.");
+          setActiveTab("login");
+
+        } catch (firebaseError) {
+          console.error("Firebase error:", firebaseError);
+          
+          // Handle specific Firebase errors
+          if (firebaseError.code === 'auth/email-already-in-use') {
+            setRegisterError("Email already registered in Firebase.");
+          } else {
+            setRegisterError("Failed to send verification email. Please try again.");
+          }
+        }
+
+      } else {
+        setRegisterError(data.error || data.message || "Registration failed!");
+      }
+    } catch (err) {
+      console.error("Registration error:", err);
+      setRegisterError("Something went wrong during registration.");
+    }
+  };
 
   // 👤 Guest login
   const handleGuest = () => {
@@ -499,15 +578,14 @@ const handleResendVerification = async () => {
         </div>
       </div>
 
+      {/* MODAL COMMENTED OUT FOR NOW - Using auto-send instead
       {showVerificationModal && createPortal(
         <>
-          {/* Dimmed Overlay */}
           <div
             className="verification-overlay"
             onClick={() => setShowVerificationModal(false)}
           ></div>
 
-          {/* Centered Popup */}
           <div className="verification-modal-card">
             <h2 className="verification-modal-title">
               <span className="verification-icon">✉️</span>
@@ -544,6 +622,7 @@ const handleResendVerification = async () => {
         </>,
         document.body
       )}
+      */}
     </div>
   );
 }

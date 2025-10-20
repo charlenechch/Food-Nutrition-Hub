@@ -1,4 +1,4 @@
-const express = require("express");
+/* const express = require("express");
 const router = express.Router();
 const sendEmail = require("../config/mailer");
 const { getVerificationEmailHTML, getVerificationEmailSubject } = require("../utils/emailTemplates");
@@ -157,3 +157,4 @@ router.post("/verify", async (req, res) => {
 });
 
 module.exports = router;
+*/
