@@ -12,14 +12,14 @@ function formatRelativeTime(date) {
     }
     return parsedDate.toLocaleDateString();
   } catch (error) {
-    console.log("⚠️ [BACKEND] Error formatting relative time:", error);
+    console.log("Error formatting relative time:", error);
     return 'Unknown date';
   }
 }
 
 function formatDate(date) {
   if (!date) {
-    console.log("⚠️ [BACKEND] No date provided to formatDate");
+    console.log("No date provided to formatDate");
     return 'Unknown date';
   }
   
@@ -38,7 +38,7 @@ function formatDate(date) {
       day: 'numeric'
     });
   } catch (error) {
-    console.log("⚠️ [BACKEND] Error formatting date:", error, "Raw date:", date);
+    console.log("Error formatting date:", error, "Raw date:", date);
     return 'Unknown date';
   }
 }
@@ -47,7 +47,7 @@ function formatDate(date) {
 router.get("/:identifier", async (req, res) => {
   try {
     const { identifier } = req.params;
-    console.log("🔍 [BACKEND] Fetching profile for identifier:", identifier);
+    console.log("Fetching profile for identifier:", identifier);
     
     // Check if identifier is numeric (userProfileID) or string (username)
     const isNumericId = !isNaN(identifier) && !isNaN(parseFloat(identifier));
@@ -111,14 +111,14 @@ router.get("/:identifier", async (req, res) => {
       queryParams = [identifier];
     }
 
-    console.log("📊 [BACKEND] Executing SQL query:", userQuery);
-    console.log("📊 [BACKEND] Query parameters:", queryParams);
+    console.log("Executing SQL query:", userQuery);
+    console.log("Query parameters:", queryParams);
     
     const [userResults] = await db.execute(userQuery, queryParams);
-    console.log("📄 [BACKEND] User query results length:", userResults.length);
+    console.log("User query results length:", userResults.length);
 
     if (userResults.length === 0) {
-      console.log("❌ [BACKEND] No user found with identifier:", identifier);
+      console.log("No user found with identifier:", identifier);
       return res.status(404).json({ 
         error: "User not found",
         details: `No user found with identifier: ${identifier}`
@@ -135,7 +135,7 @@ router.get("/:identifier", async (req, res) => {
     // Get saved foods
     let savedFoods = [];
     try {
-      console.log("🍕 [BACKEND] Fetching saved foods for userProfileID:", user.userProfileID);
+      console.log("Fetching saved foods for userProfileID:", user.userProfileID);
       
       const savedFoodsQuery = `
         SELECT 
@@ -152,7 +152,7 @@ router.get("/:identifier", async (req, res) => {
       const [savedFoodsResults] = await db.execute(savedFoodsQuery, [user.userProfileID]);
       console.log("📦 [BACKEND] Saved foods found:", savedFoodsResults.length);
 
-      // Format saved foods - use current date since no timestamp in saveFood
+      // Format saved foods
       savedFoods = savedFoodsResults.map(food => ({
         id: food.foodID,
         saveId: food.saveID,
@@ -169,7 +169,7 @@ router.get("/:identifier", async (req, res) => {
     // Get ALL contributions (pending, approved, rejected)
     let contributions = [];
     try {
-      console.log("📝 [BACKEND] Fetching all contributions for userProfileID:", user.userProfileID);
+      console.log("Fetching all contributions for userProfileID:", user.userProfileID);
       
       const contributionsQuery = `
         SELECT 
@@ -186,16 +186,16 @@ router.get("/:identifier", async (req, res) => {
         ORDER BY p.created_at DESC
       `;
 
-      console.log("📋 [BACKEND] Executing contributions query:", contributionsQuery);
+      console.log("Executing contributions query:", contributionsQuery);
       const [contributionsResults] = await db.execute(contributionsQuery, [user.userProfileID]);
-      console.log("📋 [BACKEND] All contributions found:", contributionsResults.length);
+      console.log("All contributions found:", contributionsResults.length);
 
       contributions = contributionsResults.map(contribution => {
         const type = contribution.recipe ? 'Recipe' : 'Food';
 
         // Debug the date value
-      console.log("📅 [BACKEND] Raw submittedDate:", contribution.submittedDate);
-      console.log("📅 [BACKEND] Type of submittedDate:", typeof contribution.submittedDate);
+      console.log("Raw submittedDate:", contribution.submittedDate);
+      console.log("Type of submittedDate:", typeof contribution.submittedDate);
         
         const payload = {
           name: contribution.title,
@@ -255,10 +255,10 @@ router.get("/:identifier", async (req, res) => {
       }
     };
 
-    console.log("🎉 [BACKEND] Successfully built profile response");
+    console.log("Successfully built profile response");
     res.json(profile);
   } catch (error) {
-    console.error("💥 [BACKEND] Error fetching user profile:", error);
+    console.error("Error fetching user profile:", error);
     res.status(500).json({ 
       error: "Internal server error",
       details: error.message 
@@ -332,10 +332,10 @@ router.patch("/:userProfileID/preferences", async (req, res) => {
       ]
     );
 
-    console.log("✅ [BACKEND] Preferences updated successfully");
+    console.log("Preferences updated successfully");
     res.json({ message: "Preferences updated successfully" });
   } catch (error) {
-    console.error("💥 [BACKEND] Error updating preferences:", error);
+    console.error("Error updating preferences:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
