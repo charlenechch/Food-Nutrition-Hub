@@ -1,71 +1,77 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import "../css/ResetPasswordPage.css";
+
+// ✅ Firebase
+import { confirmPasswordReset } from "firebase/auth";
+import { auth } from "../config/firebase";
+import { API_URL } from "../config/api"; // ✅ Make sure API_URL = http://localhost:5000/api
 
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const token = params.get("token");
 
-  const [loading, setLoading] = useState(true);
-  const [valid, setValid] = useState(false);
+  // ✅ Firebase sends this in reset email: /resetpassword?oobCode=xxxx
+  const oobCode = params.get("oobCode");
+  const email = params.get("email"); // Email is not auto-included unless you append it
+
   const [pwd, setPwd] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
-  const [done, setDone] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  // UI-only “verify token”
-  useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setValid(Boolean(token)); // valid if there is a token
-      setLoading(false);
-    }, 400);
-  }, [token]);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (pwd.length < 8) return setError("At least 8 characters");
-    if (!/[A-Z]/.test(pwd) || !/[a-z]/.test(pwd) || !/[0-9]/.test(pwd) || !/[!@#$%^&*(),.?\":{}|<>]/.test(pwd)) {
-      return setError("Use upper, lower, number, and symbol");
+
+    if (pwd.length < 8) return setError("Password must be at least 8 characters.");
+    if (pwd !== confirm) return setError("Passwords do not match.");
+
+    try {
+      // ✅ Step 1: Update password in Firebase
+      await confirmPasswordReset(auth, oobCode, pwd);
+
+      // ✅ Step 2: Also update password in MySQL backend
+      await fetch(`${API_URL}/auth/updatePassword`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          email: email,    // ✅ You MUST pass user's email to backend
+          newPassword: pwd // ✅ Backend will hash it before saving
+        }),
+      });
+
+      setSuccess(true);
+      setTimeout(() => navigate("/loginregister"), 2000);
+    } catch (err) {
+      console.error(err);
+      setError("Invalid or expired reset link. Please request a new one.");
     }
-    if (pwd !== confirm) return setError("Passwords don't match");
-    // UI-only success
-    setDone(true);
   };
 
-  if (loading) {
-    return (
-      <div className="rpp-container">
-        <div className="rpp-card"><p>Verifying link…</p></div>
-      </div>
-    );
-  }
-
-  if (!valid) {
+  // ✅ If no oobCode exists = bad URL
+  if (!oobCode) {
     return (
       <div className="rpp-container">
         <div className="rpp-card">
-          <h2 className="rpp-head2">Link invalid or expired</h2>
-          <p className="rpp-subtext">Please request a new reset link.</p>
-            <button
-                type="button"
-                className="lrp-btn lrp-btn-primary"
-                onClick={() => navigate("/forgotpassword")}
-            >
-                Back
-            </button>
+          <h2 className="rpp-head2">Invalid or Missing Link</h2>
+          <p>Please request a new password reset email.</p>
+          <button className="lrp-btn lrp-btn-primary" onClick={() => navigate("/forgotpassword")}>
+            Back
+          </button>
         </div>
       </div>
     );
   }
 
-  if (done) {
+  // ✅ Success screen UI
+  if (success) {
     return (
       <div className="rpp-container">
         <div className="rpp-card">
-          <h2 className="rpp-head2">Password updated</h2>
+          <h2 className="rpp-head2">Password Updated Successfully!</h2>
+          <p>You can now login with your new password.</p>
           <button className="lrp-btn lrp-btn-primary" onClick={() => navigate("/loginregister")}>
             Go to Login
           </button>
@@ -77,21 +83,20 @@ export default function ResetPasswordPage() {
   return (
     <div className="rpp-container">
       <div className="rpp-card">
-        <h2 className="rpp-head2">Set a new password</h2>
+        <h2 className="rpp-head2">Set a New Password</h2>
         <form onSubmit={handleSubmit} className="rpp-form" noValidate>
-          <label>New password</label>
-          <input type="password" value={pwd} onChange={(e) => setPwd(e.target.value)} autoComplete="new-password" />
-          <label>Confirm password</label>
-          <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
-          {error && <div className="rpp-error" role="alert">{error}</div>}
-          <button type="submit" className="lrp-btn lrp-btn-primary">Save new password</button>
-            <button
-                type="button"
-                className="lrp-btn lrp-btn-outline"
-                onClick={() => navigate("/forgotpassword")}
-            >
-                Cancel
-            </button>
+          <label>New Password</label>
+          <input type="password" value={pwd} onChange={(e) => setPwd(e.target.value)} />
+
+          <label>Confirm Password</label>
+          <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+
+          {error && <p className="rpp-error">{error}</p>}
+
+          <button type="submit" className="lrp-btn lrp-btn-primary">Save New Password</button>
+          <button type="button" className="lrp-btn lrp-btn-outline" onClick={() => navigate("/forgotpassword")}>
+            Cancel
+          </button>
         </form>
       </div>
     </div>
