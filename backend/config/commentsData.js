@@ -34,7 +34,7 @@ const commentsData = [
   },
   { 
     postID: 2, 
-    userProfileID: 11, 
+    userProfileID: 1, 
     comment: "Can I substitute chicken for the minced meat?" 
   },
 
@@ -87,7 +87,7 @@ const commentsData = [
   },
   { 
     postID: 6, 
-    userProfileID: 12, 
+    userProfileID: 2, 
     comment: "This is my comfort food! Reminds me of home in Santubong." 
   },
 
@@ -123,7 +123,7 @@ const commentsData = [
   },
   { 
     postID: 9, 
-    userProfileID: 11, 
+    userProfileID: 1, 
     comment: "Can I use spinach if I can't find midin?" 
   },
 
@@ -140,7 +140,7 @@ const commentsData = [
   },
   { 
     postID: 10, 
-    userProfileID: 12, 
+    userProfileID: 10, 
     comment: "Perfect for special occasions! The smoky flavor is incredible." 
   }
 ];

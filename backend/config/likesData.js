@@ -13,8 +13,8 @@ const likesData = [
   { postID: 2, userProfileID: 7 },
   { postID: 2, userProfileID: 9 },
   { postID: 2, userProfileID: 10 },
-  { postID: 2, userProfileID: 11 },
-  { postID: 2, userProfileID: 12 },
+  { postID: 2, userProfileID: 4 },
+  { postID: 2, userProfileID: 2 },
 
   // Post 3 (Umai) - 3 likes
   { postID: 3, userProfileID: 1 },
@@ -27,13 +27,13 @@ const likesData = [
   { postID: 4, userProfileID: 5 },
   { postID: 4, userProfileID: 8 },
   { postID: 4, userProfileID: 10 },
-  { postID: 4, userProfileID: 12 },
+  { postID: 4, userProfileID: 2 },
 
   // Post 5 (Asam Siok) - 4 likes
   { postID: 5, userProfileID: 2 },
   { postID: 5, userProfileID: 4 },
   { postID: 5, userProfileID: 9 },
-  { postID: 5, userProfileID: 11 },
+  { postID: 5, userProfileID: 1 },
 
   // Post 6 (Belacan Bihun) - 7 likes
   { postID: 6, userProfileID: 1 },
@@ -42,7 +42,7 @@ const likesData = [
   { postID: 6, userProfileID: 7 },
   { postID: 6, userProfileID: 8 },
   { postID: 6, userProfileID: 10 },
-  { postID: 6, userProfileID: 12 },
+  { postID: 6, userProfileID: 2 },
 
   // Post 7 (Daun Ubi Tumbuk) - 2 likes
   { postID: 7, userProfileID: 4 },
@@ -53,7 +53,7 @@ const likesData = [
   { postID: 8, userProfileID: 3 },
   { postID: 8, userProfileID: 7 },
   { postID: 8, userProfileID: 9 },
-  { postID: 8, userProfileID: 11 },
+  { postID: 8, userProfileID: 5 },
 
   // Post 9 (Midin Belacan) - 9 likes
   { postID: 9, userProfileID: 1 },
@@ -64,7 +64,7 @@ const likesData = [
   { postID: 9, userProfileID: 6 },
   { postID: 9, userProfileID: 8 },
   { postID: 9, userProfileID: 10 },
-  { postID: 9, userProfileID: 12 },
+  { postID: 9, userProfileID: 7 },
 
   // Post 10 (Ayam Pansuh) - 6 likes
   { postID: 10, userProfileID: 2 },
@@ -72,7 +72,7 @@ const likesData = [
   { postID: 10, userProfileID: 6 },
   { postID: 10, userProfileID: 8 },
   { postID: 10, userProfileID: 10 },
-  { postID: 10, userProfileID: 12 }
+  { postID: 10, userProfileID: 1 }
 ];
 
 

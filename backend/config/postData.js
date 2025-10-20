@@ -27,7 +27,7 @@ const postData = [
   {
     foodName: "Umai",
     origin: "Melanau",
-    userProfileID: 5,
+    userProfileID: 3,
     status: "Approved",
     culturalStory: "Umai is a traditional Melanau dish that represents our connection to the sea.",
     photos: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwzehkJVPp0aUwgOSAp8PM5K_TwxtFR8qiqw&s",
@@ -37,7 +37,7 @@ const postData = [
   {
     foodName: "Nasi Aruk",
     origin: "Melayu",
-    userProfileID: 6,
+    userProfileID: 4,
     status: "Approved",
     culturalStory: "Nasi aruk was our family's breakfast staple - fried rice made from yesterday's leftovers. \
     My mother would wake before dawn to fry it with lots of garlic and anchovies, the aroma waking us up for school in our Kuching home.",
@@ -48,7 +48,7 @@ const postData = [
   {
     foodName: "Asam Siok",
     origin: "Bidayuh",
-    userProfileID: 6,
+    userProfileID: 5,
     status: "Approved",
     culturalStory: "Asam siok cooked in bamboo is traditional Bidayuh cooking at its finest. \
     We prepare this during Gawai, stuffing chicken with rice and cooking it over open fire, the bamboo giving it a unique smoky flavor from our ancestors.",
@@ -59,7 +59,7 @@ const postData = [
   {
     foodName: "Belacan Bihun",
     origin: "Chinese",
-    userProfileID: 9,
+    userProfileID: 6,
     status: "Approved",
     culturalStory: "This noodle dish showcases Sarawak's love for belacan. \
     My grandmother would toast the shrimp paste until fragrant, filling our kitchen with smells that reminded her of fishing villages along the Santubong coast.",
@@ -81,7 +81,7 @@ const postData = [
   {
     foodName: "Manicai",
     origin: "Chinese",
-    userProfileID: 11,
+    userProfileID: 7,
     status: "Approved",
     culturalStory: "Manicai stir-fried with garlic and egg was my comfort food after school. \
     This simple indigenous vegetable grows wild in Sarawak, and my mother taught me to salt it first to remove bitterness, just like her mother taught her.",
@@ -103,7 +103,7 @@ const postData = [
   {
     foodName: "Mindin Belacan",
     origin: "Bidayuh",
-    userProfileID: 12,
+    userProfileID: 8,
     status: "Approved",
     culturalStory: "Midin belacan is Sarawak's iconic jungle fern dish. \
     We forage for midin after rain when the ferns are tender, then stir-fry with fiery belacan - a taste that reminds me of family meals in our Kuching home.",
@@ -114,7 +114,7 @@ const postData = [
   {
     foodName: "Ayam Pansuh",
     origin: "Dayak",
-    userProfileID: 5,
+    userProfileID: 9,
     status: "Approved",
     culturalStory: "Ayam pansuh cooked in bamboo is true Iban heritage. \
     My father would prepare this for special occasions, stuffing chicken with lemongrass and cooking over open fire, the bamboo giving it a smoky flavor that connects us to our longhouse traditions.",

@@ -52,14 +52,14 @@ const discussions = [
   // Nasi Aruk discussions
   {
     foodID: 4,
-    userProfileID: 11,
+    userProfileID: 10,
     content: "Nasi aruk with fried chicken is the ultimate comfort food! So fragrant and delicious.",
     upVotes: 14,
     downVotes: 1
   },
   {
     foodID: 4,
-    userProfileID: 12,
+    userProfileID: 2,
     content: "Love how the rice is fried without oil. Perfect breakfast to start the day!",
     upVotes: 9,
     downVotes: 0

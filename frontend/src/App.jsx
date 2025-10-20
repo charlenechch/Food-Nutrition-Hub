@@ -72,7 +72,7 @@ function App() {
         <Route path="/recipes/:id" element={<RecipeDetailPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:id" element={<CommunityPost />} />
-        <Route path="/profile/:username" element={<UserProfilePage />} />
+        <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
         <Route path="/revise/:id" element={<ReviseContributionPage />} />
 
         {/* Nutrition Analyzer is public but guest has limited actions */}
