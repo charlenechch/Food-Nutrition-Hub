@@ -17,12 +17,19 @@ export function AuthProvider({ children }) {
             "Content-Type": "application/json",
           },
         });
+        
         const data = await res.json();
-        if (data?.user) {
+        
+        if (res.ok && data?.user) {
+          console.log("Session valid, user logged in");
           setUser(data.user);
+        } else {
+          console.log("No session, logging out");
+          setUser(null);
         }
       } catch (err) {
         console.error("Session check failed:", err);
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -32,7 +39,6 @@ export function AuthProvider({ children }) {
 
   const login = (userData) => {
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = async () => {
@@ -44,7 +50,6 @@ export function AuthProvider({ children }) {
         },
     });
     setUser(null);
-    localStorage.removeItem("user");
   };
 
   const value = { user, login, logout, loading };

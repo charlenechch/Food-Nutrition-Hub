@@ -17,6 +17,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const loginRoutes = require("./routes/login");
 const logoutRoutes = require("./routes/logout");
 const registerRoutes = require("./routes/register");
+const verifyEmailRoute = require("./routes/verifyEmail");
 const authRoutes = require("./routes/auth");
 const foodRoutes = require("./routes/foods");
 const exploreFoodRoutes = require("./routes/exploreFood");
@@ -24,7 +25,7 @@ const foodDetailRoutes = require("./routes/foodDetail");
 const foodDiscussionRoutes = require("./routes/foodDiscussion");
 const communityPostRoutes = require("./routes/communityPost");
 const saveFoodRoutes = require("./routes/saveFood");
-const otpRoutes = require("./routes/otp");
+// const otpRoutes = require("./routes/otp");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -170,11 +171,10 @@ app.use(
     store: sessionStore,
     resave: false,
     saveUninitialized: false, // don't create empty sessions
-    rolling: true, // refresh cookie on activity
     cookie: {
       httpOnly: true,
-      sameSite: "none", // cross-site with Vercel frontend
-      secure: true, // requires HTTPS + trust proxy
+      sameSite: IS_PROD ? "none" : "lax",  // ← CHANGED
+      secure: IS_PROD,  // ← CHANGED (false in dev, true in production)
       maxAge: 60 * 60 * 1000, // IDLE timeout: 1h (absolute 24h via store.expiration)
     },
   })
@@ -220,8 +220,9 @@ const authLimiter = rateLimit({
 app.use("/api/login", authLimiter, loginRoutes);
 app.use("/api/logout", logoutRoutes);
 app.use("/api/register", authLimiter, registerRoutes);
+app.use("/api/verify-email", verifyEmailRoute);
 app.use("/api/auth", authRoutes);
-app.use("/api/otp", otpRoutes);
+// app.use("/api/otp", otpRoutes);
 app.use("/api/exploreFood", exploreFoodRoutes);
 app.use("/api/foodDetail", foodDetailRoutes);
 app.use("/api/foodDiscussion", foodDiscussionRoutes);
