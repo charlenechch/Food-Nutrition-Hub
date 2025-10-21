@@ -127,6 +127,12 @@ const Comment = React.memo(function Comment({
 });
 export default function FoodDiscussionPage() {
   const { user } = useAuth(); // ✅ detect login/logout status
+  useEffect(() => {
+  if (user) {
+    setShowLoginPrompt(false);
+  }
+}, [user]);
+
   const { foodId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -361,7 +367,7 @@ export default function FoodDiscussionPage() {
           <textarea
             className="fd-input"
             placeholder="Share your thoughts about this food…"
-            value={user ? newComment : ""}
+            value={newComment}
             rows="4"
             onClick={() => !user && onGuestBlock()}
             onChange={(e) => {
