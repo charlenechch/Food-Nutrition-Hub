@@ -1,9 +1,3 @@
-// ✅ AuthContext.jsx – Final Updated Version
-// - Loads user from backend session on refresh (/auth/session)
-// - Keeps user in React state globally
-// - Works with login & logout properly
-// - Ensures /profile loads real session user data
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { API_URL } from "../config/api";
 
@@ -13,86 +7,76 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Check session once when app starts (refresh or page load)
+  // ✅ Check session on first page load
   useEffect(() => {
     checkSession();
   }, []);
 
-  // ✅ Session check function (used on load + after login)
+  // ✅ Reusable session checker (used on load & after login)
   const checkSession = async () => {
     try {
       const res = await fetch(`${API_URL}/auth/session`, {
-        credentials: "include", // ✅ include session cookies
+        credentials: "include",
       });
-
       const data = await res.json();
 
       if (res.ok && data?.user) {
-        console.log("✅ Session found:", data.user);
-        setUser(data.user); // ✅ Store user to context
+        console.log("✅ Session Found:", data.user);
+        setUser(data.user);
       } else {
-        console.log("❌ No active session");
+        console.log("❌ No session found");
         setUser(null);
       }
-    } catch (error) {
-      console.error("❌ Session check error:", error);
+    } catch (err) {
+      console.error("Session check error:", err);
       setUser(null);
     } finally {
-      setLoading(false); // ✅ allow UI to render after session check
+      setLoading(false);
     }
   };
 
-  // ✅ Login function (calls backend + stores to session + context)
+  // ✅ Login — Update UI instantly AND refresh session
   const login = async (email, password) => {
     try {
       const res = await fetch(`${API_URL}/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (res.ok && data?.user) {
-        console.log("✅ Login successful:", data.user);
-        setUser(data.user);
-        await checkSession(); // ✅ ensure session stored backend-side
+        console.log("✅ Login success:", data.user);
+        setUser(data.user);      // ✅ Instantly update UI
+        await checkSession();    // ✅ Sync with backend session
         return { success: true };
       }
 
       return { success: false, message: data?.message || "Login failed" };
     } catch (err) {
-      console.error("❌ Login error:", err);
+      console.error("Login error:", err);
       return { success: false, message: "Server error" };
     }
   };
 
-  // ✅ Logout function (destroys session on backend + clear context)
+  // ✅ Logout — Clear session + user state
   const logout = async () => {
     try {
       await fetch(`${API_URL}/logout`, {
         method: "POST",
         credentials: "include",
       });
-      console.log("✅ Logged out");
     } catch (err) {
-      console.error("❌ Logout error:", err);
+      console.error("Logout error:", err);
     } finally {
       setUser(null);
     }
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,          // ✅ logged-in user info
-        login,         // ✅ login function
-        logout,        // ✅ logout function
-        loading,       // ✅ used to delay UI until session checked
-        checkSession,  // ✅ optional manual re-check
-      }}
-    >
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );
