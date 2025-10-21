@@ -2,27 +2,27 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import "../css/FoodDiscussionPage.css"; 
-import '@fortawesome/fontawesome-free/css/all.min.css';
+import "../css/FoodDiscussionPage.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 
-// ✅ Added (Guest detection + popup modal)
+// ✅ Guest authentication logic
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
-// Helper function for time formatting
+// ✅ Time formatting
 function getTimeAgo(timestamp) {
   const now = new Date();
   const commentTime = new Date(timestamp);
   const diffInSeconds = Math.floor((now - commentTime) / 1000);
-  
-  if (diffInSeconds < 60) return 'now';
+
+  if (diffInSeconds < 60) return "now";
   if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
   if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
   return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
 }
 
-// ✅ COMMENT COMPONENT (Design 100% same, only guest logic added)
+// ✅ COMMENT COMPONENT
 const Comment = React.memo(function Comment({
   item,
   isReply = false,
@@ -33,37 +33,30 @@ const Comment = React.memo(function Comment({
   replyTexts,
   setReplyTexts,
   onPostReply,
-
-  // ✅ Added:
   user,
-  onGuestBlock
+  onGuestBlock,
 }) {
-  const getAvatar = (username) => {
-    if (!username) return "UU";
-    return username.substring(0, 2).toUpperCase();
-  };
+  const getAvatar = (username) => (username ? username.substring(0, 2).toUpperCase() : "UU");
 
-  const itemId = isReply 
-    ? (item.replyID || item.id || `reply-${Date.now()}-${Math.random()}`)
-    : (item.id || item.discussionID || `comment-${Date.now()}-${Math.random()}`);
-  const content = item.content || item.reply || item.text || "No content";
+  const itemId = isReply
+    ? item.replyID || item.id || `reply-${Date.now()}-${Math.random()}`
+    : item.id || item.discussionID || `comment-${Date.now()}-${Math.random()}`;
+
+  const content = item.content || item.reply || "No content";
   const timestamp = item.timestamp || item.createdAt || new Date().toISOString();
-  const likes = isReply ? 0 : (item.likes || item.upVotes || 0);
+  const likes = isReply ? 0 : item.upVotes || 0;
   const username = item.username || "Loading...";
 
-  // ✅ Reply button guest block
   const handleToggleReply = () => {
     if (!user) return onGuestBlock();
     setReplyToId(replyToId === itemId ? null : itemId);
   };
 
-  // ✅ Typing reply guest block
   const handleReplyTextChange = (e) => {
     if (!user) return onGuestBlock();
     setReplyTexts((prev) => ({ ...prev, [itemId]: e.target.value }));
   };
 
-  // ✅ Send reply guest block
   const handlePostReply = () => {
     if (!user) return onGuestBlock();
     onPostReply(itemId);
@@ -71,7 +64,7 @@ const Comment = React.memo(function Comment({
 
   const handleCancelReply = () => {
     setReplyToId(null);
-    setReplyTexts(prev => ({ ...prev, [itemId]: "" }));
+    setReplyTexts((prev) => ({ ...prev, [itemId]: "" }));
   };
 
   return (
@@ -87,21 +80,17 @@ const Comment = React.memo(function Comment({
 
         <div className="fd-disc-actions">
           {!isReply && (
-            <button 
-              className="fd-link-btn" 
-              type="button" 
-              onClick={() => onToggleLike(itemId)} // ✅ Like still works for guests
+            <button
+              className="fd-link-btn"
+              type="button"
+              onClick={() => onToggleLike(itemId)} // ✅ Like allowed for guests
             >
-              {likedIds.has(itemId) ? "♥" : "♡"} {likes || 0} likes
+              {likedIds.has(itemId) ? "♥" : "♡"} {likes} likes
             </button>
           )}
 
           {!isReply && (
-            <button
-              className="fd-link-btn"
-              type="button"
-              onClick={handleToggleReply}
-            >
+            <button className="fd-link-btn" type="button" onClick={handleToggleReply}>
               ↩ Reply
             </button>
           )}
@@ -118,57 +107,30 @@ const Comment = React.memo(function Comment({
               onChange={handleReplyTextChange}
             />
             <div className="fd-reply-actions">
-              <button 
-                className="lrp-btn lrp-btn-primary" 
-                type="button" 
+              <button
+                className="lrp-btn lrp-btn-primary"
+                type="button"
                 onClick={handlePostReply}
                 disabled={!replyTexts[itemId]?.trim()}
               >
                 Send Reply
               </button>
-              <button 
-                className="lrp-btn lrp-btn-outline" 
-                type="button" 
-                onClick={handleCancelReply}
-              >
+              <button className="lrp-btn lrp-btn-outline" type="button" onClick={handleCancelReply}>
                 Cancel
               </button>
             </div>
-          </div>
-        )}
-
-        {!!item.replies?.length && (
-          <div className="fd-disc-replies">
-            {item.replies.map((r, index) => (
-              <Comment
-                key={r.replyID || `reply-${itemId}-${index}`}
-                item={r}
-                isReply={true}
-                likedIds={likedIds}
-                onToggleLike={onToggleLike}
-                replyToId={replyToId}
-                setReplyToId={setReplyToId}
-                replyTexts={replyTexts}
-                setReplyTexts={setReplyTexts}
-                onPostReply={onPostReply}
-                user={user}
-                onGuestBlock={onGuestBlock}
-              />
-            ))}
           </div>
         )}
       </div>
     </div>
   );
 });
-
 export default function FoodDiscussionPage() {
-  const { user } = useAuth(); // ✅ detect login status
+  const { user } = useAuth(); // ✅ detect login/logout status
   const { foodId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Keep your original state
   const [food, setFood] = useState(location.state?.food || null);
   const [comments, setComments] = useState([]);
   const [likedIds, setLikedIds] = useState(() => new Set());
@@ -176,30 +138,27 @@ export default function FoodDiscussionPage() {
   const [newComment, setNewComment] = useState("");
   const [replyToId, setReplyToId] = useState(null);
   const [replyTexts, setReplyTexts] = useState({});
-  
-  // ✅ Modal state for guest popup
+
+  // ✅ Guest popup modal state
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const onGuestBlock = () => setShowLoginPrompt(true);
 
-  const getUserProfileID = () => {
-    return user?.profileID || 1; 
-  };
+  // ✅ After login, page updates automatically (no refresh needed)
+  useEffect(() => {}, [user]);
 
-  // ✅ Fetch Food Details
+  const getUserProfileID = () => user?.profileID || null;
+
+  // ✅ Fetch Food Info
   useEffect(() => {
     const fetchFoodDetails = async () => {
       if (!food && foodId) {
         try {
           const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
           const res = await fetch(`${API_BASE_URL}/api/foodDetail/${foodId}`);
-          if (res.ok) {
-            const result = await res.json();
-            if (result.success) {
-              setFood(result.data);
-            }
-          }
+          const result = await res.json();
+          if (result.success) setFood(result.data);
         } catch (error) {
-          console.error('Error fetching food details:', error);
+          console.error("Error fetching food details:", error);
         }
       }
     };
@@ -213,90 +172,68 @@ export default function FoodDiscussionPage() {
         setLoading(true);
         const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
         const res = await fetch(`${API_BASE_URL}/api/foodDiscussion/food/${foodId}`);
-        if (res.ok) {
-          const result = await res.json();
-          if (result.success && result.data) {
-            const flattenData = (data) => {
-              if (Array.isArray(data)) {
-                return data.flatMap(item => {
-                  if (item && typeof item === 'object') {
-                    const hasNumericKeys = Object.keys(item).some(key => !isNaN(key));
-                    if (hasNumericKeys) {
-                      return Object.values(item).filter(val => 
-                        val && typeof val === 'object' && (val.id || val.discussionID)
-                      );
-                    }
-                    return item;
-                  }
-                  return [];
-                });
-              }
-              return data ? [data] : [];
-            };
-            let commentsData = flattenData(result.data);
-            commentsData = commentsData.map(comment => ({
-              ...comment,
-              timeAgo: getTimeAgo(comment.timestamp || comment.createdAt),
-              replies: (comment.replies || []).map(reply => ({
-                ...reply,
-                timeAgo: getTimeAgo(reply.timestamp || reply.createdAt)
-              }))
-            }));
-            setComments(commentsData);
-          } else {
-            setComments([]);
-          }
-        }
+        const result = await res.json();
+
+        if (result.success && result.data) {
+          let commentsData = result.data.map((comment) => ({
+            ...comment,
+            timeAgo: getTimeAgo(comment.timestamp || comment.createdAt),
+            replies: (comment.replies || []).map((reply) => ({
+              ...reply,
+              timeAgo: getTimeAgo(reply.timestamp || reply.createdAt),
+            })),
+          }));
+          setComments(commentsData);
+        } else setComments([]);
       } catch (err) {
-        console.error('Error fetching comments:', err);
+        console.error("Error fetching comments:", err);
         setComments([]);
       } finally {
         setLoading(false);
       }
     };
+
     if (foodId) fetchComments();
   }, [foodId]);
 
-  // ✅ Like still works for guests
+  // ✅ Like (Guest allowed)
   const toggleLike = async (targetId) => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const userProfileID = getUserProfileID();
       const res = await fetch(`${API_BASE_URL}/api/foodDiscussion/${targetId}/vote`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'up', userProfileID })
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "up", userProfileID: getUserProfileID() }),
       });
-      if (res.ok) {
-        const result = await res.json();
-        if (result.success) {
-          setComments(prev =>
-            prev.map(comment => {
-              if (comment.id === targetId) {
-                const wasLiked = likedIds.has(targetId);
-                const likeChange = wasLiked ? -1 : 1;
-                return { 
-                  ...comment, 
-                  upVotes: Math.max(0, (comment.likes || 0) + likeChange) 
-                };
-              }
-              return comment;
-            })
-          );
-          setLikedIds(prev => {
-            const next = new Set(prev);
-            if (next.has(targetId)) next.delete(targetId);
-            else next.add(targetId);
-            return next;
-          });
-        }
+      const result = await res.json();
+
+      if (result.success) {
+        setComments((prev) =>
+          prev.map((comment) =>
+            comment.id === targetId
+              ? {
+                  ...comment,
+                  upVotes: likedIds.has(targetId)
+                    ? (comment.upVotes || 1) - 1
+                    : (comment.upVotes || 0) + 1,
+                }
+              : comment
+          )
+        );
+
+        setLikedIds((prev) => {
+          const next = new Set(prev);
+          if (next.has(targetId)) next.delete(targetId);
+          else next.add(targetId);
+          return next;
+        });
       }
     } catch (err) {
-      console.error('Error updating like:', err);
+      console.error("Error updating like:", err);
     }
   };
 
-  // ✅ Post Comment (click or type popup)
+  // ✅ Post Comment (Guest blocked)
   const postComment = async () => {
     if (!user) return onGuestBlock();
 
@@ -306,66 +243,69 @@ export default function FoodDiscussionPage() {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${API_BASE_URL}/api/foodDiscussion`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           foodID: foodId,
           userProfileID: getUserProfileID(),
-          content: text
-        })
+          content: text,
+        }),
       });
-      if (res.ok) {
-        const result = await res.json();
-        if (result.success) {
-          setComments(prev => [result.data, ...prev]);
-          setNewComment("");
-        }
+
+      const result = await res.json();
+      if (result.success) {
+        setComments((prev) => [result.data, ...prev]);
+        setNewComment("");
       }
     } catch (err) {
-      console.error('Error posting comment:', err);
+      console.error("Error posting comment:", err);
     }
   };
 
+  // ✅ Post Reply (Guest blocked)
   const postReply = async (discussionId) => {
     if (!user) return onGuestBlock();
 
-    const text = (replyTexts[discussionId] ?? "").trim();
+    const text = replyTexts[discussionId]?.trim();
     if (!text) return;
 
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${API_BASE_URL}/api/foodDiscussion/${discussionId}/replies`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userProfileID: getUserProfileID(),
-          reply: text
-        })
+          reply: text,
+        }),
       });
+
       const result = await res.json();
-      if (res.ok && result.success) {
-        setComments(prevComments =>
-          prevComments.map(comment => {
-            if (comment.id === discussionId) {
-              return {
-                ...comment,
-                replies: [...(comment.replies || []), {
-                  replyID: result.data.replyID,
-                  username: result.data.username,
-                  content: result.data.content,
-                  timestamp: result.data.timestamp,
-                  timeAgo: result.data.timeAgo
-                }]
-              };
-            }
-            return comment;
-          })
+      if (result.success) {
+        setComments((prev) =>
+          prev.map((comment) =>
+            comment.id === discussionId
+              ? {
+                  ...comment,
+                  replies: [
+                    ...(comment.replies || []),
+                    {
+                      replyID: result.data.replyID,
+                      username: result.data.username,
+                      content: result.data.content,
+                      timestamp: result.data.timestamp,
+                      timeAgo: "now",
+                    },
+                  ],
+                }
+              : comment
+          )
         );
         setReplyToId(null);
-        setReplyTexts(prev => ({ ...prev, [discussionId]: "" }));
+        setReplyTexts((prev) => ({ ...prev, [discussionId]: "" }));
       }
     } catch (err) {
-      console.error('Error posting reply:', err);
+      console.error("Error posting reply:", err);
     }
   };
 
@@ -393,23 +333,19 @@ export default function FoodDiscussionPage() {
       <Header />
 
       <div className="fdp-disc-container">
-        {/* top bar */}
+        {/* Back Button */}
         <div className="fdp-disc-topbar">
-          <button
-            type="button"
-            className="lrp-btn lrp-btn-outline fdp-back"
-            onClick={handleBack}
-          >
+          <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
             ← Back to Food Details
           </button>
         </div>
 
-        {/* summary card */}
+        {/* Summary */}
         <div className="fd-card fd-summary">
           <div className="fd-sum-left">
             <div className="fd-sum-thumb">{food?.icon || "🍽️"}</div>
             <div>
-              <h2 className="fd-title">{food?.name || "Food Discussion"}</h2>
+              <h2 className="fd-title">{food?.name}</h2>
               <p className="fd-muted">{food?.description}</p>
               <div className="fd-sum-stats">
                 <span>💬 {totalComments} comments</span>
@@ -419,13 +355,13 @@ export default function FoodDiscussionPage() {
           </div>
         </div>
 
-        {/* add comment */}
+        {/* Add Comment */}
         <div className="fd-card">
           <h3 className="fd-section-title">Add Your Comment</h3>
           <textarea
             className="fd-input"
             placeholder="Share your thoughts about this food…"
-            value={newComment}
+            value={user ? newComment : ""}
             rows="4"
             onClick={() => !user && onGuestBlock()}
             onChange={(e) => {
@@ -437,18 +373,15 @@ export default function FoodDiscussionPage() {
             <button
               className="lrp-btn lrp-btn-primary"
               type="button"
-              onClick={() => {
-                if (!user) return onGuestBlock();
-                if (newComment.trim()) postComment();
-              }}
+              onClick={postComment}
+              style={{ cursor: user ? "pointer" : "not-allowed" }} // ✅ remove red cancel
             >
-              <i className="fas fa-paper-plane" style={{ marginRight: "8px" }}></i>
-              Post Comment
+              <i className="fas fa-paper-plane" style={{ marginRight: "8px" }} /> Post Comment
             </button>
           </div>
         </div>
 
-        {/* comments */}
+        {/* Comments List */}
         <div className="fd-card">
           <h3 className="fd-section-title">
             <i className="fas fa-comment-dots"></i> Community Comments ({comments.length})
@@ -456,7 +389,7 @@ export default function FoodDiscussionPage() {
           {comments.length ? (
             <div className="fd-disc-list">
               {comments.map((c, idx) => (
-                <React.Fragment key={c.id || `comment-${idx}`}>
+                <React.Fragment key={c.id || idx}>
                   <Comment
                     item={c}
                     likedIds={likedIds}
@@ -482,12 +415,8 @@ export default function FoodDiscussionPage() {
         </div>
       </div>
 
-      {/* ✅ Login Popup Modal */}
-      <LoginPromptModal
-        show={showLoginPrompt}
-        onClose={() => setShowLoginPrompt(false)}
-      />
-
+      {/* ✅ Login Popup */}
+      <LoginPromptModal show={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
       <Footer />
     </div>
   );
