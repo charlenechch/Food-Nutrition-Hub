@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import CommunityPost from "./pages/CommunityPostPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import ReviseContributionPage from "./pages/ReviseContributionPage";
+import EditFoodPage from "./pages/EditFoodPage";
 
 function FoodDetailRoute() {
   const { state } = useLocation();
