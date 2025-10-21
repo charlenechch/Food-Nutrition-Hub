@@ -619,11 +619,11 @@ const formatContributionDate = (dateString) => {
                   ))}
                 </div>
 
-                <div className="upp-muted" style={{ marginTop: 8 }}>
-                  (These selections are demo-only and won’t be sent to the server.)
+                <div className="upp-muted upp-subtitle">
+     e             (Please select your dietary preferences.)
                 </div>
 
-                <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+                <div className="upp-btn2">
                   <button
                     className="lrp-btn lrp-btn-outline"
                     type="button"
@@ -632,7 +632,7 @@ const formatContributionDate = (dateString) => {
                       setUiDietary(toArray(user?.prefs?.dietary, "none"));
                     }}
                   >
-                    Reset (from backend)
+                    Reset
                   </button>
                 </div>
               </div>
@@ -656,11 +656,11 @@ const formatContributionDate = (dateString) => {
                   ))}
                 </div>
 
-                <div className="upp-muted" style={{ marginTop: 8 }}>
-                  (These selections are demo-only and won’t be sent to the server.)
+                <div className="upp-muted upp-subtitle">
+                  (Please select your allergies or Restrictions)
                 </div>
 
-                <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+                <div className="upp-btn2">
                   <button
                     className="lrp-btn lrp-btn-outline"
                     type="button"
@@ -669,7 +669,7 @@ const formatContributionDate = (dateString) => {
                       setUiAllergies(toArray(user?.prefs?.allergies, "noAllergies"));
                     }}
                   >
-                    Reset (from backend)
+                    Reset
                   </button>
                 </div>
               </div>
