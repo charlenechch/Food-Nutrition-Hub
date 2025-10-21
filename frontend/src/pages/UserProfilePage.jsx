@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../css/UserProfilePage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Bell, ExternalLink, Eye, Globe, Shield } from "lucide-react";
+import { Bell, ExternalLink, Eye, Globe, OctagonX, Shield } from "lucide-react";
 
 
 const DIETARY_OPTIONS = ["vegetarian","vegan","halal","gluten-free","dairy-free","low-fat","high-protein","spicy"];
@@ -774,6 +774,24 @@ const formatContributionDate = (dateString) => {
                   </div>
                 </div>
               )}
+              <div className="upp-card">
+                <h3 className="upp-card-title"><OctagonX size={18} color={"#6a4a2f"}/> Account Deletion</h3>
+
+                <div className="upp-row between">
+                  <div>
+                    <div className="upp-strong">Delete Account</div>
+                    <div className="upp-muted">Permanently remove your account and all associated data.</div>
+                  </div>
+
+                  {/* Looks active, but has no onClick */}
+                  <button
+                    type="button"
+                    className="lrp-btn lrp-btn-outline upp-btn upp-btn--danger"
+                  >
+                    Delete Account
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
