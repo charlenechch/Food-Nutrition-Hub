@@ -97,6 +97,7 @@ app.use(
         "'unsafe-inline'", // allow Vite dev inline in DEV
         "http://localhost:5173",
         "https://food-nutrition-hub.vercel.app",
+        "https://food-nutrition-63er8gzv1-fyp-group10-fnh.vercel.app",
       ],
       "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       "font-src": ["'self'", "https://fonts.gstatic.com"],
@@ -105,6 +106,7 @@ app.use(
         "'self'",
         "http://localhost:5173",
         "https://food-nutrition-hub.vercel.app",
+        "https://food-nutrition-63er8gzv1-fyp-group10-fnh.vercel.app"
       ],
       "frame-ancestors": ["'none'"], // block clickjacking
     },
@@ -129,6 +131,7 @@ app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
 const allowlist = [
   "http://localhost:5173",
   "https://food-nutrition-hub.vercel.app",
+  "https://food-nutrition-63er8gzv1-fyp-group10-fnh.vercel.app",
   process.env.FRONTEND_ORIGIN, // optional override
 ].filter(Boolean);
 
