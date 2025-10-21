@@ -75,6 +75,8 @@ function App() {
         <Route path="/community/:id" element={<CommunityPost />} />
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
         <Route path="/revise/:id" element={<ReviseContributionPage />} />
+        <Route path="/editfood/:id" element={<EditFoodPage />} />
+        <Route path ="/admin" element={<AdminHomepage />} />
 
         {/* Nutrition Analyzer is public but guest has limited actions */}
         <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
@@ -89,14 +91,14 @@ function App() {
           }
         />
 
-        <Route
+        {/* <Route
           path="/admin"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <AdminHomepage />
             </ProtectedRoute>
           }
-        />
+        /> */}
       </Routes>
     </Router>
   );
