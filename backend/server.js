@@ -26,7 +26,7 @@ const foodDiscussionRoutes = require("./routes/foodDiscussion");
 const recipeRoutes = require("./routes/recipe");
 const communityPostRoutes = require("./routes/communityPost");
 const saveFoodRoutes = require("./routes/saveFood");
-const otpRoutes = require("./routes/otp");
+//const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
 
 const app = express();
