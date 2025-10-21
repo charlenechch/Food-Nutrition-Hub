@@ -137,27 +137,16 @@
 
 /* Instructions */
 .rdp-steps { 
-    list-style: none; 
-    padding: 0; 
-    margin: 0; 
-}
-.rdp-steps li { 
     display: grid; 
-    grid-template-columns: 28px 1fr; 
-    gap: .6rem; 
-    align-items: start; 
-    margin: .45rem 0; 
+    gap: 8px; 
 }
-.rdp-step-index { 
-    width: 28px; 
-    height: 28px; 
-    border-radius: 50%; 
-    background: #8b5e34; 
-    color: #fff; 
-    display:flex; 
-    align-items:center; 
-    justify-content:center; 
-    font-weight:700; 
+.rdp-step { 
+    display: flex; 
+    gap: 8px; 
+    align-items: flex-start; 
+}
+.rdp-step-text { 
+    line-height: 1.5; 
 }
 
 /* Sidebar */
