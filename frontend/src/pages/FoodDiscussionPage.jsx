@@ -161,6 +161,7 @@ const Comment = React.memo(function Comment({
     </div>
   );
 });
+
 export default function FoodDiscussionPage() {
   const { user } = useAuth(); // ✅ detect login status
   const { foodId } = useParams();
@@ -180,12 +181,11 @@ export default function FoodDiscussionPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const onGuestBlock = () => setShowLoginPrompt(true);
 
-  // You kept this - no change
   const getUserProfileID = () => {
     return user?.profileID || 1; 
   };
 
-  // ✅ Fetch Food Details (unchanged)
+  // ✅ Fetch Food Details
   useEffect(() => {
     const fetchFoodDetails = async () => {
       if (!food && foodId) {
@@ -203,18 +203,16 @@ export default function FoodDiscussionPage() {
         }
       }
     };
-
     fetchFoodDetails();
   }, [food, foodId]);
 
-  // ✅ Fetch Comments (unchanged)
+  // ✅ Fetch Comments
   useEffect(() => {
     const fetchComments = async () => {
       try {
         setLoading(true);
         const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
         const res = await fetch(`${API_BASE_URL}/api/foodDiscussion/food/${foodId}`);
-
         if (res.ok) {
           const result = await res.json();
           if (result.success && result.data) {
@@ -235,7 +233,6 @@ export default function FoodDiscussionPage() {
               }
               return data ? [data] : [];
             };
-
             let commentsData = flattenData(result.data);
             commentsData = commentsData.map(comment => ({
               ...comment,
@@ -249,9 +246,6 @@ export default function FoodDiscussionPage() {
           } else {
             setComments([]);
           }
-        } else {
-          console.error('Failed to fetch comments');
-          setComments([]);
         }
       } catch (err) {
         console.error('Error fetching comments:', err);
@@ -260,24 +254,19 @@ export default function FoodDiscussionPage() {
         setLoading(false);
       }
     };
-
-    if (foodId) {
-      fetchComments();
-    }
+    if (foodId) fetchComments();
   }, [foodId]);
 
-  // ✅ Like function (guest STILL allowed)
+  // ✅ Like still works for guests
   const toggleLike = async (targetId) => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const userProfileID = getUserProfileID();
-
       const res = await fetch(`${API_BASE_URL}/api/foodDiscussion/${targetId}/vote`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'up', userProfileID })
       });
-
       if (res.ok) {
         const result = await res.json();
         if (result.success) {
@@ -307,7 +296,7 @@ export default function FoodDiscussionPage() {
     }
   };
 
-  // ✅ Post Comment (block guest)
+  // ✅ Post Comment (click or type popup)
   const postComment = async () => {
     if (!user) return onGuestBlock();
 
@@ -325,7 +314,6 @@ export default function FoodDiscussionPage() {
           content: text
         })
       });
-
       if (res.ok) {
         const result = await res.json();
         if (result.success) {
@@ -338,7 +326,6 @@ export default function FoodDiscussionPage() {
     }
   };
 
-  // ✅ Post Reply (block guest)
   const postReply = async (discussionId) => {
     if (!user) return onGuestBlock();
 
@@ -355,7 +342,6 @@ export default function FoodDiscussionPage() {
           reply: text
         })
       });
-
       const result = await res.json();
       if (res.ok && result.success) {
         setComments(prevComments =>
@@ -384,7 +370,6 @@ export default function FoodDiscussionPage() {
   };
 
   const handleBack = () => navigate(-1);
-
   const totalComments = comments.length + comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0);
   const totalLikes = comments.reduce((acc, c) => acc + (c.likes || 0), 0);
 
@@ -402,6 +387,7 @@ export default function FoodDiscussionPage() {
       </div>
     );
   }
+
   return (
     <div className="food-discussion-page">
       <Header />
@@ -451,10 +437,12 @@ export default function FoodDiscussionPage() {
             <button
               className="lrp-btn lrp-btn-primary"
               type="button"
-              onClick={postComment}
-              disabled={!newComment.trim()}
+              onClick={() => {
+                if (!user) return onGuestBlock();
+                if (newComment.trim()) postComment();
+              }}
             >
-              <i className="fas fa-paper-plane" style={{ marginRight: "8px" }}></i> 
+              <i className="fas fa-paper-plane" style={{ marginRight: "8px" }}></i>
               Post Comment
             </button>
           </div>
@@ -478,8 +466,6 @@ export default function FoodDiscussionPage() {
                     replyTexts={replyTexts}
                     setReplyTexts={setReplyTexts}
                     onPostReply={postReply}
-
-                    // ✅ added props
                     user={user}
                     onGuestBlock={onGuestBlock}
                   />
@@ -496,7 +482,7 @@ export default function FoodDiscussionPage() {
         </div>
       </div>
 
-      {/* ✅ Login Popup Modal (no design changes) */}
+      {/* ✅ Login Popup Modal */}
       <LoginPromptModal
         show={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
