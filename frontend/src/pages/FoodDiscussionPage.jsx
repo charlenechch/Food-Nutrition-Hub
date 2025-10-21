@@ -5,11 +5,11 @@ import Footer from "../components/Footer";
 import "../css/FoodDiscussionPage.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
-// ✅ Guest authentication logic
+// ✅ Add authentication & modal
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
-// ✅ Time formatting
+// Helper function for time formatting
 function getTimeAgo(timestamp) {
   const now = new Date();
   const commentTime = new Date(timestamp);
@@ -22,7 +22,9 @@ function getTimeAgo(timestamp) {
   return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
 }
 
+// =======================
 // ✅ COMMENT COMPONENT
+// =======================
 const Comment = React.memo(function Comment({
   item,
   isReply = false,
@@ -33,6 +35,8 @@ const Comment = React.memo(function Comment({
   replyTexts,
   setReplyTexts,
   onPostReply,
+
+  // ✅ Added:
   user,
   onGuestBlock,
 }) {
@@ -83,7 +87,7 @@ const Comment = React.memo(function Comment({
             <button
               className="fd-link-btn"
               type="button"
-              onClick={() => onToggleLike(itemId)} // ✅ Like allowed for guests
+              onClick={() => onToggleLike(itemId)} // ✅ likes still allowed
             >
               {likedIds.has(itemId) ? "♥" : "♡"} {likes} likes
             </button>
@@ -96,6 +100,7 @@ const Comment = React.memo(function Comment({
           )}
         </div>
 
+        {/* ✅ Reply box shows but disabled for guest */}
         {!isReply && replyToId === itemId && (
           <div className="fd-reply-box">
             <textarea
@@ -107,12 +112,7 @@ const Comment = React.memo(function Comment({
               onChange={handleReplyTextChange}
             />
             <div className="fd-reply-actions">
-              <button
-                className="lrp-btn lrp-btn-primary"
-                type="button"
-                onClick={handlePostReply}
-                disabled={!replyTexts[itemId]?.trim()}
-              >
+              <button className="lrp-btn lrp-btn-primary" type="button" onClick={handlePostReply} disabled={!replyTexts[itemId]?.trim()}>
                 Send Reply
               </button>
               <button className="lrp-btn lrp-btn-outline" type="button" onClick={handleCancelReply}>
@@ -125,18 +125,28 @@ const Comment = React.memo(function Comment({
     </div>
   );
 });
-export default function FoodDiscussionPage() {
-  const { user } = useAuth(); // ✅ detect login/logout status
-  useEffect(() => {
-  if (user) {
-    setShowLoginPrompt(false);
-  }
-}, [user]);
 
+// =======================
+// ✅ MAIN PAGE
+// =======================
+export default function FoodDiscussionPage() {
+  const { user } = useAuth();
   const { foodId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
 
+  // ✅ Modal logic
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const onGuestBlock = () => setShowLoginPrompt(true);
+
+  // ✅ Close popup automatically after login (no refresh!)
+  useEffect(() => {
+    if (user) {
+      setShowLoginPrompt(false);
+    }
+  }, [user]);
+
+  // ========== Original states ==========
   const [food, setFood] = useState(location.state?.food || null);
   const [comments, setComments] = useState([]);
   const [likedIds, setLikedIds] = useState(() => new Set());
@@ -145,16 +155,9 @@ export default function FoodDiscussionPage() {
   const [replyToId, setReplyToId] = useState(null);
   const [replyTexts, setReplyTexts] = useState({});
 
-  // ✅ Guest popup modal state
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const onGuestBlock = () => setShowLoginPrompt(true);
-
-  // ✅ After login, page updates automatically (no refresh needed)
-  useEffect(() => {}, [user]);
-
   const getUserProfileID = () => user?.profileID || null;
 
-  // ✅ Fetch Food Info
+  // ✅ Fetch food details
   useEffect(() => {
     const fetchFoodDetails = async () => {
       if (!food && foodId) {
@@ -171,7 +174,7 @@ export default function FoodDiscussionPage() {
     fetchFoodDetails();
   }, [food, foodId]);
 
-  // ✅ Fetch Comments
+  // ✅ Fetch comments
   useEffect(() => {
     const fetchComments = async () => {
       try {
@@ -190,7 +193,9 @@ export default function FoodDiscussionPage() {
             })),
           }));
           setComments(commentsData);
-        } else setComments([]);
+        } else {
+          setComments([]);
+        }
       } catch (err) {
         console.error("Error fetching comments:", err);
         setComments([]);
@@ -198,18 +203,20 @@ export default function FoodDiscussionPage() {
         setLoading(false);
       }
     };
-
     if (foodId) fetchComments();
   }, [foodId]);
 
-  // ✅ Like (Guest allowed)
+  // ✅ Like (allowed for guests)
   const toggleLike = async (targetId) => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${API_BASE_URL}/api/foodDiscussion/${targetId}/vote`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "up", userProfileID: getUserProfileID() }),
+        body: JSON.stringify({
+          type: "up",
+          userProfileID: getUserProfileID(),
+        }),
       });
       const result = await res.json();
 
@@ -226,11 +233,9 @@ export default function FoodDiscussionPage() {
               : comment
           )
         );
-
         setLikedIds((prev) => {
           const next = new Set(prev);
-          if (next.has(targetId)) next.delete(targetId);
-          else next.add(targetId);
+          next.has(targetId) ? next.delete(targetId) : next.add(targetId);
           return next;
         });
       }
@@ -316,6 +321,7 @@ export default function FoodDiscussionPage() {
   };
 
   const handleBack = () => navigate(-1);
+
   const totalComments = comments.length + comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0);
   const totalLikes = comments.reduce((acc, c) => acc + (c.likes || 0), 0);
 
@@ -339,19 +345,19 @@ export default function FoodDiscussionPage() {
       <Header />
 
       <div className="fdp-disc-container">
-        {/* Back Button */}
+        {/* Top Bar */}
         <div className="fdp-disc-topbar">
           <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
             ← Back to Food Details
           </button>
         </div>
 
-        {/* Summary */}
+        {/* Summary Card */}
         <div className="fd-card fd-summary">
           <div className="fd-sum-left">
             <div className="fd-sum-thumb">{food?.icon || "🍽️"}</div>
             <div>
-              <h2 className="fd-title">{food?.name}</h2>
+              <h2 className="fd-title">{food?.name || "Food Discussion"}</h2>
               <p className="fd-muted">{food?.description}</p>
               <div className="fd-sum-stats">
                 <span>💬 {totalComments} comments</span>
@@ -380,9 +386,10 @@ export default function FoodDiscussionPage() {
               className="lrp-btn lrp-btn-primary"
               type="button"
               onClick={postComment}
-              style={{ cursor: user ? "pointer" : "not-allowed" }} // ✅ remove red cancel
+              style={{ cursor: user ? "pointer" : "not-allowed" }}
             >
-              <i className="fas fa-paper-plane" style={{ marginRight: "8px" }} /> Post Comment
+              <i className="fas fa-paper-plane" style={{ marginRight: "8px" }}></i>
+              Post Comment
             </button>
           </div>
         </div>
@@ -421,8 +428,9 @@ export default function FoodDiscussionPage() {
         </div>
       </div>
 
-      {/* ✅ Login Popup */}
+      {/* ✅ Login Popup Modal */}
       <LoginPromptModal show={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
+
       <Footer />
     </div>
   );
