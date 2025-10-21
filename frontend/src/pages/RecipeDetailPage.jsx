@@ -209,10 +209,9 @@ export default function RecipeDetailPage() {
                     <h3 className="rdp-sec-title"><NotebookText size={18} color="#6a4a2f"/> Instructions</h3>
                     <ol className="rdp-steps">
                     {instructions.map((step, i) => (
-                        <li key={i}>
-                        <span className="rdp-step-index">{i + 1}</span>
-                        <span>{step}</span>
-                        </li>
+                      <div className="rdp-step" key={i}>
+                        <span className="rdp-step-text">{step}</span>
+                      </div>
                     ))}
                     </ol>
                 </div>

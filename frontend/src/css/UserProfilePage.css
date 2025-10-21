@@ -423,3 +423,11 @@
 .rcp-back {
   width: auto;
 }
+.upp-subtitle {
+    margin-top: 8px;
+}
+.upp-btn2 {
+    margin-top: 10px;
+    display: "flex";
+    gap: 8px;
+}

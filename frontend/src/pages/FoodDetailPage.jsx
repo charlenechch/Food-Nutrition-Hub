@@ -268,16 +268,19 @@ const handleSaveFood = async () => {
                     {food.category && <span className="fdp-badge">{food.category}</span>}
                   </div>
                   <h1 className="fdp-title">{food.name}</h1>
-                  {food.description && <p className="fdp-desc">{food.description}</p>}
                 </div>
               </div>
             </div>
 
             {/* Cultural / Preparation */}
             <div className="fdp-card">
-              <h3 className="fdp-section-title">
+              <h3 className="rdp-sec-title">
                 <Info size={18} color={"#6a4a2f"}/> Cultural Heritage
               </h3>
+              <div className="fdp-block">
+                <p className="fdp-block-title">Description</p>
+                {food.description && <p className="fdp-text">{food.description}</p>}
+              </div>
               {food.culturalSignificance && (
                 <div className="fdp-block">
                   <p className="fdp-block-title">Cultural Significance</p>
@@ -293,7 +296,7 @@ const handleSaveFood = async () => {
             {/* Ingredients */}
             {ingredients.length > 0 && (
               <div className="fdp-card">
-                <h3 className="fdp-section-title">
+                <h3 className="rdp-sec-title">
                   <ShoppingBasket size={18} color={"#6a4a2f"}/> Common Ingredients
                 </h3>
                 <div className="fdp-chip-grid">
@@ -326,7 +329,7 @@ const handleSaveFood = async () => {
 
             {/* Nutrition */}
             <div className="fdp-card">
-              <h3 className="fdp-section-title">
+              <h3 className="rdp-sec-title">
                 <Cross size={18} color={"#6a4a2f"}/> Nutritional Information
               </h3>
               <p className="fdp-muted">Per serving</p>
@@ -352,7 +355,7 @@ const handleSaveFood = async () => {
 
             {/* Health Information */}
             <div className="fdp-card">
-              <h3 className="fdp-section-title">
+              <h3 className="rdp-sec-title">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '8px' }}>
                   <path d="M12 9V14" stroke="#6a4a2f" strokeWidth="2" strokeLinecap="round"/>
                   <path d="M12 17V17.5" stroke="#6a4a2f" strokeWidth="2" strokeLinecap="round"/>
@@ -376,7 +379,7 @@ const handleSaveFood = async () => {
             {/* Discussion preview */}
             <div className="fdp-card">
               <div className="fdp-disc-header">
-                <h3 className="fdp-section-title">
+                <h3 className="rdp-sec-title">
                   <MessagesSquare size={18} color={"#6a4a2f"}/> Community Discussion
                 </h3>
               </div>

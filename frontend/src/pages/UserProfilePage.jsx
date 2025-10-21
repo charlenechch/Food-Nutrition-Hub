@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../css/UserProfilePage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Bell, ExternalLink, Eye, Globe, Shield } from "lucide-react";
+import { Bell, ExternalLink, Eye, Globe, OctagonX, Shield } from "lucide-react";
 
 
 const DIETARY_OPTIONS = ["vegetarian","vegan","halal","gluten-free","dairy-free","low-fat","high-protein","spicy"];
@@ -12,12 +12,33 @@ const ALLERGY_OPTIONS = ["tree-nuts","peanuts","seafood","shellfish","egg","soy"
 // toggle a value inside an array
 const toggleInArray = (arr, v) => (arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v]);
 
-// if your backend/user data still returns strings, normalize to arrays:
-const normalizePrefs = (p = {}) => ({
-  ...p,
-  dietary: Array.isArray(p.dietary) ? p.dietary : (p.dietary ? [p.dietary] : []),
-  allergies: Array.isArray(p.allergies) ? p.allergies : (p.allergies ? [p.allergies] : []),
-});
+const toArray = (val, noneKeyword) => {
+  if (Array.isArray(val)) return val;
+  if (!val || val === noneKeyword) return [];
+  return [val];
+};
+const DEFAULT_PREFS = {
+  emailNotifications: true,
+  pushNotifications: true,
+  profileVisibility: true,
+  language: "en",
+};
+
+const normalizePrefs = (p = {}) => {
+  const dietary = Array.isArray(p.dietary)
+    ? p.dietary
+    : p.dietary && p.dietary !== "none"
+    ? [p.dietary]
+    : [];
+
+  const allergies = Array.isArray(p.allergies)
+    ? p.allergies
+    : p.allergies && p.allergies !== "noAllergies"
+    ? [p.allergies]
+    : [];
+
+  return { ...DEFAULT_PREFS, ...p, dietary, allergies };
+};
 
 export default function UserProfilePage() {
   const { userProfileID } = useParams();
@@ -31,6 +52,8 @@ export default function UserProfilePage() {
   const [currentSaved, setCurrentSaved] = useState([]);
   const [totalSavedPages, setTotalSavedPages] = useState(1);
   const [tab, setTab] = useState("info");
+  const [uiDietary, setUiDietary] = useState([]);
+  const [uiAllergies, setUiAllergies] = useState([]);
 
   // Initialize form state
   const [form, setForm] = useState({
@@ -40,58 +63,17 @@ export default function UserProfilePage() {
     location: "",
     bio: "",
   });
-  
-// 1) A default shape for everything else
-const DEFAULT_PREFS = {
-  emailNotifications: true,
-  pushNotifications: true,
-  profileVisibility: true,
-  language: "en",
-};
-
-// 2) Normalizer (handles old string shapes too)
-const normalizePrefs = (p = {}) => {
-  const dietary = Array.isArray(p.dietary)
-    ? p.dietary
-    : p.dietary && p.dietary !== "none"
-    ? [p.dietary]
-    : []; // "none" => []
-
-  const allergies = Array.isArray(p.allergies)
-    ? p.allergies
-    : p.allergies && p.allergies !== "noAllergies"
-    ? [p.allergies]
-    : []; // "noAllergies" => []
-
-  return {
-    ...DEFAULT_PREFS,
-    ...p,                 // keep existing booleans/language if present
-    dietary,
-    allergies,
-  };
-};
 
 // 3) Initialize once using user.prefs (if user not ready yet, pass {})
 const [prefs, setPrefs] = useState(() => normalizePrefs(user?.prefs || {}));
 
 // 4) If the `user` can change (e.g., after fetch/route), keep prefs in sync:
 useEffect(() => {
-  setPrefs(prev => {
-    const next = normalizePrefs(user?.prefs || {});
-    // shallow compare non-array fields + simple array equality to avoid loops
-    const sameArrays = (a, b) =>
-      a.length === b.length && a.every(v => b.includes(v));
-    const same =
-      prev.emailNotifications === next.emailNotifications &&
-      prev.pushNotifications === next.pushNotifications &&
-      prev.profileVisibility === next.profileVisibility &&
-      prev.language === next.language &&
-      sameArrays(prev.dietary, next.dietary) &&
-      sameArrays(prev.allergies, next.allergies);
-
-    return same ? prev : next;
-  });
+  if (!user) return;
+  setUiDietary(Array.isArray(user?.prefs?.dietary) ? user.prefs.dietary : (user?.prefs?.dietary && user.prefs.dietary !== "none" ? [user.prefs.dietary] : []));
+  setUiAllergies(Array.isArray(user?.prefs?.allergies) ? user.prefs.allergies : (user?.prefs?.allergies && user.prefs.allergies !== "noAllergies" ? [user.prefs.allergies] : []));
 }, [user]);
+
 
   // date formatting helper function
 const formatContributionDate = (dateString) => {
@@ -205,18 +187,23 @@ const formatContributionDate = (dateString) => {
   }, [user, savedPage]);
 
   useEffect(() => {
+    if (!user) return;
     setPrefs(prev => {
-        const next = normalizePrefs(user.prefs);
-        // only update if something actually changed to avoid loops
-        const same =
-        Array.isArray(prev.dietary) && Array.isArray(prev.allergies) &&
-        prev.dietary.length === next.dietary.length &&
-        prev.allergies.length === next.allergies.length &&
-        prev.dietary.every(v => next.dietary.includes(v)) &&
-        prev.allergies.every(v => next.allergies.includes(v));
-        return same ? prev : next;
+      const next = normalizePrefs(user.prefs || {});
+      // shallow compare to avoid unnecessary rerenders
+      const sameArrays = (a, b) => a.length === b.length && a.every(v => b.includes(v));
+      const same =
+        prev.emailNotifications === next.emailNotifications &&
+        prev.pushNotifications === next.pushNotifications &&
+        prev.profileVisibility === next.profileVisibility &&
+        prev.language === next.language &&
+        sameArrays(prev.dietary, next.dietary) &&
+        sameArrays(prev.allergies, next.allergies);
+
+      return same ? prev : next;
     });
-    }, [user.prefs]);
+  }, [user]);
+
 
   // Update save functions to use direct fetch
   const savePersonal = async () => {
@@ -611,67 +598,87 @@ const formatContributionDate = (dateString) => {
           )}
 
           {/* Preferences Tab */}
-            {tab === "prefs" && (
-              <div className="upp-stack">
-                {/* Dietary (multiple) */}
-                <div className="upp-card">
-                  <h3 className="upp-card-title">Dietary Preferences</h3>
-                  <div className="upp-choice-grid">
-                    {DIETARY_OPTIONS.map(id => (
-                      <label
-                        key={id}
-                        className={`upp-choice ${prefs.dietary.includes(id) ? "is-on" : ""}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={prefs.dietary.includes(id)}
-                          onChange={() =>
-                            setPrefs(p => ({ ...p, dietary: toggleInArray(p.dietary, id) }))
-                          }
-                        />
-                        {id.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                      </label>
-                    ))}
-                  </div>
-                  {prefs.dietary.length === 0 && (
-                    <div className="upp-muted" style={{ marginTop: 8 }}>
-                      No dietary preferences selected
-                    </div>
-                  )}
+          {tab === "prefs" && (
+            <div className="upp-stack">
+              {/* Dietary (multiple, UI-only) */}
+              <div className="upp-card">
+                <h3 className="upp-card-title">Dietary Preferences (local only)</h3>
+                <div className="upp-choice-grid">
+                  {DIETARY_OPTIONS.map(id => (
+                    <label
+                      key={id}
+                      className={`upp-choice ${uiDietary.includes(id) ? "is-on" : ""}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={uiDietary.includes(id)}
+                        onChange={() => setUiDietary(prev => toggleInArray(prev, id))}
+                      />
+                      {id.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                    </label>
+                  ))}
                 </div>
 
-                {/* Allergies (multiple) */}
-                <div className="upp-card">
-                  <h3 className="upp-card-title">Allergies / Restrictions</h3>
-                  <div className="upp-choice-grid">
-                    {ALLERGY_OPTIONS.map(id => (
-                      <label
-                        key={id}
-                        className={`upp-choice ${prefs.allergies.includes(id) ? "is-on" : ""}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={prefs.allergies.includes(id)}
-                          onChange={() =>
-                            setPrefs(p => ({ ...p, allergies: toggleInArray(p.allergies, id) }))
-                          }
-                        />
-                        {id.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-                      </label>
-                    ))}
-                  </div>
-                  {prefs.allergies.length === 0 && (
-                    <div className="upp-muted" style={{ marginTop: 8 }}>
-                      No allergies selected
-                    </div>
-                  )}
+                <div className="upp-muted upp-subtitle">
+     e             (Please select your dietary preferences.)
                 </div>
 
-                <button className="lrp-btn lrp-btn-primary" onClick={savePrefs}>
-                  Save Preferences
-                </button>
+                <div className="upp-btn2">
+                  <button
+                    className="lrp-btn lrp-btn-outline"
+                    type="button"
+                    onClick={() => {
+                      // reset to backend values
+                      setUiDietary(toArray(user?.prefs?.dietary, "none"));
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
               </div>
-            )}
+
+              {/* Allergies (multiple, UI-only) */}
+              <div className="upp-card">
+                <h3 className="upp-card-title">Allergies / Restrictions (local only)</h3>
+                <div className="upp-choice-grid">
+                  {ALLERGY_OPTIONS.map(id => (
+                    <label
+                      key={id}
+                      className={`upp-choice ${uiAllergies.includes(id) ? "is-on" : ""}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={uiAllergies.includes(id)}
+                        onChange={() => setUiAllergies(prev => toggleInArray(prev, id))}
+                      />
+                      {id.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                    </label>
+                  ))}
+                </div>
+
+                <div className="upp-muted upp-subtitle">
+                  (Please select your allergies or Restrictions)
+                </div>
+
+                <div className="upp-btn2">
+                  <button
+                    className="lrp-btn lrp-btn-outline"
+                    type="button"
+                    onClick={() => {
+                      // reset to backend values
+                      setUiAllergies(toArray(user?.prefs?.allergies, "noAllergies"));
+                    }}
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+
+              <button className="lrp-btn lrp-btn-primary" onClick={savePrefs}>
+                Save Preferences
+              </button>
+            </div>
+          )}
 
           {/* Settings Tab */}
           {tab === "settings" && (
@@ -767,6 +774,24 @@ const formatContributionDate = (dateString) => {
                   </div>
                 </div>
               )}
+              <div className="upp-card">
+                <h3 className="upp-card-title"><OctagonX size={18} color={"#6a4a2f"}/> Account Deletion</h3>
+
+                <div className="upp-row between">
+                  <div>
+                    <div className="upp-strong">Delete Account</div>
+                    <div className="upp-muted">Permanently remove your account and all associated data.</div>
+                  </div>
+
+                  {/* Looks active, but has no onClick */}
+                  <button
+                    type="button"
+                    className="lrp-btn lrp-btn-outline upp-btn upp-btn--danger"
+                  >
+                    Delete Account
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
