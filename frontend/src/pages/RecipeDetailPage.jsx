@@ -222,7 +222,7 @@ export default function RecipeDetailPage() {
             <aside className="rdp-aside">
             <div className="fdp-actions">
                 <button type="button" className="lrp-btn lrp-btn-primary fdp-save" onClick={() => setSaved((s) => !s)}>
-                {saved ? "✓ Saved" : "❤ Save Food"}
+                {saved ? "✓ Saved" : "❤ Save Recipe"}
                 </button>
                 <button type="button" className="lrp-btn lrp-btn-outline fdp-share" onClick={handleShare}><Share2 size={18} /></button>
             </div>
