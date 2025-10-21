@@ -64,38 +64,16 @@ export default function UserProfilePage() {
     bio: "",
   });
 
-// Normalizer (handles old string shapes too)
-const normalizePrefs = (p = {}) => {
-  const dietary = Array.isArray(p.dietary)
-    ? p.dietary
-    : p.dietary && p.dietary !== "none"
-    ? [p.dietary]
-    : []; // "none" => []
-
-  const allergies = Array.isArray(p.allergies)
-    ? p.allergies
-    : p.allergies && p.allergies !== "noAllergies"
-    ? [p.allergies]
-    : []; // "noAllergies" => []
-
-  return {
-    ...DEFAULT_PREFS,
-    ...p,                 // keep existing booleans/language if present
-    dietary,
-    allergies,
-  };
-};
-
 // 3) Initialize once using user.prefs (if user not ready yet, pass {})
 const [prefs, setPrefs] = useState(() => normalizePrefs(user?.prefs || {}));
 
 // 4) If the `user` can change (e.g., after fetch/route), keep prefs in sync:
 useEffect(() => {
   if (!user) return;
-  // initialize from whatever the backend returns today
-  setUiDietary(toArray(user?.prefs?.dietary, "none"));
-  setUiAllergies(toArray(user?.prefs?.allergies, "noAllergies"));
+  setUiDietary(Array.isArray(user?.prefs?.dietary) ? user.prefs.dietary : (user?.prefs?.dietary && user.prefs.dietary !== "none" ? [user.prefs.dietary] : []));
+  setUiAllergies(Array.isArray(user?.prefs?.allergies) ? user.prefs.allergies : (user?.prefs?.allergies && user.prefs.allergies !== "noAllergies" ? [user.prefs.allergies] : []));
 }, [user]);
+
 
   // date formatting helper function
 const formatContributionDate = (dateString) => {
@@ -209,18 +187,23 @@ const formatContributionDate = (dateString) => {
   }, [user, savedPage]);
 
   useEffect(() => {
+    if (!user) return;
     setPrefs(prev => {
-        const next = normalizePrefs(user.prefs);
-        // only update if something actually changed to avoid loops
-        const same =
-        Array.isArray(prev.dietary) && Array.isArray(prev.allergies) &&
-        prev.dietary.length === next.dietary.length &&
-        prev.allergies.length === next.allergies.length &&
-        prev.dietary.every(v => next.dietary.includes(v)) &&
-        prev.allergies.every(v => next.allergies.includes(v));
-        return same ? prev : next;
+      const next = normalizePrefs(user.prefs || {});
+      // shallow compare to avoid unnecessary rerenders
+      const sameArrays = (a, b) => a.length === b.length && a.every(v => b.includes(v));
+      const same =
+        prev.emailNotifications === next.emailNotifications &&
+        prev.pushNotifications === next.pushNotifications &&
+        prev.profileVisibility === next.profileVisibility &&
+        prev.language === next.language &&
+        sameArrays(prev.dietary, next.dietary) &&
+        sameArrays(prev.allergies, next.allergies);
+
+      return same ? prev : next;
     });
-    }, [user.prefs]);
+  }, [user]);
+
 
   // Update save functions to use direct fetch
   const savePersonal = async () => {
