@@ -3,20 +3,42 @@ import { useNavigate } from "react-router-dom";
 import LoginFood from "../assets/LoginFood.png";
 import "../css/ForgotPasswordPage.css";
 
+// ✅ Import Firebase
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../config/firebase";
+
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // pretend success for UI preview
-    setSubmitted(true);
+    setError("");
+
+    if (!email) {
+      setError("Please enter your email.");
+      return;
+    }
+
+    try {
+      // ✅ Sends real password reset email
+      await sendPasswordResetEmail(auth, email, {
+        url: `${window.location.origin}/loginregister`,
+        handleCodeInApp: true,
+      });
+
+      setSubmitted(true); // Show success screen
+    } catch (err) {
+      console.error(err);
+      setError("Failed to send reset email. Check if the email is registered.");
+    }
   };
 
   return (
     <div className="fpp-page">
-      {/* Left image panel (hidden on small screens) */}
+      {/* ✅ Left image panel */}
       <div className="fpp-image-panel">
         <img src={LoginFood} alt="Sarawak cuisine collage" />
         <div className="fpp-overlay" />
@@ -26,7 +48,7 @@ export default function ForgotPasswordPage() {
         </div>
       </div>
 
-      {/* Right form card */}
+      {/* ✅ Right form */}
       <div className="fpp-form-panel">
         <div className="fpp-card">
           <div className="fpp-card-header">
@@ -38,18 +60,17 @@ export default function ForgotPasswordPage() {
 
           {!submitted ? (
             <form onSubmit={handleSubmit} className="fpp-form" noValidate>
-              <div>
-                <label htmlFor="fpp-email">Email</label>
-                <input
-                  id="fpp-email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                  required
-                />
-              </div>
+              <label htmlFor="fpp-email">Email</label>
+              <input
+                id="fpp-email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
+
+              {error && <p className="fpp-error">{error}</p>}
 
               <button type="submit" className="lrp-btn lrp-btn-primary">Send reset link</button>
 
@@ -65,13 +86,9 @@ export default function ForgotPasswordPage() {
             </form>
           ) : (
             <div className="fpp-success">
-              <div className="fpp-success-icon" aria-hidden>✓</div>
+              <div className="fpp-success-icon">✓</div>
               <h3>Check your inbox</h3>
-              {/* Change "your email" to user's actual email address when implementing backend ya !!!!!! */}
-              <p>
-                If an account exists for <strong>{email || "your email"}</strong>, you'll receive a message with a
-                password reset link. The link will expire after a short time.
-              </p>
+              <p>If an account exists for <strong>{email}</strong>, a password reset link has been sent.</p>
               <div className="fpp-success-actions">
                 <button
                   type="button"
@@ -85,19 +102,12 @@ export default function ForgotPasswordPage() {
                 <li>Didn't get it? Check your spam folder.</li>
                 <li>Still no email? Try again or contact support.</li>
               </ul>
-              <button
-                type="button"
-                className="lrp-btn lrp-btn-primary"
-                onClick={() => navigate("/resetpassword?token=demo")}
-              >
-                Open reset page (demo) (Remember to delete this button when applying backend, only accessible with reset password link sent to their email)
-              </button>
             </div>
           )}
 
           <p className="fpp-footer">Preserving and celebrating Sarawak's culinary heritage</p>
         </div>
-      </div> 
+      </div>
     </div>
   );
 }
