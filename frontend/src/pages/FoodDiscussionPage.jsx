@@ -180,7 +180,8 @@ export default function FoodDiscussionPage() {
 
   // ✅ Detect guest or logged-in
   const isGuest = !user || user.role === "guest";
-  const userProfileID = user?.profileID || null;
+  const userProfileID = user?.profileID || user?.id || null;
+
 
   // ✅ Original states remain intact
   const [food, setFood] = useState(location.state?.food || null);
