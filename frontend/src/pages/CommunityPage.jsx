@@ -152,6 +152,12 @@ export default function Community() {
     setExpanded(false);
   };
 
+  const getFirstSentence = (story) => {
+  if (!story) return '';
+  const periodIndex = story.indexOf('.');
+  return periodIndex !== -1 ? story.substring(0, periodIndex + 1) : story;
+  };
+
   return (
     <div className="community-page">
       <Header />
@@ -279,7 +285,7 @@ export default function Community() {
                   <p className="meta">
                     by <b>{post.author}</b> • {post.daysAgo}
                   </p>
-                  <p className="desc">{post.culturalStory}</p>
+                  <p className="desc">{getFirstSentence(post.culturalStory)}</p>
                   <div className="card-footer">
                     <span>❤️ {post.likeCount} likes</span>
                     <span onClick={() => navigate(`/community/${post.id}`)}>
