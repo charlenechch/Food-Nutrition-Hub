@@ -104,12 +104,12 @@ export default function UserProfilePage() {
 
         setUser(data);
         setForm({
-          firstName: data.user.firstName || "",
-          lastName: data.user.lastName || "",
-          email: data.user.email || "",
-          location: data.profile.location || "",
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          email: data.email || "",
+          location: data.location || "",
         });
-        setBio(data.profile.bio || "");
+        setBio(data.bio || "");
         setPrefs(normalizePrefs(data.prefs));
       } catch (err) {
         setError(err.message);
@@ -138,8 +138,8 @@ export default function UserProfilePage() {
   // ===== Save: Personal Info =====
   const savePersonal = async () => {
     try {
-      if (!user?.user?.userID) return alert("No User ID found.");
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/${user.user.userID}`, {
+      if (!user?.userID) return alert("No User ID found.");
+      const res = await fetch(`${API_BASE_URL}/api/userProfile/${user.userID}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -162,8 +162,8 @@ export default function UserProfilePage() {
   // ===== Save: Preferences =====
   const savePrefs = async () => {
     try {
-      if (!user?.user?.userID) return alert("No User ID found.");
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/${user.user.userID}/preferences`, {
+      if (!user?.userID) return alert("No User ID found.");
+      const res = await fetch(`${API_BASE_URL}/api/userProfile/${user.userID}/preferences`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -458,7 +458,7 @@ export default function UserProfilePage() {
                               onClick={() =>
                                 navigate(`/revise/${c.id}`, {
                                   state: {
-                                    owner: `${user.user.firstName} ${user.user.lastName}`,
+                                    owner: `${user.firstName} ${user.lastName}`,
                                     id: c.id,
                                     snapshot: JSON.parse(JSON.stringify(c)),
                                   },
@@ -577,7 +577,7 @@ export default function UserProfilePage() {
                 </div>
               </div>
 
-              {user?.user?.role === "admin" && (
+              {user?.role === "admin" && (
                 <div className="upp-card">
                   <h3 className="upp-card-title"><Eye size={18} color={"#6a4a2f"} /> Privacy</h3>
                   <div className="upp-row between">
@@ -597,7 +597,7 @@ export default function UserProfilePage() {
                 </div>
               )}
 
-              {user?.user?.role === "admin" && (
+              {user?.role === "admin" && (
                 <div className="upp-card">
                   <h3 className="upp-card-title"><Shield size={18} color={"#6a4a2f"} /> Admin Access</h3>
                   <div className="upp-row between">

@@ -5,18 +5,12 @@ const db = require("../config/db");
 // ✅ 1. Get logged-in user's profile using session (/api/userProfile)
 router.get("/", async (req, res) => {
   try {
-    // ✅ ADD THESE DEBUG LOGS
-    console.log("=== Profile Request ===");
-    console.log("Session exists:", !!req.session);
-    console.log("Session user:", req.session?.user);
     
     if (!req.session || !req.session.user) {
-      console.log("❌ No session or user");
       return res.status(401).json({ error: "Not logged in" });
     }
 
     const userID = req.session.user.userID;
-    console.log("🔍 Looking for userID:", userID);
 
     // Try to fetch user profile (with userProfile data if it exists)
     const [rows] = await db.execute(
@@ -32,30 +26,13 @@ router.get("/", async (req, res) => {
       [userID]
     );
 
-    // ✅ ADD THIS LOG
-    console.log("🔍 Query returned rows:", rows.length);
-
     if (!rows || rows.length === 0) {
       return res.status(404).json({ error: "Profile not found" });
     }
 
-    console.log("✅ Found user:", rows[0].email);
-
     const profile = rows[0];
     res.json({
-      user: {
-        userID: profile.userID,
-        email: profile.email,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        role: profile.role,
-      },
-      profile: {
-        userProfileID: profile.userProfileID,
-        bio: profile.bio || "",
-        location: profile.location || "",
-        avatar: profile.avatar || null,
-      },
+      ...profile,
       stats: {
         recipes: profile.recipes || 0,
         foods: profile.foods || 0,
@@ -106,11 +83,11 @@ router.get("/:identifier", async (req, res) => {
         likes: profile.likes || 0,
       },
       prefs: {
-        dietary: profile.dietary || [],
-        allergies: profile.allergies || [],
-        emailNotifications: !!profile.emailNotifications,
-        pushNotifications: !!profile.pushNotifications,
-        profileVisibility: !!profile.profileVisibility,
+        dietary: profile.dietary ? (Array.isArray(profile.dietary) ? profile.dietary : JSON.parse(profile.dietary || "[]")) : [],
+        allergies: profile.allergies ? (Array.isArray(profile.allergies) ? profile.allergies : JSON.parse(profile.allergies || "[]")) : [],
+        emailNotifications: profile.emailNotifications !== null ? !!profile.emailNotifications : true,
+        pushNotifications: profile.pushNotifications !== null ? !!profile.pushNotifications : true,
+        profileVisibility: profile.profileVisibility !== null ? !!profile.profileVisibility : true,
         language: profile.language || "en",
       },
     });
@@ -138,31 +115,14 @@ router.put("/:userID", async (req, res) => {
 
     const { firstName, lastName, email, location, bio } = req.body;
 
-    // Check if profile exists first
-    const [existingProfile] = await db.execute(
-      "SELECT userProfileID FROM userProfile WHERE userID = ?",
-      [targetUserID]
-    );
-
-    if (existingProfile.length === 0) {
-      // Create profile if it doesn't exist
-      await db.execute(
-        `INSERT INTO userProfile (userID, location, bio)
-         VALUES (?, ?, ?)`,
-        [targetUserID, location || "", bio || ""]
-      );
-    } else {
-      // Update existing profile
-      await db.execute(
-        `UPDATE userProfile SET location = ?, bio = ? WHERE userID = ?`,
-        [location || "", bio || "", targetUserID]
-      );
-    }
-
-    // Update user table
+    // Update user and profile tables
     await db.execute(
-      `UPDATE user SET firstname = ?, lastname = ?, email = ? WHERE userID = ?`,
-      [firstName, lastName, email, targetUserID]
+      `UPDATE user u 
+       JOIN userProfile up ON u.userID = up.userID
+       SET u.firstname = ?, u.lastname = ?, u.email = ?,
+           up.location = ?, up.bio = ?
+       WHERE u.userID = ?`,
+      [firstName, lastName, email, location, bio, targetUserID]
     );
 
     res.json({ message: "Profile updated successfully", success: true });
@@ -175,7 +135,6 @@ router.put("/:userID", async (req, res) => {
 // ✅ 4. Update preferences (PATCH)
 router.patch("/:userID/preferences", async (req, res) => {
   try {
-    // ✅ NEW: Check if user is logged in
     if (!req.session || !req.session.user) {
       return res.status(401).json({ error: "Not logged in" });
     }
@@ -184,53 +143,29 @@ router.patch("/:userID/preferences", async (req, res) => {
     const targetUserID = parseInt(userID);
     const loggedInUserID = req.session.user.userID;
 
-    // ✅ NEW: Check authorization - user can only update their own preferences (or admin can update any)
+    // Check authorization: user can only update their own preferences (or admin can update any)
     if (loggedInUserID !== targetUserID && req.session.user.role !== 'admin') {
       return res.status(403).json({ error: "Not authorized" });
     }
 
     const { prefs } = req.body;
 
-    // Check if profile exists first
-    const [existingProfile] = await db.execute(
-      "SELECT userProfileID FROM userProfile WHERE userID = ?",
-      [targetUserID]
+    await db.execute(
+      `UPDATE userProfile SET 
+       dietaryPreference = ?, allergies = ?, 
+       emailNotifications = ?, pushNotifications = ?, 
+       profileVisibility = ?, language = ?
+       WHERE userID = ?`,
+      [
+        JSON.stringify(prefs.dietary || []),
+        JSON.stringify(prefs.allergies || []),
+        prefs.emailNotifications || false,
+        prefs.pushNotifications || false,
+        prefs.profileVisibility || false,
+        prefs.language || "en",
+        targetUserID,
+      ]
     );
-
-    if (existingProfile.length === 0) {
-      // Create profile with preferences if it doesn't exist
-      await db.execute(
-        `INSERT INTO userProfile (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          targetUserID,
-          JSON.stringify(prefs.dietary || []),
-          JSON.stringify(prefs.allergies || []),
-          prefs.emailNotifications || false,
-          prefs.pushNotifications || false,
-          prefs.profileVisibility || false,
-          prefs.language || "en",
-        ]
-      );
-    } else {
-      // Update existing preferences
-      await db.execute(
-        `UPDATE userProfile SET 
-         dietaryPreference = ?, allergies = ?, 
-         emailNotifications = ?, pushNotifications = ?, 
-         profileVisibility = ?, language = ?
-         WHERE userID = ?`,
-        [
-          JSON.stringify(prefs.dietary || []),
-          JSON.stringify(prefs.allergies || []),
-          prefs.emailNotifications || false,
-          prefs.pushNotifications || false,
-          prefs.profileVisibility || false,
-          prefs.language || "en",
-          targetUserID,
-        ]
-      );
-    }
 
     res.json({ message: "Preferences updated successfully", success: true });
   } catch (err) {
