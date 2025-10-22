@@ -1,41 +1,50 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db'); // ✅ Ensure this is your MySQL pool/connection
+const db = require('../config/db'); // ✅ Ensure your DB connection is here
 
-// ✅ LOGIN Route — stores full user data into session
+//---------------------------------------------
+// ✅ LOGIN ROUTE – FIXED & IMPROVED
+//---------------------------------------------
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  console.log('🟡 Login attempt:', email);
 
   try {
-    // ✅ Join user + userProfile to get userProfileID
-    const [results] = await db.execute(`
+    // ✅ 1. Check if user exists in `user` + join `userProfile` if available
+    const [users] = await db.execute(`
       SELECT u.userID, u.email, u.role, 
              up.userProfileID, up.firstname, up.lastname
       FROM user u
-      INNER JOIN userProfile up ON u.userID = up.userID
+      LEFT JOIN userProfile up ON u.userID = up.userID
       WHERE u.email = ? AND u.password = ?
     `, [email, password]);
 
-    if (results.length === 0) {
-      console.log('❌ Invalid login for:', email);
+    if (users.length === 0) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
-    const user = results[0];
-    console.log('✅ Login success:', user);
+    let user = users[0];
+    let userProfileID = user.userProfileID;
 
-    // ✅ Store clean user object in session
+    // ✅ 2. If no userProfile exists → auto-create it
+    if (!userProfileID) {
+      const [result] = await db.execute(
+        `INSERT INTO userProfile (userID, firstname, lastname) VALUES (?, ?, ?)`,
+        [user.userID, user.firstname || '', user.lastname || '']
+      );
+      userProfileID = result.insertId;
+    }
+
+    // ✅ 3. Save session
     req.session.user = {
       userID: user.userID,
-      userProfileID: user.userProfileID, // ✅ CRUCIAL FOR COMMUNITY POSTS
+      userProfileID: userProfileID,
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
       role: user.role || 'member'
     };
 
-    console.log('✅ Session stored:', req.session.user);
+    console.log('✅ Session saved:', req.session.user);
 
     return res.json({
       success: true,
@@ -44,28 +53,29 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Error in /login:', err);
+    console.error('❌ Login Error:', err);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-// ✅ LOGOUT Route
+//---------------------------------------------
+// ✅ LOGOUT ROUTE
+//---------------------------------------------
 router.post('/logout', (req, res) => {
-  console.log('🚪 Logging out user:', req.session.user);
   req.session.destroy((err) => {
     if (err) {
-      console.error('❌ Error destroying session:', err);
       return res.status(500).json({ success: false, message: 'Logout failed' });
     }
-    res.clearCookie('connect.sid'); // ✅ Remove session cookie
+    res.clearCookie('connect.sid');
     return res.json({ success: true, message: 'Logged out successfully' });
   });
 });
 
-// ✅ SESSION CHECK Route (Already correct)
+//---------------------------------------------
+// ✅ CHECK SESSION ROUTE (FRONTEND USES THIS)
+//---------------------------------------------
 router.get('/session', (req, res) => {
   if (req.session && req.session.user) {
-    console.log('✅ Active session:', req.session.user);
     return res.json({
       authenticated: true,
       user: req.session.user
