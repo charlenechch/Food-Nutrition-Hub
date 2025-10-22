@@ -99,7 +99,7 @@ export default function Community() {
       // ✅ Reliable value for userProfileID
       submitData.append("userProfileID", 1); // 🔥 TEMPORARY FIX for demo
 
-      //submitData.append("userProfileID", user?.userProfileID); // ✅ Only this is correct
+      //submitData.append("userProfileID", user?.userProfileID); 
 
 
       submitData.append("author", user.firstname || user.email);
