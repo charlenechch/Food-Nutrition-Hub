@@ -1,33 +1,41 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../config/db'); // ✅ Ensure this is your MySQL pool/connection
+
+// ✅ LOGIN Route — stores full user data into session
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  console.log('🟡 Login attempt:', email);
 
   try {
-    // ✅ Get user + profile data
-    const [rows] = await db.execute(`
-      SELECT u.userID, u.email, u.role,
+    // ✅ Join user + userProfile to get userProfileID
+    const [results] = await db.execute(`
+      SELECT u.userID, u.email, u.role, 
              up.userProfileID, up.firstname, up.lastname
       FROM user u
-      JOIN userProfile up ON u.userID = up.userID
+      INNER JOIN userProfile up ON u.userID = up.userID
       WHERE u.email = ? AND u.password = ?
     `, [email, password]);
 
-    if (rows.length === 0) {
+    if (results.length === 0) {
+      console.log('❌ Invalid login for:', email);
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
-    const userData = rows[0];
+    const user = results[0];
+    console.log('✅ Login success:', user);
 
-    // ✅ Save to session (IMPORTANT!)
+    // ✅ Store clean user object in session
     req.session.user = {
-      userID: userData.userID,
-      userProfileID: userData.userProfileID,  // ✅ This was missing before
-      firstname: userData.firstname,
-      lastname: userData.lastname,
-      email: userData.email,
-      role: userData.role || "member"
+      userID: user.userID,
+      userProfileID: user.userProfileID, // ✅ CRUCIAL FOR COMMUNITY POSTS
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      role: user.role || 'member'
     };
 
-    console.log("✅ Session saved:", req.session.user);
+    console.log('✅ Session stored:', req.session.user);
 
     return res.json({
       success: true,
@@ -35,8 +43,38 @@ router.post('/login', async (req, res) => {
       user: req.session.user
     });
 
-  } catch (error) {
-    console.error("❌ Login error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+  } catch (err) {
+    console.error('❌ Error in /login:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
+// ✅ LOGOUT Route
+router.post('/logout', (req, res) => {
+  console.log('🚪 Logging out user:', req.session.user);
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('❌ Error destroying session:', err);
+      return res.status(500).json({ success: false, message: 'Logout failed' });
+    }
+    res.clearCookie('connect.sid'); // ✅ Remove session cookie
+    return res.json({ success: true, message: 'Logged out successfully' });
+  });
+});
+
+// ✅ SESSION CHECK Route (Already correct)
+router.get('/session', (req, res) => {
+  if (req.session && req.session.user) {
+    console.log('✅ Active session:', req.session.user);
+    return res.json({
+      authenticated: true,
+      user: req.session.user
+    });
+  }
+  return res.json({
+    authenticated: false,
+    user: null
+  });
+});
+
+module.exports = router;
