@@ -187,6 +187,14 @@ router.get("/:id", async (req, res) => {
         const [comments] = await db.execute(commentsQuery, [postId]);
         console.log(`Found ${comments.length} comments`);
 
+        // Function to get first sentence only
+        const getFirstSentence = (story) => {
+            if (!story) return '';
+            // Find the first period and get text up to that point
+            const periodIndex = story.indexOf('.');
+            return periodIndex !== -1 ? story.substring(0, periodIndex + 1) : story;
+        };
+
         // Format the post with correct field names
         const formattedPost = {
             id: post.postID,
@@ -195,7 +203,8 @@ router.get("/:id", async (req, res) => {
             daysAgo: getTimeAgo(post.created_at),
             culturalOrigin: post.culturalOrigin, 
             images: post.photos ? post.photos.split(',').map(photo => photo.trim()) : [],
-            culturalStory: post.culturalStory, 
+            culturalStory: getFirstSentence(post.culturalStory), // Only first sentence
+            fullCulturalStory: post.culturalStory, // Keep full story for detail view
             likeCount: post.likeCount,
             commentCount: post.commentCount,
             comments: comments.map(comment => ({
