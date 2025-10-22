@@ -102,6 +102,7 @@ export default function UserProfilePage() {
         const data = await res.json();
         if (!data) throw new Error("Profile not found");
 
+        setUser(data);
         setForm({
           firstName: data.firstName || "",
           lastName: data.lastName || "",
