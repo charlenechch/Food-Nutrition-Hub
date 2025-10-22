@@ -32,51 +32,9 @@ export default function Header() {
     }
   };
 
-  // Get the current logged-in user data
-  const getCurrentUser = () => {
-    try {
-      // Check different storage locations
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        console.log('📋 User data from localStorage:', user);
-        return user;
-      }
-      
-      const sessionData = sessionStorage.getItem('user');
-      if (sessionData) {
-        const user = JSON.parse(sessionData);
-        console.log('📋 User data from sessionStorage:', user);
-        return user;
-      }
-      
-      console.log('❌ No user data found in storage');
-      return null;
-    } catch (error) {
-      console.error('Error getting user data:', error);
-      return null;
-    }
-  };
-
   const handleProfileClick = () => {
-    console.log('🎯 Profile button clicked');
-    
-    const currentUser = getCurrentUser();
-    console.log('👤 Current user:', currentUser);
-    
-    if (currentUser && currentUser.userProfileID) {
-      // Use the actual userProfileID
-      console.log('✅ Navigating with userProfileID:', currentUser.userProfileID);
-      navigate(`/profile/${currentUser.userProfileID}`);
-    } else if (currentUser && currentUser.userID) {
-      // Fallback: use userID
-      console.log('🔄 Navigating with userID:', currentUser.userID);
-      navigate(`/profile/${currentUser.userID}`);
-    } else {
-      //  Use a valid ID for testing
-      console.log('🚨 No user ID found, using test ID 1');
-      navigate('/profile/1'); // Use ID 1 which exists in database
-    }
+  // Just navigate to /profile - let the backend use session
+    navigate('/profile');
   };
 
   return (
@@ -121,12 +79,20 @@ export default function Header() {
         <button className="lang-btn" onClick={() => navigate("/language")}>
           <FaGlobe /> EN
         </button>
-        <button onClick={handleProfileClick}>
-          <User size={20}/> Profile
-        </button>
-        <button className="logout-btn" onClick={handleLogout}>
-          <FaSignOutAlt /> Logout
-        </button>
+        {user ? (
+          <>
+            <button onClick={handleProfileClick}>
+              <User size={20}/> Profile
+            </button>
+            <button className="logout-btn" onClick={handleLogout}>
+              <FaSignOutAlt /> Logout
+            </button>
+          </>
+        ) : (
+          <button onClick={() => navigate("/loginregister")}>
+            <User size={20}/> Login / Register
+          </button>
+        )}
       </div>
     </nav>
   );

@@ -51,7 +51,7 @@ const allowSelfOrAdmin = (getTargetUserId) => {
     }
 
     const isAdmin = user.role === ROLES.ADMIN;
-    const isSelf = String(user.id) === targetId;
+    const isSelf = String(user.userID) === targetId;
 
     if (isAdmin || isSelf) return next();
 

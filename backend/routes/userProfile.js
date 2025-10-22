@@ -5,43 +5,68 @@ const db = require("../config/db");
 // ✅ 1. Get logged-in user's profile using session (/api/userProfile)
 router.get("/", async (req, res) => {
   try {
+    // ✅ ADD THESE DEBUG LOGS
+    console.log("=== Profile Request ===");
+    console.log("Session exists:", !!req.session);
+    console.log("Session user:", req.session?.user);
+    
     if (!req.session || !req.session.user) {
+      console.log("❌ No session or user");
       return res.status(401).json({ error: "Not logged in" });
     }
 
     const userID = req.session.user.userID;
+    console.log("🔍 Looking for userID:", userID);
 
+    // Try to fetch user profile (with userProfile data if it exists)
     const [rows] = await db.execute(
-      `SELECT 
+      `SELECT
         u.userID, u.firstname AS firstName, u.lastname AS lastName, u.email, u.role,
         up.userProfileID, up.location, up.bio, up.avatar,
         up.dietaryPreference AS dietary, up.allergies,
         up.emailNotifications, up.pushNotifications, up.profileVisibility, up.language,
         up.recipes, up.foods, up.likes
-      FROM userProfile up
-      JOIN user u ON up.userID = u.userID
+      FROM user u
+      LEFT JOIN userProfile up ON up.userID = u.userID
       WHERE u.userID = ?`,
       [userID]
     );
+
+    // ✅ ADD THIS LOG
+    console.log("🔍 Query returned rows:", rows.length);
 
     if (!rows || rows.length === 0) {
       return res.status(404).json({ error: "Profile not found" });
     }
 
+    console.log("✅ Found user:", rows[0].email);
+
     const profile = rows[0];
     res.json({
-      ...profile,
+      user: {
+        userID: profile.userID,
+        email: profile.email,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        role: profile.role,
+      },
+      profile: {
+        userProfileID: profile.userProfileID,
+        bio: profile.bio || "",
+        location: profile.location || "",
+        avatar: profile.avatar || null,
+      },
       stats: {
         recipes: profile.recipes || 0,
         foods: profile.foods || 0,
         likes: profile.likes || 0,
       },
       prefs: {
-        dietary: profile.dietary || [],
-        allergies: profile.allergies || [],
-        emailNotifications: !!profile.emailNotifications,
-        pushNotifications: !!profile.pushNotifications,
-        profileVisibility: !!profile.profileVisibility,
+        dietary: profile.dietary ? (Array.isArray(profile.dietary) ? profile.dietary : JSON.parse(profile.dietary || "[]")) : [],
+        allergies: profile.allergies ? (Array.isArray(profile.allergies) ? profile.allergies : JSON.parse(profile.allergies || "[]")) : [],
+        emailNotifications: profile.emailNotifications !== null ? !!profile.emailNotifications : true,
+        pushNotifications: profile.pushNotifications !== null ? !!profile.pushNotifications : true,
+        profileVisibility: profile.profileVisibility !== null ? !!profile.profileVisibility : true,
         language: profile.language || "en",
       },
     });
@@ -96,21 +121,51 @@ router.get("/:identifier", async (req, res) => {
 });
 
 // ✅ 3. Update profile (PUT)
-router.put("/:userProfileID", async (req, res) => {
+router.put("/:userID", async (req, res) => {
   try {
-    const { userProfileID } = req.params;
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: "Not logged in" });
+    }
+
+    const { userID } = req.params;
+    const targetUserID = parseInt(userID);
+    const loggedInUserID = req.session.user.userID;
+
+    // Check authorization: user can only update their own profile (or admin can update any)
+    if (loggedInUserID !== targetUserID && req.session.user.role !== 'admin') {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
     const { firstName, lastName, email, location, bio } = req.body;
 
-    await db.execute(
-      `UPDATE user u 
-       JOIN userProfile up ON u.userID = up.userID
-       SET u.firstname = ?, u.lastname = ?, u.email = ?,
-           up.location = ?, up.bio = ?
-       WHERE up.userProfileID = ?`,
-      [firstName, lastName, email, location, bio, userProfileID]
+    // Check if profile exists first
+    const [existingProfile] = await db.execute(
+      "SELECT userProfileID FROM userProfile WHERE userID = ?",
+      [targetUserID]
     );
 
-    res.json({ message: "Profile updated successfully" });
+    if (existingProfile.length === 0) {
+      // Create profile if it doesn't exist
+      await db.execute(
+        `INSERT INTO userProfile (userID, location, bio)
+         VALUES (?, ?, ?)`,
+        [targetUserID, location || "", bio || ""]
+      );
+    } else {
+      // Update existing profile
+      await db.execute(
+        `UPDATE userProfile SET location = ?, bio = ? WHERE userID = ?`,
+        [location || "", bio || "", targetUserID]
+      );
+    }
+
+    // Update user table
+    await db.execute(
+      `UPDATE user SET firstname = ?, lastname = ?, email = ? WHERE userID = ?`,
+      [firstName, lastName, email, targetUserID]
+    );
+
+    res.json({ message: "Profile updated successfully", success: true });
   } catch (err) {
     console.error("Error updating profile:", err);
     res.status(500).json({ error: "Server error" });
@@ -118,29 +173,66 @@ router.put("/:userProfileID", async (req, res) => {
 });
 
 // ✅ 4. Update preferences (PATCH)
-router.patch("/:userProfileID/preferences", async (req, res) => {
+router.patch("/:userID/preferences", async (req, res) => {
   try {
-    const { userProfileID } = req.params;
+    // ✅ NEW: Check if user is logged in
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: "Not logged in" });
+    }
+
+    const { userID } = req.params;
+    const targetUserID = parseInt(userID);
+    const loggedInUserID = req.session.user.userID;
+
+    // ✅ NEW: Check authorization - user can only update their own preferences (or admin can update any)
+    if (loggedInUserID !== targetUserID && req.session.user.role !== 'admin') {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
     const { prefs } = req.body;
 
-    await db.execute(
-      `UPDATE userProfile SET 
-       dietaryPreference = ?, allergies = ?, 
-       emailNotifications = ?, pushNotifications = ?, 
-       profileVisibility = ?, language = ?
-       WHERE userProfileID = ?`,
-      [
-        JSON.stringify(prefs.dietary || []),
-        JSON.stringify(prefs.allergies || []),
-        prefs.emailNotifications || false,
-        prefs.pushNotifications || false,
-        prefs.profileVisibility || false,
-        prefs.language || "en",
-        userProfileID,
-      ]
+    // Check if profile exists first
+    const [existingProfile] = await db.execute(
+      "SELECT userProfileID FROM userProfile WHERE userID = ?",
+      [targetUserID]
     );
 
-    res.json({ message: "Preferences updated successfully" });
+    if (existingProfile.length === 0) {
+      // Create profile with preferences if it doesn't exist
+      await db.execute(
+        `INSERT INTO userProfile (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          targetUserID,
+          JSON.stringify(prefs.dietary || []),
+          JSON.stringify(prefs.allergies || []),
+          prefs.emailNotifications || false,
+          prefs.pushNotifications || false,
+          prefs.profileVisibility || false,
+          prefs.language || "en",
+        ]
+      );
+    } else {
+      // Update existing preferences
+      await db.execute(
+        `UPDATE userProfile SET 
+         dietaryPreference = ?, allergies = ?, 
+         emailNotifications = ?, pushNotifications = ?, 
+         profileVisibility = ?, language = ?
+         WHERE userID = ?`,
+        [
+          JSON.stringify(prefs.dietary || []),
+          JSON.stringify(prefs.allergies || []),
+          prefs.emailNotifications || false,
+          prefs.pushNotifications || false,
+          prefs.profileVisibility || false,
+          prefs.language || "en",
+          targetUserID,
+        ]
+      );
+    }
+
+    res.json({ message: "Preferences updated successfully", success: true });
   } catch (err) {
     console.error("Error updating preferences:", err);
     res.status(500).json({ error: "Server error" });
