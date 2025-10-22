@@ -1,3 +1,4 @@
+// ✅ src/pages/FoodDiscussionPage.jsx (Fixed logic; UI preserved)
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
@@ -5,15 +6,14 @@ import Footer from "../components/Footer";
 import "../css/FoodDiscussionPage.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
-import { useAuth } from "../context/AuthContext"; // ✅ Get logged-in user
-import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Same popup as Nutrition Analyzer
+import { useAuth } from "../context/AuthContext";
+import LoginPromptModal from "../components/LoginPromptModal";
 
-// ✅ Helper: Time formatting
+// Helper: time ago
 function getTimeAgo(timestamp) {
   const now = new Date();
   const commentTime = new Date(timestamp);
   const diffInSeconds = Math.floor((now - commentTime) / 1000);
-
   if (diffInSeconds < 60) return "now";
   if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
@@ -21,7 +21,7 @@ function getTimeAgo(timestamp) {
   return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
 }
 
-// ✅ Comment Component (unchanged functions + guest lock added)
+// Single Comment
 const Comment = React.memo(function Comment({
   item,
   isReply = false,
@@ -35,10 +35,7 @@ const Comment = React.memo(function Comment({
   isGuest,
   setShowLoginPrompt,
 }) {
-  const itemId = isReply
-    ? item.replyID || item.id
-    : item.id || item.discussionID;
-
+  const itemId = isReply ? (item.replyID || item.id) : (item.id || item.discussionID);
   const username = item.username || "Loading...";
   const content = item.content || item.reply || "No content";
   const timestamp = item.timestamp || item.createdAt;
@@ -81,21 +78,17 @@ const Comment = React.memo(function Comment({
         </div>
         <p className="fd-disc-text">{content}</p>
 
-        {/* Like + Reply Buttons */}
-        <div className="fd-disc-actions">
-          {!isReply && (
+        {!isReply && (
+          <div className="fd-disc-actions">
             <button className="fd-link-btn" onClick={handleLike}>
               {likedIds.has(itemId) ? "♥" : "♡"} {likes}
             </button>
-          )}
-          {!isReply && (
             <button className="fd-link-btn" onClick={toggleReplyBox}>
               ↩ Reply
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Reply Input Box */}
         {!isReply && replyToId === itemId && (
           <div className="fd-reply-box">
             <textarea
@@ -121,7 +114,6 @@ const Comment = React.memo(function Comment({
           </div>
         )}
 
-        {/* Render Replies */}
         {!!item.replies?.length && (
           <div className="fd-disc-replies">
             {item.replies.map((r, index) => (
@@ -147,7 +139,6 @@ const Comment = React.memo(function Comment({
   );
 });
 
-// ✅ Main Page Component
 export default function FoodDiscussionPage() {
   const { foodId } = useParams();
   const navigate = useNavigate();
@@ -166,17 +157,19 @@ export default function FoodDiscussionPage() {
   const [loading, setLoading] = useState(true);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  // ✅ Fetch food details
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  // Fetch food details if not provided by router state
   useEffect(() => {
-    if (!food && foodId) {
-      fetchFoodDetails();
-    }
+    if (!food && foodId) fetchFoodDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [food, foodId]);
 
   const fetchFoodDetails = async () => {
     try {
-      const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API}/api/foodDetail/${foodId}`);
+      const res = await fetch(`${API}/api/foodDetail/${foodId}`, {
+        credentials: "include",
+      });
       const data = await res.json();
       if (data.success) setFood(data.data);
     } catch (err) {
@@ -184,18 +177,24 @@ export default function FoodDiscussionPage() {
     }
   };
 
-  // ✅ Fetch comments
+  // Fetch comments for this food
   useEffect(() => {
     fetchComments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [foodId]);
 
   const fetchComments = async () => {
     try {
       setLoading(true);
-      const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}`);
+      const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}`, {
+        credentials: "include",
+      });
       const result = await res.json();
-      if (result.success) setComments(result.data);
+      if (result.success && Array.isArray(result.data)) {
+        setComments(result.data);
+      } else {
+        setComments([]);
+      }
     } catch (err) {
       console.error("Error fetching comments:", err);
     } finally {
@@ -203,84 +202,99 @@ export default function FoodDiscussionPage() {
     }
   };
 
-  // ✅ Post Comment
+  // Post a new comment
   const postComment = async () => {
     if (isGuest) return setShowLoginPrompt(true);
     if (!newComment.trim()) return;
+    if (!userProfileID) {
+      alert("Your profile is missing. Please re-login.");
+      return;
+    }
 
     try {
-      const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${API}/api/foodDiscussion`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           foodID: foodId,
-          userProfileID: userProfileID,
+          userProfileID,
           content: newComment.trim(),
         }),
       });
-
       const data = await res.json();
-      if (res.ok && data.success) {
-        setComments((prev) => [data.data, ...prev]);
-        setNewComment("");
+      if (!res.ok || !data?.success) {
+        console.error("Post comment failed:", data);
+        alert(data?.message || "Failed to post comment");
+        return;
       }
+      // Prepend new comment
+      setComments((prev) => [data.data, ...prev]);
+      setNewComment("");
     } catch (err) {
       console.error("Error posting comment:", err);
+      alert("Server error while posting comment.");
     }
   };
 
-  // ✅ Post Reply
+  // Post a reply
   const postReply = async (discussionId) => {
     if (isGuest) return setShowLoginPrompt(true);
     const text = replyTexts[discussionId]?.trim();
     if (!text) return;
+    if (!userProfileID) {
+      alert("Your profile is missing. Please re-login.");
+      return;
+    }
 
     try {
-      const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${API}/api/foodDiscussion/${discussionId}/replies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
-          userProfileID: userProfileID,
+          userProfileID,
           reply: text,
         }),
       });
-
       const result = await res.json();
-      if (res.ok && result.success) {
-        setComments((prev) =>
-          prev.map((comment) =>
-            comment.id === discussionId
-              ? { ...comment, replies: [...(comment.replies || []), result.data] }
-              : comment
-          )
-        );
-        setReplyTexts((prev) => ({ ...prev, [discussionId]: "" }));
-        setReplyToId(null);
+      if (!res.ok || !result?.success) {
+        console.error("Post reply failed:", result);
+        alert(result?.message || "Failed to post reply");
+        return;
       }
+
+      setComments((prev) =>
+        prev.map((comment) =>
+          (comment.id === discussionId || comment.discussionID === discussionId)
+            ? { ...comment, replies: [...(comment.replies || []), result.data] }
+            : comment
+        )
+      );
+      setReplyTexts((prev) => ({ ...prev, [discussionId]: "" }));
+      setReplyToId(null);
     } catch (err) {
       console.error("Error posting reply:", err);
+      alert("Server error while posting reply.");
     }
   };
 
-  // ✅ Toggle Like
+  // Toggle like on a comment
   const toggleLike = async (targetId) => {
     if (isGuest) return setShowLoginPrompt(true);
-
     try {
-      const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ type: "up", userProfileID }),
       });
-
-      if (res.ok) {
+      const data = await res.json();
+      if (res.ok && data?.success) {
         setComments((prev) =>
           prev.map((c) =>
-            c.id === targetId
-              ? { ...c, likes: (c.likes || 0) + 1 }
+            (c.id === targetId || c.discussionID === targetId)
+              ? { ...c, likes: data.data?.likes ?? ((c.likes || 0) + 1) }
               : c
           )
         );
@@ -303,10 +317,8 @@ export default function FoodDiscussionPage() {
     );
   }
 
-  // ✅ Navigation
   const handleBack = () => navigate(-1);
 
-  // ✅ Summary Stats
   const totalComments = comments.length + comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0);
   const totalLikes = comments.reduce((acc, c) => acc + (c.likes || 0), 0);
 
@@ -314,7 +326,6 @@ export default function FoodDiscussionPage() {
     <div className="food-discussion-page">
       <Header />
 
-      {/* ✅ Modal for Guest */}
       <LoginPromptModal show={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
 
       <div className="fdp-disc-container">
@@ -324,7 +335,6 @@ export default function FoodDiscussionPage() {
           </button>
         </div>
 
-        {/* Summary Section */}
         <div className="fd-card fd-summary">
           <div className="fd-sum-left">
             <div className="fd-sum-thumb">{food?.icon || "🍽️"}</div>
@@ -339,7 +349,6 @@ export default function FoodDiscussionPage() {
           </div>
         </div>
 
-        {/* Add Comment */}
         <div className="fd-card">
           <h3 className="fd-section-title">Add Your Comment</h3>
           <textarea
@@ -361,7 +370,6 @@ export default function FoodDiscussionPage() {
           </div>
         </div>
 
-        {/* Comments Section */}
         <div className="fd-card">
           <h3 className="fd-section-title">
             <i className="fas fa-comment-dots" /> Community Comments ({comments.length})
@@ -370,7 +378,7 @@ export default function FoodDiscussionPage() {
           {comments.length > 0 ? (
             <div className="fd-disc-list">
               {comments.map((c, idx) => (
-                <React.Fragment key={c.id || idx}>
+                <React.Fragment key={c.id || c.discussionID || idx}>
                   <Comment
                     item={c}
                     likedIds={likedIds}
