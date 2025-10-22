@@ -1,4 +1,3 @@
-// ✅ src/context/AuthContext.jsx (Fixed - keep UI/structure)
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { API_URL } from "../config/api";
 
@@ -10,46 +9,44 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     checkSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ Normalize a user object coming from backend session/login
   const normalizeUser = (raw) => {
     if (!raw) return null;
     return {
       ...raw,
-      // Accept multiple possible shapes from your backend
-      id: raw.id ?? raw.userID ?? raw.userId ?? null,
       userID: raw.userID ?? raw.id ?? null,
-      profileID: raw.profileID ?? raw.userProfileID ?? raw.profileId ?? null,
+      id: raw.id ?? raw.userID ?? null,
       role: raw.role || "member",
       email: raw.email ?? null,
-      firstname: raw.firstname ?? raw.firstName ?? raw.given_name ?? null,
-      lastname: raw.lastname ?? raw.lastName ?? raw.family_name ?? null,
+      firstname: raw.firstname ?? raw.firstName ?? null,
+      lastname: raw.lastname ?? raw.lastName ?? null,
     };
   };
 
-  // ✅ Check existing server session
+  // ✅ Detect logged-in user OR guest (401)
   const checkSession = async () => {
     try {
       const res = await fetch(`${API_URL}/auth/session`, {
         credentials: "include",
       });
       const data = await res.json();
+
       if (res.ok && data?.user) {
-        setUser(normalizeUser(data.user));
+        setUser(normalizeUser(data.user));            // ✅ Logged in
+      } else if (res.status === 401) {
+        setUser({ role: "guest" });                   // ✅ Guest mode
       } else {
         setUser(null);
       }
     } catch (err) {
-      console.error("Session check error:", err);
+      console.error("Session error:", err);
       setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Log in (session-based)
   const login = async (email, password) => {
     try {
       const res = await fetch(`${API_URL}/login`, {
@@ -65,41 +62,25 @@ export function AuthProvider({ children }) {
       }
       return { success: false, message: data?.message || "Login failed" };
     } catch (err) {
-      console.error("Login error:", err);
       return { success: false, message: "Server error" };
     }
   };
 
-  // ✅ Log out
   const logout = async () => {
     try {
       await fetch(`${API_URL}/logout`, { method: "POST", credentials: "include" });
-    } catch (err) {
-      console.error("Logout error:", err);
     } finally {
       setUser(null);
     }
   };
 
-  // ✅ Guest
   const loginAsGuest = () => setUser({ role: "guest" });
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        setUser,
-        loading,
-        login,
-        logout,
-        loginAsGuest,
-        checkSession,
-      }}
-    >
+    <AuthContext.Provider value={{ user, setUser, loading, login, logout, loginAsGuest, checkSession }}>
       {!loading && children}
     </AuthContext.Provider>
   );
 }
 
-// ✅ Custom hook
 export const useAuth = () => useContext(AuthContext);
