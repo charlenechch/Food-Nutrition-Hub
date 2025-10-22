@@ -5,6 +5,12 @@ import Footer from "../components/Footer";
 import "../css/ExploreFoodPage.css";
 import { Filter, Sliders, X } from "lucide-react";
 
+const getFirstSentence = (description) => {
+  if (!description) return '';
+  const periodIndex = description.indexOf('.');
+  return periodIndex !== -1 ? description.substring(0, periodIndex + 1) : description;
+};
+
 export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   const navigate = useNavigate();
   const [foods, setFoods] = useState([]); 
@@ -666,7 +672,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                     <span className="efp-badge-cat">{food.category}</span>
                   </div>
 
-                  <p className="efp-desc">{food.description}</p>
+                  <p className="efp-desc">{getFirstSentence(food.description)}</p>
 
                   <div className="efp-meta">
                     <span className="muted">Origin: {food.origin}</span>
