@@ -1,5 +1,4 @@
-// ✅ /src/context/AuthContext.jsx
-
+// ✅ src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { API_URL } from "../config/api";
 
@@ -9,12 +8,10 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Keeps user logged in after refresh
   useEffect(() => {
     checkSession();
   }, []);
 
-  // ✅ Check if session exists
   const checkSession = async () => {
     try {
       const res = await fetch(`${API_URL}/auth/session`, {
@@ -24,10 +21,15 @@ export function AuthProvider({ children }) {
 
       if (res.ok && data?.user) {
         console.log("✅ Session Found:", data.user);
+
         setUser({
           ...data.user,
           role: data.user.role || "member",
-          profileID: data.user.profileID || data.user.id || null, // ✅ ensure profileID exists
+          userID: data.user.userID || data.user.id || null,
+          profileID:
+            data.user.profileID ||
+            data.user.userProfileID || // extra fallback
+            null,
         });
       } else {
         console.log("❌ No session found");
@@ -41,7 +43,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ✅ Normal login
   const login = async (email, password) => {
     try {
       const res = await fetch(`${API_URL}/login`, {
@@ -52,11 +53,16 @@ export function AuthProvider({ children }) {
       });
 
       const data = await res.json();
+
       if (res.ok && data?.user) {
         setUser({
           ...data.user,
           role: data.user.role || "member",
-          profileID: data.user.profileID || data.user.id || null,
+          userID: data.user.userID,
+          profileID:
+            data.user.profileID ||
+            data.user.userProfileID ||
+            null,
         });
         return { success: true };
       } else {
@@ -68,7 +74,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ✅ Logout
   const logout = async () => {
     try {
       await fetch(`${API_URL}/logout`, {
@@ -82,9 +87,8 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ✅ Guest login
   const loginAsGuest = () => {
-    setUser({ role: "guest" }); // ✅ clearly defined guest
+    setUser({ role: "guest" });
   };
 
   return (
@@ -95,8 +99,8 @@ export function AuthProvider({ children }) {
         loading,
         login,
         logout,
-        checkSession,
         loginAsGuest,
+        checkSession,
       }}
     >
       {!loading && children}
@@ -104,4 +108,5 @@ export function AuthProvider({ children }) {
   );
 }
 
+// ✅ Custom Hook
 export const useAuth = () => useContext(AuthContext);
