@@ -1,3 +1,5 @@
+// ✅ /src/context/AuthContext.jsx
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { API_URL } from "../config/api";
 
@@ -12,7 +14,7 @@ export function AuthProvider({ children }) {
     checkSession();
   }, []);
 
-  // ✅ Reusable session checker (used on load & after login)
+  // ✅ Function to check existing session from backend
   const checkSession = async () => {
     try {
       const res = await fetch(`${API_URL}/auth/session`, {
@@ -35,33 +37,31 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ✅ Login — Update UI instantly AND refresh session
+  // ✅ Login — take email & password, send to backend
   const login = async (email, password) => {
     try {
       const res = await fetch(`${API_URL}/login`, {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // Must include for sessions
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (res.ok && data?.user) {
-        console.log("✅ Login success:", data.user);
-        setUser(data.user);      // ✅ Instantly update UI
-        await checkSession();    // ✅ Sync with backend session
+        setUser(data.user);
         return { success: true };
+      } else {
+        return { success: false, message: data?.message || "Login failed" };
       }
-
-      return { success: false, message: data?.message || "Login failed" };
     } catch (err) {
       console.error("Login error:", err);
       return { success: false, message: "Server error" };
     }
   };
 
-  // ✅ Logout — Clear session + user state
+  // ✅ Logout
   const logout = async () => {
     try {
       await fetch(`${API_URL}/logout`, {
@@ -75,8 +75,15 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // ✅ Guest login (no backend session)
+  const loginAsGuest = () => {
+    setUser({ role: "guest" });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, logout, checkSession, loginAsGuest }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );
