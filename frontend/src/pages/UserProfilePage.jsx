@@ -137,7 +137,7 @@ export default function UserProfilePage() {
   // ===== Save: Personal Info =====
   const savePersonal = async () => {
     try {
-      if (!user?.user?.userID) return alert("No User ID found.");
+      if (!user?.userID) return alert("No User ID found.");
       const res = await fetch(`${API_BASE_URL}/api/userProfile/${user.userID}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -161,7 +161,7 @@ export default function UserProfilePage() {
   // ===== Save: Preferences =====
   const savePrefs = async () => {
     try {
-      if (!user?.user?.userID) return alert("No User ID found.");
+      if (!user?.userID) return alert("No User ID found.");
       const res = await fetch(`${API_BASE_URL}/api/userProfile/${user.userID}/preferences`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -457,7 +457,7 @@ export default function UserProfilePage() {
                               onClick={() =>
                                 navigate(`/revise/${c.id}`, {
                                   state: {
-                                    owner: `${user.user.firstName} ${user.lastName}`,
+                                    owner: `${user.firstName} ${user.lastName}`,
                                     id: c.id,
                                     snapshot: JSON.parse(JSON.stringify(c)),
                                   },

@@ -31,30 +31,18 @@ router.get("/", async (req, res) => {
 
     const profile = rows[0];
     res.json({
-      user: {
-        userID: profile.userID,
-        email: profile.email,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        role: profile.role,
-      },
-      profile: {
-        userProfileID: profile.userProfileID,
-        bio: profile.bio || "",
-        location: profile.location || "",
-        avatar: profile.avatar || null,
-      },
+      ...profile,
       stats: {
         recipes: profile.recipes || 0,
         foods: profile.foods || 0,
         likes: profile.likes || 0,
       },
       prefs: {
-        dietary: profile.dietary ? (Array.isArray(profile.dietary) ? profile.dietary : JSON.parse(profile.dietary || "[]")) : [],
-        allergies: profile.allergies ? (Array.isArray(profile.allergies) ? profile.allergies : JSON.parse(profile.allergies || "[]")) : [],
-        emailNotifications: profile.emailNotifications !== null ? !!profile.emailNotifications : true,
-        pushNotifications: profile.pushNotifications !== null ? !!profile.pushNotifications : true,
-        profileVisibility: profile.profileVisibility !== null ? !!profile.profileVisibility : true,
+        dietary: profile.dietary || [],
+        allergies: profile.allergies || [],
+        emailNotifications: !!profile.emailNotifications,
+        pushNotifications: !!profile.pushNotifications,
+        profileVisibility: !!profile.profileVisibility,
         language: profile.language || "en",
       },
     });
