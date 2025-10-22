@@ -97,7 +97,8 @@ export default function Community() {
       submitData.append("recipe", formData.recipe || "");
 
       // ✅ Reliable value for userProfileID
-      submitData.append("userProfileID", user.profileID || user.userProfileID || user.userID);
+     submitData.append("userProfileID", user?.userProfileID); // ✅ Only this is correct
+
 
       submitData.append("author", user.firstname || user.email);
 

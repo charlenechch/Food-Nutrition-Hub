@@ -32,13 +32,13 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
         body: JSON.stringify({
           content: comment,
           postId,
-          userProfileID: user?.profileID || user?.userProfileID || user?.userID, // ✅ Safe
+          userProfileID: user?.userProfileID, // ✅ Only send userProfileID (correct)
         }),
       });
 
       const result = await response.json();
       if (response.ok && result.success) {
-        onCommentAdded(result.comment); // ✅ Add new comment
+        onCommentAdded(result.comment);
         setComment("");
       } else {
         throw new Error(result.message);
@@ -69,7 +69,9 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
 
       <div className="comments-list">
         {comments.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#666", padding: "20px" }}>No comments yet.</p>
+          <p style={{ textAlign: "center", color: "#666", padding: "20px" }}>
+            No comments yet.
+          </p>
         ) : (
           comments.map((c) => (
             <div key={c.id} className="comment-item">
@@ -86,11 +88,11 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
   );
 };
 
-// ✅ Main Post Page
+// ✅ Main Post Page Component
 export default function CommunityPost() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth(); // ✅ Correct now (no null passed)
+  const { user } = useAuth();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [currentImg, setCurrentImg] = useState(0);
@@ -168,13 +170,15 @@ export default function CommunityPost() {
   return (
     <div className="community-page">
       <Header />
-
       <div className="post-layout">
-        {/* LEFT SIDE */}
         <div className="post-left">
           <div className="image-carousel">
             <img
-              src={post.images?.length ? post.images[currentImg] : "https://images.unsplash.com/photo-1551218808-94e220e084d2"}
+              src={
+                post.images?.length
+                  ? post.images[currentImg]
+                  : "https://images.unsplash.com/photo-1551218808-94e220e084d2"
+              }
               alt={post.foodName}
               className="post-img-small"
             />
@@ -192,7 +196,9 @@ export default function CommunityPost() {
 
           <div className="post-info">
             <h1>{post.foodName}</h1>
-            <p className="meta">by <b>{post.author}</b> • {post.daysAgo} • <span>{post.culturalOrigin}</span></p>
+            <p className="meta">
+              by <b>{post.author}</b> • {post.daysAgo} • <span>{post.culturalOrigin}</span>
+            </p>
             <div className="story-section">
               <h3>Cultural Story</h3>
               <p>{post.culturalStory}</p>
@@ -205,11 +211,12 @@ export default function CommunityPost() {
                 ))}
               </div>
             )}
-            <button className="back-btn" onClick={() => navigate("/community")}>← Back</button>
+            <button className="back-btn" onClick={() => navigate("/community")}>
+              ← Back
+            </button>
           </div>
         </div>
 
-        {/* RIGHT SIDE (Likes & Comments) */}
         <div className="post-right">
           <div className="likes-bar">❤️ {post.likeCount || 0} likes</div>
           <h3>Comments ({comments.length})</h3>
@@ -221,7 +228,6 @@ export default function CommunityPost() {
           />
         </div>
       </div>
-
       <Footer />
     </div>
   );
