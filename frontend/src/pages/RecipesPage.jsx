@@ -8,7 +8,7 @@ import { Filter, Sliders, X } from "lucide-react";
 
 const PER_PAGE = 9;
 
-const getFirstSentence = (story) => {
+const getFirstSentence = (description) => {
   if (!description) return '';
   const periodIndex = description.indexOf('.');
   return periodIndex !== -1 ? description.substring(0, periodIndex + 1) : description;
