@@ -3,19 +3,28 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { FaLock } from "react-icons/fa";
 
-export default function LoginPromptModal({ show, onClose }) {
+export default function LoginPromptModal({
+  show = true,
+  message = "Please log in or register to access this feature.",
+  onClose,
+  onLogin, // ✅ Adds support for custom login action
+}) {
   const navigate = useNavigate();
 
   if (!show) return null;
 
-  const handleRedirect = () => {
-    onClose(); // close modal first
-    navigate("/loginregister"); // ✅ navigate to your combined page
+  const handleLoginRedirect = () => {
+    if (onLogin) {
+      onLogin(); // ✅ Calls parent function to navigate
+    } else {
+      navigate("/loginregister"); // default if no prop passed
+    }
+    if (onClose) onClose();
   };
 
   return createPortal(
     <>
-      {/* === Dimmed Overlay === */}
+      {/* Overlay */}
       <div
         className="modal-overlay"
         style={{
@@ -31,7 +40,7 @@ export default function LoginPromptModal({ show, onClose }) {
         onClick={onClose}
       ></div>
 
-      {/* === Centered Popup === */}
+      {/* Pop-up Card */}
       <div
         className="modal-card"
         style={{
@@ -55,7 +64,7 @@ export default function LoginPromptModal({ show, onClose }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "8px", // space between icon and text
+            gap: "8px",
             fontSize: "1.25rem",
             fontWeight: "600",
             color: "#916848",
@@ -65,19 +74,14 @@ export default function LoginPromptModal({ show, onClose }) {
           <FaLock style={{ fontSize: "1.5rem" }} />
           Login Required
         </h2>
-        <p
-          style={{
-            color: "#444",
-            marginBottom: "24px",
-            fontSize: "0.95rem",
-          }}
-        >
-          Please log in or register to access this feature.
+
+        <p style={{ color: "#444", marginBottom: "24px", fontSize: "0.95rem" }}>
+          {message}
         </p>
 
         <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
           <button
-            onClick={handleRedirect}
+            onClick={handleLoginRedirect}
             style={{
               backgroundColor: "#b8926a",
               color: "#fff",
@@ -91,7 +95,7 @@ export default function LoginPromptModal({ show, onClose }) {
             Log In
           </button>
           <button
-            onClick={handleRedirect}
+            onClick={handleLoginRedirect}
             style={{
               backgroundColor: "#eee",
               color: "#333",
