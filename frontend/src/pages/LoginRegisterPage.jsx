@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { createPortal } from "react-dom";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
 import { API_URL } from "../config/api";
 
 // Firebase imports
-import {
-  createUserWithEmailAndPassword,
+import { 
+  createUserWithEmailAndPassword, 
   sendEmailVerification,
   onAuthStateChanged,
-  signInWithEmailAndPassword,
+  signInWithEmailAndPassword
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 
@@ -20,6 +21,8 @@ export default function LoginRegisterPage() {
   const [password, setPassword] = useState("");
   const [rememberDevice, setRememberDevice] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
 
   // Register fields
   const [firstName, setFirstName] = useState("");
@@ -28,7 +31,7 @@ export default function LoginRegisterPage() {
   const [regPassword, setRegPassword] = useState("");
   const [registerError, setRegisterError] = useState("");
 
-  // Lockout state
+  // Per-account lockout
   const [lockouts, setLockouts] = useState(() => {
     const saved = localStorage.getItem("accountLockouts");
     return saved ? JSON.parse(saved) : {};
@@ -36,16 +39,17 @@ export default function LoginRegisterPage() {
   const [remainingTime, setRemainingTime] = useState(0);
 
   const navigate = useNavigate();
-  const { login, checkSession } = useAuth(); // ✅ IMPORTANT
+  const { login } = useAuth();
 
   // Sync lockouts across tabs
   useEffect(() => {
-    const sync = (e) => {
-      if (e.key === "accountLockouts")
+    const syncLockouts = (e) => {
+      if (e.key === "accountLockouts") {
         setLockouts(e.newValue ? JSON.parse(e.newValue) : {});
+      }
     };
-    window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
+    window.addEventListener("storage", syncLockouts);
+    return () => window.removeEventListener("storage", syncLockouts);
   }, []);
 
   // Persist lockouts
@@ -53,49 +57,69 @@ export default function LoginRegisterPage() {
     localStorage.setItem("accountLockouts", JSON.stringify(lockouts));
   }, [lockouts]);
 
-  // Countdown + auto unlock
+  // Countdown + auto-unlock (promote after unlock)
   useEffect(() => {
     if (!email || !lockouts[email]?.unlockAt) return;
+
     const interval = setInterval(() => {
       const diff = Math.max(
         0,
         Math.ceil((lockouts[email].unlockAt - Date.now()) / 1000)
       );
       setRemainingTime(diff);
+
       if (diff <= 0) {
         setLockouts((prev) => {
-          const updated = { ...prev };
-          if (updated[email]) {
-            updated[email].attemptCount = 0;
-            if (updated[email].pendingPromotion && updated[email].lockStage < 2) {
-              updated[email].lockStage += 1;
+          const copy = { ...prev };
+          const entry = copy[email];
+          if (entry) {
+            const { pendingPromotion = false, lockStage = 0 } = entry;
+            entry.unlockAt = null;
+            entry.attemptCount = 0;
+
+            // ✅ Promote only after unlock
+            if (pendingPromotion && lockStage < 2) {
+              entry.lockStage = lockStage + 1;
             }
-            updated[email].unlockAt = null;
-            updated[email].pendingPromotion = false;
+            entry.pendingPromotion = false;
           }
-          return updated;
+          return copy;
         });
       }
     }, 1000);
+
     return () => clearInterval(interval);
   }, [email, lockouts]);
 
-  // ✅ Listen to email verification & sync with database
+  // Listen for Firebase email verification
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) {
+        console.log("Email verified in Firebase!");
+        
+        // Sync verification status to your MySQL database
         try {
-          await fetch(`${API_URL}/verify-email/sync`, {
+          const res = await fetch(`${API_URL}/verify-email/sync`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: user.email }),
           });
+
+          const data = await res.json();
+          
+          if (res.ok) {
+            console.log("Verification synced to database");
+          } else {
+            console.error("Failed to sync verification:", data.error);
+          }
         } catch (err) {
           console.error("Sync error:", err);
         }
       }
     });
+
+    // Cleanup subscription
     return () => unsubscribe();
   }, []);
 
@@ -105,133 +129,170 @@ export default function LoginRegisterPage() {
     return `${m}:${s}`;
   };
 
-  // ✅ FIXED LOGIN — No more manual refresh needed!
+  // Login handler
   const handleLogin = async () => {
-    setLoginError("");
+  setLoginError("");
 
-    // 1. Check lockout
-    if (lockouts[email]?.unlockAt > Date.now()) {
-      setLoginError(`Account locked. Try again in ${formatTime(remainingTime)}`);
-      return;
-    }
+  const locked = lockouts[email];
+  if (locked?.unlockAt && locked.unlockAt > Date.now()) {
+    setLoginError(
+      `Account locked. Try again in ${formatTime(
+        Math.ceil((locked.unlockAt - Date.now()) / 1000)
+      )}.`
+    );
+    return;
+  }
 
-    // 2. Validate empty fields
-    if (!email || !password) {
-      setLoginError("Please fill in all fields.");
-      return;
-    }
+  if (!email || !password) {
+    setLoginError("Please fill in all fields.");
+    return;
+  }
 
-    try {
-      // ✅ 3. Backend login (creates session)
-      const res = await fetch(`${API_URL}/login`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, rememberDevice }),
+  try {
+    const res = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        email, 
+        password,
+        rememberDevice
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      // Success → clear lockout
+      setLockouts((prev) => {
+        const updated = { ...prev };
+        delete updated[email];
+        return updated;
       });
 
-      const data = await res.json();
-
-      // ✅ 4. If login is successful
-      if (res.ok && data.success) {
-        // Clear lockout
-        setLockouts((prev) => {
-          const updated = { ...prev };
-          delete updated[email];
-          return updated;
-        });
-
-        // ✅ 5. Force AuthContext to reload /auth/session
-        await checkSession();
-
-        // ✅ 6. Redirect based on role
-        const role = data?.user?.role;
-        navigate(role === "admin" ? "/admin" : "/home");
-        return;
-      }
-
-      // 7. Handle unverified email (auto-verify Firebase)
-      if (data.notVerified) {
-        try {
-          const fb = await signInWithEmailAndPassword(auth, email, password);
-          if (!fb.user.emailVerified) {
-            await sendEmailVerification(fb.user, {
-              url: window.location.origin + "/loginregister",
-            });
-            setLoginError("Email not verified. New verification sent.");
-            return;
-          }
-        } catch (error) {
-          console.error("Auto-verify error:", error);
-        }
-      }
-
-      // 8. Wrong password → apply lock system
-      handleFailedAttempt(email);
-      setLoginError(data.message || "Invalid email or password.");
-    } catch (err) {
-      console.error("Login error:", err);
-      setLoginError("Server error. Please try again.");
+      login(data.user);
+      navigate(data.user.role === "admin" ? "/admin" : "/home");
+      return;
     }
-  };
-  // ✅ Lockout failed attempt logic
+
+    // Check if user is not verified and auto-resend
+    // Check if user is not verified - auto-send immediately
+    if (data.notVerified) {
+      console.log("User not verified, auto-sending verification email...");
+      
+      try {
+        // Sign in to Firebase and send email RIGHT NOW
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        if (!user.emailVerified) {
+          await sendEmailVerification(user, {
+            url: window.location.origin + "/loginregister",
+            handleCodeInApp: false
+          });
+          
+          setLoginError("Your email is not verified. We've sent you a new verification email. Please check your inbox and spam folder.");
+        }
+      } catch (firebaseErr) {
+        console.error("Auto-send failed:", firebaseErr);
+        setLoginError("Your email is not verified. Please check your inbox for the verification email.");
+      }
+      
+      return;
+    }
+
+    // Wrong credentials
+    handleFailedAttempt(email);
+    setLoginError(data.message || "Invalid email or password.");
+  } catch (err) {
+    console.error("Login error:", err);
+    setLoginError("Login failed. Please try again later.");
+  }
+};
+
+/*
+// Handle resend verification from login
+const handleResendVerification = async () => {
+  try {
+    console.log("Resending verification via Firebase for:", unverifiedEmail);
+    
+    setShowVerificationModal(false);
+    alert("Please check your email inbox (and spam folder) for the verification link. If you still can't find it, try registering again.");
+    
+  } catch (err) {
+    console.error("Resend error:", err);
+    alert("Failed to resend verification email");
+  }
+};
+*/
+
+  // Failed attempt + progressive lock (fixed with promotion delay)
   const handleFailedAttempt = (email) => {
     setLockouts((prev) => {
-      const entry = prev[email] || {
-        attemptCount: 0,
-        lockStage: 0,
-        unlockAt: null,
-        pendingPromotion: false,
-      };
+      const entry =
+        prev[email] || {
+          attemptCount: 0,
+          lockStage: 0,
+          unlockAt: null,
+          pendingPromotion: false,
+        };
+      let { attemptCount, lockStage, unlockAt, pendingPromotion } = entry;
 
-      entry.attemptCount += 1;
+      attemptCount += 1;
 
-      // Stage 0 → 5 tries → lock 2 mins
-      if (entry.lockStage === 0 && entry.attemptCount >= 5) {
-        entry.unlockAt = Date.now() + 2 * 60 * 1000;
-        entry.pendingPromotion = true;
-        entry.attemptCount = 0;
+      // Stage 1: 5 attempts → 2 min lock
+      if (lockStage === 0 && attemptCount >= 5) {
+        unlockAt = Date.now() + 2 * 60 * 1000;
+        attemptCount = 0;
+        pendingPromotion = true;
       }
-      // Stage 1 → 1 try → lock 5 mins
-      else if (entry.lockStage === 1 && entry.attemptCount >= 1) {
-        entry.unlockAt = Date.now() + 5 * 60 * 1000;
-        entry.pendingPromotion = true;
-        entry.attemptCount = 0;
+      // Stage 2: 1 attempt → 5 min lock
+      else if (lockStage === 1 && attemptCount >= 1) {
+        unlockAt = Date.now() + 5 * 60 * 1000;
+        attemptCount = 0;
+        pendingPromotion = true;
       }
-      // Stage 2 → 1 try → lock 10 mins (final)
-      else if (entry.lockStage === 2 && entry.attemptCount >= 1) {
-        entry.unlockAt = Date.now() + 10 * 60 * 1000;
-        entry.pendingPromotion = false;
-        entry.attemptCount = 0;
+      // Stage 3: 1 attempt → 10 min lock (final)
+      else if (lockStage === 2 && attemptCount >= 1) {
+        unlockAt = Date.now() + 10 * 60 * 1000;
+        attemptCount = 0;
+        pendingPromotion = false;
       }
+
+      console.log(
+        `Failed login for ${email} → Stage ${lockStage}, pendingPromotion=${pendingPromotion}, unlocks at ${
+          unlockAt ? new Date(unlockAt).toLocaleTimeString() : "none"
+        }`
+      );
 
       return {
         ...prev,
-        [email]: entry,
+        [email]: { attemptCount, lockStage, unlockAt, pendingPromotion },
       };
     });
   };
 
-  // ✅ Password strength validation
+  // Password validation
   const validatePassword = (password) => {
     const minLength = 8;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNum = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
     if (password.length < minLength)
       return `Password must be at least ${minLength} characters long`;
-    if (!/[A-Z]/.test(password))
-      return "Password must contain an uppercase letter";
-    if (!/[a-z]/.test(password))
-      return "Password must contain a lowercase letter";
-    if (!/[0-9]/.test(password))
-      return "Password must contain a number";
-    if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password))
-      return "Password must contain a special character (!@#$...)";
+    if (!hasUpper) return "Password must contain an uppercase letter";
+    if (!hasLower) return "Password must contain a lowercase letter";
+    if (!hasNum) return "Password must contain a number";
+    if (!hasSpecial)
+      return "Password must contain a special character (!@#$%^&*...)";
     return null;
   };
 
-  // ✅ Fully working Register Function (Firebase + MySQL)
+  // Register
   const handleRegister = async () => {
     setRegisterError("");
-
     if (!firstName || !lastName || !regEmail || !regPassword) {
       setRegisterError("Please fill in all fields.");
       return;
@@ -250,7 +311,7 @@ export default function LoginRegisterPage() {
     }
 
     try {
-      // ✅ Step 1: Register in your backend MySQL
+      // Step 1: Register user in YOUR database first
       const res = await fetch(`${API_URL}/register`, {
         method: "POST",
         credentials: "include",
@@ -262,65 +323,101 @@ export default function LoginRegisterPage() {
           password: regPassword,
         }),
       });
+
       const data = await res.json();
+      
+      if (res.ok) {
+        console.log("Registration successful in database");
+        
+        try {
+          // Step 2: Create Firebase user
+          const userCredential = await createUserWithEmailAndPassword(
+            auth, 
+            regEmail, 
+            regPassword
+          );
+          
+          console.log("Firebase user created:", userCredential.user.uid);
 
-      if (!res.ok) {
-        setRegisterError(data.message || "Registration failed!");
-        return;
+          // Step 3: Send verification email via Firebase
+          await sendEmailVerification(userCredential.user, {
+            url: window.location.origin + "/loginregister", // Redirect after verification
+            handleCodeInApp: false
+          });
+
+          console.log("Verification email sent via Firebase");
+
+          // Clear form
+          setFirstName("");
+          setLastName("");
+          setRegEmail("");
+          setRegPassword("");
+          
+          // Show success message
+          alert("Registration successful! Please check your email to verify your account.");
+          setActiveTab("login");
+
+        } catch (firebaseError) {
+          console.error("Firebase error:", firebaseError);
+          
+          // Handle specific Firebase errors
+          if (firebaseError.code === 'auth/email-already-in-use') {
+            setRegisterError("Email already registered in Firebase.");
+          } else {
+            setRegisterError("Failed to send verification email. Please try again.");
+          }
+        }
+
+      } else {
+        setRegisterError(data.error || data.message || "Registration failed!");
       }
-
-      // ✅ Step 2: Register in Firebase (for email verification)
-      const fbUser = await createUserWithEmailAndPassword(
-        auth,
-        regEmail,
-        regPassword
-      );
-
-      // ✅ Step 3: Send verification email
-      await sendEmailVerification(fbUser.user, {
-        url: window.location.origin + "/loginregister",
-        handleCodeInApp: false,
-      });
-
-      alert("Registered! Please verify your email before logging in.");
-      setFirstName("");
-      setLastName("");
-      setRegEmail("");
-      setRegPassword("");
-      setActiveTab("login");
     } catch (err) {
-      console.error("Register error:", err);
-      setRegisterError("Failed to register. Please try again.");
+      console.error("Registration error:", err);
+      setRegisterError("Something went wrong during registration.");
     }
   };
 
-  // ✅ Guest login (no authentication, just local role)
+  // 👤 Guest login
   const handleGuest = () => {
-    navigate("/home"); // handled as guest elsewhere
+    login({ role: "guest" });
+    navigate("/home");
   };
 
-  // ✅ Return UI (unchanged structure — fully intact)
+  // Lock label
+  const getLockLabel = (stage) => {
+    if (stage === 0) return "2 minutes lock";
+    if (stage === 1) return "5 minutes lock";
+    return "10 minutes lock";
+  };
+
   return (
     <div className="login-register-page">
-      {/* Left image section */}
       <div className="lrp-image-section">
         <img src={LoginFood} alt="Login Food" />
         <div className="lrp-image-overlay"></div>
         <div className="lrp-image-text">
           <h1>Sarawak Food Heritage</h1>
-          <p>Discover, preserve, and celebrate Sarawak culinary traditions</p>
+          <p>
+            Discover, preserve, and celebrate the rich culinary traditions of
+            Sarawak
+          </p>
+          <p>
+            From manok pansoh to umai – explore authentic recipes and their
+            cultural stories
+          </p>
         </div>
       </div>
 
-      {/* Right form section */}
       <div className="lrp-form-section">
         <div className="lrp-card">
           <div className="lrp-card-header">
+            <div className="lrp-logo">🍽️</div>
             <h3>Welcome to SarawakEats</h3>
-            <p>Preserving and celebrating Sarawak's food culture</p>
+            <p className="lrp-description">
+              Preserving and celebrating Sarawak's culinary heritage
+            </p>
           </div>
 
-          {/* Tabs */}
           <div className="lrp-tabs">
             <button
               className={`lrp-tab ${activeTab === "login" ? "active" : ""}`}
@@ -335,21 +432,22 @@ export default function LoginRegisterPage() {
               Register
             </button>
           </div>
+
           {activeTab === "login" ? (
             <div className="lrp-form-content">
-              {/* ✅ Error message */}
               {loginError && (
                 <div className="lrp-error-box">
                   {loginError}
-                  {lockouts[email]?.unlockAt > Date.now() && (
-                    <p className="lrp-timer">
-                      Try again in {formatTime(remainingTime)}
-                    </p>
-                  )}
+                  {lockouts[email]?.unlockAt &&
+                    lockouts[email].unlockAt > Date.now() && (
+                      <p className="lrp-timer">
+                        Try again in {formatTime(remainingTime)} (
+                        {getLockLabel(lockouts[email].lockStage)})
+                      </p>
+                    )}
                 </div>
               )}
 
-              {/* ✅ Email Input */}
               <div>
                 <label>Email</label>
                 <input
@@ -359,8 +457,6 @@ export default function LoginRegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-
-              {/* ✅ Password Input */}
               <div>
                 <label>Password</label>
                 <input
@@ -371,18 +467,17 @@ export default function LoginRegisterPage() {
                 />
               </div>
 
-              {/* ✅ Remember Me */}
               <div className="otp-remember">
-                <input
-                  id="remember-device"
-                  type="checkbox"
-                  checked={rememberDevice}
-                  onChange={(e) => setRememberDevice(e.target.checked)}
-                />
-                <label htmlFor="remember-device">Remember me for 7 days</label>
+              <input
+                id="remember-device"
+                type="checkbox"
+                className="efp-checkbox"
+                checked={rememberDevice}
+                onChange={(e) => setRememberDevice(e.target.checked)}
+              />
+              <label htmlFor="remember-device">Remember me on this device for 7 days</label>
               </div>
 
-              {/* ✅ Login Button */}
               <button
                 onClick={handleLogin}
                 className="lrp-btn lrp-btn-primary"
@@ -391,10 +486,12 @@ export default function LoginRegisterPage() {
                   lockouts[email].unlockAt > Date.now()
                 }
               >
-                {lockouts[email]?.unlockAt > Date.now() ? "Locked" : "Sign In"}
+                {lockouts[email]?.unlockAt &&
+                lockouts[email].unlockAt > Date.now()
+                  ? "Locked"
+                  : "Sign In"}
               </button>
 
-              {/* ✅ Forgot Password */}
               <button
                 onClick={() => navigate("/forgotpassword")}
                 className="lrp-btn lrp-btn-primary"
@@ -402,25 +499,19 @@ export default function LoginRegisterPage() {
                 Forgot Password
               </button>
 
-              {/* ✅ Divider */}
-              <div className="lrp-divider"><span>or</span></div>
-
-              {/* ✅ Guest login */}
-              <button
-                onClick={handleGuest}
-                className="lrp-btn lrp-btn-outline"
-              >
+              <div className="lrp-divider">
+                <span>or</span>
+              </div>
+              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
                 Continue as Guest
               </button>
             </div>
           ) : (
-            // ✅ Register Form
             <div className="lrp-form-content">
               {registerError && (
                 <div className="lrp-error-box">{registerError}</div>
               )}
 
-              {/* ✅ First + Last Name */}
               <div className="lrp-grid">
                 <div>
                   <label>First Name</label>
@@ -442,7 +533,6 @@ export default function LoginRegisterPage() {
                 </div>
               </div>
 
-              {/* ✅ Email */}
               <div>
                 <label>Email</label>
                 <input
@@ -452,8 +542,6 @@ export default function LoginRegisterPage() {
                   onChange={(e) => setRegEmail(e.target.value)}
                 />
               </div>
-
-              {/* ✅ Password */}
               <div>
                 <label>Password</label>
                 <input
@@ -463,37 +551,78 @@ export default function LoginRegisterPage() {
                   onChange={(e) => setRegPassword(e.target.value)}
                 />
                 <p className="password-hint">
-                  Password must include uppercase, lowercase, number, and symbol.
+                  Password must be at least 8 characters with uppercase,
+                  lowercase, number, and symbol
                 </p>
               </div>
 
-              {/* ✅ Register Button */}
               <button
                 onClick={handleRegister}
                 className="lrp-btn lrp-btn-primary"
               >
                 Create Account
               </button>
-
-              {/* ✅ Divider */}
-              <div className="lrp-divider"><span>or</span></div>
-
-              {/* ✅ Guest */}
-              <button
-                onClick={handleGuest}
-                className="lrp-btn lrp-btn-outline"
-              >
+              <div className="lrp-divider">
+                <span>or</span>
+              </div>
+              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
                 Continue as Guest
               </button>
             </div>
           )}
 
-          {/* Footer Text */}
           <p className="lrp-footer-text">
-            Join our community to contribute recipes & preserve Sarawak’s heritage.
+            Join our community to contribute recipes and preserve Sarawak's food
+            culture
           </p>
         </div>
       </div>
+
+      {/* MODAL COMMENTED OUT FOR NOW - Using auto-send instead
+      {showVerificationModal && createPortal(
+        <>
+          <div
+            className="verification-overlay"
+            onClick={() => setShowVerificationModal(false)}
+          ></div>
+
+          <div className="verification-modal-card">
+            <h2 className="verification-modal-title">
+              <span className="verification-icon">✉️</span>
+              Email Verification Required
+            </h2>
+            
+            <p className="verification-modal-text">
+              Your account is not verified yet. Please verify your email to continue.
+            </p>
+
+            <div className="verification-email-box">
+              <p className="verification-email-text">{unverifiedEmail}</p>
+            </div>
+
+            <p className="verification-modal-hint">
+              Didn't receive the email? Click below to resend the verification code.
+            </p>
+
+            <div className="verification-modal-actions">
+              <button
+                onClick={handleResendVerification}
+                className="verification-btn-primary"
+              >
+                Verify Email
+              </button>
+              <button
+                onClick={() => setShowVerificationModal(false)}
+                className="verification-btn-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
+      */}
     </div>
   );
 }
