@@ -38,11 +38,11 @@ router.get("/", async (req, res) => {
         likes: profile.likes || 0,
       },
       prefs: {
-        dietary: profile.dietary || [],
-        allergies: profile.allergies || [],
-        emailNotifications: !!profile.emailNotifications,
-        pushNotifications: !!profile.pushNotifications,
-        profileVisibility: !!profile.profileVisibility,
+        dietary: profile.dietary ? (Array.isArray(profile.dietary) ? profile.dietary : JSON.parse(profile.dietary || "[]")) : [],
+        allergies: profile.allergies ? (Array.isArray(profile.allergies) ? profile.allergies : JSON.parse(profile.allergies || "[]")) : [],
+        emailNotifications: profile.emailNotifications !== null ? !!profile.emailNotifications : true,
+        pushNotifications: profile.pushNotifications !== null ? !!profile.pushNotifications : true,
+        profileVisibility: profile.profileVisibility !== null ? !!profile.profileVisibility : true,
         language: profile.language || "en",
       },
     });
