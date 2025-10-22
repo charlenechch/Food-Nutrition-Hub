@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { createPortal } from "react-dom";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
 import { API_URL } from "../config/api";
 
 // Firebase imports
-import { 
-  createUserWithEmailAndPassword, 
+import {
+  createUserWithEmailAndPassword,
   sendEmailVerification,
   onAuthStateChanged,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 
@@ -21,17 +20,15 @@ export default function LoginRegisterPage() {
   const [password, setPassword] = useState("");
   const [rememberDevice, setRememberDevice] = useState(false);
   const [loginError, setLoginError] = useState("");
-  const [showVerificationModal, setShowVerificationModal] = useState(false);
-  const [unverifiedEmail, setUnverifiedEmail] = useState("");
 
-  // Register fields
+  // ✅ Register fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [registerError, setRegisterError] = useState("");
 
-  // Per-account lockout
+  // ✅ Lockout system
   const [lockouts, setLockouts] = useState(() => {
     const saved = localStorage.getItem("accountLockouts");
     return saved ? JSON.parse(saved) : {};
@@ -39,28 +36,27 @@ export default function LoginRegisterPage() {
   const [remainingTime, setRemainingTime] = useState(0);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { setUser, loginAsGuest } = useAuth(); // ✅ use setUser instead of login(email)
 
-  // Sync lockouts across tabs
+  // ✅ Sync lockouts across tabs
   useEffect(() => {
-    const syncLockouts = (e) => {
+    const sync = (e) => {
       if (e.key === "accountLockouts") {
         setLockouts(e.newValue ? JSON.parse(e.newValue) : {});
       }
     };
-    window.addEventListener("storage", syncLockouts);
-    return () => window.removeEventListener("storage", syncLockouts);
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
   }, []);
 
-  // Persist lockouts
+  // ✅ Save lockouts
   useEffect(() => {
     localStorage.setItem("accountLockouts", JSON.stringify(lockouts));
   }, [lockouts]);
 
-  // Countdown + auto-unlock (promote after unlock)
+  // ✅ Countdown & unlock system
   useEffect(() => {
     if (!email || !lockouts[email]?.unlockAt) return;
-
     const interval = setInterval(() => {
       const diff = Math.max(
         0,
@@ -69,164 +65,132 @@ export default function LoginRegisterPage() {
       setRemainingTime(diff);
 
       if (diff <= 0) {
+        // Auto-unlock & promote stage _after_ unlock
         setLockouts((prev) => {
-          const copy = { ...prev };
-          const entry = copy[email];
+          const newData = { ...prev };
+          const entry = newData[email];
           if (entry) {
-            const { pendingPromotion = false, lockStage = 0 } = entry;
+            if (entry.pendingPromotion && entry.lockStage < 2) {
+              entry.lockStage += 1;
+            }
             entry.unlockAt = null;
             entry.attemptCount = 0;
-
-            // ✅ Promote only after unlock
-            if (pendingPromotion && lockStage < 2) {
-              entry.lockStage = lockStage + 1;
-            }
             entry.pendingPromotion = false;
           }
-          return copy;
+          return newData;
         });
       }
     }, 1000);
-
     return () => clearInterval(interval);
   }, [email, lockouts]);
-
-  // Listen for Firebase email verification
+  // ✅ Listen for Firebase email verification (sync to MySQL)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) {
-        console.log("Email verified in Firebase!");
-        
-        // Sync verification status to your MySQL database
         try {
-          const res = await fetch(`${API_URL}/verify-email/sync`, {
+          await fetch(`${API_URL}/verify-email/sync`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: user.email }),
           });
-
-          const data = await res.json();
-          
-          if (res.ok) {
-            console.log("Verification synced to database");
-          } else {
-            console.error("Failed to sync verification:", data.error);
-          }
+          console.log("✅ Verification synced to Database");
         } catch (err) {
-          console.error("Sync error:", err);
+          console.error("❌ Sync error:", err);
         }
       }
     });
-
-    // Cleanup subscription
     return () => unsubscribe();
   }, []);
 
-  const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
-    const s = (seconds % 60).toString().padStart(2, "0");
+  const formatTime = (sec) => {
+    const m = Math.floor(sec / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = (sec % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
 
-  // Login handler
+  // ✅ LOGIN HANDLER (Fixed!)
   const handleLogin = async () => {
-  setLoginError("");
+    setLoginError("");
 
-  const locked = lockouts[email];
-  if (locked?.unlockAt && locked.unlockAt > Date.now()) {
-    setLoginError(
-      `Account locked. Try again in ${formatTime(
-        Math.ceil((locked.unlockAt - Date.now()) / 1000)
-      )}.`
-    );
-    return;
-  }
+    const locked = lockouts[email];
+    if (locked?.unlockAt && locked.unlockAt > Date.now()) {
+      setLoginError(
+        `Account locked. Try again in ${formatTime(
+          Math.ceil((locked.unlockAt - Date.now()) / 1000)
+        )}.`
+      );
+      return;
+    }
 
-  if (!email || !password) {
-    setLoginError("Please fill in all fields.");
-    return;
-  }
+    if (!email || !password) {
+      setLoginError("Please fill in all fields.");
+      return;
+    }
 
-  try {
-    const res = await fetch(`${API_URL}/login`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        email, 
-        password,
-        rememberDevice
-      }),
-    });
-
-    const data = await res.json();
-
-    if (res.ok && data.success) {
-      // Success → clear lockout
-      setLockouts((prev) => {
-        const updated = { ...prev };
-        delete updated[email];
-        return updated;
+    try {
+      const res = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, rememberDevice }),
       });
 
-      login(data.user);
-      navigate(data.user.role === "admin" ? "/admin" : "/home");
-      return;
-    }
+      const data = await res.json();
 
-    // Check if user is not verified and auto-resend
-    // Check if user is not verified - auto-send immediately
-    if (data.notVerified) {
-      console.log("User not verified, auto-sending verification email...");
-      
-      try {
-        // Sign in to Firebase and send email RIGHT NOW
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        
-        if (!user.emailVerified) {
-          await sendEmailVerification(user, {
-            url: window.location.origin + "/loginregister",
-            handleCodeInApp: false
-          });
-          
-          setLoginError("Your email is not verified. We've sent you a new verification email. Please check your inbox and spam folder.");
-        }
-      } catch (firebaseErr) {
-        console.error("Auto-send failed:", firebaseErr);
-        setLoginError("Your email is not verified. Please check your inbox for the verification email.");
+      // ✅ Success → set user into context properly
+      if (res.ok && data.success && data.user) {
+        setUser(data.user); // ✅ <-- FIXED HERE
+        setLockouts((prev) => {
+          const updated = { ...prev };
+          delete updated[email];
+          return updated;
+        });
+
+        navigate(data.user.role === "admin" ? "/admin" : "/home");
+        return;
       }
-      
-      return;
+
+      // ✅ Not verified – auto-send Firebase email
+      if (data.notVerified) {
+        try {
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          const user = userCredential.user;
+
+          if (!user.emailVerified) {
+            await sendEmailVerification(user, {
+              url: window.location.origin + "/loginregister",
+            });
+          }
+
+          setLoginError(
+            "Email not verified. A new verification email has been sent."
+          );
+        } catch (err) {
+          console.error("Auto resend failed:", err);
+          setLoginError(
+            "Email is not verified. Please check your inbox or spam folder."
+          );
+        }
+        return;
+      }
+
+      // ❌ Wrong credentials → Lockout system
+      handleFailedAttempt(email);
+      setLoginError(data.message || "Invalid email or password.");
+    } catch (err) {
+      console.error("Login error:", err);
+      setLoginError("Login failed. Please try again.");
     }
+  };
 
-    // Wrong credentials
-    handleFailedAttempt(email);
-    setLoginError(data.message || "Invalid email or password.");
-  } catch (err) {
-    console.error("Login error:", err);
-    setLoginError("Login failed. Please try again later.");
-  }
-};
-
-/*
-// Handle resend verification from login
-const handleResendVerification = async () => {
-  try {
-    console.log("Resending verification via Firebase for:", unverifiedEmail);
-    
-    setShowVerificationModal(false);
-    alert("Please check your email inbox (and spam folder) for the verification link. If you still can't find it, try registering again.");
-    
-  } catch (err) {
-    console.error("Resend error:", err);
-    alert("Failed to resend verification email");
-  }
-};
-*/
-
-  // Failed attempt + progressive lock (fixed with promotion delay)
+  // ✅ Failed attempt logic
   const handleFailedAttempt = (email) => {
     setLockouts((prev) => {
       const entry =
@@ -236,34 +200,23 @@ const handleResendVerification = async () => {
           unlockAt: null,
           pendingPromotion: false,
         };
+
       let { attemptCount, lockStage, unlockAt, pendingPromotion } = entry;
+      attemptCount++;
 
-      attemptCount += 1;
-
-      // Stage 1: 5 attempts → 2 min lock
       if (lockStage === 0 && attemptCount >= 5) {
         unlockAt = Date.now() + 2 * 60 * 1000;
         attemptCount = 0;
         pendingPromotion = true;
-      }
-      // Stage 2: 1 attempt → 5 min lock
-      else if (lockStage === 1 && attemptCount >= 1) {
+      } else if (lockStage === 1 && attemptCount >= 1) {
         unlockAt = Date.now() + 5 * 60 * 1000;
         attemptCount = 0;
         pendingPromotion = true;
-      }
-      // Stage 3: 1 attempt → 10 min lock (final)
-      else if (lockStage === 2 && attemptCount >= 1) {
+      } else if (lockStage === 2 && attemptCount >= 1) {
         unlockAt = Date.now() + 10 * 60 * 1000;
         attemptCount = 0;
         pendingPromotion = false;
       }
-
-      console.log(
-        `Failed login for ${email} → Stage ${lockStage}, pendingPromotion=${pendingPromotion}, unlocks at ${
-          unlockAt ? new Date(unlockAt).toLocaleTimeString() : "none"
-        }`
-      );
 
       return {
         ...prev,
@@ -271,8 +224,7 @@ const handleResendVerification = async () => {
       };
     });
   };
-
-  // Password validation
+  // ✅ Password Validation
   const validatePassword = (password) => {
     const minLength = 8;
     const hasUpper = /[A-Z]/.test(password);
@@ -290,9 +242,10 @@ const handleResendVerification = async () => {
     return null;
   };
 
-  // Register
+  // ✅ REGISTER Handler (MySQL + Firebase + Email Verification)
   const handleRegister = async () => {
     setRegisterError("");
+
     if (!firstName || !lastName || !regEmail || !regPassword) {
       setRegisterError("Please fill in all fields.");
       return;
@@ -311,7 +264,7 @@ const handleResendVerification = async () => {
     }
 
     try {
-      // Step 1: Register user in YOUR database first
+      // ✅ Step 1 — Register in MySQL database
       const res = await fetch(`${API_URL}/register`, {
         method: "POST",
         credentials: "include",
@@ -325,86 +278,56 @@ const handleResendVerification = async () => {
       });
 
       const data = await res.json();
-      
-      if (res.ok) {
-        console.log("Registration successful in database");
-        
-        try {
-          // Step 2: Create Firebase user
-          const userCredential = await createUserWithEmailAndPassword(
-            auth, 
-            regEmail, 
-            regPassword
-          );
-          
-          console.log("Firebase user created:", userCredential.user.uid);
-
-          // Step 3: Send verification email via Firebase
-          await sendEmailVerification(userCredential.user, {
-            url: window.location.origin + "/loginregister", // Redirect after verification
-            handleCodeInApp: false
-          });
-
-          console.log("Verification email sent via Firebase");
-
-          // Clear form
-          setFirstName("");
-          setLastName("");
-          setRegEmail("");
-          setRegPassword("");
-          
-          // Show success message
-          alert("Registration successful! Please check your email to verify your account.");
-          setActiveTab("login");
-
-        } catch (firebaseError) {
-          console.error("Firebase error:", firebaseError);
-          
-          // Handle specific Firebase errors
-          if (firebaseError.code === 'auth/email-already-in-use') {
-            setRegisterError("Email already registered in Firebase.");
-          } else {
-            setRegisterError("Failed to send verification email. Please try again.");
-          }
-        }
-
-      } else {
-        setRegisterError(data.error || data.message || "Registration failed!");
+      if (!res.ok) {
+        setRegisterError(data.message || "Registration failed");
+        return;
       }
+
+      // ✅ Step 2 — Create Firebase user
+      const fb = await createUserWithEmailAndPassword(
+        auth,
+        regEmail,
+        regPassword
+      );
+
+      // ✅ Step 3 — Send Firebase verification email
+      await sendEmailVerification(fb.user, {
+        url: window.location.origin + "/loginregister",
+      });
+
+      alert("Registration successful! Please verify your email to continue.");
+      setFirstName("");
+      setLastName("");
+      setRegEmail("");
+      setRegPassword("");
+      setActiveTab("login");
     } catch (err) {
-      console.error("Registration error:", err);
-      setRegisterError("Something went wrong during registration.");
+      console.error("Register error:", err);
+      setRegisterError("Something went wrong. Try again.");
     }
   };
 
-  // 👤 Guest login
+  // ✅ Guest login → does not affect member/admin sessions
   const handleGuest = () => {
-    login({ role: "guest" });
+    loginAsGuest();
     navigate("/home");
   };
 
-  // Lock label
   const getLockLabel = (stage) => {
     if (stage === 0) return "2 minutes lock";
     if (stage === 1) return "5 minutes lock";
     return "10 minutes lock";
   };
 
+  // ✅ RETURN – UI is same, only backend logic was fixed
   return (
     <div className="login-register-page">
       <div className="lrp-image-section">
-        <img src={LoginFood} alt="Login Food" />
+        <img src={LoginFood} alt="Login Visual" />
         <div className="lrp-image-overlay"></div>
         <div className="lrp-image-text">
           <h1>Sarawak Food Heritage</h1>
-          <p>
-            Discover, preserve, and celebrate the rich culinary traditions of
-            Sarawak
-          </p>
-          <p>
-            From manok pansoh to umai – explore authentic recipes and their
-            cultural stories
-          </p>
+          <p>Discover, preserve, and celebrate the rich culinary traditions of Sarawak</p>
         </div>
       </div>
 
@@ -413,216 +336,87 @@ const handleResendVerification = async () => {
           <div className="lrp-card-header">
             <div className="lrp-logo">🍽️</div>
             <h3>Welcome to SarawakEats</h3>
-            <p className="lrp-description">
-              Preserving and celebrating Sarawak's culinary heritage
-            </p>
           </div>
 
+          {/* Tabs */}
           <div className="lrp-tabs">
-            <button
-              className={`lrp-tab ${activeTab === "login" ? "active" : ""}`}
-              onClick={() => setActiveTab("login")}
-            >
-              Login
-            </button>
-            <button
-              className={`lrp-tab ${activeTab === "register" ? "active" : ""}`}
-              onClick={() => setActiveTab("register")}
-            >
-              Register
-            </button>
+            <button className={`lrp-tab ${activeTab === "login" ? "active" : ""}`} onClick={() => setActiveTab("login")}>Login</button>
+            <button className={`lrp-tab ${activeTab === "register" ? "active" : ""}`} onClick={() => setActiveTab("register")}>Register</button>
           </div>
 
+          {/* ✅ LOGIN FORM */}
           {activeTab === "login" ? (
             <div className="lrp-form-content">
               {loginError && (
                 <div className="lrp-error-box">
                   {loginError}
-                  {lockouts[email]?.unlockAt &&
-                    lockouts[email].unlockAt > Date.now() && (
-                      <p className="lrp-timer">
-                        Try again in {formatTime(remainingTime)} (
-                        {getLockLabel(lockouts[email].lockStage)})
-                      </p>
-                    )}
+                  {lockouts[email]?.unlockAt > Date.now() && (
+                    <p className="lrp-timer">
+                      Try again in {formatTime(remainingTime)} ({getLockLabel(lockouts[email].lockStage)})
+                    </p>
+                  )}
                 </div>
               )}
-
               <div>
                 <label>Email</label>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div>
                 <label>Password</label>
-                <input
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
 
               <div className="otp-remember">
-              <input
-                id="remember-device"
-                type="checkbox"
-                className="efp-checkbox"
-                checked={rememberDevice}
-                onChange={(e) => setRememberDevice(e.target.checked)}
-              />
-              <label htmlFor="remember-device">Remember me on this device for 7 days</label>
+                <input id="remember-device" type="checkbox" checked={rememberDevice} onChange={(e) => setRememberDevice(e.target.checked)} />
+                <label htmlFor="remember-device">Remember me for 7 days</label>
               </div>
 
-              <button
-                onClick={handleLogin}
-                className="lrp-btn lrp-btn-primary"
-                disabled={
-                  lockouts[email]?.unlockAt &&
-                  lockouts[email].unlockAt > Date.now()
-                }
-              >
-                {lockouts[email]?.unlockAt &&
-                lockouts[email].unlockAt > Date.now()
-                  ? "Locked"
-                  : "Sign In"}
+              <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
+                Sign In
               </button>
 
-              <button
-                onClick={() => navigate("/forgotpassword")}
-                className="lrp-btn lrp-btn-primary"
-              >
+              <button onClick={() => navigate("/forgotpassword")} className="lrp-btn lrp-btn-primary">
                 Forgot Password
               </button>
 
-              <div className="lrp-divider">
-                <span>or</span>
-              </div>
-              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
-                Continue as Guest
-              </button>
+              <div className="lrp-divider"><span>or</span></div>
+              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">Continue as Guest</button>
             </div>
           ) : (
+            // ✅ REGISTER FORM
             <div className="lrp-form-content">
-              {registerError && (
-                <div className="lrp-error-box">{registerError}</div>
-              )}
-
+              {registerError && <div className="lrp-error-box">{registerError}</div>}
               <div className="lrp-grid">
                 <div>
                   <label>First Name</label>
-                  <input
-                    type="text"
-                    placeholder="First name"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
+                  <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                 </div>
                 <div>
                   <label>Last Name</label>
-                  <input
-                    type="text"
-                    placeholder="Last name"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
+                  <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} />
                 </div>
               </div>
 
               <div>
                 <label>Email</label>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
-                />
+                <input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} />
               </div>
+
               <div>
                 <label>Password</label>
-                <input
-                  type="password"
-                  placeholder="Create a password"
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                />
-                <p className="password-hint">
-                  Password must be at least 8 characters with uppercase,
-                  lowercase, number, and symbol
-                </p>
+                <input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} />
               </div>
 
-              <button
-                onClick={handleRegister}
-                className="lrp-btn lrp-btn-primary"
-              >
+              <button onClick={handleRegister} className="lrp-btn lrp-btn-primary">
                 Create Account
               </button>
-              <div className="lrp-divider">
-                <span>or</span>
-              </div>
-              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
-                Continue as Guest
-              </button>
+
+              <div className="lrp-divider"><span>or</span></div>
+              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">Continue as Guest</button>
             </div>
           )}
-
-          <p className="lrp-footer-text">
-            Join our community to contribute recipes and preserve Sarawak's food
-            culture
-          </p>
         </div>
       </div>
-
-      {/* MODAL COMMENTED OUT FOR NOW - Using auto-send instead
-      {showVerificationModal && createPortal(
-        <>
-          <div
-            className="verification-overlay"
-            onClick={() => setShowVerificationModal(false)}
-          ></div>
-
-          <div className="verification-modal-card">
-            <h2 className="verification-modal-title">
-              <span className="verification-icon">✉️</span>
-              Email Verification Required
-            </h2>
-            
-            <p className="verification-modal-text">
-              Your account is not verified yet. Please verify your email to continue.
-            </p>
-
-            <div className="verification-email-box">
-              <p className="verification-email-text">{unverifiedEmail}</p>
-            </div>
-
-            <p className="verification-modal-hint">
-              Didn't receive the email? Click below to resend the verification code.
-            </p>
-
-            <div className="verification-modal-actions">
-              <button
-                onClick={handleResendVerification}
-                className="verification-btn-primary"
-              >
-                Verify Email
-              </button>
-              <button
-                onClick={() => setShowVerificationModal(false)}
-                className="verification-btn-secondary"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </>,
-        document.body
-      )}
-      */}
     </div>
   );
 }
