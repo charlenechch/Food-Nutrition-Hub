@@ -5,11 +5,17 @@ const db = require("../config/db");
 // ✅ 1. Get logged-in user's profile using session (/api/userProfile)
 router.get("/", async (req, res) => {
   try {
+    console.log("=== Profile Request ===");
+    console.log("Session exists:", !!req.session);
+    console.log("Session user:", req.session?.user);
+    
     if (!req.session || !req.session.user) {
+      console.log("❌ No session");
       return res.status(401).json({ error: "Not logged in" });
     }
 
     const userID = req.session.user.userID;
+    console.log("🔍 Looking for userID:", userID);
 
     // Try to fetch user profile (with userProfile data if it exists)
     const [rows] = await db.execute(
@@ -24,6 +30,13 @@ router.get("/", async (req, res) => {
       WHERE u.userID = ?`,
       [userID]
     );
+
+    console.log("🔍 Query returned", rows.length, "rows");
+    if (rows.length > 0) {
+      console.log("✅ Found user:", rows[0].email);
+    } else {
+      console.log("❌ No rows returned");
+    }
 
     if (!rows || rows.length === 0) {
       return res.status(404).json({ error: "Profile not found" });
