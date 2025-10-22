@@ -9,11 +9,12 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Check session on first page load (keeps user logged in after refresh)
+  // ✅ Keeps user logged in after refresh
   useEffect(() => {
     checkSession();
   }, []);
 
+  // ✅ Check if session exists
   const checkSession = async () => {
     try {
       const res = await fetch(`${API_URL}/auth/session`, {
@@ -23,7 +24,11 @@ export function AuthProvider({ children }) {
 
       if (res.ok && data?.user) {
         console.log("✅ Session Found:", data.user);
-        setUser(data.user);
+        setUser({
+          ...data.user,
+          role: data.user.role || "member",
+          profileID: data.user.profileID || data.user.id || null, // ✅ ensure profileID exists
+        });
       } else {
         console.log("❌ No session found");
         setUser(null);
@@ -36,7 +41,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ✅ Normal login via email & password
+  // ✅ Normal login
   const login = async (email, password) => {
     try {
       const res = await fetch(`${API_URL}/login`, {
@@ -48,7 +53,11 @@ export function AuthProvider({ children }) {
 
       const data = await res.json();
       if (res.ok && data?.user) {
-        setUser(data.user); // ✅ Store session user
+        setUser({
+          ...data.user,
+          role: data.user.role || "member",
+          profileID: data.user.profileID || data.user.id || null,
+        });
         return { success: true };
       } else {
         return { success: false, message: data?.message || "Login failed" };
@@ -59,7 +68,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ✅ Logout (clears session and context)
+  // ✅ Logout
   const logout = async () => {
     try {
       await fetch(`${API_URL}/logout`, {
@@ -73,16 +82,16 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ✅ Guest login — no backend, just role = guest
+  // ✅ Guest login
   const loginAsGuest = () => {
-    setUser({ role: "guest" });
+    setUser({ role: "guest" }); // ✅ clearly defined guest
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        setUser, // ✅ Now export this so LoginRegisterPage can use setUser directly
+        setUser,
         loading,
         login,
         logout,
