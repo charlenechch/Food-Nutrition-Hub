@@ -8,6 +8,12 @@ import { Filter, Sliders, X } from "lucide-react";
 
 const PER_PAGE = 9;
 
+const getFirstSentence = (story) => {
+  if (!description) return '';
+  const periodIndex = description.indexOf('.');
+  return periodIndex !== -1 ? description.substring(0, periodIndex + 1) : description;
+};
+
 export default function RecipesPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -770,7 +776,7 @@ useEffect(() => {
             <span className="efp-badge-cat">{recipeFoodType}</span>
           </div>
 
-          <p className="efp-desc">{recipeDescription}</p>
+          <p className="efp-desc">{getFirstSentence(recipeDescription)}</p>
 
           <div className="efp-meta">
             <span className="muted">Origin: {recipeOrigin}</span>
