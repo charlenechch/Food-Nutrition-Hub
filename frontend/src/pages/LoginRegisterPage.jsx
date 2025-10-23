@@ -70,12 +70,15 @@ export default function LoginRegisterPage() {
           const newData = { ...prev };
           const entry = newData[email];
           if (entry) {
-            if (entry.pendingPromotion && entry.lockStage < 2) {
-              entry.lockStage += 1;
+            // ⬇️ allow promotion up to stage 3 (so stage 2 → 3 after 10-min lock)
+            if (entry.pendingPromotion) {
+              entry.lockStage = Math.min((entry.lockStage || 0) + 1, 3);
             }
             entry.unlockAt = null;
             entry.attemptCount = 0;
             entry.pendingPromotion = false;
+            // Clear the reset hint after unlock; it will be shown on next failure at stage 3+
+            entry.showReset = false;
           }
           return newData;
         });
@@ -83,6 +86,7 @@ export default function LoginRegisterPage() {
     }, 1000);
     return () => clearInterval(interval);
   }, [email, lockouts]);
+
   // ✅ Listen for Firebase email verification (sync to MySQL)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -111,7 +115,13 @@ export default function LoginRegisterPage() {
     return `${m}:${s}`;
   };
 
-  // ✅ LOGIN HANDLER (Fixed!)
+  // ✅ Helper: should we show the reset suggestion (Stage 3+)?
+  const shouldSuggestReset = (email) => {
+    const entry = lockouts[email];
+    return !!(entry && entry.lockStage >= 3);
+  };
+
+  // ✅ LOGIN HANDLER
   const handleLogin = async () => {
     setLoginError("");
 
@@ -142,7 +152,7 @@ export default function LoginRegisterPage() {
 
       // ✅ Success → set user into context properly
       if (res.ok && data.success && data.user) {
-        setUser(data.user); // ✅ <-- FIXED HERE
+        setUser(data.user);
         setLockouts((prev) => {
           const updated = { ...prev };
           delete updated[email];
@@ -161,7 +171,7 @@ export default function LoginRegisterPage() {
             email,
             password
           );
-          const user = userCredential.user;
+        const user = userCredential.user;
 
           if (!user.emailVerified) {
             await sendEmailVerification(user, {
@@ -190,7 +200,7 @@ export default function LoginRegisterPage() {
     }
   };
 
-  // ✅ Failed attempt logic
+  // ✅ Failed attempt logic (with Stage 3 suggestion)
   const handleFailedAttempt = (email) => {
     setLockouts((prev) => {
       const entry =
@@ -199,31 +209,46 @@ export default function LoginRegisterPage() {
           lockStage: 0,
           unlockAt: null,
           pendingPromotion: false,
+          showReset: false,
         };
 
       let { attemptCount, lockStage, unlockAt, pendingPromotion } = entry;
       attemptCount++;
 
       if (lockStage === 0 && attemptCount >= 5) {
+        // Stage 0 → lock 2 min, then promote to stage 1 after unlock
         unlockAt = Date.now() + 2 * 60 * 1000;
         attemptCount = 0;
         pendingPromotion = true;
       } else if (lockStage === 1 && attemptCount >= 1) {
+        // Stage 1 → lock 5 min, then promote to stage 2 after unlock
         unlockAt = Date.now() + 5 * 60 * 1000;
         attemptCount = 0;
         pendingPromotion = true;
       } else if (lockStage === 2 && attemptCount >= 1) {
+        // Stage 2 → lock 10 min, then promote to stage 3 after unlock
         unlockAt = Date.now() + 10 * 60 * 1000;
         attemptCount = 0;
+        pendingPromotion = true;
+      } else if (lockStage >= 3) {
+        // Stage 3+ → no more time locks; suggest password reset
+        unlockAt = null;
         pendingPromotion = false;
       }
 
       return {
         ...prev,
-        [email]: { attemptCount, lockStage, unlockAt, pendingPromotion },
+        [email]: {
+          attemptCount,
+          lockStage,
+          unlockAt,
+          pendingPromotion,
+          showReset: lockStage >= 3,
+        },
       };
     });
   };
+
   // ✅ Password Validation
   const validatePassword = (password) => {
     const minLength = 8;
@@ -316,10 +341,12 @@ export default function LoginRegisterPage() {
   const getLockLabel = (stage) => {
     if (stage === 0) return "2 minutes lock";
     if (stage === 1) return "5 minutes lock";
-    return "10 minutes lock";
+    if (stage === 2) return "10 minutes lock";
+    // Stage 3+ doesn't show timers anymore
+    return "Account protection";
   };
 
-  // ✅ RETURN – UI is same, only backend logic was fixed
+  // ✅ RETURN – UI is same, only backend logic was extended
   return (
     <div className="login-register-page">
       <div className="lrp-image-section">
@@ -340,8 +367,18 @@ export default function LoginRegisterPage() {
 
           {/* Tabs */}
           <div className="lrp-tabs">
-            <button className={`lrp-tab ${activeTab === "login" ? "active" : ""}`} onClick={() => setActiveTab("login")}>Login</button>
-            <button className={`lrp-tab ${activeTab === "register" ? "active" : ""}`} onClick={() => setActiveTab("register")}>Register</button>
+            <button
+              className={`lrp-tab ${activeTab === "login" ? "active" : ""}`}
+              onClick={() => setActiveTab("login")}
+            >
+              Login
+            </button>
+            <button
+              className={`lrp-tab ${activeTab === "register" ? "active" : ""}`}
+              onClick={() => setActiveTab("register")}
+            >
+              Register
+            </button>
           </div>
 
           {/* ✅ LOGIN FORM */}
@@ -350,24 +387,58 @@ export default function LoginRegisterPage() {
               {loginError && (
                 <div className="lrp-error-box">
                   {loginError}
+
+                  {/* Show timer only when an actual timed lock is active */}
                   {lockouts[email]?.unlockAt > Date.now() && (
                     <p className="lrp-timer">
-                      Try again in {formatTime(remainingTime)} ({getLockLabel(lockouts[email].lockStage)})
+                      Try again in {formatTime(remainingTime)} (
+                      {getLockLabel(lockouts[email].lockStage)})
+                    </p>
+                  )}
+
+                  {/* ✅ Stage 3 onwards → Suggest reset password (no timer) */}
+                  {shouldSuggestReset(email) && (
+                    <p className="lrp-reset-hint">
+                      Too many attempts.{" "}
+                      <span
+                        onClick={() => navigate("/forgotpassword")}
+                        style={{
+                          color: "blue",
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        Forgot your password? Reset it here.
+                      </span>
                     </p>
                   )}
                 </div>
               )}
+
               <div>
                 <label>Email</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
               <div>
                 <label>Password</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
 
               <div className="otp-remember">
-                <input id="remember-device" type="checkbox" checked={rememberDevice} onChange={(e) => setRememberDevice(e.target.checked)} />
+                <input
+                  id="remember-device"
+                  type="checkbox"
+                  checked={rememberDevice}
+                  onChange={(e) => setRememberDevice(e.target.checked)}
+                />
                 <label htmlFor="remember-device">Remember me for 7 days</label>
               </div>
 
@@ -375,44 +446,82 @@ export default function LoginRegisterPage() {
                 Sign In
               </button>
 
-              <button onClick={() => navigate("/forgotpassword")} className="lrp-btn lrp-btn-primary">
+              <button
+                onClick={() => navigate("/forgotpassword")}
+                className="lrp-btn lrp-btn-primary"
+              >
                 Forgot Password
               </button>
 
-              <div className="lrp-divider"><span>or</span></div>
-              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">Continue as Guest</button>
+              <div className="lrp-divider">
+                <span>or</span>
+              </div>
+              <button
+                onClick={handleGuest}
+                className="lrp-btn lrp-btn-outline"
+              >
+                Continue as Guest
+              </button>
             </div>
           ) : (
             // ✅ REGISTER FORM
             <div className="lrp-form-content">
-              {registerError && <div className="lrp-error-box">{registerError}</div>}
+              {registerError && (
+                <div className="lrp-error-box">{registerError}</div>
+              )}
               <div className="lrp-grid">
                 <div>
                   <label>First Name</label>
-                  <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
                 </div>
                 <div>
                   <label>Last Name</label>
-                  <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
                 </div>
               </div>
 
               <div>
                 <label>Email</label>
-                <input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} />
+                <input
+                  type="email"
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                />
               </div>
 
               <div>
                 <label>Password</label>
-                <input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} />
+                <input
+                  type="password"
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
+                />
               </div>
 
-              <button onClick={handleRegister} className="lrp-btn lrp-btn-primary">
+              <button
+                onClick={handleRegister}
+                className="lrp-btn lrp-btn-primary"
+              >
                 Create Account
               </button>
 
-              <div className="lrp-divider"><span>or</span></div>
-              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">Continue as Guest</button>
+              <div className="lrp-divider">
+                <span>or</span>
+              </div>
+              <button
+                onClick={handleGuest}
+                className="lrp-btn lrp-btn-outline"
+              >
+                Continue as Guest
+              </button>
             </div>
           )}
         </div>
