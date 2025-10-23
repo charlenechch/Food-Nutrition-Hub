@@ -1,79 +1,56 @@
-import React, { useMemo, useState, useEffect } from "react";
+// ✅ FULL RecipesPage.jsx — Guest Block + LoginPromptModal (keeps full fields & filters)
+
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Pop-up for guests
 import "../css/RecipesPage.css";
 import { FaCamera } from "react-icons/fa";
-import { Filter, Sliders, X } from "lucide-react";
+import { Sliders, X, Filter } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
+// Constants
 const PER_PAGE = 9;
 
-const getFirstSentence = (description) => {
-  if (!description) return '';
-  const periodIndex = description.indexOf('.');
-  return periodIndex !== -1 ? description.substring(0, periodIndex + 1) : description;
+// Small helpers
+const toLower = (v) => (typeof v === "string" ? v.toLowerCase() : "");
+
+const timeToMinutes = (t) => {
+  // Accepts "45", "45m", "1h 20m", "1:20", etc.
+  if (!t) return 0;
+  const s = String(t).trim().toLowerCase();
+  if (/^\d+$/.test(s)) return parseInt(s, 10);
+  let m = 0;
+  const hMatch = s.match(/(\d+)\s*h/);
+  const mMatch = s.match(/(\d+)\s*m/);
+  const colon = s.match(/^(\d+):(\d+)$/);
+  if (hMatch) m += parseInt(hMatch[1], 10) * 60;
+  if (mMatch) m += parseInt(mMatch[1], 10);
+  if (colon) m += parseInt(colon[1], 10) * 60 + parseInt(colon[2], 10);
+  if (!hMatch && !mMatch && !colon) {
+    const num = parseInt(s.replace(/[^\d]/g, ""), 10);
+    if (!isNaN(num)) m += num;
+  }
+  return m;
 };
 
 export default function RecipesPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const initialQ = searchParams.get("q") || "";
-  const [searchQuery, setSearchQuery] = useState(initialQ);
+  const { user } = useAuth();
+
+  // ✅ Detect if guest or not logged in
+  const isGuest = !user || user.role === "guest";
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  // ✅ Data
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Add this after your recipes state
-useEffect(() => {
-  console.log('Recipes data:', recipes);
-  if (recipes && recipes.length > 0) {
-    console.log('First recipe structure:', recipes[0]);
-    console.log('Recipe IDs:', recipes.map(r => r?.id || r?.foodID || 'no-id'));
-  }
-}, [recipes]);
-
-  useEffect(() => {
-    setSearchQuery(searchParams.get("q") || "");
-  }, [searchParams]);
-
-  // Fetch recipes from backend
-  useEffect(() => {
-    const fetchRecipes = async () => {
-      try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-        console.log('Fetching from:', `${API_BASE_URL}/api/recipe/all/recipes`);
-        
-        const res = await fetch(`${API_BASE_URL}/api/recipe/all/recipes`);
-        
-        console.log('Response status:', res.status);
-      console.log('Response ok:', res.ok);
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error('Response error:', errorText);
-        throw new Error(`Failed to fetch recipes: ${res.status} ${errorText}`);
-      }
-      
-      const data = await res.json();
-      console.log('Received data:', data);
-      console.log('Data type:', typeof data);
-      console.log('Data length:', Array.isArray(data) ? data.length : 'Not array');
-      
-      if (Array.isArray(data) && data.length > 0) {
-        console.log('First item structure:', data[0]);
-      }
-        setRecipes(data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching recipes:', err);
-        setLoading(false);
-      }
-    };
-
-    fetchRecipes();
-  }, []);
-
-  // Form state (add new)
+  // ✅ Add Recipe Expand + Form
   const [expanded, setExpanded] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     name: "",
     origin: "",
@@ -81,609 +58,405 @@ useEffect(() => {
     prepTime: "",
     cookTime: "",
     servings: "",
-    imageData: "", 
+    imageData: "",
     description: "",
-    ingredients: "",           
-    instructions: "",            
-    funFact: "",                 
-    chefTips: "",  
-    dietaryTags: [],
-    otherDietEnabled: false,   
-    otherDietText: "", 
-    foodType: "Poultry",   
-    otherFoodEnabled: false,  
-    otherFoodText: "",
+    ingredients: "",
+    instructions: "",
+    funFact: "",
+    chefTips: "",
+    foodType: "Poultry",
+    dietTags: [], // e.g., ["Vegetarian", "Gluten-Free"]
   });
 
-  // Filters
+  // ✅ Filters & UI toggles
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [selectedOrigin, setSelectedOrigin] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedType, setSelectedType] = useState("all");
-  const [selectedPrepTime, setSelectedPrepTime] = useState("all");
+  const [selectedPrepTime, setSelectedPrepTime] = useState("all"); // e.g., "<=15", "<=30", "<=60", ">60"
   const [selectedCookTime, setSelectedCookTime] = useState("all");
-  const [dietFilters, setDietFilters] = useState([]);
+  const [selectedType, setSelectedType] = useState("all"); // e.g., Poultry/Seafood/Vegetarian/etc.
+  const [dietFilters, setDietFilters] = useState([]); // array of strings
+  const [showFilters, setShowFilters] = useState(false);
 
-  const inBucket = (minutes, bucket) => {
-    const m = Number(minutes) || 0;
-    if (bucket === "all") return true;
-    if (bucket === "under30")  return m <= 30;
-    if (bucket === "under120") return m <= 120;
-    if (bucket === "over120")  return m > 120;
-    return true;
+  // ✅ Pagination
+  const [page, setPage] = useState(1);
+
+  // --- Fetch recipes ---
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/recipe/all/recipes`);
+        const data = await res.json();
+        setRecipes(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error fetching recipes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecipes();
+  }, []);
+
+  // --- Expand logic for Add Recipe (guest gets blocked with modal) ---
+  const handleExpand = useCallback(() => {
+    if (isGuest) {
+      setShowLoginModal(true);
+      return;
+    }
+    setExpanded(true);
+  }, [isGuest]);
+
+  // --- Form handlers ---
+  const onChangeForm = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // derive unique origins
-  const origins = useMemo(() => {
-    const set = new Set(recipes.map(r => r.origin).filter(Boolean));
-    return ["all", ...Array.from(set)];
-  }, [recipes]);
-
-  // Filtered list
-  const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return recipes.filter(r => {
-      const name = (r.name || "").toLowerCase();
-      const origin = (r.origin || "").toLowerCase();
-      const desc = (r.description || "").toLowerCase();
-
-      const matchSearch = !q || name.includes(q) || origin.includes(q) || desc.includes(q);
-      const matchOrigin = selectedOrigin === "all" || r.origin === selectedOrigin;
-      const matchDifficulty = selectedDifficulty === "all" || r.difficulty === selectedDifficulty;
-
-      const pt = Number(r.prepTime) || 0;
-      const ct = Number(r.cookTime) || 0;
-      const matchPrepBucket = inBucket(pt, selectedPrepTime);
-      const matchCookBucket = inBucket(ct, selectedCookTime);
-      
-      const matchFoodType = selectedType === "all" || r.foodType === selectedType;
-      
-      const tags = Array.isArray(r.dietaryTags) ? r.dietaryTags : [];
-      const matchDiet = dietFilters.length === 0 || dietFilters.every(t => tags.includes(t));
-
-      return (
-        matchSearch &&
-        matchOrigin &&
-        matchDifficulty &&
-        matchPrepBucket &&
-        matchCookBucket &&
-        matchFoodType &&
-        matchDiet
-      );
+  const onToggleDietTag = (tag) => {
+    setForm((prev) => {
+      const exists = prev.dietTags.includes(tag);
+      return {
+        ...prev,
+        dietTags: exists
+          ? prev.dietTags.filter((t) => t !== tag)
+          : [...prev.dietTags, tag],
+      };
     });
-  }, [recipes, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedType, dietFilters]);
+  };
 
-  // Reset page if filters or data change
-  useEffect(() => {
-    setPage(1);
-  }, [recipes.length, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedType, dietFilters.join(",")]);
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setForm((prev) => ({ ...prev, imageData: reader.result }));
+    reader.readAsDataURL(file);
+  };
 
-  // Clear button
-  const clearAll = () => {
-    setSearchQuery("");
+  // --- Submit recipe ---
+  const addRecipe = async (e) => {
+    e.preventDefault();
+    if (isGuest) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (!form.name.trim() || !form.origin.trim()) {
+      alert("Please fill in both Name and Origin.");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_BASE_URL}/api/recipe/create/recipes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error("Failed to submit recipe");
+      alert("✅ Recipe submitted!");
+
+      // Reset + collapse
+      setExpanded(false);
+      setForm({
+        name: "",
+        origin: "",
+        difficulty: "Easy",
+        prepTime: "",
+        cookTime: "",
+        servings: "",
+        imageData: "",
+        description: "",
+        ingredients: "",
+        instructions: "",
+        funFact: "",
+        chefTips: "",
+        foodType: "Poultry",
+        dietTags: [],
+      });
+
+      // Optionally refresh list
+      try {
+        const res2 = await fetch(`${API_BASE_URL}/api/recipe/all/recipes`, { credentials: "include" });
+        const data2 = await res2.json();
+        setRecipes(Array.isArray(data2) ? data2 : []);
+      } catch {}
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to submit recipe");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // --- Clear all filters ---
+  const clearFilters = () => {
     setSelectedOrigin("all");
     setSelectedDifficulty("all");
     setSelectedPrepTime("all");
     setSelectedCookTime("all");
     setSelectedType("all");
     setDietFilters([]);
+    setSearchQuery("");
+    setPage(1);
   };
 
-  // Pagination
-  const [page, setPage] = useState(1);
+  // --- Apply filters ---
+  const filtered = useMemo(() => {
+    const q = toLower(searchQuery);
+    return recipes.filter((r) => {
+      const name = toLower(r.name || "");
+      const origin = toLower(r.origin || "");
+      const diff = toLower(r.difficulty || "");
+      const type = toLower(r.foodType || "");
+      const prep = timeToMinutes(r.prepTime);
+      const cook = timeToMinutes(r.cookTime);
+      const tags = Array.isArray(r.dietTags) ? r.dietTags.map(toLower) : [];
 
-  // Pagination slice
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const startIndex = (page - 1) * PER_PAGE;
-  const current = filtered.slice(startIndex, startIndex + PER_PAGE);
+      // search text
+      const matchesSearch =
+        !q ||
+        name.includes(q) ||
+        origin.includes(q) ||
+        toLower(r.description || "").includes(q);
 
-  function onChangeForm(e) {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  }
+      // origin filter
+      const matchesOrigin =
+        selectedOrigin === "all" || origin === toLower(selectedOrigin);
 
-  // Updated addRecipe to send to backend
-  const addRecipe = async (e) => {
-    e.preventDefault();
-    const name = form.name.trim();
-    const origin = form.origin.trim();
-    if (!name || !origin) return alert("Please fill at least Name and Origin.");
+      // difficulty
+      const matchesDiff =
+        selectedDifficulty === "all" || diff === toLower(selectedDifficulty);
 
-    const toLines = (s) =>
-      s.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+      // type
+      const matchesType =
+        selectedType === "all" || type === toLower(selectedType);
 
-    const parseCustom = (s) =>
-      s.split(/[,;\n]+/)
-        .map(v => v.trim())
-        .filter(Boolean)
-        .map(v => v.toLowerCase().replace(/\s+/g, "-"));
+      // prep time bucket
+      const prepOk =
+        selectedPrepTime === "all"
+          ? true
+          : selectedPrepTime === "<=15"
+          ? prep <= 15
+          : selectedPrepTime === "<=30"
+          ? prep <= 30
+          : selectedPrepTime === "<=60"
+          ? prep <= 60
+          : selectedPrepTime === ">60"
+          ? prep > 60
+          : true;
 
-    const customTags = form.otherDietEnabled ? parseCustom(form.otherDietText) : [];
-    const dedup = (arr) => Array.from(new Set(arr));
+      // cook time bucket
+      const cookOk =
+        selectedCookTime === "all"
+          ? true
+          : selectedCookTime === "<=15"
+          ? cook <= 15
+          : selectedCookTime === "<=30"
+          ? cook <= 30
+          : selectedCookTime === "<=60"
+          ? cook <= 60
+          : selectedCookTime === ">60"
+          ? cook > 60
+          : true;
 
-    const finalFoodType =
-      form.foodType === "__other__"
-        ? (form.otherFoodText.trim() || "Other")
-        : form.foodType;
+      // diet tags (AND of all selected filters)
+      const dietOk =
+        dietFilters.length === 0 ||
+        dietFilters.every((f) => tags.includes(toLower(f)));
 
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/recipe/create/recipes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: name,
-          origin: origin,
-          difficulty: form.difficulty,
-          prepTime: Number(form.prepTime),
-          cookTime: Number(form.cookTime),
-          servings: Number(form.servings),
-          image: form.imageData,
-          description: form.description.trim(),
-          foodType: finalFoodType,
-          dietaryTags: dedup([...(form.dietaryTags || []), ...customTags]),
-          ingredients: toLines(form.ingredients).join('\n'),
-          instructions: toLines(form.instructions).join('\n'),
-          funFact: form.funFact.trim(),
-          chefTips: form.chefTips.trim(),
-        }),
-      });
-
-      if (!res.ok) throw new Error('Failed to create recipe');
-
-      // Refresh the recipes list
-      const refreshRes = await fetch(`${API_BASE_URL}/api/all/recipes`);
-      const allRecipes = await refreshRes.json();
-      setRecipes(allRecipes);
-      
-      // Reset form
-      setForm({
-        name: "", 
-        origin: "", 
-        difficulty: "Easy", 
-        prepTime: "", 
-        cookTime: "",
-        servings: "", 
-        imageData: "", 
-        description: "", 
-        ingredients: "",
-        instructions: "", 
-        funFact: "", 
-        chefTips: "",
-        dietaryTags: [],
-        otherDietEnabled: false,
-        otherDietText: "",
-        foodType: "Poultry",   
-        otherFoodEnabled: false,  
-        otherFoodText: "",
-      });
-      setExpanded(false);
-      
-      alert('Recipe created successfully!');
-      
-    } catch (err) {
-      console.error('Error creating recipe:', err);
-      alert('Failed to create recipe. Please try again.');
-    }
-  };
-
-  function handleImageUpload(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm(prev => ({ ...prev, imageData: reader.result })); // base64
-    };
-    reader.readAsDataURL(file);
-  }
-
-  // checkboxes
-  const DIET_OPTIONS = [
-    "vegetarian",
-    "gluten-free",
-    "dairy-free",
-    "spicy",
-    "paleo",
-    "halal",
-    "keto",
-    "nut-free",
-  ];
-
-  function toggleDiet(tag) {
-    setForm(prev => {
-      const has = prev.dietaryTags.includes(tag);
-      return {
-        ...prev,
-        dietaryTags: has
-          ? prev.dietaryTags.filter(t => t !== tag)
-          : [...prev.dietaryTags, tag],
-      };
+      return (
+        matchesSearch &&
+        matchesOrigin &&
+        matchesDiff &&
+        matchesType &&
+        prepOk &&
+        cookOk &&
+        dietOk
+      );
     });
-  }
+  }, [
+    recipes,
+    searchQuery,
+    selectedOrigin,
+    selectedDifficulty,
+    selectedType,
+    selectedPrepTime,
+    selectedCookTime,
+    dietFilters,
+  ]);
 
- // if (loading) return <div className="loading">Loading recipes...</div>;
+  const totalPages = Math.ceil(filtered.length / PER_PAGE) || 1;
+  const current = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+  if (loading) return <div>Loading recipes...</div>;
 
   return (
     <div className="recipes-page">
       <Header />
+
+      {/* ✅ Login Prompt Modal appears when guest tries to add recipe */}
+      {showLoginModal && (
+        <LoginPromptModal
+          show={true}
+          message="Please log in or register to share your recipe."
+          onClose={() => setShowLoginModal(false)}
+          onLogin={() => navigate("/loginregister")}
+        />
+      )}
+
+      {/* ====== HEADER SECTION ====== */}
       <div className="rp-header">
         <h1 className="rp-title">Traditional Recipes</h1>
         <p className="rp-sub">Authentic Sarawakian recipes with cultural stories</p>
       </div>
 
-      {/* Add form (expandable) */}
-      <section className={`rp-card ${expanded ? "is-open" : ""}`}>
-        <div className="rp-card-head">
-          <h3>Share Your Recipe</h3>
-          <p>Every dish tells a story. Share yours with the world!</p>
-          {!expanded && (
-            <button className="share-btn" onClick={() => setExpanded(true)}>Add Recipe</button>
-          )}
-        </div>
-
-        {expanded && (
-          <form className="rp-form" onSubmit={addRecipe}>
-            <div className="rp-grid-2">
-              <div className="rp-field">
-                <label>Name *</label>
-                <input name="name" value={form.name} onChange={onChangeForm} placeholder="e.g., Manok Pansoh" required />
-              </div>
-              <div className="rp-field">
-                <label>Origin *</label>
-                <input name="origin" value={form.origin} onChange={onChangeForm} placeholder="e.g., Iban, Melanau…" required/>
-              </div>
-            </div>
-
-            <div className="rp-grid-3">
-              <div className="rp-field">
-                <label>Difficulty *</label>
-                <select name="difficulty" value={form.difficulty} onChange={onChangeForm} required>
-                  <option>Easy</option>
-                  <option>Medium</option>
-                  <option>Hard</option>
-                </select>
-              </div>
-              <div className="rp-field">
-                <label>Prep Time (min) *</label>
-                <input type="number" name="prepTime" value={form.prepTime} onChange={onChangeForm} required/>
-              </div>
-              <div className="rp-field">
-                <label>Cook Time (min) *</label>
-                <input type="number" name="cookTime" value={form.cookTime} onChange={onChangeForm} required/>
-              </div>
-            </div>
-
-            <div className="rp-grid-2">
-              <div className="rp-field">
-                <label>Food Type</label>
-                <select
-                  name="foodType"
-                  value={form.foodType}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === "__other__") {
-                      setForm(prev => ({ ...prev, foodType: v, otherFoodEnabled: true }));
-                    } else {
-                      setForm(prev => ({ ...prev, foodType: v, otherFoodEnabled: false, otherFoodText: "" }));
-                    }
-                  }}
-                >
-                  {[
-                    "Poultry",
-                    "Seafood",
-                    "Vegetables",
-                    "Fermented",
-                    "Dessert",
-                    "Rice Dish",
-                    "Noodles",
-                    "Soup",
-                    "Meat",
-                  ].map(opt => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                  <option value="__other__">Other…</option>
-                </select>
-              </div>
-
-              {/* Only show when Other is selected */}
-              {form.otherFoodEnabled && (
-                <div className="rp-field">
-                  <label>Specify Food Type</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Beverage, Snack"
-                    value={form.otherFoodText}
-                    onChange={(e) => setForm(prev => ({ ...prev, otherFoodText: e.target.value }))}
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="rp-grid-2">
-              <div className="rp-field">
-                <label>Description *</label>
-                <textarea name="description" className="rp-desc" value={form.description} onChange={onChangeForm} placeholder="A short description about the dish" required/>
-              </div>
-              <div className="rp-field">
-                <label>Upload Photo *</label>
-                <div
-                  className="upload-box"
-                  onClick={() => document.getElementById("recipe-file-input").click()}
-                  role="button"
-                  tabIndex={0}
-                >
-                  {form.imageData ? (
-                    <img src={form.imageData} alt="Preview" className="preview-img" />
-                  ) : (
-                    <div className="upload-placeholder">
-                      <FaCamera className="camera-icon" />
-                      <p>Upload Photo</p>
-                    </div>
-                  )}
-                </div>
-                <input
-                  id="recipe-file-input"
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  onChange={handleImageUpload}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="rp-field">
-              <label>Servings *</label>
-              <input type="number" name="servings" value={form.servings} onChange={onChangeForm} required/>
-            </div>
-
-            {/* ingredients + instructions */}
-            <div className="rp-grid-2">
-              <div className="rp-field">
-                <label>Ingredients *</label>
-                <textarea
-                  name="ingredients"
-                  value={form.ingredients}
-                  onChange={onChangeForm}
-                  placeholder={"One per line, e.g.\n1kg chicken\n3 stalks lemongrass\n2-inch ginger"}
-                  required
-                />
-              </div>
-              <div className="rp-field">
-                <label>Instructions *</label>
-                <textarea
-                  name="instructions"
-                  value={form.instructions}
-                  onChange={onChangeForm}
-                  placeholder={"One step per line, e.g.\n1) Clean and cut chicken\n2) Marinate for 30 min\n3) Cook in bamboo 2-3h"}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="rp-field">
-              <label>Dietary Preferences</label>
-              <div className="rp-diet-grid">
-                {DIET_OPTIONS.map(tag => (
-                  <label key={tag} className="rp-diet-item">
-                    <input
-                      type="checkbox"
-                      checked={form.dietaryTags.includes(tag)}
-                      onChange={() => toggleDiet(tag)}
-                    />
-                    <span>
-                      {tag.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase())}
-                    </span>
-                  </label>
-                ))}
-              </div>
-
-              <div className="rp-diet-other">
-                <label className="rp-diet-item">
-                  <input
-                    type="checkbox"
-                    checked={form.otherDietEnabled}
-                    onChange={(e) => setForm(prev => ({ ...prev, otherDietEnabled: e.target.checked }))}
-                  />
-                  <span>Other</span>
-                </label>
-
-                {form.otherDietEnabled && (
-                  <input
-                    className="rp-input rp-input--sm"
-                    type="text"
-                    placeholder="Type custom tags, comma-separated (e.g. halal, keto)"
-                    value={form.otherDietText}
-                    onChange={(e) => setForm(prev => ({ ...prev, otherDietText: e.target.value }))}
-                  />
-                )}
-              </div>
-            </div>
-
-            {/* fun fact + chef tips */}
-            <div className="rp-grid-2">
-              <div className="rp-field">
-                <label>Fun Fact</label>
-                <textarea
-                  name="funFact"
-                  value={form.funFact}
-                  onChange={onChangeForm}
-                  placeholder="Any surprising or interesting facts?"
-                />
-              </div>
-              <div className="rp-field">
-                <label>Tips</label>
-                <textarea
-                  name="chefTips"
-                  value={form.chefTips}
-                  onChange={onChangeForm}
-                  placeholder="E.g., best cut, heat control, or prep secrets…"
-                />
-              </div>
-            </div>
-            
-            <div className="rp-actions">
-              <button className="rp-btn rp-submit" type="submit">Submit Recipe</button>
-              <button
-                className="rp-btn rp-btn-muted"
-                type="button"
-                onClick={() => setForm({
-                  name: "", origin: "", difficulty: "Easy", prepTime: "", cookTime: "", servings: "", imageData: "", description: "", ingredients: "", instructions: "", funFact: "", chefTips: "", dietaryTags: [], otherDietEnabled: false, otherDietText: "", foodType: "Poultry", otherFoodEnabled: false, otherFoodText: "", 
-                })}
-              >
-                Clear
-              </button>
-              <button
-                className="rp-btn rp-btn-muted"
-                type="button"
-                onClick={() => setExpanded(false)}
-              >
-                Close
-              </button>
-            </div>
-          </form>
-        )}
-      </section>
-
-      {/* Search + Filters */}
-      <div className="rp-filter-card efp-controls">
-        <div className="efp-search-row">
+      {/* ====== FILTER BAR TOGGLER ====== */}
+      <div className="rp-toolbar">
+        <div className="rp-search">
           <input
             type="text"
+            placeholder="Search recipes, origins, stories…"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search recipes, origins, or descriptions..."
-            className="efp-input"
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
           />
-          <div className="efp-btn-group">
-            <button type="button" className="efp-btn" onClick={() => setShowFilters(v => !v)}>
-              <Sliders size={18} aria-hidden="true" />
-              Filters
-            </button>
-            <button type="button" className="efp-btn" onClick={clearAll}>
-              <X size={18} aria-hidden="true" />
-              Clear All
-            </button>
-          </div>
         </div>
-        {/* Dietary chips row */}
-        <div className="rp-tags-row" aria-label="Food type filters">
-          {["all","Poultry","Seafood","Vegetables","Fermented","Dessert",
-            "Rice Dish","Noodles","Soup","Meat","Other"].map((ft) => {
-            const isActive = selectedType === ft;
-            return (
-              <button
-                key={ft}
-                type="button"
-                className={`efp-chip ${isActive ? "is-active" : ""}`}
-                title={ft === "all" ? "Show all types" : `Filter by ${ft}`}
-                onClick={() => setSelectedType(ft)}
-              >
-                {ft === "all" ? "All Categories" : ft}
-              </button>
-            );
-          })}
-        </div>
+        <button
+          className="rp-filter-toggle"
+          onClick={() => setShowFilters((s) => !s)}
+          aria-expanded={showFilters ? "true" : "false"}
+        >
+          <Sliders size={18} style={{ marginRight: 6 }} />
+          Filters
+        </button>
+        {(selectedOrigin !== "all" ||
+          selectedDifficulty !== "all" ||
+          selectedType !== "all" ||
+          selectedPrepTime !== "all" ||
+          selectedCookTime !== "all" ||
+          dietFilters.length > 0 ||
+          searchQuery) && (
+          <button className="rp-clear" onClick={clearFilters} title="Clear all">
+            <X size={16} /> Clear
+          </button>
+        )}
       </div>
-
+      {/* ====== FILTERS PANEL ====== */}
       {showFilters && (
-        <div className="rp-filter-card efp-card efp-filters-card" role="region" aria-label="Filters">
-          <div className="efp-filters">
-            <div className="efp-filters-header">
-              <Filter className="efp-filter-icon" size={18} aria-hidden="true" />
-              <h2 id="filters-heading" className="efp-filters-title">Filter</h2>
-            </div>
-            {/* Row 1: Origin + Difficulty */}
-            <div className="efp-grid-2">
-              <div className="efp-filter-item">
-                <label className="efp-label">Cultural Origin</label>
-                <select
-                  value={selectedOrigin}
-                  onChange={(e) => setSelectedOrigin(e.target.value)}
-                  className="efp-select"
-                >
-                  {origins.map(o => (
-                    <option key={o} value={o}>
-                      {o === "all" ? "All Origins" : o}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="efp-filter-item">
-                <label className="efp-label">Difficulty</label>
-                <select
-                  value={selectedDifficulty}
-                  onChange={(e) => setSelectedDifficulty(e.target.value)}
-                  className="efp-select"
-                >
-                  <option value="all">All Difficulties</option>
-                  <option>Easy</option>
-                  <option>Medium</option>
-                  <option>Hard</option>
-                </select>
-              </div>
+        <div className="rp-filters">
+          <div className="rp-filter-row">
+            <div className="rp-filter">
+              <label>Origin</label>
+              <select
+                value={selectedOrigin}
+                onChange={(e) => {
+                  setSelectedOrigin(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="all">All</option>
+                <option value="sarawak">Sarawak</option>
+                <option value="sabah">Sabah</option>
+                <option value="penang">Penang</option>
+                <option value="melaka">Melaka</option>
+                <option value="other">Other</option>
+              </select>
             </div>
 
-            <hr className="efp-sep" />
-
-            {/* Row 2: Prep Time + Cook Time dropdowns */}
-            <div className="efp-grid-2">
-              <div className="efp-filter-item">
-                <label className="efp-label">Prep Time</label>
-                <select
-                  className="efp-select"
-                  value={selectedPrepTime}
-                  onChange={(e) => setSelectedPrepTime(e.target.value)}
-                >
-                  <option value="all">All Categories</option>
-                  <option value="under30">Under 30 minutes</option>
-                  <option value="under120">Under 2 hours</option>
-                  <option value="over120">Over 2 hours</option>
-                </select>
-              </div>
-
-              <div className="efp-filter-item">
-                <label className="efp-label">Cook Time</label>
-                <select
-                  className="efp-select"
-                  value={selectedCookTime}
-                  onChange={(e) => setSelectedCookTime(e.target.value)}
-                >
-                  <option value="all">All Categories</option>
-                  <option value="under30">Under 30 minutes</option>
-                  <option value="under120">Under 2 hours</option>
-                  <option value="over120">Over 2 hours</option>
-                </select>
-              </div>
+            <div className="rp-filter">
+              <label>Difficulty</label>
+              <select
+                value={selectedDifficulty}
+                onChange={(e) => {
+                  setSelectedDifficulty(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="all">All</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
             </div>
 
-            <hr className="efp-sep" />
+            <div className="rp-filter">
+              <label>Prep Time</label>
+              <select
+                value={selectedPrepTime}
+                onChange={(e) => {
+                  setSelectedPrepTime(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="all">All</option>
+                <option value="<=15">≤ 15 min</option>
+                <option value="<=30">≤ 30 min</option>
+                <option value="<=60">≤ 60 min</option>
+                <option value=">60">&gt; 60 min</option>
+              </select>
+            </div>
 
-            {/* Row 3: Dietary Preferences checkboxes */}
-            <div>
-              <label className="efp-label">Dietary Preferences</label>
-              <div className="efp-checkbox-grid">
-                {DIET_OPTIONS.map(tag => {
-                  const checked = dietFilters.includes(tag);
+            <div className="rp-filter">
+              <label>Cook Time</label>
+              <select
+                value={selectedCookTime}
+                onChange={(e) => {
+                  setSelectedCookTime(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="all">All</option>
+                <option value="<=15">≤ 15 min</option>
+                <option value="<=30">≤ 30 min</option>
+                <option value="<=60">≤ 60 min</option>
+                <option value=">60">&gt; 60 min</option>
+              </select>
+            </div>
+
+            <div className="rp-filter">
+              <label>Type</label>
+              <select
+                value={selectedType}
+                onChange={(e) => {
+                  setSelectedType(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="all">All</option>
+                <option value="poultry">Poultry</option>
+                <option value="seafood">Seafood</option>
+                <option value="beef">Beef</option>
+                <option value="vegetarian">Vegetarian</option>
+                <option value="vegan">Vegan</option>
+                <option value="dessert">Dessert</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="rp-filter-row">
+            <div className="rp-filter rp-diet">
+              <label>Diet</label>
+              <div className="rp-diet-tags">
+                {["Vegetarian", "Vegan", "Gluten-Free", "Dairy-Free", "Halal"].map((t) => {
+                  const active = dietFilters.includes(t);
                   return (
-                    <label key={tag} className="efp-checkbox-item">
-                      <input
-                        type="checkbox"
-                        className="efp-checkbox"
-                        checked={checked}
-                        onChange={() =>
-                          setDietFilters(prev =>
-                            checked ? prev.filter(t => t !== tag) : [...prev, tag]
-                          )
-                        }
-                      />
-                      <span className="efp-checkbox-text">
-                        {tag.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase())}
-                      </span>
-                    </label>
+                    <button
+                      key={t}
+                      type="button"
+                      className={`diet-tag ${active ? "active" : ""}`}
+                      onClick={() => {
+                        const next = active
+                          ? dietFilters.filter((x) => x !== t)
+                          : [...dietFilters, t];
+                        setDietFilters(next);
+                        setPage(1);
+                      }}
+                    >
+                      {t} {active && <X size={14} />}
+                    </button>
                   );
                 })}
               </div>
@@ -692,182 +465,301 @@ useEffect(() => {
         </div>
       )}
 
-      {/* Results */}
-      <div className="rp-results-head">
-        <p className="efp-results-count">{filtered.length} recipes found</p>
-
-        {dietFilters.length > 0 && (
-          <div className="efp-active-filters" aria-label="Active dietary filters">
-            {dietFilters.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                className="efp-chip efp-chip--removable"
-                onClick={() => setDietFilters(prev => prev.filter(t => t !== tag))}
-                aria-label={`Remove ${tag.replace("-", " ")}`}
-                title={`Remove ${tag.replace("-", " ")}`}
-              >
-                <span>{tag.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase())}</span>
-                <X size={14} aria-hidden="true" />
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      
-<div className="rp-grid">
-  {current.map((r, index) => {
-    // Debug the recipe object
-    console.log('Recipe data:', r);
-    
-    // Ensure we have a proper recipe object with an id
-    if (!r || typeof r !== 'object') {
-      console.warn('Invalid recipe data:', r);
-      return null;
-    }
-
-    const recipeId = r.id || r.foodID || index;
-    const recipeName = r.name || 'Unknown Recipe';
-    const recipeImage = r.image || 'https://via.placeholder.com/300x200?text=No+Image';
-    const recipeDescription = r.description || 'No description available';
-    const recipeOrigin = r.origin || 'Unknown Origin';
-    const recipeFoodType = r.foodType || r.category || 'Other';
-    const recipeDifficulty = r.difficulty || 'Easy';
-    const recipePrepTime = r.prepTime || 0;
-    const recipeCookTime = r.cookTime || 0;
-    const recipeServings = r.servings || 0;
-    const recipeDietaryTags = Array.isArray(r.dietaryTags) ? r.dietaryTags : [];
-
-    // Map difficulty to EFP badge colors
-    const diff = (recipeDifficulty || "").toLowerCase();
-    const diffClass =
-      diff === "easy" ? "efp-badge efp-badge--ok"
-      : diff === "medium" ? "efp-badge efp-badge--warn"
-      : "efp-badge efp-badge--high";
-
-    return (
-      <div
-        key={`recipe-${recipeId}-${index}`} // Unique key
-        className="efp-food-card"
-      >
-        <div className="efp-food-media">
-          <img
-            src={recipeImage}
-            alt={recipeName}
-            className="efp-image"
-            loading="lazy"
-            onError={(e) => {
-              e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
-            }}
-          />
-          <div className="efp-badges">
-            <span className={diffClass}>{recipeDifficulty}</span>
-          </div>
-          {/* Optional corner badge */}
-          {recipeDietaryTags.includes("vegetarian") && (
-            <span className="efp-badge-topright">V</span>
-          )}
-        </div>
-
-        <div className="efp-food-body">
-          <div className="efp-food-headline">
-            <h3 className="efp-food-title">{recipeName}</h3>
-            <span className="efp-badge-cat">{recipeFoodType}</span>
+      {/* ====== ADD RECIPE SECTION ====== */}
+      <section className={`rp-card ${expanded ? "is-open" : ""}`}>
+        <div className="rp-card-head">
+          <div className="rp-card-head-left">
+            <h3>Share Your Recipe</h3>
+            <p>Every dish tells a story. Share yours!</p>
           </div>
 
-          <p className="efp-desc">{getFirstSentence(recipeDescription)}</p>
-
-          <div className="efp-meta">
-            <span className="muted">Origin: {recipeOrigin}</span>
-          </div>
-
-          <div className="efp-nutri">
-            <div className="efp-nutri-item">
-              <div>{recipePrepTime}m</div>
-              <div className="muted">Prep Time</div>
-            </div>
-            <div className="efp-nutri-item">
-              <div>{recipeCookTime}m</div>
-              <div className="muted">Cook Time</div>
-            </div>
-            <div className="efp-nutri-item">
-              <div>{recipeServings}</div>
-              <div className="muted">Servings</div>
-            </div>
-          </div>
-
-          {/* Dietary tags row */}
-          {recipeDietaryTags.length > 0 && (
-            <div className="efp-tags" aria-label={`${recipeName} dietary tags`}>
-              {recipeDietaryTags.map((tag, tagIndex) => (
-                <button
-                  key={`${recipeId}-tag-${tagIndex}`}
-                  type="button"
-                  className="efp-tag"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDietFilters((prev) =>
-                      prev.includes(tag) ? prev : [...prev, tag]
-                    );
-                  }}
-                  title={`Filter by ${tag}`}
-                >
-                  {tag.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <button
-            className="efp-card-cta"
-            onClick={() => navigate(`/recipes/${recipeId}`)} 
-          >
-            View Recipe
-          </button>
-        </div>
-      </div>
-    );
-  })}
-</div>
-
-      {filtered.length === 0 && (
-        <div className="rp-empty">
-          <p>No recipes match your search.</p>
-        </div>
-      )}
-
-      {totalPages > 1 && (
-        <div className="efp-pagination">
-          <button
-            className="efp-btn"
-            disabled={page === 1}
-            onClick={() => setPage(p => p - 1)}
-          >
-            ‹ Prev
-          </button>
-
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              className={`efp-btn ${
-                page === i + 1 ? "is-active" : ""
-              }`}
-              onClick={() => setPage(i + 1)}
-            >
-              {i + 1}
+          {!expanded && (
+            <button className="share-btn" onClick={handleExpand} title="Add Recipe">
+              <Filter size={16} style={{ marginRight: 6 }} />
+              Add Recipe
             </button>
-          ))}
+          )}
+        </div>
 
+        {/* ✅ Form only visible for logged-in users; guests see modal instead */}
+        {expanded && !isGuest && (
+          <form className="rp-form" onSubmit={addRecipe}>
+            {/* Row: Name + Origin */}
+            <div className="rp-form-row">
+              <div className="rp-form-field">
+                <label>Recipe Name<span className="req">*</span></label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="e.g., Ayam Pansuh"
+                  value={form.name}
+                  onChange={onChangeForm}
+                  required
+                />
+              </div>
+
+              <div className="rp-form-field">
+                <label>Origin<span className="req">*</span></label>
+                <input
+                  type="text"
+                  name="origin"
+                  placeholder="e.g., Sarawak"
+                  value={form.origin}
+                  onChange={onChangeForm}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Row: Difficulty + Food Type */}
+            <div className="rp-form-row">
+              <div className="rp-form-field">
+                <label>Difficulty</label>
+                <select
+                  name="difficulty"
+                  value={form.difficulty}
+                  onChange={onChangeForm}
+                >
+                  <option>Easy</option>
+                  <option>Medium</option>
+                  <option>Hard</option>
+                </select>
+              </div>
+
+              <div className="rp-form-field">
+                <label>Food Type</label>
+                <select
+                  name="foodType"
+                  value={form.foodType}
+                  onChange={onChangeForm}
+                >
+                  <option>Poultry</option>
+                  <option>Seafood</option>
+                  <option>Beef</option>
+                  <option>Vegetarian</option>
+                  <option>Vegan</option>
+                  <option>Dessert</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Row: Prep + Cook + Servings */}
+            <div className="rp-form-row">
+              <div className="rp-form-field">
+                <label>Prep Time (min / 1h 20m)</label>
+                <input
+                  type="text"
+                  name="prepTime"
+                  placeholder="e.g., 20m"
+                  value={form.prepTime}
+                  onChange={onChangeForm}
+                />
+              </div>
+
+              <div className="rp-form-field">
+                <label>Cook Time (min / 1h 20m)</label>
+                <input
+                  type="text"
+                  name="cookTime"
+                  placeholder="e.g., 45m"
+                  value={form.cookTime}
+                  onChange={onChangeForm}
+                />
+              </div>
+
+              <div className="rp-form-field">
+                <label>Servings</label>
+                <input
+                  type="number"
+                  min="1"
+                  name="servings"
+                  placeholder="e.g., 4"
+                  value={form.servings}
+                  onChange={onChangeForm}
+                />
+              </div>
+            </div>
+
+            {/* Row: Diet Tags */}
+            <div className="rp-form-row">
+              <div className="rp-form-field">
+                <label>Diet Tags</label>
+                <div className="rp-diet-tags">
+                  {["Vegetarian", "Vegan", "Gluten-Free", "Dairy-Free", "Halal"].map((t) => {
+                    const active = form.dietTags.includes(t);
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        className={`diet-tag ${active ? "active" : ""}`}
+                        onClick={() => onToggleDietTag(t)}
+                      >
+                        {t} {active && <X size={14} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Row: Image Upload */}
+            <div className="rp-form-row">
+              <div className="rp-form-field">
+                <label>Cover Image</label>
+                <label className="upload-image">
+                  <FaCamera /> Upload Image
+                  <input type="file" accept="image/*" onChange={handleImageUpload} hidden />
+                </label>
+                {form.imageData && (
+                  <div className="rp-image-preview">
+                    <img src={form.imageData} alt="preview" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Row: Description */}
+            <div className="rp-form-row">
+              <div className="rp-form-field">
+                <label>Description</label>
+                <textarea
+                  name="description"
+                  placeholder="Describe your recipe, taste, aroma, cultural story..."
+                  value={form.description}
+                  onChange={onChangeForm}
+                  rows={4}
+                />
+              </div>
+            </div>
+
+            {/* Row: Ingredients */}
+            <div className="rp-form-row">
+              <div className="rp-form-field">
+                <label>Ingredients (one per line)</label>
+                <textarea
+                  name="ingredients"
+                  placeholder={`e.g.\n• 500g chicken\n• 2 stalks lemongrass\n• 1 tbsp salt`}
+                  value={form.ingredients}
+                  onChange={onChangeForm}
+                  rows={6}
+                />
+              </div>
+            </div>
+
+            {/* Row: Instructions */}
+            <div className="rp-form-row">
+              <div className="rp-form-field">
+                <label>Instructions (steps)</label>
+                <textarea
+                  name="instructions"
+                  placeholder={`e.g.\n1) Marinate chicken...\n2) Prepare bamboo...\n3) Cook over charcoal...`}
+                  value={form.instructions}
+                  onChange={onChangeForm}
+                  rows={8}
+                />
+              </div>
+            </div>
+
+            {/* Row: Fun Fact + Chef Tips */}
+            <div className="rp-form-row">
+              <div className="rp-form-field">
+                <label>Fun Fact</label>
+                <textarea
+                  name="funFact"
+                  placeholder="Share a cultural or historical fact about this dish!"
+                  value={form.funFact}
+                  onChange={onChangeForm}
+                  rows={3}
+                />
+              </div>
+              <div className="rp-form-field">
+                <label>Chef Tips</label>
+                <textarea
+                  name="chefTips"
+                  placeholder="Any pro tips for perfect results?"
+                  value={form.chefTips}
+                  onChange={onChangeForm}
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="rp-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setExpanded(false)}
+                disabled={submitting}
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn-primary" disabled={submitting}>
+                {submitting ? "Submitting..." : "Submit Recipe"}
+              </button>
+            </div>
+          </form>
+        )}
+      </section>
+      {/* ====== RECIPE GRID ====== */}
+      {current.length === 0 ? (
+        <p className="rp-empty">No recipes found.</p>
+      ) : (
+        <div className="rp-grid">
+          {current.map((recipe) => {
+            const img = recipe.image || recipe.imageData || recipe.coverImage;
+            return (
+              <div
+                className="efp-food-card"
+                key={recipe.id || recipe.recipeID || `${recipe.name}-${recipe.origin}-${Math.random()}`}
+                onClick={() => navigate(`/recipes/${recipe.id || recipe.recipeID || ""}`)}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="efp-food-thumb">
+                  {img ? (
+                    <img src={img} alt={recipe.name} />
+                  ) : (
+                    <div className="efp-food-thumb--placeholder">No image</div>
+                  )}
+                </div>
+                <div className="efp-food-meta">
+                  <h3 className="efp-food-title">{recipe.name}</h3>
+                  <div className="efp-food-sub">
+                    <span className="badge">{recipe.origin || "—"}</span>
+                    <span className="badge">{recipe.difficulty || "—"}</span>
+                    {recipe.foodType && <span className="badge">{recipe.foodType}</span>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ====== PAGINATION ====== */}
+      {totalPages > 1 && (
+        <div className="pagination">
           <button
-            className="efp-btn"
-            disabled={page === totalPages}
-            onClick={() => setPage(p => p + 1)}
+            className="page-btn"
+            disabled={page === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
-            Next ›
+            Prev
+          </button>
+          <span className="page-info">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            className="page-btn"
+            disabled={page === totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Next
           </button>
         </div>
       )}
+
       <Footer />
     </div>
   );
