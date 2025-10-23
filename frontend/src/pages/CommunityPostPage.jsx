@@ -4,33 +4,31 @@ import { useAuth } from "../context/AuthContext";
 import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import LoginPromptModal from "../components/LoginPromptModal"; // ✅ IMPORT MODAL
+import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Import modal
 
 // ✅ Comment Section Component
 const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false); // ✅ MODAL STATE
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
-  const handleCommentClick = () => {
+  // ✅ Guest handling
+  const handleGuestAction = () => {
     if (!user) {
       setShowLoginModal(true);
+      return true;
     }
+    return false;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!user) {
-      setShowLoginModal(true);
-      return;
-    }
+    if (handleGuestAction()) return;
     if (!comment.trim()) return;
 
     try {
       setLoading(true);
-      const API_BASE_URL =
-        import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
       const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
         method: "POST",
@@ -47,12 +45,9 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
       if (response.ok && result.success) {
         onCommentAdded(result.comment);
         setComment("");
-      } else {
-        throw new Error(result.message);
       }
-    } catch (err) {
-      console.error("Error:", err);
-      alert("Failed to post comment");
+    } catch (error) {
+      console.error("Error posting comment:", error);
     } finally {
       setLoading(false);
     }
@@ -60,29 +55,27 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
 
   return (
     <div className="comment-section">
-      {/* ✅ LOGIN MODAL */}
+      {/* ✅ Show Login Modal */}
       {showLoginModal && (
         <LoginPromptModal onClose={() => setShowLoginModal(false)} />
       )}
 
-      <form className="comment-form" onSubmit={handleSubmit} noValidate>
+      <form className="comment-form" onSubmit={handleSubmit}>
         <textarea
-          placeholder={user ? "Add a comment..." : "Log in to comment"}
+          placeholder={user ? "Add a comment..." : "Please log in to comment"}
           rows="3"
           className="comment-input"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           disabled={!user || loading}
-          onClick={handleCommentClick} // ✅ SHOW MODAL IF GUEST
+          onClick={handleGuestAction} // ✅ Triggers modal for guests
         />
         <button
-          className="comment-btn"
           type="submit"
-          disabled={!user || !comment.trim() || loading}
-          onClick={() => {
-            if (!user) {
-              setShowLoginModal(true);
-            }
+          className="comment-btn"
+          disabled={loading || !comment.trim()}
+          onClick={(e) => {
+            if (handleGuestAction()) e.preventDefault();
           }}
         >
           {loading ? "Posting..." : "Post Comment"}
@@ -128,16 +121,15 @@ export default function CommunityPost() {
   const fetchPost = async () => {
     try {
       setLoading(true);
-      const API_BASE_URL =
-        import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/communityPost/${id}`);
-      const result = await res.json();
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const response = await fetch(`${API_BASE_URL}/api/communityPost/${id}`);
+      const result = await response.json();
 
-      if (res.ok && result.success) {
+      if (response.ok && result.success) {
         setPost(result.data);
         setComments(result.data.comments || []);
       } else {
-        throw new Error(result.message);
+        throw new Error(result.message || "Failed to load post");
       }
     } catch (err) {
       setError(err.message);
@@ -147,12 +139,19 @@ export default function CommunityPost() {
   };
 
   const handleNewComment = (newComment) => {
-    setComments((prev) => [...prev, newComment]);
+    setComments((prev) => {
+      if (prev.some((c) => c.id === newComment.id)) return prev;
+      return [...prev, newComment];
+    });
   };
 
   if (loading) {
     return (
-      <div className="community-page"><Header /><div className="loading">Loading...</div><Footer /></div>
+      <div className="community-page">
+        <Header />
+        <div className="loading">Loading...</div>
+        <Footer />
+      </div>
     );
   }
 
@@ -160,7 +159,11 @@ export default function CommunityPost() {
     return (
       <div className="community-page">
         <Header />
-        <div className="error"><h2>Error</h2><p>{error}</p></div>
+        <div className="error">
+          <h2>Error loading post</h2>
+          <p>{error}</p>
+          <button onClick={fetchPost}>Try Again</button>
+        </div>
         <Footer />
       </div>
     );
@@ -172,7 +175,7 @@ export default function CommunityPost() {
         <Header />
         <div className="not-found">
           <h2>Post not found</h2>
-          <button onClick={() => navigate("/community")}>Back</button>
+          <button onClick={() => navigate("/community")}>Back to Community</button>
         </div>
         <Footer />
       </div>
@@ -194,6 +197,30 @@ export default function CommunityPost() {
               alt={post.foodName}
               className="post-img-small"
             />
+            {post.images?.length > 1 && (
+              <>
+                <button
+                  className="arrow left"
+                  onClick={() =>
+                    setCurrentImg((prev) =>
+                      prev === 0 ? post.images.length - 1 : prev - 1
+                    )
+                  }
+                >
+                  ◀
+                </button>
+                <button
+                  className="arrow right"
+                  onClick={() =>
+                    setCurrentImg((prev) =>
+                      prev === post.images.length - 1 ? 0 : prev + 1
+                    )
+                  }
+                >
+                  ▶
+                </button>
+              </>
+            )}
           </div>
 
           <div className="post-info">
@@ -202,12 +229,10 @@ export default function CommunityPost() {
               by <b>{post.author}</b> • {post.daysAgo} •{" "}
               <span>{post.culturalOrigin}</span>
             </p>
-
             <div className="story-section">
               <h3>Cultural Story</h3>
               <p>{post.culturalStory}</p>
             </div>
-
             {post.recipe && (
               <div className="recipe-box">
                 <h3>Recipe</h3>
@@ -216,7 +241,6 @@ export default function CommunityPost() {
                 ))}
               </div>
             )}
-
             <button className="back-btn" onClick={() => navigate("/community")}>
               ← Back
             </button>
@@ -226,7 +250,6 @@ export default function CommunityPost() {
         <div className="post-right">
           <div className="likes-bar">❤️ {post.likeCount || 0} likes</div>
           <h3>Comments ({comments.length})</h3>
-
           <CommentSection
             postId={post.id}
             user={user}
