@@ -5,13 +5,15 @@ import Footer from "../components/Footer";
 import { FaCamera } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Import Modal
 
 export default function Community() {
   const navigate = useNavigate();
-  const { user } = useAuth();  // ✅ get user from AuthContext
-  const isAuthenticated = user && user.role !== "guest"; // ✅ safe check
+  const { user } = useAuth();
+  const isAuthenticated = user && user.role !== "guest";
 
   const [expanded, setExpanded] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false); // ✅ Modal State
   const [preview, setPreview] = useState(null);
   const [posts, setPosts] = useState([]);
   const [formData, setFormData] = useState({
@@ -48,10 +50,10 @@ export default function Community() {
     }
   };
 
+  // ✅ Replace confirm() with LoginPromptModal
   const handleExpand = () => {
     if (!isAuthenticated) {
-      const proceed = confirm("You need to log in to share your story. Would you like to log in now?");
-      if (proceed) navigate("/loginregister");
+      setShowLoginModal(true); // ✅ Show modal
       return;
     }
     setExpanded(true);
@@ -77,7 +79,7 @@ export default function Community() {
     e.preventDefault();
 
     if (!isAuthenticated || !user) {
-      alert("You must log in to submit a contribution.");
+      setShowLoginModal(true);
       return;
     }
 
@@ -96,13 +98,10 @@ export default function Community() {
       submitData.append("culturalStory", formData.culturalStory);
       submitData.append("recipe", formData.recipe || "");
 
-      // ✅ Reliable value for userProfileID
-      submitData.append("userProfileID", 1); // 🔥 TEMPORARY FIX for demo
+      // ✅ TEMP FIX FOR DEMO — Replace with userProfileID later
+      submitData.append("userProfileID", 1);
 
-      //submitData.append("userProfileID", user?.userProfileID); 
-
-
-      submitData.append("author", user.firstname || user.email);
+      submitData.append("author", user?.firstname || user?.email);
 
       if (selectedFile) {
         submitData.append("images", selectedFile);
@@ -121,7 +120,6 @@ export default function Community() {
 
       alert("✅ Your story has been submitted!");
 
-      // Reset form on success
       setFormData({
         foodName: "",
         culturalOrigin: "",
@@ -131,7 +129,6 @@ export default function Community() {
       setPreview(null);
       setSelectedFile(null);
       setExpanded(false);
-
       fetchPosts();
     } catch (err) {
       alert("❌ " + err.message);
@@ -153,14 +150,24 @@ export default function Community() {
   };
 
   const getFirstSentence = (story) => {
-  if (!story) return '';
-  const periodIndex = story.indexOf('.');
-  return periodIndex !== -1 ? story.substring(0, periodIndex + 1) : story;
+    if (!story) return "";
+    const periodIndex = story.indexOf(".");
+    return periodIndex !== -1 ? story.substring(0, periodIndex + 1) : story;
   };
 
   return (
     <div className="community-page">
       <Header />
+
+      {/* ✅ Login Modal Trigger for Guests */}
+      {showLoginModal && (
+        <LoginPromptModal
+          message="You must be logged in to share your cultural story."
+          onClose={() => setShowLoginModal(false)}
+          onConfirm={() => navigate("/loginregister")}
+        />
+      )}
+
       <h1 className="page-title">Community Contributions</h1>
       <p className="page-subtitle">
         Celebrate Sarawak's rich heritage by sharing your recipes and stories
@@ -229,7 +236,10 @@ export default function Community() {
 
             <div className="form-group">
               <label>Upload Photo</label>
-              <div className="upload-box" onClick={() => document.getElementById("file-input").click()}>
+              <div
+                className="upload-box"
+                onClick={() => document.getElementById("file-input").click()}
+              >
                 {preview ? (
                   <img src={preview} alt="Preview" className="preview-img" />
                 ) : (
@@ -275,8 +285,10 @@ export default function Community() {
               <div className="contribution-card" key={post.id}>
                 <div className="card-image">
                   <img
-                    src={post.images?.[0] ||
-                      "https://images.unsplash.com/photo-1551218808-94e220e084d2"}
+                    src={
+                      post.images?.[0] ||
+                      "https://images.googleapis.com/photo-1551218808-94e220e084d2"
+                    }
                     alt={post.foodName}
                   />
                 </div>
@@ -285,14 +297,19 @@ export default function Community() {
                   <p className="meta">
                     by <b>{post.author}</b> • {post.daysAgo}
                   </p>
-                  <p className="desc">{getFirstSentence(post.culturalStory)}</p>
+                  <p className="desc">
+                    {getFirstSentence(post.culturalStory)}
+                  </p>
                   <div className="card-footer">
                     <span>❤️ {post.likeCount} likes</span>
                     <span onClick={() => navigate(`/community/${post.id}`)}>
                       💬 {post.commentCount} comments
                     </span>
                   </div>
-                  <button className="view-btn" onClick={() => navigate(`/community/${post.id}`)}>
+                  <button
+                    className="view-btn"
+                    onClick={() => navigate(`/community/${post.id}`)}
+                  >
                     View More
                   </button>
                 </div>
