@@ -4,26 +4,33 @@ import { useAuth } from "../context/AuthContext";
 import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Add this
+import LoginPromptModal from "../components/LoginPromptModal"; // ✅ IMPORT MODAL
 
 // ✅ Comment Section Component
 const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false); // ✅ Show modal for guests
+  const [showLoginModal, setShowLoginModal] = useState(false); // ✅ MODAL STATE
+
+  const handleCommentClick = () => {
+    if (!user) {
+      setShowLoginModal(true);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!comment.trim()) return;
 
     if (!user) {
-      setShowLoginModal(true); // ✅ Show modal instead of alert
+      setShowLoginModal(true);
       return;
     }
+    if (!comment.trim()) return;
 
     try {
       setLoading(true);
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:5000";
 
       const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
         method: "POST",
@@ -32,7 +39,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
         body: JSON.stringify({
           content: comment,
           postId,
-          userProfileID: user?.userProfileID || user?.userID, // ✅ Safe Fallback
+          userProfileID: user?.userProfileID || user?.userID,
         }),
       });
 
@@ -43,9 +50,9 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
       } else {
         throw new Error(result.message);
       }
-    } catch (error) {
-      console.error("Error posting comment:", error);
-      alert("Failed to post comment: " + error.message);
+    } catch (err) {
+      console.error("Error:", err);
+      alert("Failed to post comment");
     } finally {
       setLoading(false);
     }
@@ -53,13 +60,9 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
 
   return (
     <div className="comment-section">
-      {/* ✅ Modal when user is guest */}
+      {/* ✅ LOGIN MODAL */}
       {showLoginModal && (
-        <LoginPromptModal
-          message="You need to log in to post comments."
-          onClose={() => setShowLoginModal(false)}
-          onConfirm={() => (window.location.href = "/loginregister")}
-        />
+        <LoginPromptModal onClose={() => setShowLoginModal(false)} />
       )}
 
       <form className="comment-form" onSubmit={handleSubmit} noValidate>
@@ -69,12 +72,18 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
           className="comment-input"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          disabled={!user || loading} // ✅ Block typing when guest
+          disabled={!user || loading}
+          onClick={handleCommentClick} // ✅ SHOW MODAL IF GUEST
         />
         <button
           className="comment-btn"
           type="submit"
           disabled={!user || !comment.trim() || loading}
+          onClick={() => {
+            if (!user) {
+              setShowLoginModal(true);
+            }
+          }}
         >
           {loading ? "Posting..." : "Post Comment"}
         </button>
@@ -82,7 +91,9 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
 
       <div className="comments-list">
         {comments.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#666", padding: "20px" }}>No comments yet.</p>
+          <p style={{ textAlign: "center", color: "#666", padding: "20px" }}>
+            No comments yet.
+          </p>
         ) : (
           comments.map((c) => (
             <div key={c.id} className="comment-item">
@@ -117,15 +128,16 @@ export default function CommunityPost() {
   const fetchPost = async () => {
     try {
       setLoading(true);
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const response = await fetch(`${API_BASE_URL}/api/communityPost/${id}`);
-      const result = await response.json();
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_BASE_URL}/api/communityPost/${id}`);
+      const result = await res.json();
 
-      if (response.ok && result.success) {
+      if (res.ok && result.success) {
         setPost(result.data);
         setComments(result.data.comments || []);
       } else {
-        throw new Error(result.message || "Failed to load post");
+        throw new Error(result.message);
       }
     } catch (err) {
       setError(err.message);
@@ -135,19 +147,12 @@ export default function CommunityPost() {
   };
 
   const handleNewComment = (newComment) => {
-    setComments((prev) => {
-      if (prev.some((c) => c.id === newComment.id)) return prev;
-      return [...prev, newComment];
-    });
+    setComments((prev) => [...prev, newComment]);
   };
 
   if (loading) {
     return (
-      <div className="community-page">
-        <Header />
-        <div className="loading">Loading...</div>
-        <Footer />
-      </div>
+      <div className="community-page"><Header /><div className="loading">Loading...</div><Footer /></div>
     );
   }
 
@@ -155,11 +160,7 @@ export default function CommunityPost() {
     return (
       <div className="community-page">
         <Header />
-        <div className="error">
-          <h2>Error loading post</h2>
-          <p>{error}</p>
-          <button onClick={fetchPost}>Try Again</button>
-        </div>
+        <div className="error"><h2>Error</h2><p>{error}</p></div>
         <Footer />
       </div>
     );
@@ -171,7 +172,7 @@ export default function CommunityPost() {
         <Header />
         <div className="not-found">
           <h2>Post not found</h2>
-          <button onClick={() => navigate("/community")}>Back to Community</button>
+          <button onClick={() => navigate("/community")}>Back</button>
         </div>
         <Footer />
       </div>
@@ -185,31 +186,28 @@ export default function CommunityPost() {
         <div className="post-left">
           <div className="image-carousel">
             <img
-              src={post.images?.length ? post.images[currentImg] : "https://images.unsplash.com/photo-1551218808-94e220e084d2"}
+              src={
+                post.images?.length
+                  ? post.images[currentImg]
+                  : "https://images.unsplash.com/photo-1551218808-94e220e084d2"
+              }
               alt={post.foodName}
               className="post-img-small"
             />
-            {post.images?.length > 1 && (
-              <>
-                <button className="arrow left" onClick={() => setCurrentImg((prev) => (prev === 0 ? post.images.length - 1 : prev - 1))}>
-                  ◀
-                </button>
-                <button className="arrow right" onClick={() => setCurrentImg((prev) => (prev === post.images.length - 1 ? 0 : prev + 1))}>
-                  ▶
-                </button>
-              </>
-            )}
           </div>
 
           <div className="post-info">
             <h1>{post.foodName}</h1>
             <p className="meta">
-              by <b>{post.author}</b> • {post.daysAgo} • <span>{post.culturalOrigin}</span>
+              by <b>{post.author}</b> • {post.daysAgo} •{" "}
+              <span>{post.culturalOrigin}</span>
             </p>
+
             <div className="story-section">
               <h3>Cultural Story</h3>
               <p>{post.culturalStory}</p>
             </div>
+
             {post.recipe && (
               <div className="recipe-box">
                 <h3>Recipe</h3>
@@ -218,13 +216,17 @@ export default function CommunityPost() {
                 ))}
               </div>
             )}
-            <button className="back-btn" onClick={() => navigate("/community")}>← Back</button>
+
+            <button className="back-btn" onClick={() => navigate("/community")}>
+              ← Back
+            </button>
           </div>
         </div>
 
         <div className="post-right">
           <div className="likes-bar">❤️ {post.likeCount || 0} likes</div>
           <h3>Comments ({comments.length})</h3>
+
           <CommentSection
             postId={post.id}
             user={user}
