@@ -4,18 +4,20 @@ import { useAuth } from "../context/AuthContext";
 import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Add this
 
 // ✅ Comment Section Component
 const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false); // ✅ Show modal for guests
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!comment.trim()) return;
 
     if (!user) {
-      alert("Please log in to comment.");
+      setShowLoginModal(true); // ✅ Show modal instead of alert
       return;
     }
 
@@ -25,14 +27,12 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
 
       const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           content: comment,
           postId,
-          userProfileID: user?.userProfileID, // ✅ Only send userProfileID (correct)
+          userProfileID: user?.userProfileID || user?.userID, // ✅ Safe Fallback
         }),
       });
 
@@ -53,25 +53,36 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
 
   return (
     <div className="comment-section">
+      {/* ✅ Modal when user is guest */}
+      {showLoginModal && (
+        <LoginPromptModal
+          message="You need to log in to post comments."
+          onClose={() => setShowLoginModal(false)}
+          onConfirm={() => (window.location.href = "/loginregister")}
+        />
+      )}
+
       <form className="comment-form" onSubmit={handleSubmit} noValidate>
         <textarea
-          placeholder={user ? "Add a comment..." : "Please log in to comment"}
+          placeholder={user ? "Add a comment..." : "Log in to comment"}
           rows="3"
           className="comment-input"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          disabled={!user || loading}
+          disabled={!user || loading} // ✅ Block typing when guest
         />
-        <button className="comment-btn" type="submit" disabled={!user || !comment.trim() || loading}>
+        <button
+          className="comment-btn"
+          type="submit"
+          disabled={!user || !comment.trim() || loading}
+        >
           {loading ? "Posting..." : "Post Comment"}
         </button>
       </form>
 
       <div className="comments-list">
         {comments.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#666", padding: "20px" }}>
-            No comments yet.
-          </p>
+          <p style={{ textAlign: "center", color: "#666", padding: "20px" }}>No comments yet.</p>
         ) : (
           comments.map((c) => (
             <div key={c.id} className="comment-item">
@@ -174,11 +185,7 @@ export default function CommunityPost() {
         <div className="post-left">
           <div className="image-carousel">
             <img
-              src={
-                post.images?.length
-                  ? post.images[currentImg]
-                  : "https://images.unsplash.com/photo-1551218808-94e220e084d2"
-              }
+              src={post.images?.length ? post.images[currentImg] : "https://images.unsplash.com/photo-1551218808-94e220e084d2"}
               alt={post.foodName}
               className="post-img-small"
             />
@@ -211,9 +218,7 @@ export default function CommunityPost() {
                 ))}
               </div>
             )}
-            <button className="back-btn" onClick={() => navigate("/community")}>
-              ← Back
-            </button>
+            <button className="back-btn" onClick={() => navigate("/community")}>← Back</button>
           </div>
         </div>
 
