@@ -4,31 +4,59 @@ import { useAuth } from "../context/AuthContext";
 import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Import modal
+import LoginPromptModal from "../components/LoginPromptModal"; // make sure this path is correct
 
-// ✅ Comment Section Component
+// ------------ Helpers -------------
+function computeIsLoggedIn(user) {
+  // Consider the user logged in only if:
+  // - user exists, AND
+  // - has a non-guest role, AND
+  // - has a stable id we can use (userID / id / userProfileID)
+  const hasId = Boolean(user?.userID || user?.id || user?.userProfileID);
+  const notGuest = user?.role && user.role.toLowerCase() !== "guest";
+  return Boolean(user && hasId && notGuest);
+}
+
+function getStableProfileId(user) {
+  return user?.userProfileID || user?.userID || user?.id || null;
+}
+
+// ------------ Comment Section -------------
 const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // ✅ Guest handling
-  const handleGuestAction = () => {
-    if (!user) {
-      setShowLoginModal(true);
-      return true;
+  const isLoggedIn = computeIsLoggedIn(user);
+  const isGuest = !isLoggedIn; // single source of truth
+
+  const openLoginModal = () => setShowLoginModal(true);
+
+  // Block typing & show modal when guest interacts with the box
+  const trapGuestFocus = (e) => {
+    if (isGuest) {
+      e.preventDefault();
+      e.stopPropagation();
+      // blur the element so the caret won't appear
+      if (e.target && typeof e.target.blur === "function") e.target.blur();
+      openLoginModal();
     }
-    return false;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (handleGuestAction()) return;
+    if (isGuest) {
+      openLoginModal();
+      return;
+    }
     if (!comment.trim()) return;
 
     try {
       setLoading(true);
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+      const userProfileID = getStableProfileId(user);
 
       const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
         method: "POST",
@@ -37,7 +65,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
         body: JSON.stringify({
           content: comment,
           postId,
-          userProfileID: user?.userProfileID || user?.userID,
+          userProfileID,
         }),
       });
 
@@ -45,9 +73,12 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
       if (response.ok && result.success) {
         onCommentAdded(result.comment);
         setComment("");
+      } else {
+        // Leave silent for UX; console helps debugging
+        console.error("Comment failed:", result.message);
       }
-    } catch (error) {
-      console.error("Error posting comment:", error);
+    } catch (err) {
+      console.error("Error posting comment:", err);
     } finally {
       setLoading(false);
     }
@@ -55,28 +86,41 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
 
   return (
     <div className="comment-section">
-      {/* ✅ Show Login Modal */}
       {showLoginModal && (
         <LoginPromptModal onClose={() => setShowLoginModal(false)} />
       )}
 
-      <form className="comment-form" onSubmit={handleSubmit}>
+      <form className="comment-form" onSubmit={handleSubmit} noValidate>
         <textarea
-          placeholder={user ? "Add a comment..." : "Please log in to comment"}
-          rows="3"
           className="comment-input"
+          rows="3"
+          placeholder={
+            isGuest ? "Please log in to comment" : "Add a comment..."
+          }
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          disabled={!user || loading}
-          onClick={handleGuestAction} // ✅ Triggers modal for guests
+          // Key bits to block guests:
+          readOnly={isGuest}                 // stops typing
+          onMouseDown={trapGuestFocus}       // clicking shows modal
+          onFocus={trapGuestFocus}           // keyboard/tab focus shows modal
         />
+
         <button
           type="submit"
           className="comment-btn"
-          disabled={loading || !comment.trim()}
-          onClick={(e) => {
-            if (handleGuestAction()) e.preventDefault();
+          onMouseDown={(e) => {
+            if (isGuest) {
+              e.preventDefault();
+              openLoginModal();
+            }
           }}
+          onClick={(e) => {
+            if (isGuest) {
+              e.preventDefault();
+              openLoginModal();
+            }
+          }}
+          disabled={loading || (!comment.trim() && !isGuest)}
         >
           {loading ? "Posting..." : "Post Comment"}
         </button>
@@ -103,11 +147,12 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
   );
 };
 
-// ✅ Main Post Page Component
+// ------------ Main Page -------------
 export default function CommunityPost() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [currentImg, setCurrentImg] = useState(0);
@@ -116,12 +161,14 @@ export default function CommunityPost() {
 
   useEffect(() => {
     fetchPost();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchPost = async () => {
     try {
       setLoading(true);
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:5000";
       const response = await fetch(`${API_BASE_URL}/api/communityPost/${id}`);
       const result = await response.json();
 
@@ -175,7 +222,9 @@ export default function CommunityPost() {
         <Header />
         <div className="not-found">
           <h2>Post not found</h2>
-          <button onClick={() => navigate("/community")}>Back to Community</button>
+          <button onClick={() => navigate("/community")}>
+            Back to Community
+          </button>
         </div>
         <Footer />
       </div>
@@ -186,6 +235,7 @@ export default function CommunityPost() {
     <div className="community-page">
       <Header />
       <div className="post-layout">
+        {/* LEFT */}
         <div className="post-left">
           <div className="image-carousel">
             <img
@@ -229,10 +279,12 @@ export default function CommunityPost() {
               by <b>{post.author}</b> • {post.daysAgo} •{" "}
               <span>{post.culturalOrigin}</span>
             </p>
+
             <div className="story-section">
               <h3>Cultural Story</h3>
               <p>{post.culturalStory}</p>
             </div>
+
             {post.recipe && (
               <div className="recipe-box">
                 <h3>Recipe</h3>
@@ -241,15 +293,18 @@ export default function CommunityPost() {
                 ))}
               </div>
             )}
+
             <button className="back-btn" onClick={() => navigate("/community")}>
               ← Back
             </button>
           </div>
         </div>
 
+        {/* RIGHT */}
         <div className="post-right">
           <div className="likes-bar">❤️ {post.likeCount || 0} likes</div>
           <h3>Comments ({comments.length})</h3>
+
           <CommentSection
             postId={post.id}
             user={user}
@@ -258,6 +313,7 @@ export default function CommunityPost() {
           />
         </div>
       </div>
+
       <Footer />
     </div>
   );
