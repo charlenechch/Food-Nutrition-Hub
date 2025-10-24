@@ -15,7 +15,7 @@ import FoodDiscussion from "./pages/FoodDiscussionPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CommunityPost from "./pages/CommunityPostPage";
 import UserProfilePage from "./pages/UserProfilePage";
-import ReviseContributionPage from "./pages/ReviseContributionPage";
+import ReviseRecipePage from "./pages/ReviseRecipePage";
 import EditFoodPage from "./pages/EditFoodPage";
 
 function FoodDetailRoute() {
@@ -74,7 +74,7 @@ function App() {
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:id" element={<CommunityPost />} />
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
-        <Route path="/revise/:id" element={<ReviseContributionPage />} />
+        <Route path="/revise/:id" element={<ReviseRecipePage />} />
         <Route path="/editfood/:id" element={<EditFoodPage />} />
         <Route path ="/admin" element={<AdminHomepage />} />
 
