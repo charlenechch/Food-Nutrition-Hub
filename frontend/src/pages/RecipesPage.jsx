@@ -14,10 +14,14 @@ import LoginPromptModal from "../components/LoginPromptModal";
 
 const PER_PAGE = 9;
 
-const getFirstSentence = (description) => {
+const getFirstSentence = (description, maxWords = 20) => {
   if (!description) return '';
-  const periodIndex = description.indexOf('.');
-  return periodIndex !== -1 ? description.substring(0, periodIndex + 1) : description;
+  
+  const words = description.split(' ');
+  if (words.length <= maxWords) return description;
+  
+  // Take only first 20 words and add ellipsis
+  return words.slice(0, maxWords).join(' ') + '...';
 };
 
 export default function RecipesPage() {
