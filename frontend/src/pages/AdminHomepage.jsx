@@ -12,6 +12,7 @@ import { CiSettings, CiSearch, CiFilter} from "react-icons/ci";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { HiOutlinePencilAlt } from "react-icons/hi";
+import { Mail, Shield, Users, Activity, CircleCheckBig, CircleX } from 'lucide-react';
 
 
 const AdminDashboard = () => {
@@ -407,7 +408,7 @@ const AdminDashboard = () => {
               <p className="umg-subtitle">Comprehensive user account administration</p>
             </div>
             <button className="umg-email-btn">
-              <span className="umg-email-icon">✉️</span>
+              <Mail />
               Send Email Notification
             </button>
           </div>
@@ -417,27 +418,27 @@ const AdminDashboard = () => {
             <div className="umg-card">
               <div className="umg-card-title">Total Users</div>
               <div className="umg-card-value">{totalUsers}</div>
-              <div className="umg-card-icon"><GoPeople /></div>
+              <div className="umg-card-icon"><Users size="40" color="#592700ff"/></div>
             </div>
             <div className="umg-card">
               <div className="umg-card-title">Admin</div>
-              <div className="umg-card-value">{adminCount}</div>
-              <div className="umg-card-icon">🛡️</div>
+              <div className="umg-card-value umg-admin-value">{adminCount}</div>
+              <div className="umg-card-icon"><Shield size="40" color="#7200ddff"/></div>
             </div>
             <div className="umg-card">
               <div className="umg-card-title">Contributors</div>
-              <div className="umg-card-value">{contributors}</div>
-              <div className="umg-card-icon">📈</div>
+              <div className="umg-card-value umg-contributor-value">{contributors}</div>
+              <div className="umg-card-icon"><Activity size="40" color="#0000FF"/></div>
             </div>
             <div className="umg-card">
               <div className="umg-card-title">Active</div>
-              <div className="umg-card-value">{activeCount}</div>
-              <div className="umg-card-icon">✅</div>
+              <div className="umg-card-value umg-active-value">{activeCount}</div>
+              <div className="umg-card-icon"><CircleCheckBig size="40" color="green"/></div>
             </div>
             <div className="umg-card">
               <div className="umg-card-title">Issues</div>
-              <div className="umg-card-value">{issuesCount}</div>
-              <div className="umg-card-icon">❌</div>
+              <div className="umg-card-value umg-issue-value">{issuesCount}</div>
+              <div className="umg-card-icon"><CircleX size="40" color="red"/></div>
             </div>
           </div>
 
