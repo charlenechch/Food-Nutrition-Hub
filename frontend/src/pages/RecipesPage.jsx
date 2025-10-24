@@ -324,6 +324,7 @@ export default function RecipesPage() {
   if (loading) return <div className="loading">Loading recipes...</div>;
 
   return (
+    <div>
     <div className="recipes-page">
       <Header />
 
@@ -840,7 +841,8 @@ export default function RecipesPage() {
         </div>
       )}
 
-      <Footer />
+    </div>
+    <Footer />
     </div>
   );
 }

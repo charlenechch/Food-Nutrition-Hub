@@ -498,3 +498,14 @@
   box-shadow: none ;
   border: 2px solid #b28b65   ;
 }
+
+/* user management tab */
+.simple-select {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+}
+.user-management-section .food-filters { 
+  gap: 10px; 
+}
