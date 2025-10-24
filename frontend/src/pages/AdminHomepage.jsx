@@ -24,8 +24,8 @@ const AdminDashboard = () => {
   const [calorieMin, setCalorieMin] = useState(0);
   const [calorieMax, setCalorieMax] = useState(2000);
   const [userSearch, setUserSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [roleFilter, setRoleFilter] = useState("All Roles");
+  const [statusFilter, setStatusFilter] = useState("All Statuses");
 
     const categories = [
     "All Categories",
@@ -68,39 +68,92 @@ const AdminDashboard = () => {
 
   // User Management
   const [users, setUsers] = useState([
-    { id: 1, name: "Ahmad Rahman",  email: "ahmad@email.com",  role: "User",  status: "Active",   verified: true,  joined: "2023-12-01", lastLogin: "2024-01-15" },
-    { id: 2, name: "Sarah Lim",     email: "sarah@email.com",  role: "User",  status: "Active",   verified: true,  joined: "2023-11-15", lastLogin: "2024-01-14" },
-    { id: 3, name: "Admin User",    email: "admin@sarawakeats.com", role: "Admin", status: "Active", verified: true, joined: "2023-10-01", lastLogin: "2024-01-16" },
-    { id: 4, name: "Test Account",  email: "test@email.com",   role: "User",  status: "Inactive", verified: false, joined: "2023-10-21", lastLogin: "—" },
+    {
+      id: 1,
+      name: "Ahmad Rahman",
+      email: "ahmad.rahman@email.com",
+      city: "Kuching, Sarawak",
+      role: "User",
+      status: "Active",            // Active | Inactive | Suspended
+      suspendedOn: null,           // e.g. "2024-01-11" if Suspended
+      submissions: 15,
+      approved: 12,
+      lastLogin: "16/01/2024, 02:30 pm",
+    },
+    {
+      id: 2,
+      name: "Sarah Lim",
+      email: "sarah.lim@email.com",
+      city: "Sibu, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 23,
+      approved: 21,
+      lastLogin: "14/01/2024, 09:15 am",
+    },
+    {
+      id: 3,
+      name: "Rajesh Kumar",
+      email: "rajesh.kumar@email.com",
+      city: "Miri, Sarawak",
+      role: "User",
+      status: "Suspended",
+      suspendedOn: "2024-01-11",
+      submissions: 3,
+      approved: 1,
+      lastLogin: "10/01/2024, 04:45 pm",
+    },
+    {
+      id: 4,
+      name: "Maria Santos",
+      email: "maria.santos@email.com",
+      city: "Kuching, Sarawak",
+      role: "Admin",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 0,
+      approved: 0,
+      lastLogin: "16/01/2024, 11:22 am",
+    },
+    {
+      id: 5,
+      name: "Jennifer Wong",
+      email: "jennifer.wong@email.com",
+      city: "Bintulu, Sarawak",
+      role: "User",
+      status: "Inactive",
+      suspendedOn: null,
+      submissions: 7,
+      approved: 5,
+      lastLogin: "15/12/2023, 01:55 pm",
+    },
   ]);
 
+  // Summary metrics (derived so they always stay fresh)
+  const totalUsers = users.length;
+  const adminCount = users.filter(u => u.role === "Admin").length;
+  const contributors = users.filter(u => u.submissions > 0).length;
+  const activeCount = users.filter(u => u.status === "Active").length;
+  const issuesCount = users.filter(u => u.status === "Suspended").length;
+
+  // Filtering
   const filteredUsers = users.filter(u => {
+    const q = userSearch.trim().toLowerCase();
     const matchesSearch =
-      u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
-      u.email.toLowerCase().includes(userSearch.toLowerCase());
-    const matchesRole   = roleFilter === "All"   || u.role === roleFilter;
-    const matchesStatus = statusFilter === "All" || u.status === statusFilter;
+      !q ||
+      u.name.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      u.city.toLowerCase().includes(q);
+
+    const matchesRole =
+      roleFilter === "All Roles" || u.role === roleFilter;
+
+    const matchesStatus =
+      statusFilter === "All Statuses" || u.status === statusFilter;
+
     return matchesSearch && matchesRole && matchesStatus;
   });
-
-  const toggleStatus = (id) => {
-    setUsers(prev =>
-      prev.map(u => u.id === id ? { ...u, status: u.status === "Active" ? "Inactive" : "Active" } : u)
-    );
-  };
-
-  const deleteUser = (id) => {
-    const user = users.find(u => u.id === id);
-    if (!user) return;
-    if (window.confirm(`Delete user "${user.name}"? This cannot be undone.`)) {
-      setUsers(prev => prev.filter(u => u.id !== id));
-    }
-  };
-
-  const goEditUser = (id) => {
-    // simple route (you can create this page later)
-    navigate(`/admin/users/${id}`);
-  };
 
   return (
     <div>
@@ -345,34 +398,66 @@ const AdminDashboard = () => {
           </table>
         </div>
       )}
-      {/* === User Management Section === */}
+      {/* === User Management (Enhanced) === */}
       {activeTab === "users" && (
-        <div className="user-management-section">
-          <div className="food-header">
-            <h2>
-              <span className="icon"><GoPeople /></span> User Management
-            </h2>
-            {/* (Optional) Add button for “Add User” later if needed */}
+        <div className="user-mgmt">
+          <div className="umg-header-row">
+            <div>
+              <h2 className="umg-title">Enhanced User Management</h2>
+              <p className="umg-subtitle">Comprehensive user account administration</p>
+            </div>
+            <button className="umg-email-btn">
+              <span className="umg-email-icon">✉️</span>
+              Send Email Notification
+            </button>
           </div>
 
-          {/* Filters */}
-          <div className="food-filters">
-            <div className="search-box">
-              <CiSearch className="search-icon" />
+          {/* Summary cards */}
+          <div className="umg-cards">
+            <div className="umg-card">
+              <div className="umg-card-title">Total Users</div>
+              <div className="umg-card-value">{totalUsers}</div>
+              <div className="umg-card-icon"><GoPeople /></div>
+            </div>
+            <div className="umg-card">
+              <div className="umg-card-title">Admin</div>
+              <div className="umg-card-value">{adminCount}</div>
+              <div className="umg-card-icon">🛡️</div>
+            </div>
+            <div className="umg-card">
+              <div className="umg-card-title">Contributors</div>
+              <div className="umg-card-value">{contributors}</div>
+              <div className="umg-card-icon">📈</div>
+            </div>
+            <div className="umg-card">
+              <div className="umg-card-title">Active</div>
+              <div className="umg-card-value">{activeCount}</div>
+              <div className="umg-card-icon">✅</div>
+            </div>
+            <div className="umg-card">
+              <div className="umg-card-title">Issues</div>
+              <div className="umg-card-value">{issuesCount}</div>
+              <div className="umg-card-icon">❌</div>
+            </div>
+          </div>
+
+          {/* Search + filters row */}
+          <div className="umg-filterbar">
+            <div className="umg-search">
+              <CiSearch className="umg-search-icon" />
               <input
-                type="text"
-                placeholder="Search name or email..."
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
+                placeholder="Search users…"
               />
             </div>
 
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="simple-select"
+              className="umg-select"
             >
-              <option>All</option>
+              <option>All Roles</option>
               <option>User</option>
               <option>Admin</option>
             </select>
@@ -380,86 +465,90 @@ const AdminDashboard = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="simple-select"
+              className="umg-select"
             >
-              <option>All</option>
+              <option>All Statuses</option>
               <option>Active</option>
               <option>Inactive</option>
+              <option>Suspended</option>
             </select>
           </div>
 
-          {/* Table */}
-          <table className="food-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Verified</th>
-                <th>Joined</th>
-                <th>Last Login</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.length === 0 ? (
+          {/* List card */}
+          <div className="umg-list-card">
+            <div className="umg-list-head">
+              <div className="umg-list-title">
+                <GoPeople />
+                <span>User Accounts ({filteredUsers.length})</span>
+              </div>
+            </div>
+
+            <table className="umg-table">
+              <thead>
                 <tr>
-                  <td colSpan="8" style={{ textAlign: "center", color: "var(--muted, #777)" }}>
-                    No users found.
-                  </td>
+                  <th>Name</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Contributions</th>
+                  <th>Last Login</th>
+                  <th style={{textAlign:"right"}}>Actions</th>
                 </tr>
-              ) : (
-                filteredUsers.map(user => (
-                  <tr key={user.id}>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>
-                      <span className="category-tag">{user.role}</span>
-                    </td>
-                    <td>
-                      <span
-                        className="category-tag"
-                        style={{
-                          background: user.status === "Active" ? "#e6ffed" : "#fff5f5",
-                          borderColor: user.status === "Active" ? "#86efac" : "#fca5a5",
-                          color: user.status === "Active" ? "#166534" : "#7f1d1d",
-                        }}
-                      >
-                        {user.status}
-                      </span>
-                    </td>
-                    <td>{user.verified ? "Yes" : "No"}</td>
-                    <td>{user.joined}</td>
-                    <td>{user.lastLogin}</td>
-                    <td>
-                      <button className="btn-edit" aria-label="Edit user" onClick={() => goEditUser(user.id)}>
-                        <HiOutlinePencilAlt />
-                      </button>
-                      <button
-                        className="btn-add"
-                        style={{ marginLeft: 8 }}
-                        onClick={() => toggleStatus(user.id)}
-                      >
-                        {user.status === "Active" ? "Deactivate" : "Activate"}
-                      </button>
-                      <button
-                        className="btn-delete"
-                        style={{ marginLeft: 8 }}
-                        onClick={() => deleteUser(user.id)}
-                        aria-label="Delete user"
-                      >
-                        <RiDeleteBin5Line />
-                      </button>
-                    </td>
+              </thead>
+              <tbody>
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="umg-empty">No users found.</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredUsers.map(u => (
+                    <tr key={u.id}>
+                      <td>
+                        <div className="umg-name">{u.name}</div>
+                        <div className="umg-subline">{u.email}</div>
+                        <div className="umg-subline">{u.city}</div>
+                      </td>
+
+                      <td>
+                        <span className="umg-pill umg-pill-role">{u.role}</span>
+                      </td>
+
+                      <td>
+                        {u.status === "Active" && (
+                          <span className="umg-pill umg-pill-active">Active</span>
+                        )}
+                        {u.status === "Inactive" && (
+                          <span className="umg-pill umg-pill-inactive">Inactive</span>
+                        )}
+                        {u.status === "Suspended" && (
+                          <div className="umg-status-stack">
+                            <span className="umg-pill umg-pill-suspended">Suspended</span>
+                            {u.suspendedOn && (
+                              <div className="umg-status-note">Suspended: {u.suspendedOn}</div>
+                            )}
+                          </div>
+                        )}
+                      </td>
+
+                      <td>
+                        <div className="umg-submissions">
+                          {u.submissions} submissions
+                        </div>
+                        <div className="umg-subline">{u.approved} approved</div>
+                      </td>
+
+                      <td>{u.lastLogin}</td>
+
+                      <td style={{textAlign:"right"}}>
+                        <button className="umg-ellipsis" aria-label="More actions">⋯</button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
-
 
     </div>
     <Footer />
