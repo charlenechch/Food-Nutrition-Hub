@@ -149,13 +149,6 @@ export default function Community() {
     setExpanded(false);
   };
 
-  const getFirstSentence = (story, maxWords = 20) => {
-    if (!story) return '';
-    const words = story.split(' ');
-    if (words.length <= maxWords) return story;
-    return words.slice(0, maxWords).join(' ') + '...';
-  };
-
   return (
     <div className="community-page">
       <Header />
@@ -299,7 +292,7 @@ export default function Community() {
                     by <b>{post.author}</b> • {post.daysAgo}
                   </p>
                   <p className="desc">
-                    {getFirstSentence(post.culturalStory)}
+                    {post.culturalStory}
                   </p>
                   <div className="card-footer">
                     <span>❤️ {post.likeCount} likes</span>

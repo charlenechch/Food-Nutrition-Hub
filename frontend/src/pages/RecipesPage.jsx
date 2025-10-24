@@ -14,16 +14,6 @@ import LoginPromptModal from "../components/LoginPromptModal";
 
 const PER_PAGE = 9;
 
-const getFirstSentence = (description, maxWords = 20) => {
-  if (!description) return '';
-  
-  const words = description.split(' ');
-  if (words.length <= maxWords) return description;
-  
-  // Take only first 20 words and add ellipsis
-  return words.slice(0, maxWords).join(' ') + '...';
-};
-
 export default function RecipesPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -805,7 +795,7 @@ export default function RecipesPage() {
                   <h3 className="efp-food-title">{recipeName}</h3>
                 </div>
 
-                <p className="efp-desc">{getFirstSentence(recipeDescription)}</p>
+                <p className="efp-desc">{recipeDescription}</p>
 
                 <button
                   className="efp-card-cta"
