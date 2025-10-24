@@ -149,10 +149,11 @@ export default function Community() {
     setExpanded(false);
   };
 
-  const getFirstSentence = (story) => {
-    if (!story) return "";
-    const periodIndex = story.indexOf(".");
-    return periodIndex !== -1 ? story.substring(0, periodIndex + 1) : story;
+  const getFirstSentence = (story, maxWords = 20) => {
+    if (!story) return '';
+    const words = story.split(' ');
+    if (words.length <= maxWords) return story;
+    return words.slice(0, maxWords).join(' ') + '...';
   };
 
   return (

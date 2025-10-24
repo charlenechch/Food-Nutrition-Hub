@@ -738,6 +738,17 @@
   border-radius: 4px;
 }
 
+/*to ensure the description display as exactly 3 lines*/
+.desc {
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical; 
+  display: -webkit-box;
+  overflow: hidden;
+  line-height: 1.4em;
+  max-height: 2.8em;
+}
+
 /* Loading and Empty States */
 .comments-loading,
 .comments-empty {

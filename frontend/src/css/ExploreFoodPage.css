@@ -648,3 +648,14 @@
   display: inline-block;
   margin: 0 .25rem;
 }
+
+/*to ensure the description display as exactly 3 lines*/
+.efp-desc {
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical; 
+  display: -webkit-box;
+  overflow: hidden;
+  line-height: 1.4em;
+  max-height: 2.8em;
+}
