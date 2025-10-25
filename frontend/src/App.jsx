@@ -17,6 +17,7 @@ import CommunityPost from "./pages/CommunityPostPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import ReviseContributionPage from "./pages/ReviseContributionPage";
 import EditFoodPage from "./pages/EditFoodPage";
+import Analytics from "./pages/Analytics";
 
 function FoodDetailRoute() {
   const { state } = useLocation();
@@ -80,6 +81,7 @@ function App() {
 
         {/* Nutrition Analyzer is public but guest has limited actions */}
         <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
+        <Route path="/analytics" element={<Analytics />} />
 
         {/* Protected Pages */}
         <Route
