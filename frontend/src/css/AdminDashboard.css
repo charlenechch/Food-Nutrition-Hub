@@ -821,3 +821,223 @@
     display: inline-block; 
   }
 }
+
+/* Pager bar */
+.umg-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-top: 1px solid #f0e6da;
+}
+
+.umg-pager-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #7b6148;
+}
+.umg-pager-label { font-size: 14px; }
+.umg-pager-select {
+  padding: 6px 8px;
+  border: 1px solid #e6d9ca;
+  border-radius: 8px;
+  background: #f7f1e9; 
+}
+.umg-pager-range {
+  font-size: 14px;
+  color: #8d6a46;
+}
+
+.umg-pager-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.umg-page-btn {
+  width: 32px; 
+  height: 32px;
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center;
+  border-radius: 6px;
+  background: #f7f1e9; 
+  border: 1px solid #eadfd3;
+  cursor: pointer;
+}
+.umg-page-btn:disabled { 
+  opacity: .5; 
+  cursor: not-allowed; 
+}
+.umg-page-indicator { 
+  color: #5a3e1b; 
+  font-weight: 600; 
+}
+@media (max-width: 540px) {
+  .umg-pager {
+    display: flex;              
+    flex-direction: column;     
+    align-items: center;       
+    gap: 12px;
+    text-align: center;
+  }
+  .umg-pager-left,
+  .umg-pager-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;   
+    gap: 8px;
+    margin: 0;                  
+    width: 100%;                
+  }
+}
+.umg-pager-select:focus, .umg-page-btn:focus {
+  outline: none;
+}
+
+/* --- Modal --- */
+.umg-modal-backdrop {
+  position: fixed; 
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  z-index: 1000;
+}
+.umg-modal {
+  width: 720px;           
+  height: 560px;          
+  max-width: 96vw;       
+  max-height: 92vh;
+  background: #fffaf2;
+  border: 1px solid #eadfd3;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  display: flex;           
+  flex-direction: column;
+  overflow: hidden;        
+}
+.umg-modal-header {
+  flex: 0 0 auto;
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f0e6da;
+}
+.umg-modal-header h3 {
+  margin: 0; font-size: 18px; color: #5a3e1b;
+}
+.umg-modal-close {
+  background: transparent; 
+  border: 0; 
+  font-size: 24px; 
+  line-height: 1;
+  cursor: pointer; 
+  color: #7b6148;
+}
+.umg-modal-close:hover {
+  color: #583100; 
+}
+.umg-modal-close:focus {
+  outline: none;
+}
+
+.umg-modal-body {
+  flex: 1 1 auto;       
+  overflow: auto;       
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.umg-field { display: grid; gap: 6px; }
+.umg-label { font-size: 14px; color: #7b6148; }
+.umg-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #e6d9ca;
+  border-radius: 8px;
+  color: #3b2a16;
+}
+.umg-textarea { min-height: 120px; resize: vertical; }
+.umg-hint { font-size: 12px; color: #8d6a46; }
+
+.umg-check {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding-top: 4px; color: #3b2a16;
+}
+.umg-check input { margin-top: 3px; }
+.umg-check-hint { font-size: 12px; color: #8d6a46; }
+
+.umg-modal-footer {
+  flex: 0 0 auto;
+  display: flex; 
+  justify-content: flex-end; 
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid #f0e6da;
+}
+.umg-btn-secondary {
+  background: #f7f1e9; 
+  color: #5a3e1b;
+  border: 1px solid #eadfd3; 
+  border-radius: 8px;
+  padding: 8px 12px; 
+  cursor: pointer;
+}
+.umg-btn-secondary:hover { 
+  background: #f1e7db; 
+}
+.umg-btn-secondary:focus { 
+  outline: none;
+}
+
+.umg-btn-primary {
+  background: #7b4f1d; 
+  color: #fff;
+  border: 1px solid #6e4517; 
+  border-radius: 8px;
+  padding: 8px 12px; 
+  cursor: pointer;
+}
+.umg-btn-primary:hover { 
+  filter: brightness(0.95); 
+}
+.umg-btn-primary:focus { 
+  outline: none;
+}
+
+/* Responsive modal width and spacing */
+@media (max-width: 540px) {
+  .umg-modal {
+    width: 96vw;
+    height: 88vh;        
+  }
+  .umg-modal-body { 
+    padding: 12px; 
+    gap: 10px; 
+  }
+  .umg-modal-footer { 
+    padding: 10px 12px; 
+  }
+}
+
+/* Specific users mini picker */
+.umg-specific-list { display: grid; gap: 8px; }
+.umg-specific-scroll {
+  max-height: 220px;       
+  overflow: auto;
+  border: 1px solid #e6d9ca;
+  border-radius: 8px;
+  background: #fff;
+  padding: 6px;
+}
+.umg-specific-row {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 6px; border-radius: 6px; cursor: pointer;
+}
+.umg-specific-row:hover { background: #f8f4ee; }
+.umg-specific-row input { margin-top: 4px; }
