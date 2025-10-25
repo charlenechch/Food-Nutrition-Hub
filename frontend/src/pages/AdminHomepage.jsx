@@ -12,7 +12,7 @@ import { CiSettings, CiSearch, CiFilter} from "react-icons/ci";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { HiOutlinePencilAlt } from "react-icons/hi";
-import { Mail, Shield, Users, Activity, CircleCheckBig, CircleX } from 'lucide-react';
+import { Mail, Shield, Users, Activity, CircleCheckBig, CircleX, X } from 'lucide-react';
 
 
 const AdminDashboard = () => {
@@ -40,6 +40,7 @@ const AdminDashboard = () => {
     message: "",
     markAnnouncement: false,
   });
+  const [specificSearch, setSpecificSearch] = useState("");
 
     const categories = [
     "All Categories",
@@ -532,6 +533,16 @@ const AdminDashboard = () => {
     }
   })();
 
+  const filteredSpecificUsers = users.filter(u => {
+    if (specificSearch.trim() === "") return true;
+    const q = specificSearch.toLowerCase();
+    return (
+      u.name.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      u.city.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div>
     <div className="admin-dashboard">
@@ -988,7 +999,7 @@ const AdminDashboard = () => {
               {/* Header */}
               <div className="umg-modal-header">
                 <h3><Mail size = "18"/> Send Email Notification</h3>
-                <button className="umg-modal-close" onClick={() => setShowEmailModal(false)} aria-label="Close">×</button>
+                <button className="umg-modal-close" onClick={() => setShowEmailModal(false)} aria-label="Close"><X/></button>
               </div>
 
               {/* Body */}
@@ -1010,45 +1021,39 @@ const AdminDashboard = () => {
                   {/* Specific users: show a compact checklist */}
                   {emailForm.recipientsOption === "Specific users" && (
                     <div className="umg-specific-list">
-                      <div className="umg-specific-search-wrap">
-                        <input
-                          className="umg-input"
-                          placeholder="Search users to select…"
-                          onChange={(e) => {
-                            const q = e.target.value.toLowerCase();
-                            const visible = users.filter(
-                              u =>
-                                u.name.toLowerCase().includes(q) ||
-                                u.email.toLowerCase().includes(q) ||
-                                u.city.toLowerCase().includes(q)
-                            );
-                            // store temp list to display; simplest: derive on render below
-                            // to keep code minimal, we'll just filter inline in the map below using `q` kept in state
-                          }}
-                        />
-                      </div>
+                      <input
+                        className="umg-input"
+                        placeholder="Search users to select…"
+                        value={specificSearch}
+                        onChange={(e) => setSpecificSearch(e.target.value)}
+                      />
                       <div className="umg-specific-scroll">
-                        {users.map(u => (
-                          <label key={u.id} className="umg-specific-row">
-                            <input
-                              type="checkbox"
-                              checked={emailForm.selectedUserIds.includes(u.id)}
-                              onChange={(e) => {
-                                const checked = e.target.checked;
-                                setEmailForm((prev) => ({
-                                  ...prev,
-                                  selectedUserIds: checked
-                                    ? [...prev.selectedUserIds, u.id]
-                                    : prev.selectedUserIds.filter(id => id !== u.id),
-                                }));
-                              }}
-                            />
-                            <div>
-                              <div className="umg-name">{u.name}</div>
-                              <div className="umg-subline">{u.email}</div>
-                            </div>
-                          </label>
-                        ))}
+                        {filteredSpecificUsers.length === 0 ? (
+                          <div className="umg-empty" style={{ padding: 8 }}>No matches.</div>
+                        ) : (
+                          filteredSpecificUsers.map(u => (
+                            <label key={u.id} className="umg-specific-row">
+                              <input
+                                type="checkbox"
+                                checked={emailForm.selectedUserIds.includes(u.id)}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setEmailForm(prev => ({
+                                    ...prev,
+                                    selectedUserIds: checked
+                                      ? [...prev.selectedUserIds, u.id]
+                                      : prev.selectedUserIds.filter(id => id !== u.id),
+                                  }));
+                                }}
+                              />
+                              <div>
+                                <div className="umg-name">{u.name}</div>
+                                <div className="umg-subline">{u.email}</div>
+                                <div className="umg-subline">{u.city}</div>
+                              </div>
+                            </label>
+                          ))
+                        )}
                       </div>
                     </div>
                   )}
