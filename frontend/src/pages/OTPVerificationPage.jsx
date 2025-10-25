@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { API_URL } from "../config/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 import "../css/OTPVerificationPage.css";
 
 export default function OTPVerificationPage({ email: emailProp }) {
@@ -43,7 +43,7 @@ export default function OTPVerificationPage({ email: emailProp }) {
     
     try {
       // Call backend to verify OTP
-      const res = await fetch(`${API_URL}/otp/verify`, {
+      const res = await fetch(`${API_URL}/api/otp/verify`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -76,7 +76,7 @@ export default function OTPVerificationPage({ email: emailProp }) {
     setOtp("");
     
     try {
-      const res = await fetch(`${API_URL}/otp/send`, {
+      const res = await fetch(`${API_URL}/api/otp/send`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

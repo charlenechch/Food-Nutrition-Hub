@@ -150,6 +150,7 @@ export default function Community() {
   };
 
   return (
+    <div>
     <div className="community-page">
       <Header />
 
@@ -312,8 +313,8 @@ export default function Community() {
           </div>
         )}
       </section>
-
-      <Footer />
+    </div>
+    <Footer />
     </div>
   );
 }

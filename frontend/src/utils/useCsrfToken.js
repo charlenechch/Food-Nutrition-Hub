@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_URL } from "../config/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function useCsrfToken() {
   const [csrfToken, setCsrfToken] = useState(null);
@@ -7,7 +7,7 @@ export default function useCsrfToken() {
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        const res = await fetch(`${API_URL}/csrf-token`, {
+        const res = await fetch(`${API_URL}/api/csrf-token`, {
           credentials: "include",
         });
         const data = await res.json();

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FaGlobe, FaSignOutAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
-import { API_URL } from "../config/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 import "./Header.css";
 import { User } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Import popup
@@ -18,7 +18,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API_URL}/logout`, {
+      await fetch(`${API_URL}/api/logout`, {
         method: "POST",
         credentials: "include",
       });

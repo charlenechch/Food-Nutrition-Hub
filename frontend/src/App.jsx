@@ -1,4 +1,13 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
+
 import LoginRegisterPage from "./pages/LoginRegisterPage";
 import AdminHomepage from "./pages/AdminHomepage";
 import UserHomepage from "./pages/UserHomepage";
@@ -15,10 +24,11 @@ import FoodDiscussion from "./pages/FoodDiscussionPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CommunityPost from "./pages/CommunityPostPage";
 import UserProfilePage from "./pages/UserProfilePage";
-import ReviseContributionPage from "./pages/ReviseContributionPage";
+import ReviseRecipePage from "./pages/ReviseRecipePage";
 import EditFoodPage from "./pages/EditFoodPage";
 import Analytics from "./pages/Analytics";
 
+// ✅ Handles Food Detail with state OR URL params
 function FoodDetailRoute() {
   const { state } = useLocation();
   const [params] = useSearchParams();
@@ -31,9 +41,18 @@ function FoodDetailRoute() {
   const food = fromState || fromQuery;
   if (!food) return <Navigate to="/foods" replace />;
 
-  return <FoodDetail food={food} onBack={() => navigate("/foods")} onViewDiscussion={() =>navigate(`/fooddiscussion?id=${food.id}`, { state: { food } })} />;
+  return (
+    <FoodDetail
+      food={food}
+      onBack={() => navigate("/foods")}
+      onViewDiscussion={() =>
+        navigate(`/fooddiscussion?id=${food.id}`, { state: { food } })
+      }
+    />
+  );
 }
 
+// ✅ Handles Food Discussion routing safely
 function FoodDiscussionRoute() {
   const { state } = useLocation();
   const [params] = useSearchParams();
@@ -42,16 +61,11 @@ function FoodDiscussionRoute() {
   const id = params.get("id");
   const fromState = state?.food;
   const fromQuery = id ? sarawakFoods.find(f => String(f.id) === String(id)) : null;
-  const food = fromState || fromQuery;
 
+  const food = fromState || fromQuery;
   if (!food) return <Navigate to="/foods" replace />;
 
-  return (
-    <FoodDiscussion
-      food={food}
-      onBack={() => navigate(`/fooddetail?id=${food.id}`)}
-    />
-  );
+  return <FoodDiscussion food={food} onBack={() => navigate(`/fooddetail?id=${food.id}`)} />;
 }
 
 function App() {
@@ -69,21 +83,31 @@ function App() {
         <Route path="/home" element={<UserHomepage />} />
         <Route path="/foods" element={<ExploreFoodsPage />} />
         <Route path="/fooddetail/:id" element={<FoodDetail />} />
-        <Route path="/fooddiscussion/:foodId" element={<FoodDiscussionRoute/>} />
+        <Route path="/fooddiscussion/:foodId" element={<FoodDiscussionRoute />} />
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/recipes/:id" element={<RecipeDetailPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:id" element={<CommunityPost />} />
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
-        <Route path="/revise/:id" element={<ReviseContributionPage />} />
+        <Route path="/revise/:id" element={<ReviseRecipePage />} />
         <Route path="/editfood/:id" element={<EditFoodPage />} />
-        <Route path ="/admin" element={<AdminHomepage />} />
+        {/* <Route path="/admin" element={<AdminHomepage />} /> */}
+
+        {/* ✅ PROTECTED ADMIN PAGE */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminHomepage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Nutrition Analyzer is public but guest has limited actions */}
         <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
         <Route path="/analytics" element={<Analytics />} />
 
-        {/* Protected Pages */}
+        {/* ✅ Protected Profile (member + admin only) */}
         <Route
           path="/profile"
           element={
@@ -92,15 +116,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* <Route
-          path="/admin"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminHomepage />
-            </ProtectedRoute>
-          }
-        /> */}
       </Routes>
     </Router>
   );

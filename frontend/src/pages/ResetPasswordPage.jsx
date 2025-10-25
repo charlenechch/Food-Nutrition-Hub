@@ -5,7 +5,7 @@ import "../css/ResetPasswordPage.css";
 // ✅ Firebase
 import { confirmPasswordReset } from "firebase/auth";
 import { auth } from "../config/firebase";
-import { API_URL } from "../config/api"; // ✅ Make sure API_URL = http://localhost:5000/api
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();
@@ -32,7 +32,7 @@ export default function ResetPasswordPage() {
       await confirmPasswordReset(auth, oobCode, pwd);
 
       // ✅ Step 2: Also update password in MySQL backend
-      await fetch(`${API_URL}/auth/updatePassword`, {
+      await fetch(`${API_URL}/api/auth/updatePassword`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
