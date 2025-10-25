@@ -90,14 +90,14 @@ function App() {
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
         <Route path="/revise/:id" element={<ReviseRecipePage />} />
         <Route path="/editfood/:id" element={<EditFoodPage />} />
-        <Route path="/admin" element={<AdminHomepage />} />
+        {/* <Route path="/admin" element={<AdminHomepage />} /> */}
 
         {/* ✅ PROTECTED ADMIN PAGE */}
         <Route
           path="/admin"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
-              {/* <AdminHomepage /> */}
+              <AdminHomepage />
             </ProtectedRoute>
           }
         />
