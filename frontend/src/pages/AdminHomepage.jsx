@@ -27,6 +27,19 @@ const AdminDashboard = () => {
   const [userSearch, setUserSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All Roles");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
+  const [page, setPage] = useState(1);
+  const initialPageSize = typeof window !== "undefined" && window.innerWidth <= 680 ? 6 : 10;
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailForm, setEmailForm] = useState({
+    recipientsOption: "All users",   
+    selectedUserIds: [],               
+    customEmails: "",                  
+    template: "",
+    subject: "",
+    message: "",
+    markAnnouncement: false,
+  });
 
     const categories = [
     "All Categories",
@@ -68,6 +81,7 @@ const AdminDashboard = () => {
   }, []);
 
   // User Management
+  //hardcoded user data
   const [users, setUsers] = useState([
     {
       id: 1,
@@ -75,8 +89,8 @@ const AdminDashboard = () => {
       email: "ahmad.rahman@email.com",
       city: "Kuching, Sarawak",
       role: "User",
-      status: "Active",            // Active | Inactive | Suspended
-      suspendedOn: null,           // e.g. "2024-01-11" if Suspended
+      status: "Active",
+      suspendedOn: null,
       submissions: 15,
       approved: 12,
       lastLogin: "16/01/2024, 02:30 pm",
@@ -129,6 +143,306 @@ const AdminDashboard = () => {
       approved: 5,
       lastLogin: "15/12/2023, 01:55 pm",
     },
+    {
+      id: 6,
+      name: "Kelvin Tan",
+      email: "kelvin.tan@email.com",
+      city: "Mukah, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 9,
+      approved: 7,
+      lastLogin: "12/01/2024, 08:20 pm",
+    },
+    {
+      id: 7,
+      name: "Nur Aisyah",
+      email: "aisyah.nur@email.com",
+      city: "Kuching, Sarawak",
+      role: "User",
+      status: "Inactive",
+      suspendedOn: null,
+      submissions: 2,
+      approved: 2,
+      lastLogin: "02/01/2024, 10:00 am",
+    },
+    {
+      id: 8,
+      name: "Daniel Lee",
+      email: "daniel.lee@email.com",
+      city: "Samarahan, Sarawak",
+      role: "Admin",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 4,
+      approved: 4,
+      lastLogin: "17/01/2024, 03:05 pm",
+    },
+    {
+      id: 9,
+      name: "Aman Shah",
+      email: "aman.shah@email.com",
+      city: "Miri, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 11,
+      approved: 9,
+      lastLogin: "13/01/2024, 07:40 pm",
+    },
+    {
+      id: 10,
+      name: "Grace Chong",
+      email: "grace.chong@email.com",
+      city: "Bintulu, Sarawak",
+      role: "User",
+      status: "Suspended",
+      suspendedOn: "2024-01-09",
+      submissions: 5,
+      approved: 3,
+      lastLogin: "09/01/2024, 12:10 pm",
+    },
+    {
+      id: 11,
+      name: "Hendry Goh",
+      email: "hendry.goh@email.com",
+      city: "Sibu, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 1,
+      approved: 1,
+      lastLogin: "05/01/2024, 06:25 pm",
+    },
+    {
+      id: 12,
+      name: "Mei Lin",
+      email: "mei.lin@email.com",
+      city: "Kapit, Sarawak",
+      role: "User",
+      status: "Inactive",
+      suspendedOn: null,
+      submissions: 0,
+      approved: 0,
+      lastLogin: "—",
+    },
+    {
+      id: 13,
+      name: "Farah Zain",
+      email: "farah.zain@email.com",
+      city: "Limbang, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 6,
+      approved: 4,
+      lastLogin: "11/01/2024, 01:18 pm",
+    },
+    {
+      id: 14,
+      name: "Jonathan Ng",
+      email: "jon.ng@email.com",
+      city: "Kuching, Sarawak",
+      role: "Admin",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 12,
+      approved: 12,
+      lastLogin: "17/01/2024, 04:10 pm",
+    },
+    {
+      id: 15,
+      name: "Melissa Tiong",
+      email: "melissa.tiong@email.com",
+      city: "Sarikei, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 8,
+      approved: 6,
+      lastLogin: "08/01/2024, 09:05 am",
+    },
+    {
+      id: 16,
+      name: "Ivan Lau",
+      email: "ivan.lau@email.com",
+      city: "Kuching, Sarawak",
+      role: "User",
+      status: "Inactive",
+      suspendedOn: null,
+      submissions: 3,
+      approved: 2,
+      lastLogin: "28/12/2023, 05:45 pm",
+    },
+    {
+      id: 17,
+      name: "Zarina Ali",
+      email: "zarina.ali@email.com",
+      city: "Miri, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 14,
+      approved: 10,
+      lastLogin: "16/01/2024, 10:42 am",
+    },
+    {
+      id: 18,
+      name: "Kelisa Yong",
+      email: "kelisa.yong@email.com",
+      city: "Bau, Sarawak",
+      role: "User",
+      status: "Suspended",
+      suspendedOn: "2023-12-30",
+      submissions: 2,
+      approved: 0,
+      lastLogin: "30/12/2023, 03:30 pm",
+    },
+    {
+      id: 19,
+      name: "Faizal Rahim",
+      email: "faizal.rahim@email.com",
+      city: "Sibu, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 18,
+      approved: 16,
+      lastLogin: "15/01/2024, 08:12 pm",
+    },
+    {
+      id: 20,
+      name: "Claudia Ting",
+      email: "claudia.ting@email.com",
+      city: "Kuching, Sarawak",
+      role: "Admin",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 1,
+      approved: 1,
+      lastLogin: "17/01/2024, 01:05 pm",
+    },
+    {
+      id: 21,
+      name: "Haziq Hamdan",
+      email: "haziq.hamdan@email.com",
+      city: "Bintulu, Sarawak",
+      role: "User",
+      status: "Inactive",
+      suspendedOn: null,
+      submissions: 0,
+      approved: 0,
+      lastLogin: "—",
+    },
+    {
+      id: 22,
+      name: "Tracy Lim",
+      email: "tracy.lim@email.com",
+      city: "Miri, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 10,
+      approved: 8,
+      lastLogin: "12/01/2024, 10:50 am",
+    },
+    {
+      id: 23,
+      name: "Samuel Goh",
+      email: "samuel.goh@email.com",
+      city: "Samarahan, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 4,
+      approved: 3,
+      lastLogin: "13/01/2024, 02:25 pm",
+    },
+    {
+      id: 24,
+      name: "Nabila Hassan",
+      email: "nabila.hassan@email.com",
+      city: "Kapit, Sarawak",
+      role: "User",
+      status: "Suspended",
+      suspendedOn: "2024-01-05",
+      submissions: 6,
+      approved: 1,
+      lastLogin: "05/01/2024, 10:00 am",
+    },
+    {
+      id: 25,
+      name: "Ricky Chai",
+      email: "ricky.chai@email.com",
+      city: "Kuching, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 13,
+      approved: 11,
+      lastLogin: "17/01/2024, 05:40 pm",
+    },
+    {
+      id: 26,
+      name: "Adele Liew",
+      email: "adele.liew@email.com",
+      city: "Sibu, Sarawak",
+      role: "User",
+      status: "Inactive",
+      suspendedOn: null,
+      submissions: 2,
+      approved: 1,
+      lastLogin: "20/12/2023, 09:00 am",
+    },
+    {
+      id: 27,
+      name: "Muhd Iqbal",
+      email: "m.iqbal@email.com",
+      city: "Miri, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 9,
+      approved: 7,
+      lastLogin: "16/01/2024, 07:05 pm",
+    },
+    {
+      id: 28,
+      name: "Vivian Toh",
+      email: "vivian.toh@email.com",
+      city: "Bintulu, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 1,
+      approved: 1,
+      lastLogin: "11/01/2024, 03:12 pm",
+    },
+    {
+      id: 29,
+      name: "Rafidah Ahmad",
+      email: "rafidah.ahmad@email.com",
+      city: "Lundu, Sarawak",
+      role: "User",
+      status: "Active",
+      suspendedOn: null,
+      submissions: 7,
+      approved: 6,
+      lastLogin: "14/01/2024, 08:42 am",
+    },
+    {
+      id: 30,
+      name: "Kenji Yong",
+      email: "kenji.yong@email.com",
+      city: "Miri, Sarawak",
+      role: "User",
+      status: "Inactive",
+      suspendedOn: null,
+      submissions: 0,
+      approved: 0,
+      lastLogin: "—",
+    },
   ]);
 
   // Summary metrics (derived so they always stay fresh)
@@ -155,6 +469,68 @@ const AdminDashboard = () => {
 
     return matchesSearch && matchesRole && matchesStatus;
   });
+
+  useEffect(() => {
+    setPage(1);
+  }, [userSearch, roleFilter, statusFilter]);
+
+  const totalUsersFiltered = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalUsersFiltered / pageSize));
+  const startIdx = (page - 1) * pageSize;
+  const endIdx = Math.min(startIdx + pageSize, totalUsersFiltered);
+  const pageUsers = filteredUsers.slice(startIdx, endIdx);
+
+  const goPrev = () => setPage(p => Math.max(1, p - 1));
+  const goNext = () => setPage(p => Math.min(totalPages, p + 1));
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+    if (totalPages === 0 && page !== 1) {
+      setPage(1);
+    }
+  }, [totalPages, page]);
+
+  useEffect(() => {
+    if (!showEmailModal) return;
+    const onKey = (e) => e.key === "Escape" && setShowEmailModal(false);
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [showEmailModal]);
+
+  const adminIds = users.filter(u => u.role === "Admin").map(u => u.id);
+
+  const parseCustomEmails = (text) => {
+    if (!text.trim()) return [];
+    // split by comma, trim, basic email shape check, unique
+    const seen = new Set();
+    return text
+      .split(",")
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s))
+      .filter(s => (seen.has(s) ? false : (seen.add(s), true)));
+  };
+
+  const totalRecipients = (() => {
+    switch (emailForm.recipientsOption) {
+      case "All users":
+        return users.length;
+      case "Administrators only":
+        return adminIds.length;
+      case "Specific users":
+        return emailForm.selectedUserIds.length;
+      case "Custom Email Addresses":
+        return parseCustomEmails(emailForm.customEmails).length;
+      default:
+        return 0;
+    }
+  })();
 
   return (
     <div>
@@ -407,7 +783,7 @@ const AdminDashboard = () => {
               <h2 className="umg-title">Enhanced User Management</h2>
               <p className="umg-subtitle">Comprehensive user account administration</p>
             </div>
-            <button className="umg-email-btn">
+            <button className="umg-email-btn" onClick={() => setShowEmailModal(true)}>
               <Mail />
               Send Email Notification
             </button>
@@ -496,12 +872,12 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.length === 0 ? (
+                {pageUsers.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="umg-empty">No users found.</td>
                   </tr>
                 ) : (
-                  filteredUsers.map(u => (
+                  pageUsers.map(u => (
                     <tr key={u.id}>
                       <td>
                         <div className="umg-name">{u.name}</div>
@@ -552,7 +928,238 @@ const AdminDashboard = () => {
                 )}
               </tbody>
             </table>
+            <div className="umg-pager">
+              <div className="umg-pager-left">
+                <label className="umg-pager-label">Rows per page:</label>
+                <select
+                  value={pageSize}
+                    onChange={(e) => {
+                      const size = Number(e.target.value);
+                      setPageSize(size); 
+                      setPage(1);        
+                    }}
+                  onBlur={(e) => setPageSize(Number(e.target.value))}
+                  className="umg-pager-select"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                </select>
+
+                <span className="umg-pager-range">
+                  {totalUsersFiltered === 0 ? "0-0 of 0" : `${startIdx + 1}–${endIdx} of ${totalUsersFiltered}`}
+                </span>
+              </div>
+
+              <div className="umg-pager-right">
+                <button
+                  className="umg-page-btn"
+                  onClick={goPrev}
+                  disabled={page === 1}
+                  aria-label="Previous page"
+                >
+                  ‹
+                </button>
+
+                <span className="umg-page-indicator">{page} / {totalPages}</span>
+
+                <button
+                  className="umg-page-btn"
+                  onClick={goNext}
+                  disabled={page === totalPages}
+                  aria-label="Next page"
+                >
+                  ›
+                </button>
+              </div>
+            </div>
           </div>
+          {showEmailModal && (
+          <div
+            className="umg-modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setShowEmailModal(false)}
+          >
+            <div
+              className="umg-modal"
+              onClick={(e) => e.stopPropagation()} // prevent backdrop close
+            >
+              {/* Header */}
+              <div className="umg-modal-header">
+                <h3><Mail size = "18"/> Send Email Notification</h3>
+                <button className="umg-modal-close" onClick={() => setShowEmailModal(false)} aria-label="Close">×</button>
+              </div>
+
+              {/* Body */}
+              <div className="umg-modal-body">
+                {/* Recipients */}
+                <div className="umg-field">
+                  <label className="umg-label">Recipients</label>
+                  <select
+                    className="umg-input"
+                    value={emailForm.recipients}
+                    onChange={(e) => setEmailForm({ ...emailForm, recipientsOption: e.target.value })}
+                  >
+                    <option>All users</option>
+                    <option>Specific users</option>
+                    <option>Administrators only</option>
+                    <option>Custom Email Addresses</option>
+                  </select>
+                  
+                  {/* Specific users: show a compact checklist */}
+                  {emailForm.recipientsOption === "Specific users" && (
+                    <div className="umg-specific-list">
+                      <div className="umg-specific-search-wrap">
+                        <input
+                          className="umg-input"
+                          placeholder="Search users to select…"
+                          onChange={(e) => {
+                            const q = e.target.value.toLowerCase();
+                            const visible = users.filter(
+                              u =>
+                                u.name.toLowerCase().includes(q) ||
+                                u.email.toLowerCase().includes(q) ||
+                                u.city.toLowerCase().includes(q)
+                            );
+                            // store temp list to display; simplest: derive on render below
+                            // to keep code minimal, we'll just filter inline in the map below using `q` kept in state
+                          }}
+                        />
+                      </div>
+                      <div className="umg-specific-scroll">
+                        {users.map(u => (
+                          <label key={u.id} className="umg-specific-row">
+                            <input
+                              type="checkbox"
+                              checked={emailForm.selectedUserIds.includes(u.id)}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setEmailForm((prev) => ({
+                                  ...prev,
+                                  selectedUserIds: checked
+                                    ? [...prev.selectedUserIds, u.id]
+                                    : prev.selectedUserIds.filter(id => id !== u.id),
+                                }));
+                              }}
+                            />
+                            <div>
+                              <div className="umg-name">{u.name}</div>
+                              <div className="umg-subline">{u.email}</div>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Custom emails: show input */}
+                  {emailForm.recipientsOption === "Custom Email Addresses" && (
+                    <div className="umg-field">
+                      <label className="umg-label">Enter email addresses</label>
+                      <textarea
+                        className="umg-input umg-textarea"
+                        placeholder="Enter comma-separated emails, e.g. alice@mail.com, bob@mail.com"
+                        value={emailForm.customEmails}
+                        onChange={(e) =>
+                          setEmailForm({ ...emailForm, customEmails: e.target.value })
+                        }
+                      />
+                    </div>
+                  )}
+
+                  <div className="umg-hint">Total Recipients: {totalRecipients}</div>
+                </div>
+
+                {/* Template */}
+                <div className="umg-field">
+                  <label className="umg-label">Email Template</label>
+                  <select
+                    className="umg-input"
+                    value={emailForm.template}
+                    onChange={(e) => setEmailForm({ ...emailForm, template: e.target.value })}
+                  >
+                    <option value="">Select a template</option>
+                    <option value="announcement">Platform Announcement</option>
+                    <option value="reminder">Submission Reminder</option>
+                    <option value="policy">Policy Update</option>
+                  </select>
+                </div>
+
+                {/* Subject */}
+                <div className="umg-field">
+                  <label className="umg-label">Subject</label>
+                  <input
+                    className="umg-input"
+                    placeholder="Enter email subject"
+                    value={emailForm.subject}
+                    onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+                  />
+                </div>
+
+                {/* Message */}
+                <div className="umg-field">
+                  <label className="umg-label">Message</label>
+                  <textarea
+                    className="umg-input umg-textarea"
+                    placeholder="Enter your message"
+                    value={emailForm.message}
+                    onChange={(e) => setEmailForm({ ...emailForm, message: e.target.value })}
+                  />
+                </div>
+
+                {/* Announcement checkbox */}
+                <label className="umg-check">
+                  <input
+                    type="checkbox"
+                    checked={emailForm.markAnnouncement}
+                    onChange={(e) => setEmailForm({ ...emailForm, markAnnouncement: e.target.checked })}
+                  />
+                  <div>
+                    <div>Mark as Announcement</div>
+                    <div className="umg-check-hint">Announcements appear in user notifications</div>
+                  </div>
+                </label>
+              </div>
+
+              {/* Footer */}
+              <div className="umg-modal-footer">
+                <button className="umg-btn-secondary" onClick={() => setShowEmailModal(false)}>Cancel</button>
+                <button
+                  className="umg-btn-primary"
+                  onClick={() => {
+                    if (!emailForm.subject.trim() || !emailForm.message.trim()) {
+                      alert("Please provide a subject and message.");
+                      return;
+                    }
+
+                    let recipients = [];
+                    if (emailForm.recipientsOption === "All users") {
+                      recipients = users.map(u => u.email);
+                    } else if (emailForm.recipientsOption === "Administrators only") {
+                      recipients = users.filter(u => u.role === "Admin").map(u => u.email);
+                    } else if (emailForm.recipientsOption === "Specific users") {
+                      const chosen = new Set(emailForm.selectedUserIds);
+                      recipients = users.filter(u => chosen.has(u.id)).map(u => u.email);
+                    } else if (emailForm.recipientsOption === "Custom Email Addresses") {
+                      recipients = parseCustomEmails(emailForm.customEmails);
+                    }
+
+                    console.log("SEND EMAIL ▶", {
+                      ...emailForm,
+                      recipients,
+                      total: recipients.length,
+                    });
+
+                    setShowEmailModal(false);
+                  }}
+                >
+                  ✈ Send Email
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         </div>
       )}
 
