@@ -479,7 +479,7 @@ const AdminDashboard = () => {
           <div className="umg-list-card">
             <div className="umg-list-head">
               <div className="umg-list-title">
-                <GoPeople />
+                <Users />
                 <span>User Accounts ({filteredUsers.length})</span>
               </div>
             </div>
@@ -492,7 +492,7 @@ const AdminDashboard = () => {
                   <th>Status</th>
                   <th>Contributions</th>
                   <th>Last Login</th>
-                  <th style={{textAlign:"right"}}>Actions</th>
+                  <th className="umg-actions-th">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -507,6 +507,11 @@ const AdminDashboard = () => {
                         <div className="umg-name">{u.name}</div>
                         <div className="umg-subline">{u.email}</div>
                         <div className="umg-subline">{u.city}</div>
+                        <div className="umg-status-inline">
+                          {u.status === "Active" && <span className="umg-pill umg-pill-active">Active</span>}
+                          {u.status === "Inactive" && <span className="umg-pill umg-pill-inactive">Inactive</span>}
+                          {u.status === "Suspended" && <span className="umg-pill umg-pill-suspended">Suspended</span>}
+                        </div>
                       </td>
 
                       <td>
@@ -539,7 +544,7 @@ const AdminDashboard = () => {
 
                       <td>{u.lastLogin}</td>
 
-                      <td style={{textAlign:"right"}}>
+                      <td className="umg-ellipsis-td">
                         <button className="umg-ellipsis" aria-label="More actions">⋯</button>
                       </td>
                     </tr>
