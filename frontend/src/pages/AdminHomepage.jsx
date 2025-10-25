@@ -12,7 +12,7 @@ import { CiSettings, CiSearch, CiFilter} from "react-icons/ci";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { HiOutlinePencilAlt } from "react-icons/hi";
-import { Mail, Shield, Users, Activity, CircleCheckBig, CircleX, X } from 'lucide-react';
+import { Mail, Shield, Users, Activity, CircleCheckBig, CircleX, X, Bell, Send } from 'lucide-react';
 
 
 const AdminDashboard = () => {
@@ -54,8 +54,39 @@ const AdminDashboard = () => {
     "Soup",
     "Meat",
   ];
-  
 
+  const platformName = "SarawakEats";
+  const today = new Date();
+  const formatDate = (d) =>
+    d.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+  const EMAIL_TEMPLATES = {
+    "Custom message": {
+      subject: "",
+      message: "",
+    },
+    "Welcome Message": {
+      subject: `Welcome to ${platformName}!`,
+      message:
+        `Hello,\n\nWelcome to ${platformName}! We're excited to have you join our community dedicated to preserving and sharing Sarawakian culinary heritage. Explore traditional recipes, discover nutritional insights, and connect with fellow food enthusiasts.\n\nThanks,\n${platformName} Team`,
+    },
+    "Content Approval": {
+      subject: `Your submission has been approved!`,
+      message:
+        `Hello,\n\nCongratulations! Your recipe/food submission has been reviewed and approved by our team. It is now live on the ${platformName} platform for the community to discover and enjoy. Thank you for contributing to our cultural heritage preservation efforts.\n\nThanks,\n${platformName} Team`,
+    },
+    "Content Rejection": {
+      subject: `Update on your submission`,
+      message:
+        `Hello,\n\nThank you for your submission to ${platformName}. After careful review, we found that some adjustments are needed before publication. Please check the feedback provided and feel free to resubmit with the suggested improvements.\n\nThanks,\n${platformName} Team`,
+    },
+    "System Update": {
+      subject: `${platformName} Platform Update`,
+      message:
+        `Hello,\n\nWe've made some exciting updates to the ${platformName} platform! Check out the new features and improvements designed to enhance your experience exploring Sarawakian cuisine and culture.\n\nThanks,\n${platformName} Team`,
+    },
+  };
+  
   // Hardcoded sample data (replace with API integration later)
   const summary = {
     totalFoods: 347,
@@ -1035,6 +1066,7 @@ const AdminDashboard = () => {
                             <label key={u.id} className="umg-specific-row">
                               <input
                                 type="checkbox"
+                                className="umg-row-checkbox"
                                 checked={emailForm.selectedUserIds.includes(u.id)}
                                 onChange={(e) => {
                                   const checked = e.target.checked;
@@ -1082,12 +1114,22 @@ const AdminDashboard = () => {
                   <select
                     className="umg-input"
                     value={emailForm.template}
-                    onChange={(e) => setEmailForm({ ...emailForm, template: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const tpl = EMAIL_TEMPLATES[value] || { subject: "", message: "" };
+                      setEmailForm(prev => ({
+                        ...prev,
+                        template: value,
+                        subject: tpl.subject,   // always update
+                        message: tpl.message,   // always update
+                      }));
+                    }}
                   >
-                    <option value="">Select a template</option>
-                    <option value="announcement">Platform Announcement</option>
-                    <option value="reminder">Submission Reminder</option>
-                    <option value="policy">Policy Update</option>
+                    <option value="Custom message">Custom message</option>
+                    <option value="Welcome Message">Welcome Message</option>
+                    <option value="Content Approval">Content Approval</option>
+                    <option value="Content Rejection">Content Rejection</option>
+                    <option value="System Update">System Update</option>
                   </select>
                 </div>
 
@@ -1098,7 +1140,7 @@ const AdminDashboard = () => {
                     className="umg-input"
                     placeholder="Enter email subject"
                     value={emailForm.subject}
-                    onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, subject: e.target.value }))}
                   />
                 </div>
 
@@ -1109,7 +1151,7 @@ const AdminDashboard = () => {
                     className="umg-input umg-textarea"
                     placeholder="Enter your message"
                     value={emailForm.message}
-                    onChange={(e) => setEmailForm({ ...emailForm, message: e.target.value })}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, message: e.target.value }))}
                   />
                 </div>
 
@@ -1121,7 +1163,7 @@ const AdminDashboard = () => {
                     onChange={(e) => setEmailForm({ ...emailForm, markAnnouncement: e.target.checked })}
                   />
                   <div>
-                    <div>Mark as Announcement</div>
+                    <div><Bell size = "16" /> Mark as Announcement</div>
                     <div className="umg-check-hint">Announcements appear in user notifications</div>
                   </div>
                 </label>
@@ -1159,7 +1201,7 @@ const AdminDashboard = () => {
                     setShowEmailModal(false);
                   }}
                 >
-                  ✈ Send Email
+                  <Send size = "18"/> Send Email
                 </button>
               </div>
             </div>

@@ -952,8 +952,14 @@
   gap: 12px;
 }
 
-.umg-field { display: grid; gap: 6px; }
-.umg-label { font-size: 14px; color: #7b6148; }
+.umg-field { 
+  display: grid; 
+  gap: 6px; 
+}
+.umg-label { 
+  font-size: 14px; 
+  color: #7b6148; 
+}
 .umg-input {
   width: 100%;
   padding: 10px 12px;
@@ -961,16 +967,50 @@
   border: 1px solid #e6d9ca;
   border-radius: 8px;
   color: #3b2a16;
+  outline: none;
 }
-.umg-textarea { min-height: 120px; resize: vertical; }
-.umg-hint { font-size: 12px; color: #8d6a46; }
+.umg-input:hover {
+  outline: none;
+}
+.umg-textarea { 
+  min-height: 120px; 
+  resize: vertical; 
+}
+.umg-hint { 
+  font-size: 12px; 
+  color: #8d6a46; 
+}
 
 .umg-check {
-  display: flex; gap: 10px; align-items: flex-start;
-  padding-top: 4px; color: #3b2a16;
+  display: flex; 
+  gap: 10px; 
+  align-items: flex-start;
+  padding-top: 4px; 
+  color: #3b2a16;
 }
-.umg-check input { margin-top: 3px; }
-.umg-check-hint { font-size: 12px; color: #8d6a46; }
+.umg-check input { 
+  margin-top: 3px; 
+}
+.umg-check-hint { 
+  font-size: 12px; 
+  color: #8d6a46; 
+}
+
+.umg-specific-row input[type="checkbox"],
+.umg-check input[type="checkbox"] {
+  transform: scale(1.4);         
+  transform-origin: top left;
+  accent-color: #7b4f1d;      
+  margin-right: 5px;
+  margin-top: 5px;
+}
+
+.umg-specific-row input[type="checkbox"]:focus-visible,
+.umg-check input[type="checkbox"]:focus-visible {
+  outline: 2px solid #7b4f1d;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 
 .umg-modal-footer {
   flex: 0 0 auto;
