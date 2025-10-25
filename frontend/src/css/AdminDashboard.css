@@ -658,6 +658,7 @@
   color: #7b6148; 
   font-weight: 600; 
   font-size: 14px;
+  border-top: none;
   border-bottom: 1px solid #f0e6da;
 }
 .umg-table tbody td { 
