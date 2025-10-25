@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { API_URL } from "../config/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AuthContext = createContext();
 
@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
   // ✅ Detect logged-in user OR guest (401)
   const checkSession = async () => {
     try {
-      const res = await fetch(`${API_URL}/auth/session`, {
+      const res = await fetch(`${API_URL}/api/auth/session`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -49,7 +49,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const res = await fetch(`${API_URL}/login`, {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -68,7 +68,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await fetch(`${API_URL}/logout`, { method: "POST", credentials: "include" });
+      await fetch(`${API_URL}/api/logout`, { method: "POST", credentials: "include" });
     } finally {
       setUser(null);
     }

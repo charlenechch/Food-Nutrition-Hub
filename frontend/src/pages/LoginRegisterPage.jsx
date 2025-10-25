@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
-import { API_URL } from "../config/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Firebase imports
 import {
@@ -92,7 +92,7 @@ export default function LoginRegisterPage() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) {
         try {
-          await fetch(`${API_URL}/verify-email/sync`, {
+          await fetch(`${API_URL}/api/verify-email/sync`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
@@ -141,7 +141,7 @@ export default function LoginRegisterPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/login`, {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -290,7 +290,7 @@ export default function LoginRegisterPage() {
 
     try {
       // ✅ Step 1 — Register in MySQL database
-      const res = await fetch(`${API_URL}/register`, {
+      const res = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

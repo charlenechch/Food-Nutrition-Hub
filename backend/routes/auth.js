@@ -23,7 +23,7 @@ router.get("/session", async (req, res) => {
 });
 
 /* ✅ 2. Login (Creates session + userProfile if missing) */
-router.post("/login", async (req, res) => {
+router.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -84,7 +84,7 @@ router.post("/login", async (req, res) => {
 });
 
 /* ✅ 3. Logout (Clears session) */
-router.post("/logout", (req, res) => {
+router.post("/api/logout", (req, res) => {
   try {
     req.session.destroy(() => {
       return res.json({ success: true, message: "Logged out" });
