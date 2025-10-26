@@ -4,6 +4,8 @@ const db = require("./db");
 const recipeData = [
   {
     foodID: 1, //linut
+    userProfileID: 1,
+    status: "Approved",
     ingredients: `33 g sago flour
                   67-100 ml water
                   1/3 cup anchovies
@@ -32,6 +34,8 @@ const recipeData = [
 
   {
     foodID: 2, //kolo mee
+    userProfileID: 2,
+    status: "Approved",
     ingredients: `Ingredients A (The minced meat)
                   75g minced meat
                   1 tsp light soy sauce
@@ -83,6 +87,8 @@ const recipeData = [
 
   {
     foodID: 3, //umai
+    userProfileID: 1,
+    status: "Approved",
     ingredients: `300 g very fresh raw prawns, shelled, intestinal tract removed
                   6 limes (5 juiced, 1 thinly sliced)
                   ½ tsp salt
@@ -107,6 +113,8 @@ const recipeData = [
 
   {
     foodID: 4, //nasi aruk
+    userProfileID: 1,
+    status: "Approved",
     ingredients: `A handful of anchovies (ikan bilis)
                   2 red shallots (sliced)
                   3 cloves of garlic (sliced)
@@ -126,6 +134,8 @@ const recipeData = [
 
   {
     foodID: 5, //asam siok
+    userProfileID: 3,
+    status: "Approved",
     ingredients: `1kg whole chicken
                   20g ginger
                   2 lemon grass
@@ -151,6 +161,8 @@ const recipeData = [
 
   {
     foodID: 6, //belacan bihun
+    userProfileID: 4,
+    status: "Approved",
     ingredients: `200g rice vermicelli
                   8 small chilli
                   150g shrimp paste
@@ -176,6 +188,8 @@ const recipeData = [
 
   {
     foodID: 7, //daun ubi tumbuk
+    userProfileID: 5,
+    status: "Approved",
     ingredients: `200 grams Daun Ubi (Cassava Leaves)
                   30 grams Anchovies
                   750 ml Water
@@ -197,6 +211,8 @@ const recipeData = [
 
   {
     foodID: 8, //manicai
+    userProfileID: 6,
+    status: "Approved",
     ingredients: `200g Manicai (plucked from stalks)
                   1 tablespoon salt
                   2 cloves garlic, minced
@@ -215,6 +231,8 @@ const recipeData = [
 
   {
     foodID: 9, //midin belacan
+    userProfileID: 7,
+    status: "Approved",
     ingredients: `2 bunch of Midin (cut to about 15cm from the curled head and washed)\
                   2 cloves of Garlic
                   1 Shallot
@@ -238,6 +256,8 @@ const recipeData = [
 
   {
     foodID: 10, //ayam pansuh
+    userProfileID: 4,
+    status: "Approved",
     ingredients: `1 Chicken
                   1 bundle of umbut tepus
                   A kantan flower
@@ -270,12 +290,13 @@ const recipeData = [
   try {
     for (const recipe of recipeData) {
     const sql = `
-      INSERT INTO recipe (foodID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO recipe (foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     const values = [
       recipe.foodID,
+      recipe.userProfileID,
       recipe.ingredients,
       recipe.steps,
       recipe.cookTime,

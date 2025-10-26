@@ -24,9 +24,12 @@ router.get('/all/recipes', async (req, res) => {
         r.ingredients, 
         r.steps AS instructions, 
         r.DidYouKnow AS funFact, 
-        r.chefTips
+        r.chefTips,
+        r.userProfileID,
+        r.status
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
+      WHERE r.status = 'Approved'
     `;
     
     const result = await db.query(query);
@@ -94,7 +97,7 @@ router.get('/all/recipes', async (req, res) => {
       allRecipes = uniqueRecipes;
     }
     
-    console.log(`Sending ${allRecipes.length} recipes to frontend`);
+    console.log(`Sending ${allRecipes.length} APPROVED recipes to frontend`);
     
     if (allRecipes.length > 0) {
       console.log('✅ Recipes being sent:', allRecipes.map(r => ({ id: r.id, name: r.name })));
@@ -176,7 +179,7 @@ function createRecipeFromFlatObject(data) {
     prepTime: Number(getSafe(data, 'prepTime')) || 0,
     cookTime: Number(getSafe(data, 'cookTime')) || 0,
     servings: Number(getSafe(data, 'servings')) || 0,
-    image: imageUrl, // Now includes base64 images
+    image: imageUrl,
     description: getSafe(data, 'description') || '',
     foodType: getSafe(data, 'foodType') || getSafe(data, 'category') || 'Other',
     dietaryTags: dietaryTags,
@@ -210,10 +213,12 @@ router.get('/recipes/:id', async (req, res) => {
         r.ingredients, 
         r.steps AS instructions, 
         r.DidYouKnow AS funFact, 
-        r.chefTips
+        r.chefTips,
+        r.userProfileID,
+        r.status
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
-      WHERE f.foodID = ?
+      WHERE f.foodID = ? AND r.status = 'Approved'
     `;
     
     const result = await db.query(query, [id]);
@@ -267,11 +272,16 @@ router.get('/recipes/:id', async (req, res) => {
         const numKey = parseInt(key);
         if (!isNaN(numKey) && fieldMap[numKey] !== undefined) {
           mappedData[fieldMap[numKey]] = recipeData[key];
-        } else {
+        } else if (isNaN(numKey) && key !== 'userProfileID' && key !== 'status') {
+          // Only include non-numeric keys that are NOT the internal fields
           mappedData[key] = recipeData[key];
         }
       });
       recipeData = mappedData;
+    } else {
+      // Remove internal fields if they exist as named properties
+      const { userProfileID, status, ...cleanData } = recipeData;
+      recipeData = cleanData;
     }
     
     console.log('Final recipe data before transformation:', {
@@ -324,7 +334,7 @@ router.post('/create/recipes', async (req, res) => {
     const foodQuery = `
       INSERT INTO food (
         name, origin, difficulty, prepTime, image, description, 
-        foodType, category, dietaryTags
+        foodType, category, dietaryTags, status, userProfileID
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
@@ -337,7 +347,9 @@ router.post('/create/recipes', async (req, res) => {
       description || '', 
       foodType || 'Other',
       foodType || 'Other',
-      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || '')
+      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
+      'Pending',
+      req.user?.id || null
     ];
     
     console.log('Executing food insert...');
@@ -389,7 +401,8 @@ router.post('/create/recipes', async (req, res) => {
     
     res.status(201).json({ 
       message: 'Recipe created successfully', 
-      id: foodId 
+      id: foodId,
+      status: 'Pending'
     });
     
   } catch (error) {

@@ -12,9 +12,6 @@ const userProfile = [
     pushNotifications: true,
     profileVisibility: true,
     language: 'en',
-    recipes: 9,
-    foods: 12,
-    likes: 51
   },
   {
     userID: 2,
@@ -27,9 +24,6 @@ const userProfile = [
     pushNotifications: false,
     profileVisibility: true,
     language: 'en',
-    recipes: 1,
-    foods: 3,
-    likes: 32
   },
   {
     userID: 5,
@@ -42,9 +36,6 @@ const userProfile = [
     pushNotifications: true,
     profileVisibility: true,
     language: 'ms',
-    recipes: 6,
-    foods: 5,
-    likes: 43
   },
   {
     userID: 6,
@@ -57,9 +48,6 @@ const userProfile = [
     pushNotifications: true,
     profileVisibility: false,
     language: 'en',
-    recipes: 2,
-    foods: 4,
-    likes: 23
   },
   {
     userID: 9,
@@ -72,9 +60,6 @@ const userProfile = [
     pushNotifications: true,
     profileVisibility: true,
     language: 'en',
-    recipes: 1,
-    foods: 9,
-    likes: 11
   },
   {
     userID: 10,
@@ -87,9 +72,6 @@ const userProfile = [
     pushNotifications: false,
     profileVisibility: true,
     language: 'ms',
-    recipes: 5,
-    foods: 8,
-    likes: 29
   },
   {
     userID: 11,
@@ -102,9 +84,6 @@ const userProfile = [
     pushNotifications: true,
     profileVisibility: true,
     language: 'ms',
-    recipes: 12,
-    foods: 8,
-    likes: 9
   },
   {
     userID: 12,
@@ -117,9 +96,6 @@ const userProfile = [
     pushNotifications: false,
     profileVisibility: true,
     language: 'en',
-    recipes: 0,
-    foods: 1,
-    likes: 8
   },
   {
     userID: 14,
@@ -132,9 +108,6 @@ const userProfile = [
     pushNotifications: true,
     profileVisibility: false,
     language: 'en',
-    recipes: 1,
-    foods: 5,
-    likes: 66
   },
   {
     userID: 16,
@@ -147,9 +120,6 @@ const userProfile = [
     pushNotifications: true,
     profileVisibility: true,
     language: 'ms',
-    recipes: 12,
-    foods: 8,
-    likes: 89
   }
 ];
 
@@ -157,8 +127,8 @@ const userProfile = [
   try {
     for (const profile of userProfile) {
       const sql = `
-        INSERT INTO userProfile (userID, location, bio, dietaryPreference, allergies, avatar, emailNotifications, pushNotifications, profileVisibility, language, recipes, foods, likes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO userProfile (userID, location, bio, dietaryPreference, allergies, avatar, emailNotifications, pushNotifications, profileVisibility, language)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       const values = [
@@ -172,9 +142,6 @@ const userProfile = [
         profile.pushNotifications,
         profile.profileVisibility,
         profile.language,
-        profile.recipes,      
-        profile.foods,        
-        profile.likes  
       ];
 
       await db.query(sql, values);

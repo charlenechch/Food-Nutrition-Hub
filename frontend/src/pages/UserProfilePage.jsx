@@ -1,4 +1,4 @@
-// ✅ UserProfilePage.jsx – Final Version with Guest Popup
+// ✅UserProfilePage.jsx – Final Version with Guest Popup
 // - Shows Login Prompt Modal instead of redirecting for guests
 // - Supports /profile & /profile/:userProfileID
 // - Keeps saved foods, contributions, preferences, settings, stats
@@ -91,7 +91,16 @@ export default function UserProfilePage() {
           ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
           : `${API_BASE_URL}/api/userProfile`;
 
-        const res = await fetch(endpoint, { credentials: "include" });
+        console.log("🔍 Fetching profile from:", endpoint);
+      
+      const res = await fetch(endpoint, { 
+        credentials: "include",
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      console.log("🔍 Response status:", res.status);
 
         if (res.status === 401) {
           // ✅ Show login popup instead of redirect/logout
@@ -100,11 +109,18 @@ export default function UserProfilePage() {
           return;
         }
 
-        if (!res.ok) throw new Error(`Failed to load profile (status ${res.status})`);
+        if (!res.ok) {
+        const errorText = await res.text();
+        console.error("❌ Server response not OK:", errorText);
+        throw new Error(`Failed to load profile (status ${res.status})`);
+      }
 
-        const data = await res.json();
-        if (!data) throw new Error("Profile not found");
-
+      const data = await res.json();
+      console.log("🔍 Profile data received:", data);
+      
+      if (!data || !data.success) {
+        throw new Error(data?.error || "Profile not found or server error");
+      }
         setUser(data);
         setForm({
           firstName: data.firstName || "",
@@ -141,41 +157,65 @@ export default function UserProfilePage() {
   // ===== Save: Personal Info =====
   const savePersonal = async () => {
     try {
-      if (!user?.userID) return alert("No User ID found.");
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/${user.userID}`, {
+      const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ ...form, bio }),
+        body: JSON.stringify({ 
+          location: form.location, 
+          bio: bio 
+        }),
       });
+      
       if (!res.ok) throw new Error(`Failed to update profile (${res.status})`);
-      alert("Profile updated!");
+      
+      const result = await res.json();
+      if (result.success) {
+        alert("Profile updated successfully!");
 
-      // Reload the user after update
-      const endpoint = userProfileID
-        ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
-        : `${API_BASE_URL}/api/userProfile`;
-      const r2 = await fetch(endpoint, { credentials: "include" });
-      if (r2.ok) setUser(await r2.json());
+        // Reload the user after update
+        const endpoint = userProfileID
+          ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
+          : `${API_BASE_URL}/api/userProfile`;
+        const r2 = await fetch(endpoint, { credentials: "include" });
+        if (r2.ok) setUser(await r2.json());
+      } else {
+        throw new Error(result.error || "Update failed");
+      }
     } catch (e) {
       alert(e.message);
+      console.error("Update error:", e);
     }
   };
 
   // ===== Save: Preferences =====
   const savePrefs = async () => {
     try {
-      if (!user?.userID) return alert("No User ID found.");
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/${user.userID}/preferences`, {
-        method: "PATCH",
+      const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ prefs }),
+        body: JSON.stringify({ 
+          dietary: prefs.dietary,
+          allergies: prefs.allergies,
+          emailNotifications: prefs.emailNotifications,
+          pushNotifications: prefs.pushNotifications,
+          profileVisibility: prefs.profileVisibility,
+          language: prefs.language
+        }),
       });
+      
       if (!res.ok) throw new Error(`Failed to update preferences (${res.status})`);
-      alert("Preferences updated!");
+      
+      const result = await res.json();
+      if (result.success) {
+        alert("Preferences updated successfully!");
+      } else {
+        throw new Error(result.error || "Update failed");
+      }
     } catch (e) {
       alert(e.message);
+      console.error("Preferences update error:", e);
     }
   };
 
@@ -338,8 +378,8 @@ export default function UserProfilePage() {
                       <div className="upp-muted">recipes shared</div>
                     </div>
                     <div className="upp-stat">
-                      <div className="upp-stat-val">{user?.stats?.foods || 0}</div>
-                      <div className="upp-muted">foods documented</div>
+                      <div className="upp-stat-val">{user?.stats?.posts || 0}</div>
+                      <div className="upp-muted">stories shared</div>
                     </div>
                     <div className="upp-stat">
                       <div className="upp-stat-val">{user?.stats?.likes || 0}</div>

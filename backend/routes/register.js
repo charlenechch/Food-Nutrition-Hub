@@ -69,6 +69,22 @@ router.post("/", async (req, res) => {
     );
 
     console.log(`User registered: ${email} (ID: ${result.insertId})`);
+    const userID = result.insertId;
+
+    // ✅ NEW: Automatically create userProfile record
+    try {
+      await db.execute(
+        `INSERT INTO userProfile 
+         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, recipes, posts, likes) 
+         VALUES (?, '[]', '[]', true, true, true, 'en', 0, 0, 0)`,
+        [userID]
+      );
+      console.log(`✅ UserProfile automatically created for userID: ${userID}`);
+    } catch (profileError) {
+      console.error('❌ Failed to create userProfile:', profileError);
+      // Don't fail the registration if profile creation fails
+      // The ensureUserProfileExists in userProfile.js will handle it later
+    }
 
     // Generate OTP
     // const otp = generateOTP();
