@@ -654,7 +654,6 @@
   width: 100%; 
   border-collapse: collapse; 
   table-layout: fixed; 
-  margin-bottom: 1rem;
 }
 .umg-table th, .umg-table td {
   overflow: hidden;
@@ -699,6 +698,7 @@
 .umg-subline { 
   font-size: 12px; 
   color: #8d6a46; 
+  line-height: 28px;
 }
 
 .umg-submissions { 
@@ -707,10 +707,14 @@
 }
 
 .umg-pill {
-  display: inline-block;
-  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
   font-size: 12px;
-  border-radius: 999px;
+  border-radius: 16px;
+  line-height: 28px;
+  vertical-align: middle;
   border: 1px solid transparent;
   background: #f6f2ec;
   color: #6b4b2c;
@@ -746,6 +750,12 @@
   color: #a25d5d; 
 }
 
+.umg-ellipsis-td {
+  text-align: right;
+  white-space: nowrap;
+  padding-right: 0;
+}
+
 .umg-ellipsis {
   width: 32px;
   height: 32px;
@@ -758,6 +768,9 @@
   border: 1px solid #eadfd3;
   font-size: 18px;
   line-height: 1;
+}
+.umg-ellipsis + .umg-ellipsis { 
+  margin-left: 6px; 
 }
 .umg-ellipsis:hover { 
   background: #f1e7db; 
@@ -778,12 +791,12 @@
 
 .umg-table th:last-child,
 .umg-table td:last-child {
-  width: 68px;          /* pick 40–72px as you like */
-  min-width: 68px;
-  max-width: 68px;
+  width: 84px;         
+  min-width: 84px;
+  max-width: 84px;
   padding-right: 0;
   text-align: right;
-  white-space: nowrap;  /* prevents header wrapping */
+  white-space: nowrap; 
 }
 
 /* <= 980px: hide "Last Login" (5th) */
@@ -801,7 +814,12 @@
 /* <= 680px: also hide "Role" (2nd); keep Name + Status + Actions */
 @media (max-width: 680px) {
   .umg-table th:nth-child(3),
-  .umg-table td:nth-child(3) { display: none; }
+  .umg-table td:nth-child(3) { 
+    display: none; 
+  }
+  .umg-status-inline { 
+    display: inline-block; 
+  }
 }
 
 /* Keep Actions stuck right, even when columns are hidden */
@@ -814,12 +832,6 @@
 .umg-status-inline { 
   display: none; 
   margin-top: 6px; 
-}
-
-@media (max-width: 680px) {
-  .umg-status-inline { 
-    display: inline-block; 
-  }
 }
 
 /* Pager bar */
@@ -916,7 +928,7 @@
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
   display: flex;           
   flex-direction: column;
-  overflow: hidden;        
+  overflow: hidden;      
 }
 .umg-modal-header {
   flex: 0 0 auto;
@@ -953,12 +965,20 @@
 }
 
 .umg-field { 
-  display: grid; 
+  display: flex; 
+  flex-direction: column;
   gap: 6px; 
 }
 .umg-label { 
   font-size: 14px; 
   color: #7b6148; 
+  margin: 0 0 6px; 
+}
+.umg-value {
+  display: flex;
+  align-items: center;   
+  gap: 8px;
+  min-height: 32px;      
 }
 .umg-input {
   width: 100%;
@@ -1015,10 +1035,20 @@
 .umg-modal-footer {
   flex: 0 0 auto;
   display: flex; 
-  justify-content: flex-end; 
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
   padding: 12px 16px;
   border-top: 1px solid #f0e6da;
+}
+.umg-footer-left { 
+  display: flex; 
+  gap: 8px; 
+}
+.umg-footer-spacer { 
+  flex: 1; 
+}
+.umg-btn:focus {
+  outline: none;
 }
 .umg-btn-secondary {
   background: #f7f1e9; 
@@ -1049,6 +1079,17 @@
 .umg-btn-primary:focus { 
   outline: none;
 }
+.umg-btn-warning {
+  background: #fff5da;
+  color: #7a4b00;
+  border: 1px solid #f0d08a;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.umg-btn-warning:hover { 
+  background: #ffefc5; 
+}
 
 /* Responsive modal width and spacing */
 @media (max-width: 540px) {
@@ -1062,6 +1103,15 @@
   }
   .umg-modal-footer { 
     padding: 10px 12px; 
+    flex-wrap: wrap;
+  }
+  .umg-footer-left { 
+    order: 1; 
+    width: 100%; 
+    justify-content: flex-start; 
+  }
+  .umg-footer-spacer { 
+    display: none; 
   }
 }
 
@@ -1076,8 +1126,33 @@
   padding: 6px;
 }
 .umg-specific-row {
-  display: flex; gap: 10px; align-items: flex-start;
-  padding: 6px; border-radius: 6px; cursor: pointer;
+  display: flex; 
+  gap: 10px; 
+  align-items: flex-start;
+  padding: 6px; 
+  border-radius: 6px; 
+  cursor: pointer;
 }
-.umg-specific-row:hover { background: #f8f4ee; }
-.umg-specific-row input { margin-top: 4px; }
+.umg-specific-row:hover { 
+  background: #f8f4ee; 
+}
+.umg-specific-row input { 
+  margin-top: 4px; 
+}
+.umg-submission {
+   display: grid; 
+   grid-template-columns: "1fr 1fr"; 
+   gap: 12px;
+}
+.umg-metrics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start; /* lines up labels nicely */
+}
+.umg-metric {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}

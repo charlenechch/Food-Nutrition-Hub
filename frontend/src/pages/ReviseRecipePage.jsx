@@ -34,7 +34,7 @@ const DIET_OPTIONS = [
   "spicy",
 ];
 
-export default function ReviseContributionPage() {
+export default function ReviseRecipePage() {
   const { id } = useParams();              // /revise/:id
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -191,13 +191,13 @@ export default function ReviseContributionPage() {
   }, [item]);
 
   return (
-    <div className="revise-contribution-page">
+    <div className="revise-recipe-page">
       <Header />
       <div className="upp-page">
         <div className="upp-wrap">
           <button className="lrp-btn lrp-btn-outline rcp-back" onClick={() => navigate(-1)}>← Back</button>
           <div className="rcp-wrap">
-          <h2 className="rp-title">Revise Contribution</h2>
+          <h2 className="rp-title">Revise Recipe</h2>
           <p className="upp-muted" style={{ marginBottom: 16 }}>
             Fix the highlighted fields and resubmit. Your original submission date: {new Date(item.submittedDate).toLocaleDateString()}
           </p>

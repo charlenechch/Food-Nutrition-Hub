@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { CiSearch } from "react-icons/ci";
 import { Mail, Shield, Users, Activity, CircleCheckBig, CircleX, X, Bell, Send } from 'lucide-react';
+import { HiOutlinePencilAlt } from "react-icons/hi";
+import { RiDeleteBin5Line } from "react-icons/ri";
 
 export default function UserManagement() {
   const [userSearch, setUserSearch] = useState("");
@@ -35,10 +37,6 @@ export default function UserManagement() {
   ];
 
   const platformName = "SarawakEats";
-  const today = new Date();
-  const formatDate = (d) =>
-    d.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
-
   const EMAIL_TEMPLATES = {
     "Custom message": {
       subject: "",
@@ -65,7 +63,6 @@ export default function UserManagement() {
         `Hello,\n\nWe've made some exciting updates to the ${platformName} platform! Check out the new features and improvements designed to enhance your experience exploring Sarawakian cuisine and culture.\n\nThanks,\n${platformName} Team`,
     },
   };
-  // User Management
     //hardcoded user data
     const [users, setUsers] = useState([
       {
@@ -435,7 +432,7 @@ export default function UserManagement() {
     const adminCount = users.filter(u => u.role === "Admin").length;
     const contributors = users.filter(u => u.submissions > 0).length;
     const activeCount = users.filter(u => u.status === "Active").length;
-    const issuesCount = users.filter(u => u.status === "Suspended").length;
+    const suspendedCount = users.filter(u => u.status === "Suspended").length;
   
     // Filtering
     const filteredUsers = users.filter(u => {
@@ -526,6 +523,96 @@ export default function UserManagement() {
         u.city.toLowerCase().includes(q)
       );
     });
+
+    const [showUserModal, setShowUserModal] = useState(false);
+    const [userMode, setUserMode] = useState("create"); // "create" | "edit"
+    const emptyUser = {
+    id: null,
+    name: "",
+    email: "",
+    city: "",
+    role: "User",           // "User" | "Admin"
+    status: "Active",       // "Active" | "Inactive" | "Suspended"
+    suspendedOn: null,
+    submissions: 0,
+    approved: 0,
+    lastLogin: "—",
+    };
+    const [userForm, setUserForm] = useState(emptyUser);
+
+    // Open Create
+    const openCreateUser = () => {
+    setUserMode("create");
+    setUserForm(emptyUser);
+    setShowUserModal(true);
+    };
+
+    // Open Edit
+    const openEditUser = (u) => {
+    setUserMode("edit");
+    setUserForm({ ...u });
+    setShowUserModal(true);
+    };
+
+    // Save (Create or Update)
+    const saveUser = () => {
+    // basic validation
+    if (!userForm.name.trim()) return alert("Name is required.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email)) return alert("Valid email is required.");
+
+    if (userMode === "create") {
+        // generate a simple id; replace with backend id when you wire API
+        const nextId = users.length ? Math.max(...users.map(u => u.id)) + 1 : 1;
+        const newUser = {
+        ...userForm,
+        id: nextId,
+        lastLogin: userForm.lastLogin || "—",
+        suspendedOn: userForm.status === "Suspended"
+            ? (userForm.suspendedOn || new Date().toISOString().slice(0,10))
+            : null,
+        };
+        setUsers(prev => [newUser, ...prev]); // prepend for visibility
+    } else {
+        setUsers(prev =>
+        prev.map(u =>
+            u.id === userForm.id
+            ? {
+                ...userForm,
+                suspendedOn: userForm.status === "Suspended"
+                    ? (userForm.suspendedOn || new Date().toISOString().slice(0,10))
+                    : null,
+                }
+            : u
+        )
+        );
+    }
+    setShowUserModal(false);
+    setPage(1); // optional: jump to first page after changes
+    };
+
+    // Delete
+    const deleteUserById = (id) => {
+    const u = users.find(x => x.id === id);
+    if (!u) return;
+    if (window.confirm(`Delete user "${u.name}"? This cannot be undone.`)) {
+        setUsers(prev => prev.filter(x => x.id !== id));
+        setPage(1);
+    }
+    };
+
+    const invalidateSessions = (id) => {
+        if (!id) return;
+        if (!window.confirm("Invalidate all active sessions for this user? They’ll be logged out on all devices.")) {
+            return;
+        }
+
+        // TODO: replace with real API call:
+        // await fetch(`/api/admin/users/${id}/invalidate-sessions`, { method: "POST" })
+
+        console.log("INVALIDATE_SESSIONS ▶ userId:", id);
+        alert("Sessions invalidated. The user will be logged out everywhere.");
+    };
+
   
     return (
         // User Management
@@ -564,8 +651,8 @@ export default function UserManagement() {
               <div className="umg-card-icon"><CircleCheckBig size="40" color="green"/></div>
             </div>
             <div className="umg-card">
-              <div className="umg-card-title">Issues</div>
-              <div className="umg-card-value umg-issue-value">{issuesCount}</div>
+              <div className="umg-card-title">Suspended</div>
+              <div className="umg-card-value umg-issue-value">{suspendedCount}</div>
               <div className="umg-card-icon"><CircleX size="40" color="red"/></div>
             </div>
           </div>
@@ -610,6 +697,9 @@ export default function UserManagement() {
                 <Users />
                 <span>User Accounts ({filteredUsers.length})</span>
               </div>
+              <button className="umg-btn-primary" onClick={openCreateUser}>
+                + Add User
+              </button>
             </div>
 
             <table className="umg-table">
@@ -673,7 +763,20 @@ export default function UserManagement() {
                       <td>{u.lastLogin}</td>
 
                       <td className="umg-ellipsis-td">
-                        <button className="umg-ellipsis" aria-label="More actions">⋯</button>
+                        <button
+                            className="umg-ellipsis"
+                            title="Edit user"
+                            onClick={() => openEditUser(u)}
+                        >
+                            <HiOutlinePencilAlt />
+                        </button>
+                        <button
+                            className="umg-ellipsis"
+                            title="Delete user"
+                            onClick={() => deleteUserById(u.id)}
+                        >
+                            <RiDeleteBin5Line />
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -770,7 +873,7 @@ export default function UserManagement() {
                       />
                       <div className="umg-specific-scroll">
                         {filteredSpecificUsers.length === 0 ? (
-                          <div className="umg-empty" style={{ padding: 8 }}>No matches.</div>
+                          <div className="umg-empty">No matches.</div>
                         ) : (
                           filteredSpecificUsers.map(u => (
                             <label key={u.id} className="umg-specific-row">
@@ -917,6 +1020,169 @@ export default function UserManagement() {
             </div>
           </div>
         )}
+        {showUserModal && (
+            <div
+                className="umg-modal-backdrop"
+                role="dialog"
+                aria-modal="true"
+                onClick={() => setShowUserModal(false)}
+            >
+                <div className="umg-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="umg-modal-header">
+                    <h3>{userMode === "create" ? " Create User" : " Edit User"}</h3>
+                    <button className="umg-modal-close" onClick={() => setShowUserModal(false)} aria-label="Close">×</button>
+                </div>
+
+                <div className="umg-modal-body">
+                    {/* Name */}
+                    <div className="umg-field">
+                    <label className="umg-label">Name</label>
+                    <input
+                        className="umg-input"
+                        value={userForm.name}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Full name"
+                    />
+                    </div>
+
+                    {/* Email */}
+                    <div className="umg-field">
+                    <label className="umg-label">Email</label>
+                    <input
+                        className="umg-input"
+                        value={userForm.email}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="email@example.com"
+                    />
+                    </div>
+
+                    {/* City */}
+                    <div className="umg-field">
+                    <label className="umg-label">City</label>
+                    <input
+                        className="umg-input"
+                        value={userForm.city}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, city: e.target.value }))}
+                        placeholder="Kuching, Sarawak"
+                    />
+                    </div>
+
+                    {/* Role + Status row */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div className="umg-field">
+                        <label className="umg-label">Role</label>
+                        <select
+                        className="umg-input"
+                        value={userForm.role}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, role: e.target.value }))}
+                        >
+                        <option>User</option>
+                        <option>Admin</option>
+                        </select>
+                    </div>
+
+                    <div className="umg-field">
+                        <label className="umg-label">Status</label>
+                        <select
+                        className="umg-input"
+                        value={userForm.status}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, status: e.target.value }))}
+                        >
+                        <option>Active</option>
+                        <option>Inactive</option>
+                        <option>Suspended</option>
+                        </select>
+                    </div>
+                    </div>
+
+                    {/* SuspendedOn (only if Suspended) */}
+                    {userForm.status === "Suspended" && (
+                    <div className="umg-field">
+                        <label className="umg-label">Suspended On</label>
+                        <input
+                        className="umg-input"
+                        type="date"
+                        value={userForm.suspendedOn || ""}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, suspendedOn: e.target.value }))}
+                        />
+                    </div>
+                    )}
+
+                    <div className="umg-metrics-row">
+                        {/* Submissions / Approved */}
+                          <div className="umg-field">
+                            <label className="umg-label">Submissions / Approved</label>
+                            <div className="umg-value">
+                            <span className="umg-pill">{userForm.submissions} submissions</span>
+                            <span className="umg-subline">{userForm.approved} approved</span>
+                            </div>
+                        </div>
+
+                        <div className="umg-field">
+                            <label className="umg-label">Last Login</label>
+                            <div className="umg-value">
+                            <span className="umg-subline">{userForm.lastLogin || "—"}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="umg-modal-footer">
+                    {userMode === "edit" && (
+                        <div className="umg-footer-left">
+                        <button
+                            type="button"
+                            className="umg-btn umg-btn-danger"
+                            onClick={() => {
+                            if (userForm?.id && window.confirm(`Delete user "${userForm.name}"? This cannot be undone.`)) {
+                                deleteUserById(userForm.id);
+                                setShowUserModal(false);
+                            }
+                            }}
+                        >
+                            Delete
+                        </button>
+
+                        <button
+                            type="button"
+                            className="umg-btn umg-btn-warning"
+                            title="Force logout this user on all devices"
+                            onClick={() => {
+                            if (!userForm?.id) return;
+                            if (window.confirm("Invalidate all active sessions for this user? They’ll be logged out on all devices.")) {
+                                // await fetch(`/api/admin/users/${userForm.id}/invalidate-sessions`, { method: "POST" })
+                                console.log("INVALIDATE_SESSIONS ▶", userForm.id);
+                                alert("Sessions invalidated. The user will be logged out everywhere.");
+                            }
+                            }}
+                        >
+                            Invalidate sessions
+                        </button>
+                        </div>
+                    )}
+
+                    <div className="umg-footer-spacer" />
+
+                    <button
+                        type="button"
+                        className="umg-btn umg-btn-ghost"
+                        onClick={() => setShowUserModal(false)}
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        className="umg-btn umg-btn-primary"
+                        onClick={saveUser}
+                    >
+                        {userMode === "create" ? "Create" : "Save Changes"}
+                    </button>
+                    </div>
+                </div>
+            </div>
+            )}
+
         </div>
     );
 };
