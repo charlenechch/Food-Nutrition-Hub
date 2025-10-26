@@ -27,6 +27,7 @@ import UserProfilePage from "./pages/UserProfilePage";
 import ReviseRecipePage from "./pages/ReviseRecipePage";
 import EditFoodPage from "./pages/EditFoodPage";
 import Analytics from "./pages/Analytics";
+import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
 
 // ✅ Handles Food Detail with state OR URL params
 function FoodDetailRoute() {
@@ -91,6 +92,7 @@ function App() {
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
         <Route path="/revise/:id" element={<ReviseRecipePage />} />
         <Route path="/editfood/:id" element={<EditFoodPage />} />
+        <Route path="/revisecommunitypostpage" element={<ReviseCommunityPostPage />} />
         {/* <Route path="/admin" element={<AdminHomepage />} /> */}
 
         {/* ✅ PROTECTED ADMIN PAGE */}
