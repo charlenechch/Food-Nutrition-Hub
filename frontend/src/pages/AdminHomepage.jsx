@@ -13,6 +13,7 @@ import { MdOutlineFileUpload } from "react-icons/md";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import UserManagement from "./AdminUserManagementTab";
+import Analytics from "./Analytics"; 
 
 
 const AdminDashboard = () => {
@@ -24,8 +25,20 @@ const AdminDashboard = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [calorieMin, setCalorieMin] = useState(0);
   const [calorieMax, setCalorieMax] = useState(2000);
+
+  const categories = [
+    "All Categories",
+    "Poultry",
+    "Seafood",
+    "Vegetables",
+    "Fermented",
+    "Desserts",
+    "Rice Dish",
+    "Noodles",
+    "Soup",
+    "Meat",
+  ];
   
-  // Hardcoded sample data (replace with API integration later)
   const summary = {
     totalFoods: 347,
     totalUsers: 1247,
@@ -40,7 +53,7 @@ const AdminDashboard = () => {
     { name: "Kasam Babi", category: "Dyvak", origin: "Bidayuh", updated: "2024-01-12" },
   ];
 
-   useEffect(() => {
+  useEffect(() => {
     const close = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
@@ -50,8 +63,197 @@ const AdminDashboard = () => {
     return () => document.removeEventListener("click", close);
   }, []);
 
+  // Function to render content based on active tab
+  const renderContent = () => {
+    switch (activeTab) {
+      case "food":
+        return (
+          <div className="food-database-section">
+            {/* food database content */}
+            <div className="food-header">
+              <h2> 
+                <span className="icon"><FiDatabase /></span> Food Database
+              </h2>
+              <div className="food-actions">
+                <button className="btn-add"><FaPlus /> Add New Food</button>
+                <button className="btn-import"><MdOutlineFileUpload /> Bulk Import</button>
+              </div>
+            </div>
+
+            <div className="food-filters">
+              <div className="search-box">
+                <CiSearch className="search-icon" />
+                <input type="text" placeholder="Search foods..." />
+              </div>
+
+              <div className={`beige-dropdown ${dropdownOpen ? "open" : ""}`} ref={dropdownRef}>
+                <button className="beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                  {category}
+                </button>
+                {dropdownOpen && (
+                  <ul className="beige-list">
+                    {categories.map((opt) => (
+                      <li
+                        key={opt}
+                        className={opt === category ? "selected" : ""}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCategory(opt);
+                          setDropdownOpen(false);
+                        }}
+                      >
+                        {opt}
+                        {opt === category && <span className="tick">✓</span>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div> 
+
+              <button className="btn-filter" onClick={() => setShowFilters(!showFilters)}>
+                <CiFilter className="filter-icon" /> Filters
+              </button>
+            </div>
+
+            {showFilters && (
+              <div className="advanced-filters">
+                <h4><CiFilter /> Advanced Filters</h4>
+                <div className="filter-grid">
+                  <div className="filter-item">
+                    <label>Cultural Origin</label>
+                    <select>
+                      <option>All Origins</option>
+                      <option>Iban</option>
+                      <option>Melanau</option>
+                      <option>Bidayuh</option>
+                    </select>
+                  </div>
+
+                  <div className="filter-item">
+                    <label>Food Type</label>
+                    <select>
+                      <option>All Categories</option>
+                      {categories.slice(1).map((cat) => (
+                        <option key={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="filter-item">
+                    <label>Difficulty</label>
+                    <select>
+                      <option>All</option>
+                      <option>Easy</option>
+                      <option>Medium</option>
+                      <option>Hard</option>
+                    </select>
+                  </div>
+
+                  <div className="filter-item">
+                    <label>Status</label>
+                    <select>
+                      <option>All</option>
+                      <option>Approved</option>
+                      <option>Pending</option>
+                      <option>Flagged</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="calorie-range">
+                  <label>
+                    Calorie Range: {calorieMin} – {calorieMax} calories
+                  </label>
+                  <div className="slider-container">
+                    <input
+                      type="range"
+                      min="0"
+                      max="2000"
+                      step="10"
+                      value={calorieMin}
+                      onChange={(e) =>
+                        setCalorieMin(Math.min(Number(e.target.value), calorieMax - 50))
+                      }
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max="2000"
+                      step="10"
+                      value={calorieMax}
+                      onChange={(e) =>
+                        setCalorieMax(Math.max(Number(e.target.value), calorieMin + 50))
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <table className="food-table">
+              <thead>
+                <tr>
+                  <th>Food Name</th>
+                  <th>Category</th>
+                  <th>Origin</th>
+                  <th>Last Updated</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {foodData.map((food, index) => (
+                  <tr key={index}>
+                    <td>{food.name}</td>
+                    <td>
+                      <span className="category-tag">{food.category}</span>
+                    </td>
+                    <td>{food.origin}</td>
+                    <td>{food.updated}</td>
+                    <td>
+                      <button className="btn-edit" onClick={() => navigate(`/admin/edit/${index}`)}>
+                        <HiOutlinePencilAlt />
+                      </button>
+                      <button className="btn-delete">
+                        <RiDeleteBin5Line />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+
+      case "users":
+        return <UserManagement />;
+
+      case "moderation":
+        return (
+          <div className="tab-content">
+            <h2>Content Moderation</h2>
+          </div>
+        );
+
+      case "analytics":
+        return <Analytics />; // render Analytics component
+
+      case "settings":
+        return (
+          <div className="tab-content">
+            <h2>System Settings</h2>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="food-database-section">
+            {/* Default to food database */}
+          </div>
+        );
+    }
+  };
+
   return (
-    <div>
     <div className="admin-dashboard">
       <Header />
       <div className="dashboard-header">
@@ -128,176 +330,12 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      {/* === Food Database Section === */}
-      {activeTab === "food" && (
-        <div className="food-database-section">
-          <div className="food-header">
-            <h2> 
-              <span className="icon"><FiDatabase /></span> Food Database
-            </h2>
-            <div className="food-actions">
-              <button className="btn-add"><FaPlus /> Add New Food</button>
-              <button className="btn-import"><MdOutlineFileUpload /> Bulk Import</button>
-            </div>
-          </div>
+      {/* === Main Content Area - THIS IS CRUCIAL === */}
+      <div className="dashboard-content">
+        {renderContent()}
+      </div>
 
-          <div className="food-filters">
-            <div className="search-box">
-              <CiSearch className="search-icon" />
-              <input type="text" placeholder="Search foods..." />
-            </div>
-
-              <div
-                className={`beige-dropdown ${dropdownOpen ? "open" : ""}`}
-                ref={dropdownRef}
-              >
-                <button
-                  className="beige-trigger"
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                >
-                  {category}
-                </button>
-                {dropdownOpen && (
-                  <ul className="beige-list">
-                    {categories.map((opt) => (
-                      <li
-                        key={opt}
-                        className={opt === category ? "selected" : ""}
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent event bubbling
-                          setCategory(opt);
-                          setDropdownOpen(false);
-                        }}
-                      >
-                        {opt}
-                        {opt === category && <span className="tick">✓</span>}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div> 
-
-            <button className="btn-filter" onClick={() => setShowFilters(!showFilters)}>
-              <CiFilter className="filter-icon" /> Filters
-            </button>
-          </div>
-
-        {/* === Advanced Filters (toggle section) === */}
-        {showFilters && (
-          <div className="advanced-filters">
-            <h4><CiFilter /> Advanced Filters</h4>
-
-            <div className="filter-grid">
-              <div className="filter-item">
-                <label>Cultural Origin</label>
-                <select>
-                  <option>All Origins</option>
-                  <option>Iban</option>
-                  <option>Melanau</option>
-                  <option>Bidayuh</option>
-                </select>
-              </div>
-
-              <div className="filter-item">
-                <label>Food Type</label>
-                <select>
-                  <option>All Categories</option>
-                  {categories.slice(1).map((cat) => (
-                    <option key={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="filter-item">
-                <label>Difficulty</label>
-                <select>
-                  <option>All</option>
-                  <option>Easy</option>
-                  <option>Medium</option>
-                  <option>Hard</option>
-                </select>
-              </div>
-
-              <div className="filter-item">
-                <label>Status</label>
-                <select>
-                  <option>All</option>
-                  <option>Approved</option>
-                  <option>Pending</option>
-                  <option>Flagged</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="calorie-range">
-              <label>
-                Calorie Range: {calorieMin} – {calorieMax} calories
-              </label>
-
-              <div className="slider-container">
-                <input
-                  type="range"
-                  min="0"
-                  max="2000"
-                  step="10"
-                  value={calorieMin}
-                  onChange={(e) =>
-                    setCalorieMin(
-                      Math.min(Number(e.target.value), calorieMax - 50) // keep handles apart
-                    )
-                  }
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="2000"
-                  step="10"
-                  value={calorieMax}
-                  onChange={(e) =>
-                    setCalorieMax(
-                      Math.max(Number(e.target.value), calorieMin + 50)
-                    )
-                  }
-                />
-              </div>
-            </div>
-          </div>
-            )}
-
-          <table className="food-table">
-            <thead>
-              <tr>
-                <th>Food Name</th>
-                <th>Category</th>
-                <th>Origin</th>
-                <th>Last Updated</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {foodData.map((food, index) => (
-                <tr key={index}>
-                  <td>{food.name}</td>
-                  <td>
-                    <span className="category-tag">{food.category}</span>
-                  </td>
-                  <td>{food.origin}</td>
-                  <td>{food.updated}</td>
-                  <td>
-                    <button className="btn-edit" onClick={() => navigate(`/admin/edit/${index}`)}><HiOutlinePencilAlt /></button>
-                    <button className="btn-delete"><RiDeleteBin5Line /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {/* === User Management (Enhanced) === */}
-      {activeTab === "users" && <UserManagement />}
-
-    </div>
-    <Footer />
+      <Footer />
     </div>
   );
 };

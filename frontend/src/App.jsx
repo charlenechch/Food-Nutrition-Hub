@@ -26,6 +26,7 @@ import CommunityPost from "./pages/CommunityPostPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import ReviseRecipePage from "./pages/ReviseRecipePage";
 import EditFoodPage from "./pages/EditFoodPage";
+import Analytics from "./pages/Analytics";
 
 // ✅ Handles Food Detail with state OR URL params
 function FoodDetailRoute() {
@@ -104,6 +105,7 @@ function App() {
 
         {/* Nutrition Analyzer is public but guest has limited actions */}
         <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
+        <Route path="/analytics" element={<Analytics />} />
 
         {/* ✅ Protected Profile (member + admin only) */}
         <Route
