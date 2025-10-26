@@ -118,7 +118,7 @@ export default function UserProfilePage() {
       const data = await res.json();
       console.log("🔍 Profile data received:", data);
       
-      if (!data || !data.success) {
+      if (!data || !data.userID) {
         throw new Error(data?.error || "Profile not found or server error");
       }
         setUser(data);

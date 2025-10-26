@@ -25,8 +25,6 @@ router.get('/all/recipes', async (req, res) => {
         r.steps AS instructions, 
         r.DidYouKnow AS funFact, 
         r.chefTips,
-        r.userProfileID,
-        r.status
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
       WHERE r.status = 'Approved'
@@ -264,7 +262,7 @@ router.get('/recipes/:id', async (req, res) => {
         0: 'id', 1: 'name', 2: 'origin', 3: 'difficulty', 4: 'prepTime', 5: 'image',
         6: 'description', 7: 'foodType', 8: 'category', 9: 'dietaryTags',
         10: 'cookTime', 11: 'servings', 12: 'ingredients', 13: 'instructions',
-        14: 'funFact', 15: 'chefTips'
+        14: 'funFact', 15: 'chefTips', 
       };
       
       const mappedData = {};
@@ -309,7 +307,6 @@ router.get('/recipes/:id', async (req, res) => {
 
 // POST new recipe 
 router.post('/create/recipes', async (req, res) => {
-  let connection;
   try {
     const {
       name, origin, difficulty, prepTime, image, description, 
@@ -317,24 +314,31 @@ router.post('/create/recipes', async (req, res) => {
       instructions, funFact, chefTips
     } = req.body;
 
-    console.log('Creating new recipe:', { name, origin, foodType });
+    console.log('🍳 Creating new recipe:', { name, origin, foodType });
 
     // Validate required fields
     if (!name || !origin) {
       return res.status(400).json({ error: 'Name and origin are required' });
     }
 
-  
+    // Check if user is authenticated and get userProfileID
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const userProfileID = req.session.user.userID;
+    console.log('👤 User creating recipe:', userProfileID);
+
     let processedImage = image || 
     'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
 
-    await db.query('START TRANSACTION');
+    await db.execute('START TRANSACTION');
 
     // Insert into food table
     const foodQuery = `
       INSERT INTO food (
         name, origin, difficulty, prepTime, image, description, 
-        foodType, category, dietaryTags, status, userProfileID
+        foodType, category, dietaryTags
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
@@ -346,59 +350,44 @@ router.post('/create/recipes', async (req, res) => {
       processedImage, 
       description || '', 
       foodType || 'Other',
-      foodType || 'Other',
-      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
-      'Pending',
-      req.user?.id || null
+      foodType || 'Other', // category
+      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || '')
     ];
     
-    console.log('Executing food insert...');
-    const foodResult = await db.query(foodQuery, foodParams);
-    console.log('Food insert result:', foodResult);
+    console.log('📝 Executing food insert...');
+    const [foodResult] = await db.execute(foodQuery, foodParams);
+    console.log('✅ Food insert result - insertId:', foodResult.insertId);
     
-    // DEBUG: Check what's returned
-    console.log('Food result keys:', Object.keys(foodResult));
-    console.log('Food result values:', foodResult);
-    
-    // Get the inserted ID 
-    let foodId;
-    if (foodResult.insertId) {
-      foodId = foodResult.insertId;
-    } else if (foodResult[0] && foodResult[0].insertId) {
-      foodId = foodResult[0].insertId;
-    } else {
-      // If can't get the ID, try to fetch the last inserted ID
-      const idResult = await db.query('SELECT LAST_INSERT_ID() as id');
-      foodId = idResult[0].id;
-    }
-    
-    console.log('Retrieved food ID:', foodId);
+    const foodId = foodResult.insertId;
 
     if (!foodId) {
       throw new Error('Could not retrieve the inserted food ID');
     }
 
-    // Insert into recipe table
+    // Insert into recipe table 
     const recipeQuery = `
       INSERT INTO recipe (
-        foodID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     const recipeParams = [
       foodId, 
+      userProfileID,
       Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
       Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
       cookTime || 0, 
       servings || 1,
       funFact || '', 
-      chefTips || ''
+      chefTips || '',
+      'Pending' 
     ];
     
-    console.log('Executing recipe insert with foodID:', foodId);
-    await db.query(recipeQuery, recipeParams);
-    await db.query('COMMIT');
+    console.log('📝 Executing recipe insert with foodID:', foodId);
+    await db.execute(recipeQuery, recipeParams);
+    await db.execute('COMMIT');
     
+    console.log('✅ Recipe created successfully');
     res.status(201).json({ 
       message: 'Recipe created successfully', 
       id: foodId,
@@ -406,13 +395,13 @@ router.post('/create/recipes', async (req, res) => {
     });
     
   } catch (error) {
-    await db.query('ROLLBACK');
-    console.error('Error creating recipe:', error);
+    await db.execute('ROLLBACK');
+    console.error('❌ Error creating recipe:', error);
     
     if (error.code === 'ER_BAD_NULL_ERROR') {
       return res.status(500).json({ 
-        error: 'Failed to create recipe - food ID was null',
-        details: 'The food record was not created properly'
+        error: 'Failed to create recipe - missing required fields',
+        details: 'Check if all required fields are provided'
       });
     }
     
