@@ -654,7 +654,6 @@
   width: 100%; 
   border-collapse: collapse; 
   table-layout: fixed; 
-  margin-bottom: 1rem;
 }
 .umg-table th, .umg-table td {
   overflow: hidden;
