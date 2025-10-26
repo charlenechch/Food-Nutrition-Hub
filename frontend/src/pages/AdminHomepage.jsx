@@ -254,6 +254,7 @@ const AdminDashboard = () => {
   };
 
   return (
+    <div>
     <div className="admin-dashboard">
       <Header />
       <div className="dashboard-header">
@@ -335,7 +336,8 @@ const AdminDashboard = () => {
         {renderContent()}
       </div>
 
-      <Footer />
+    </div>
+    <Footer />
     </div>
   );
 };
