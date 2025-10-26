@@ -24,7 +24,7 @@ router.get('/all/recipes', async (req, res) => {
         r.ingredients, 
         r.steps AS instructions, 
         r.DidYouKnow AS funFact, 
-        r.chefTips,
+        r.chefTips
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
       WHERE r.status = 'Approved'
