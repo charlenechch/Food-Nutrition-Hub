@@ -255,7 +255,7 @@ export default function RecipeDetailPage() {
             {recipe.funFact && (
               <div className="rdp-card3 rdp-note rdp-note-warm">
                 <div className="rdp-note-head">
-                  <Lightbulb size={18} color="#6a4a2f" /> <span>Did You Know?</span>
+                  <Lightbulb size={18} color="#6a4a2f" /> <Lightbulb size={16} color="#6a4a2f" /> <span>Did You Know?</span>
                 </div>
                 <p className="rdp-note-text">{recipe.funFact}</p>
               </div>
