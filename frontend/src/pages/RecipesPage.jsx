@@ -231,6 +231,7 @@ export default function RecipesPage() {
       const res = await fetch(`${API_BASE_URL}/api/recipe/create/recipes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           name: name,
           origin: origin,
@@ -242,14 +243,22 @@ export default function RecipesPage() {
           description: form.description.trim(),
           foodType: finalFoodType,
           dietaryTags: dedup([...(form.dietaryTags || []), ...customTags]),
-          ingredients: toLines(form.ingredients).join('\n'),
-          instructions: toLines(form.instructions).join('\n'),
+          ingredients: toLines(form.ingredients),
+          instructions: toLines(form.instructions),
           funFact: form.funFact.trim(),
           chefTips: form.chefTips.trim(),
         }),
       });
 
-      if (!res.ok) throw new Error('Failed to create recipe');
+      if (!res.ok) {
+      // Get the actual error from backend
+      const errorData = await res.json();
+      console.error('Backend error:', errorData);
+      throw new Error(errorData.details || errorData.error || 'Failed to create recipe');
+      }
+
+      const result = await res.json();
+      console.log('Recipe created:', result);
 
       // Refresh the recipes list (kept; adjusted endpoint to all/recipes)
       const refreshRes = await fetch(`${API_BASE_URL}/api/recipe/all/recipes`);
