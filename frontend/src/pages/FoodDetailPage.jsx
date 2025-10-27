@@ -288,7 +288,7 @@ export default function FoodDetailPage() {
             {/* Cultural / Preparation */}
             <div className="fdp-card">
               <h3 className="rdp-sec-title">
-                <Info className="rdp-sec-icon" size={18}  color={"#6a4a2f"}/> Cultural Heritage
+                <Info className="rdp-sec-icon" size={16}  color={"#6a4a2f"}/> Cultural Heritage
               </h3>
               <div className="fdp-block">
                 <p className="fdp-block-title">Description</p>
@@ -310,7 +310,7 @@ export default function FoodDetailPage() {
             {ingredients.length > 0 && (
               <div className="fdp-card">
                 <h3 className="rdp-sec-title">
-                  <ShoppingBasket className="rdp-sec-icon" size={18}  color={"#6a4a2f"}/> Common Ingredients
+                  <ShoppingBasket className="rdp-sec-icon" size={16}   color={"#6a4a2f"}/> Common Ingredients
                 </h3>
                 <div className="fdp-chip-grid">
                   {ingredients.map((ing, i) => (
@@ -336,14 +336,14 @@ export default function FoodDetailPage() {
             </div>
             <div className="fdp-actions">
               <button type="button" className="lrp-btn lrp-btn-outline" onClick={goToRecipe}>
-                <ScrollText className="rdp-sec-icon" size={18}  /> Go to Recipe
+                <ScrollText className="rdp-sec-icon" size={16}   /> Go to Recipe
               </button>
             </div>
 
             {/* Nutrition */}
             <div className="fdp-card">
               <h3 className="rdp-sec-title">
-                <Cross className="rdp-sec-icon" size={18}  color={"#6a4a2f"}/> Nutritional Information
+                <Cross className="rdp-sec-icon" size={16}   color={"#6a4a2f"}/> Nutritional Information
               </h3>
               <p className="fdp-muted">Per serving</p>
               <div className="fdp-nutri-grid">
@@ -370,7 +370,7 @@ export default function FoodDetailPage() {
             <div className="fdp-card">
               <div className="fdp-disc-header">
                 <h3 className="rdp-sec-title">
-                  <MessagesSquare className="rdp-sec-icon" size={18}  color={"#6a4a2f"}/> Community Discussion
+                  <MessagesSquare className="rdp-sec-icon" size={16}   color={"#6a4a2f"}/> Community Discussion
                 </h3>
               </div>
               
