@@ -23,13 +23,15 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      // ✅ Sends real password reset email
+      // ✅ IMPORTANT:
+      // We send a reset link but force Firebase to redirect back to our *own* reset page
+      // This ensures the link includes oobCode, &mode=resetPassword in the URL
       await sendPasswordResetEmail(auth, email, {
-        url: `${window.location.origin}/loginregister`,
-        handleCodeInApp: true,
+        url: `${window.location.origin}/resetpassword`, // 🔹 MUST match your route
+        handleCodeInApp: true, // 🔹 Required to process in React app instead of Firebase hosted UI
       });
 
-      setSubmitted(true); // Show success screen
+      setSubmitted(true); // ✅ Show "Success" UI
     } catch (err) {
       console.error(err);
       setError("Failed to send reset email. Check if the email is registered.");
@@ -72,7 +74,9 @@ export default function ForgotPasswordPage() {
 
               {error && <p className="fpp-error">{error}</p>}
 
-              <button type="submit" className="lrp-btn lrp-btn-primary">Send reset link</button>
+              <button type="submit" className="lrp-btn lrp-btn-primary">
+                Send reset link
+              </button>
 
               <div className="fpp-links">
                 <button
@@ -88,7 +92,9 @@ export default function ForgotPasswordPage() {
             <div className="fpp-success">
               <div className="fpp-success-icon">✓</div>
               <h3>Check your inbox</h3>
-              <p>If an account exists for <strong>{email}</strong>, a password reset link has been sent.</p>
+              <p>
+                If an account exists for <strong>{email}</strong>, a password reset link has been sent.
+              </p>
               <div className="fpp-success-actions">
                 <button
                   type="button"

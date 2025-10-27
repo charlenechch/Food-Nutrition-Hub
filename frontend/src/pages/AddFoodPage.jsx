@@ -7,39 +7,39 @@ import { MdOutlineFileUpload } from "react-icons/md";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { FiSave } from "react-icons/fi";
 
-const EditFoodPage = () => {
+const AddFoodPage = () => {
     const navigate = useNavigate();
     const [selectedImage, setSelectedImage] = useState(null);
     const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
-  const [food, setFood] = useState({
-    name_en: "Manok Pansoh",
-    name_ms: "",
-    category: "",
-    origin: "",
-    description_en: "",
-    description_ms: "",
-    cultural_en: "",
-    cultural_ms: "",
-    calories: "285",
-    protein: "25",
-    carbs: "",
-    fat: "",
-    fiber: "",
-    sodium: "",
-    serving: "",
-    time: "",
-    difficulty: "",
-    ingredients: "",
-    benefits: "",
-    tags: "",
-  });
+    const [food, setFood] = useState({
+        name_en: "Manok Pansoh",
+        name_ms: "",
+        category: "",
+        origin: "",
+        description_en: "",
+        description_ms: "",
+        cultural_en: "",
+        cultural_ms: "",
+        calories: "285",
+        protein: "25",
+        carbs: "",
+        fat: "",
+        fiber: "",
+        sodium: "",
+        serving: "",
+        time: "",
+        difficulty: "",
+        ingredients: "",
+        benefits: "",
+        tags: "",
+    });
 
-  const handleChange = (e) => {
-    setFood({ ...food, [e.target.name]: e.target.value });
-  };
+    const handleChange = (e) => {
+        setFood({ ...food, [e.target.name]: e.target.value });
+    };
 
-  const handleSaveClick = () => {
+    const handleSaveClick = () => {
         setShowSaveConfirm(true);
     };
 
@@ -57,7 +57,6 @@ const EditFoodPage = () => {
   return (
     <div className="edit-food-page">
       <Header />
-
       <div className="edit-food-container">
         <div className="edit-topbar">
             <button className="admin-edit-food-back-btn" onClick={() => navigate("/admin")}>
@@ -66,8 +65,7 @@ const EditFoodPage = () => {
              </button>
 
             <div className="edit-title">
-                <h2>Edit Food Item</h2>
-                <p>{food.name_en}</p>
+                <h2>Add Food Item</h2>
             </div>
 
             <button className="admin-edit-food-save-btn" onClick={handleSaveClick}>
@@ -237,8 +235,7 @@ const EditFoodPage = () => {
             <div className="delete-modal">
             <h3>Confirmation</h3>
             <p>
-                Are you sure you want to <strong>save these changes</strong>?<br />
-                This will overwrite the existing food information.
+                This record will be <strong>saved</strong> to the database.<br />
             </p>
             <div className="modal-actions">
                 <button className="save-cancel-btn" onClick={handleCancelSave}>
@@ -257,4 +254,4 @@ const EditFoodPage = () => {
   );
 };
 
-export default EditFoodPage;
+export default AddFoodPage;

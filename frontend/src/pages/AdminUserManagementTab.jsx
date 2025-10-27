@@ -1156,7 +1156,7 @@ export default function UserManagement() {
                             }
                             }}
                         >
-                            Invalidate sessions
+                            Invalidate session
                         </button>
                         </div>
                     )}

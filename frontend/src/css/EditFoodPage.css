@@ -94,6 +94,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 2px;
   font-size: 16px;       
   transform: translateY(1px); 
 }
@@ -114,13 +115,6 @@
   margin-bottom: 30px;
 }
 
-.edit-food-basic-info-card, .edit-food-section-card {
-  background: #fffdfb;
-  border: 1px solid #e8dccf;
-  border-radius: 14px;
-  padding: 20px 25px;
-}
-
 .edit-food-image-upload-section {
   display: flex;
   background: #fffdfb;
@@ -129,6 +123,7 @@
   flex-direction: column;
   align-items: center;
   gap: 14px;
+  height: 390px;
 }
 
 .edit-food-image-upload-section h3 {
@@ -152,8 +147,8 @@
 }
 
 .image-preview img {
-  width: 100%;
-  height: 100%;
+  width: 95%;
+  height: 95%;
   object-fit: cover;
   border-radius: 12px;
 }
@@ -200,17 +195,39 @@
   transform: translateY(1px);
 }
 
-
-label {
-  font-weight: 600;
-  font-size: 14px;
-  display: block;
-  margin-bottom: 6px;
-  margin-top: 6px;
-  color: #3d2b1f;
+.edit-food-basic-info-card, .edit-cultural-context-card, .edit-food-additional-info-card {
+  background: #fffdfb;
+  border: 1px solid #e8dccf;
+  border-radius: 14px;
+  padding: 20px 25px;
 }
 
-input, select, textarea {
+.edit-food-basic-info-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 35px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.basic-info-label {
+  font-weight: 600;
+  font-size: 15px;
+  display: block;
+  margin-bottom: 10px;
+  margin-top: 6px;
+  color: #3d2b1f;
+} 
+
+.food-category-field {
+  margin-bottom: 20px;
+}
+
+.food-origin-field {
+  margin-bottom: -10px;
+}
+
+.edit-food-input, .edit-food-select, .edit-food-textarea {
   width: 100%;
   border: none;
   border-radius: 8px;
@@ -222,44 +239,35 @@ input, select, textarea {
   resize: none;
 }
 
-input:focus, select:focus, textarea:focus {
+.edit-food-input:focus, .edit-food-select:focus, .edit-food-textarea:focus {
   outline: none;
   background: #f6f0e7;
 }
 
-.two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-
-select {
+.edit-food-select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   background-color: #f8f5f0;
   border: none;
-  border-radius: 8px;
   padding: 10px 34px 10px 14px;
-  font-family: "Poppins", sans-serif;
   font-size: 15px;
-  color: #3d2b1f;
   cursor: pointer;
   width: 100%;
   outline: none;
-}
-
-.nutrition-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 0.8fr));
-  gap: 30px;
 }
 
 .edit-cultural-context-card {
     margin-bottom: 40px;
 }
 
-.section-title {
+.edit-cultural-context-card h3, .edit-food-additional-info-card h3 {
+  margin-bottom: 20px;
+  color: #3d2b1f;
+  font-weight: 700;
+}
+
+.edit-food-section-title {
   display: flex;
   align-items: baseline; 
   gap: 10px; /* space between them */
@@ -269,6 +277,53 @@ select {
   margin-bottom: 30px;
 }
 
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 0.8fr));
+  gap: 30px;
+}
+
 .edit-food-additional-info-card {
   margin-bottom: 40px;
 }
+
+/* Cancel button stays neutral */
+.save-cancel-btn {
+  background: #f2f2f2;
+  color: #3d2b1f;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-cancel-btn:hover {
+  background: #e8dccf;
+}
+
+/* Save button with brown color theme */
+.confirm-save-btn {
+  background: #7b4b26; 
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirm-save-btn:hover {
+  background: #5d3a1c; /* slightly darker on hover */
+}
+
+.save-cancel-btn:focus, .confirm-save-btn:focus,
+.save-cancel-btn:focus-visible, .confirm-save-btn:focus-visible, 
+.save-cancel-btn:active, .confirm-save-btn:active {
+  outline: none ;
+  box-shadow: none ;
+  border: none ;
+}
+
