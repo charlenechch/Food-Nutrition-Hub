@@ -618,6 +618,35 @@ export default function UserProfilePage() {
                   </div>
                 </div>
 
+              <div className="upp-card">
+                <h3 className="upp-card-title"><Eye size={18} color={"#6a4a2f"}/> Privacy</h3>
+                <div className="upp-row between">
+                  <div>
+                    <div className="upp-strong">Profile Visibility</div>
+                    <div className="upp-muted">Allow others to see your profile</div>
+                  </div>
+                  <label className="upp-switch">
+                    <input
+                      type="checkbox"
+                      checked={prefs.profileVisibility}
+                      onChange={(e) => setPrefs((p) => ({ ...p, profileVisibility: e.target.checked }))}
+                    />
+                    <span />
+                  </label>
+                </div>
+                <hr className="upp-sep" />
+                <div className="upp-row between">
+                  <div>
+                    <div className="upp-strong">Data Export</div>
+                    <div className="upp-muted">Download your saved data</div>
+                  </div>
+                  <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => alert("Exported!")}>
+                    Export Data
+                  </button>
+                </div>
+              </div>
+
+
                 {user?.role === "admin" && (
                   <div className="upp-card">
                     <h3 className="upp-card-title"><Shield size={18} color={"#6a4a2f"} /> Admin Access</h3>
@@ -632,6 +661,25 @@ export default function UserProfilePage() {
                     </div>
                   </div>
                 )}
+
+              <div className="upp-card">
+                <h3 className="upp-card-title"><OctagonX size={18} color={"#6a4a2f"}/> Account Deletion</h3>
+
+                <div className="upp-row between">
+                  <div>
+                    <div className="upp-strong">Delete Account</div>
+                    <div className="upp-muted">Permanently remove your account and all associated data.</div>
+                  </div>
+
+                  {/* Looks active, but has no onClick */}
+                  <button
+                    type="button"
+                    className="lrp-btn lrp-btn-outline upp-btn upp-btn--danger"
+                  >
+                    Delete Account
+                  </button>
+                </div>
+              </div>
               </div>
             )}
           </div>
