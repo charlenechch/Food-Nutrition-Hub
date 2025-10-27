@@ -211,7 +211,7 @@ export default function RecipeDetailPage() {
 
             <div className="rdp-card3">
               <h3 className="rdp-sec-title">
-                <ShoppingBasket size="1em" color="#6a4a2f" /> Ingredients
+                <ShoppingBasket className="rdp-sec-icon" size={18} color="#6a4a2f" /> Ingredients
               </h3>
               <ul className="rdp-list">
                 {ingredients.map((it, i) => (
@@ -222,7 +222,7 @@ export default function RecipeDetailPage() {
 
             <div className="rdp-card3">
               <h3 className="rdp-sec-title">
-                <NotebookText size="1em" color="#6a4a2f" /> Instructions
+                <NotebookText className="rdp-sec-icon" size={18} color="#6a4a2f" /> Instructions
               </h3>
               <ol className="rdp-steps">
                 {instructions.map((step, i) => (
@@ -249,13 +249,13 @@ export default function RecipeDetailPage() {
                 className="lrp-btn lrp-btn-outline fdp-share"
                 onClick={handleShare}
               >
-                <Share2 size="1em" />
+                <Share2 className="rdp-sec-icon" size={18} />
               </button>
             </div>
             {recipe.funFact && (
               <div className="rdp-card3 rdp-note rdp-note-warm">
                 <div className="rdp-note-head">
-                  <Lightbulb size="1em" color="#6a4a2f" /> <span>Did You Know?</span>
+                  <Lightbulb className="rdp-sec-icon" size={18} color="#6a4a2f" /> <span>Did You Know?</span>
                 </div>
                 <p className="rdp-note-text">{recipe.funFact}</p>
               </div>
@@ -264,7 +264,7 @@ export default function RecipeDetailPage() {
             {recipe.chefTips && (
               <div className="rdp-card3 rdp-note">
                 <div className="rdp-note-head">
-                  <ChefHat size="1em" color="#6a4a2f" /> <span>Chef's Tips</span>
+                  <ChefHat className="rdp-sec-icon" size={18} color="#6a4a2f" /> <span>Chef's Tips</span>
                 </div>
                 <p className="rdp-note-text">{recipe.chefTips}</p>
               </div>
