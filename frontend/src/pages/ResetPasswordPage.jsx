@@ -14,19 +14,18 @@ export default function ResetPasswordPage() {
 
   // ✅ Firebase provides this after clicking email
   const oobCode = params.get("oobCode");
-  const [email, setEmail] = useState(""); // ✅ Securely retrieved later
-
+  const [email, setEmail] = useState(""); // ✅ email retrieved securely
   const [pwd, setPwd] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // ✅ Securely get email connected to reset request
+  // ✅ Get email associated with the reset token (secure)
   useEffect(() => {
     if (oobCode) {
       verifyPasswordResetCode(auth, oobCode)
-        .then((fetchedEmail) => setEmail(fetchedEmail))
-        .catch(() => setError("Invalid or expired reset link"));
+        .then((retrievedEmail) => setEmail(retrievedEmail))
+        .catch(() => setError("Invalid or expired reset link."));
     }
   }, [oobCode]);
 
@@ -41,7 +40,7 @@ export default function ResetPasswordPage() {
       // ✅ 1. Update password in Firebase
       await confirmPasswordReset(auth, oobCode, pwd);
 
-      // ✅ 2. Sync new password to MySQL backend
+      // ✅ 2. Also sync to MySQL backend
       if (email) {
         await fetch(`${API_URL}/api/auth/updatePassword`, {
           method: "POST",
@@ -55,11 +54,11 @@ export default function ResetPasswordPage() {
       setTimeout(() => navigate("/loginregister"), 2000);
     } catch (err) {
       console.error(err);
-      setError("Invalid or expired reset link. Please request a new one.");
+      setError("Something went wrong. Please request a new reset link.");
     }
   };
 
-  // ✅ If link is broken or missing code
+  // ✅ If link is missing or invalid
   if (!oobCode) {
     return (
       <div className="rpp-container">
@@ -77,7 +76,7 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // ✅ Success UI after password saved
+  // ✅ Show success message after update
   if (success) {
     return (
       <div className="rpp-container">
