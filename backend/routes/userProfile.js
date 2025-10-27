@@ -256,6 +256,56 @@ router.put("/avatar", upload.single('avatar'), async (req, res) => {
   }
 });
 
+// Helper function to get user contributions with rejected/pending/approved status
+const getUserContributions = async (userID) => {
+  try {
+    console.log(`📝 Fetching contributions for user: ${userID}`);
+    
+    // Get recipes with their status (rejected, pending, approved)
+    const [recipes] = await db.execute(
+      `SELECT 
+        recipeID as id,
+        name as title,
+        image,
+        status,
+        createdAt as submittedDate,
+        'recipe' as type
+      FROM recipe 
+      WHERE userProfileID = ?
+      ORDER BY createdAt DESC`,
+      [userID]
+    );
+
+    // Get posts with their status (rejected, pending, approved)
+    const [posts] = await db.execute(
+      `SELECT 
+        postID as id,
+        title,
+        image,
+        status,
+        createdAt as submittedDate,
+        'post' as type
+      FROM posts 
+      WHERE userProfileID = ?
+      ORDER BY createdAt DESC`,
+      [userID]
+    );
+
+    // Combine and format contributions
+    const contributions = [...recipes, ...posts].map(item => ({
+      ...item,
+      submittedDate: item.submittedDate ? new Date(item.submittedDate).toISOString() : new Date().toISOString()
+    }));
+
+    console.log(`📊 Contributions found - Recipes: ${recipes.length}, Posts: ${posts.length}`);
+    return contributions;
+
+  } catch (error) {
+    console.error('❌ Error fetching contributions:', error);
+    return [];
+  }
+};
+
 // ✅ Get own profile (/api/userProfile)
 router.get("/", async (req, res) => {
   console.log("👤 GET profile request received");
@@ -309,7 +359,6 @@ router.get("/", async (req, res) => {
     const profile = rows[0];
     console.log("✅ Profile found - userProfileID:", profile.userProfileID);
 
-    // ✅ FETCH SAVED FOODS - CORRECTED
     console.log(`📚 Fetching saved foods for userProfileID: ${profile.userProfileID}`);
     let savedFoodsData = [];
     
@@ -355,10 +404,15 @@ router.get("/", async (req, res) => {
       }
     }
 
-    // 🎯 BUILD RESPONSE WITH savedFoods INCLUDED
+    // ✅ FETCH CONTRIBUTIONS
+    console.log(`📝 Fetching contributions for user: ${userID}`);
+    const contributions = await getUserContributions(userID);
+
+    // BUILD RESPONSE WITH savedFoods INCLUDED
     const response = {
       ...profile,
       savedFoods: savedFoodsData, // ✅ Make sure this is included
+      status: contributions, // ✅ Add contributions data
       stats: {
         recipes: freshStats.recipes || 0,
         posts: freshStats.posts || 0,
@@ -374,10 +428,12 @@ router.get("/", async (req, res) => {
       },
     };
 
-    // 🎯 CRITICAL DEBUG LOGS
+    // DEBUG LOGS
     console.log("📤 FINAL RESPONSE - Has savedFoods?", 'savedFoods' in response);
+    console.log("📤 FINAL RESPONSE - Has status?", 'status' in response);
     console.log("📤 Response keys:", Object.keys(response));
     console.log("📤 savedFoods content:", response.savedFoods);
+    console.log("📤 status content:", response.status);
     
     res.json(response);
 
@@ -483,7 +539,6 @@ router.get("/:identifier", async (req, res) => {
     // Update user stats
     const freshStats = await updateUserStats(userID);
     
-    // ✅ FETCH SAVED FOODS FOR OTHER USER PROFILE TOO
     let savedFoodsData = [];
     if (profile.userProfileID) {
       try {
@@ -520,11 +575,15 @@ router.get("/:identifier", async (req, res) => {
         savedFoodsData = [];
       }
     }
+
+    console.log(`📝 Fetching contributions for user: ${userID}`);
+    const contributions = await getUserContributions(userID);
     
     console.log("📤 Sending user profile response");
     res.json({
       ...profile,
-      savedFoods: savedFoodsData, // ✅ Include saved foods
+      savedFoods: savedFoodsData, 
+      status: contributions, 
       stats: {
         recipes: freshStats.recipes || profile.recipes || 0,
         posts: freshStats.posts || profile.posts || 0,

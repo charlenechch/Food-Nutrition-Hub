@@ -30,15 +30,23 @@ const DEFAULT_PREFS = {
   language: "en"
 };
 
-const normalizePrefs = (data = {}) => ({
-  ...DEFAULT_PREFS,
-  dietary: Array.isArray(data.dietary) ? data.dietary : [],
-  allergies: Array.isArray(data.allergies) ? data.allergies : [],
-  emailNotifications: data.emailNotifications ?? true,
-  pushNotifications: data.pushNotifications ?? true,
-  profileVisibility: data.profileVisibility ?? true,
-  language: data.language || "en"
-});
+const normalizePrefs = (data = {}) => {
+
+  const dietary = Array.isArray(data.dietary) ? data.dietary : 
+                 (typeof data.dietary === 'string' ? JSON.parse(data.dietary || "[]") : []);
+  
+  const allergies = Array.isArray(data.allergies) ? data.allergies : 
+                   (typeof data.allergies === 'string' ? JSON.parse(data.allergies || "[]") : []);
+  return {
+    ...DEFAULT_PREFS,
+    dietary: dietary,
+    allergies: allergies,
+    emailNotifications: data.emailNotifications ?? true,
+    pushNotifications: data.pushNotifications ?? true,
+    profileVisibility: data.profileVisibility ?? true,
+    language: data.language || "en"
+  };
+};
 
 const toggleInArray = (arr, value) =>
   arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
