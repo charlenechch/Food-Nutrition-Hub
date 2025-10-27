@@ -261,18 +261,20 @@ const getUserContributions = async (userID) => {
   try {
     console.log(`📝 Fetching contributions for user: ${userID}`);
     
-    // Get contributions from recipe table
+    // Get contributions from recipe table JOINED with food table
     console.log(`🍳 Checking recipe table for contributions...`);
     const [contributions] = await db.execute(
       `SELECT 
-        recipeID as id,
-        foodID,
-        status,
-        createdAt as submittedDate,
+        r.recipeID as id,
+        f.name as title,
+        f.image as image,
+        r.status,
+        r.createdAt as submittedDate,
         'recipe' as type
-      FROM recipe 
-      WHERE userProfileID = ?
-      ORDER BY createdAt DESC`,
+      FROM recipe r
+      JOIN food f ON r.foodID = f.foodID
+      WHERE r.userProfileID = ?
+      ORDER BY r.createdAt DESC`,
       [userID]
     );
 
@@ -282,7 +284,7 @@ const getUserContributions = async (userID) => {
     if (contributions.length > 0) {
       console.log(`📊 Contribution details:`, contributions.map(c => ({ 
         id: c.id, 
-        foodID: c.foodID,
+        title: c.title,
         type: c.type, 
         status: c.status 
       })));
@@ -295,39 +297,17 @@ const getUserContributions = async (userID) => {
       console.log(`📊 Status counts:`, statusCounts);
     }
 
-    // Format the contributions 
-    const formattedContributions = await Promise.all(
-      contributions.map(async (item) => {
-        try {
-          // Get food details for the title and image
-          const [foodDetails] = await db.execute(
-            `SELECT name, image FROM food WHERE foodID = ?`,
-            [item.foodID]
-          );
-          
-          return {
-            id: item.id,
-            title: foodDetails[0]?.name || 'Unknown Food',
-            image: foodDetails[0]?.image || '',
-            status: item.status,
-            submittedDate: item.submittedDate ? new Date(item.submittedDate).toISOString() : new Date().toISOString(),
-            type: item.type
-          };
-        } catch (foodError) {
-          console.error(`❌ Error fetching food details for foodID ${item.foodID}:`, foodError);
-          return {
-            id: item.id,
-            title: 'Unknown Food',
-            image: '',
-            status: item.status,
-            submittedDate: item.submittedDate ? new Date(item.submittedDate).toISOString() : new Date().toISOString(),
-            type: item.type
-          };
-        }
-      })
-    );
+    // Format the contributions
+    const formattedContributions = contributions.map(item => ({
+      id: item.id,
+      title: item.title,
+      image: item.image,
+      status: item.status,
+      submittedDate: item.submittedDate ? new Date(item.submittedDate).toISOString() : new Date().toISOString(),
+      type: item.type
+    }));
 
-    console.log(`🎯 Formatted contributions with food details:`, formattedContributions);
+    console.log(`🎯 Formatted contributions:`, formattedContributions);
     return formattedContributions;
 
   } catch (error) {
