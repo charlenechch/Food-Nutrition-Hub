@@ -36,6 +36,11 @@ export default function LoginRegisterPage() {
   const [loginError, setLoginError] = useState("");
   const [registerError, setRegisterError] = useState("");
 
+  // ✅ Resend verification states
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+  const [showResendButton, setShowResendButton] = useState(false);
+
   // ✅ Lockout system
   const [lockouts, setLockouts] = useState(() => {
     const saved = localStorage.getItem("accountLockouts");
@@ -94,12 +99,29 @@ export default function LoginRegisterPage() {
     return () => clearInterval(interval);
   }, [email, lockouts]);
 
+  // ✅ Resend verification cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
   // ✅ Sync Firebase email verification → MySQL
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) {
         try {
-          await fetch(`${API_URL}/api/verify-email/sync`, {
+          await fetch(`${API_URL}/api/verifyEmail/sync`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
@@ -119,6 +141,59 @@ export default function LoginRegisterPage() {
     const m = Math.floor(sec / 60).toString().padStart(2, "0");
     const s = (sec % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
+  };
+
+  // ✅ Handle resend verification email
+  const handleResendVerification = async () => {
+    if (resendCooldown > 0 || isResending) return;
+    
+    setIsResending(true);
+    
+    try {
+      // Check backend rate limiting
+      const checkRes = await fetch(`${API_URL}/api/resendVerification`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      
+      const checkData = await checkRes.json();
+      
+      if (!checkRes.ok) {
+        if (checkRes.status === 429 && checkData.remainingSeconds) {
+          setResendCooldown(checkData.remainingSeconds);
+          setLoginError(`Please wait ${checkData.remainingSeconds} seconds before requesting another email.`);
+        } else {
+          setLoginError(checkData.error || "Failed to resend verification email");
+        }
+        setIsResending(false);
+        return;
+      }
+      
+      // Sign in to Firebase and send verification email
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      if (!user.emailVerified) {
+        await sendEmailVerification(user, {
+          url: window.location.origin + "/loginregister",
+        });
+        
+        setLoginError("Verification email sent! Please check your inbox or spam folder.");
+        setResendCooldown(120);
+        setShowResendButton(false);
+        console.log("Verification email resent successfully");
+      } else {
+        setLoginError("Your email is already verified. Please try logging in.");
+      }
+      
+    } catch (err) {
+      console.error("Resend verification error:", err);
+      setLoginError("Failed to resend verification email. Please try again later.");
+    } finally {
+      setIsResending(false);
+    }
   };
 
   // ✅ Stage 3 & above → suggest reset password
@@ -186,6 +261,7 @@ export default function LoginRegisterPage() {
       return "Password must contain a special character (!@#$%^&*...)";
     return null;
   };
+
   // ✅ LOGIN HANDLER
   const handleLogin = async () => {
     setLoginError("");
@@ -229,20 +305,10 @@ export default function LoginRegisterPage() {
         return;
       }
 
-      // ✅ Not verified → auto-send Firebase email
+      // ✅ Not verified → show resend button
       if (data.notVerified) {
-        try {
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
-          if (!user.emailVerified) {
-            await sendEmailVerification(user, {
-              url: window.location.origin + "/loginregister",
-            });
-          }
-          setLoginError("Email not verified. A new verification email has been sent.");
-        } catch (err) {
-          setLoginError("Email is not verified. Please check your inbox or spam folder.");
-        }
+        setLoginError("Email is not verified. Please check your inbox or spam folder.");
+        setShowResendButton(true);
         return;
       }
 
@@ -390,6 +456,32 @@ export default function LoginRegisterPage() {
                         Forgot your password? Reset it here.
                       </span>
                     </p>
+                  )}
+
+                  {showResendButton && (
+                    <div style={{ marginTop: "12px", textAlign: "center" }}>
+                      <button
+                        onClick={handleResendVerification}
+                        disabled={resendCooldown > 0 || isResending}
+                        style={{
+                          padding: "8px 16px",
+                          backgroundColor: resendCooldown > 0 || isResending ? "#ccc" : "#8B4513",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: resendCooldown > 0 || isResending ? "not-allowed" : "pointer",
+                          fontSize: "14px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {isResending 
+                          ? "Sending..." 
+                          : resendCooldown > 0 
+                            ? `Resend in ${formatTime(resendCooldown)}`
+                            : "Resend Verification Email"
+                        }
+                      </button>
+                    </div>
                   )}
                 </div>
               )}

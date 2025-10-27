@@ -18,6 +18,7 @@ const loginRoutes = require("./routes/login");
 const logoutRoutes = require("./routes/logout");
 const registerRoutes = require("./routes/register");
 const verifyEmailRoute = require("./routes/verifyEmail");
+const resendVerificationRoute = require("./routes/resendVerification");
 const authRoutes = require("./routes/auth");
 const foodRoutes = require("./routes/foods");
 const exploreFoodRoutes = require("./routes/exploreFood");
@@ -222,7 +223,8 @@ const authLimiter = rateLimit({
 app.use("/api/login", authLimiter, loginRoutes);
 app.use("/api/logout", logoutRoutes);
 app.use("/api/register", authLimiter, registerRoutes);
-app.use("/api/verify-email", verifyEmailRoute);
+app.use("/api/verifyEmail", verifyEmailRoute);
+app.use("/api/resendVerification", resendVerificationRoute);
 app.use("/api/auth", authRoutes);
 // app.use("/api/otp", otpRoutes);
 app.use("/api/exploreFood", exploreFoodRoutes);
