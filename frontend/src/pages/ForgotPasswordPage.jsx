@@ -23,9 +23,9 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      // ✅ MUST include reset URL to your ResetPasswordPage + email
+      // ✅ (UPDATED) Don’t include email in URL — allow Firebase to append oobCode properly
       await sendPasswordResetEmail(auth, email, {
-        url: `${window.location.origin}/resetpassword?email=${encodeURIComponent(email)}`,
+        url: `${window.location.origin}/resetpassword`,
         handleCodeInApp: true,
       });
 
@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
           <p>We'll send a reset link to your email so you can create a new password.</p>
         </div>
       </div>
-
+      
       {/* ✅ Right form */}
       <div className="fpp-form-panel">
         <div className="fpp-card">

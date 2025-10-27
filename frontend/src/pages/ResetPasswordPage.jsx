@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import "../css/ResetPasswordPage.css";
 
 // ✅ Firebase for password reset
-import { confirmPasswordReset } from "firebase/auth";
+import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
 import { auth } from "../config/firebase";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -14,12 +14,21 @@ export default function ResetPasswordPage() {
 
   // ✅ Firebase provides this after clicking email
   const oobCode = params.get("oobCode");
-  const email = params.get("email"); // ✅ we made sure this is included now
+  const [email, setEmail] = useState(""); // ✅ Securely retrieved later
 
   const [pwd, setPwd] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // ✅ Securely get email connected to reset request
+  useEffect(() => {
+    if (oobCode) {
+      verifyPasswordResetCode(auth, oobCode)
+        .then((fetchedEmail) => setEmail(fetchedEmail))
+        .catch(() => setError("Invalid or expired reset link"));
+    }
+  }, [oobCode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,10 +47,7 @@ export default function ResetPasswordPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({
-            email: email,
-            newPassword: pwd,
-          }),
+          body: JSON.stringify({ email: email, newPassword: pwd }),
         });
       }
 
