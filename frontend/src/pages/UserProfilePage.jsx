@@ -570,7 +570,7 @@ export default function UserProfilePage() {
             {tab === "settings" && (
               <div className="upp-stack">
                 <div className="upp-card">
-                  <h3 className="upp-card-title"><Bell size={18} color={"#6a4a2f"} /> Notifications</h3>
+                  <h3 className="upp-card-title"><Bell className="rdp-sec-icon" color={"#6a4a2f"} /> Notifications</h3>
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">Email Notifications</div>
@@ -603,7 +603,7 @@ export default function UserProfilePage() {
                 </div>
 
                 <div className="upp-card">
-                  <h3 className="upp-card-title"><Globe size={18} color={"#6a4a2f"} /> Language</h3>
+                  <h3 className="upp-card-title"><Globe className="rdp-sec-icon" color={"#6a4a2f"} /> Language</h3>
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">Language</div>
@@ -619,7 +619,7 @@ export default function UserProfilePage() {
                 </div>
 
               <div className="upp-card">
-                <h3 className="upp-card-title"><Eye size={18} color={"#6a4a2f"}/> Privacy</h3>
+                <h3 className="upp-card-title"><Eye className="rdp-sec-icon" color={"#6a4a2f"}/> Privacy</h3>
                 <div className="upp-row between">
                   <div>
                     <div className="upp-strong">Profile Visibility</div>
@@ -649,21 +649,21 @@ export default function UserProfilePage() {
 
                 {user?.role === "admin" && (
                   <div className="upp-card">
-                    <h3 className="upp-card-title"><Shield size={18} color={"#6a4a2f"} /> Admin Access</h3>
+                    <h3 className="upp-card-title"><Shield className="rdp-sec-icon" color={"#6a4a2f"} /> Admin Access</h3>
                     <div className="upp-row between">
                       <div>
                         <div className="upp-strong">Admin Panel</div>
                         <div className="upp-muted">Access administrative features and management tools</div>
                       </div>
                       <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => navigate("/admin")}>
-                        <ExternalLink size={15} /> Open Admin Dashboard
+                        <ExternalLink className="rdp-sec-icon" /> Open Admin Dashboard
                       </button>
                     </div>
                   </div>
                 )}
 
               <div className="upp-card">
-                <h3 className="upp-card-title"><OctagonX size={18} color={"#6a4a2f"}/> Account Deletion</h3>
+                <h3 className="upp-card-title"><OctagonX className="rdp-sec-icon" color={"#6a4a2f"}/> Account Deletion</h3>
 
                 <div className="upp-row between">
                   <div>
