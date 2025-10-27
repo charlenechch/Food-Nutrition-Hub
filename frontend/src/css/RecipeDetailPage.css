@@ -129,8 +129,6 @@
   vertical-align: middle;     /* replaces inline verticalAlign */
   margin-right:0.4em;         /* replaces inline marginRight */
   display:inline-block;       /* replaces inline display */
-  stroke: currentColor;       /* lucide */
-  fill: currentColor;         /* react-icons */
 }
 .rdp-list { 
     margin: 0; 
