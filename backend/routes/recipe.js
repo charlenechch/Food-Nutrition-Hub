@@ -1,6 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const db = require('../config/db');
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+console.log("🔧 Cloudinary configured:", {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? "✅ Set" : "❌ Missing",
+  api_key: process.env.CLOUDINARY_API_KEY ? "✅ Set" : "❌ Missing"
+});
 
 // GET all recipes 
 router.get('/all/recipes', async (req, res) => {
@@ -166,7 +180,7 @@ function createRecipeFromFlatObject(data) {
   
   // If no image, use base64 placeholder
   if (!imageUrl) {
-    imageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+    imageUrl = 'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg'; // Default placeholder
   }
   
   return {
@@ -345,7 +359,7 @@ router.post('/create/recipes', async (req, res) => {
     console.log('✅ User authenticated:', userProfileID);
 
     let processedImage = image || 
-    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+    'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
 
     console.log('🚀 About to execute FIRST INSERT (food table)');
 
@@ -353,8 +367,8 @@ router.post('/create/recipes', async (req, res) => {
     const foodQuery = `
       INSERT INTO food (
         name, origin, difficulty, prepTime, image, description, 
-        foodType, category, dietaryTags
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        foodType, category, dietaryTags, commonIngredients
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     const foodParams = [
@@ -366,7 +380,8 @@ router.post('/create/recipes', async (req, res) => {
       description || '', 
       foodType || 'Other',
       foodType || 'Other',
-      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || '')
+      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
+      null
     ];
     
     console.log('📝 Executing food insert with params:', foodParams);
@@ -405,7 +420,6 @@ router.post('/create/recipes', async (req, res) => {
     console.log('📝 Executing recipe insert with foodID:', foodId);
     console.log('📋 Recipe params:', recipeParams);
     
-    // Try using query() instead of execute()
     await db.query(recipeQuery, recipeParams);
     
     console.log('✅ Recipe insert successful');
@@ -422,7 +436,7 @@ router.post('/create/recipes', async (req, res) => {
       message: error.message,
       code: error.code,
       errno: error.errno,
-      sql: error.sql,           // This will show the exact failing SQL command
+      sql: error.sql,           // show the exact failing SQL command
       sqlState: error.sqlState,
       sqlMessage: error.sqlMessage,
       stack: error.stack
@@ -435,6 +449,133 @@ router.post('/create/recipes', async (req, res) => {
       code: error.code,
       details: 'Check backend logs for full error details'
     });
+  }
+});
+
+// POST new recipe 
+router.post('/create/recipes', async (req, res) => {
+  console.log('🔍 START: Recipe creation endpoint called');
+  
+  try {
+    const {
+      name, origin, difficulty, prepTime, image, description, 
+      foodType, dietaryTags, cookTime, servings, ingredients, 
+      instructions, funFact, chefTips
+    } = req.body;
+
+    console.log('📊 Request data analysis:', {
+      name, 
+      origin, 
+      foodType,
+      hasImage: !!image,
+      imageType: image ? (image.startsWith('data:image') ? 'base64' : 'url') : 'none'
+    });
+
+    // Validate required fields
+    if (!name || !origin) {
+      console.log('❌ Validation failed: missing name or origin');
+      return res.status(400).json({ error: 'Name and origin are required' });
+    }
+
+    // Check authentication
+    if (!req.session || !req.session.user) {
+      console.log('❌ Authentication failed - no session user');
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const userProfileID = req.session.user.userID;
+    console.log('✅ User authenticated:', userProfileID);
+
+    let processedImage = 'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
+
+    // CLOUDINARY UPLOAD LOGIC
+    if (image && image.startsWith('data:image')) {
+      try {
+        console.log('📤 Uploading image to Cloudinary...');
+        const uploadResult = await cloudinary.uploader.upload(image, {
+          folder: 'food-recipes',
+          resource_type: 'image'
+        });
+        processedImage = uploadResult.secure_url;
+        console.log('✅ Image uploaded to Cloudinary:', processedImage);
+      } catch (uploadError) {
+        console.error('❌ Cloudinary upload failed:', uploadError);
+        // Continue with default image
+      }
+    } else if (image && image.startsWith('http')) {
+      processedImage = image;
+      console.log('✅ Using existing image URL');
+    }
+
+    console.log('🚀 About to execute FIRST INSERT (food table)');
+
+    // Insert into food table
+    const foodQuery = `
+      INSERT INTO food (
+        name, origin, difficulty, prepTime, image, description, 
+        foodType, category, dietaryTags, commonIngredients
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    const foodParams = [
+      name, 
+      origin, 
+      difficulty || 'Easy', 
+      prepTime || 0, 
+      processedImage, 
+      description || '', 
+      foodType || 'Other',
+      foodType || 'Other',
+      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
+      null
+    ];
+    
+    console.log('📝 Executing food insert with params:', foodParams);
+    
+    const [foodResult] = await db.query(foodQuery, foodParams);
+    console.log('✅ Food insert successful - insertId:', foodResult.insertId);
+    
+    const foodId = foodResult.insertId;
+
+    if (!foodId) {
+      throw new Error('Could not retrieve the inserted food ID');
+    }
+
+    console.log('🚀 About to execute SECOND INSERT (recipe table)');
+
+    // Insert into recipe table
+    const recipeQuery = `
+      INSERT INTO recipe (
+        foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    const recipeParams = [
+      foodId, 
+      userProfileID,
+      Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
+      Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
+      cookTime || 0, 
+      servings || 1,
+      funFact || '', 
+      chefTips || '',
+      'Pending' 
+    ];
+    
+    console.log('📝 Executing recipe insert with foodID:', foodId);
+    await db.query(recipeQuery, recipeParams);
+    
+    console.log('✅ Recipe created successfully with ID:', foodId);
+    
+    res.status(201).json({ 
+      message: 'Recipe created successfully', 
+      id: foodId,
+      status: 'Pending'
+    });
+    
+  } catch (error) {
+    console.error('❌ Error creating recipe:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
