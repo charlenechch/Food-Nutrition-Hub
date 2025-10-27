@@ -181,6 +181,36 @@ export default function UserProfilePage() {
     }
   }, [user]);
 
+  // debug for contributions
+  useEffect(() => {
+    if (user) {
+      console.log('=== CONTRIBUTIONS DEBUG ===');
+      console.log('Full user object:', user);
+      console.log('Contributions array:', user.status);
+      console.log('Is array?', Array.isArray(user.status));
+      console.log('Array length:', user.status?.length);
+      
+      if (user.status && user.status.length > 0) {
+        console.log('First contribution item:', user.status[0]);
+        console.log('All contributions:', user.status);
+        
+        // Log status counts
+        const statusCounts = user.status.reduce((acc, item) => {
+          acc[item.status] = (acc[item.status] || 0) + 1;
+          return acc;
+        }, {});
+        console.log('Status counts:', statusCounts);
+        
+        // Log type counts
+        const typeCounts = user.status.reduce((acc, item) => {
+          acc[item.type] = (acc[item.type] || 0) + 1;
+          return acc;
+        }, {});
+        console.log('Type counts:', typeCounts);
+      }
+    }
+  }, [user]);
+
   // ===== Save: Personal Info =====
   const savePersonal = async () => {
     try {
