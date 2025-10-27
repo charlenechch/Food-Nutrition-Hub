@@ -265,7 +265,6 @@ router.get("/", async (req, res) => {
     console.log("Session data:", req.session);
     console.log("Session user:", req.session?.user);
     
-    // ✅ If user is guest or not logged in → Return guest JSON but do NOT destroy session
     if (!req.session || !req.session.user) {
       console.log("❌ No session or user found - returning guest response");
       return res.status(401).json({
@@ -276,7 +275,7 @@ router.get("/", async (req, res) => {
     }
 
     const userID = req.session.user.userID;
-    console.log(`🔍 Fetching profile for user: ${userID}`);
+    console.log(`🔍 Fetching profile for userID: ${userID}`);
     
     // Ensure userProfile exists first
     console.log(`🛠️ Ensuring userProfile exists...`);
@@ -308,17 +307,58 @@ router.get("/", async (req, res) => {
     }
 
     const profile = rows[0];
-    console.log("✅ Profile found:", {
-      userID: profile.userID,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      hasUserProfile: !!profile.userProfileID,
-      avatar: profile.avatar ? "✅ Set" : "❌ Not set"
-    });
+    console.log("✅ Profile found - userProfileID:", profile.userProfileID);
+
+    // ✅ FETCH SAVED FOODS - CORRECTED
+    console.log(`📚 Fetching saved foods for userProfileID: ${profile.userProfileID}`);
+    let savedFoodsData = [];
     
-    // If no profile data exists in userProfile, create default response
+    if (profile.userProfileID) {
+      try {
+        const [savedFoodsRows] = await db.execute(
+          `SELECT 
+            sf.saveID,
+            sf.createdAt as savedDate,
+            f.foodID as id,
+            f.name as name,
+            f.image as image,
+            f.origin as origin
+          FROM saveFood sf
+          JOIN food f ON sf.foodID = f.foodID
+          WHERE sf.userProfileID = ?
+          ORDER BY sf.createdAt DESC`,
+          [profile.userProfileID]
+        );
+
+        console.log(`🍴 Saved foods found:`, savedFoodsRows);
+        console.log(`🍴 Number of saved foods: ${savedFoodsRows.length}`);
+
+        // Format the data
+        savedFoodsData = savedFoodsRows.map(food => ({
+          saveId: food.saveID,
+          id: food.id,
+          name: food.name,
+          image: food.image,
+          origin: food.origin,
+          savedDate: food.savedDate ? new Date(food.savedDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }) : 'Recently saved'
+        }));
+
+        console.log('🍴 Formatted saved foods:', savedFoodsData);
+
+      } catch (savedFoodsError) {
+        console.error('❌ Error fetching saved foods:', savedFoodsError);
+        savedFoodsData = [];
+      }
+    }
+
+    // 🎯 BUILD RESPONSE WITH savedFoods INCLUDED
     const response = {
       ...profile,
+      savedFoods: savedFoodsData, // ✅ Make sure this is included
       stats: {
         recipes: freshStats.recipes || 0,
         posts: freshStats.posts || 0,
@@ -334,11 +374,15 @@ router.get("/", async (req, res) => {
       },
     };
 
-    console.log("📤 Sending profile response");
+    // 🎯 CRITICAL DEBUG LOGS
+    console.log("📤 FINAL RESPONSE - Has savedFoods?", 'savedFoods' in response);
+    console.log("📤 Response keys:", Object.keys(response));
+    console.log("📤 savedFoods content:", response.savedFoods);
+    
     res.json(response);
+
   } catch (err) {
     console.error("❌ Error fetching profile:", err);
-    console.error("❌ Error stack:", err.stack);
     res.status(500).json({ error: "Server error: " + err.message });
   }
 });
@@ -398,7 +442,7 @@ router.put("/update", async (req, res) => {
   }
 });
 
-// View other user's profile (/api/userProfile/:id) [admin]
+// View other user's profile (/api/userProfile/:id) 
 router.get("/:identifier", async (req, res) => {
   console.log("👥 Other user profile request received");
   try {
@@ -439,9 +483,48 @@ router.get("/:identifier", async (req, res) => {
     // Update user stats
     const freshStats = await updateUserStats(userID);
     
+    // ✅ FETCH SAVED FOODS FOR OTHER USER PROFILE TOO
+    let savedFoodsData = [];
+    if (profile.userProfileID) {
+      try {
+        const [savedFoodsRows] = await db.execute(
+          `SELECT 
+            sf.saveID,
+            sf.createdAt as savedDate,
+            f.foodID as id,
+            f.name as name,
+            f.image as image,
+            f.origin as origin
+          FROM saveFood sf
+          JOIN food f ON sf.foodID = f.foodID
+          WHERE sf.userProfileID = ?
+          ORDER BY sf.createdAt DESC`,
+          [profile.userProfileID]
+        );
+
+        savedFoodsData = savedFoodsRows.map(food => ({
+          saveId: food.saveID,
+          id: food.id,
+          name: food.name,
+          image: food.image,
+          origin: food.origin,
+          savedDate: food.savedDate ? new Date(food.savedDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }) : 'Recently saved'
+        }));
+
+      } catch (savedFoodsError) {
+        console.error('❌ Error fetching saved foods:', savedFoodsError);
+        savedFoodsData = [];
+      }
+    }
+    
     console.log("📤 Sending user profile response");
     res.json({
       ...profile,
+      savedFoods: savedFoodsData, // ✅ Include saved foods
       stats: {
         recipes: freshStats.recipes || profile.recipes || 0,
         posts: freshStats.posts || profile.posts || 0,
@@ -463,29 +546,4 @@ router.get("/:identifier", async (req, res) => {
   }
 });
 
-// Test endpoint to check basic functionality
-router.get("/debug/test", async (req, res) => {
-  console.log("🧪 Debug test endpoint hit");
-  try {
-    console.log("Session:", req.session);
-    console.log("Session user:", req.session?.user);
-    
-    // Test database connection
-    const [dbTest] = await db.execute('SELECT 1 as test');
-    console.log("Database test:", dbTest);
-    
-    res.json({
-      success: true,
-      session: req.session,
-      user: req.session?.user,
-      database: "Connected",
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error("Debug test error:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-console.log("✅ UserProfile router loaded with debug logging");
 module.exports = router;

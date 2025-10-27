@@ -117,6 +117,9 @@ export default function UserProfilePage() {
 
       const data = await res.json();
       console.log("🔍 Profile data received:", data);
+
+      console.log("🔍 Does data have savedFoods?", 'savedFoods' in data);
+      console.log("🔍 All keys in data:", Object.keys(data));
       
       if (!data || !data.userID) {
         throw new Error(data?.error || "Profile not found or server error");
@@ -142,17 +145,33 @@ export default function UserProfilePage() {
 
   // ✅ Pagination for saved foods
   useEffect(() => {
-    if (user?.savedFoods && Array.isArray(user.savedFoods)) {
+    const savedFoodsArray = user?.savedFoods || [];
+    if (Array.isArray(savedFoodsArray)) {
       const perPage = 6;
       const start = (savedPage - 1) * perPage;
-      const items = user.savedFoods.slice(start, start + perPage);
+      const items = savedFoodsArray.slice(start, start + perPage);
       setCurrentSaved(items);
-      setTotalSavedPages(Math.ceil(user.savedFoods.length / perPage));
+      setTotalSavedPages(Math.ceil(savedFoodsArray.length / perPage));
     } else {
       setCurrentSaved([]);
       setTotalSavedPages(1);
     }
-  }, [user, savedPage]);
+  }, [user, user?.savedFoods, savedPage]);
+
+  // debug
+  useEffect(() => {
+    if (user) {
+      console.log('=== FRONTEND DEBUG ===');
+      console.log('Full user object:', user);
+      console.log('Saved foods array:', user.savedFoods);
+      console.log('Is array?', Array.isArray(user.savedFoods));
+      console.log('Array length:', user.savedFoods?.length);
+      
+      if (user.savedFoods && user.savedFoods.length > 0) {
+        console.log('First saved food item:', user.savedFoods[0]);
+      }
+    }
+  }, [user]);
 
   // ===== Save: Personal Info =====
   const savePersonal = async () => {
@@ -402,10 +421,10 @@ export default function UserProfilePage() {
                           className="upp-food-card"
                           role="button"
                           tabIndex={0}
-                          onClick={() => navigate(`/fooddetail?id=${f.id}`, { state: { food: f } })}
+                          onClick={() => navigate(`/fooddetail/${f.id}`)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter")
-                              navigate(`/fooddetail?id=${f.id}`, { state: { food: f } });
+                              navigate(`/fooddetail/${f.id}`);
                           }}
                         >
                           <div className="upp-food-media">
