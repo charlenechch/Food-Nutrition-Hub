@@ -91,7 +91,7 @@ function App() {
         <Route path="/community/:id" element={<CommunityPost />} />
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
         <Route path="/revise/:id" element={<ReviseRecipePage />} />
-        <Route path="/editfood/:id" element={<EditFoodPage />} />
+        <Route path="/editfood/" element={<EditFoodPage />} />
         <Route path="/revisecommunitypostpage" element={<ReviseCommunityPostPage />} />
         {/* <Route path="/admin" element={<AdminHomepage />} /> */}
 

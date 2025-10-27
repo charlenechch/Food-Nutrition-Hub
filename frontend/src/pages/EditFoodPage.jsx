@@ -41,10 +41,10 @@ const EditFoodPage = () => {
     <div className="edit-food-page">
       <Header />
 
-      <div className="edit-container">
+      <div className="edit-food-container">
         <div className="edit-topbar">
-            <button className="back-btn" onClick={() => navigate("/admin")}>
-                <span className="back-icon"><FaArrowLeftLong /></span>
+            <button className="admin-edit-food-back-btn" onClick={() => navigate("/admin")}>
+                <span className="admin-edit-food-back-icon"><FaArrowLeftLong /></span>
                  Back to Dashboard
              </button>
 
@@ -53,15 +53,15 @@ const EditFoodPage = () => {
                 <p>{food.name_en}</p>
             </div>
 
-            <button className="save-btn">
-                <span className="save-icon"><FiSave /></span> 
+            <button className="admin-edit-food-save-btn">
+                <span className="admin-edit-food-save-icon"><FiSave /></span> 
                 Save Changes
             </button>
         </div>
 
         <div className="edit-grid">
           {/* === Food Image Section === */}
-          <div className="image-upload-section">
+          <div className="edit-food-image-upload-section">
             <h3>Food Image</h3>
             <div className="image-preview">
                 {selectedImage ? (
@@ -80,16 +80,16 @@ const EditFoodPage = () => {
             />
             
             <button
-                className="upload-btn"
+                className="admin-edit-food-upload-btn"
                 onClick={() => document.getElementById("fileInput").click()}
             >
-                <span className="upload-icon"><MdOutlineFileUpload /></span>
+                <span className="admin-edit-food-upload-icon"><MdOutlineFileUpload /></span>
                 Upload New Image
             </button>
             </div>
 
           {/* === Basic Info Section === */}
-          <div className="basic-info-card">
+          <div className="edit-food-basic-info-card">
             <h3>Basic Information</h3>
             <div className="two-col">
               <div>
@@ -147,7 +147,7 @@ const EditFoodPage = () => {
         </div>
 
         {/* === Cultural Context === */}
-        <div className="section-card">
+        <div className="edit-cultural-context-card">
           <h3>Cultural Context</h3>
           <label>Cultural Context</label>
           <textarea
@@ -158,7 +158,7 @@ const EditFoodPage = () => {
         </div>
 
         {/* === Nutritional Info === */}
-        <div className="section-card">
+        <div className="edit-cultural-context-card">
           <h3 className="section-title">
             Nutritional Information <span className="serving-note">(per serving)</span>
          </h3>
@@ -180,28 +180,10 @@ const EditFoodPage = () => {
         </div>
 
         {/* === Additional Info === */}
-        <div className="section-card">
+        <div className="edit-food-additional-info-card">
           <h3>Additional Information</h3>
-          <div className="two-col">
-            <div>
-              <label>Serving Size</label>
-              <input placeholder="e.g., 1 cup, 100g" />
-            </div>
-            <div>
-              <label>Preparation Time</label>
-              <input placeholder="e.g., 30 minutes" />
-            </div>
-          </div>
 
-          <label>Difficulty Level</label>
-          <select>
-            <option value="">Select difficulty</option>
-            <option>Easy</option>
-            <option>Moderate</option>
-            <option>Hard</option>
-          </select>
-
-          <label>Ingredients</label>
+          <label>Common Ingredients</label>
           <textarea placeholder="List ingredients separated by commas" />
 
           <label>Health Benefits</label>
