@@ -51,14 +51,29 @@ const normalizePrefs = (data = {}) => {
 const toggleInArray = (arr, value) =>
   arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 
-const fmtStatus = (s) =>
-  s === "under_review"
-    ? "Under Review"
-    : s === "awaiting_approval"
-    ? "Awaiting Approval"
-    : s === "needs_revision"
-    ? "Needs Revision"
-    : "Unknown";
+// const fmtStatus = (s) =>
+//   s === "under_review"
+//     ? "Under Review"
+//     : s === "awaiting_approval"
+//     ? "Awaiting Approval"
+//     : s === "needs_revision"
+//     ? "Needs Revision"
+//     : "Unknown";
+
+const fmtStatus = (s) => {
+  if (!s) return "Unknown";
+  
+  const statusMap = {
+    "approved": "Approved",
+    "pending": "Pending Review", 
+    "rejected": "Rejected",
+    "Approved": "Approved",
+    "Pending": "Pending Review",
+    "Rejected": "Rejected"
+  };
+  
+  return statusMap[s] || "Unknown";
+};
 
 const formatContributionDate = (dateString) => {
   if (!dateString) return "Date not available";
@@ -534,13 +549,13 @@ export default function UserProfilePage() {
                             <h4 className="upp-food-title upp-row-title">{c.title}</h4>
                             <span
                               className={`upp-chip ${
-                                c.status === "under_review"
+                                c.status === "approved" || c.status === "Approved"
+                                  ? "chip-green"
+                                  : c.status === "pending" || c.status === "Pending"
                                   ? "chip-yellow"
-                                  : c.status === "awaiting_approval"
-                                  ? "chip-blue"
-                                  : c.status === "needs_revision"
+                                  : c.status === "rejected" || c.status === "Rejected"
                                   ? "chip-red"
-                                  : ""
+                                  : "chip-gray"
                               }`}
                             >
                               {fmtStatus(c.status)}
