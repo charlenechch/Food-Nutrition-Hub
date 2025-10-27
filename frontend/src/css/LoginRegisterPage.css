@@ -501,3 +501,27 @@ body, html, #root {
     width: 100%;
   }
 }
+
+/* Eye Icon Password Toggle */
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 40px; /* Space for the icon */
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.toggle-password:hover {
+  color: #222;
+}

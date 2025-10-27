@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // 👁️ Password toggle icons
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Firebase imports
@@ -16,16 +18,21 @@ import { auth } from "../config/firebase";
 
 export default function LoginRegisterPage() {
   const [activeTab, setActiveTab] = useState("login");
+
+  // ✅ Login states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberDevice, setRememberDevice] = useState(false);
-  const [loginError, setLoginError] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false); // 👁️
 
-  // ✅ Register fields
+  // ✅ Register states
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [showRegPassword, setShowRegPassword] = useState(false); // 👁️
+
+  const [rememberDevice, setRememberDevice] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const [registerError, setRegisterError] = useState("");
 
   // ✅ Lockout system
@@ -36,8 +43,7 @@ export default function LoginRegisterPage() {
   const [remainingTime, setRemainingTime] = useState(0);
 
   const navigate = useNavigate();
-  const { setUser, loginAsGuest } = useAuth(); // ✅ use setUser instead of login(email)
-
+  const { setUser, loginAsGuest } = useAuth();
   // ✅ Sync lockouts across tabs
   useEffect(() => {
     const sync = (e) => {
@@ -49,12 +55,12 @@ export default function LoginRegisterPage() {
     return () => window.removeEventListener("storage", sync);
   }, []);
 
-  // ✅ Save lockouts
+  // ✅ Save lockouts in localStorage
   useEffect(() => {
     localStorage.setItem("accountLockouts", JSON.stringify(lockouts));
   }, [lockouts]);
 
-  // ✅ Countdown & unlock system
+  // ✅ Countdown for unlock timer
   useEffect(() => {
     if (!email || !lockouts[email]?.unlockAt) return;
     const interval = setInterval(() => {
@@ -65,29 +71,27 @@ export default function LoginRegisterPage() {
       setRemainingTime(diff);
 
       if (diff <= 0) {
-        // Auto-unlock & promote stage _after_ unlock
         setLockouts((prev) => {
-          const newData = { ...prev };
-          const entry = newData[email];
+          const updated = { ...prev };
+          const entry = updated[email];
           if (entry) {
-            // ⬇️ allow promotion up to stage 3 (so stage 2 → 3 after 10-min lock)
             if (entry.pendingPromotion) {
               entry.lockStage = Math.min((entry.lockStage || 0) + 1, 3);
             }
             entry.unlockAt = null;
             entry.attemptCount = 0;
             entry.pendingPromotion = false;
-            // Clear the reset hint after unlock; it will be shown on next failure at stage 3+
             entry.showReset = false;
           }
-          return newData;
+          return updated;
         });
       }
     }, 1000);
+
     return () => clearInterval(interval);
   }, [email, lockouts]);
 
-  // ✅ Listen for Firebase email verification (sync to MySQL)
+  // ✅ Listen for Firebase email verification → sync to MySQL
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) {
@@ -98,7 +102,7 @@ export default function LoginRegisterPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: user.email }),
           });
-          console.log("✅ Verification synced to Database");
+          console.log("✅ Email verification synced to database");
         } catch (err) {
           console.error("❌ Sync error:", err);
         }
@@ -107,21 +111,19 @@ export default function LoginRegisterPage() {
     return () => unsubscribe();
   }, []);
 
+  // ✅ Format seconds to mm:ss
   const formatTime = (sec) => {
-    const m = Math.floor(sec / 60)
-      .toString()
-      .padStart(2, "0");
+    const m = Math.floor(sec / 60).toString().padStart(2, "0");
     const s = (sec % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
 
-  // ✅ Helper: should we show the reset suggestion (Stage 3+)?
+  // ✅ Show reset password suggestion (Stage 3+)
   const shouldSuggestReset = (email) => {
     const entry = lockouts[email];
     return !!(entry && entry.lockStage >= 3);
   };
-
-  // ✅ LOGIN HANDLER
+  // ✅ HANDLE LOGIN
   const handleLogin = async () => {
     setLoginError("");
 
@@ -150,7 +152,7 @@ export default function LoginRegisterPage() {
 
       const data = await res.json();
 
-      // ✅ Success → set user into context properly
+      // ✅ Success → set user & redirect
       if (res.ok && data.success && data.user) {
         setUser(data.user);
         setLockouts((prev) => {
@@ -158,49 +160,36 @@ export default function LoginRegisterPage() {
           delete updated[email];
           return updated;
         });
-
         navigate(data.user.role === "admin" ? "/admin" : "/home");
         return;
       }
 
-      // ✅ Not verified – auto-send Firebase email
+      // ✅ Not Verified → auto resend Firebase email
       if (data.notVerified) {
         try {
-          const userCredential = await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-          );
-        const user = userCredential.user;
-
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
           if (!user.emailVerified) {
             await sendEmailVerification(user, {
               url: window.location.origin + "/loginregister",
             });
           }
-
-          setLoginError(
-            "Email not verified. A new verification email has been sent."
-          );
+          setLoginError("Email not verified. A new verification email has been sent.");
         } catch (err) {
-          console.error("Auto resend failed:", err);
-          setLoginError(
-            "Email is not verified. Please check your inbox or spam folder."
-          );
+          setLoginError("Email not verified. Please check your inbox.");
         }
         return;
       }
 
-      // ❌ Wrong credentials → Lockout system
+      // ❌ Wrong credentials → Lockout
       handleFailedAttempt(email);
       setLoginError(data.message || "Invalid email or password.");
     } catch (err) {
-      console.error("Login error:", err);
       setLoginError("Login failed. Please try again.");
     }
   };
 
-  // ✅ Failed attempt logic (with Stage 3 suggestion)
+  // ✅ Failed attempt logic
   const handleFailedAttempt = (email) => {
     setLockouts((prev) => {
       const entry =
@@ -216,22 +205,18 @@ export default function LoginRegisterPage() {
       attemptCount++;
 
       if (lockStage === 0 && attemptCount >= 5) {
-        // Stage 0 → lock 2 min, then promote to stage 1 after unlock
         unlockAt = Date.now() + 2 * 60 * 1000;
-        attemptCount = 0;
         pendingPromotion = true;
+        attemptCount = 0;
       } else if (lockStage === 1 && attemptCount >= 1) {
-        // Stage 1 → lock 5 min, then promote to stage 2 after unlock
         unlockAt = Date.now() + 5 * 60 * 1000;
-        attemptCount = 0;
         pendingPromotion = true;
+        attemptCount = 0;
       } else if (lockStage === 2 && attemptCount >= 1) {
-        // Stage 2 → lock 10 min, then promote to stage 3 after unlock
         unlockAt = Date.now() + 10 * 60 * 1000;
-        attemptCount = 0;
         pendingPromotion = true;
+        attemptCount = 0;
       } else if (lockStage >= 3) {
-        // Stage 3+ → no more time locks; suggest password reset
         unlockAt = null;
         pendingPromotion = false;
       }
@@ -249,90 +234,7 @@ export default function LoginRegisterPage() {
     });
   };
 
-  // ✅ Password Validation
-  const validatePassword = (password) => {
-    const minLength = 8;
-    const hasUpper = /[A-Z]/.test(password);
-    const hasLower = /[a-z]/.test(password);
-    const hasNum = /[0-9]/.test(password);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-    if (password.length < minLength)
-      return `Password must be at least ${minLength} characters long`;
-    if (!hasUpper) return "Password must contain an uppercase letter";
-    if (!hasLower) return "Password must contain a lowercase letter";
-    if (!hasNum) return "Password must contain a number";
-    if (!hasSpecial)
-      return "Password must contain a special character (!@#$%^&*...)";
-    return null;
-  };
-
-  // ✅ REGISTER Handler (MySQL + Firebase + Email Verification)
-  const handleRegister = async () => {
-    setRegisterError("");
-
-    if (!firstName || !lastName || !regEmail || !regPassword) {
-      setRegisterError("Please fill in all fields.");
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(regEmail)) {
-      setRegisterError("Please enter a valid email address.");
-      return;
-    }
-
-    const passwordError = validatePassword(regPassword);
-    if (passwordError) {
-      setRegisterError(passwordError);
-      return;
-    }
-
-    try {
-      // ✅ Step 1 — Register in MySQL database
-      const res = await fetch(`${API_URL}/api/register`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstname: firstName,
-          lastname: lastName,
-          email: regEmail,
-          password: regPassword,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setRegisterError(data.message || "Registration failed");
-        return;
-      }
-
-      // ✅ Step 2 — Create Firebase user
-      const fb = await createUserWithEmailAndPassword(
-        auth,
-        regEmail,
-        regPassword
-      );
-
-      // ✅ Step 3 — Send Firebase verification email
-      await sendEmailVerification(fb.user, {
-        url: window.location.origin + "/loginregister",
-      });
-
-      alert("Registration successful! Please verify your email to continue.");
-      setFirstName("");
-      setLastName("");
-      setRegEmail("");
-      setRegPassword("");
-      setActiveTab("login");
-    } catch (err) {
-      console.error("Register error:", err);
-      setRegisterError("Something went wrong. Try again.");
-    }
-  };
-
-  // ✅ Guest login → does not affect member/admin sessions
+  // ✅ Guest Login
   const handleGuest = () => {
     loginAsGuest();
     navigate("/home");
@@ -342,11 +244,10 @@ export default function LoginRegisterPage() {
     if (stage === 0) return "2 minutes lock";
     if (stage === 1) return "5 minutes lock";
     if (stage === 2) return "10 minutes lock";
-    // Stage 3+ doesn't show timers anymore
     return "Account protection";
   };
 
-  // ✅ RETURN – UI is same, only backend logic was extended
+  // ✅ LOGIN UI
   return (
     <div className="login-register-page">
       <div className="lrp-image-section">
@@ -387,49 +288,53 @@ export default function LoginRegisterPage() {
               {loginError && (
                 <div className="lrp-error-box">
                   {loginError}
-
-                  {/* Show timer only when an actual timed lock is active */}
                   {lockouts[email]?.unlockAt > Date.now() && (
                     <p className="lrp-timer">
-                      Try again in {formatTime(remainingTime)} (
-                      {getLockLabel(lockouts[email].lockStage)})
+                      Try again in {formatTime(remainingTime)} ({getLockLabel(lockouts[email].lockStage)})
                     </p>
                   )}
-
-                  {/* ✅ Stage 3 onwards → Suggest reset password (no timer) */}
                   {shouldSuggestReset(email) && (
                     <p className="lrp-reset-hint">
                       Too many attempts.{" "}
                       <span
                         onClick={() => navigate("/forgotpassword")}
-                        style={{
-                          color: "blue",
-                          cursor: "pointer",
-                          textDecoration: "underline",
-                        }}
+                        style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
                       >
-                        Forgot your password? Reset it here.
+                        Reset your password here.
                       </span>
                     </p>
                   )}
                 </div>
               )}
 
+              {/* Email */}
               <div>
                 <label>Email</label>
                 <input
                   type="email"
                   value={email}
+                  placeholder="e.g. johntan@gmail.com"
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+
+              {/* Password with eye icon */}
               <div>
                 <label>Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="password-wrapper">
+                  <input
+                    type={showLoginPassword ? "text" : "password"}
+                    value={password}
+                    placeholder="e.g. John123!"
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <span
+                    className="toggle-password"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  >
+                    {showLoginPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                </div>
               </div>
 
               <div className="otp-remember">
@@ -463,18 +368,22 @@ export default function LoginRegisterPage() {
                 Continue as Guest
               </button>
             </div>
-          ) : (
-            // ✅ REGISTER FORM
+          ) : null}
+          {/* ✅ REGISTER FORM */}
+          {activeTab === "register" && (
             <div className="lrp-form-content">
               {registerError && (
                 <div className="lrp-error-box">{registerError}</div>
               )}
+
+              {/* First & Last Name */}
               <div className="lrp-grid">
                 <div>
                   <label>First Name</label>
                   <input
                     type="text"
                     value={firstName}
+                    placeholder="e.g. John"
                     onChange={(e) => setFirstName(e.target.value)}
                   />
                 </div>
@@ -483,27 +392,40 @@ export default function LoginRegisterPage() {
                   <input
                     type="text"
                     value={lastName}
+                    placeholder="e.g. Tan"
                     onChange={(e) => setLastName(e.target.value)}
                   />
                 </div>
               </div>
 
+              {/* Email */}
               <div>
                 <label>Email</label>
                 <input
                   type="email"
                   value={regEmail}
+                  placeholder="e.g. johntan@gmail.com"
                   onChange={(e) => setRegEmail(e.target.value)}
                 />
               </div>
 
+              {/* Password with eye icon toggle */}
               <div>
                 <label>Password</label>
-                <input
-                  type="password"
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                />
+                <div className="password-wrapper">
+                  <input
+                    type={showRegPassword ? "text" : "password"}
+                    value={regPassword}
+                    placeholder="e.g. John123!"
+                    onChange={(e) => setRegPassword(e.target.value)}
+                  />
+                  <span
+                    className="toggle-password"
+                    onClick={() => setShowRegPassword(!showRegPassword)}
+                  >
+                    {showRegPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                </div>
               </div>
 
               <button
@@ -516,6 +438,7 @@ export default function LoginRegisterPage() {
               <div className="lrp-divider">
                 <span>or</span>
               </div>
+
               <button
                 onClick={handleGuest}
                 className="lrp-btn lrp-btn-outline"
