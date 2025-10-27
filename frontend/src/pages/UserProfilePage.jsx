@@ -550,7 +550,7 @@ export default function UserProfilePage() {
                             <span
                               className={`upp-chip ${
                                 c.status === "approved" || c.status === "Approved"
-                                  ? "chip-green"
+                                  ? "chip-blue"
                                   : c.status === "pending" || c.status === "Pending"
                                   ? "chip-yellow"
                                   : c.status === "rejected" || c.status === "Rejected"
