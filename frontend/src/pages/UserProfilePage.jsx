@@ -8,7 +8,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../css/UserProfilePage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Bell, Eye, Globe, Shield, ExternalLink } from "lucide-react";
+import { Bell, Eye, Globe, Shield, ExternalLink, OctagonX } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
