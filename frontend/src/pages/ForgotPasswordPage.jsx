@@ -23,13 +23,15 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      // ✅ FIXED – remove email from URL, let Firebase handle oobCode automatically
+      // ✅ IMPORTANT:
+      // We send a reset link but force Firebase to redirect back to our *own* reset page
+      // This ensures the link includes oobCode, &mode=resetPassword in the URL
       await sendPasswordResetEmail(auth, email, {
-        url: `${window.location.origin}/resetpassword`,
-        handleCodeInApp: true,
+        url: `${window.location.origin}/resetpassword`, // 🔹 MUST match your route
+        handleCodeInApp: true, // 🔹 Required to process in React app instead of Firebase hosted UI
       });
 
-      setSubmitted(true);
+      setSubmitted(true); // ✅ Show "Success" UI
     } catch (err) {
       console.error(err);
       setError("Failed to send reset email. Check if the email is registered.");
