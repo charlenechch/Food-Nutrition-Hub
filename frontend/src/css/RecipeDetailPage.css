@@ -121,14 +121,13 @@
 .rdp-sec-title { 
     margin: 0 0 1.5rem; 
     color: #6a4a2f; 
-    line-height:1.2;
 }
 .rdp-sec-icon{
   width:1em;
   height:1em;
-  vertical-align: middle;     /* replaces inline verticalAlign */
-  margin-right:0.4em;         /* replaces inline marginRight */
-  display:inline-block;       /* replaces inline display */
+  vertical-align: middle;     
+  margin-right:0.4em;         
+  display:inline-block;      
 }
 .rdp-list { 
     margin: 0; 
