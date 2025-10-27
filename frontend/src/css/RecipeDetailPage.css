@@ -126,7 +126,9 @@
   width:1em;
   height:1em;
   vertical-align: middle;        
-  display:inline-block;      
+  display:inline-block;   
+  margin-right:0.4em;
+  transform: translateY(-0.06em);   
 }
 .rdp-list { 
     margin: 0; 
