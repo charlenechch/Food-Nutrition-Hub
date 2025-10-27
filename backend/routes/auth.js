@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
+// ➕ ADDED: bcrypt for secure password checks
+const bcrypt = require("bcrypt");
+
 /* ✅ 1. Session Check (Supports Guests)
    - If user is logged in → return session user
    - If user is not logged in (guest) → return 401 with { guest: true }
@@ -22,17 +25,19 @@ router.get("/session", async (req, res) => {
   });
 });
 
-/* ✅ 2. Login (Creates session + userProfile if missing) */
+/* ✅ 2. Login (Creates session + userProfile if missing)
+   ⚠ CHANGED: secure password verification with bcrypt, plus one-time migration
+*/
 router.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // 1. Check user in database
+    // 1) Look up by email ONLY (we need the stored hash/plaintext to verify)
     const [users] = await db.execute(
-      `SELECT userID, firstname, lastname, email, role
+      `SELECT userID, firstname, lastname, email, role, password
        FROM user
-       WHERE email = ? AND password = ?`,
-      [email, password]
+       WHERE email = ?`,
+      [email]
     );
 
     if (users.length === 0) {
@@ -43,7 +48,43 @@ router.post("/api/login", async (req, res) => {
 
     const user = users[0];
 
-    // 2. Check if profile exists
+    // 2) Decide if stored password is bcrypt hash or legacy plaintext
+    const stored = user.password || "";
+    const looksHashed = stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$");
+
+    let valid = false;
+
+    if (looksHashed) {
+      // ✅ Normal path: compare against bcrypt hash
+      valid = await bcrypt.compare(password, stored);
+    } else {
+      // ⚠ Legacy path: DB still has plaintext; compare once…
+      if (password === stored) {
+        valid = true;
+        // …then immediately rehash + upgrade in DB (one-time migration)
+        try {
+          const hashed = await bcrypt.hash(password, 10);
+          await db.execute(
+            `UPDATE user SET password = ? WHERE userID = ?`,
+            [hashed, user.userID]
+          );
+          console.log(`🔐 Migrated plaintext password → bcrypt for userID=${user.userID}`);
+        } catch (mErr) {
+          console.error("Password migration error:", mErr);
+          // proceed with login; migration can retry next login if needed
+        }
+      } else {
+        valid = false;
+      }
+    }
+
+    if (!valid) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid email or password" });
+    }
+
+    // 3) Check if profile exists
     const [profiles] = await db.execute(
       `SELECT userProfileID FROM userProfile WHERE userID = ?`,
       [user.userID]
@@ -51,7 +92,7 @@ router.post("/api/login", async (req, res) => {
 
     let userProfileID;
     if (profiles.length === 0) {
-      // 3. If no profile → auto-create
+      // 4) If no profile → auto-create
       const [result] = await db.execute(
         `INSERT INTO userProfile (userID, firstname, lastname)
          VALUES (?, ?, ?)`,
@@ -62,7 +103,7 @@ router.post("/api/login", async (req, res) => {
       userProfileID = profiles[0].userProfileID;
     }
 
-    // 4. Save to session
+    // 5) Save to session
     req.session.user = {
       userID: user.userID,
       userProfileID: userProfileID,
@@ -92,6 +133,37 @@ router.post("/api/logout", (req, res) => {
   } catch (err) {
     console.error("Logout error:", err);
     return res.status(500).json({ success: false, message: "Logout failed" });
+  }
+});
+
+/* ➕ NEW: 4. Update password after Firebase reset (MySQL sync)
+   - Mounted by server as: POST /api/auth/updatePassword
+   - Body: { email, newPassword }
+   - Hashes the new password before storing
+*/
+router.post("/updatePassword", async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword) {
+    return res.status(400).json({ success: false, message: "Email and newPassword are required" });
+  }
+
+  try {
+    const hashed = await bcrypt.hash(newPassword, 10);
+    const [result] = await db.execute(
+      `UPDATE user SET password = ? WHERE email = ?`,
+      [hashed, email]
+    );
+
+    if (result.affectedRows === 0) {
+      // Not an error; some accounts may be Firebase-only without a local row.
+      return res.json({ success: true, message: "No matching MySQL user; skipped update" });
+    }
+
+    return res.json({ success: true, message: "Password updated in MySQL" });
+  } catch (err) {
+    console.error("UpdatePassword error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 });
 

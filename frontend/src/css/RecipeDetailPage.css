@@ -122,6 +122,14 @@
     margin: 0 0 1.5rem; 
     color: #6a4a2f; 
 }
+.rdp-sec-icon{
+  width:1em;
+  height:1em;
+  vertical-align: middle;        
+  display:inline-block;   
+  margin-right:0.4em;
+  transform: translateY(-0.06em);   
+}
 .rdp-list { 
     margin: 0; 
     padding: 0 1.1rem; 
