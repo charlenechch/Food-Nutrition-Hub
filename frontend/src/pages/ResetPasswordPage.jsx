@@ -2,18 +2,19 @@ import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import "../css/ResetPasswordPage.css";
 
-// ✅ Firebase
+// ✅ Firebase for password reset
 import { confirmPasswordReset } from "firebase/auth";
 import { auth } from "../config/firebase";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
 
-  // ✅ Firebase sends this in reset email: /resetpassword?oobCode=xxxx
+  // ✅ Firebase provides this after clicking email
   const oobCode = params.get("oobCode");
-  const email = params.get("email"); // Email is not auto-included unless you append it
+  const email = params.get("email"); // ✅ we made sure this is included now
 
   const [pwd, setPwd] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -28,19 +29,21 @@ export default function ResetPasswordPage() {
     if (pwd !== confirm) return setError("Passwords do not match.");
 
     try {
-      // ✅ Step 1: Update password in Firebase
+      // ✅ 1. Update password in Firebase
       await confirmPasswordReset(auth, oobCode, pwd);
 
-      // ✅ Step 2: Also update password in MySQL backend
-      await fetch(`${API_URL}/api/auth/updatePassword`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          email: email,    // ✅ You MUST pass user's email to backend
-          newPassword: pwd // ✅ Backend will hash it before saving
-        }),
-      });
+      // ✅ 2. Sync new password to MySQL backend
+      if (email) {
+        await fetch(`${API_URL}/api/auth/updatePassword`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            email: email,
+            newPassword: pwd,
+          }),
+        });
+      }
 
       setSuccess(true);
       setTimeout(() => navigate("/loginregister"), 2000);
@@ -50,14 +53,17 @@ export default function ResetPasswordPage() {
     }
   };
 
-  // ✅ If no oobCode exists = bad URL
+  // ✅ If link is broken or missing code
   if (!oobCode) {
     return (
       <div className="rpp-container">
         <div className="rpp-card">
           <h2 className="rpp-head2">Invalid or Missing Link</h2>
           <p>Please request a new password reset email.</p>
-          <button className="lrp-btn lrp-btn-primary" onClick={() => navigate("/forgotpassword")}>
+          <button
+            className="lrp-btn lrp-btn-primary"
+            onClick={() => navigate("/forgotpassword")}
+          >
             Back
           </button>
         </div>
@@ -65,14 +71,17 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // ✅ Success screen UI
+  // ✅ Success UI after password saved
   if (success) {
     return (
       <div className="rpp-container">
         <div className="rpp-card">
           <h2 className="rpp-head2">Password Updated Successfully!</h2>
           <p>You can now login with your new password.</p>
-          <button className="lrp-btn lrp-btn-primary" onClick={() => navigate("/loginregister")}>
+          <button
+            className="lrp-btn lrp-btn-primary"
+            onClick={() => navigate("/loginregister")}
+          >
             Go to Login
           </button>
         </div>
@@ -94,7 +103,11 @@ export default function ResetPasswordPage() {
           {error && <p className="rpp-error">{error}</p>}
 
           <button type="submit" className="lrp-btn lrp-btn-primary">Save New Password</button>
-          <button type="button" className="lrp-btn lrp-btn-outline" onClick={() => navigate("/forgotpassword")}>
+          <button
+            type="button"
+            className="lrp-btn lrp-btn-outline"
+            onClick={() => navigate("/forgotpassword")}
+          >
             Cancel
           </button>
         </form>
