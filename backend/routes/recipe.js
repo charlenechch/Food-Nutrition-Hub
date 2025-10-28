@@ -579,8 +579,7 @@ router.post('/create/recipes', async (req, res) => {
   }
 });
 
-// GET recipe for revision (rejected status)
-// GET single recipe for revision (by ID, ignores status)
+// GET recipe for revision (by ID, any status)
 router.get('/revise/recipes/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -622,63 +621,15 @@ router.get('/revise/recipes/:id', async (req, res) => {
     
     let row = rows[0];
     
-    // DEBUG
-    console.log('Revision recipe row structure:', {
-      keys: Object.keys(row),
-      status: row.status,
+    console.log('Revision recipe data found:', {
       id: row.id,
-      name: row.name
+      name: row.name,
+      status: row.status
     });
     
-    // Extract the actual recipe data (using your existing logic)
-    let recipeData = row;
-    
-    // If row has numeric keys, look for the actual recipe object
-    if ((row.id === undefined || row.name === undefined) && Object.keys(row).some(key => !isNaN(key))) {
-      console.log('Looking for recipe in numeric keys...');
-      
-      Object.keys(row).forEach(key => {
-        const value = row[key];
-        if (value && typeof value === 'object' && value.id !== undefined && value.name !== undefined) {
-          console.log(`Found recipe at key ${key}:`, { id: value.id, name: value.name });
-          recipeData = value;
-        }
-      });
-    }
-    
-    if (recipeData.id === undefined || recipeData.name === undefined) {
-      console.log('Using direct mapping for revision recipe');
-      // Map numeric indices to field names based on SELECT order
-      const fieldMap = {
-        0: 'id', 1: 'name', 2: 'origin', 3: 'difficulty', 4: 'prepTime', 5: 'image',
-        6: 'description', 7: 'foodType', 8: 'category', 9: 'dietaryTags',
-        10: 'cookTime', 11: 'servings', 12: 'ingredients', 13: 'instructions',
-        14: 'funFact', 15: 'chefTips', 16: 'status'
-      };
-      
-      const mappedData = {};
-      Object.keys(recipeData).forEach(key => {
-        const numKey = parseInt(key);
-        if (!isNaN(numKey) && fieldMap[numKey] !== undefined) {
-          mappedData[fieldMap[numKey]] = recipeData[key];
-        } else if (isNaN(numKey)) {
-          mappedData[key] = recipeData[key];
-        }
-      });
-      recipeData = mappedData;
-    }
-    
-    console.log('Final revision recipe data:', {
-      id: recipeData.id,
-      name: recipeData.name,
-      status: recipeData.status,
-      hasImage: !!recipeData.image
-    });
-    
-    const recipe = createRecipeFromFlatObject(recipeData);
-    
-    // Add status back to the response
-    recipe.status = recipeData.status;
+    // Use your existing createRecipeFromFlatObject function
+    const recipe = createRecipeFromFlatObject(row);
+    recipe.status = row.status; // Include status in response
     
     console.log('✅ Sending revision recipe data');
     res.json(recipe);

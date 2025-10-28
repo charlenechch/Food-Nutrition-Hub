@@ -202,7 +202,6 @@ export default function ReviseRecipePage() {
     }
   };
 
-  // Add this useEffect to fetch the actual recipe data
   useEffect(() => {
     const fetchRecipeData = async () => {
       if (!item?.id) {
@@ -212,51 +211,60 @@ export default function ReviseRecipePage() {
       
       try {
         console.log('🔄 Fetching recipe data from backend for ID:', item.id);
-        const response = await fetch(`/api/recipe/revise/recipes/${item.id}`);
         
-        if (response.ok) {
-          const recipeData = await response.json();
-          console.log('✅ Received recipe data from API:', recipeData);
-          
-          // Transform the API data to match your form structure
-          setForm({
-            name: recipeData.name || "",
-            origin: recipeData.origin || "",
-            difficulty: recipeData.difficulty || "Easy",
-            prepTime: recipeData.prepTime || "",
-            cookTime: recipeData.cookTime || "",
-            servings: recipeData.servings || "",
-            imageData: recipeData.image || "",
-            description: recipeData.description || "",
-            ingredients: Array.isArray(recipeData.ingredients) 
-              ? recipeData.ingredients.join('\n') 
-              : (recipeData.ingredients || ""),
-            instructions: Array.isArray(recipeData.instructions) 
-              ? recipeData.instructions.join('\n') 
-              : (recipeData.instructions || ""),
-            funFact: recipeData.funFact || "",
-            chefTips: recipeData.chefTips || "",
-            dietaryTags: recipeData.dietaryTags || [],
-            foodType: recipeData.foodType || "",
-          });
-        } else {
-          const errorText = await response.text();
-          console.error('❌ Failed to fetch recipe data:', response.status, errorText);
-          alert('Failed to load recipe data. Please try again.');
+        // Test both routes to see which one works
+        const testResponse = await fetch(`/api/recipe/recipes/${item.id}`);
+        console.log('📥 TEST Existing route status:', testResponse.status);
+        
+        const response = await fetch(`/api/recipe/revise/recipes/${item.id}`);
+        console.log('📥 REVISE route status:', response.status);
+        console.log('📥 REVISE route OK:', response.ok);
+        
+        // Get raw response to see what's returned
+        const rawText = await response.text();
+        console.log('📥 Raw response (first 200 chars):', rawText.substring(0, 200));
+        
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
         }
+        
+        // If we get here, try to parse JSON
+        const recipeData = JSON.parse(rawText);
+        console.log('✅ Received recipe data from API:', recipeData);
+        
+        // Transform the API data to match your form structure
+        setForm({
+          name: recipeData.name || "",
+          origin: recipeData.origin || "",
+          difficulty: recipeData.difficulty || "Easy",
+          prepTime: recipeData.prepTime || "",
+          cookTime: recipeData.cookTime || "",
+          servings: recipeData.servings || "",
+          imageData: recipeData.image || "",
+          description: recipeData.description || "",
+          ingredients: Array.isArray(recipeData.ingredients) 
+            ? recipeData.ingredients.join('\n') 
+            : (recipeData.ingredients || ""),
+          instructions: Array.isArray(recipeData.instructions) 
+            ? recipeData.instructions.join('\n') 
+            : (recipeData.instructions || ""),
+          funFact: recipeData.funFact || "",
+          chefTips: recipeData.chefTips || "",
+          dietaryTags: recipeData.dietaryTags || [],
+          foodType: recipeData.foodType || "",
+        });
+        
       } catch (error) {
         console.error('❌ Error fetching recipe:', error);
-        alert('Error loading recipe data. Please check your connection.');
+        console.log('⚠️ Falling back to localStorage data');
+        // Keep using the initial form data from localStorage
       }
     };
 
-    // Only fetch if we have a valid item with ID
     if (item && item.id) {
       fetchRecipeData();
-    } else {
-      console.log('⚠️ No valid item found for revision');
     }
-  }, [item?.id]); // Only re-run when item.id changes
+  }, [item?.id]);
 
   const fieldLabels = {
     name: "Recipe Name",
