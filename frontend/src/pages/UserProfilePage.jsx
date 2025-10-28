@@ -30,27 +30,50 @@ const DEFAULT_PREFS = {
   language: "en"
 };
 
-const normalizePrefs = (data = {}) => ({
-  ...DEFAULT_PREFS,
-  dietary: Array.isArray(data.dietary) ? data.dietary : [],
-  allergies: Array.isArray(data.allergies) ? data.allergies : [],
-  emailNotifications: data.emailNotifications ?? true,
-  pushNotifications: data.pushNotifications ?? true,
-  profileVisibility: data.profileVisibility ?? true,
-  language: data.language || "en"
-});
+const normalizePrefs = (data = {}) => {
+
+  const dietary = Array.isArray(data.dietary) ? data.dietary : 
+                 (typeof data.dietary === 'string' ? JSON.parse(data.dietary || "[]") : []);
+  
+  const allergies = Array.isArray(data.allergies) ? data.allergies : 
+                   (typeof data.allergies === 'string' ? JSON.parse(data.allergies || "[]") : []);
+  return {
+    ...DEFAULT_PREFS,
+    dietary: dietary,
+    allergies: allergies,
+    emailNotifications: data.emailNotifications ?? true,
+    pushNotifications: data.pushNotifications ?? true,
+    profileVisibility: data.profileVisibility ?? true,
+    language: data.language || "en"
+  };
+};
 
 const toggleInArray = (arr, value) =>
   arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 
-const fmtStatus = (s) =>
-  s === "under_review"
-    ? "Under Review"
-    : s === "awaiting_approval"
-    ? "Awaiting Approval"
-    : s === "needs_revision"
-    ? "Needs Revision"
-    : "Unknown";
+// const fmtStatus = (s) =>
+//   s === "under_review"
+//     ? "Under Review"
+//     : s === "awaiting_approval"
+//     ? "Awaiting Approval"
+//     : s === "needs_revision"
+//     ? "Needs Revision"
+//     : "Unknown";
+
+const fmtStatus = (s) => {
+  if (!s) return "Unknown";
+  
+  const statusMap = {
+    "approved": "Approved",
+    "pending": "Pending Review", 
+    "rejected": "Rejected",
+    "Approved": "Approved",
+    "Pending": "Pending Review",
+    "Rejected": "Rejected"
+  };
+  
+  return statusMap[s] || "Unknown";
+};
 
 const formatContributionDate = (dateString) => {
   if (!dateString) return "Date not available";
@@ -117,6 +140,9 @@ export default function UserProfilePage() {
 
       const data = await res.json();
       console.log("🔍 Profile data received:", data);
+
+      console.log("🔍 Does data have savedFoods?", 'savedFoods' in data);
+      console.log("🔍 All keys in data:", Object.keys(data));
       
       if (!data || !data.userID) {
         throw new Error(data?.error || "Profile not found or server error");
@@ -142,17 +168,63 @@ export default function UserProfilePage() {
 
   // ✅ Pagination for saved foods
   useEffect(() => {
-    if (user?.savedFoods && Array.isArray(user.savedFoods)) {
+    const savedFoodsArray = user?.savedFoods || [];
+    if (Array.isArray(savedFoodsArray)) {
       const perPage = 6;
       const start = (savedPage - 1) * perPage;
-      const items = user.savedFoods.slice(start, start + perPage);
+      const items = savedFoodsArray.slice(start, start + perPage);
       setCurrentSaved(items);
-      setTotalSavedPages(Math.ceil(user.savedFoods.length / perPage));
+      setTotalSavedPages(Math.ceil(savedFoodsArray.length / perPage));
     } else {
       setCurrentSaved([]);
       setTotalSavedPages(1);
     }
-  }, [user, savedPage]);
+  }, [user, user?.savedFoods, savedPage]);
+
+  // debug
+  useEffect(() => {
+    if (user) {
+      console.log('=== FRONTEND DEBUG ===');
+      console.log('Full user object:', user);
+      console.log('Saved foods array:', user.savedFoods);
+      console.log('Is array?', Array.isArray(user.savedFoods));
+      console.log('Array length:', user.savedFoods?.length);
+      
+      if (user.savedFoods && user.savedFoods.length > 0) {
+        console.log('First saved food item:', user.savedFoods[0]);
+      }
+    }
+  }, [user]);
+
+  // debug for contributions
+  useEffect(() => {
+    if (user) {
+      console.log('=== CONTRIBUTIONS DEBUG ===');
+      console.log('Full user object:', user);
+      console.log('Contributions array:', user.status);
+      console.log('Is array?', Array.isArray(user.status));
+      console.log('Array length:', user.status?.length);
+      
+      if (user.status && user.status.length > 0) {
+        console.log('First contribution item:', user.status[0]);
+        console.log('All contributions:', user.status);
+        
+        // Log status counts
+        const statusCounts = user.status.reduce((acc, item) => {
+          acc[item.status] = (acc[item.status] || 0) + 1;
+          return acc;
+        }, {});
+        console.log('Status counts:', statusCounts);
+        
+        // Log type counts
+        const typeCounts = user.status.reduce((acc, item) => {
+          acc[item.type] = (acc[item.type] || 0) + 1;
+          return acc;
+        }, {});
+        console.log('Type counts:', typeCounts);
+      }
+    }
+  }, [user]);
 
   // ===== Save: Personal Info =====
   const savePersonal = async () => {
@@ -402,10 +474,10 @@ export default function UserProfilePage() {
                           className="upp-food-card"
                           role="button"
                           tabIndex={0}
-                          onClick={() => navigate(`/fooddetail?id=${f.id}`, { state: { food: f } })}
+                          onClick={() => navigate(`/fooddetail/${f.id}`)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter")
-                              navigate(`/fooddetail?id=${f.id}`, { state: { food: f } });
+                              navigate(`/fooddetail/${f.id}`);
                           }}
                         >
                           <div className="upp-food-media">
@@ -477,13 +549,13 @@ export default function UserProfilePage() {
                             <h4 className="upp-food-title upp-row-title">{c.title}</h4>
                             <span
                               className={`upp-chip ${
-                                c.status === "under_review"
-                                  ? "chip-yellow"
-                                  : c.status === "awaiting_approval"
+                                c.status === "approved" || c.status === "Approved"
                                   ? "chip-blue"
-                                  : c.status === "needs_revision"
+                                  : c.status === "pending" || c.status === "Pending"
+                                  ? "chip-yellow"
+                                  : c.status === "rejected" || c.status === "Rejected"
                                   ? "chip-red"
-                                  : ""
+                                  : "chip-gray"
                               }`}
                             >
                               {fmtStatus(c.status)}

@@ -256,6 +256,68 @@ router.put("/avatar", upload.single('avatar'), async (req, res) => {
   }
 });
 
+// Helper function to get user contributions with rejected/pending/approved status
+const getUserContributions = async (userID) => {
+  try {
+    console.log(`📝 Fetching contributions for user: ${userID}`);
+    
+    // Get contributions from recipe table JOINED with food table
+    console.log(`🍳 Checking recipe table for contributions...`);
+    const [contributions] = await db.execute(
+      `SELECT 
+        r.recipeID as id,
+        f.name as title,
+        f.image as image,
+        r.status,
+        r.createdAt as submittedDate,
+        'recipe' as type
+      FROM recipe r
+      JOIN food f ON r.foodID = f.foodID
+      WHERE r.userProfileID = ?
+      ORDER BY r.createdAt DESC`,
+      [userID]
+    );
+
+    console.log(`📊 Raw contributions query result:`, contributions);
+    console.log(`📊 Number of contributions found: ${contributions.length}`);
+    
+    if (contributions.length > 0) {
+      console.log(`📊 Contribution details:`, contributions.map(c => ({ 
+        id: c.id, 
+        title: c.title,
+        type: c.type, 
+        status: c.status 
+      })));
+      
+      // Count by status
+      const statusCounts = contributions.reduce((acc, item) => {
+        acc[item.status] = (acc[item.status] || 0) + 1;
+        return acc;
+      }, {});
+      console.log(`📊 Status counts:`, statusCounts);
+    }
+
+    // Format the contributions
+    const formattedContributions = contributions.map(item => ({
+      id: item.id,
+      title: item.title,
+      image: item.image,
+      status: item.status,
+      submittedDate: item.submittedDate ? new Date(item.submittedDate).toISOString() : new Date().toISOString(),
+      type: item.type
+    }));
+
+    console.log(`🎯 Formatted contributions:`, formattedContributions);
+    return formattedContributions;
+
+  } catch (error) {
+    console.error('❌ Error fetching contributions:', error);
+    console.error('❌ Error details:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    return [];
+  }
+};
+
 // ✅ Get own profile (/api/userProfile)
 router.get("/", async (req, res) => {
   console.log("👤 GET profile request received");
@@ -265,7 +327,6 @@ router.get("/", async (req, res) => {
     console.log("Session data:", req.session);
     console.log("Session user:", req.session?.user);
     
-    // ✅ If user is guest or not logged in → Return guest JSON but do NOT destroy session
     if (!req.session || !req.session.user) {
       console.log("❌ No session or user found - returning guest response");
       return res.status(401).json({
@@ -276,7 +337,7 @@ router.get("/", async (req, res) => {
     }
 
     const userID = req.session.user.userID;
-    console.log(`🔍 Fetching profile for user: ${userID}`);
+    console.log(`🔍 Fetching profile for userID: ${userID}`);
     
     // Ensure userProfile exists first
     console.log(`🛠️ Ensuring userProfile exists...`);
@@ -308,17 +369,62 @@ router.get("/", async (req, res) => {
     }
 
     const profile = rows[0];
-    console.log("✅ Profile found:", {
-      userID: profile.userID,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      hasUserProfile: !!profile.userProfileID,
-      avatar: profile.avatar ? "✅ Set" : "❌ Not set"
-    });
+    console.log("✅ Profile found - userProfileID:", profile.userProfileID);
+
+    console.log(`📚 Fetching saved foods for userProfileID: ${profile.userProfileID}`);
+    let savedFoodsData = [];
     
-    // If no profile data exists in userProfile, create default response
+    if (profile.userProfileID) {
+      try {
+        const [savedFoodsRows] = await db.execute(
+          `SELECT 
+            sf.saveID,
+            sf.createdAt as savedDate,
+            f.foodID as id,
+            f.name as name,
+            f.image as image,
+            f.origin as origin
+          FROM saveFood sf
+          JOIN food f ON sf.foodID = f.foodID
+          WHERE sf.userProfileID = ?
+          ORDER BY sf.createdAt DESC`,
+          [profile.userProfileID]
+        );
+
+        console.log(`🍴 Saved foods found:`, savedFoodsRows);
+        console.log(`🍴 Number of saved foods: ${savedFoodsRows.length}`);
+
+        // Format the data
+        savedFoodsData = savedFoodsRows.map(food => ({
+          saveId: food.saveID,
+          id: food.id,
+          name: food.name,
+          image: food.image,
+          origin: food.origin,
+          savedDate: food.savedDate ? new Date(food.savedDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }) : 'Recently saved'
+        }));
+
+        console.log('🍴 Formatted saved foods:', savedFoodsData);
+
+      } catch (savedFoodsError) {
+        console.error('❌ Error fetching saved foods:', savedFoodsError);
+        savedFoodsData = [];
+      }
+    }
+
+    // ✅ FETCH CONTRIBUTIONS
+    console.log(`📝 Fetching contributions for user: ${userID}`);
+    const contributions = await getUserContributions(userID);
+
+    // BUILD RESPONSE WITH savedFoods INCLUDED
     const response = {
       ...profile,
+      savedFoods: savedFoodsData, // ✅ Make sure this is included
+      status: contributions, // ✅ Add contributions data
       stats: {
         recipes: freshStats.recipes || 0,
         posts: freshStats.posts || 0,
@@ -334,11 +440,17 @@ router.get("/", async (req, res) => {
       },
     };
 
-    console.log("📤 Sending profile response");
+    // DEBUG LOGS
+    console.log("📤 FINAL RESPONSE - Has savedFoods?", 'savedFoods' in response);
+    console.log("📤 FINAL RESPONSE - Has status?", 'status' in response);
+    console.log("📤 Response keys:", Object.keys(response));
+    console.log("📤 savedFoods content:", response.savedFoods);
+    console.log("📤 status content:", response.status);
+    
     res.json(response);
+
   } catch (err) {
     console.error("❌ Error fetching profile:", err);
-    console.error("❌ Error stack:", err.stack);
     res.status(500).json({ error: "Server error: " + err.message });
   }
 });
@@ -398,7 +510,7 @@ router.put("/update", async (req, res) => {
   }
 });
 
-// View other user's profile (/api/userProfile/:id) [admin]
+// View other user's profile (/api/userProfile/:id) 
 router.get("/:identifier", async (req, res) => {
   console.log("👥 Other user profile request received");
   try {
@@ -439,9 +551,51 @@ router.get("/:identifier", async (req, res) => {
     // Update user stats
     const freshStats = await updateUserStats(userID);
     
+    let savedFoodsData = [];
+    if (profile.userProfileID) {
+      try {
+        const [savedFoodsRows] = await db.execute(
+          `SELECT 
+            sf.saveID,
+            sf.createdAt as savedDate,
+            f.foodID as id,
+            f.name as name,
+            f.image as image,
+            f.origin as origin
+          FROM saveFood sf
+          JOIN food f ON sf.foodID = f.foodID
+          WHERE sf.userProfileID = ?
+          ORDER BY sf.createdAt DESC`,
+          [profile.userProfileID]
+        );
+
+        savedFoodsData = savedFoodsRows.map(food => ({
+          saveId: food.saveID,
+          id: food.id,
+          name: food.name,
+          image: food.image,
+          origin: food.origin,
+          savedDate: food.savedDate ? new Date(food.savedDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }) : 'Recently saved'
+        }));
+
+      } catch (savedFoodsError) {
+        console.error('❌ Error fetching saved foods:', savedFoodsError);
+        savedFoodsData = [];
+      }
+    }
+
+    console.log(`📝 Fetching contributions for user: ${userID}`);
+    const contributions = await getUserContributions(userID);
+    
     console.log("📤 Sending user profile response");
     res.json({
       ...profile,
+      savedFoods: savedFoodsData, 
+      status: contributions, 
       stats: {
         recipes: freshStats.recipes || profile.recipes || 0,
         posts: freshStats.posts || profile.posts || 0,
@@ -463,29 +617,4 @@ router.get("/:identifier", async (req, res) => {
   }
 });
 
-// Test endpoint to check basic functionality
-router.get("/debug/test", async (req, res) => {
-  console.log("🧪 Debug test endpoint hit");
-  try {
-    console.log("Session:", req.session);
-    console.log("Session user:", req.session?.user);
-    
-    // Test database connection
-    const [dbTest] = await db.execute('SELECT 1 as test');
-    console.log("Database test:", dbTest);
-    
-    res.json({
-      success: true,
-      session: req.session,
-      user: req.session?.user,
-      database: "Connected",
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error("Debug test error:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-console.log("✅ UserProfile router loaded with debug logging");
 module.exports = router;
