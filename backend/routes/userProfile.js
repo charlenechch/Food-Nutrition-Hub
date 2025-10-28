@@ -401,7 +401,7 @@ router.delete("/avatar", async (req, res) => {
   }
 });
 
-// ✅ Get Avatar Route (GET) - Optional but useful
+// ✅ Get Avatar Route (GET)
 router.get("/avatar", async (req, res) => {
   try {
     if (!req.session || !req.session.user) {
