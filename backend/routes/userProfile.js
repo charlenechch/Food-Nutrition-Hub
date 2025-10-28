@@ -856,4 +856,4 @@ router.get("/debug/test", async (req, res) => {
 });
 
 console.log("✅ UserProfile router loaded with debug logging");
-module.exports = { router, deleteUser };
+module.exports = router;
