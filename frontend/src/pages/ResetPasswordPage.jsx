@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import "../css/ResetPasswordPage.css";
-
-// ✅ Firebase for password reset
-import {
-  confirmPasswordReset,
-  verifyPasswordResetCode,
-} from "firebase/auth";
+import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
 import { auth } from "../config/firebase";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -15,32 +10,30 @@ export default function ResetPasswordPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
 
-  // ✅ Firebase includes this in the email link: /resetpassword?oobCode=xxxx
   const oobCode = params.get("oobCode");
 
-  // ✅ Email will be securely fetched using the oobCode (so we don't trust URL email)
   const [email, setEmail] = useState("");
-
-  // ✅ New password fields
   const [pwd, setPwd] = useState("");
   const [confirm, setConfirm] = useState("");
-
-  // ✅ UI states
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Step 1: When page loads, verify the oobCode & fetch associated email
+  // ✅ Step 1: Verify the oobCode when page loads
   useEffect(() => {
     if (oobCode) {
       verifyPasswordResetCode(auth, oobCode)
         .then((emailFromFirebase) => {
-          // ✅ This is the real account email tied to the reset token
           setEmail(emailFromFirebase);
+          setLoading(false);
         })
         .catch(() => {
-          // ❌ Invalid / expired / already used link
           setError("Invalid or expired reset link. Please request a new one.");
+          setLoading(false);
         });
+    } else {
+      setError("Invalid or missing reset link. Please request a new one.");
+      setLoading(false);
     }
   }, [oobCode]);
 
@@ -48,60 +41,42 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError("");
 
-    if (pwd.length < 8) {
-      return setError("Password must be at least 8 characters.");
-    }
-    if (pwd !== confirm) {
-      return setError("Passwords do not match.");
-    }
+    if (pwd.length < 8) return setError("Password must be at least 8 characters.");
+    if (pwd !== confirm) return setError("Passwords do not match.");
 
     try {
-      // ✅ Step 2: Reset password in Firebase (using oobCode)
       await confirmPasswordReset(auth, oobCode, pwd);
 
-      // ✅ Step 3: Sync password to MySQL (hashing done in backend)
+      // ✅ Optional backend sync
       if (email) {
         await fetch(`${API_URL}/api/auth/updatePassword`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({
-            email: email,
-            newPassword: pwd,
-          }),
+          body: JSON.stringify({ email, newPassword: pwd }),
         });
       }
 
-      // ✅ Step 4: Show success, then redirect to login page
       setSuccess(true);
-      setTimeout(() => navigate("/loginregister"), 2000);
+      setTimeout(() => navigate("/loginregister"), 2500);
     } catch (err) {
       console.error(err);
-      setError(
-        "Something went wrong. The reset link may be invalid or expired."
-      );
+      setError("Something went wrong. Please try again or request a new link.");
     }
   };
 
-  // ✅ If no oobCode is in the URL at all, show error immediately
-  if (!oobCode) {
+  // ✅ Loading spinner
+  if (loading) {
     return (
       <div className="rpp-container">
         <div className="rpp-card">
-          <h2 className="rpp-head2">Invalid or Missing Link</h2>
-          <p>Please request a new password reset email.</p>
-          <button
-            className="lrp-btn lrp-btn-primary"
-            onClick={() => navigate("/forgotpassword")}
-          >
-            Back
-          </button>
+          <h2 className="rpp-head2">Verifying link...</h2>
         </div>
       </div>
     );
   }
 
-  // ✅ Show success screen
+  // ✅ Success message
   if (success) {
     return (
       <div className="rpp-container">
@@ -119,21 +94,46 @@ export default function ResetPasswordPage() {
     );
   }
 
+  // ✅ Error message
+  if (error && !email) {
+    return (
+      <div className="rpp-container">
+        <div className="rpp-card">
+          <h2 className="rpp-head2">Invalid or Missing Link</h2>
+          <p>{error}</p>
+          <button
+            className="lrp-btn lrp-btn-primary"
+            onClick={() => navigate("/forgotpassword")}
+          >
+            Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Main UI form
   return (
     <div className="rpp-container">
       <div className="rpp-card">
         <h2 className="rpp-head2">Set a New Password</h2>
+        <p className="rpp-subtext">
+          Resetting password for <strong>{email}</strong>
+        </p>
+
         <form onSubmit={handleSubmit} className="rpp-form" noValidate>
           <label>New Password</label>
           <input
             type="password"
+            placeholder="Enter a new password (min 8 characters)"
             value={pwd}
             onChange={(e) => setPwd(e.target.value)}
           />
 
-          <label>Confirm Password</label>
+          <label>Confirm New Password</label>
           <input
             type="password"
+            placeholder="Re-enter your new password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
           />
