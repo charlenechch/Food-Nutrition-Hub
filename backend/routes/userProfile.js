@@ -182,8 +182,80 @@ const updateUserStats = async (userID) => {
   }
 };
 
-// ✅ Avatar Upload Route (POST)
-router.post("/avatar", upload.single('avatar'), async (req, res) => {
+// Helper function to delete user account (used by both user and admin)
+async function deleteUser(userID) {
+  console.log(`Starting deletion process for user: ${userID}`);
+
+  const connection = await db.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+    console.log("Transaction started");
+
+    // Delete avatar from Cloudinary if exists
+    console.log("Checking for avatar to delete from Cloudinary...");
+    const [avatarCheck] = await connection.query(
+      'SELECT avatar FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (avatarCheck.length > 0 && avatarCheck[0].avatar) {
+      try {
+        const avatarUrl = avatarCheck[0].avatar;
+        console.log(`Found avatar: ${avatarUrl}`);
+        const urlParts = avatarUrl.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        const publicId = filename.split('.')[0];
+        const fullPublicId = `recipe-app/avatars/${publicId}`;
+        console.log(`Deleting avatar with publicId: ${fullPublicId}`);
+        await deleteFromCloudinary(fullPublicId);
+        console.log("Avatar deleted from Cloudinary");
+      } catch (cloudinaryError) {
+        console.error("Error deleting avatar from Cloudinary (continuing):", cloudinaryError);
+      }
+    }
+
+    // Delete from related tables
+    console.log("Deleting user's likes...");
+    await connection.query('DELETE FROM likes WHERE userProfileID = ?', [userID]);
+    console.log("Deleted likes");
+
+    console.log("Deleting user's posts...");
+    await connection.query('DELETE FROM posts WHERE userProfileID = ?', [userID]);
+    console.log("Deleted posts");
+
+    console.log("Deleting user's recipes...");
+    await connection.query('DELETE FROM recipe WHERE userProfileID = ?', [userID]);
+    console.log("Deleted recipes");
+
+    console.log("Deleting user profile...");
+    await connection.query('DELETE FROM userProfile WHERE userID = ?', [userID]);
+    console.log("Deleted user profile");
+
+    console.log("Deleting user account...");
+    await connection.query('DELETE FROM user WHERE userID = ?', [userID]);
+    console.log("Deleted user account");
+
+    await connection.commit();
+    console.log("Transaction committed successfully");
+
+    return { 
+      success: true, 
+      message: "Account and all associated data deleted successfully" 
+    };
+
+  } catch (error) {
+    await connection.rollback();
+    console.error("Deletion failed, transaction rolled back:", error);
+    throw error;
+  } finally {
+    connection.release();
+    console.log("Database connection released");
+  }
+}
+
+// Upload avatar to Cloudinary
+router.put("/avatar", upload.single('avatar'), async (req, res) => {
   console.log("🖼️ Avatar upload request received");
   try {  
     if (!req.session || !req.session.user) {
@@ -720,4 +792,68 @@ router.get("/:identifier", async (req, res) => {
   }
 });
 
+// Delete user's own account
+router.delete("/delete", async (req, res) => {
+  console.log("Account deletion request received");
+  try {
+    // Check authentication
+    if (!req.session || !req.session.user) {
+      console.log("No session or user found");
+      return res.status(401).json({ 
+        success: false, 
+        error: "Not authenticated. Please log in." 
+      });
+    }
+
+    const userID = req.session.user.userID;
+
+    // Call the helper function
+    const result = await deleteUser(userID);
+
+    // Clear the session
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Session destruction error:", err);
+      } else {
+        console.log("Session destroyed");
+      }
+    });
+
+    return res.status(200).json(result);
+
+  } catch (error) {
+    console.error("Account deletion error:", error);
+    return res.status(500).json({ 
+      success: false, 
+      error: "Failed to delete account",
+      details: error.message 
+    });
+  }
+});
+
+// Test endpoint to check basic functionality
+router.get("/debug/test", async (req, res) => {
+  console.log("🧪 Debug test endpoint hit");
+  try {
+    console.log("Session:", req.session);
+    console.log("Session user:", req.session?.user);
+    
+    // Test database connection
+    const [dbTest] = await db.execute('SELECT 1 as test');
+    console.log("Database test:", dbTest);
+    
+    res.json({
+      success: true,
+      session: req.session,
+      user: req.session?.user,
+      database: "Connected",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Debug test error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+console.log("✅ UserProfile router loaded with debug logging");
 module.exports = router;

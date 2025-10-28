@@ -11,6 +11,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Bell, Eye, Globe, Shield, ExternalLink, OctagonX, Camera, X } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
+import { getAuth, deleteUser as deleteFirebaseUser } from 'firebase/auth';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -222,6 +223,57 @@ export default function UserProfilePage() {
 
     loadProfile();
   }, [userProfileID]);
+
+  // Delete account handler
+  const handleDeleteAccount = async () => {
+    // Confirm before deleting
+    const confirmed = window.confirm(
+      "Are you sure you want to delete your account? This action cannot be undone and will remove all your data."
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      // Delete from Firebase Authentication (frontend)
+      const { getAuth, deleteUser: deleteFirebaseUser } = await import('firebase/auth');
+      const auth = getAuth();
+      const firebaseUser = auth.currentUser;
+      
+      if (firebaseUser) {
+        await deleteFirebaseUser(firebaseUser);
+        console.log('✓ Deleted from Firebase Authentication');
+      }
+      
+      // Delete from MySQL database (backend)
+      const res = await fetch(`${API_BASE_URL}/api/userProfile/delete`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        alert('Account deleted successfully');
+        
+        // Logout and redirect to home (you might have a logout function from auth context)
+        // If you have useAuth(), call logout() here
+        window.location.href = '/'; // Redirect to home
+      } else {
+        alert(data.error || 'Failed to delete account from database');
+      }
+      
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      
+      // Handle specific Firebase errors
+      if (error.code === 'auth/requires-recent-login') {
+        alert('For security, please log out and log back in before deleting your account.');
+      } else {
+        alert('Failed to delete account. Please try again.');
+      }
+    }
+  };
 
   // ✅ Pagination for saved foods
   useEffect(() => {
@@ -1002,6 +1054,7 @@ export default function UserProfilePage() {
                     <button
                       type="button"
                       className="lrp-btn lrp-btn-outline upp-btn upp-btn--danger"
+                      onClick={handleDeleteAccount}
                     >
                       Delete Account
                     </button>
