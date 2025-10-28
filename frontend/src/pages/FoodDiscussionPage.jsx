@@ -63,7 +63,6 @@ const Comment = React.memo(function Comment({
 
   return (
     <div className={`fd-disc-comment ${isReply ? "fd-disc-reply" : ""}`}>
-      // Instead of generating initials, use the actual avatar URL
       <div className="fd-disc-avatar">
           {item.avatar ? (
             <img 

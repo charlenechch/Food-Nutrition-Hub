@@ -126,6 +126,13 @@ export default function FoodDetailPage() {
     }
   };
 
+  const getUserInitials = (comment) => {
+  console.log('Available fields:', Object.keys(comment)); // DEBUG
+  const username = comment.username || comment.user || comment.author || 'User';
+  console.log('Found username:', username); // DEBUG
+  return username.substring(0, 2).toUpperCase();
+  };
+
   const handleSaveFood = async () => {
   if (!isLoggedIn()) {
     setShowLoginPrompt(true);
@@ -372,9 +379,18 @@ export default function FoodDetailPage() {
                   <>
                     {foodComments.slice(0, 2).map((c) => (
                       <div key={c.id} className="fdp-comment">
+                        {console.log('Individual Comment:', c)}
                         <div className="fdp-comment-head">
-                          <span className="fdp-avatar">{c.avatar}</span>
-                          <span className="fdp-user">{c.user}</span>
+                          <span className="fdp-avatar">
+                              {c.avatar ? (
+                                <img src={c.avatar} alt="avatar" className="fdp-avatar-img" />
+                              ) : (
+                                <div className="fdp-avatar-initials">
+                                  {getUserInitials(c)}
+                                </div>
+                              )}
+                            </span>
+                          <span className="fdp-user">{c.username || c.user}</span>
                           <span className="fdp-time">{c.timeAgo}</span>
                         </div>
                         <p className="fdp-comment-text">{c.content}</p>
