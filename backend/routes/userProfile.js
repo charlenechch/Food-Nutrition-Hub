@@ -3,7 +3,6 @@ const router = express.Router();
 const db = require("../config/db");
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const admin = require("firebase-admin");
 
 // Configure Cloudinary
 cloudinary.config({
@@ -184,8 +183,8 @@ const updateUserStats = async (userID) => {
 };
 
 // Helper function to delete user account (used by both user and admin)
-async function deleteUser(userID, firebaseUID) {
-  console.log(`Starting deletion process for user: ${userID}, Firebase UID: ${firebaseUID}`);
+async function deleteUser(userID) {
+  console.log(`Starting deletion process for user: ${userID}`);
 
   const connection = await db.getConnection();
   
@@ -231,38 +230,23 @@ async function deleteUser(userID, firebaseUID) {
 
     console.log("Deleting user profile...");
     await connection.query('DELETE FROM userProfile WHERE userID = ?', [userID]);
-    console.log("Deleted userProfile");
+    console.log("Deleted user profile");
 
-    console.log("Deleting user record...");
+    console.log("Deleting user account...");
     await connection.query('DELETE FROM user WHERE userID = ?', [userID]);
-    console.log("Deleted user record from MySQL");
+    console.log("Deleted user account");
 
-    // Delete from Firebase Authentication
-    if (firebaseUID) {
-      try {
-        await admin.auth().deleteUser(firebaseUID);
-        console.log("Deleted user from Firebase Authentication");
-      } catch (firebaseError) {
-        await connection.rollback();
-        console.error("Firebase deletion failed:", firebaseError);
-        throw new Error(`Failed to delete Firebase account: ${firebaseError.message}`);
-      }
-    } else {
-      console.log("No Firebase UID found, skipping Firebase deletion");
-    }
-
-    // Commit the transaction
     await connection.commit();
     console.log("Transaction committed successfully");
 
-    return {
-      success: true,
-      message: "Account deleted successfully from both Firebase and database"
+    return { 
+      success: true, 
+      message: "Account and all associated data deleted successfully" 
     };
 
   } catch (error) {
     await connection.rollback();
-    console.error("Transaction error during deletion:", error);
+    console.error("Deletion failed, transaction rolled back:", error);
     throw error;
   } finally {
     connection.release();
@@ -822,10 +806,9 @@ router.delete("/delete", async (req, res) => {
     }
 
     const userID = req.session.user.userID;
-    const firebaseUID = req.session.user.firebaseUID;
 
     // Call the helper function
-    const result = await deleteUser(userID, firebaseUID);
+    const result = await deleteUser(userID);
 
     // Clear the session
     req.session.destroy((err) => {
