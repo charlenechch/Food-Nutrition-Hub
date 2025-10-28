@@ -40,8 +40,7 @@ const Comment = React.memo(function Comment({
   const content = item.content || item.reply || "No content";
   const timestamp = item.timestamp || item.createdAt;
   const likes = isReply ? 0 : item.likes || item.upVotes || 0;
-  const avatar = username.substring(0, 2).toUpperCase();
-
+ 
   const handleLike = () => {
     if (isGuest) return setShowLoginPrompt(true);
     onToggleLike(itemId);
@@ -64,7 +63,26 @@ const Comment = React.memo(function Comment({
 
   return (
     <div className={`fd-disc-comment ${isReply ? "fd-disc-reply" : ""}`}>
-      <div className="fd-disc-avatar">{avatar}</div>
+      // Instead of generating initials, use the actual avatar URL
+      <div className="fd-disc-avatar">
+          {item.avatar ? (
+            <img 
+              src={item.avatar} 
+              alt={username}
+              className="fd-disc-avatar-img"
+              onError={(e) => {
+                // Fallback to initials if image fails to load
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          
+          {/* Fallback to initials if no avatar */}
+          <div className="fd-disc-avatar-initials">
+            {username.substring(0, 2).toUpperCase()}
+          </div>
+        </div>
       <div className="fd-disc-body">
         <div className="fd-disc-meta">
           <span className="fd-disc-user">{username}</span>

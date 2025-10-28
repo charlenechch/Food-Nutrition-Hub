@@ -75,6 +75,39 @@
   font-size: .75rem; font-weight: 600; flex: 0 0 auto;
 }
 
+.fd-disc-avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.fd-disc-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.fd-disc-avatar-initials {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #555;
+  font-size: 14px;
+}
+
+/* Hide initials when image is present */
+.fd-disc-avatar-img:not([src=""]) + .fd-disc-avatar-initials {
+  display: none;
+}
+
 .fd-disc-body { flex: 1; }
 .fd-disc-meta {
   display: flex; align-items: center; flex-wrap: wrap; gap: .35rem;
