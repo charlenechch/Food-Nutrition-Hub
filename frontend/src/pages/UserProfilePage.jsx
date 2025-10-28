@@ -532,7 +532,6 @@ export default function UserProfilePage() {
               <div className="upp-avatar-help">
                 <p>Supported formats: JPEG, JPG, PNG, GIF, WebP, SVG, BMP</p>
                 <p>Max file size: 5MB</p>
-                <p>Recommended: Square images work best</p>
               </div>
             </div>
             
