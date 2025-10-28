@@ -212,24 +212,17 @@ export default function ReviseRecipePage() {
       try {
         console.log('🔄 Fetching recipe data from backend for ID:', item.id);
         
-        // Test both routes to see which one works
-        const testResponse = await fetch(`/api/recipe/recipes/${item.id}`);
-        console.log('📥 TEST Existing route status:', testResponse.status);
+        const response = await fetch(`${BACKEND_URL}/api/recipe/revise/recipes/${item.id}`);
         
-        const response = await fetch(`/api/recipe/revise/recipes/${item.id}`);
+        console.log('📥 Full URL:', `${BACKEND_URL}/api/recipe/revise/recipes/${item.id}`);
         console.log('📥 REVISE route status:', response.status);
         console.log('📥 REVISE route OK:', response.ok);
-        
-        // Get raw response to see what's returned
-        const rawText = await response.text();
-        console.log('📥 Raw response (first 200 chars):', rawText.substring(0, 200));
         
         if (!response.ok) {
           throw new Error(`Server returned ${response.status}`);
         }
         
-        // If we get here, try to parse JSON
-        const recipeData = JSON.parse(rawText);
+        const recipeData = await response.json();
         console.log('✅ Received recipe data from API:', recipeData);
         
         // Transform the API data to match your form structure
@@ -257,7 +250,6 @@ export default function ReviseRecipePage() {
       } catch (error) {
         console.error('❌ Error fetching recipe:', error);
         console.log('⚠️ Falling back to localStorage data');
-        // Keep using the initial form data from localStorage
       }
     };
 
