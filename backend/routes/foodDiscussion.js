@@ -30,7 +30,7 @@ router.get('/food/:foodId', async (req, res) => {
       SELECT 
         d.discussionID as id,
         CONCAT(u.firstname, ' ', u.lastname) AS username,
-        LEFT(CONCAT(u.firstname, ' ', u.lastname), 2) as avatar,
+        up.avatar as avatar,
         d.content,
         d.created_At as timestamp,
         d.upVotes as likes,
@@ -52,7 +52,7 @@ router.get('/food/:foodId', async (req, res) => {
           SELECT 
             r.replyID,
             CONCAT(u.firstname, ' ', u.lastname) AS username,
-            LEFT(CONCAT(u.firstname, ' ', u.lastname), 2) as avatar,
+            up.avatar as avatar,
             r.reply as content,
             r.createdAt as timestamp,
             'Member' as type
@@ -110,7 +110,7 @@ router.post('/', async (req, res) => {
       SELECT 
         d.discussionID as id,
         CONCAT(u.firstname, ' ', u.lastname) AS username,
-        LEFT(CONCAT(u.firstname, ' ', u.lastname), 2) as avatar,
+        up.avatar as avatar,
         d.content,
         d.created_At as timestamp,
         d.upVotes as likes,
@@ -168,7 +168,7 @@ router.post('/:discussionId/replies', async (req, res) => {
       SELECT 
         r.replyID,
         CONCAT(u.firstname, ' ', u.lastname) AS username,
-        LEFT(CONCAT(u.firstname, ' ', u.lastname), 2) as avatar,
+        up.avatar as avatar,
         r.reply as content,
         r.createdAt as timestamp,
         'Member' as type

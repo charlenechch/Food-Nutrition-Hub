@@ -40,8 +40,7 @@ const Comment = React.memo(function Comment({
   const content = item.content || item.reply || "No content";
   const timestamp = item.timestamp || item.createdAt;
   const likes = isReply ? 0 : item.likes || item.upVotes || 0;
-  const avatar = username.substring(0, 2).toUpperCase();
-
+ 
   const handleLike = () => {
     if (isGuest) return setShowLoginPrompt(true);
     onToggleLike(itemId);
@@ -64,7 +63,25 @@ const Comment = React.memo(function Comment({
 
   return (
     <div className={`fd-disc-comment ${isReply ? "fd-disc-reply" : ""}`}>
-      <div className="fd-disc-avatar">{avatar}</div>
+      <div className="fd-disc-avatar">
+          {item.avatar ? (
+            <img 
+              src={item.avatar} 
+              alt={username}
+              className="fd-disc-avatar-img"
+              onError={(e) => {
+                // Fallback to initials if image fails to load
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          
+          {/* Fallback to initials if no avatar */}
+          <div className="fd-disc-avatar-initials">
+            {username.substring(0, 2).toUpperCase()}
+          </div>
+        </div>
       <div className="fd-disc-body">
         <div className="fd-disc-meta">
           <span className="fd-disc-user">{username}</span>
@@ -138,8 +155,7 @@ export default function FoodDiscussionPage() {
 
   const isGuest = !user || user.role === "guest";
 
-  // ✅ TEMP FIX: if profileID missing, use fallback = 1 (like old code)
-  const userProfileID = isGuest ? null : user?.profileID || 1;
+  const userProfileID = isGuest ? null : user?.userProfileID;
 
   const [food, setFood] = useState(location.state?.food || null);
   const [comments, setComments] = useState([]);
@@ -174,13 +190,29 @@ export default function FoodDiscussionPage() {
     if (foodId) fetchComments();
   }, [foodId]);
 
-  // ✅ Post Comment (with TEMP fallback profileID = 1)
   const postComment = async () => {
     if (isGuest) return setShowLoginPrompt(true);
     if (!newComment.trim()) return;
 
-    // ⚠ TEMP FIX: fallback if profileID missing
-    const finalProfileID = userProfileID || 1;
+    const actualUserProfileID = user?.userProfileID || user?.userID || user?.id || user?.profileID;
+    const actualFoodID = foodId;
+
+    console.log("🟡 Final values:", {
+      actualUserProfileID,
+      actualFoodID, 
+      content: newComment.trim()
+    });
+
+    // ADD VALIDATION
+    if (!actualUserProfileID) {
+      alert("User profile ID not found. Please log in again.");
+      return;
+    }
+
+    if (!actualFoodID) {
+      alert("Food ID not found. Please go back and try again.");
+      return;
+    }
 
     try {
       const res = await fetch(`${API}/api/foodDiscussion`, {
@@ -188,12 +220,16 @@ export default function FoodDiscussionPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          foodID: foodId,
-          userProfileID: finalProfileID,
+          foodID: actualFoodID,
+          userProfileID: actualUserProfileID,
           content: newComment.trim(),
         }),
       });
+
+      console.log("🟡 Response status:", res.status);
       const data = await res.json();
+      console.log("🟡 Response data:", data);
+
       if (res.ok && data.success) {
         setComments((prev) => [data.data, ...prev]);
         setNewComment("");
@@ -206,13 +242,13 @@ export default function FoodDiscussionPage() {
     }
   };
 
-  // ✅ Post Reply (with TEMP fallback profileID = 1)
+ 
   const postReply = async (discussionId) => {
     if (isGuest) return setShowLoginPrompt(true);
     const text = replyTexts[discussionId]?.trim();
     if (!text) return;
 
-    const finalProfileID = userProfileID || 1;
+    const actualUserProfileID = user?.userProfileID || user?.userID || user?.id || user?.profileID;
 
     try {
       const res = await fetch(`${API}/api/foodDiscussion/${discussionId}/replies`, {
@@ -220,7 +256,7 @@ export default function FoodDiscussionPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          userProfileID: finalProfileID,
+          userProfileID: actualUserProfileID,
           reply: text,
         }),
       });
@@ -249,7 +285,7 @@ export default function FoodDiscussionPage() {
   const toggleLike = async (targetId) => {
     if (isGuest) return setShowLoginPrompt(true);
 
-    const finalProfileID = userProfileID || 1;
+    const finalProfileID = userProfileID;
 
     try {
       const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {

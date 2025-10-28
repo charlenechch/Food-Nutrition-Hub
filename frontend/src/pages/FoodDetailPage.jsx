@@ -91,41 +91,31 @@ export default function FoodDetailPage() {
       setCommentsLoading(false);
     }
   };
-  // ✅ Check if user is logged in (using AuthContext, NOT localStorage)
+  // Check if user is logged in (using AuthContext, NOT localStorage)
   const isLoggedIn = () => {
     return user && user.role !== "guest";
   };
 
-  // ✅ Check if food is already saved on mount (kept exactly same)
+ // Check if food is already saved on mount
   useEffect(() => {
-    if (id) {
+    if (id && isLoggedIn()) {
       checkSavedStatus();
     }
-  }, [id]);
+  }, [id, isLoggedIn()]);
 
   const checkSavedStatus = async () => {
     try {
-      if (!isLoggedIn()) {
-        console.log("Guest mode – skip checking saved status");
-        setSaved(false);
-        return;
-      }
-
-      const userProfileID = user?.userID || null;
-      if (!userProfileID) {
-        console.log("No userID found – skip checking saved status");
-        setSaved(false);
-        return;
-      }
-
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${userProfileID}`;
-      
-      const response = await fetch(url);
+      const response = await fetch(`${API_BASE_URL}/api/saveFood/check/${id}`, {
+        credentials: 'include' // Important for session
+      });
       
       if (response.ok) {
         const data = await response.json();
         setSaved(data.saved);
+      } else if (response.status === 401) {
+        console.log("User not logged in - can't check saved status");
+        setSaved(false);
       } else {
         console.error("Failed to check saved status");
         setSaved(false);
@@ -136,41 +126,49 @@ export default function FoodDetailPage() {
     }
   };
 
-  // ✅ SAVE FOOD — now shows modal for guests (instead of redirect)
-  const handleSaveFood = async () => {
-    if (!isLoggedIn()) {
-      setShowLoginPrompt(true); // ✅ SHOW POPUP MODAL
-      return;
-    }
+  const getUserInitials = (comment) => {
+  console.log('Available fields:', Object.keys(comment)); // DEBUG
+  const username = comment.username || comment.user || comment.author || 'User';
+  console.log('Found username:', username); // DEBUG
+  return username.substring(0, 2).toUpperCase();
+  };
 
-    setSavedLoading(true);
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const response = await fetch(`${API_BASE_URL}/api/saveFood/${id}`, { 
+  const handleSaveFood = async () => {
+  if (!isLoggedIn()) {
+    setShowLoginPrompt(true);
+    return;
+  }
+
+  setSavedLoading(true);
+  try {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const userProfileID = user?.userProfileID || user?.userID;
+    
+    const response = await fetch(
+      `${API_BASE_URL}/api/saveFood/${id}?userProfileID=${userProfileID}`, 
+      { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include'
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSaved(data.saved);
-        if (data.saved) {
-          console.log("Food saved successfully!");
-        } else {
-          console.log("Food unsaved successfully!");
-        }
-      } else {
-        console.error("Failed to save food");
       }
-    } catch (error) {
-      console.error("Error saving food:", error);
-    } finally {
-      setSavedLoading(false);
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      setSaved(data.saved);
+      console.log(data.message);
+    } else {
+      const errorData = await response.json();
+      console.error("Failed to save food:", errorData.error);
     }
-  };
+  } catch (error) {
+    console.error("Error saving food:", error);
+  } finally {
+    setSavedLoading(false);
+  }
+};
 
   // ✅ Existing function (unchanged)
   const handleViewDiscussion = () => {
@@ -381,9 +379,18 @@ export default function FoodDetailPage() {
                   <>
                     {foodComments.slice(0, 2).map((c) => (
                       <div key={c.id} className="fdp-comment">
+                        {console.log('Individual Comment:', c)}
                         <div className="fdp-comment-head">
-                          <span className="fdp-avatar">{c.avatar}</span>
-                          <span className="fdp-user">{c.user}</span>
+                          <span className="fdp-avatar">
+                              {c.avatar ? (
+                                <img src={c.avatar} alt="avatar" className="fdp-avatar-img" />
+                              ) : (
+                                <div className="fdp-avatar-initials">
+                                  {getUserInitials(c)}
+                                </div>
+                              )}
+                            </span>
+                          <span className="fdp-user">{c.username || c.user}</span>
                           <span className="fdp-time">{c.timeAgo}</span>
                         </div>
                         <p className="fdp-comment-text">{c.content}</p>

@@ -6,7 +6,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/RecipeDetailPage.css";
-import { NotebookText, Share2, ShoppingBasket } from "lucide-react";
+import { Info, NotebookText, Share2, ShoppingBasket } from "lucide-react";
 
 // ✅ NEW — Import Auth & Login Modal
 import { useAuth } from "../context/AuthContext";
@@ -173,7 +173,6 @@ export default function RecipeDetailPage() {
                     <div className="rdp-hero-overlay" />
                     <div className="rdp-hero-text">
                       <h1 className="rdp-title">{recipe.name}</h1>
-                      {recipe.description && <p className="rdp-sub">{recipe.description}</p>}
                     </div>
                   </>
                 )}
@@ -208,6 +207,13 @@ export default function RecipeDetailPage() {
                 ))}
               </div>
             )}
+
+            <div className="rdp-card3">
+              <h3 className="rdp-sec-title">
+                <Info className="rdp-sec-icon" color="#6a4a2f" /> Description
+              </h3>
+              {recipe.description && <p className="rdp-sub">{recipe.description}</p>}
+            </div>
 
             <div className="rdp-card3">
               <h3 className="rdp-sec-title">

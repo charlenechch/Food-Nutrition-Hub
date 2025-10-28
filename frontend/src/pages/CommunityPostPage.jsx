@@ -21,6 +21,129 @@ function getStableProfileId(user) {
   return user?.userProfileID || user?.userID || user?.id || null;
 }
 
+// ------------ Like Button Component -------------
+const LikeButton = ({ postId, initialLikes, user }) => {
+  const [likes, setLikes] = useState(initialLikes || 0);
+  const [isLiked, setIsLiked] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const isLoggedIn = computeIsLoggedIn(user);
+  const userProfileID = getStableProfileId(user);
+
+  const openLoginModal = () => setShowLoginModal(true);
+
+  // Check if user already liked this post
+  useEffect(() => {
+    const checkUserLike = async () => {
+      if (!isLoggedIn || !userProfileID) return;
+      
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const response = await fetch(
+          `${API_BASE_URL}/api/likes/check?postId=${postId}&userProfileID=${userProfileID}`,
+          {
+            credentials: "include",
+          }
+        );
+        
+        if (response.ok) {
+          const result = await response.json();
+          setIsLiked(result.isLiked || false);
+        }
+      } catch (error) {
+        console.error("Error checking like status:", error);
+      }
+    };
+    
+    checkUserLike();
+  }, [postId, isLoggedIn, userProfileID]);
+
+  const handleLike = async () => {
+  if (!isLoggedIn || !userProfileID) {
+    openLoginModal();
+    return;
+  }
+
+  if (loading) return;
+
+  try {
+    setLoading(true);
+    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    
+    if (isLiked) {
+      // Unlike the post - use DELETE method
+      const response = await fetch(`${API_BASE_URL}/api/likes/`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          postID: postId, // Note: your backend expects postID (uppercase D)
+          userProfileID: userProfileID,
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        setIsLiked(false);
+        // Update like count locally
+        setLikes(prev => prev - 1);
+      } else {
+        throw new Error(result.message || "Failed to unlike post");
+      }
+    } else {
+      // Like the post - use POST method
+      const response = await fetch(`${API_BASE_URL}/api/likes/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          postID: postId, // Note: your backend expects postID (uppercase D)
+          userProfileID: userProfileID,
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        setIsLiked(true);
+        // Update like count locally
+        setLikes(prev => prev + 1);
+      } else {
+        throw new Error(result.message || "Failed to like post");
+      }
+    }
+  } catch (error) {
+    console.error("Error updating like:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  return (
+    <>
+      {showLoginModal && (
+        <LoginPromptModal onClose={() => setShowLoginModal(false)} />
+      )}
+      
+      <div 
+        className={`likes-bar ${isLiked ? 'liked' : ''} ${loading ? 'loading' : ''}`}
+        onClick={handleLike}
+      >
+        <span className="heart-icon">
+          {isLiked ? "♥" : "♡"}
+        </span>
+        <span className="likes-count">{likes} {likes === 1 ? 'like' : 'likes'}</span>
+      </div>
+    </>
+  );
+};
+
 // ------------ Comment Section -------------
 const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
   const [comment, setComment] = useState("");
@@ -302,7 +425,12 @@ export default function CommunityPost() {
 
         {/* RIGHT */}
         <div className="post-right">
-          <div className="likes-bar">❤️ {post.likeCount || 0} likes</div>
+          {/* Updated to use clickable LikeButton component */}
+          <LikeButton 
+            postId={post.id} 
+            initialLikes={post.likeCount || 0} 
+            user={user} 
+          />
           <h3>Comments ({comments.length})</h3>
 
           <CommentSection

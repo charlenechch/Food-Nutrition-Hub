@@ -23,13 +23,23 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      // ✅ FIXED – remove email from URL, let Firebase handle oobCode automatically
-      await sendPasswordResetEmail(auth, email, {
-        url: `${window.location.origin}/resetpassword`,
-        handleCodeInApp: true,
-      });
+      // ✅ IMPORTANT:
+      // We send a reset link but force Firebase to redirect back to our *own* reset page
+      // This ensures the link includes oobCode, &mode=resetPassword in the URL
 
-      setSubmitted(true);
+      // 🔹 Use dynamic environment-aware redirect so it works in local + production
+      const actionCodeSettings = {
+        url:
+          import.meta.env.MODE === "development"
+            ? "http://localhost:5173/resetpassword" // local dev
+            : "https://food-nutrition-hub.vercel.app/resetpassword", // production
+        handleCodeInApp: true, // 🔹 Required to process in React app instead of Firebase hosted UI
+      };
+
+      // ✅ Send the reset email with redirect instructions
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
+
+      setSubmitted(true); // ✅ Show "Success" UI
     } catch (err) {
       console.error(err);
       setError("Failed to send reset email. Check if the email is registered.");
