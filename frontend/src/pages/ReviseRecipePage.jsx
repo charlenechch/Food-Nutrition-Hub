@@ -125,7 +125,7 @@ export default function ReviseRecipePage() {
     try {
       console.log('🚀 Starting recipe revision for ID:', item.id);
 
-      const BACKEND_URL = 'http://localhost:5000'; 
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const revisedData = {
         name: form.name,
         origin: form.origin,
@@ -150,7 +150,7 @@ export default function ReviseRecipePage() {
 
       console.log('📤 Sending update request with data:', revisedData);
       
-      const response = await fetch(`${BACKEND_URL}/api/recipe/update/recipes/${item.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/recipe/update/recipes/${item.id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json" 
@@ -213,13 +213,9 @@ export default function ReviseRecipePage() {
       try {
         console.log('🔄 Fetching recipe data from backend for ID:', item.id);
         
-        const BACKEND_URL = 'http://localhost:5000';
-        const response = await fetch(`${BACKEND_URL}/api/recipe/revise/recipes/${item.id}`);
-        
-        console.log('📥 Full URL:', `${BACKEND_URL}/api/recipe/revise/recipes/${item.id}`);
-        console.log('📥 REVISE route status:', response.status);
-        console.log('📥 REVISE route OK:', response.ok);
-        
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const response = await fetch(`${API_BASE_URL}/api/recipe/revise/recipes/${item.id}`);
+
         if (!response.ok) {
           throw new Error(`Server returned ${response.status}`);
         }
