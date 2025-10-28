@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require("../config/db");
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
+const admin = require("firebase-admin");
 
 // Configure Cloudinary
 cloudinary.config({
@@ -167,6 +168,93 @@ const updateUserStats = async (userID) => {
     return { recipes: 0, posts: 0, likes: 0 };
   }
 };
+
+// Helper function to delete user account (used by both user and admin)
+async function deleteUser(userID, firebaseUID) {
+  console.log(`Starting deletion process for user: ${userID}, Firebase UID: ${firebaseUID}`);
+
+  const connection = await db.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+    console.log("Transaction started");
+
+    // Delete avatar from Cloudinary if exists
+    console.log("Checking for avatar to delete from Cloudinary...");
+    const [avatarCheck] = await connection.query(
+      'SELECT avatar FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (avatarCheck.length > 0 && avatarCheck[0].avatar) {
+      try {
+        const avatarUrl = avatarCheck[0].avatar;
+        console.log(`Found avatar: ${avatarUrl}`);
+        const urlParts = avatarUrl.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        const publicId = filename.split('.')[0];
+        const fullPublicId = `recipe-app/avatars/${publicId}`;
+        console.log(`Deleting avatar with publicId: ${fullPublicId}`);
+        await deleteFromCloudinary(fullPublicId);
+        console.log("Avatar deleted from Cloudinary");
+      } catch (cloudinaryError) {
+        console.error("Error deleting avatar from Cloudinary (continuing):", cloudinaryError);
+      }
+    }
+
+    // Delete from related tables
+    console.log("Deleting user's likes...");
+    await connection.query('DELETE FROM likes WHERE userProfileID = ?', [userID]);
+    console.log("Deleted likes");
+
+    console.log("Deleting user's posts...");
+    await connection.query('DELETE FROM posts WHERE userProfileID = ?', [userID]);
+    console.log("Deleted posts");
+
+    console.log("Deleting user's recipes...");
+    await connection.query('DELETE FROM recipe WHERE userProfileID = ?', [userID]);
+    console.log("Deleted recipes");
+
+    console.log("Deleting user profile...");
+    await connection.query('DELETE FROM userProfile WHERE userID = ?', [userID]);
+    console.log("Deleted userProfile");
+
+    console.log("Deleting user record...");
+    await connection.query('DELETE FROM user WHERE userID = ?', [userID]);
+    console.log("Deleted user record from MySQL");
+
+    // Delete from Firebase Authentication
+    if (firebaseUID) {
+      try {
+        await admin.auth().deleteUser(firebaseUID);
+        console.log("Deleted user from Firebase Authentication");
+      } catch (firebaseError) {
+        await connection.rollback();
+        console.error("Firebase deletion failed:", firebaseError);
+        throw new Error(`Failed to delete Firebase account: ${firebaseError.message}`);
+      }
+    } else {
+      console.log("No Firebase UID found, skipping Firebase deletion");
+    }
+
+    // Commit the transaction
+    await connection.commit();
+    console.log("Transaction committed successfully");
+
+    return {
+      success: true,
+      message: "Account deleted successfully from both Firebase and database"
+    };
+
+  } catch (error) {
+    await connection.rollback();
+    console.error("Transaction error during deletion:", error);
+    throw error;
+  } finally {
+    connection.release();
+    console.log("Database connection released");
+  }
+}
 
 // Upload avatar to Cloudinary
 router.put("/avatar", upload.single('avatar'), async (req, res) => {
@@ -463,6 +551,46 @@ router.get("/:identifier", async (req, res) => {
   }
 });
 
+// Delete user's own account
+router.delete("/delete", async (req, res) => {
+  console.log("Account deletion request received");
+  try {
+    // Check authentication
+    if (!req.session || !req.session.user) {
+      console.log("No session or user found");
+      return res.status(401).json({ 
+        success: false, 
+        error: "Not authenticated. Please log in." 
+      });
+    }
+
+    const userID = req.session.user.userID;
+    const firebaseUID = req.session.user.firebaseUID;
+
+    // Call the helper function
+    const result = await deleteUser(userID, firebaseUID);
+
+    // Clear the session
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Session destruction error:", err);
+      } else {
+        console.log("Session destroyed");
+      }
+    });
+
+    return res.status(200).json(result);
+
+  } catch (error) {
+    console.error("Account deletion error:", error);
+    return res.status(500).json({ 
+      success: false, 
+      error: "Failed to delete account",
+      details: error.message 
+    });
+  }
+});
+
 // Test endpoint to check basic functionality
 router.get("/debug/test", async (req, res) => {
   console.log("🧪 Debug test endpoint hit");
@@ -488,4 +616,4 @@ router.get("/debug/test", async (req, res) => {
 });
 
 console.log("✅ UserProfile router loaded with debug logging");
-module.exports = router;
+module.exports = { router, deleteUser };
