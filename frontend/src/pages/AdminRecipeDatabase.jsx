@@ -209,7 +209,7 @@ const RecipeDatabaseSection = ({ recipes, categories }) => {
                   onClick={() => navigate(`/admin/edit/recipe/${index}`)}
                 >
                   <span className="recipe-review-btn">
-                    <MdOutlineRemoveRedEye />
+                    {/* <MdOutlineRemoveRedEye /> */}
                   </span>{" "}
                   Review
                 </button>
