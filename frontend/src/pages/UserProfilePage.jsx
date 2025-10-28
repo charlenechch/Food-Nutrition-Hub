@@ -50,7 +50,7 @@ const uploadAvatar = async () => {
     console.log('🔍 Full API_BASE_URL:', API_BASE_URL);
 
     const res = await fetch(uploadUrl, {
-      method: 'POST',
+      method: 'PUT',
       credentials: 'include',
       body: formData,
     });
