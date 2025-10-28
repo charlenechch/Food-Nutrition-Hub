@@ -97,7 +97,7 @@ function App() {
         <Route path="/revise/:id" element={<ReviseRecipePage />} />
         <Route path="/revisecommunitypostpage" element={<ReviseCommunityPostPage />} />
         {/* <Route path="/admin" element={<AdminHomepage />} /> */}
-        <Route path="/editfood/" element={<EditFoodPage />} />
+        <Route path="/editfood/:id" element={<EditFoodPage />} />
         <Route path="/addfood/" element={<AddFoodPage />} /> 
         <Route path="/admin/addrecipe" element={<AddRecipe />} />
         <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />

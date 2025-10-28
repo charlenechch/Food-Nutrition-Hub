@@ -48,7 +48,7 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
           <span className="food-icon"><FiDatabase /></span> Food Database
         </h2>
         <div className="food-actions">
-          <button className="admin-food-btn-add" onClick={() => navigate("/admin/add")}>
+          <button className="admin-food-btn-add" onClick={() => navigate("/admin/addfood")}>
             <FaPlus /> Add New Food
           </button>
           <button className="admin-food-btn-import">
@@ -195,7 +195,7 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
               <td>{food.origin}</td>
               <td>{food.updated}</td>
               <td>
-                <button className="food-database-btn-edit" onClick={() => navigate(`/admin/edit/${index}`)}>
+                <button className="food-database-btn-edit" onClick={() => navigate(`/admin/editfood/${index}`)}>
                   <HiOutlinePencilAlt />
                 </button>
                 <button className="food-database-btn-delete" onClick={() => handleDeleteClick(food)}>
