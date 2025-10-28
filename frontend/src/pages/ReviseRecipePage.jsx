@@ -140,7 +140,7 @@ export default function ReviseRecipePage() {
       console.log('📤 Sending update request with data:', revisedData);
 
       // Use your update endpoint instead of create endpoint
-      const response = await fetch(`/api/update/recipes/${item.id}`, {
+      const response = await fetch(`/api/recipe/update/recipes/${item.id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json" 
@@ -489,13 +489,6 @@ export default function ReviseRecipePage() {
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Revision'}
-              </button>
-              <button
-                className="rp-btn rp-btn-muted"
-                type="button"
-                onClick={() => setForm(initial)}
-              >
-                Reset
               </button>
               <button
                 className="rp-btn rp-btn-muted"
