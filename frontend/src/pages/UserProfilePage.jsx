@@ -1,15 +1,17 @@
-// ✅UserProfilePage.jsx – Final Version with Guest Popup
+// ✅UserProfilePage.jsx – Final Version with Guest Popup & Avatar Upload
 // - Shows Login Prompt Modal instead of redirecting for guests
 // - Supports /profile & /profile/:userProfileID
 // - Keeps saved foods, contributions, preferences, settings, stats
+// - ✅ Added avatar upload functionality
 
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../css/UserProfilePage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Bell, Eye, Globe, Shield, ExternalLink, OctagonX } from "lucide-react";
+import { Bell, Eye, Globe, Shield, ExternalLink, OctagonX, Camera, X } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
+import { getAuth, deleteUser as deleteFirebaseUser } from 'firebase/auth';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -30,8 +32,67 @@ const DEFAULT_PREFS = {
   language: "en"
 };
 
-const normalizePrefs = (data = {}) => {
+const uploadAvatar = async () => {
+  if (!avatarFile) {
+    alert('Please select an image first');
+    return;
+  }
 
+  try {
+    setIsUploadingAvatar(true);
+    
+    const formData = new FormData();
+    formData.append('avatar', avatarFile);
+
+    // ✅ DEBUG: Log the exact URL being called
+    const uploadUrl = `${API_BASE_URL}/api/userProfile/avatar`;
+    console.log('🔍 Uploading to URL:', uploadUrl);
+    console.log('🔍 Full API_BASE_URL:', API_BASE_URL);
+
+    const res = await fetch(uploadUrl, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+
+    console.log('🔍 Response status:', res.status);
+    console.log('🔍 Response headers:', res.headers);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('❌ Server error response:', errorText);
+      throw new Error(`Failed to upload avatar (${res.status}): ${errorText}`);
+    }
+
+    const result = await res.json();
+    
+    if (result.success) {
+      // Update user state with new avatar
+      setUser(prev => ({ ...prev, avatar: result.avatarUrl }));
+      alert('Avatar updated successfully!');
+      closeAvatarModal();
+      
+      // Reload the profile to get updated data
+      const endpoint = userProfileID
+        ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
+        : `${API_BASE_URL}/api/userProfile`;
+      const r2 = await fetch(endpoint, { credentials: "include" });
+      if (r2.ok) {
+        const updatedUser = await r2.json();
+        setUser(updatedUser);
+      }
+    } else {
+      throw new Error(result.error || 'Upload failed');
+    }
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    alert(error.message || 'Failed to upload avatar');
+  } finally {
+    setIsUploadingAvatar(false);
+  }
+};
+
+const normalizePrefs = (data = {}) => {
   const dietary = Array.isArray(data.dietary) ? data.dietary : 
                  (typeof data.dietary === 'string' ? JSON.parse(data.dietary || "[]") : []);
   
@@ -50,15 +111,6 @@ const normalizePrefs = (data = {}) => {
 
 const toggleInArray = (arr, value) =>
   arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
-
-// const fmtStatus = (s) =>
-//   s === "under_review"
-//     ? "Under Review"
-//     : s === "awaiting_approval"
-//     ? "Awaiting Approval"
-//     : s === "needs_revision"
-//     ? "Needs Revision"
-//     : "Unknown";
 
 const fmtStatus = (s) => {
   if (!s) return "Unknown";
@@ -98,6 +150,12 @@ export default function UserProfilePage() {
   const [error, setError] = useState("");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false); // ✅ Guest popup control
 
+  // ✅ Avatar Upload State
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+
   // Saved Foods Pagination
   const [savedPage, setSavedPage] = useState(1);
   const [currentSaved, setCurrentSaved] = useState([]);
@@ -116,14 +174,14 @@ export default function UserProfilePage() {
 
         console.log("🔍 Fetching profile from:", endpoint);
       
-      const res = await fetch(endpoint, { 
-        credentials: "include",
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
+        const res = await fetch(endpoint, { 
+          credentials: "include",
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
 
-      console.log("🔍 Response status:", res.status);
+        console.log("🔍 Response status:", res.status);
 
         if (res.status === 401) {
           // ✅ Show login popup instead of redirect/logout
@@ -133,20 +191,20 @@ export default function UserProfilePage() {
         }
 
         if (!res.ok) {
-        const errorText = await res.text();
-        console.error("❌ Server response not OK:", errorText);
-        throw new Error(`Failed to load profile (status ${res.status})`);
-      }
+          const errorText = await res.text();
+          console.error("❌ Server response not OK:", errorText);
+          throw new Error(`Failed to load profile (status ${res.status})`);
+        }
 
-      const data = await res.json();
-      console.log("🔍 Profile data received:", data);
+        const data = await res.json();
+        console.log("🔍 Profile data received:", data);
 
-      console.log("🔍 Does data have savedFoods?", 'savedFoods' in data);
-      console.log("🔍 All keys in data:", Object.keys(data));
-      
-      if (!data || !data.userID) {
-        throw new Error(data?.error || "Profile not found or server error");
-      }
+        console.log("🔍 Does data have savedFoods?", 'savedFoods' in data);
+        console.log("🔍 All keys in data:", Object.keys(data));
+        
+        if (!data || !data.userID) {
+          throw new Error(data?.error || "Profile not found or server error");
+        }
         setUser(data);
         setForm({
           firstName: data.firstName || "",
@@ -166,6 +224,57 @@ export default function UserProfilePage() {
     loadProfile();
   }, [userProfileID]);
 
+  // Delete account handler
+  const handleDeleteAccount = async () => {
+    // Confirm before deleting
+    const confirmed = window.confirm(
+      "Are you sure you want to delete your account? This action cannot be undone and will remove all your data."
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      // Delete from Firebase Authentication (frontend)
+      const { getAuth, deleteUser: deleteFirebaseUser } = await import('firebase/auth');
+      const auth = getAuth();
+      const firebaseUser = auth.currentUser;
+      
+      if (firebaseUser) {
+        await deleteFirebaseUser(firebaseUser);
+        console.log('✓ Deleted from Firebase Authentication');
+      }
+      
+      // Delete from MySQL database (backend)
+      const res = await fetch(`${API_BASE_URL}/api/userProfile/delete`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        alert('Account deleted successfully');
+        
+        // Logout and redirect to home (you might have a logout function from auth context)
+        // If you have useAuth(), call logout() here
+        window.location.href = '/'; // Redirect to home
+      } else {
+        alert(data.error || 'Failed to delete account from database');
+      }
+      
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      
+      // Handle specific Firebase errors
+      if (error.code === 'auth/requires-recent-login') {
+        alert('For security, please log out and log back in before deleting your account.');
+      } else {
+        alert('Failed to delete account. Please try again.');
+      }
+    }
+  };
+
   // ✅ Pagination for saved foods
   useEffect(() => {
     const savedFoodsArray = user?.savedFoods || [];
@@ -181,50 +290,140 @@ export default function UserProfilePage() {
     }
   }, [user, user?.savedFoods, savedPage]);
 
-  // debug
-  useEffect(() => {
-    if (user) {
-      console.log('=== FRONTEND DEBUG ===');
-      console.log('Full user object:', user);
-      console.log('Saved foods array:', user.savedFoods);
-      console.log('Is array?', Array.isArray(user.savedFoods));
-      console.log('Array length:', user.savedFoods?.length);
-      
-      if (user.savedFoods && user.savedFoods.length > 0) {
-        console.log('First saved food item:', user.savedFoods[0]);
-      }
-    }
-  }, [user]);
+  // ===== ✅ Avatar Upload Functions =====
+  const handleAvatarClick = () => {
+    setShowAvatarModal(true);
+  };
 
-  // debug for contributions
-  useEffect(() => {
-    if (user) {
-      console.log('=== CONTRIBUTIONS DEBUG ===');
-      console.log('Full user object:', user);
-      console.log('Contributions array:', user.status);
-      console.log('Is array?', Array.isArray(user.status));
-      console.log('Array length:', user.status?.length);
-      
-      if (user.status && user.status.length > 0) {
-        console.log('First contribution item:', user.status[0]);
-        console.log('All contributions:', user.status);
-        
-        // Log status counts
-        const statusCounts = user.status.reduce((acc, item) => {
-          acc[item.status] = (acc[item.status] || 0) + 1;
-          return acc;
-        }, {});
-        console.log('Status counts:', statusCounts);
-        
-        // Log type counts
-        const typeCounts = user.status.reduce((acc, item) => {
-          acc[item.type] = (acc[item.type] || 0) + 1;
-          return acc;
-        }, {});
-        console.log('Type counts:', typeCounts);
-      }
+  const handleAvatarFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      alert('Please select a valid image file (JPEG, PNG, GIF, WebP)');
+      return;
     }
-  }, [user]);
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    setAvatarFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setAvatarPreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadAvatar = async () => {
+    if (!avatarFile) {
+      alert('Please select an image first');
+      return;
+    }
+
+    try {
+      setIsUploadingAvatar(true);
+      
+      const formData = new FormData();
+      formData.append('avatar', avatarFile);
+
+      const res = await fetch(`${API_BASE_URL}/api/userProfile/avatar`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to upload avatar (${res.status})`);
+      }
+
+      const result = await res.json();
+      
+      if (result.success) {
+        // Update user state with new avatar
+        setUser(prev => ({ ...prev, avatar: result.avatarUrl }));
+        alert('Avatar updated successfully!');
+        closeAvatarModal();
+        
+        // Reload the profile to get updated data
+        const endpoint = userProfileID
+          ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
+          : `${API_BASE_URL}/api/userProfile`;
+        const r2 = await fetch(endpoint, { credentials: "include" });
+        if (r2.ok) {
+          const updatedUser = await r2.json();
+          setUser(updatedUser);
+        }
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      alert(error.message || 'Failed to upload avatar');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const removeAvatar = async () => {
+    if (!window.confirm('Are you sure you want to remove your avatar?')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/userProfile/avatar`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to remove avatar (${res.status})`);
+      }
+
+      const result = await res.json();
+      
+      if (result.success) {
+        // Update user state to remove avatar
+        setUser(prev => ({ ...prev, avatar: null }));
+        alert('Avatar removed successfully!');
+        closeAvatarModal();
+        
+        // Reload the profile
+        const endpoint = userProfileID
+          ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
+          : `${API_BASE_URL}/api/userProfile`;
+        const r2 = await fetch(endpoint, { credentials: "include" });
+        if (r2.ok) {
+          const updatedUser = await r2.json();
+          setUser(updatedUser);
+        }
+      } else {
+        throw new Error(result.error || 'Remove failed');
+      }
+    } catch (error) {
+      console.error('Avatar remove error:', error);
+      alert(error.message || 'Failed to remove avatar');
+    }
+  };
+
+  const closeAvatarModal = () => {
+    setShowAvatarModal(false);
+    setAvatarPreview(null);
+    setAvatarFile(null);
+    // Clear file input
+    const fileInput = document.getElementById('avatar-upload');
+    if (fileInput) fileInput.value = '';
+  };
 
   // ===== Save: Personal Info =====
   const savePersonal = async () => {
@@ -333,18 +532,113 @@ export default function UserProfilePage() {
         />
       )}
 
+      {/* ✅ Avatar Upload Modal */}
+      {showAvatarModal && (
+        <div className="upp-modal-overlay">
+          <div className="upp-modal">
+            <div className="upp-modal-header">
+              <h3>Change Avatar</h3>
+              <button className="upp-modal-close" onClick={closeAvatarModal}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="upp-modal-body">
+              <div className="upp-avatar-preview">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Preview" />
+                ) : user?.avatar ? (
+                  <img src={user.avatar} alt="Current Avatar" />
+                ) : (
+                  <div className="upp-avatar-initials-large">
+                    {(user?.firstName?.[0] || "").toUpperCase()}
+                    {(user?.lastName?.[0] || "").toUpperCase()}
+                  </div>
+                )}
+              </div>
+              
+              <div className="upp-avatar-actions">
+                <label htmlFor="avatar-upload" className="lrp-btn lrp-btn-primary">
+                  <Camera size={16} />
+                  Choose Image
+                </label>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarFileSelect}
+                  style={{ display: 'none' }}
+                />
+                
+                {user?.avatar && (
+                  <button 
+                    className="lrp-btn lrp-btn-outline upp-btn--danger" 
+                    onClick={removeAvatar}
+                    type="button"
+                  >
+                    Remove Current
+                  </button>
+                )}
+              </div>
+              
+              <div className="upp-avatar-help">
+                <p>Supported formats: JPEG, JPG, PNG, GIF, WebP, SVG, BMP</p>
+                <p>Max file size: 5MB</p>
+              </div>
+            </div>
+            
+            <div className="upp-modal-footer">
+              <button 
+                className="lrp-btn lrp-btn-outline" 
+                onClick={closeAvatarModal}
+                disabled={isUploadingAvatar}
+              >
+                Cancel
+              </button>
+              <button 
+                className="lrp-btn lrp-btn-primary" 
+                onClick={uploadAvatar}
+                disabled={!avatarFile || isUploadingAvatar}
+              >
+                {isUploadingAvatar ? 'Uploading...' : 'Save Avatar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ✅ Only render profile if user exists & not guest */}
       {!showLoginPrompt && user && (
         <div className="upp-page">
           {/* ===== USER HEADER ===== */}
           <div className="upp-header">
-            <div className="upp-avatar" aria-hidden="true">
+            <div 
+              className="upp-avatar upp-avatar-editable" 
+              onClick={handleAvatarClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleAvatarClick();
+                }
+              }}
+              aria-label="Change avatar"
+            >
               {user?.avatar && /\.(jpg|jpeg|png|gif|webp)$/i.test(user.avatar) ? (
-                <img src={user.avatar} alt="Profile Avatar" />
+                <>
+                  <img src={user.avatar} alt="Profile Avatar" />
+                  <div className="upp-avatar-overlay">
+                    <Camera size={20} />
+                  </div>
+                </>
               ) : (
                 <div className="upp-avatar-initials">
                   {(user?.firstName?.[0] || "").toUpperCase()}
                   {(user?.lastName?.[0] || "").toUpperCase()}
+                  <div className="upp-avatar-overlay">
+                    <Camera size={16} />
+                  </div>
                 </div>
               )}
             </div>
@@ -690,34 +984,33 @@ export default function UserProfilePage() {
                   </div>
                 </div>
 
-              <div className="upp-card">
-                <h3 className="upp-card-title"><Eye className="rdp-sec-icon" color={"#6a4a2f"}/> Privacy</h3>
-                <div className="upp-row between">
-                  <div>
-                    <div className="upp-strong">Profile Visibility</div>
-                    <div className="upp-muted">Allow others to see your profile</div>
+                <div className="upp-card">
+                  <h3 className="upp-card-title"><Eye className="rdp-sec-icon" color={"#6a4a2f"}/> Privacy</h3>
+                  <div className="upp-row between">
+                    <div>
+                      <div className="upp-strong">Profile Visibility</div>
+                      <div className="upp-muted">Allow others to see your profile</div>
+                    </div>
+                    <label className="upp-switch">
+                      <input
+                        type="checkbox"
+                        checked={prefs.profileVisibility}
+                        onChange={(e) => setPrefs((p) => ({ ...p, profileVisibility: e.target.checked }))}
+                      />
+                      <span />
+                    </label>
                   </div>
-                  <label className="upp-switch">
-                    <input
-                      type="checkbox"
-                      checked={prefs.profileVisibility}
-                      onChange={(e) => setPrefs((p) => ({ ...p, profileVisibility: e.target.checked }))}
-                    />
-                    <span />
-                  </label>
-                </div>
-                <hr className="upp-sep" />
-                <div className="upp-row between">
-                  <div>
-                    <div className="upp-strong">Data Export</div>
-                    <div className="upp-muted">Download your saved data</div>
+                  <hr className="upp-sep" />
+                  <div className="upp-row between">
+                    <div>
+                      <div className="upp-strong">Data Export</div>
+                      <div className="upp-muted">Download your saved data</div>
+                    </div>
+                    <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => alert("Exported!")}>
+                      Export Data
+                    </button>
                   </div>
-                  <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => alert("Exported!")}>
-                    Export Data
-                  </button>
                 </div>
-              </div>
-
 
                 {user?.role === "admin" && (
                   <div className="upp-card">
@@ -734,24 +1027,22 @@ export default function UserProfilePage() {
                   </div>
                 )}
 
-              <div className="upp-card">
-                <h3 className="upp-card-title"><OctagonX className="rdp-sec-icon" color={"#6a4a2f"}/> Account Deletion</h3>
-
-                <div className="upp-row between">
-                  <div>
-                    <div className="upp-strong">Delete Account</div>
-                    <div className="upp-muted">Permanently remove your account and all associated data.</div>
+                <div className="upp-card">
+                  <h3 className="upp-card-title"><OctagonX className="rdp-sec-icon" color={"#6a4a2f"}/> Account Deletion</h3>
+                  <div className="upp-row between">
+                    <div>
+                      <div className="upp-strong">Delete Account</div>
+                      <div className="upp-muted">Permanently remove your account and all associated data.</div>
+                    </div>
+                    <button
+                      type="button"
+                      className="lrp-btn lrp-btn-outline upp-btn upp-btn--danger"
+                      onClick={handleDeleteAccount}
+                    >
+                      Delete Account
+                    </button>
                   </div>
-
-                  {/* Looks active, but has no onClick */}
-                  <button
-                    type="button"
-                    className="lrp-btn lrp-btn-outline upp-btn upp-btn--danger"
-                  >
-                    Delete Account
-                  </button>
                 </div>
-              </div>
               </div>
             )}
           </div>

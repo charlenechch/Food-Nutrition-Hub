@@ -7,8 +7,9 @@ import "../css/OTPVerificationPage.css";
 export default function OTPVerificationPage({ email: emailProp }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const email = emailProp || params.get("email") || "";
   const { login } = useAuth();
+  const initialEmail = emailProp || params.get("email") || "";
+  const [email, setEmail] = useState(initialEmail);
 
   const [otp, setOtp] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -43,7 +44,7 @@ export default function OTPVerificationPage({ email: emailProp }) {
     
     try {
       // Call backend to verify OTP
-      const res = await fetch(`${API_URL}/api/otp/verify`, {
+      const res = await fetch(`${API_URL}/api/otp/verifyLogin`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -57,7 +58,8 @@ export default function OTPVerificationPage({ email: emailProp }) {
       
       // Redirect to login page after verification
       setTimeout(() => {
-        navigate("/loginregister");
+        login(data.user);
+        navigate("/dashboard");
       }, 2000);
     } else {
         setError(data.error || "Invalid verification code");
@@ -76,7 +78,7 @@ export default function OTPVerificationPage({ email: emailProp }) {
     setOtp("");
     
     try {
-      const res = await fetch(`${API_URL}/api/otp/send`, {
+      const res = await fetch(`${API_URL}/api/otp/sendLogin`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -100,8 +102,8 @@ export default function OTPVerificationPage({ email: emailProp }) {
       <div className="otp-container">
         <div className="otp-card otp-center">
           <div className="otp-success-icon" aria-hidden>✓</div>
-          <h2 className="otp-title">Email verified!</h2>
-          <p className="otp-muted">Redirecting to login page…</p>
+          <h2 className="otp-title">Login successful!</h2>
+          <p className="otp-muted">Redirecting to dashboard…</p>
         </div>
       </div>
     );
@@ -112,9 +114,9 @@ export default function OTPVerificationPage({ email: emailProp }) {
       <div className="otp-card">
         <div className="otp-header">
           <div className="otp-logo">✉️</div>
-          <h2 className="otp-title">Email Verification</h2>
+          <h2 className="otp-title">Login Verification</h2>
           <p className="otp-subtitle">We've sent a 6-digit verification code to your email address.</p>
-          <p className="otp-subtitle">Please enter it below to verify your account.</p>
+          <p className="otp-subtitle">Please enter it below to complete your login.</p>
         </div>
 
         <div className="otp-body">

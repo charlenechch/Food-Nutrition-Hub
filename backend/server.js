@@ -27,8 +27,9 @@ const foodDiscussionRoutes = require("./routes/foodDiscussion");
 const recipeRoutes = require("./routes/recipe");
 const communityPostRoutes = require("./routes/communityPost");
 const saveFoodRoutes = require("./routes/saveFood");
-//const otpRoutes = require("./routes/otp");
+const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
+const likeRoutes = require("./routes/likes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -226,7 +227,7 @@ app.use("/api/register", authLimiter, registerRoutes);
 app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
 app.use("/api/auth", authRoutes);
-// app.use("/api/otp", otpRoutes);
+app.use("/api/otp", otpRoutes);
 app.use("/api/exploreFood", exploreFoodRoutes);
 app.use("/api/foodDetail", foodDetailRoutes);
 app.use("/api/foodDiscussion", foodDiscussionRoutes);
@@ -235,6 +236,7 @@ app.use("/api/saveFood", saveFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/foods", foodRoutes); 
 app.use("/api/userProfile", userProfileRoutes);
+app.use("/api/likes", likeRoutes);
 
 // Example admin guard (kept from your version)
 app.get("/api/admin/data", (req, res) => {

@@ -24,13 +24,27 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const mimetype = allowedTypes.test(file.mimetype);
+    // ✅ Accept all common image formats
+    const allowedTypes = [
+      'image/jpeg', 
+      'image/jpg', 
+      'image/png', 
+      'image/gif', 
+      'image/webp',
+      'image/svg+xml',
+      'image/bmp'
+    ];
     
-    if (mimetype) {
+    const mimetype = allowedTypes.includes(file.mimetype);
+    const fileExtension = file.originalname.toLowerCase().split('.').pop();
+    const allowedExtensions = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+    const extension = allowedExtensions.includes(fileExtension);
+    
+    if (mimetype && extension) {
       return cb(null, true);
     }
-    cb(new Error('Only image files are allowed (JPEG, JPG, PNG, GIF, WebP)'));
+    
+    cb(new Error(`Only image files are allowed (${allowedExtensions.join(', ')})`));
   }
 });
 
@@ -46,7 +60,7 @@ const uploadToCloudinary = (buffer, folder = 'avatars') => {
         transformation: [
           { width: 200, height: 200, crop: 'fill', gravity: 'face' },
           { quality: 'auto' },
-          { format: 'webp' }
+          { format: 'auto' }
         ]
       },
       (error, result) => {
@@ -168,14 +182,82 @@ const updateUserStats = async (userID) => {
   }
 };
 
+// Helper function to delete user account (used by both user and admin)
+async function deleteUser(userID) {
+  console.log(`Starting deletion process for user: ${userID}`);
+
+  const connection = await db.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+    console.log("Transaction started");
+
+    // Delete avatar from Cloudinary if exists
+    console.log("Checking for avatar to delete from Cloudinary...");
+    const [avatarCheck] = await connection.query(
+      'SELECT avatar FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (avatarCheck.length > 0 && avatarCheck[0].avatar) {
+      try {
+        const avatarUrl = avatarCheck[0].avatar;
+        console.log(`Found avatar: ${avatarUrl}`);
+        const urlParts = avatarUrl.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        const publicId = filename.split('.')[0];
+        const fullPublicId = `recipe-app/avatars/${publicId}`;
+        console.log(`Deleting avatar with publicId: ${fullPublicId}`);
+        await deleteFromCloudinary(fullPublicId);
+        console.log("Avatar deleted from Cloudinary");
+      } catch (cloudinaryError) {
+        console.error("Error deleting avatar from Cloudinary (continuing):", cloudinaryError);
+      }
+    }
+
+    // Delete from related tables
+    console.log("Deleting user's likes...");
+    await connection.query('DELETE FROM likes WHERE userProfileID = ?', [userID]);
+    console.log("Deleted likes");
+
+    console.log("Deleting user's posts...");
+    await connection.query('DELETE FROM posts WHERE userProfileID = ?', [userID]);
+    console.log("Deleted posts");
+
+    console.log("Deleting user's recipes...");
+    await connection.query('DELETE FROM recipe WHERE userProfileID = ?', [userID]);
+    console.log("Deleted recipes");
+
+    console.log("Deleting user profile...");
+    await connection.query('DELETE FROM userProfile WHERE userID = ?', [userID]);
+    console.log("Deleted user profile");
+
+    console.log("Deleting user account...");
+    await connection.query('DELETE FROM user WHERE userID = ?', [userID]);
+    console.log("Deleted user account");
+
+    await connection.commit();
+    console.log("Transaction committed successfully");
+
+    return { 
+      success: true, 
+      message: "Account and all associated data deleted successfully" 
+    };
+
+  } catch (error) {
+    await connection.rollback();
+    console.error("Deletion failed, transaction rolled back:", error);
+    throw error;
+  } finally {
+    connection.release();
+    console.log("Database connection released");
+  }
+}
+
 // Upload avatar to Cloudinary
 router.put("/avatar", upload.single('avatar'), async (req, res) => {
   console.log("🖼️ Avatar upload request received");
-  try {
-    console.log("🔐 Checking session...");
-    console.log("Session data:", req.session);
-    console.log("Session user:", req.session?.user);
-    
+  try {  
     if (!req.session || !req.session.user) {
       console.log("❌ No session or user found");
       return res.status(401).json({ error: "Not authenticated" });
@@ -233,26 +315,119 @@ router.put("/avatar", upload.single('avatar'), async (req, res) => {
       [result.secure_url, userID]
     );
 
-    // Update user stats
-    await updateUserStats(userID);
-
-    console.log("✅ Avatar upload completed successfully");
+    console.log("✅ Avatar updated successfully");
     res.json({ 
       success: true, 
-      message: "Avatar uploaded successfully",
-      avatar: result.secure_url,
-      publicId: result.public_id
+      avatarUrl: result.secure_url,
+      message: "Avatar updated successfully" 
     });
 
-  } catch (err) {
-    console.error("❌ Error uploading avatar:", err);
-    console.error("❌ Error stack:", err.stack);
+  } catch (error) {
+    console.error("❌ Avatar upload error:", error);
+    res.status(500).json({ 
+      error: "Failed to upload avatar", 
+      details: error.message 
+    });
+  }
+});
+
+// ✅ Avatar Removal Route (DELETE)
+router.delete("/avatar", async (req, res) => {
+  console.log("🗑️ Avatar removal request received");
+  try {
+    console.log("🔐 Checking session...");
     
-    if (err.message.includes('image files')) {
-      return res.status(400).json({ error: err.message });
+    if (!req.session || !req.session.user) {
+      console.log("❌ No session or user found");
+      return res.status(401).json({ error: "Not authenticated" });
     }
+
+    const userID = req.session.user.userID;
+    console.log(`👤 Removing avatar for user: ${userID}`);
+
+    // Ensure userProfile exists first
+    await ensureUserProfileExists(userID);
+
+    // Get current avatar URL
+    console.log(`🔍 Getting current avatar...`);
+    const [existingProfile] = await db.execute(
+      `SELECT avatar FROM userProfile WHERE userID = ?`,
+      [userID]
+    );
+
+    if (existingProfile.length === 0) {
+      console.log("❌ User profile not found");
+      return res.status(404).json({ error: "User profile not found" });
+    }
+
+    const currentAvatar = existingProfile[0].avatar;
     
-    res.status(500).json({ error: "Server error during upload: " + err.message });
+    // Delete from Cloudinary if exists
+    if (currentAvatar) {
+      try {
+        console.log(`🗑️ Found current avatar: ${currentAvatar}`);
+        // Extract public_id from Cloudinary URL
+        const urlParts = currentAvatar.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        const publicId = filename.split('.')[0];
+        const fullPublicId = `recipe-app/avatars/${publicId}`;
+        console.log(`🗑️ Deleting avatar from Cloudinary with publicId: ${fullPublicId}`);
+        await deleteFromCloudinary(fullPublicId);
+      } catch (deleteError) {
+        console.error('⚠️ Error deleting avatar from Cloudinary (continuing):', deleteError);
+        // Continue even if deletion fails - we still want to remove the reference
+      }
+    }
+
+    // Remove avatar reference from database (set to NULL)
+    console.log(`💾 Removing avatar reference from database`);
+    await db.execute(
+      `UPDATE userProfile SET avatar = NULL WHERE userID = ?`,
+      [userID]
+    );
+
+    console.log("✅ Avatar removed successfully");
+    res.json({ 
+      success: true, 
+      message: "Avatar removed successfully" 
+    });
+
+  } catch (error) {
+    console.error("❌ Avatar removal error:", error);
+    res.status(500).json({ 
+      error: "Failed to remove avatar", 
+      details: error.message 
+    });
+  }
+});
+
+// ✅ Get Avatar Route (GET) - Optional but useful
+router.get("/avatar", async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const userID = req.session.user.userID;
+    
+    const [profile] = await db.execute(
+      `SELECT avatar FROM userProfile WHERE userID = ?`,
+      [userID]
+    );
+
+    if (profile.length === 0) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+
+    res.json({ 
+      avatar: profile[0].avatar 
+    });
+
+  } catch (error) {
+    console.error("❌ Get avatar error:", error);
+    res.status(500).json({ 
+      error: "Failed to get avatar" 
+    });
   }
 });
 
@@ -617,4 +792,68 @@ router.get("/:identifier", async (req, res) => {
   }
 });
 
+// Delete user's own account
+router.delete("/delete", async (req, res) => {
+  console.log("Account deletion request received");
+  try {
+    // Check authentication
+    if (!req.session || !req.session.user) {
+      console.log("No session or user found");
+      return res.status(401).json({ 
+        success: false, 
+        error: "Not authenticated. Please log in." 
+      });
+    }
+
+    const userID = req.session.user.userID;
+
+    // Call the helper function
+    const result = await deleteUser(userID);
+
+    // Clear the session
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Session destruction error:", err);
+      } else {
+        console.log("Session destroyed");
+      }
+    });
+
+    return res.status(200).json(result);
+
+  } catch (error) {
+    console.error("Account deletion error:", error);
+    return res.status(500).json({ 
+      success: false, 
+      error: "Failed to delete account",
+      details: error.message 
+    });
+  }
+});
+
+// Test endpoint to check basic functionality
+router.get("/debug/test", async (req, res) => {
+  console.log("🧪 Debug test endpoint hit");
+  try {
+    console.log("Session:", req.session);
+    console.log("Session user:", req.session?.user);
+    
+    // Test database connection
+    const [dbTest] = await db.execute('SELECT 1 as test');
+    console.log("Database test:", dbTest);
+    
+    res.json({
+      success: true,
+      session: req.session,
+      user: req.session?.user,
+      database: "Connected",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Debug test error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+console.log("✅ UserProfile router loaded with debug logging");
 module.exports = router;

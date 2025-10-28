@@ -1,4 +1,4 @@
-/* const express = require("express");
+const express = require("express");
 const router = express.Router();
 const sendEmail = require("../config/mailer");
 const { getVerificationEmailHTML, getVerificationEmailSubject } = require("../utils/emailTemplates");
@@ -156,5 +156,157 @@ router.post("/verify", async (req, res) => {
   }
 });
 
+// Send login OTP
+router.post("/sendLogin", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email required" });
+  }
+
+  try {
+    // Check if user exists and is verified
+    const [users] = await db.query(
+      "SELECT verified FROM user WHERE email = ? LIMIT 1", 
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (users[0].verified !== 'True') {
+      return res.status(400).json({ error: "Please verify your email first." });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    
+    // Store OTP with expiration
+    otpStore.set(`login_${email}`, {  // Use "login_" prefix to separate from registration OTPs
+      code: otp,
+      expires: Date.now() + 10 * 60 * 1000, // 10 minutes
+      attempts: 0
+    });
+
+    console.log(`Login OTP sent: ${otp}`);
+    
+    // Create email content
+    const emailSubject = "Your Login Verification Code";
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #4CAF50;">Food-Nutrition Knowledge Hub</h2>
+        <p>Hello,</p>
+        <p>Your login verification code is:</p>
+        <div style="background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+          ${otp}
+        </div>
+        <p>This code will expire in <strong>10 minutes</strong>.</p>
+        <p>If you didn't request this code, please ignore this email.</p>
+      </div>
+    `;
+
+    // Send the email
+    const emailResult = await sendEmail({
+      to: email,
+      subject: emailSubject,
+      html: emailHtml,
+    });
+
+    if (emailResult.success) {
+      return res.json({ 
+        success: true, 
+        message: "Login code sent to your email",
+        devOTP: process.env.NODE_ENV !== 'production' ? otp : undefined
+      });
+    }
+
+    return res.status(500).json({ 
+      error: "Failed to send verification email",
+      devOTP: process.env.NODE_ENV !== 'production' ? otp : undefined
+    });
+
+  } catch (err) {
+    console.error("Login OTP send error:", err);
+    return res.status(500).json({ error: "Failed to send OTP" });
+  }
+});
+
+// Verify login OTP
+router.post("/verifyLogin", async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ error: "Email and OTP required" });
+  }
+
+  try {
+    const stored = otpStore.get(`login_${email}`);  // Use "login_" prefix
+
+    if (!stored) {
+      return res.status(401).json({ error: "OTP not found or expired" });
+    }
+
+    if (Date.now() > stored.expires) {
+      otpStore.delete(`login_${email}`);
+      return res.status(401).json({ error: "OTP expired. Please request a new code." });
+    }
+
+    if (stored.attempts >= 5) {
+      otpStore.delete(`login_${email}`);
+      return res.status(429).json({ error: "Too many attempts. Please request a new code." });
+    }
+
+    if (stored.code !== otp) {
+      stored.attempts += 1;
+      otpStore.set(`login_${email}`, stored);
+      
+      return res.status(401).json({ 
+        error: "Invalid OTP",
+        attemptsRemaining: 5 - stored.attempts
+      });
+    }
+
+    // OTP is valid
+    otpStore.delete(`login_${email}`);
+
+    // Get user info for login
+    const [users] = await db.query(
+      "SELECT user_id, email, first_name, last_name, role FROM user WHERE email = ?",
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const user = users[0];
+
+    // Create session
+    req.session.user = {
+      user_id: user.user_id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role
+    };
+
+    return res.json({ 
+      success: true, 
+      message: "Login successful",
+      user: {
+        user_id: user.user_id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        role: user.role
+      }
+    });
+
+  } catch (err) {
+    console.error("Login OTP verify error:", err);
+    return res.status(500).json({ error: "Verification failed" });
+  }
+});
+
 module.exports = router;
-*/
