@@ -24,13 +24,27 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const mimetype = allowedTypes.test(file.mimetype);
+    // ✅ Accept all common image formats
+    const allowedTypes = [
+      'image/jpeg', 
+      'image/jpg', 
+      'image/png', 
+      'image/gif', 
+      'image/webp',
+      'image/svg+xml',
+      'image/bmp'
+    ];
     
-    if (mimetype) {
+    const mimetype = allowedTypes.includes(file.mimetype);
+    const fileExtension = file.originalname.toLowerCase().split('.').pop();
+    const allowedExtensions = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+    const extension = allowedExtensions.includes(fileExtension);
+    
+    if (mimetype && extension) {
       return cb(null, true);
     }
-    cb(new Error('Only image files are allowed (JPEG, JPG, PNG, GIF, WebP)'));
+    
+    cb(new Error(`Only image files are allowed (${allowedExtensions.join(', ')})`));
   }
 });
 
@@ -46,7 +60,7 @@ const uploadToCloudinary = (buffer, folder = 'avatars') => {
         transformation: [
           { width: 200, height: 200, crop: 'fill', gravity: 'face' },
           { quality: 'auto' },
-          { format: 'webp' }
+          { format: 'auto' }
         ]
       },
       (error, result) => {
@@ -168,14 +182,10 @@ const updateUserStats = async (userID) => {
   }
 };
 
-// Upload avatar to Cloudinary
-router.put("/avatar", upload.single('avatar'), async (req, res) => {
+// ✅ Avatar Upload Route (POST)
+router.post("/avatar", upload.single('avatar'), async (req, res) => {
   console.log("🖼️ Avatar upload request received");
-  try {
-    console.log("🔐 Checking session...");
-    console.log("Session data:", req.session);
-    console.log("Session user:", req.session?.user);
-    
+  try {  
     if (!req.session || !req.session.user) {
       console.log("❌ No session or user found");
       return res.status(401).json({ error: "Not authenticated" });
@@ -233,26 +243,119 @@ router.put("/avatar", upload.single('avatar'), async (req, res) => {
       [result.secure_url, userID]
     );
 
-    // Update user stats
-    await updateUserStats(userID);
-
-    console.log("✅ Avatar upload completed successfully");
+    console.log("✅ Avatar updated successfully");
     res.json({ 
       success: true, 
-      message: "Avatar uploaded successfully",
-      avatar: result.secure_url,
-      publicId: result.public_id
+      avatarUrl: result.secure_url,
+      message: "Avatar updated successfully" 
     });
 
-  } catch (err) {
-    console.error("❌ Error uploading avatar:", err);
-    console.error("❌ Error stack:", err.stack);
+  } catch (error) {
+    console.error("❌ Avatar upload error:", error);
+    res.status(500).json({ 
+      error: "Failed to upload avatar", 
+      details: error.message 
+    });
+  }
+});
+
+// ✅ Avatar Removal Route (DELETE)
+router.delete("/avatar", async (req, res) => {
+  console.log("🗑️ Avatar removal request received");
+  try {
+    console.log("🔐 Checking session...");
     
-    if (err.message.includes('image files')) {
-      return res.status(400).json({ error: err.message });
+    if (!req.session || !req.session.user) {
+      console.log("❌ No session or user found");
+      return res.status(401).json({ error: "Not authenticated" });
     }
+
+    const userID = req.session.user.userID;
+    console.log(`👤 Removing avatar for user: ${userID}`);
+
+    // Ensure userProfile exists first
+    await ensureUserProfileExists(userID);
+
+    // Get current avatar URL
+    console.log(`🔍 Getting current avatar...`);
+    const [existingProfile] = await db.execute(
+      `SELECT avatar FROM userProfile WHERE userID = ?`,
+      [userID]
+    );
+
+    if (existingProfile.length === 0) {
+      console.log("❌ User profile not found");
+      return res.status(404).json({ error: "User profile not found" });
+    }
+
+    const currentAvatar = existingProfile[0].avatar;
     
-    res.status(500).json({ error: "Server error during upload: " + err.message });
+    // Delete from Cloudinary if exists
+    if (currentAvatar) {
+      try {
+        console.log(`🗑️ Found current avatar: ${currentAvatar}`);
+        // Extract public_id from Cloudinary URL
+        const urlParts = currentAvatar.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        const publicId = filename.split('.')[0];
+        const fullPublicId = `recipe-app/avatars/${publicId}`;
+        console.log(`🗑️ Deleting avatar from Cloudinary with publicId: ${fullPublicId}`);
+        await deleteFromCloudinary(fullPublicId);
+      } catch (deleteError) {
+        console.error('⚠️ Error deleting avatar from Cloudinary (continuing):', deleteError);
+        // Continue even if deletion fails - we still want to remove the reference
+      }
+    }
+
+    // Remove avatar reference from database (set to NULL)
+    console.log(`💾 Removing avatar reference from database`);
+    await db.execute(
+      `UPDATE userProfile SET avatar = NULL WHERE userID = ?`,
+      [userID]
+    );
+
+    console.log("✅ Avatar removed successfully");
+    res.json({ 
+      success: true, 
+      message: "Avatar removed successfully" 
+    });
+
+  } catch (error) {
+    console.error("❌ Avatar removal error:", error);
+    res.status(500).json({ 
+      error: "Failed to remove avatar", 
+      details: error.message 
+    });
+  }
+});
+
+// ✅ Get Avatar Route (GET) - Optional but useful
+router.get("/avatar", async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const userID = req.session.user.userID;
+    
+    const [profile] = await db.execute(
+      `SELECT avatar FROM userProfile WHERE userID = ?`,
+      [userID]
+    );
+
+    if (profile.length === 0) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+
+    res.json({ 
+      avatar: profile[0].avatar 
+    });
+
+  } catch (error) {
+    console.error("❌ Get avatar error:", error);
+    res.status(500).json({ 
+      error: "Failed to get avatar" 
+    });
   }
 });
 
