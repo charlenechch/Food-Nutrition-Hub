@@ -38,21 +38,33 @@ export default function ReviseRecipePage() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const users = useMemo(loadUsers, []);
+
+  console.log("DEBUG - Router State:", state);
+  console.log("DEBUG - URL ID:", id);
+  console.log("DEBUG - Full users data:", users);
   
   const { ownerUsername, item } = useMemo(() => {
     const targetId = state?.id || id;
+    console.log(" DEBUG - Looking for item with ID:", targetId);
     for (const [uname, u] of Object.entries(users)) {
+        console.log("DEBUG - Checking user:", uname);
         const hit = (u?.pending || []).find(p => String(p.id) === String(targetId));
         if (hit) return { ownerUsername: uname, item: hit };
     }
     if (state?.snapshot && state?.owner) {
+        console.log("DEBUG - Found item in router state:", state.snapshot);
         return { ownerUsername: state.owner, item: state.snapshot };
     }
+    console.log("DEBUG - No item found anywhere");
     return { ownerUsername: null, item: null };
   }, [users, id, state]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const needsFix = new Set(item?.fieldsWithIssues || []);
+
+  console.log("DEBUG - Current item:", item);
+  console.log("DEBUG - Owner username:", ownerUsername);
+  console.log("DEBUG - Fields that need fix:", Array.from(needsFix));
 
   // Map the stored payload into the form shape used by your Recipe page
   const [initial] = useState(() => {
@@ -190,31 +202,61 @@ export default function ReviseRecipePage() {
     }
   };
 
+  // Add this useEffect to fetch the actual recipe data
   useEffect(() => {
-    if (!item) return;
-    const p = item.payload || {};
-    setForm(prev => ({
-        ...prev,
-        name: p.name || p.title || "",
-        origin: p.origin || "",
-        difficulty: p.difficulty || "Easy",
-        prepTime: p.prepTime ?? "",
-        cookTime: p.cookTime ?? "",
-        foodType: p.foodType || "Poultry",
-        otherFoodEnabled: !!p.otherFoodEnabled,
-        otherFoodText: p.otherFoodText || "",
-        description: p.description || "",
-        imageData: p.imageData || (p.images?.[0] ?? ""),
-        servings: p.servings ?? "",
-        ingredients: p.ingredients || "",
-        instructions: p.instructions || "",
-        dietaryTags: p.dietaryTags || [],
-        otherDietEnabled: !!p.otherDietEnabled,
-        otherDietText: p.otherDietText || "",
-        funFact: p.funFact || "",
-        chefTips: p.chefTips || ""
-    }));
-  }, [item]);
+    const fetchRecipeData = async () => {
+      if (!item?.id) {
+        console.log('❌ No item ID available');
+        return;
+      }
+      
+      try {
+        console.log('🔄 Fetching recipe data from backend for ID:', item.id);
+        const response = await fetch(`/api/recipe/revise/recipes/${item.id}`);
+        
+        if (response.ok) {
+          const recipeData = await response.json();
+          console.log('✅ Received recipe data from API:', recipeData);
+          
+          // Transform the API data to match your form structure
+          setForm({
+            name: recipeData.name || "",
+            origin: recipeData.origin || "",
+            difficulty: recipeData.difficulty || "Easy",
+            prepTime: recipeData.prepTime || "",
+            cookTime: recipeData.cookTime || "",
+            servings: recipeData.servings || "",
+            imageData: recipeData.image || "",
+            description: recipeData.description || "",
+            ingredients: Array.isArray(recipeData.ingredients) 
+              ? recipeData.ingredients.join('\n') 
+              : (recipeData.ingredients || ""),
+            instructions: Array.isArray(recipeData.instructions) 
+              ? recipeData.instructions.join('\n') 
+              : (recipeData.instructions || ""),
+            funFact: recipeData.funFact || "",
+            chefTips: recipeData.chefTips || "",
+            dietaryTags: recipeData.dietaryTags || [],
+            foodType: recipeData.foodType || "",
+          });
+        } else {
+          const errorText = await response.text();
+          console.error('❌ Failed to fetch recipe data:', response.status, errorText);
+          alert('Failed to load recipe data. Please try again.');
+        }
+      } catch (error) {
+        console.error('❌ Error fetching recipe:', error);
+        alert('Error loading recipe data. Please check your connection.');
+      }
+    };
+
+    // Only fetch if we have a valid item with ID
+    if (item && item.id) {
+      fetchRecipeData();
+    } else {
+      console.log('⚠️ No valid item found for revision');
+    }
+  }, [item?.id]); // Only re-run when item.id changes
 
   const fieldLabels = {
     name: "Recipe Name",

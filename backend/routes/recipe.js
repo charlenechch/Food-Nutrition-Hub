@@ -579,7 +579,117 @@ router.post('/create/recipes', async (req, res) => {
   }
 });
 
-// Add this route to your backend
+// GET recipe for revision (rejected status)
+// GET single recipe for revision (by ID, ignores status)
+router.get('/revise/recipes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('🔧 Fetching recipe for revision ID:', id);
+    
+    const query = `
+      SELECT 
+        f.foodID AS id,
+        f.name, 
+        f.origin, 
+        f.difficulty, 
+        f.prepTime, 
+        f.image, 
+        f.description, 
+        f.foodType,
+        f.category,
+        f.dietaryTags,
+        r.recipeID,
+        r.cookTime, 
+        r.servings, 
+        r.ingredients, 
+        r.steps AS instructions, 
+        r.DidYouKnow AS funFact, 
+        r.chefTips,
+        r.status
+      FROM food f
+      LEFT JOIN recipe r ON f.foodID = r.foodID
+      WHERE f.foodID = ? OR r.recipeID = ?
+    `;
+    
+    const result = await db.query(query, [id, id]);
+    console.log('Raw result for revision recipe:', result);
+    
+    const rows = Array.isArray(result) ? result : (result.rows || result);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Recipe not found for revision' });
+    }
+    
+    let row = rows[0];
+    
+    // DEBUG
+    console.log('Revision recipe row structure:', {
+      keys: Object.keys(row),
+      status: row.status,
+      id: row.id,
+      name: row.name
+    });
+    
+    // Extract the actual recipe data (using your existing logic)
+    let recipeData = row;
+    
+    // If row has numeric keys, look for the actual recipe object
+    if ((row.id === undefined || row.name === undefined) && Object.keys(row).some(key => !isNaN(key))) {
+      console.log('Looking for recipe in numeric keys...');
+      
+      Object.keys(row).forEach(key => {
+        const value = row[key];
+        if (value && typeof value === 'object' && value.id !== undefined && value.name !== undefined) {
+          console.log(`Found recipe at key ${key}:`, { id: value.id, name: value.name });
+          recipeData = value;
+        }
+      });
+    }
+    
+    if (recipeData.id === undefined || recipeData.name === undefined) {
+      console.log('Using direct mapping for revision recipe');
+      // Map numeric indices to field names based on SELECT order
+      const fieldMap = {
+        0: 'id', 1: 'name', 2: 'origin', 3: 'difficulty', 4: 'prepTime', 5: 'image',
+        6: 'description', 7: 'foodType', 8: 'category', 9: 'dietaryTags',
+        10: 'cookTime', 11: 'servings', 12: 'ingredients', 13: 'instructions',
+        14: 'funFact', 15: 'chefTips', 16: 'status'
+      };
+      
+      const mappedData = {};
+      Object.keys(recipeData).forEach(key => {
+        const numKey = parseInt(key);
+        if (!isNaN(numKey) && fieldMap[numKey] !== undefined) {
+          mappedData[fieldMap[numKey]] = recipeData[key];
+        } else if (isNaN(numKey)) {
+          mappedData[key] = recipeData[key];
+        }
+      });
+      recipeData = mappedData;
+    }
+    
+    console.log('Final revision recipe data:', {
+      id: recipeData.id,
+      name: recipeData.name,
+      status: recipeData.status,
+      hasImage: !!recipeData.image
+    });
+    
+    const recipe = createRecipeFromFlatObject(recipeData);
+    
+    // Add status back to the response
+    recipe.status = recipeData.status;
+    
+    console.log('✅ Sending revision recipe data');
+    res.json(recipe);
+    
+  } catch (error) {
+    console.error('Error fetching recipe for revision:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// display old data
 router.put('/update/recipes/:id', async (req, res) => {
   console.log('🔍 START: Recipe update endpoint called for ID:', req.params.id);
   
