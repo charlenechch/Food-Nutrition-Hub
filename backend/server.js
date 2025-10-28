@@ -130,14 +130,18 @@ app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
 const allowlist = [
   "http://localhost:5173",
   "https://food-nutrition-hub.vercel.app",
-  process.env.FRONTEND_ORIGIN, // optional override
+  "https://food-nutrition-hub-git-main-brian.vercel.app", // ✅ Add your Vercel preview link (if exists)
+  "https://food-nutrition-hub.firebaseapp.com", // ✅ Add Firebase if password reset uses it
+  process.env.FRONTEND_ORIGIN,
 ].filter(Boolean);
 
 app.use(
   cors({
     origin(origin, cb) {
-      // Allow server-to-server / curl (no origin) and allowlisted sites
-      if (!origin || allowlist.includes(origin)) return cb(null, true);
+      if (!origin || allowlist.some((url) => origin.startsWith(url))) {
+        return cb(null, true);
+      }
+      console.error(`❌ CORS blocked origin: ${origin}`);
       return cb(new Error("CORS: Origin not allowed"));
     },
     credentials: true,
@@ -146,6 +150,7 @@ app.use(
     optionsSuccessStatus: 204,
   })
 );
+
 
 // ---------- 3) Body parsers & HPP ----------
 app.use(express.json({ limit: "1mb" })); // small limit reduces DoS surface
