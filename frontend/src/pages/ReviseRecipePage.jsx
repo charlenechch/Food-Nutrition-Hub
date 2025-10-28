@@ -6,7 +6,7 @@ import { FaCamera, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa";
 import LS_KEY from "./UserProfilePage"; 
 import "../css/ReviseRecipePage.css"; // Import the CSS
 
-// Helper to load users from localStorage (same shape as your profile page)
+// Helper to load users from localStorage 
 function loadUsers() {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -21,7 +21,6 @@ function saveUsers(obj) {
   } catch {}
 }
 
-// You can keep these in a shared constants file if you like
 const DIET_OPTIONS = [
   "gluten-free",
   "dairy-free",
@@ -34,7 +33,7 @@ const DIET_OPTIONS = [
 ];
 
 export default function ReviseRecipePage() {
-  const { id } = useParams();              // /revise/:id
+  const { id } = useParams();            
   const navigate = useNavigate();
   const { state } = useLocation();
   const users = useMemo(loadUsers, []);
@@ -126,15 +125,15 @@ export default function ReviseRecipePage() {
     try {
       console.log('🚀 Starting recipe revision for ID:', item.id);
 
-      // Build the data in the same format as your create endpoint
+      const BACKEND_URL = 'http://localhost:5000'; 
       const revisedData = {
         name: form.name,
         origin: form.origin,
         difficulty: form.difficulty,
-        prepTime: form.prepTime,
-        cookTime: form.cookTime,
-        servings: form.servings,
-        image: form.imageData, // This can be base64 or URL
+        prepTime: parseInt(form.prepTime) || 0,
+        cookTime: parseInt(form.cookTime) || 0,
+        servings: parseInt(form.servings) || 1,
+        image: form.imageData,
         description: form.description,
         foodType: form.foodType,
         dietaryTags: [
@@ -150,14 +149,12 @@ export default function ReviseRecipePage() {
       };
 
       console.log('📤 Sending update request with data:', revisedData);
-
-      // Use your update endpoint instead of create endpoint
-      const response = await fetch(`/api/recipe/update/recipes/${item.id}`, {
+      
+      const response = await fetch(`${BACKEND_URL}/api/recipe/update/recipes/${item.id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json" 
         },
-        credentials: "include",
         body: JSON.stringify(revisedData),
       });
 
@@ -173,24 +170,28 @@ export default function ReviseRecipePage() {
       console.log('✅ Update successful:', result);
 
       if (result.success || result.message) {
-        // Also update localStorage if you're using it
-        const nextUsers = { ...users };
-        const list = nextUsers[ownerUsername].pending.map(p => {
-          if (String(p.id) !== String(item.id)) return p;
-          return {
-            ...p,
-            status: "Pending", // Reset to pending for re-review
-            feedback: "", // Clear old feedback
-            fieldsWithIssues: [],
-            payload: revisedData,
-            resubmittedDate: new Date().toISOString(),
-          };
-        });
-        nextUsers[ownerUsername] = { ...nextUsers[ownerUsername], pending: list };
-        saveUsers(nextUsers);
+        if (ownerUsername && users[ownerUsername]) {
+          const nextUsers = { ...users };
+          const list = nextUsers[ownerUsername].pending.map(p => {
+            if (String(p.id) !== String(item.id)) return p;
+            return {
+              ...p,
+              status: "Pending", 
+              feedback: "",
+              fieldsWithIssues: [],
+              payload: revisedData,
+              resubmittedDate: new Date().toISOString(),
+            };
+          });
+          nextUsers[ownerUsername] = { ...nextUsers[ownerUsername], pending: list };
+          saveUsers(nextUsers);
+          console.log('✅ localStorage updated for user:', ownerUsername);
+        } else {
+          console.log('⚠️ No ownerUsername found, skipping localStorage update');
+        }
 
         alert("Recipe revised successfully! It will be reviewed again.");
-        navigate(-1); // Go back to profile
+        navigate(-1);
       } else {
         throw new Error(result.error || "Update failed");
       }
@@ -226,7 +227,7 @@ export default function ReviseRecipePage() {
         const recipeData = await response.json();
         console.log('✅ Received recipe data from API:', recipeData);
         
-        // Transform the API data to match your form structure
+        // Transform the API data to match form structure
         setForm({
           name: recipeData.name || "",
           origin: recipeData.origin || "",
