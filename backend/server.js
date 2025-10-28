@@ -29,6 +29,7 @@ const communityPostRoutes = require("./routes/communityPost");
 const saveFoodRoutes = require("./routes/saveFood");
 //const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
+const likeRoutes = require("./routes/likes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -235,6 +236,7 @@ app.use("/api/saveFood", saveFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/foods", foodRoutes); 
 app.use("/api/userProfile", userProfileRoutes);
+app.use("/api/likes", likeRoutes);
 
 // Example admin guard (kept from your version)
 app.get("/api/admin/data", (req, res) => {
