@@ -579,4 +579,151 @@ router.post('/create/recipes', async (req, res) => {
   }
 });
 
+// Add this route to your backend
+router.put('/update/recipes/:id', async (req, res) => {
+  console.log('🔍 START: Recipe update endpoint called for ID:', req.params.id);
+  
+  try {
+    const {
+      name, origin, difficulty, prepTime, image, description, 
+      foodType, dietaryTags, cookTime, servings, ingredients, 
+      instructions, funFact, chefTips
+    } = req.body;
+
+    const recipeId = req.params.id;
+
+    console.log('📊 Update request data analysis:', {
+      recipeId,
+      name, 
+      origin, 
+      foodType,
+      hasImage: !!image,
+      imageType: image ? (image.startsWith('data:image') ? 'base64' : 'url') : 'none'
+    });
+
+    // Validate required fields
+    if (!name || !origin) {
+      console.log('❌ Validation failed: missing name or origin');
+      return res.status(400).json({ error: 'Name and origin are required' });
+    }
+
+    // Check authentication
+    if (!req.session || !req.session.user) {
+      console.log('❌ Authentication failed - no session user');
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const userProfileID = req.session.user.userID;
+    console.log('✅ User authenticated:', userProfileID);
+
+    // First, get the current foodID from the recipe
+    console.log('🔍 Getting current food ID for recipe:', recipeId);
+    const [currentRecipe] = await db.query(
+      'SELECT foodID FROM recipe WHERE recipeID = ? AND userProfileID = ?',
+      [recipeId, userProfileID]
+    );
+
+    if (currentRecipe.length === 0) {
+      console.log('❌ Recipe not found or user not authorized');
+      return res.status(404).json({ error: 'Recipe not found or access denied' });
+    }
+
+    const foodId = currentRecipe[0].foodID;
+    console.log('✅ Found food ID:', foodId);
+
+    let processedImage = null;
+
+    // CLOUDINARY UPLOAD LOGIC (only if new image provided)
+    if (image && image.startsWith('data:image')) {
+      try {
+        console.log('📤 Uploading new image to Cloudinary...');
+        const uploadResult = await cloudinary.uploader.upload(image, {
+          folder: 'food-recipes',
+          resource_type: 'image'
+        });
+        processedImage = uploadResult.secure_url;
+        console.log('✅ New image uploaded to Cloudinary:', processedImage);
+      } catch (uploadError) {
+        console.error('❌ Cloudinary upload failed:', uploadError);
+        // Don't update image if upload fails
+      }
+    } else if (image && image.startsWith('http')) {
+      processedImage = image;
+      console.log('✅ Using provided image URL');
+    }
+
+    console.log('🚀 About to UPDATE food table');
+
+    // Update food table
+    const foodUpdateQuery = `
+      UPDATE food 
+      SET name = ?, origin = ?, difficulty = ?, prepTime = ?, 
+          description = ?, foodType = ?, category = ?, dietaryTags = ?
+          ${processedImage ? ', image = ?' : ''}
+      WHERE foodID = ?
+    `;
+    
+    const foodParams = [
+      name, 
+      origin, 
+      difficulty || 'Easy', 
+      prepTime || 0, 
+      description || '', 
+      foodType || 'Other',
+      foodType || 'Other',
+      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || '')
+    ];
+
+    // Add image parameter if new image was processed
+    if (processedImage) {
+      foodParams.push(processedImage);
+    }
+    
+    // Always add foodId at the end
+    foodParams.push(foodId);
+    
+    console.log('📝 Executing food update with params:', foodParams);
+    
+    const [foodResult] = await db.query(foodUpdateQuery, foodParams);
+    console.log('✅ Food update successful - affected rows:', foodResult.affectedRows);
+
+    console.log('🚀 About to UPDATE recipe table');
+
+    // Update recipe table
+    const recipeUpdateQuery = `
+      UPDATE recipe 
+      SET ingredients = ?, steps = ?, cookTime = ?, servings = ?, 
+          DidYouKnow = ?, chefTips = ?, status = ?
+      WHERE foodID = ? AND userProfileID = ?
+    `;
+    
+    const recipeParams = [
+      Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
+      Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
+      cookTime || 0, 
+      servings || 1,
+      funFact || '', 
+      chefTips || '',
+      'Pending', // Reset status to Pending for re-review
+      foodId,
+      userProfileID
+    ];
+    
+    console.log('📝 Executing recipe update with foodID:', foodId);
+    const [recipeResult] = await db.query(recipeUpdateQuery, recipeParams);
+    
+    console.log('✅ Recipe updated successfully - affected rows:', recipeResult.affectedRows);
+    
+    res.status(200).json({ 
+      message: 'Recipe updated successfully', 
+      id: foodId,
+      status: 'Pending'
+    });
+    
+  } catch (error) {
+    console.error('❌ Error updating recipe:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

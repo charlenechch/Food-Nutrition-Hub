@@ -1,0 +1,105 @@
+/* Revise Recipe Page Styles */
+/* Admin Feedback Alert */
+.rcp-admin-alert {
+  background: linear-gradient(135deg, #fffaf0 0%, #fff5e6 100%);
+  border: 2px solid #ffa502;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 15px rgba(255, 165, 2, 0.15);
+}
+
+.rcp-alert-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.rcp-alert-header h3 {
+  color: #e67e22;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.rcp-alert-icon {
+  color: #e67e22;
+  font-size: 1.5rem;
+}
+
+.rcp-alert-content {
+  color: #5c4b37;
+  line-height: 1.6;
+}
+
+.rcp-feedback-message {
+  background: rgba(230, 126, 34, 0.1);
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #e67e22;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.rcp-issues-list {
+  background: rgba(52, 152, 219, 0.1);
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+  margin-bottom: 16px;
+}
+
+.rcp-issues-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2980b9;
+}
+
+.rcp-issues-list ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.rcp-issues-list li {
+  margin-bottom: 4px;
+  color: #2c3e50;
+}
+
+/* Field Issue Styling */
+.rp-field.needs-fix {
+  border: 2px solid #e74c3c !important;
+  border-radius: 8px;
+  padding: 16px;
+  background: rgba(231, 76, 60, 0.03);
+}
+
+.rp-field.needs-fix label {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.field-issue-hint {
+  color: #e74c3c;
+  font-size: 0.8rem;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .upp-page {
+    padding: 16px;
+  }
+  
+  .rcp-wrap {
+    padding: 20px;
+  }
+  
+  .rcp-admin-alert {
+    padding: 16px;
+  }
+}
