@@ -274,7 +274,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-// Check if food/recipe is saved by user (USING FOODID LINK)
+// Check if food/recipe is saved by user 
 router.get('/check/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -301,7 +301,6 @@ router.get('/check/:id', async (req, res) => {
     let foodIdToCheck = null;
     let recipeIdToCheck = null;
 
-    // ✅ USE THE EXISTING FOODID LINK
     if (type === 'food') {
       foodIdToCheck = id;
       
@@ -342,7 +341,6 @@ router.get('/check/:id', async (req, res) => {
   }
 });
 
-// ✅ ADD THIS MISSING SAVE ENDPOINT (WITH SYNCHRONIZATION)
 router.post('/:id', async (req, res) => {
   console.log('=== SAVE FOOD/RECIPE REQUEST ===');
   console.log('Session:', req.session);

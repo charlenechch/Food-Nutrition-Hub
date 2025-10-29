@@ -1,4 +1,4 @@
-// ✅ src/pages/FoodDiscussionPage.jsx (TEMP FIX with hardcoded profileID fallback for comments/replies)
+// ✅ src/pages/FoodDiscussionPage.jsx (Updated with delete functionality)
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
@@ -8,6 +8,28 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
+
+// ✅ Delete Confirmation Modal Component
+const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment" }) => {
+  if (!show) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h3>Delete {type === "reply" ? "Reply" : "Comment"}</h3>
+        <p>Are you sure you want to delete this {type}? This action cannot be undone.</p>
+        <div className="modal-actions">
+          <button className="lrp-btn lrp-btn-outline" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="lrp-btn lrp-btn-danger" onClick={onConfirm}>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ✅ Format "time ago"
 function getTimeAgo(timestamp) {
@@ -25,15 +47,17 @@ function getTimeAgo(timestamp) {
 const Comment = React.memo(function Comment({
   item,
   isReply = false,
-  //likedIds,
   onToggleLike,
   replyToId,
   setReplyToId,
   replyTexts,
   setReplyTexts,
   onPostReply,
+  onDeleteComment,
+  onDeleteReply,
   isGuest,
   setShowLoginPrompt,
+  currentUserId,
 }) {
   const itemId = isReply ? (item.replyID || item.id) : (item.id || item.discussionID);
   const username = item.username || "User";
@@ -41,8 +65,12 @@ const Comment = React.memo(function Comment({
   const timestamp = item.timestamp || item.createdAt;
   const likes = isReply ? 0 : item.likes || item.upVotes || 0;
   const userLiked = item.user_liked || false;
+  const commentUserId = item.userProfileID || item.userID;
+  
+  // Check if current user is the owner of this comment/reply
+  const isOwner = currentUserId && commentUserId && currentUserId.toString() === commentUserId.toString();
 
-  console.log("Comment render:", itemId, "userLiked:", userLiked, "likes:", likes);
+  console.log("Comment render:", itemId, "userLiked:", userLiked, "likes:", likes, "isOwner:", isOwner);
  
   const handleLike = () => {
     if (isGuest) return setShowLoginPrompt(true);
@@ -62,6 +90,14 @@ const Comment = React.memo(function Comment({
   const handlePostReply = () => {
     if (isGuest) return setShowLoginPrompt(true);
     onPostReply(itemId);
+  };
+
+  const handleDelete = () => {
+    if (isReply) {
+      onDeleteReply(item.discussionID, itemId);
+    } else {
+      onDeleteComment(itemId);
+    }
   };
 
   return (
@@ -89,6 +125,15 @@ const Comment = React.memo(function Comment({
         <div className="fd-disc-meta">
           <span className="fd-disc-user">{username}</span>
           <span className="fd-disc-time">• {getTimeAgo(timestamp)}</span>
+          {isOwner && (
+            <button 
+              className="fd-delete-btn" 
+              onClick={handleDelete}
+              title={`Delete this ${isReply ? 'reply' : 'comment'}`}
+            >
+              <i className="fas fa-trash-alt"></i>
+            </button>
+          )}
         </div>
         <p className="fd-disc-text">{content}</p>
 
@@ -96,7 +141,6 @@ const Comment = React.memo(function Comment({
           <div className="fd-disc-actions">
             <button className={`fd-link-btn ${userLiked ? 'liked' : ''}`} 
                onClick={handleLike}>
-              {/*likedIds.has(itemId) ? "♥" : "♡"} {likes*/}
               {userLiked ? "♥" : "♡"} {likes}
             </button>
             <button className="fd-link-btn" onClick={handleToggleReply}>
@@ -132,15 +176,17 @@ const Comment = React.memo(function Comment({
                 key={reply.replyID || idx}
                 item={reply}
                 isReply={true}
-                //likedIds={likedIds}
                 onToggleLike={onToggleLike}
                 replyToId={replyToId}
                 setReplyToId={setReplyToId}
                 replyTexts={replyTexts}
                 setReplyTexts={setReplyTexts}
                 onPostReply={onPostReply}
+                onDeleteComment={onDeleteComment}
+                onDeleteReply={onDeleteReply}
                 isGuest={isGuest}
                 setShowLoginPrompt={setShowLoginPrompt}
+                currentUserId={currentUserId}
               />
             ))}
           </div>
@@ -159,47 +205,56 @@ export default function FoodDiscussionPage() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const isGuest = !user || user.role === "guest";
-
-  const userProfileID = isGuest ? null : user?.userProfileID;
+  const userProfileID = isGuest ? null : user?.userProfileID || user?.userID || user?.id || user?.profileID;
 
   const [food, setFood] = useState(location.state?.food || null);
   const [comments, setComments] = useState([]);
-  //const [likedIds, setLikedIds] = useState(new Set());
   const [newComment, setNewComment] = useState("");
   const [replyToId, setReplyToId] = useState(null);
   const [replyTexts, setReplyTexts] = useState({});
   const [loading, setLoading] = useState(true);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  
+  // Delete confirmation modal state
+  const [deleteModal, setDeleteModal] = useState({
+    show: false,
+    type: "comment", // "comment" or "reply"
+    commentId: null,
+    replyId: null,
+    onConfirm: null
+  });
+
   // ✅ Fetch comments
-    const fetchComments = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}`, {
-          credentials: "include",
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          setComments(data.data);
-        } else {
-          setComments([]);
-        }
-      } catch (err) {
-        console.error("Error fetching comments:", err);
+  const fetchComments = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setComments(data.data);
+      } else {
         setComments([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      console.error("Error fetching comments:", err);
+      setComments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (foodId) fetchComments();
   }, [foodId]);
 
+  // ✅ Post Comment
   const postComment = async () => {
     if (isGuest) return setShowLoginPrompt(true);
     if (!newComment.trim()) return;
 
-    const actualUserProfileID = user?.userProfileID || user?.userID || user?.id || user?.profileID;
+    const actualUserProfileID = userProfileID;
     const actualFoodID = foodId;
 
     console.log("🟡 Final values:", {
@@ -208,7 +263,6 @@ export default function FoodDiscussionPage() {
       content: newComment.trim()
     });
 
-    // ADD VALIDATION
     if (!actualUserProfileID) {
       alert("User profile ID not found. Please log in again.");
       return;
@@ -247,13 +301,11 @@ export default function FoodDiscussionPage() {
     }
   };
 
- 
+  // ✅ Post Reply
   const postReply = async (discussionId) => {
     if (isGuest) return setShowLoginPrompt(true);
     const text = replyTexts[discussionId]?.trim();
     if (!text) return;
-
-    const actualUserProfileID = user?.userProfileID || user?.userID || user?.id || user?.profileID;
 
     try {
       const res = await fetch(`${API}/api/foodDiscussion/${discussionId}/replies`, {
@@ -261,7 +313,7 @@ export default function FoodDiscussionPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          userProfileID: actualUserProfileID,
+          userProfileID: userProfileID,
           reply: text,
         }),
       });
@@ -286,41 +338,135 @@ export default function FoodDiscussionPage() {
     }
   };
 
+  // ✅ Toggle Like
   const toggleLike = async (targetId) => {
-  if (isGuest) return setShowLoginPrompt(true);
+    if (isGuest) return setShowLoginPrompt(true);
 
-  const finalProfileID = user?.userProfileID || user?.userID || user?.id;
-
-  if (!finalProfileID) {
-    console.error("No valid userProfileID found");
-    return;
-  }
-
-  console.log("Toggle like for:", targetId, "User ID:", finalProfileID);
-
-  try {
-    const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        userProfileID: finalProfileID  
-      }),
-    });
-    console.log("Response status:", res.status);
-    const data = await res.json();
-    console.log("Response data:", data);
-
-    if (res.ok && data.success) {
-      console.log("Like successful, refreshing comments...");
-      fetchComments(); 
-    }else {
-      console.error("Like failed:", data.message);
+    if (!userProfileID) {
+      console.error("No valid userProfileID found");
+      return;
     }
-  } catch (err) {
-    console.error("Error updating like:", err);
-  }
-};
+
+    console.log("Toggle like for:", targetId, "User ID:", userProfileID);
+
+    try {
+      const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          userProfileID: userProfileID  
+        }),
+      });
+      console.log("Response status:", res.status);
+      const data = await res.json();
+      console.log("Response data:", data);
+
+      if (res.ok && data.success) {
+        console.log("Like successful, refreshing comments...");
+        fetchComments(); 
+      } else {
+        console.error("Like failed:", data.message);
+      }
+    } catch (err) {
+      console.error("Error updating like:", err);
+    }
+  };
+
+  // ✅ Delete Comment
+  const deleteComment = async (commentId) => {
+    if (isGuest) return setShowLoginPrompt(true);
+
+    try {
+      const res = await fetch(`${API}/api/foodDiscussion/${commentId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          userProfileID: userProfileID
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        // Remove comment from state
+        setComments(prev => prev.filter(comment => 
+          comment.id !== commentId && comment.discussionID !== commentId
+        ));
+        setDeleteModal({ show: false, type: "comment", commentId: null, replyId: null, onConfirm: null });
+      } else {
+        alert(data?.message || "Failed to delete comment");
+      }
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+      alert("Server error while deleting comment.");
+    }
+  };
+
+  // ✅ Delete Reply
+  const deleteReply = async (commentId, replyId) => {
+    if (isGuest) return setShowLoginPrompt(true);
+
+    try {
+      const res = await fetch(`${API}/api/foodDiscussion/${commentId}/replies/${replyId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          userProfileID: userProfileID
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        // Remove reply from state
+        setComments(prev => prev.map(comment => {
+          if (comment.id === commentId || comment.discussionID === commentId) {
+            return {
+              ...comment,
+              replies: comment.replies?.filter(reply => reply.replyID !== replyId && reply.id !== replyId) || []
+            };
+          }
+          return comment;
+        }));
+        setDeleteModal({ show: false, type: "reply", commentId: null, replyId: null, onConfirm: null });
+      } else {
+        alert(data?.message || "Failed to delete reply");
+      }
+    } catch (err) {
+      console.error("Error deleting reply:", err);
+      alert("Server error while deleting reply.");
+    }
+  };
+
+  // ✅ Show delete confirmation modal
+  const showDeleteConfirmation = (type, commentId, replyId = null) => {
+    setDeleteModal({
+      show: true,
+      type,
+      commentId,
+      replyId,
+      onConfirm: () => {
+        if (type === "comment") {
+          deleteComment(commentId);
+        } else {
+          deleteReply(commentId, replyId);
+        }
+      }
+    });
+  };
+
+  // ✅ Handle comment deletion
+  const handleDeleteComment = (commentId) => {
+    showDeleteConfirmation("comment", commentId);
+  };
+
+  // ✅ Handle reply deletion
+  const handleDeleteReply = (commentId, replyId) => {
+    showDeleteConfirmation("reply", commentId, replyId);
+  };
 
   // ✅ Render Loading
   if (loading) {
@@ -344,6 +490,14 @@ export default function FoodDiscussionPage() {
     <div className="food-discussion-page">
       <Header />
       <LoginPromptModal show={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
+      
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal 
+        show={deleteModal.show}
+        onClose={() => setDeleteModal({ show: false, type: "comment", commentId: null, replyId: null, onConfirm: null })}
+        onConfirm={deleteModal.onConfirm}
+        type={deleteModal.type}
+      />
 
       <div className="fdp-disc-container">
         <div className="fdp-disc-topbar">
@@ -400,15 +554,17 @@ export default function FoodDiscussionPage() {
                 <React.Fragment key={c.id || c.discussionID || i}>
                   <Comment
                     item={c}
-                    //likedIds={likedIds}
                     onToggleLike={toggleLike}
                     replyToId={replyToId}
                     setReplyToId={setReplyToId}
                     replyTexts={replyTexts}
                     setReplyTexts={setReplyTexts}
                     onPostReply={postReply}
+                    onDeleteComment={handleDeleteComment}
+                    onDeleteReply={handleDeleteReply}
                     isGuest={isGuest}
                     setShowLoginPrompt={setShowLoginPrompt}
+                    currentUserId={userProfileID}
                   />
                   {i < comments.length - 1 && <hr className="fd-divider" />}
                 </React.Fragment>

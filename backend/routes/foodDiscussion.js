@@ -467,6 +467,31 @@ router.delete('/:commentId', async (req, res) => {
   }
 });
 
+// ✅ Delete a reply (ownership check)
+router.delete('/:commentId/replies/:replyId', async (req, res) => {
+  try {
+    const { commentId, replyId } = req.params;
+    const { userProfileID } = req.body;
+
+    if (!userProfileID) {
+      return res.status(400).json({ success: false, message: 'userProfileID is required' });
+    }
+
+    const checkSql = 'SELECT replyID FROM discussion_replies WHERE replyID = ? AND userProfileID = ? AND discussionID = ?';
+    const checkRes = await db.query(checkSql, [replyId, userProfileID, commentId]);
+    const rows = firstRows(checkRes);
+    if (!rows.length) {
+      return res.status(403).json({ success: false, message: 'Reply not found or permission denied' });
+    }
+
+    await db.query('DELETE FROM discussion_replies WHERE replyID = ?', [replyId]);
+    res.json({ success: true, message: 'Reply deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting reply:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete reply' });
+  }
+});
+
 // stats for a food
 router.get('/food/:foodId/stats', async (req, res) => {
   try {
