@@ -24,6 +24,8 @@ if (!admin.apps.length) {
   } catch (error) {
     console.error("Failed to initialize Firebase Admin:", error.message);
   }
+} else {
+  console.log("Firebase Admin already initialized");
 }
 
 module.exports = admin;
