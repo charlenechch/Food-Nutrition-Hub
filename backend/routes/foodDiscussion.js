@@ -195,29 +195,57 @@ router.post('/:discussionId/replies', async (req, res) => {
   }
 });
 
-// ✅ Update comment likes
+// Update comment likes 
 router.patch('/:commentId/vote', async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { type } = req.body;
+    const { userProfileID } = req.body;
 
-    if (!['up', 'down'].includes(type)) {
-      return res.status(400).json({ success: false, message: 'Invalid vote type. Must be "up" or "down"' });
-    }
+    // Remove the type validation completely
+    // if (!['up', 'down'].includes(type)) {
+    //   return res.status(400).json({ success: false, message: 'Invalid vote type' });
+    // }
 
-    const column = type === 'up' ? 'upVotes' : 'downVotes';
-    await db.query(`UPDATE discussion SET ${column} = ${column} + 1 WHERE discussionID = ?`, [commentId]);
-
-    const updated = await db.query(
-      `SELECT upVotes as likes, downVotes as dislikes FROM discussion WHERE discussionID = ?`,
+    // Rest of your code remains the same...
+    const [existing] = await db.query(
+      `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ?`,
       [commentId]
     );
-    const row = firstRows(updated)[0] || { likes: 0, dislikes: 0 };
 
-    res.json({ success: true, message: 'Vote updated successfully', data: row });
+    const upvotedBy = existing[0]?.upvoted_by ? JSON.parse(existing[0].upvoted_by) : [];
+    let newUpvoted = [...upvotedBy];
+    let voteChange = 0;
+
+    if (upvotedBy.includes(userProfileID)) {
+      newUpvoted = upvotedBy.filter(id => id !== userProfileID);
+      voteChange = -1;
+    } else {
+      newUpvoted.push(userProfileID);
+      voteChange = 1;
+    }
+
+    await db.query(
+      `UPDATE discussion SET 
+        upVotes = upVotes + ?, 
+        upvoted_by = ?
+       WHERE discussionID = ?`,
+      [voteChange, JSON.stringify(newUpvoted), commentId]
+    );
+
+    const updated = await db.query(
+      `SELECT upVotes as likes FROM discussion WHERE discussionID = ?`,
+      [commentId]
+    );
+    const row = firstRows(updated)[0] || { likes: 0 };
+
+    res.json({ 
+      success: true, 
+      message: 'Like updated successfully', 
+      data: row
+    });
   } catch (error) {
-    console.error('Error updating vote:', error);
-    res.status(500).json({ success: false, message: 'Failed to update vote' });
+    console.error('Error updating like:', error);
+    res.status(500).json({ success: false, message: 'Failed to update like' });
   }
 });
 

@@ -281,7 +281,6 @@ export default function FoodDiscussionPage() {
     }
   };
 
-  // ✅ Toggle like
   const toggleLike = async (targetId) => {
     if (isGuest) return setShowLoginPrompt(true);
 
@@ -293,8 +292,7 @@ export default function FoodDiscussionPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          type: "up",
-          userProfileID: finalProfileID,
+          userProfileID: finalProfileID  // Only send userProfileID, no "type"
         }),
       });
       const data = await res.json();
@@ -303,11 +301,21 @@ export default function FoodDiscussionPage() {
         setComments((prev) =>
           prev.map((c) =>
             c.id === targetId || c.discussionID === targetId
-              ? { ...c, likes: data.data?.likes ?? (c.likes || 0) + 1 }
+              ? { ...c, likes: data.data.likes } // Use returned likes count
               : c
           )
         );
-        setLikedIds((prev) => new Set(prev).add(targetId));
+        
+        // Toggle the liked state locally
+        setLikedIds((prev) => {
+          const newSet = new Set(prev);
+          if (newSet.has(targetId)) {
+            newSet.delete(targetId);
+          } else {
+            newSet.add(targetId);
+          }
+          return newSet;
+        });
       }
     } catch (err) {
       console.error("Error updating like:", err);
