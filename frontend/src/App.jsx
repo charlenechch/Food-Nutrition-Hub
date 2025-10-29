@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -9,10 +8,6 @@ import {
   useSearchParams,
 } from "react-router-dom";
 
-// ✅ Import CSRF initializer
-import { initCSRF } from "./config/api";
-
-// ✅ Page imports
 import LoginRegisterPage from "./pages/LoginRegisterPage";
 import AdminHomepage from "./pages/AdminHomepage";
 import UserHomepage from "./pages/UserHomepage";
@@ -43,9 +38,7 @@ function FoodDetailRoute() {
 
   const fromState = state?.food;
   const id = params.get("id");
-  const fromQuery = id
-    ? sarawakFoods.find((f) => String(f.id) === String(id))
-    : null;
+  const fromQuery = id ? sarawakFoods.find(f => String(f.id) === String(id)) : null;
 
   const food = fromState || fromQuery;
   if (!food) return <Navigate to="/foods" replace />;
@@ -69,27 +62,15 @@ function FoodDiscussionRoute() {
 
   const id = params.get("id");
   const fromState = state?.food;
-  const fromQuery = id
-    ? sarawakFoods.find((f) => String(f.id) === String(id))
-    : null;
+  const fromQuery = id ? sarawakFoods.find(f => String(f.id) === String(id)) : null;
 
   const food = fromState || fromQuery;
   if (!food) return <Navigate to="/foods" replace />;
 
-  return (
-    <FoodDiscussion
-      food={food}
-      onBack={() => navigate(`/fooddetail?id=${food.id}`)}
-    />
-  );
+  return <FoodDiscussion food={food} onBack={() => navigate(`/fooddetail?id=${food.id}`)} />;
 }
 
 function App() {
-  // ✅ Fetch CSRF token once when the app starts
-  useEffect(() => {
-    initCSRF();
-  }, []);
-
   return (
     <Router>
       <Routes>
@@ -112,10 +93,12 @@ function App() {
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
         <Route path="/revise/:id" element={<ReviseRecipePage />} />
         <Route path="/revisecommunitypostpage" element={<ReviseCommunityPostPage />} />
+        {/* <Route path="/admin" element={<AdminHomepage />} /> */}
         <Route path="/editfood/" element={<EditFoodPage />} />
-        <Route path="/addfood/" element={<AddFoodPage />} />
+        <Route path="/addfood/" element={<AddFoodPage />} /> 
 
-        {/* ✅ Protected Admin Page */}
+
+        {/* ✅ PROTECTED ADMIN PAGE */}
         <Route
           path="/admin"
           element={
@@ -125,7 +108,7 @@ function App() {
           }
         />
 
-        {/* Nutrition Analyzer (guest restricted but public) */}
+        {/* Nutrition Analyzer is public but guest has limited actions */}
         <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
         <Route path="/analytics" element={<Analytics />} />
 

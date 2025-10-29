@@ -152,10 +152,6 @@ app.use(
 app.use(express.json({ limit: "1mb" })); // small limit reduces DoS surface
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 app.use(hpp()); // HTTP Parameter Pollution guard
-//sanitization
-const sanitize = require("./middleware/sanitize");
-app.use(sanitize);
-
 
 // ---------- 4) Sessions (MySQL store) ----------
 const dbOptions = {
@@ -188,34 +184,19 @@ app.use(
   })
 );
 
-// ---------- 5) CSRF Protection ----------
-const csrfProtection = csrf({ cookie: false }); // uses session
+// // ---------- 5) CSRF for state-changing requests ----------
+// const csrfProtection = csrf({ cookie: false }); // uses session
 
-// Public endpoint for frontend to get a CSRF token
-app.get("/api/auth/csrf-token", csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
+// // Token endpoint for the SPA to fetch a token and send it via X-CSRF-Token
+// app.get("/api/auth/csrf-token", (req, res) => {
+//   res.json({ csrfToken: req.csrfToken() });
+// });
 
-// Apply CSRF ONLY to protected, state-changing routes AFTER login
-app.use((req, res, next) => {
-  const safePaths = [
-    "/api/login",
-    "/api/register",
-    "/api/logout",
-    "/api/auth/csrf-token"
-  ];
-
-  if (
-    ["GET", "HEAD", "OPTIONS"].includes(req.method) ||
-    safePaths.some((path) => req.path.startsWith(path))
-  ) {
-    return next(); // skip CSRF for safe/public routes
-  }
-
-  return csrfProtection(req, res, next);
-});
-
-
+// // Apply CSRF ONLY to mutating methods to keep GET/OPTIONS simple
+// app.use((req, res, next) => {
+//   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+//   return csrfProtection(req, res, next);
+// });
 
 // ---------- 6) Rate limiting ----------
 const globalLimiter = rateLimit({
