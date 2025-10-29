@@ -35,6 +35,7 @@ export default function LoginRegisterPage() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
   const [showResendButton, setShowResendButton] = useState(false);
+  const [storedPassword, setStoredPassword] = useState("");
   
   // ✅ NEW: Password visibility toggle states (added only, original untouched)
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -148,6 +149,13 @@ export default function LoginRegisterPage() {
     if (resendCooldown > 0 || isResending) return;
     
     setIsResending(true);
+
+    if (!storedPassword) {
+      setLoginError("Session expired. Please try logging in again.");
+      setIsResending(false);
+      setShowResendButton(false);
+      return;
+    }
     
     try {
       // Check backend rate limiting
@@ -170,9 +178,12 @@ export default function LoginRegisterPage() {
         setIsResending(false);
         return;
       }
+
+      // Backend approved - set cooldown immediately
+      setResendCooldown(120);
       
-      // Sign in to Firebase and send verification email
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Sign in to Firebase using stored password and send verification email
+      const userCredential = await signInWithEmailAndPassword(auth, email, storedPassword);
       const user = userCredential.user;
       
       if (!user.emailVerified) {
@@ -181,16 +192,23 @@ export default function LoginRegisterPage() {
         });
         
         setLoginError("Verification email sent! Please check your inbox or spam folder.");
-        setResendCooldown(120);
-        setShowResendButton(false);
+        setShowResendButton(true);
+        setStoredPassword("");
         console.log("Verification email resent successfully");
       } else {
         setLoginError("Your email is already verified. Please try logging in.");
+        setStoredPassword("");
       }
       
     } catch (err) {
       console.error("Resend verification error:", err);
-      setLoginError("Failed to resend verification email. Please try again later.");
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        setLoginError("Session expired. Please try logging in again.");
+        setShowResendButton(false);
+        setStoredPassword("");
+      } else {
+        setLoginError("Failed to resend verification email. Please try again later.");
+      }
     } finally {
       setIsResending(false);
     }
@@ -248,6 +266,7 @@ export default function LoginRegisterPage() {
       if (data.notVerified) {
         setLoginError("Email is not verified. Please check your inbox or spam folder.");
         setShowResendButton(true);
+        setStoredPassword(password);
         return;
       }
 

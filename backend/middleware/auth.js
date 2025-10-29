@@ -2,7 +2,6 @@
 const ROLES = require("../config/roles");
 const rolePermissions = require("../config/rolespermission");
 
-// ✅ Require authentication (Session-based)
 const requireAuth = (req, res, next) => {
   if (!req.session || !req.session.user) {
     return res.status(401).json({
@@ -10,6 +9,25 @@ const requireAuth = (req, res, next) => {
       message: "Please log in to access this resource",
     });
   }
+
+  // Check if session has exceeded its intended expiration
+  const now = Date.now();
+  const loginTime = req.session.loginTime || now;
+  const rememberMe = req.session.rememberMe || false;
+  
+  const maxSessionAge = rememberMe 
+    ? 7 * 24 * 60 * 60 * 1000  // 7 days for "Remember me"
+    : 24 * 60 * 60 * 1000;      // 24 hours for regular sessions
+  
+  if (now - loginTime > maxSessionAge) {
+    console.log(`Session expired for user ${req.session.user.userID}`);
+    req.session.destroy();
+    return res.status(401).json({
+      error: "Session expired",
+      message: "Your session has expired. Please log in again.",
+    });
+  }
+
   next();
 };
 
