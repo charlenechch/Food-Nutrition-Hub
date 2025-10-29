@@ -25,7 +25,7 @@ function getTimeAgo(timestamp) {
 const Comment = React.memo(function Comment({
   item,
   isReply = false,
-  likedIds,
+  //likedIds,
   onToggleLike,
   replyToId,
   setReplyToId,
@@ -40,6 +40,7 @@ const Comment = React.memo(function Comment({
   const content = item.content || item.reply || "No content";
   const timestamp = item.timestamp || item.createdAt;
   const likes = isReply ? 0 : item.likes || item.upVotes || 0;
+  const userLiked = item.user_liked || false;
  
   const handleLike = () => {
     if (isGuest) return setShowLoginPrompt(true);
@@ -92,7 +93,8 @@ const Comment = React.memo(function Comment({
         {!isReply && (
           <div className="fd-disc-actions">
             <button className="fd-link-btn" onClick={handleLike}>
-              {likedIds.has(itemId) ? "♥" : "♡"} {likes}
+              {/*likedIds.has(itemId) ? "♥" : "♡"} {likes*/}
+              {userLiked ? "♥" : "♡"} {likes}
             </button>
             <button className="fd-link-btn" onClick={handleToggleReply}>
               ↩ Reply
@@ -159,7 +161,7 @@ export default function FoodDiscussionPage() {
 
   const [food, setFood] = useState(location.state?.food || null);
   const [comments, setComments] = useState([]);
-  const [likedIds, setLikedIds] = useState(new Set());
+  //const [likedIds, setLikedIds] = useState(new Set());
   const [newComment, setNewComment] = useState("");
   const [replyToId, setReplyToId] = useState(null);
   const [replyTexts, setReplyTexts] = useState({});

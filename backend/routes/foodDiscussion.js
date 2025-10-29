@@ -26,6 +26,8 @@ function getTimeAgo(timestamp) {
 router.get('/food/:foodId', async (req, res) => {
   try {
     const { foodId } = req.params;
+    const userProfileID = req.user?.userProfileID; // Get current user ID
+
     const sql = `
       SELECT 
         d.discussionID as id,
@@ -34,7 +36,17 @@ router.get('/food/:foodId', async (req, res) => {
         d.content,
         d.created_At as timestamp,
         d.upVotes as likes,
-        d.downVotes as dislikes
+        d.downVotes as dislikes,
+        d.upvoted_by,
+        -- ✅ Check if current user liked this comment
+        CASE 
+          WHEN d.upvoted_by IS NOT NULL 
+          AND d.upvoted_by != '[]' 
+          AND d.upvoted_by != 'null'
+          AND d.upvoted_by != ''
+          THEN JSON_CONTAINS(d.upvoted_by, ?)
+          ELSE false
+        END as user_liked
       FROM discussion d 
       JOIN userProfile up ON d.userProfileID = up.userProfileID 
       JOIN user u ON up.userID = u.userID
@@ -42,7 +54,10 @@ router.get('/food/:foodId', async (req, res) => {
       ORDER BY d.created_At DESC
     `;
 
-    const results = await db.query(sql, [foodId]);
+    const results = await db.query(sql, [
+      JSON.stringify(userProfileID), // For JSON_CONTAINS check
+      foodId
+    ]);
     const comments = firstRows(results);
 
     // Pull replies
@@ -195,7 +210,7 @@ router.post('/:discussionId/replies', async (req, res) => {
   }
 });
 
-// Update comment likes 
+// comments like received
 router.patch('/:commentId/vote', async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -213,7 +228,26 @@ router.patch('/:commentId/vote', async (req, res) => {
       [commentId]
     );
 
-    const upvotedBy = existing[0]?.upvoted_by ? JSON.parse(existing[0].upvoted_by) : [];
+    let upvotedBy = [];
+    try {
+      if (existing[0]?.upvoted_by) {
+        // Handle empty strings, null, or invalid JSON
+        const upvotedData = existing[0].upvoted_by;
+        if (upvotedData && upvotedData !== 'null' && upvotedData !== '' && upvotedData !== '[]') {
+          upvotedBy = JSON.parse(upvotedData);
+        }
+      }
+    } catch (parseError) {
+      console.error('JSON parse error, resetting upvoted_by:', parseError);
+      upvotedBy = []; // Reset if JSON is corrupted
+    }
+
+    // Ensure it's an array and filter nulls
+    if (!Array.isArray(upvotedBy)) {
+      upvotedBy = [];
+    }
+    upvotedBy = upvotedBy.filter(id => id !== null && id !== undefined && typeof id === 'number');
+
     let newUpvoted = [...upvotedBy];
     let voteChange = 0;
 
@@ -275,7 +309,7 @@ router.delete('/:commentId', async (req, res) => {
   }
 });
 
-// ✅ Simple stats for a food
+// stats for a food
 router.get('/food/:foodId/stats', async (req, res) => {
   try {
     const { foodId } = req.params;
