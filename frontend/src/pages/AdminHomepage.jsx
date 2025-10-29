@@ -57,6 +57,25 @@ const AdminDashboard = () => {
     { name: "Kasam Babi", category: "Dyvak", origin: "Bidayuh", updated: "2024-01-12" },
   ];
 
+  const [recipes, setRecipes] = useState([
+    {
+      name: "Traditional Manok Pansoh", servings: "4 servings", food: "Manok Pansoh", author: "Chef Ahmad",
+      updated: "2024-01-15", status: "Approved"
+    },
+    {
+      name: "Melanau Umai Recipe", servings: "2 servings", food: "Umai", author: "Sarah Lim",
+      updated: "2024-01-14", status: "Pending"
+    },
+    {
+      name: "Jungle Midin Stir-fry", servings: "3 servings", food: "Midin Belacan", author: "Local Chef",
+      updated: "2024-01-13", status: "Approved"
+    },
+    {
+      name: "Bidayuh Linut Dessert", servings: "6 servings", food: "Linut", author: "Heritage Keeper",
+      updated: "2024-01-12", status: "Rejected"
+    },
+  ]);
+
   useEffect(() => {
     const close = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
