@@ -91,9 +91,9 @@ export default function FoodDetailPage() {
       setCommentsLoading(false);
     }
   };
-  // Check if user is logged in (using AuthContext, NOT localStorage)
+  // Check if user is logged in 
   const isLoggedIn = () => {
-    return user && user.role !== "guest";
+    return user && user.userProfileID && user.role !== "guest";
   };
   
   const getUserInitials = (comment) => {
@@ -144,6 +144,14 @@ export default function FoodDetailPage() {
   const handleSaveFood = async () => {
   if (!isLoggedIn()) {
     setShowLoginPrompt(true);
+    return;
+  }
+
+  if (!user?.userProfileID) {
+    console.error("❌ User data incomplete - cannot save food");
+    console.log("Current user object:", user);
+    // Try to refresh user data
+    await validateSession();
     return;
   }
 
