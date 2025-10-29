@@ -146,7 +146,7 @@
 .fd-empty { text-align: center; padding: 1.5rem 0; }
 .fd-empty-icon { font-size: 2rem; margin-bottom: .35rem; }
 
-/* Delete button styles - Make more visible */
+/* Delete button styles */
 .fd-delete-btn {
   background: none;
   border: none;

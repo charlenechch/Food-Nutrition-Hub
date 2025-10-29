@@ -1,4 +1,4 @@
-// ✅ src/pages/FoodDiscussionPage.jsx (Updated with delete functionality)
+// ✅ src/pages/FoodDiscussionPage.jsx (FIXED with debug delete buttons)
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
@@ -65,10 +65,23 @@ const Comment = React.memo(function Comment({
   const timestamp = item.timestamp || item.createdAt;
   const likes = isReply ? 0 : item.likes || item.upVotes || 0;
   const userLiked = item.user_liked || false;
-  const commentUserId = item.userProfileID || item.userID;
+  
+  // Enhanced user ID extraction - try ALL possible fields
+  const commentUserId = item.userProfileID || item.userID || item.authorID || item.user_id || item.ownerID;
   
   // Check if current user is the owner of this comment/reply
   const isOwner = currentUserId && commentUserId && currentUserId.toString() === commentUserId.toString();
+
+  // ✅ FORCE SHOW DELETE BUTTONS FOR DEBUGGING
+  const showDeleteButton = true;
+
+  console.log("🔍 Comment Debug:", { 
+    username, 
+    currentUserId, 
+    commentUserId, 
+    isOwner,
+    item: item 
+  });
 
   const handleLike = () => {
     if (isGuest) return setShowLoginPrompt(true);
@@ -91,6 +104,7 @@ const Comment = React.memo(function Comment({
   };
 
   const handleDelete = () => {
+    console.log("🗑️ Delete clicked:", { isReply, itemId, commentId: item.discussionID });
     if (isReply) {
       onDeleteReply(item.discussionID, itemId);
     } else {
@@ -107,14 +121,12 @@ const Comment = React.memo(function Comment({
               alt={username}
               className="fd-disc-avatar-img"
               onError={(e) => {
-                // Fallback to initials if image fails to load
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'flex';
               }}
             />
           ) : null}
           
-          {/* Fallback to initials if no avatar */}
           <div className="fd-disc-avatar-initials">
             {username.substring(0, 2).toUpperCase()}
           </div>
@@ -123,13 +135,42 @@ const Comment = React.memo(function Comment({
         <div className="fd-disc-meta">
           <span className="fd-disc-user">{username}</span>
           <span className="fd-disc-time">• {getTimeAgo(timestamp)}</span>
-          {isOwner && (
+          
+          {/* ✅ DEBUG INFO - Show user IDs */}
+          <span style={{
+            fontSize: '10px', 
+            color: '#666', 
+            marginLeft: '8px',
+            padding: '2px 6px',
+            background: isOwner ? '#d4edda' : '#f8d7da',
+            borderRadius: '3px'
+          }}>
+            Owner: {commentUserId || 'none'}
+          </span>
+          
+          {/* ✅ ALWAYS SHOW DELETE BUTTON FOR DEBUGGING */}
+          {showDeleteButton && (
             <button 
               className="fd-delete-btn" 
               onClick={handleDelete}
-              title={`Delete this ${isReply ? 'reply' : 'comment'}`}
+              title={`Owner: ${commentUserId} | You: ${currentUserId}`}
+              style={{
+                backgroundColor: isOwner ? '#28a745' : '#dc3545',
+                color: 'white',
+                border: `2px solid ${isOwner ? '#28a745' : '#dc3545'}`,
+                padding: '6px 12px',
+                borderRadius: '6px',
+                marginLeft: 'auto',
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
             >
               <i className="fas fa-trash-alt"></i>
+              {isOwner ? 'MY COMMENT' : 'NOT MINE'}
             </button>
           )}
         </div>
@@ -232,6 +273,20 @@ export default function FoodDiscussionPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         setComments(data.data);
+        
+        // ✅ DEBUG: Log the first few comments to see user IDs
+        console.log("🟢 COMMENTS DATA:", data.data);
+        if (data.data.length > 0) {
+          data.data.slice(0, 3).forEach((comment, index) => {
+            console.log(`🟢 Comment ${index + 1}:`, {
+              username: comment.username,
+              userProfileID: comment.userProfileID,
+              userID: comment.userID,
+              id: comment.id,
+              allFields: comment
+            });
+          });
+        }
       } else {
         setComments([]);
       }
@@ -502,6 +557,32 @@ export default function FoodDiscussionPage() {
           <button className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
             ← Back to Food Details
           </button>
+        </div>
+
+        {/* ✅ DEBUG: User Information */}
+        <div className="fd-card" style={{background: '#e3f2fd', border: '2px solid #2196f3'}}>
+          <h4>🔍 DEBUG INFORMATION</h4>
+          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '14px'}}>
+            <div>
+              <strong>Current User (You):</strong>
+              <div>Your User ID: <code style={{background: '#bbdefb', padding: '4px 8px', borderRadius: '4px', display: 'block', marginTop: '5px'}}>{userProfileID || 'No ID'}</code></div>
+              <div>Username: {user?.username || user?.firstname || 'Unknown'}</div>
+              <div>Role: {user?.role || 'No role'}</div>
+            </div>
+            <div>
+              <strong>Comments Analysis:</strong>
+              {comments.length > 0 ? (
+                <div>
+                  <div>Total Comments: {comments.length}</div>
+                  <div>"j t" Comment Owner ID: <code style={{background: '#bbdefb', padding: '4px 8px', borderRadius: '4px', display: 'block', marginTop: '5px'}}>
+                    {comments.find(c => c.username === 'j t')?.userProfileID || 'Not found'}
+                  </code></div>
+                </div>
+              ) : (
+                <div>No comments</div>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="fd-card fd-summary">

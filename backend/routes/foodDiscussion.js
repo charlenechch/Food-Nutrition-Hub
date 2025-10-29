@@ -120,6 +120,7 @@ router.get('/food/:foodId', async (req, res) => {
     const sql = `
       SELECT 
         d.discussionID as id,
+        d.userProfileID,
         CONCAT(u.firstname, ' ', u.lastname) AS username,
         up.avatar as avatar,
         d.content,
@@ -195,6 +196,7 @@ router.get('/food/:foodId', async (req, res) => {
         const repliesSql = `
           SELECT 
             r.replyID,
+            r.userProfileID,
             CONCAT(u.firstname, ' ', u.lastname) AS username,
             up.avatar as avatar,
             r.reply as content,
