@@ -1,0 +1,463 @@
+.admin-review-page {
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+.admin-review-header, .admin-review-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 100px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1200px;
+  gap: 20px;
+}
+
+.admin-recipe-edit-back-btn,  .admin-content-edit-back-btn{
+  background: #f5efe7;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  color: #4b3b2f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.review-title {
+    flex: 1;
+    text-align: center;
+}
+
+.review-title h2 {
+  color: #3d2b1f;
+  margin: 0;
+}
+
+.review-title p {
+  color: #6a5540;
+  margin: 0;
+  text-align: center;
+}
+
+.rcp-edit-review-actions,.content-edit-review-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px; /
+}
+
+.rcp-edit-approve-btn, .rcp-edit-reject-btn,
+.content-edit-approve-btn, .content-edit-reject-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Approve button (green) */
+.rcp-edit-approve-btn, .content-edit-approve-btn {
+  background: #14a44d;
+  color: white;
+}
+
+/* Reject button (red border) */
+.rcp-edit-reject-btn, .content-edit-reject-btn {
+  background: #fff;
+  color: #d9534f;
+  border: 1px solid #d9534f;
+}
+
+.rcp-edit-approve-btn:hover, .content-edit-approve-btn:hover {
+  background: #11873f;
+}
+
+.rcp-edit-reject-btn:hover, .content-edit-approve-btn:hover {
+  background: #fcebea;
+}
+
+.recipe-edit-btn, .content-edit-btn {
+  position: relative;
+  top: 2px; 
+  font-size: 16px;
+}
+
+.rcp-edit-approve-btn:focus, .rcp-edit-reject-btn:focus, 
+.content-edit-approve-btn:focus, .content-edit-approve-btn:focus,
+.rcp-edit-approve-btn:focus-visible, .rcp-edit-reject-btn:focus-visible,
+.content-edit-approve-btn.focus-visible, .content-edit-approve-btn:focus-visible,
+.rcp-edit-approve-btn:active, .rcp-edit-reject-btn:active,
+.content-edit-approve-btn.active, .content-edit-approve-btn.active {
+  outline: none;
+  box-shadow: none;
+}
+
+/* === Content ===*/
+.review-container {
+  max-width: 1100px;      /* 👈 adjust this number (try 1000–1100px) */
+  margin: 0 auto;         /* centers horizontally */
+  padding: 0 24px;        /* small side spacing */
+}
+
+.review-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  padding: 24px 40px;
+}
+
+/* === Left Sidebar === */
+.review-left-sidebar {
+  background: #fff;                
+  border-radius: 12px;             /* smooth corners */
+  padding: 24px;                   /* consistent padding */
+  color: #4b3b2f;                  /* soft brown tone */
+  font-family: "Poppins", sans-serif;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05); /* subtle card shadow */
+  border: 1px solid #f2ebe5;       /* faint outline */
+  height: 330px;
+}
+
+.review-left-sidebar h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #4b3b2f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.review-info {
+  margin-top: 16px;
+  margin-bottom: 20px;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;    
+  gap: 8px;                
+  font-size: 15px;
+  color: #6b5847;
+  line-height: 1.6;
+  margin-bottom: 7px;
+}
+
+.left-sidebar-icon {
+  font-size: 15px;
+  color: #6b5847;
+  flex-shrink: 0;          
+  transform: translateY(1px);  
+  top: 0.8px;
+}
+
+.review-info strong {
+  color: #3d2b1f;
+  font-size: 15px;
+  display: block;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.review-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b5847;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.review-info .email {
+  color: #7d6a58;
+  font-size: 14px;
+  margin-top: 3px;
+}
+
+.status-tag {
+  background: #e6ddd1;
+  color: #3d2b1f;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 13px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+/* === Right Content ===*/
+.review-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.uploaded-image-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0ebe4;
+  margin-bottom: 24px;
+}
+
+.uploaded-image-card h3 {
+  color: #3d2b1f;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* inner beige box */
+.uploaded-img-box {
+  background: #f9f7f4;
+  border: 1px solid #f0ebe4;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.uploaded-img {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.rcp-review-section {
+  background: #ffffff;            
+  border-radius: 12px;              
+  padding: 20px 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08); 
+  border: 1px solid #f0ebe4;        
+  margin-bottom: 24px;              
+}
+
+.rcp-review-section h3 {
+  color: #3d2b1f;
+  margin-bottom: 10px;
+}
+
+.rcp-review-section h4 {
+  margin-top: 12px;
+  color: #503a2a;
+  margin-bottom: 10px;
+}
+
+.rcp-basic-info-grid .rcp-edit-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px 40px;              
+}
+
+.rcp-basic-info-grid .rcp-edit-info-item h4,
+.rcp-info-grid .rcp-info-item h4  {
+  color: #503a2a;
+  font-size: 15px;
+  font-weight: 600;
+
+  margin-bottom: 8px;
+}
+
+.rcp-basic-info-grid .rcp-edit-info-item p, 
+.rcp-info-grid .rcp-info-item p {
+  color: #4b3b2f;
+  font-size: 14px;
+  margin: 0;
+  background: #f9f7f4;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #f0ebe4;
+  margin-bottom: 10px;
+  line-height: 1.6;  
+}
+
+.rcp-info-grid .rcp-info-item {
+  margin-bottom: 20px; 
+}
+
+ol {
+  margin-left: 20px;
+  color: #4b3b2f;
+}
+
+/* === Admin Feedback Section === */
+.admin-feedback-input {
+  width: 100%;
+  background: #f9f7f4;
+  border: 1.5px solid #b99772;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #3d2b1f;
+  resize: vertical;
+  outline: none;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-feedback-input:focus {
+  border-color: #8b6b4f;
+  box-shadow: 0 0 0 3px rgba(210, 170, 130, 0.2);
+}
+
+/* To make the textarea align neatly like the rest of the grid */
+.rcp-edit-info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+/* === Overlay === */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* === Modal Box === */
+.confirm-modal {
+  background: #fffdfb;
+  padding: 28px 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 380px;
+  text-align: center;
+  font-family: inherit;
+}
+
+.confirm-modal h3 {
+  color: #3d2b1f;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.confirm-modal p {
+  color: #4b3b2f;
+  font-size: 15px;
+  margin-bottom: 24px;
+}
+
+/* === Buttons === */
+.confirm-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.cancel-btn {
+  background: transparent;
+  border: 1.5px solid #b48a6d;
+  color: #3d2b1f;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: #f4ede7;
+}
+
+.approve-btn {
+  background: #3e8e3e;
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.approve-btn:hover {
+  background: #347a34;
+}
+
+.delete-btn {
+  background: #d9534f;
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.delete-btn:hover {
+  background: #c9302c;
+}
+
+/* === Responsive Adjustments === */
+@media (max-width: 768px) {
+  .confirm-modal {
+    width: 90%;
+    padding: 24px 20px;
+    border-radius: 10px;
+  }
+
+  .confirm-modal h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .confirm-modal p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .confirm-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cancel-btn,
+  .approve-btn,
+  .delete-btn {
+    width: 100%;
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .confirm-overlay {
+    padding: 0 10px;
+    align-items: flex-end; /* slide-up modal style for mobile */
+  }
+
+  .confirm-modal {
+    margin-bottom: 40px; /* add bottom margin for spacing */
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 480px) {
+  .confirm-modal h3 {
+    font-size: 16px;
+  }
+
+  .confirm-modal p {
+    font-size: 13px;
+  }
+
+  .cancel-btn,
+  .approve-btn,
+  .delete-btn {
+    font-size: 13px;
+    padding: 9px;
+  }
+}
+
+

@@ -31,6 +31,9 @@ import EditFoodPage from "./pages/EditFoodPage";
 import Analytics from "./pages/Analytics";
 import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
 import AddFoodPage from "./pages/AddFoodPage";
+import AddRecipe from "./pages/AddRecipePage";
+import EditRecipePage from "./pages/EditRecipePage";
+import ReviewContentPage from "./pages/ReviewContentPage"; 
 
 // ✅ Handles Food Detail with state OR URL params
 function FoodDetailRoute() {
@@ -98,8 +101,11 @@ function App() {
         <Route path="/revise/:id" element={<ReviseRecipePage />} />
         <Route path="/revisecommunitypostpage" element={<ReviseCommunityPostPage />} />
         {/* <Route path="/admin" element={<AdminHomepage />} /> */}
-        <Route path="/editfood/" element={<EditFoodPage />} />
-        <Route path="/addfood/" element={<AddFoodPage />} /> 
+        <Route path="/admin/editfood/:id" element={<EditFoodPage />} />
+        <Route path="/admin/addfood" element={<AddFoodPage />} /> 
+        <Route path="/admin/addrecipe" element={<AddRecipe />} />
+        <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />
+        <Route path="/admin/reviewcontent/:id" element={<ReviewContentPage />} />
 
 
         {/* ✅ PROTECTED ADMIN PAGE */}
