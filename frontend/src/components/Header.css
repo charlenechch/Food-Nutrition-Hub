@@ -206,3 +206,22 @@
   font: inherit;
 }
 .linklike-btn:hover { text-decoration: underline; }
+
+/* =============================
+   FIX DUPLICATE PROFILE / LOGOUT
+   (Show inside hamburger only)
+============================= */
+
+/* Hide mobile items on desktop */
+.navbar-links .mobile-action,
+.navbar-links .menu-divider {
+  display: none;
+}
+
+/* Show only when hamburger is active on smaller screens */
+@media (max-width: 1024px) {
+  .navbar-links .mobile-action,
+  .navbar-links .menu-divider {
+    display: block;
+  }
+}
