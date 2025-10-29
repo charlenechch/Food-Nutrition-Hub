@@ -41,20 +41,20 @@ router.post("/", async (req, res) => {
 
     // Check if "Remember account" was checked
     if (rememberDevice) {
-      // Set longer session (7 days)
-      const twoMinutes = 2 * 60 * 1000; // ⏱️ TEST ONLY: 2 minutes instead of 7 days
+      const twoMinutes = 2 * 60 * 1000;
       req.session.cookie.maxAge = twoMinutes;
       req.session.cookie.expires = new Date(Date.now() + twoMinutes);
-      req.session.rememberMe = true; // ✅ Store flag in session
-      req.session.loginTime = Date.now(); // ✅ Store login timestamp
-      console.log("Account trusted for 7 days");
+      req.session.rememberMe = true;
+      req.session.loginTime = Date.now();
+      console.log("Account trusted for 2 minutes");
     } else {
-      // Session expires when browser closes
-      req.session.cookie.maxAge = null;
-      req.session.cookie.expires = false;
-      req.session.rememberMe = false; // ✅ Store flag
-      req.session.loginTime = Date.now(); // ✅ Store login timestamp
-      console.log("Session-only cookie set");
+      // TEST: 30 seconds idle timeout (instead of null)
+      const thirtySeconds = 30 * 1000; // ⏱️ TEST ONLY
+      req.session.cookie.maxAge = thirtySeconds;
+      req.session.cookie.expires = new Date(Date.now() + thirtySeconds);
+      req.session.rememberMe = false;
+      req.session.loginTime = Date.now();
+      console.log("TEST MODE: 30-second idle timeout");
     }
 
     // Complete login, set user in session
