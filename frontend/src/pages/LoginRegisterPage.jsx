@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
+import api from "../config/api";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Firebase imports
