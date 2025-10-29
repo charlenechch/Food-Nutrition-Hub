@@ -6,7 +6,7 @@ import { FaCamera, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa";
 import LS_KEY from "./UserProfilePage"; 
 import "../css/ReviseRecipePage.css"; // Import the CSS
 
-// Helper to load users from localStorage (same shape as your profile page)
+// Helper to load users from localStorage 
 function loadUsers() {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -21,7 +21,6 @@ function saveUsers(obj) {
   } catch {}
 }
 
-// You can keep these in a shared constants file if you like
 const DIET_OPTIONS = [
   "gluten-free",
   "dairy-free",
@@ -34,25 +33,37 @@ const DIET_OPTIONS = [
 ];
 
 export default function ReviseRecipePage() {
-  const { id } = useParams();              // /revise/:id
+  const { id } = useParams();            
   const navigate = useNavigate();
   const { state } = useLocation();
   const users = useMemo(loadUsers, []);
+
+  console.log("DEBUG - Router State:", state);
+  console.log("DEBUG - URL ID:", id);
+  console.log("DEBUG - Full users data:", users);
   
   const { ownerUsername, item } = useMemo(() => {
     const targetId = state?.id || id;
+    console.log(" DEBUG - Looking for item with ID:", targetId);
     for (const [uname, u] of Object.entries(users)) {
+        console.log("DEBUG - Checking user:", uname);
         const hit = (u?.pending || []).find(p => String(p.id) === String(targetId));
         if (hit) return { ownerUsername: uname, item: hit };
     }
     if (state?.snapshot && state?.owner) {
+        console.log("DEBUG - Found item in router state:", state.snapshot);
         return { ownerUsername: state.owner, item: state.snapshot };
     }
+    console.log("DEBUG - No item found anywhere");
     return { ownerUsername: null, item: null };
   }, [users, id, state]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const needsFix = new Set(item?.fieldsWithIssues || []);
+
+  console.log("DEBUG - Current item:", item);
+  console.log("DEBUG - Owner username:", ownerUsername);
+  console.log("DEBUG - Fields that need fix:", Array.from(needsFix));
 
   // Map the stored payload into the form shape used by your Recipe page
   const [initial] = useState(() => {
@@ -114,15 +125,15 @@ export default function ReviseRecipePage() {
     try {
       console.log('🚀 Starting recipe revision for ID:', item.id);
 
-      // Build the data in the same format as your create endpoint
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const revisedData = {
         name: form.name,
         origin: form.origin,
         difficulty: form.difficulty,
-        prepTime: form.prepTime,
-        cookTime: form.cookTime,
-        servings: form.servings,
-        image: form.imageData, // This can be base64 or URL
+        prepTime: parseInt(form.prepTime) || 0,
+        cookTime: parseInt(form.cookTime) || 0,
+        servings: parseInt(form.servings) || 1,
+        image: form.imageData,
         description: form.description,
         foodType: form.foodType,
         dietaryTags: [
@@ -138,14 +149,12 @@ export default function ReviseRecipePage() {
       };
 
       console.log('📤 Sending update request with data:', revisedData);
-
-      // Use your update endpoint instead of create endpoint
-      const response = await fetch(`/api/recipe/update/recipes/${item.id}`, {
+      
+      const response = await fetch(`${API_BASE_URL}/api/recipe/update/recipes/${item.id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json" 
         },
-        credentials: "include",
         body: JSON.stringify(revisedData),
       });
 
@@ -161,24 +170,28 @@ export default function ReviseRecipePage() {
       console.log('✅ Update successful:', result);
 
       if (result.success || result.message) {
-        // Also update localStorage if you're using it
-        const nextUsers = { ...users };
-        const list = nextUsers[ownerUsername].pending.map(p => {
-          if (String(p.id) !== String(item.id)) return p;
-          return {
-            ...p,
-            status: "Pending", // Reset to pending for re-review
-            feedback: "", // Clear old feedback
-            fieldsWithIssues: [],
-            payload: revisedData,
-            resubmittedDate: new Date().toISOString(),
-          };
-        });
-        nextUsers[ownerUsername] = { ...nextUsers[ownerUsername], pending: list };
-        saveUsers(nextUsers);
+        if (ownerUsername && users[ownerUsername]) {
+          const nextUsers = { ...users };
+          const list = nextUsers[ownerUsername].pending.map(p => {
+            if (String(p.id) !== String(item.id)) return p;
+            return {
+              ...p,
+              status: "Pending", 
+              feedback: "",
+              fieldsWithIssues: [],
+              payload: revisedData,
+              resubmittedDate: new Date().toISOString(),
+            };
+          });
+          nextUsers[ownerUsername] = { ...nextUsers[ownerUsername], pending: list };
+          saveUsers(nextUsers);
+          console.log('✅ localStorage updated for user:', ownerUsername);
+        } else {
+          console.log('⚠️ No ownerUsername found, skipping localStorage update');
+        }
 
         alert("Recipe revised successfully! It will be reviewed again.");
-        navigate(-1); // Go back to profile
+        navigate(-1);
       } else {
         throw new Error(result.error || "Update failed");
       }
@@ -191,30 +204,57 @@ export default function ReviseRecipePage() {
   };
 
   useEffect(() => {
-    if (!item) return;
-    const p = item.payload || {};
-    setForm(prev => ({
-        ...prev,
-        name: p.name || p.title || "",
-        origin: p.origin || "",
-        difficulty: p.difficulty || "Easy",
-        prepTime: p.prepTime ?? "",
-        cookTime: p.cookTime ?? "",
-        foodType: p.foodType || "Poultry",
-        otherFoodEnabled: !!p.otherFoodEnabled,
-        otherFoodText: p.otherFoodText || "",
-        description: p.description || "",
-        imageData: p.imageData || (p.images?.[0] ?? ""),
-        servings: p.servings ?? "",
-        ingredients: p.ingredients || "",
-        instructions: p.instructions || "",
-        dietaryTags: p.dietaryTags || [],
-        otherDietEnabled: !!p.otherDietEnabled,
-        otherDietText: p.otherDietText || "",
-        funFact: p.funFact || "",
-        chefTips: p.chefTips || ""
-    }));
-  }, [item]);
+    const fetchRecipeData = async () => {
+      if (!item?.id) {
+        console.log('❌ No item ID available');
+        return;
+      }
+      
+      try {
+        console.log('🔄 Fetching recipe data from backend for ID:', item.id);
+        
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const response = await fetch(`${API_BASE_URL}/api/recipe/revise/recipes/${item.id}`);
+
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
+        }
+        
+        const recipeData = await response.json();
+        console.log('✅ Received recipe data from API:', recipeData);
+        
+        // Transform the API data to match form structure
+        setForm({
+          name: recipeData.name || "",
+          origin: recipeData.origin || "",
+          difficulty: recipeData.difficulty || "Easy",
+          prepTime: recipeData.prepTime || "",
+          cookTime: recipeData.cookTime || "",
+          servings: recipeData.servings || "",
+          imageData: recipeData.image || "",
+          description: recipeData.description || "",
+          ingredients: Array.isArray(recipeData.ingredients) 
+            ? recipeData.ingredients.join('\n') 
+            : (recipeData.ingredients || ""),
+          instructions: Array.isArray(recipeData.instructions) 
+            ? recipeData.instructions.join('\n') 
+            : (recipeData.instructions || ""),
+          funFact: recipeData.funFact || "",
+          chefTips: recipeData.chefTips || "",
+          dietaryTags: recipeData.dietaryTags || [],
+          foodType: recipeData.foodType || "",
+        });
+        
+      } catch (error) {
+        console.error('❌ Error fetching recipe:', error);
+        console.log('⚠️ Falling back to localStorage data');
+      }
+    };
+
+    if (item && item.id) {
+      fetchRecipeData();
+    }
+  }, [item?.id]);
 
   const fieldLabels = {
     name: "Recipe Name",

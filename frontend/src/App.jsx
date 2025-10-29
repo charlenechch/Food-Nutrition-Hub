@@ -34,6 +34,9 @@ import EditFoodPage from "./pages/EditFoodPage";
 import Analytics from "./pages/Analytics";
 import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
 import AddFoodPage from "./pages/AddFoodPage";
+import AddRecipe from "./pages/AddRecipePage";
+import EditRecipePage from "./pages/EditRecipePage";
+
 
 // ✅ Handles Food Detail with state OR URL params
 function FoodDetailRoute() {
@@ -112,8 +115,9 @@ function App() {
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
         <Route path="/revise/:id" element={<ReviseRecipePage />} />
         <Route path="/revisecommunitypostpage" element={<ReviseCommunityPostPage />} />
+        {/* <Route path="/admin" element={<AdminHomepage />} /> */}
         <Route path="/editfood/" element={<EditFoodPage />} />
-        <Route path="/addfood/" element={<AddFoodPage />} />
+        <Route path="/addfood/" element={<AddFoodPage />} /> 
 
         {/* ✅ Protected Admin Page */}
         <Route
