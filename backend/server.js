@@ -162,7 +162,7 @@ const dbOptions = {
   database: process.env.MYSQLDATABASE || process.env.DB_NAME,
   clearExpired: true,
   checkExpirationInterval: 15 * 60 * 1000, // cleanup every 15 min
-  expiration: 24 * 60 * 60 * 1000, // absolute 24h expiry
+  expiration: 2 * 60 * 1000, // ⏱️ TEST ONLY: 2 minutes expiry
 };
 
 // ⚠️ Strongly recommended: remove any hard-coded DB fallbacks in production.
@@ -177,9 +177,9 @@ app.use(
     saveUninitialized: false, // don't create empty sessions
     cookie: {
       httpOnly: true,
-      sameSite: IS_PROD ? "none" : "lax",  // ← CHANGED
-      secure: IS_PROD,  // ← CHANGED (false in dev, true in production)
-      maxAge: 60 * 60 * 1000, // IDLE timeout: 1h (absolute 24h via store.expiration)
+      sameSite: IS_PROD ? "none" : "lax", // "lax" for local testing
+      secure: IS_PROD,  // (false in dev, true in production)
+      maxAge: 30 * 1000, // ⏱️ TEST ONLY: 30 seconds idle timeout
     },
   })
 );
