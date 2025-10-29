@@ -407,7 +407,7 @@ export default function FoodDiscussionPage() {
                 <React.Fragment key={c.id || c.discussionID || i}>
                   <Comment
                     item={c}
-                    likedIds={likedIds}
+                    //likedIds={likedIds}
                     onToggleLike={toggleLike}
                     replyToId={replyToId}
                     setReplyToId={setReplyToId}
