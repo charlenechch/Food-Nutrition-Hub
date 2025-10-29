@@ -274,7 +274,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-// Check if food/recipe is saved by user (CHECK BOTH IDs)
+// Check if food/recipe is saved by user (WITH LINKING)
 router.get('/check/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -348,7 +348,7 @@ router.get('/check/:id', async (req, res) => {
   }
 });
 
-// Save/Unsave a food or recipe (SAVE BOTH IDs)
+// Save/Unsave a food or recipe (WITH LINKING)
 router.post('/:id', async (req, res) => {
   console.log('=== SAVE FOOD/RECIPE REQUEST ===');
   console.log('Session:', req.session);
@@ -396,7 +396,7 @@ router.post('/:id', async (req, res) => {
     let foodIdToUse = null;
     let recipeIdToUse = null;
 
-    // ✅ FIND BOTH FOOD AND RECIPE IDs
+    // ✅ FIND BOTH FOOD AND RECIPE IDs (THE FIX!)
     if (type === 'food') {
       foodIdToUse = id;
       
