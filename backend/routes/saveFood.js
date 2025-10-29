@@ -1,33 +1,33 @@
-const express = require('express');
-const router = express.Router();
-const db = require('../config/db');
+// const express = require('express');
+// const router = express.Router();
+// const db = require('../config/db');
 
 // Middleware to check authentication
-const requireAuth = (req, res, next) => {
-  console.log('=== AUTH MIDDLEWARE CHECK ===');
-  console.log('Session ID:', req.sessionID);
-  console.log('Session user:', req.session.user);
-  console.log('Session keys:', Object.keys(req.session));
+// const requireAuth = (req, res, next) => {
+//   console.log('=== AUTH MIDDLEWARE CHECK ===');
+//   console.log('Session ID:', req.sessionID);
+//   console.log('Session user:', req.session.user);
+//   console.log('Session keys:', Object.keys(req.session));
   
-  if (!req.session.user) {
-    console.log('❌ No user in session - UNAUTHORIZED');
-    return res.status(401).json({ 
-      success: false, 
-      error: 'Please log in to continue' 
-    });
-  }
+//   if (!req.session.user) {
+//     console.log('❌ No user in session - UNAUTHORIZED');
+//     return res.status(401).json({ 
+//       success: false, 
+//       error: 'Please log in to continue' 
+//     });
+//   }
   
-  if (!req.session.user.userProfileID) {
-    console.log('❌ No userProfileID in session user object');
-    return res.status(400).json({
-      success: false,
-      error: 'User profile ID not found in session'
-    });
-  }
+//   if (!req.session.user.userProfileID) {
+//     console.log('❌ No userProfileID in session user object');
+//     return res.status(400).json({
+//       success: false,
+//       error: 'User profile ID not found in session'
+//     });
+//   }
   
-  console.log('✅ User authenticated:', req.session.user.userProfileID);
-  next();
-};
+//   console.log('✅ User authenticated:', req.session.user.userProfileID);
+//   next();
+// };
 
 // // Check if food is saved by user
 // router.get('/check/:foodId', async (req, res) => {
@@ -101,111 +101,6 @@ const requireAuth = (req, res, next) => {
 //   }
 // });
 
-// Check if food/recipe is saved by user
-router.get('/check/:id', async (req, res) => {
-  
-  try {
-    const { id } = req.params;
-    const { userProfileID, type = 'food' } = req.query; 
-
-    const finalUserProfileID = req.session.user?.userProfileID || userProfileID;
-
-    console.log('🔍 UserProfileID sources:');
-    console.log('  - From session:', req.session.user?.userProfileID);
-    console.log('  - From query:', userProfileID);
-    console.log('  - Final to use:', finalUserProfileID);
-    console.log('🔍 Check type:', type, 'ID:', id);
-
-    if (!finalUserProfileID) {
-      console.log('❌ No userProfileID found');
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Please log in to continue' 
-      });
-    }
-    
-    // Validate id
-    if (!id || isNaN(id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Valid ID is required'
-      });
-    }
-
-    console.log('Checking save status - Type:', type, 'ID:', id, 'User:', finalUserProfileID);
-
-    let query, params;
-
-    if (type === 'food') {
-      // Check if food exists first
-      query = 'SELECT saveID FROM saveFood WHERE foodID = ? AND userProfileID = ?';
-      params = [id, finalUserProfileID];
-
-      if (foodExists.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Food not found'
-        });
-      }
-
-      // Check by foodID OR by recipeID if food has a linked recipe
-      query = `
-        SELECT sf.saveID 
-        FROM saveFood sf 
-        LEFT JOIN food f ON sf.foodID = f.foodID 
-        WHERE sf.userProfileID = ? 
-        AND (sf.foodID = ? OR sf.recipeID IN (SELECT recipeID FROM food WHERE foodID = ?))
-      `;
-      params = [finalUserProfileID, id, id];
-
-    } else if (type === 'recipe') {
-      // Check if recipe exists first
-      const [recipeExists] = await db.execute(
-        'SELECT recipeID FROM recipe WHERE recipeID = ?',
-        [id]
-      );
-
-      if (recipeExists.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Recipe not found'
-        });
-      }
-
-      // Check by recipeID OR by foodID if recipe has a linked food
-      query = `
-        SELECT sf.saveID 
-        FROM saveFood sf 
-        LEFT JOIN recipe r ON sf.recipeID = r.recipeID 
-        WHERE sf.userProfileID = ? 
-        AND (sf.recipeID = ? OR sf.foodID IN (SELECT foodID FROM recipe WHERE recipeID = ?))
-      `;
-      params = [finalUserProfileID, id, id];
-    } else {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid type. Use "food" or "recipe"'
-      });
-    }
-
-    const [saves] = await db.execute(query, params);
-    console.log('💾 Save check result:', saves.length > 0 ? 'SAVED' : 'NOT SAVED');
-
-    res.json({
-      success: true,
-      saved: saves.length > 0
-    });
-  } catch (error) {
-    console.error('❌ ERROR CHECKING SAVE STATUS:');
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    
-    res.status(500).json({ 
-      success: false, 
-      error: 'Internal server error' 
-    });
-  }
-});
 
 // // Save/Unsave a food 
 // router.post('/:foodId', async (req, res) => {
@@ -327,6 +222,112 @@ router.get('/check/:id', async (req, res) => {
 //   }
 // });
 
+// // Get user's saved foods
+// router.get('/user/saved', async (req, res) => {
+//   try {
+//     const userProfileID = req.session.user.userProfileID; // From session
+    
+//     const [savedFoods] = await db.execute(
+//     `SELECT sf.saveID, sf.foodID, sf.userProfileID, sf.createdAt,
+//             f.name as foodName, f.image as foodImage, f.prepTime as cookingTime, f.difficulty, f.Energy_kcal as rating
+//         FROM saveFood sf 
+//         JOIN food f ON sf.foodID = f.foodID 
+//         WHERE sf.userProfileID = ? 
+//         ORDER BY sf.createdAt DESC`,
+//         [userProfileID]
+//       );
+
+//     res.json({
+//       success: true,
+//       data: savedFoods,
+//       count: savedFoods.length
+//     });
+//   } catch (error) {
+//     console.error('Error fetching saved foods:', error);
+//     res.status(500).json({ 
+//       success: false, 
+//       error: 'Internal server error' 
+//     });
+//   }
+// });
+
+
+//module.exports = router;
+
+const express = require('express');
+const router = express.Router();
+const db = require('../config/db');
+
+// Check if food/recipe is saved by user
+router.get('/check/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userProfileID, type = 'food' } = req.query; 
+
+    const finalUserProfileID = req.session.user?.userProfileID || userProfileID;
+
+    console.log('🔍 UserProfileID sources:');
+    console.log('  - From session:', req.session.user?.userProfileID);
+    console.log('  - From query:', userProfileID);
+    console.log('  - Final to use:', finalUserProfileID);
+    console.log('🔍 Check type:', type, 'ID:', id);
+
+    if (!finalUserProfileID) {
+      console.log('❌ No userProfileID found');
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Please log in to continue' 
+      });
+    }
+    
+    // Validate id
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid ID is required'
+      });
+    }
+
+    console.log('Checking save status - Type:', type, 'ID:', id, 'User:', finalUserProfileID);
+
+    let query, params;
+
+    // ✅ FIXED: Simplified queries
+    if (type === 'food') {
+      // Check by foodID only
+      query = 'SELECT saveID FROM saveFood WHERE foodID = ? AND userProfileID = ?';
+      params = [id, finalUserProfileID];
+
+    } else if (type === 'recipe') {
+      // Check by recipeID only  
+      query = 'SELECT saveID FROM saveFood WHERE recipeID = ? AND userProfileID = ?';
+      params = [id, finalUserProfileID];
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid type. Use "food" or "recipe"'
+      });
+    }
+
+    const [saves] = await db.execute(query, params);
+    console.log('💾 Save check result:', saves.length > 0 ? 'SAVED' : 'NOT SAVED');
+
+    res.json({
+      success: true,
+      saved: saves.length > 0
+    });
+  } catch (error) {
+    console.error('❌ ERROR CHECKING SAVE STATUS:');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
+    res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error' 
+    });
+  }
+});
+
 // Save/Unsave a food or recipe
 router.post('/:id', async (req, res) => {
   console.log('=== SAVE FOOD/RECIPE REQUEST ===');
@@ -336,7 +337,7 @@ router.post('/:id', async (req, res) => {
   
   try {
     const { id } = req.params;
-    const { userProfileID: bodyUserProfileID, foodID, recipeID, type = 'food' } = req.body; 
+    const { userProfileID: bodyUserProfileID, type = 'food' } = req.body; 
 
     // Use userProfileID from body OR from session
     const finalUserProfileID = bodyUserProfileID || req.session.user?.userProfileID;
@@ -381,19 +382,13 @@ router.post('/:id', async (req, res) => {
     // Determine which IDs to use based on type
     if (type === 'food') {
       foodIdToUse = id;
+      recipeIdToUse = null; // ✅ Set recipeID to null for food
       
-      // Try to find linked recipe ID
-      const [linkedRecipe] = await db.execute(
-        'SELECT recipeID FROM food WHERE foodID = ?',
-        [id]
-      );
-      recipeIdToUse = linkedRecipe.length > 0 ? linkedRecipe[0].recipeID : null;
-      
-      console.log('🔗 Linked recipe ID:', recipeIdToUse);
+      console.log('🔗 Food ID to save:', foodIdToUse);
 
-      // Check if food exists
+      // ✅ FIXED: Only check if food exists by ID, don't select name
       const [foodExists] = await db.execute(
-        'SELECT foodID, name FROM food WHERE foodID = ?',
+        'SELECT foodID FROM food WHERE foodID = ?',
         [id]
       );
 
@@ -406,19 +401,13 @@ router.post('/:id', async (req, res) => {
 
     } else if (type === 'recipe') {
       recipeIdToUse = id;
+      foodIdToUse = null; // ✅ Set foodID to null for recipe
       
-      // Try to find linked food ID
-      const [linkedFood] = await db.execute(
-        'SELECT foodID FROM recipe WHERE recipeID = ?',
-        [id]
-      );
-      foodIdToUse = linkedFood.length > 0 ? linkedFood[0].foodID : null;
-      
-      console.log('🔗 Linked food ID:', foodIdToUse);
+      console.log('🔗 Recipe ID to save:', recipeIdToUse);
 
-      // Check if recipe exists
+      // ✅ FIXED: Only check if recipe exists by ID, don't select name
       const [recipeExists] = await db.execute(
-        'SELECT recipeID, name FROM recipe WHERE recipeID = ?',
+        'SELECT recipeID FROM recipe WHERE recipeID = ?',
         [id]
       );
 
@@ -464,7 +453,7 @@ router.post('/:id', async (req, res) => {
         message: 'Item unsaved successfully' 
       });
     } else {
-      // If not saved, save it with BOTH IDs
+      // If not saved, save it with BOTH IDs (one will be null)
       console.log('💾 Inserting new save with foodID and recipeID...');
       const [result] = await db.execute(
         'INSERT INTO saveFood (foodID, recipeID, userProfileID) VALUES (?, ?, ?)',
@@ -493,35 +482,6 @@ router.post('/:id', async (req, res) => {
     console.log('=== SAVE ITEM REQUEST END ===');
   }
 });
-
-// // Get user's saved foods
-// router.get('/user/saved', async (req, res) => {
-//   try {
-//     const userProfileID = req.session.user.userProfileID; // From session
-    
-//     const [savedFoods] = await db.execute(
-//     `SELECT sf.saveID, sf.foodID, sf.userProfileID, sf.createdAt,
-//             f.name as foodName, f.image as foodImage, f.prepTime as cookingTime, f.difficulty, f.Energy_kcal as rating
-//         FROM saveFood sf 
-//         JOIN food f ON sf.foodID = f.foodID 
-//         WHERE sf.userProfileID = ? 
-//         ORDER BY sf.createdAt DESC`,
-//         [userProfileID]
-//       );
-
-//     res.json({
-//       success: true,
-//       data: savedFoods,
-//       count: savedFoods.length
-//     });
-//   } catch (error) {
-//     console.error('Error fetching saved foods:', error);
-//     res.status(500).json({ 
-//       success: false, 
-//       error: 'Internal server error' 
-//     });
-//   }
-// });
 
 // Get user's saved foods and recipes
 router.get('/user/saved', async (req, res) => {
