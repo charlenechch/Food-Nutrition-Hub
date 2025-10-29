@@ -322,16 +322,30 @@ export default function FoodDiscussionPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setComments((prev) => [data.data, ...prev]);
-        setNewComment("");
-      } else {
-        alert(data?.message || "Unable to post comment");
-      }
-    } catch (err) {
-      console.error("Error posting comment:", err);
-      alert("Server error while posting comment.");
+      setComments((prev) => 
+        prev.map(comment => 
+          comment.id === tempComment.id && comment.isTemp
+            ? { 
+                ...data.data, 
+                userProfileID: actualUserProfileID 
+              }
+            : comment
+        )
+      );
+    } else {
+      setComments((prev) => prev.filter(comment => 
+        comment.id !== tempComment.id || !comment.isTemp
+      ));
+      alert(data?.message || "Unable to post comment");
     }
-  };
+  } catch (err) {
+    setComments((prev) => prev.filter(comment => 
+      comment.id !== tempComment.id || !comment.isTemp
+    ));
+    console.error("Error posting comment:", err);
+    alert("Server error while posting comment.");
+  }
+};
 
   // ✅ Post Reply
 const postReply = async (discussionId) => {
@@ -340,10 +354,9 @@ const postReply = async (discussionId) => {
   if (!text) return;
 
   try {
-    // ✅ Create temporary reply with user ID for immediate display
     const tempReply = {
       replyID: `temp-reply-${Date.now()}`,
-      userProfileID: userProfileID, // ✅ Add user ID
+      userProfileID: userProfileID,
       username: user?.username || user?.firstname || 'You',
       content: text,
       timestamp: new Date().toISOString(),
@@ -351,7 +364,6 @@ const postReply = async (discussionId) => {
       isTemp: true
     };
 
-    // ✅ Immediately add to UI with user ID
     setComments((prev) =>
       prev.map((c) =>
         c.id === discussionId || c.discussionID === discussionId
