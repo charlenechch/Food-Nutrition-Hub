@@ -274,7 +274,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-// Check if food/recipe is saved by user (SIMPLIFIED)
+// Check if food/recipe is saved by user (CHECK BOTH IDs)
 router.get('/check/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -282,21 +282,15 @@ router.get('/check/:id', async (req, res) => {
 
     const finalUserProfileID = req.session.user?.userProfileID || userProfileID;
 
-    console.log('🔍 UserProfileID sources:');
-    console.log('  - From session:', req.session.user?.userProfileID);
-    console.log('  - From query:', userProfileID);
-    console.log('  - Final to use:', finalUserProfileID);
-    console.log('🔍 Check type:', type, 'ID:', id);
+    console.log('🔍 Check type:', type, 'ID:', id, 'User:', finalUserProfileID);
 
     if (!finalUserProfileID) {
-      console.log('❌ No userProfileID found');
       return res.status(401).json({ 
         success: false, 
         error: 'Please log in to continue' 
       });
     }
     
-    // Validate id
     if (!id || isNaN(id)) {
       return res.status(400).json({
         success: false,
@@ -304,27 +298,41 @@ router.get('/check/:id', async (req, res) => {
       });
     }
 
-    console.log('Checking save status - Type:', type, 'ID:', id, 'User:', finalUserProfileID);
+    let foodIdToCheck = null;
+    let recipeIdToCheck = null;
 
-    let query, params;
-
+    // ✅ FIND BOTH IDs TO CHECK
     if (type === 'food') {
-      // ✅ SIMPLIFIED: Check only by foodID
-      query = 'SELECT saveID FROM saveFood WHERE foodID = ? AND userProfileID = ?';
-      params = [id, finalUserProfileID];
-
+      foodIdToCheck = id;
+      
+      // Find linked recipe
+      const [food] = await db.execute('SELECT name FROM food WHERE foodID = ?', [id]);
+      if (food.length > 0) {
+        const [recipes] = await db.execute('SELECT recipeID FROM recipe WHERE name = ?', [food[0].name]);
+        recipeIdToCheck = recipes.length > 0 ? recipes[0].recipeID : null;
+      }
+      
     } else if (type === 'recipe') {
-      // ✅ SIMPLIFIED: Check only by recipeID
-      query = 'SELECT saveID FROM saveFood WHERE recipeID = ? AND userProfileID = ?';
-      params = [id, finalUserProfileID];
-    } else {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid type. Use "food" or "recipe"'
-      });
+      recipeIdToCheck = id;
+      
+      // Find linked food
+      const [recipe] = await db.execute('SELECT name FROM recipe WHERE recipeID = ?', [id]);
+      if (recipe.length > 0) {
+        const [foods] = await db.execute('SELECT foodID FROM food WHERE name = ?', [recipe[0].name]);
+        foodIdToCheck = foods.length > 0 ? foods[0].foodID : null;
+      }
     }
 
-    const [saves] = await db.execute(query, params);
+    console.log('🔍 Checking - FoodID:', foodIdToCheck, 'RecipeID:', recipeIdToCheck);
+
+    // Check if either is saved
+    const [saves] = await db.execute(
+      `SELECT saveID FROM saveFood 
+       WHERE userProfileID = ? 
+       AND (foodID = ? OR recipeID = ?)`,
+      [finalUserProfileID, foodIdToCheck, recipeIdToCheck]
+    );
+
     console.log('💾 Save check result:', saves.length > 0 ? 'SAVED' : 'NOT SAVED');
 
     res.json({
@@ -332,10 +340,7 @@ router.get('/check/:id', async (req, res) => {
       saved: saves.length > 0
     });
   } catch (error) {
-    console.error('❌ ERROR CHECKING SAVE STATUS:');
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    
+    console.error('❌ ERROR CHECKING SAVE STATUS:', error);
     res.status(500).json({ 
       success: false, 
       error: 'Internal server error' 
@@ -343,7 +348,7 @@ router.get('/check/:id', async (req, res) => {
   }
 });
 
-// Save/Unsave a food or recipe (SIMPLIFIED)
+// Save/Unsave a food or recipe (SAVE BOTH IDs)
 router.post('/:id', async (req, res) => {
   console.log('=== SAVE FOOD/RECIPE REQUEST ===');
   console.log('Session:', req.session);
@@ -354,7 +359,6 @@ router.post('/:id', async (req, res) => {
     const { id } = req.params;
     const { userProfileID: bodyUserProfileID, type = 'food' } = req.body; 
 
-    // Use userProfileID from body OR from session
     const finalUserProfileID = bodyUserProfileID || req.session.user?.userProfileID;
     
     console.log('🔍 UserProfileID sources:');
@@ -363,7 +367,6 @@ router.post('/:id', async (req, res) => {
     console.log('  - Final userProfileID to use:', finalUserProfileID);
     console.log('🔍 Save type:', type, 'ID:', id);
 
-    // Enhanced session validation - but allow body userProfileID as fallback
     if (!req.session.user && !bodyUserProfileID) {
       console.log('❌ NO USER IN SESSION AND NO userProfileID IN BODY - UNAUTHORIZED');
       return res.status(401).json({ 
@@ -374,7 +377,6 @@ router.post('/:id', async (req, res) => {
 
     if (!finalUserProfileID) {
       console.log('❌ userProfileID is missing from both session and body');
-      console.log('Available session user keys:', req.session.user ? Object.keys(req.session.user) : 'No user object');
       return res.status(400).json({
         success: false,
         error: 'User profile ID not found'
@@ -384,7 +386,6 @@ router.post('/:id', async (req, res) => {
     console.log('✅ Final User Profile ID to use:', finalUserProfileID);
     console.log('✅ ID from params:', id);
 
-    // Validate id
     if (!id || isNaN(id)) {
       return res.status(400).json({
         success: false,
@@ -392,84 +393,59 @@ router.post('/:id', async (req, res) => {
       });
     }
 
-    let foodIdToUse, recipeIdToUse;
+    let foodIdToUse = null;
+    let recipeIdToUse = null;
 
-    // Determine which IDs to use based on type
+    // ✅ FIND BOTH FOOD AND RECIPE IDs
     if (type === 'food') {
       foodIdToUse = id;
-      recipeIdToUse = null; // ✅ No linked recipe lookup
       
-      console.log('🔗 Food ID to save:', foodIdToUse);
-
-      // Check if food exists
-      const [foodExists] = await db.execute(
-        'SELECT foodID FROM food WHERE foodID = ?',
-        [id]
-      );
-
-      if (foodExists.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Food not found'
-        });
+      // Find recipe with same name as this food
+      const [food] = await db.execute('SELECT name FROM food WHERE foodID = ?', [id]);
+      if (food.length > 0) {
+        const foodName = food[0].name;
+        const [recipes] = await db.execute('SELECT recipeID FROM recipe WHERE name = ?', [foodName]);
+        recipeIdToUse = recipes.length > 0 ? recipes[0].recipeID : null;
       }
+      
+      console.log('🔗 Food ID:', foodIdToUse, 'Linked Recipe ID:', recipeIdToUse);
 
     } else if (type === 'recipe') {
       recipeIdToUse = id;
-      foodIdToUse = null; // ✅ No linked food lookup
       
-      console.log('🔗 Recipe ID to save:', recipeIdToUse);
-
-      // Check if recipe exists
-      const [recipeExists] = await db.execute(
-        'SELECT recipeID FROM recipe WHERE recipeID = ?',
-        [id]
-      );
-
-      if (recipeExists.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Recipe not found'
-        });
+      // Find food with same name as this recipe
+      const [recipe] = await db.execute('SELECT name FROM recipe WHERE recipeID = ?', [id]);
+      if (recipe.length > 0) {
+        const recipeName = recipe[0].name;
+        const [foods] = await db.execute('SELECT foodID FROM food WHERE name = ?', [recipeName]);
+        foodIdToUse = foods.length > 0 ? foods[0].foodID : null;
       }
-    } else {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid type. Use "food" or "recipe"'
-      });
+      
+      console.log('🔗 Recipe ID:', recipeIdToUse, 'Linked Food ID:', foodIdToUse);
     }
 
     console.log('📊 Final IDs to save - FoodID:', foodIdToUse, 'RecipeID:', recipeIdToUse);
 
-    // ✅ SIMPLIFIED: Check if already saved (only by the specific ID)
+    // Check if already saved (check by either ID)
     console.log('🔍 Checking if already saved...');
-    let checkQuery, checkParams;
+    const [existingSaves] = await db.execute(
+      `SELECT saveID FROM saveFood 
+       WHERE userProfileID = ? 
+       AND (foodID = ? OR recipeID = ?)`,
+      [finalUserProfileID, foodIdToUse, recipeIdToUse]
+    );
 
-    if (type === 'food') {
-      checkQuery = 'SELECT saveID FROM saveFood WHERE foodID = ? AND userProfileID = ?';
-      checkParams = [id, finalUserProfileID];
-    } else {
-      checkQuery = 'SELECT saveID FROM saveFood WHERE recipeID = ? AND userProfileID = ?';
-      checkParams = [id, finalUserProfileID];
-    }
-
-    const [existingSaves] = await db.execute(checkQuery, checkParams);
     console.log('📊 Existing saves result:', existingSaves);
 
     if (existingSaves.length > 0) {
-      // If already saved, unsave it
+      // Unsave both food and recipe
       console.log('🗑️ Removing existing save...');
-      let deleteQuery, deleteParams;
-
-      if (type === 'food') {
-        deleteQuery = 'DELETE FROM saveFood WHERE foodID = ? AND userProfileID = ?';
-        deleteParams = [id, finalUserProfileID];
-      } else {
-        deleteQuery = 'DELETE FROM saveFood WHERE recipeID = ? AND userProfileID = ?';
-        deleteParams = [id, finalUserProfileID];
-      }
-
-      await db.execute(deleteQuery, deleteParams);
+      await db.execute(
+        `DELETE FROM saveFood 
+         WHERE userProfileID = ? 
+         AND (foodID = ? OR recipeID = ?)`,
+        [finalUserProfileID, foodIdToUse, recipeIdToUse]
+      );
       console.log('✅ Item unsaved successfully');
       return res.json({ 
         success: true, 
@@ -477,8 +453,8 @@ router.post('/:id', async (req, res) => {
         message: 'Item unsaved successfully' 
       });
     } else {
-      // If not saved, save it
-      console.log('💾 Inserting new save...');
+      // Save both food and recipe IDs
+      console.log('💾 Inserting new save with both IDs...');
       const [result] = await db.execute(
         'INSERT INTO saveFood (foodID, recipeID, userProfileID) VALUES (?, ?, ?)',
         [foodIdToUse, recipeIdToUse, finalUserProfileID]
