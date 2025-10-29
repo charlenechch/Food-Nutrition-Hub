@@ -272,7 +272,7 @@ async function deleteUser(userID, firebaseUID) {
 };
 
 // Upload avatar to Cloudinary
-router.put("/avatar", upload.single('avatar'), async (req, res) => {
+router.post("/avatar", upload.single('avatar'), async (req, res) => {
   console.log("🖼️ Avatar upload request received");
   try {  
     if (!req.session || !req.session.user) {
