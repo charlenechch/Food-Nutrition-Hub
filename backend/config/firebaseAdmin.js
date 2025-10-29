@@ -30,10 +30,18 @@ if (!admin.apps.length) {
 
 // Helper function to delete Firebase user
 async function deleteFirebaseUser(uid) {
-  if (admin.apps.length === 0) {
-    throw new Error('Firebase Admin not initialized');
+  try {
+    console.log("deleteFirebaseUser called with UID:", uid);
+    console.log("admin.apps.length inside function:", admin.apps.length);
+    
+    // Try to delete directly without checking
+    const result = await admin.auth().deleteUser(uid);
+    console.log("Firebase deletion successful");
+    return result;
+  } catch (error) {
+    console.error("Firebase deletion failed:", error.message);
+    throw error;
   }
-  return admin.auth().deleteUser(uid);
 }
 
 // Helper function to check if initialized

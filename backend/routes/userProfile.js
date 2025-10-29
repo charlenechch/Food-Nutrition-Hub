@@ -220,24 +220,20 @@ async function deleteUser(userID, firebaseUID) {
     }
 
     // Delete from Firebase Authentication if Firebase UID exists
-    console.log("=== FIREBASE DELETION DEBUG ===");
-    console.log("Firebase UID:", firebaseUID);
-    console.log("Firebase Admin initialized?", isInitialized());
-
     if (firebaseUID) {
       try {
-        if (!isInitialized()) {
-          console.error("Firebase Admin NOT initialized! Cannot delete user.");
-          throw new Error("Firebase Admin not initialized");
-        }
+        console.log("=== FIREBASE DELETION ===");
+        console.log("Attempting to delete Firebase user with UID:", firebaseUID);
         
-        console.log(`Attempting to delete Firebase user with UID: ${firebaseUID}`);
         await deleteFirebaseUser(firebaseUID);
-        console.log("Deleted user from Firebase Authentication");
+        
+        console.log("Successfully deleted user from Firebase Authentication");
       } catch (firebaseError) {
         console.error("Firebase deletion error:", firebaseError.message);
         console.error("Error code:", firebaseError.code);
+        
         // Continue with MySQL deletion even if Firebase fails
+        console.log("Continuing with database deletion despite Firebase error");
       }
     } else {
       console.log("No Firebase UID found, skipping Firebase deletion");
