@@ -473,18 +473,26 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
     const { commentId, replyId } = req.params;
     const { userProfileID } = req.body;
 
+    console.log('🔄 Delete reply request:', { commentId, replyId, userProfileID });
+
     if (!userProfileID) {
       return res.status(400).json({ success: false, message: 'userProfileID is required' });
     }
 
-    const checkSql = 'SELECT replyID FROM discussion_replies WHERE replyID = ? AND userProfileID = ? AND discussionID = ?';
+    // FIX: Changed from discussion_replies to reply table
+    const checkSql = 'SELECT replyID FROM reply WHERE replyID = ? AND userProfileID = ? AND discussionID = ?';
     const checkRes = await db.query(checkSql, [replyId, userProfileID, commentId]);
     const rows = firstRows(checkRes);
+    
+    console.log('🔍 Reply ownership check result:', rows);
+
     if (!rows.length) {
       return res.status(403).json({ success: false, message: 'Reply not found or permission denied' });
     }
 
-    await db.query('DELETE FROM discussion_replies WHERE replyID = ?', [replyId]);
+    // FIX: Changed from discussion_replies to reply table
+    await db.query('DELETE FROM reply WHERE replyID = ?', [replyId]);
+    console.log('✅ Reply deleted successfully');
     res.json({ success: true, message: 'Reply deleted successfully' });
   } catch (error) {
     console.error('Error deleting reply:', error);

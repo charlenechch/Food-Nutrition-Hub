@@ -70,8 +70,6 @@ const Comment = React.memo(function Comment({
   // Check if current user is the owner of this comment/reply
   const isOwner = currentUserId && commentUserId && currentUserId.toString() === commentUserId.toString();
 
-  console.log("Comment render:", itemId, "userLiked:", userLiked, "likes:", likes, "isOwner:", isOwner);
- 
   const handleLike = () => {
     if (isGuest) return setShowLoginPrompt(true);
     onToggleLike(itemId);
