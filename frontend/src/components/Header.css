@@ -225,3 +225,38 @@
     display: block;
   }
 }
+
+/* === Smart Toggle Button (Switch View) === */
+.switch-view-btn {
+  background-color: #704f2b; /* your SarawakEats accent */
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin: 0 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  white-space: nowrap;
+}
+
+.switch-view-btn:hover {
+  background-color: #8a5f33;
+  transform: translateY(-1px);
+}
+
+.switch-view-btn:active {
+  transform: translateY(0);
+}
+
+/* Keep all buttons aligned properly */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

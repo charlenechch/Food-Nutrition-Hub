@@ -229,4 +229,34 @@ router.post("/syncEmailVerification", async (req, res) => {
   }
 });
 
+/* ✅ NEW: 5. Role Toggle Route (Admin ⇄ Member)
+   - Safely switches session role between 'admin' and 'member'
+   - Reflects instantly in frontend via AuthContext.toggleRole()
+*/
+router.post("/toggle-role", async (req, res) => {
+  try {
+    if (!req.session?.user) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const currentRole = req.session.user.role;
+    const newRole = currentRole === "admin" ? "member" : "admin";
+
+    // Update session
+    req.session.user.role = newRole;
+
+    // Optionally update DB too (so it persists)
+    await db.execute(
+      "UPDATE user SET role = ? WHERE userID = ?",
+      [newRole, req.session.user.userID]
+    );
+
+    console.log(`🔁 Role toggled for userID=${req.session.user.userID} → ${newRole}`);
+    return res.json({ newRole });
+  } catch (error) {
+    console.error("Role toggle error:", error);
+    return res.status(500).json({ message: "Failed to toggle role" });
+  }
+});
+
 module.exports = router;
