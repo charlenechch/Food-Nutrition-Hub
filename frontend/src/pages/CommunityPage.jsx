@@ -105,8 +105,9 @@ export default function Community() {
       submitData.append("culturalOrigin", formData.culturalOrigin);
       submitData.append("culturalStory", formData.culturalStory);
       submitData.append("recipe", formData.recipe || "");
-      console.log("User object:", user);
-      submitData.append("userProfileID", user.id || user.userProfileID);
+      submitData.append("userProfileID", userProfileID);
+
+      console.log("✅ Using userProfileID:", userProfileID);
 
       submitData.append("author", user?.firstname || user?.email);
 
