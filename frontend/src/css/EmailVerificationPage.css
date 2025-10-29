@@ -1,0 +1,170 @@
+/* Main container - matches OTP style */
+.ev-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(to bottom right, #f9fafb, #e9f2ef);
+    padding: 2rem;
+}
+
+/* Card - matches OTP style */
+.ev-card {
+    width: 100%;
+    max-width: 500px;
+    background: #fff;
+    border: 1px solid #dbcebc;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+/* Header section */
+.ev-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Logo - matches OTP style */
+.ev-logo {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    background: #8B4513;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #fff;
+}
+
+/* Success icon - green checkmark */
+.ev-success-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    border: 3px solid #4caf50;
+    background: #f0f9f4;
+    color: #4caf50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+/* Error icon - red X */
+.ev-error-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    border: 3px solid #ef4444;
+    background: #fef2f2;
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+/* Title - matches OTP style */
+.ev-title {
+    margin: .25rem 0;
+    font-size: 1.6rem;
+    color: #000;
+}
+
+/* Subtitle - matches OTP style */
+.ev-subtitle {
+    color: #777;
+    margin: 0;
+    font-size: .95rem;
+}
+
+/* Body section */
+.ev-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+}
+
+/* Muted text - matches OTP style */
+.ev-muted {
+    color: #666;
+    font-size: .95rem;
+    margin: .5rem 0;
+}
+
+/* Spinner wrapper */
+.ev-spinner-wrapper {
+    padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Spinner animation */
+.ev-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #8B4513;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    animation: ev-spin 1s linear infinite;
+}
+
+@keyframes ev-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Redirect text */
+.ev-redirect-text {
+    color: #999;
+    font-size: .9rem;
+    margin-top: .5rem;
+    font-style: italic;
+}
+
+/* Actions - matches OTP style */
+.ev-actions {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    align-items: stretch;
+    margin-top: 1rem;
+}
+
+.ev-actions .lrp-btn-outline {
+    margin-top: .5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .ev-container {
+        padding: 1rem;
+    }
+    
+    .ev-card {
+        padding: 1.5rem;
+    }
+    
+    .ev-title {
+        font-size: 1.4rem;
+    }
+    
+    .ev-logo,
+    .ev-success-icon,
+    .ev-error-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 1.6rem;
+    }
+}

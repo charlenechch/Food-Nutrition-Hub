@@ -16,6 +16,8 @@ import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
 import RecipesPage from "./pages/RecipesPage";
 import RecipeDetailPage from "./pages/RecipeDetailPage";
 import CommunityPage from "./pages/CommunityPage";
+import AuthActionRouter from './pages/AuthActionRouter';
+import EmailVerificationPage from './pages/EmailVerificationPage';
 import ForgetPassword from "./pages/ForgotPasswordPage";
 import ResetPassword from "./pages/ResetPasswordPage";
 import OTPVerification from "./pages/OTPVerificationPage";
@@ -79,6 +81,8 @@ function App() {
         <Route path="/loginregister" element={<LoginRegisterPage />} />
 
         {/* Public Pages */}
+        <Route path="/auth/action" element={<AuthActionRouter />} />
+        <Route path="/verifyemail" element={<EmailVerificationPage />} />
         <Route path="/forgotpassword" element={<ForgetPassword />} />
         <Route path="/resetpassword" element={<ResetPassword />} />
         <Route path="/otpverification" element={<OTPVerification />} />
