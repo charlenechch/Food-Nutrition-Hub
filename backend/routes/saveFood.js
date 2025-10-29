@@ -34,6 +34,7 @@ router.get('/check/:foodId', async (req, res) => {
   console.log('=== CHECK SAVE STATUS REQUEST ===');
   console.log('Session:', req.session);
   console.log('Session user:', req.session.user);
+  console.log('Query params:', req.query); 
   
   try {
     const { foodId } = req.params;
@@ -41,8 +42,13 @@ router.get('/check/:foodId', async (req, res) => {
 
     const finalUserProfileID = req.session.user?.userProfileID || userProfileID;
 
+    console.log('🔍 UserProfileID sources:');
+    console.log('  - From session:', req.session.user?.userProfileID);
+    console.log('  - From query:', userProfileID);
+    console.log('  - Final to use:', finalUserProfileID);
+
     if (!finalUserProfileID) {
-      console.log('❌ No user in session for check');
+      console.log('❌ No userProfileID found');
       return res.status(401).json({ 
         success: false, 
         error: 'Please log in to continue' 
@@ -57,7 +63,7 @@ router.get('/check/:foodId', async (req, res) => {
       });
     }
 
-    console.log('Checking save status - Food:', foodId, 'User:', userProfileID);
+    console.log('Checking save status - Food:', foodId, 'User:', finalUserProfileID);
 
     // Check if food exists first
     const [foodExists] = await db.execute(
@@ -74,15 +80,14 @@ router.get('/check/:foodId', async (req, res) => {
 
     const [saves] = await db.execute(
       'SELECT saveID FROM saveFood WHERE foodID = ? AND userProfileID = ?',
-      [foodId, userProfileID]
+      [foodId, finalUserProfileID] 
     );
 
-    console.log('Save check result:', saves.length > 0 ? 'Saved' : 'Not saved');
+    console.log('💾 Save check result:', saves.length > 0 ? 'SAVED' : 'NOT SAVED');
 
     res.json({
       success: true,
-      saved: saves.length > 0,
-      userProfileID: userProfileID // For debugging
+      saved: saves.length > 0
     });
   } catch (error) {
     console.error('❌ ERROR CHECKING SAVE STATUS:');

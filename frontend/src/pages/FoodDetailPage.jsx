@@ -118,35 +118,42 @@ export default function FoodDetailPage() {
   }, [id, isLoggedIn()]);
 
   const checkSavedStatus = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      console.log('🔍 Checking saved status for food:', id);
+  try {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    console.log('🔍 Checking saved status for food:', id);
+    console.log('👤 Current user ID:', user?.userID);
 
-      const response = await fetch(`${API_BASE_URL}/api/saveFood/check/${id}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-        }, 
-      });
+    // ADD userProfileID to the URL as query parameter
+    const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${user?.userID}`;
+    
+    console.log('📤 Making request to:', url);
 
-      console.log('📊 Save check response status:', response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        setSaved(data.saved);
-      } else if (response.status === 401) {
-        console.log("User not logged in - can't check saved status");
-        setSaved(false);
-      } else {
-        console.error("Failed to check saved status");
-        setSaved(false);
-      }
-    } catch (error) {
-      console.error("Error checking saved status:", error);
+    const response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+      }, 
+    });
+
+    console.log('📊 Save check response status:', response.status);
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log('✅ Server response - saved:', data.saved);
+      setSaved(data.saved);
+    } else if (response.status === 401) {
+      console.log("User not logged in - can't check saved status");
+      setSaved(false);
+    } else {
+      console.error("Failed to check saved status");
       setSaved(false);
     }
-  };
+  } catch (error) {
+    console.error("Error checking saved status:", error);
+    setSaved(false);
+  }
+};
   
   const handleSaveFood = async () => {
   if (!isLoggedIn()) {
