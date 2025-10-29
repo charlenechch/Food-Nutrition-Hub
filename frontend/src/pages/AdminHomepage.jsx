@@ -1,8 +1,3 @@
-
-import ContentModerationSection from "./AdminContentModeration.jsx";
-import UserManagement from "./AdminUserManagementTab";
-import Analytics from "./Analytics"; 
-
 import React, {  useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/AdminDashboard.css";
