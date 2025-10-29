@@ -41,6 +41,8 @@ const Comment = React.memo(function Comment({
   const timestamp = item.timestamp || item.createdAt;
   const likes = isReply ? 0 : item.likes || item.upVotes || 0;
   const userLiked = item.user_liked || false;
+
+  console.log("Comment render:", itemId, "userLiked:", userLiked, "likes:", likes);
  
   const handleLike = () => {
     if (isGuest) return setShowLoginPrompt(true);
@@ -294,6 +296,8 @@ export default function FoodDiscussionPage() {
     return;
   }
 
+  console.log("Toggle like for:", targetId, "User ID:", finalProfileID);
+
   try {
     const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
       method: "PATCH",
@@ -303,10 +307,15 @@ export default function FoodDiscussionPage() {
         userProfileID: finalProfileID  
       }),
     });
+    console.log("Response status:", res.status);
     const data = await res.json();
+    console.log("Response data:", data);
 
     if (res.ok && data.success) {
+      console.log("Like successful, refreshing comments...");
       fetchComments(); 
+    }else {
+      console.error("Like failed:", data.message);
     }
   } catch (err) {
     console.error("Error updating like:", err);

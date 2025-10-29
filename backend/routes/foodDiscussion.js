@@ -23,11 +23,100 @@ function getTimeAgo(timestamp) {
 }
 
 // ✅ Get discussions for a specific food (with replies)
+// router.get('/food/:foodId', async (req, res) => {
+//   try {
+//     const { foodId } = req.params;
+//     const userProfileID = req.user?.userProfileID; // Get current user ID
+
+//     console.log("GET comments - foodId:", foodId, "userProfileID:", userProfileID);
+
+//     const sql = `
+//       SELECT 
+//         d.discussionID as id,
+//         CONCAT(u.firstname, ' ', u.lastname) AS username,
+//         up.avatar as avatar,
+//         d.content,
+//         d.created_At as timestamp,
+//         d.upVotes as likes,
+//         d.downVotes as dislikes,
+//         d.upvoted_by,
+//         CASE 
+//           WHEN d.upvoted_by IS NOT NULL 
+//           AND d.upvoted_by != '[]' 
+//           AND d.upvoted_by != 'null'
+//           AND d.upvoted_by != ''
+//           THEN JSON_CONTAINS(d.upvoted_by, ?)
+//           ELSE false
+//         END as user_liked
+//       FROM discussion d 
+//       JOIN userProfile up ON d.userProfileID = up.userProfileID 
+//       JOIN user u ON up.userID = u.userID
+//       WHERE d.foodID = ? 
+//       ORDER BY d.created_At DESC
+//     `;
+
+//     const results = await db.query(sql, [
+//       JSON.stringify(userProfileID), 
+//       foodId
+//     ]);
+//     const comments = firstRows(results);
+//     console.log("Comments returned:", comments.length);
+
+//     // Debug the first comment
+//     if (comments.length > 0) {
+//       console.log("🔵 First comment:", {
+//         id: comments[0].id,
+//         upvoted_by: comments[0].upvoted_by,
+//         user_liked: comments[0].user_liked,
+//         userProfileID: userProfileID
+//       });
+//     }
+
+//     // Pull replies
+//     const discussionsWithReplies = await Promise.all(
+//       comments.map(async (comment) => {
+//         const repliesSql = `
+//           SELECT 
+//             r.replyID,
+//             CONCAT(u.firstname, ' ', u.lastname) AS username,
+//             up.avatar as avatar,
+//             r.reply as content,
+//             r.createdAt as timestamp,
+//             'Member' as type
+//           FROM reply r
+//           JOIN userProfile up ON r.userProfileID = up.userProfileID 
+//           JOIN user u ON up.userID = u.userID
+//           WHERE r.discussionID = ?
+//           ORDER BY r.createdAt ASC
+//         `;
+//         const repliesResult = await db.query(repliesSql, [comment.id]);
+//         const replies = firstRows(repliesResult).map(r => ({
+//           ...r,
+//           timeAgo: getTimeAgo(r.timestamp),
+//         }));
+//         return {
+//           ...comment,
+//           timeAgo: getTimeAgo(comment.timestamp),
+//           replies,
+//         };
+//       })
+//     );
+
+//     res.json({ success: true, data: discussionsWithReplies, count: discussionsWithReplies.length });
+//   } catch (error) {
+//     console.error('Error fetching discussions:', error);
+//     res.status(500).json({ success: false, message: 'Failed to fetch discussions' });
+//   }
+// });
+
 router.get('/food/:foodId', async (req, res) => {
   try {
     const { foodId } = req.params;
-    const userProfileID = req.user?.userProfileID; // Get current user ID
+    const userProfileID = req.user?.userProfileID;
 
+    console.log("🟢 GET ROUTE - foodId:", foodId, "userProfileID:", userProfileID, "Type:", typeof userProfileID);
+
+    // First get all comments
     const sql = `
       SELECT 
         d.discussionID as id,
@@ -37,15 +126,7 @@ router.get('/food/:foodId', async (req, res) => {
         d.created_At as timestamp,
         d.upVotes as likes,
         d.downVotes as dislikes,
-        d.upvoted_by,
-        CASE 
-          WHEN d.upvoted_by IS NOT NULL 
-          AND d.upvoted_by != '[]' 
-          AND d.upvoted_by != 'null'
-          AND d.upvoted_by != ''
-          THEN JSON_CONTAINS(d.upvoted_by, ?)
-          ELSE false
-        END as user_liked
+        d.upvoted_by
       FROM discussion d 
       JOIN userProfile up ON d.userProfileID = up.userProfileID 
       JOIN user u ON up.userID = u.userID
@@ -53,11 +134,60 @@ router.get('/food/:foodId', async (req, res) => {
       ORDER BY d.created_At DESC
     `;
 
-    const results = await db.query(sql, [
-      JSON.stringify(userProfileID), // For JSON_CONTAINS check
-      foodId
-    ]);
-    const comments = firstRows(results);
+    const results = await db.query(sql, [foodId]);
+    let comments = firstRows(results);
+
+    console.log("🟢 Raw comments from DB:", comments.length);
+    
+    // ✅ MANUAL user_liked check with detailed debugging
+    comments = comments.map(comment => {
+      console.log(`🟢 Processing comment ${comment.id}:`);
+      console.log(`   upvoted_by:`, comment.upvoted_by);
+      console.log(`   userProfileID to check:`, userProfileID);
+      
+      let user_liked = false;
+      
+      try {
+        if (comment.upvoted_by) {
+          // Handle different possible values
+          if (comment.upvoted_by === 'null' || comment.upvoted_by === '' || comment.upvoted_by === '[]' || comment.upvoted_by === '[null]') {
+            console.log(`   Empty upvoted_by, setting user_liked: false`);
+            user_liked = false;
+          } else {
+            console.log(`   Parsing upvoted_by...`);
+            const upvotedArray = JSON.parse(comment.upvoted_by);
+            console.log(`   Parsed array:`, upvotedArray);
+            console.log(`   Array type:`, typeof upvotedArray, "Is array:", Array.isArray(upvotedArray));
+            
+            if (Array.isArray(upvotedArray)) {
+              // Clean the array - remove any null/undefined values
+              const cleanArray = upvotedArray.filter(id => id !== null && id !== undefined);
+              console.log(`   Cleaned array:`, cleanArray);
+              
+              user_liked = cleanArray.includes(userProfileID);
+              console.log(`   user_liked result:`, user_liked, "(looking for", userProfileID, "in", cleanArray, ")");
+            } else {
+              console.log(`   ❌ upvoted_by is not an array!`);
+              user_liked = false;
+            }
+          }
+        } else {
+          console.log(`   No upvoted_by field`);
+          user_liked = false;
+        }
+      } catch (error) {
+        console.error(`   ❌ Error parsing upvoted_by:`, error.message);
+        user_liked = false;
+      }
+
+      console.log(`   Final user_liked for comment ${comment.id}:`, user_liked);
+      console.log(`   ---`);
+
+      return {
+        ...comment,
+        user_liked
+      };
+    });
 
     // Pull replies
     const discussionsWithReplies = await Promise.all(
@@ -214,6 +344,8 @@ router.patch('/:commentId/vote', async (req, res) => {
     const { commentId } = req.params;
     const { userProfileID } = req.body;
 
+    console.log("🔵 Backend vote request:", { commentId, userProfileID });
+
     if (!userProfileID || typeof userProfileID !== 'number') {
       return res.status(400).json({ 
         success: false, 
@@ -227,39 +359,57 @@ router.patch('/:commentId/vote', async (req, res) => {
       [commentId]
     );
 
+    console.log("🔵 Existing data:", existing[0]);
+
     let upvotedBy = [];
     try {
       if (existing[0]?.upvoted_by) {
         const upvotedData = existing[0].upvoted_by;
+        console.log("🔵 Raw upvoted_by:", upvotedData);
         if (upvotedData && upvotedData !== 'null' && upvotedData !== '' && upvotedData !== '[]') {
           upvotedBy = JSON.parse(upvotedData);
         }
       }
     } catch (parseError) {
-      console.error('JSON parse error, resetting upvoted_by:', parseError);
+      console.error('JSON parse error:', parseError);
       upvotedBy = [];
     }
 
-    // Ensure it's an array and filter nulls
-    if (!Array.isArray(upvotedBy)) upvotedBy = [];
+    console.log("🔵 Parsed upvotedBy:", upvotedBy);
+    
+    // ✅ FIX: Ensure upvotedBy is always an array
+    if (!Array.isArray(upvotedBy)) {
+      upvotedBy = [];
+    }
+    
+    // ✅ FIX: Filter out any invalid values
     upvotedBy = upvotedBy.filter(id => id !== null && id !== undefined && typeof id === 'number');
+    
+    console.log("🔵 Cleaned upvotedBy:", upvotedBy);
+    console.log("🔵 User currently liked:", upvotedBy.includes(userProfileID));
 
     let newUpvoted = [...upvotedBy];
     let voteChange = 0;
     let userCurrentlyLiked = upvotedBy.includes(userProfileID);
+
+    console.log("🔵 BEFORE - userCurrentlyLiked:", userCurrentlyLiked, "upvotedBy:", upvotedBy);
 
     // ✅ PROPER TOGGLE LOGIC:
     if (userCurrentlyLiked) {
       // User already liked - REMOVE like
       newUpvoted = upvotedBy.filter(id => id !== userProfileID);
       voteChange = -1;
-      userCurrentlyLiked = false; // Now unliked
+      userCurrentlyLiked = false;
+      console.log("🔵 REMOVING like");
     } else {
       // User hasn't liked - ADD like
       newUpvoted.push(userProfileID);
       voteChange = 1;
-      userCurrentlyLiked = true; // Now liked
+      userCurrentlyLiked = true;
+      console.log("🔵 ADDING like");
     }
+
+    console.log("🔵 AFTER - userCurrentlyLiked:", userCurrentlyLiked, "newUpvoted:", newUpvoted, "voteChange:", voteChange);
 
     // Update database
     await db.query(
@@ -276,12 +426,14 @@ router.patch('/:commentId/vote', async (req, res) => {
       [commentId]
     );
 
+    console.log("🔵 Final result - likes:", updated[0]?.likes, "userLiked:", userCurrentlyLiked);
+
     res.json({ 
       success: true, 
       message: userCurrentlyLiked ? 'Liked successfully' : 'Unliked successfully',
       data: {
         likes: updated[0]?.likes || 0,
-        userLiked: userCurrentlyLiked // Return current like status
+        userLiked: userCurrentlyLiked
       }
     });
   } catch (error) {
