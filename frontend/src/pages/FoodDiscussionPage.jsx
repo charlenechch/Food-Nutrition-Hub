@@ -173,28 +173,31 @@ const Comment = React.memo(function Comment({
           </div>
         )}
 
-        {item.replies && item.replies.length > 0 && (
-          <div className="fd-disc-replies">
-            {item.replies.map((reply, idx) => (
-              <Comment
-                key={reply.replyID || idx}
-                item={reply}
-                isReply={true}
-                onToggleLike={onToggleLike}
-                replyToId={replyToId}
-                setReplyToId={setReplyToId}
-                replyTexts={replyTexts}
-                setReplyTexts={setReplyTexts}
-                onPostReply={onPostReply}
-                onDeleteComment={onDeleteComment}
-                onDeleteReply={onDeleteReply}
-                isGuest={isGuest}
-                setShowLoginPrompt={setShowLoginPrompt}
-                currentUserId={currentUserId}
-              />
-            ))}
-          </div>
-        )}
+          {item.replies && item.replies.length > 0 && (
+            <div className="fd-disc-replies">
+              {item.replies.map((reply, idx) => (
+                <Comment
+                  key={reply.replyID || idx}
+                  item={{
+                    ...reply,
+                    discussionID: item.id || item.discussionID 
+                  }}
+                  isReply={true}
+                  onToggleLike={onToggleLike}
+                  replyToId={replyToId}
+                  setReplyToId={setReplyToId}
+                  replyTexts={replyTexts}
+                  setReplyTexts={setReplyTexts}
+                  onPostReply={postReply}
+                  onDeleteComment={onDeleteComment}
+                  onDeleteReply={onDeleteReply}
+                  isGuest={isGuest}
+                  setShowLoginPrompt={setShowLoginPrompt}
+                  currentUserId={currentUserId}
+                />
+              ))}
+            </div>
+          )}
       </div>
     </div>
   );
@@ -289,16 +292,32 @@ export default function FoodDiscussionPage() {
     }
 
     try {
-      const res = await fetch(`${API}/api/foodDiscussion`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          foodID: actualFoodID,
-          userProfileID: actualUserProfileID,
-          content: newComment.trim(),
-        }),
-      });
+    const tempComment = {
+      id: `temp-${Date.now()}`,
+      userProfileID: actualUserProfileID,
+      username: user?.username || user?.firstname || 'You',
+      content: newComment.trim(),
+      timestamp: new Date().toISOString(),
+      likes: 0,
+      user_liked: false,
+      replies: [],
+      timeAgo: 'now',
+      isTemp: true
+    };
+
+    setComments((prev) => [tempComment, ...prev]);
+    setNewComment("");
+
+    const res = await fetch(`${API}/api/foodDiscussion`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        foodID: actualFoodID,
+        userProfileID: actualUserProfileID,
+        content: newComment.trim(),
+      }),
+    });
 
       const data = await res.json();
 
