@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require("../config/db");
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
+const admin = require('../config/firebaseAdmin');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -183,7 +184,7 @@ const updateUserStats = async (userID) => {
 };
 
 // Helper function to delete user account (used by both user and admin)
-async function deleteUser(userID) {
+async function deleteUser(userID, firebaseUID) {
   console.log(`Starting deletion process for user: ${userID}`);
 
   const connection = await db.getConnection();
@@ -213,6 +214,19 @@ async function deleteUser(userID) {
       } catch (cloudinaryError) {
         console.error("Error deleting avatar from Cloudinary (continuing):", cloudinaryError);
       }
+    }
+
+    // Delete from Firebase Authentication if Firebase UID exists
+    if (firebaseUID) {
+      try {
+        await admin.auth().deleteUser(firebaseUID);
+        console.log("Deleted user from Firebase Authentication");
+      } catch (firebaseError) {
+        console.error("Firebase deletion error (continuing anyway):", firebaseError.message);
+        // Continue with MySQL deletion even if Firebase fails
+      }
+    } else {
+      console.log("No Firebase UID found, skipping Firebase deletion");
     }
 
     // Delete from related tables
@@ -252,7 +266,7 @@ async function deleteUser(userID) {
     connection.release();
     console.log("Database connection released");
   }
-}
+};
 
 // Upload avatar to Cloudinary
 router.put("/avatar", upload.single('avatar'), async (req, res) => {
@@ -806,9 +820,18 @@ router.delete("/delete", async (req, res) => {
     }
 
     const userID = req.session.user.userID;
+    
+    // Get Firebase UID from database
+    const [userRows] = await db.execute(
+      'SELECT firebase_uid FROM user WHERE userID = ?',
+      [userID]
+    );
+    
+    const firebaseUID = userRows[0]?.firebase_uid || null;
+    console.log(`Deleting user ${userID} with Firebase UID: ${firebaseUID}`);
 
-    // Call the helper function
-    const result = await deleteUser(userID);
+    // Call the helper function with Firebase UID
+    const result = await deleteUser(userID, firebaseUID);
 
     // Clear the session
     req.session.destroy((err) => {

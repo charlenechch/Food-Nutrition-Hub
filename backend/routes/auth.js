@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-
-// ➕ ADDED: bcrypt for secure password checks
 const bcrypt = require("bcrypt");
 
 /* ✅ 1. Session Check (Supports Guests)
@@ -164,6 +162,38 @@ router.post("/updatePassword", async (req, res) => {
   } catch (err) {
     console.error("UpdatePassword error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// Verify user's password for account deletion
+router.post("/verifyAccountDeletion", async (req, res) => {
+  if (!req.session?.user) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  const { password } = req.body;
+  const userEmail = req.session.user.email;
+
+  try {
+    const [users] = await db.execute(
+      "SELECT password FROM user WHERE email = ?",
+      [userEmail]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const isValid = await bcrypt.compare(password, users[0].password);
+
+    if (!isValid) {
+      return res.status(401).json({ error: "Incorrect password" });
+    }
+
+    res.json({ success: true, message: "Password verified" });
+  } catch (error) {
+    console.error("Password verification error:", error);
+    res.status(500).json({ error: "Verification failed" });
   }
 });
 

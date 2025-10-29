@@ -34,7 +34,7 @@ const validatePassword = (password) => {
 
 // POST /api/register
 router.post("/", async (req, res) => {
-  const { firstname, lastname, email, password } = req.body;
+  const { firstname, lastname, email, password, firebaseUID } = req.body;
 
   if (!firstname || !lastname || !email || !password) {
     return res.status(400).json({ error: "All fields are required" });
@@ -56,7 +56,8 @@ router.post("/", async (req, res) => {
     // Check if email already exists
     const [existing] = await db.query("SELECT 1 FROM user WHERE email = ? LIMIT 1", [email]);
     if (existing.length > 0) {
-      return res.status(400).json({ error: "Email already exists" });
+      console.log(`Backend: Email already exists in MySQL database: ${email}`);
+      return res.status(400).json({ error: "This email is already registered. Please use a different email or try logging in." });
     }
 
     // Hash password
@@ -64,8 +65,8 @@ router.post("/", async (req, res) => {
 
     // Insert user
     const [result] = await db.query(
-      "INSERT INTO user (firstname, lastname, email, password, role) VALUES (?, ?, ?, ?, ?)",
-      [firstname, lastname, email, hashedPassword, "member"]
+      "INSERT INTO user (firstname, lastname, email, password, role, firebase_uid) VALUES (?, ?, ?, ?, ?, ?)",
+      [firstname, lastname, email, hashedPassword, "member", firebaseUID || null]
     );
 
     console.log(`User registered: ${email} (ID: ${result.insertId})`);
