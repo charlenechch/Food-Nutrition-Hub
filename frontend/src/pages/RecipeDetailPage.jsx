@@ -62,6 +62,46 @@ export default function RecipeDetailPage() {
     return loggedIn;
   };
 
+  // ✅ MOVED UP: checkSavedStatus function must be defined before useEffect
+  const checkSavedStatus = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${user?.userID}&type=recipe`;
+      
+      console.log('📤 Checking saved status:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        }, 
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Server response - saved:', data.saved);
+        setSaved(data.saved);
+      } else if (response.status === 401) {
+        console.log("User not logged in - can't check saved status");
+        setSaved(false);
+      } else {
+        console.error("Failed to check saved status");
+        setSaved(false);
+      }
+    } catch (error) {
+      console.error("Error checking saved status:", error);
+      setSaved(false);
+    }
+  };
+
+  // ✅ Now this useEffect can safely use checkSavedStatus
+  useEffect(() => {
+    if (id && isLoggedIn()) {
+      checkSavedStatus();
+    }
+  }, [id, isLoggedIn()]);
+
   // Fetch recipe from backend (ORIGINAL CODE KEPT)
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -85,6 +125,56 @@ export default function RecipeDetailPage() {
       fetchRecipe();
     }
   }, [id]);
+
+  // ✅ FIXED: Use correct endpoint and simplified logic
+  const handleSaveRecipe = async () => {
+    if (!isLoggedIn()) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
+    const userProfileID = user?.userID;
+
+    if (!userProfileID) {
+      console.error("❌ User data incomplete - cannot save recipe");
+      setShowLoginPrompt(true); 
+      return;
+    }
+
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      
+      // ✅ CORRECT ENDPOINT: Remove "/save" from the URL
+      const url = `${API_BASE_URL}/api/saveFood/${id}`;
+      
+      console.log('📤 Making request to:', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userProfileID: userProfileID,
+          type: 'recipe'
+        })
+      });
+
+      console.log('📊 Save response status:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        setSaved(data.saved);
+        console.log(data.message);
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to save recipe:", errorData.error);
+      }
+    } catch (error) {
+      console.error("Error saving recipe:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -115,6 +205,7 @@ export default function RecipeDetailPage() {
       </div>
     );
   }
+
   // normalize lists (accept array or newline string)
   const toList = (v) =>
     Array.isArray(v)
@@ -151,117 +242,6 @@ export default function RecipeDetailPage() {
       window.prompt("Copy this link:", url);
     }
   }
-
-  // // ✅ NEW — Handle Save Recipe (Block guest with popup)
-  // const handleSaveRecipe = () => {
-  //   if (!user || user.role === "guest") {
-  //     setShowLoginPrompt(true); // ✅ Show login modal instead of saving
-  //     return;
-  //   }
-  //   // ✅ If logged in → still toggle saved state (original behavior kept)
-  //   setSaved((prev) => !prev);
-  // };
-
-    const handleSaveRecipe = async () => {
-      if (!isLoggedIn()) {
-        setShowLoginPrompt(true);
-        return;
-      }
-
-      const userProfileID = user?.userID;
-
-      if (!userProfileID) {
-        console.error("❌ User data incomplete - cannot save recipe");
-        setShowLoginPrompt(true); 
-        return;
-      }
-
-      try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-        
-        // ✅ Include both recipeID and foodID when saving
-        // const saveData = {
-        //   userProfileID: userProfileID,
-        //   recipeID: id, // Current recipe ID
-        //   foodID: recipe?.foodId || null // Include food ID if available
-        // };
-
-        const saveData = {
-          userProfileID: userProfileID,
-          type: 'recipe'
-        };
-
-        if (saved) {
-          // Unsaving - remove by either foodID or recipeID
-          const response = await fetch(`${API_BASE_URL}/api/saveFood/remove/${id}`, {
-            method: 'DELETE',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-              userProfileID,
-              recipeID: id 
-            })
-          });
-
-          if (response.ok) {
-            setSaved(false);
-            console.log('✅ Recipe unsaved');
-          }
-        } else {
-          // Saving
-          const response = await fetch(`${API_BASE_URL}/api/saveFood/save/${id}`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(saveData)
-          });
-
-          if (response.ok) {
-            setSaved(true);
-            console.log('✅ Recipe saved');
-          }
-        }
-      } catch (error) {
-        console.error("Error saving/unsaving recipe:", error);
-      }
-    };
-
-    const checkSavedStatus = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      
-      // ✅ Check by both recipeID and foodID  
-      //const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${user?.userID}&type=recipe`;
-      const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${user?.userID}&type=recipe`;
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-        }, 
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Server response - saved:', data.saved);
-        setSaved(data.saved);
-      } else if (response.status === 401) {
-        console.log("User not logged in - can't check saved status");
-        setSaved(false);
-      } else {
-        console.error("Failed to check saved status");
-        setSaved(false);
-      }
-    } catch (error) {
-      console.error("Error checking saved status:", error);
-      setSaved(false);
-    }
-  };
 
   return (
     <div className="recipe-detail-page">
@@ -358,7 +338,7 @@ export default function RecipeDetailPage() {
               <button
                 type="button"
                 className="lrp-btn lrp-btn-primary fdp-save"
-                onClick={handleSaveRecipe} // ✅ replaced toggle with guest-protected function
+                onClick={handleSaveRecipe}
               >
                 {saved ? "✓ Saved" : "❤ Save Recipe"}
               </button>

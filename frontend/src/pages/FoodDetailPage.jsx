@@ -182,11 +182,6 @@ export default function FoodDetailPage() {
     //   foodID: id, // Current food ID
     //   recipeID: food?.recipeId || null // Include recipe ID if available
     // };
-
-    const saveData = {
-      userProfileID: userProfileID,
-      type: 'food'
-    };
     
     const response = await fetch(
       `${API_BASE_URL}/api/saveFood/${id}`, 
@@ -197,7 +192,8 @@ export default function FoodDetailPage() {
         },
         credentials: 'include',
         body: JSON.stringify({
-        userProfileID: userProfileID 
+        userProfileID: userProfileID,
+        type:  'food'
         })
       }
     );
