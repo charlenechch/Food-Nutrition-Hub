@@ -28,4 +28,21 @@ if (!admin.apps.length) {
   console.log("Firebase Admin already initialized");
 }
 
-module.exports = admin;
+// Helper function to delete Firebase user
+async function deleteFirebaseUser(uid) {
+  if (admin.apps.length === 0) {
+    throw new Error('Firebase Admin not initialized');
+  }
+  return admin.auth().deleteUser(uid);
+}
+
+// Helper function to check if initialized
+function isInitialized() {
+  return admin.apps.length > 0;
+}
+
+module.exports = {
+  admin,
+  deleteFirebaseUser,
+  isInitialized
+};

@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require("../config/db");
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const admin = require('../config/firebaseAdmin');
+const { deleteFirebaseUser, isInitialized } = require('../config/firebaseAdmin');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -222,31 +222,21 @@ async function deleteUser(userID, firebaseUID) {
     // Delete from Firebase Authentication if Firebase UID exists
     console.log("=== FIREBASE DELETION DEBUG ===");
     console.log("Firebase UID:", firebaseUID);
-    console.log("Admin object type:", typeof admin);
-    console.log("Admin.apps exists?", !!admin.apps);
-    console.log("Firebase Admin apps count:", admin.apps ? admin.apps.length : "undefined");
-    console.log("Firebase Admin initialized?", admin.apps && admin.apps.length > 0);
+    console.log("Firebase Admin initialized?", isInitialized());
 
     if (firebaseUID) {
       try {
-        // Check if admin.auth() is available
-        if (!admin.auth) {
-          console.error("admin.auth() method not available!");
-          throw new Error("Firebase Admin auth method not available");
-        }
-        
-        if (!admin.apps || admin.apps.length === 0) {
+        if (!isInitialized()) {
           console.error("Firebase Admin NOT initialized! Cannot delete user.");
           throw new Error("Firebase Admin not initialized");
         }
         
         console.log(`Attempting to delete Firebase user with UID: ${firebaseUID}`);
-        await admin.auth().deleteUser(firebaseUID);
+        await deleteFirebaseUser(firebaseUID);
         console.log("Deleted user from Firebase Authentication");
       } catch (firebaseError) {
         console.error("Firebase deletion error:", firebaseError.message);
         console.error("Error code:", firebaseError.code);
-        console.error("Full error:", firebaseError);
         // Continue with MySQL deletion even if Firebase fails
       }
     } else {
