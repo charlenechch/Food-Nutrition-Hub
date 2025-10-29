@@ -284,7 +284,12 @@ export default function FoodDiscussionPage() {
   const toggleLike = async (targetId) => {
     if (isGuest) return setShowLoginPrompt(true);
 
-    const finalProfileID = userProfileID;
+    const finalProfileID = user?.userProfileID || user?.userID || user?.id;
+
+    if (!finalProfileID) {
+    console.error("No valid userProfileID found");
+    return;
+    }
 
     try {
       const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
@@ -292,7 +297,7 @@ export default function FoodDiscussionPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          userProfileID: finalProfileID  // Only send userProfileID, no "type"
+          userProfileID: finalProfileID  
         }),
       });
       const data = await res.json();

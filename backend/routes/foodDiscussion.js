@@ -201,12 +201,13 @@ router.patch('/:commentId/vote', async (req, res) => {
     const { commentId } = req.params;
     const { userProfileID } = req.body;
 
-    // Remove the type validation completely
-    // if (!['up', 'down'].includes(type)) {
-    //   return res.status(400).json({ success: false, message: 'Invalid vote type' });
-    // }
-
-    // Rest of your code remains the same...
+    if (!userProfileID || typeof userProfileID !== 'number') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid userProfileID' 
+      });
+    }
+    
     const [existing] = await db.query(
       `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ?`,
       [commentId]
