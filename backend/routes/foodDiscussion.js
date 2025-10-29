@@ -109,106 +109,120 @@ function getTimeAgo(timestamp) {
 //   }
 // });
 
-router.patch('/:commentId/vote', async (req, res) => {
+router.get('/food/:foodId', async (req, res) => {
   try {
-    const { commentId } = req.params;
-    const { userProfileID } = req.body;
+    const { foodId } = req.params;
+    const userProfileID = req.user?.userProfileID;
 
-    console.log("🔵 Backend vote request:", { commentId, userProfileID });
+    console.log("🟢 GET ROUTE - foodId:", foodId, "userProfileID:", userProfileID, "Type:", typeof userProfileID);
 
-    if (!userProfileID || typeof userProfileID !== 'number') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid userProfileID' 
-      });
-    }
+    // First get all comments
+    const sql = `
+      SELECT 
+        d.discussionID as id,
+        CONCAT(u.firstname, ' ', u.lastname) AS username,
+        up.avatar as avatar,
+        d.content,
+        d.created_At as timestamp,
+        d.upVotes as likes,
+        d.downVotes as dislikes,
+        d.upvoted_by
+      FROM discussion d 
+      JOIN userProfile up ON d.userProfileID = up.userProfileID 
+      JOIN user u ON up.userID = u.userID
+      WHERE d.foodID = ? 
+      ORDER BY d.created_At DESC
+    `;
+
+    const results = await db.query(sql, [foodId]);
+    let comments = firstRows(results);
+
+    console.log("🟢 Raw comments from DB:", comments.length);
     
-    // 1. Get current state
-    const [existing] = await db.query(
-      `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ?`,
-      [commentId]
-    );
-
-    console.log("🔵 Existing data:", existing[0]);
-
-    let upvotedBy = [];
-    try {
-      if (existing[0]?.upvoted_by) {
-        const upvotedData = existing[0].upvoted_by;
-        console.log("🔵 Raw upvoted_by:", upvotedData);
-        if (upvotedData && upvotedData !== 'null' && upvotedData !== '' && upvotedData !== '[]') {
-          upvotedBy = JSON.parse(upvotedData);
+    // ✅ MANUAL user_liked check with detailed debugging
+    comments = comments.map(comment => {
+      console.log(`🟢 Processing comment ${comment.id}:`);
+      console.log(`   upvoted_by:`, comment.upvoted_by);
+      console.log(`   userProfileID to check:`, userProfileID);
+      
+      let user_liked = false;
+      
+      try {
+        if (comment.upvoted_by) {
+          // Handle different possible values
+          if (comment.upvoted_by === 'null' || comment.upvoted_by === '' || comment.upvoted_by === '[]' || comment.upvoted_by === '[null]') {
+            console.log(`   Empty upvoted_by, setting user_liked: false`);
+            user_liked = false;
+          } else {
+            console.log(`   Parsing upvoted_by...`);
+            const upvotedArray = JSON.parse(comment.upvoted_by);
+            console.log(`   Parsed array:`, upvotedArray);
+            console.log(`   Array type:`, typeof upvotedArray, "Is array:", Array.isArray(upvotedArray));
+            
+            if (Array.isArray(upvotedArray)) {
+              // Clean the array - remove any null/undefined values
+              const cleanArray = upvotedArray.filter(id => id !== null && id !== undefined);
+              console.log(`   Cleaned array:`, cleanArray);
+              
+              user_liked = cleanArray.includes(userProfileID);
+              console.log(`   user_liked result:`, user_liked, "(looking for", userProfileID, "in", cleanArray, ")");
+            } else {
+              console.log(`   ❌ upvoted_by is not an array!`);
+              user_liked = false;
+            }
+          }
+        } else {
+          console.log(`   No upvoted_by field`);
+          user_liked = false;
         }
+      } catch (error) {
+        console.error(`   ❌ Error parsing upvoted_by:`, error.message);
+        user_liked = false;
       }
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      upvotedBy = [];
-    }
 
-    console.log("🔵 Parsed upvotedBy:", upvotedBy);
-    
-    // ✅ FIX: Ensure upvotedBy is always an array
-    if (!Array.isArray(upvotedBy)) {
-      upvotedBy = [];
-    }
-    
-    // ✅ FIX: Filter out any invalid values
-    upvotedBy = upvotedBy.filter(id => id !== null && id !== undefined && typeof id === 'number');
-    
-    console.log("🔵 Cleaned upvotedBy:", upvotedBy);
-    console.log("🔵 User currently liked:", upvotedBy.includes(userProfileID));
+      console.log(`   Final user_liked for comment ${comment.id}:`, user_liked);
+      console.log(`   ---`);
 
-    let newUpvoted = [...upvotedBy];
-    let voteChange = 0;
-    let userCurrentlyLiked = upvotedBy.includes(userProfileID);
-
-    console.log("🔵 BEFORE - userCurrentlyLiked:", userCurrentlyLiked, "upvotedBy:", upvotedBy);
-
-    // ✅ PROPER TOGGLE LOGIC:
-    if (userCurrentlyLiked) {
-      // User already liked - REMOVE like
-      newUpvoted = upvotedBy.filter(id => id !== userProfileID);
-      voteChange = -1;
-      userCurrentlyLiked = false;
-      console.log("🔵 REMOVING like");
-    } else {
-      // User hasn't liked - ADD like
-      newUpvoted.push(userProfileID);
-      voteChange = 1;
-      userCurrentlyLiked = true;
-      console.log("🔵 ADDING like");
-    }
-
-    console.log("🔵 AFTER - userCurrentlyLiked:", userCurrentlyLiked, "newUpvoted:", newUpvoted, "voteChange:", voteChange);
-
-    // Update database
-    await db.query(
-      `UPDATE discussion SET 
-        upVotes = upVotes + ?, 
-        upvoted_by = ?
-       WHERE discussionID = ?`,
-      [voteChange, JSON.stringify(newUpvoted), commentId]
-    );
-
-    // Get updated count
-    const [updated] = await db.query(
-      `SELECT upVotes as likes FROM discussion WHERE discussionID = ?`,
-      [commentId]
-    );
-
-    console.log("🔵 Final result - likes:", updated[0]?.likes, "userLiked:", userCurrentlyLiked);
-
-    res.json({ 
-      success: true, 
-      message: userCurrentlyLiked ? 'Liked successfully' : 'Unliked successfully',
-      data: {
-        likes: updated[0]?.likes || 0,
-        userLiked: userCurrentlyLiked
-      }
+      return {
+        ...comment,
+        user_liked
+      };
     });
+
+    // Pull replies
+    const discussionsWithReplies = await Promise.all(
+      comments.map(async (comment) => {
+        const repliesSql = `
+          SELECT 
+            r.replyID,
+            CONCAT(u.firstname, ' ', u.lastname) AS username,
+            up.avatar as avatar,
+            r.reply as content,
+            r.createdAt as timestamp,
+            'Member' as type
+          FROM reply r
+          JOIN userProfile up ON r.userProfileID = up.userProfileID 
+          JOIN user u ON up.userID = u.userID
+          WHERE r.discussionID = ?
+          ORDER BY r.createdAt ASC
+        `;
+        const repliesResult = await db.query(repliesSql, [comment.id]);
+        const replies = firstRows(repliesResult).map(r => ({
+          ...r,
+          timeAgo: getTimeAgo(r.timestamp),
+        }));
+        return {
+          ...comment,
+          timeAgo: getTimeAgo(comment.timestamp),
+          replies,
+        };
+      })
+    );
+
+    res.json({ success: true, data: discussionsWithReplies, count: discussionsWithReplies.length });
   } catch (error) {
-    console.error('Error updating like:', error);
-    res.status(500).json({ success: false, message: 'Failed to update like' });
+    console.error('Error fetching discussions:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch discussions' });
   }
 });
 
