@@ -38,7 +38,6 @@ router.get('/food/:foodId', async (req, res) => {
         d.upVotes as likes,
         d.downVotes as dislikes,
         d.upvoted_by,
-        -- ✅ Check if current user liked this comment
         CASE 
           WHEN d.upvoted_by IS NOT NULL 
           AND d.upvoted_by != '[]' 
@@ -210,7 +209,6 @@ router.post('/:discussionId/replies', async (req, res) => {
   }
 });
 
-// comments like received
 router.patch('/:commentId/vote', async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -223,6 +221,7 @@ router.patch('/:commentId/vote', async (req, res) => {
       });
     }
     
+    // 1. Get current state
     const [existing] = await db.query(
       `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ?`,
       [commentId]
@@ -231,7 +230,6 @@ router.patch('/:commentId/vote', async (req, res) => {
     let upvotedBy = [];
     try {
       if (existing[0]?.upvoted_by) {
-        // Handle empty strings, null, or invalid JSON
         const upvotedData = existing[0].upvoted_by;
         if (upvotedData && upvotedData !== 'null' && upvotedData !== '' && upvotedData !== '[]') {
           upvotedBy = JSON.parse(upvotedData);
@@ -239,26 +237,31 @@ router.patch('/:commentId/vote', async (req, res) => {
       }
     } catch (parseError) {
       console.error('JSON parse error, resetting upvoted_by:', parseError);
-      upvotedBy = []; // Reset if JSON is corrupted
+      upvotedBy = [];
     }
 
     // Ensure it's an array and filter nulls
-    if (!Array.isArray(upvotedBy)) {
-      upvotedBy = [];
-    }
+    if (!Array.isArray(upvotedBy)) upvotedBy = [];
     upvotedBy = upvotedBy.filter(id => id !== null && id !== undefined && typeof id === 'number');
 
     let newUpvoted = [...upvotedBy];
     let voteChange = 0;
+    let userCurrentlyLiked = upvotedBy.includes(userProfileID);
 
-    if (upvotedBy.includes(userProfileID)) {
+    // ✅ PROPER TOGGLE LOGIC:
+    if (userCurrentlyLiked) {
+      // User already liked - REMOVE like
       newUpvoted = upvotedBy.filter(id => id !== userProfileID);
       voteChange = -1;
+      userCurrentlyLiked = false; // Now unliked
     } else {
+      // User hasn't liked - ADD like
       newUpvoted.push(userProfileID);
       voteChange = 1;
+      userCurrentlyLiked = true; // Now liked
     }
 
+    // Update database
     await db.query(
       `UPDATE discussion SET 
         upVotes = upVotes + ?, 
@@ -267,16 +270,19 @@ router.patch('/:commentId/vote', async (req, res) => {
       [voteChange, JSON.stringify(newUpvoted), commentId]
     );
 
-    const updated = await db.query(
+    // Get updated count
+    const [updated] = await db.query(
       `SELECT upVotes as likes FROM discussion WHERE discussionID = ?`,
       [commentId]
     );
-    const row = firstRows(updated)[0] || { likes: 0 };
 
     res.json({ 
       success: true, 
-      message: 'Like updated successfully', 
-      data: row
+      message: userCurrentlyLiked ? 'Liked successfully' : 'Unliked successfully',
+      data: {
+        likes: updated[0]?.likes || 0,
+        userLiked: userCurrentlyLiked // Return current like status
+      }
     });
   } catch (error) {
     console.error('Error updating like:', error);

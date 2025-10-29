@@ -131,6 +131,8 @@
 }
 .fd-link-btn:hover { color: #8B4513; }
 .fd-link-btn:focus { outline: none;}
+.fd-link-btn.liked { color: #8B4513;}
+.fd-link-btn.liked:hover { color: #8B4513; }
 .fd-reply-box { margin-top: .5rem; }
 .fd-reply-actions { display: flex; gap: .5rem; margin-top: .5rem; }
 

@@ -92,7 +92,8 @@ const Comment = React.memo(function Comment({
 
         {!isReply && (
           <div className="fd-disc-actions">
-            <button className="fd-link-btn" onClick={handleLike}>
+            <button className={`fd-link-btn ${userLiked ? 'liked' : ''}`} 
+               onClick={handleLike}>
               {/*likedIds.has(itemId) ? "♥" : "♡"} {likes*/}
               {userLiked ? "♥" : "♡"} {likes}
             </button>
