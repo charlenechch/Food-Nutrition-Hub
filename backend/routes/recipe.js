@@ -322,6 +322,139 @@ router.get('/recipes/:id', async (req, res) => {
 // POST new recipe 
 router.post('/create/recipes', async (req, res) => {
   console.log('🔍 START: Recipe creation endpoint called');
+  console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
+  
+  try {
+    const {
+      name, origin, difficulty, prepTime, image, description, 
+      foodType, dietaryTags, cookTime, servings, ingredients, 
+      instructions, funFact, chefTips
+    } = req.body;
+
+    console.log('📊 Request data analysis:', {
+      name, 
+      origin, 
+      foodType,
+      ingredientsType: typeof ingredients,
+      instructionsType: typeof instructions,
+      ingredientsIsArray: Array.isArray(ingredients),
+      instructionsIsArray: Array.isArray(instructions),
+      ingredientsLength: Array.isArray(ingredients) ? ingredients.length : 'N/A',
+      instructionsLength: Array.isArray(instructions) ? instructions.length : 'N/A'
+    });
+
+    // Validate required fields
+    if (!name || !origin) {
+      console.log('❌ Validation failed: missing name or origin');
+      return res.status(400).json({ error: 'Name and origin are required' });
+    }
+
+    // Check authentication
+    if (!req.session || !req.session.user) {
+      console.log('❌ Authentication failed - no session user');
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const userProfileID = req.session.user.userID;
+    console.log('✅ User authenticated:', userProfileID);
+
+    let processedImage = image || 
+    'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
+
+    console.log('🚀 About to execute FIRST INSERT (food table)');
+
+    // Insert into food table
+    const foodQuery = `
+      INSERT INTO food (
+        name, origin, difficulty, prepTime, image, description, 
+        foodType, category, dietaryTags, commonIngredients
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    const foodParams = [
+      name, 
+      origin, 
+      difficulty || 'Easy', 
+      prepTime || 0, 
+      processedImage, 
+      description || '', 
+      foodType || 'Other',
+      foodType || 'Other',
+      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
+      null
+    ];
+    
+    console.log('📝 Executing food insert with params:', foodParams);
+    
+    // Try using query() instead of execute() to avoid prepared statement issues
+    const [foodResult] = await db.query(foodQuery, foodParams);
+    console.log('✅ Food insert successful - insertId:', foodResult.insertId);
+    
+    const foodId = foodResult.insertId;
+
+    if (!foodId) {
+      throw new Error('Could not retrieve the inserted food ID');
+    }
+
+    console.log('🚀 About to execute SECOND INSERT (recipe table)');
+
+    // Insert into recipe table
+    const recipeQuery = `
+      INSERT INTO recipe (
+        foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    const recipeParams = [
+      foodId, 
+      userProfileID,
+      Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
+      Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
+      cookTime || 0, 
+      servings || 1,
+      funFact || '', 
+      chefTips || '',
+      'Pending' 
+    ];
+    
+    console.log('📝 Executing recipe insert with foodID:', foodId);
+    console.log('📋 Recipe params:', recipeParams);
+    
+    await db.query(recipeQuery, recipeParams);
+    
+    console.log('✅ Recipe insert successful');
+    console.log('🎉 Recipe created successfully with ID:', foodId);
+    
+    res.status(201).json({ 
+      message: 'Recipe created successfully', 
+      id: foodId,
+      status: 'Pending'
+    });
+    
+  } catch (error) {
+    console.error('💥 CATCH BLOCK - FULL ERROR DETAILS:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      sql: error.sql,           // show the exact failing SQL command
+      sqlState: error.sqlState,
+      sqlMessage: error.sqlMessage,
+      stack: error.stack
+    });
+    
+    // Send detailed error info to frontend
+    res.status(500).json({ 
+      error: error.message,
+      sqlCommand: error.sql,   
+      code: error.code,
+      details: 'Check backend logs for full error details'
+    });
+  }
+});
+
+// POST new recipe 
+router.post('/create/recipes', async (req, res) => {
+  console.log('🔍 START: Recipe creation endpoint called');
   
   try {
     const {
@@ -446,116 +579,9 @@ router.post('/create/recipes', async (req, res) => {
   }
 });
 
-// GET recipe for revision (by ID, any status)
-router.get('/revise/recipes/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log('🔧 Fetching recipe for revision ID:', id);
-    
-    const query = `
-      SELECT 
-        f.foodID AS id,
-        f.name, 
-        f.origin, 
-        f.difficulty, 
-        f.prepTime, 
-        f.image, 
-        f.description, 
-        f.foodType,
-        f.category,
-        f.dietaryTags,
-        r.recipeID,
-        r.cookTime, 
-        r.servings, 
-        r.ingredients, 
-        r.steps AS instructions, 
-        r.DidYouKnow AS funFact, 
-        r.chefTips,
-        r.status
-      FROM food f
-      LEFT JOIN recipe r ON f.foodID = r.foodID
-      WHERE f.foodID = ? OR r.recipeID = ?
-    `;
-    
-    const result = await db.query(query, [id, id]);
-    console.log('🔍 Query executed, result structure:', Array.isArray(result) ? `Array with ${result.length} items` : 'Not array');
-    
-    let row;
-    if (Array.isArray(result) && result.length > 0) {
-      // The actual data is in result[0][0] - first array contains data rows
-      if (Array.isArray(result[0]) && result[0].length > 0) {
-        row = result[0][0];
-        console.log('✅ Using result[0][0] as data');
-      } else if (result[0] && typeof result[0] === 'object' && result[0].name !== undefined) {
-        // Sometimes it might be result[0] directly
-        row = result[0];
-        console.log('✅ Using result[0] as data');
-      }
-    }
-    
-    if (!row || !row.name) {
-      console.log('❌ No valid recipe data found');
-      console.log('Result structure:', JSON.stringify(result, null, 2).substring(0, 500));
-      return res.status(404).json({ error: 'Recipe not found for revision' });
-    }
-    
-    console.log('🔍 EXTRACTED ROW DATA:', {
-      id: row.id,
-      name: row.name,
-      origin: row.origin,
-      status: row.status
-    });
-    
-    // Build the recipe object
-    const recipe = {
-      id: row.id || 0,
-      name: row.name || '',
-      origin: row.origin || '',
-      difficulty: row.difficulty || 'Easy',
-      prepTime: row.prepTime || 0,
-      cookTime: row.cookTime || 0,
-      servings: row.servings || 0,
-      image: row.image || 'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg',
-      description: row.description || '',
-      foodType: row.foodType || '',
-      dietaryTags: row.dietaryTags ? 
-        (typeof row.dietaryTags === 'string' ? 
-          row.dietaryTags.split(',').map(tag => tag.trim()).filter(tag => tag) : 
-          row.dietaryTags) 
-        : [],
-      ingredients: row.ingredients ? 
-        (typeof row.ingredients === 'string' ? 
-          row.ingredients.split('\n').map(line => line.trim()).filter(line => line) : 
-          row.ingredients) 
-        : [],
-      instructions: row.instructions ? 
-        (typeof row.instructions === 'string' ? 
-          row.instructions.split('\n').map(line => line.trim()).filter(line => line) : 
-          row.instructions) 
-        : [],
-      funFact: row.funFact || '',
-      chefTips: row.chefTips || '',
-      status: row.status || 'Unknown'
-    };
-    
-    console.log('✅ FINAL RECIPE DATA SENT:', {
-      id: recipe.id,
-      name: recipe.name,
-      origin: recipe.origin,
-      status: recipe.status
-    });
-    
-    res.json(recipe);
-    
-  } catch (error) {
-    console.error('❌ Error fetching recipe for revision:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// display old data
+// Add this route to your backend
 router.put('/update/recipes/:id', async (req, res) => {
-  console.log('START: Recipe update endpoint called for ID:', req.params.id);
+  console.log('🔍 START: Recipe update endpoint called for ID:', req.params.id);
   
   try {
     const {
@@ -566,7 +592,7 @@ router.put('/update/recipes/:id', async (req, res) => {
 
     const recipeId = req.params.id;
 
-    console.log('Update request data analysis:', {
+    console.log('📊 Update request data analysis:', {
       recipeId,
       name, 
       origin, 
@@ -581,16 +607,25 @@ router.put('/update/recipes/:id', async (req, res) => {
       return res.status(400).json({ error: 'Name and origin are required' });
     }
 
-    // get the current foodID from the recipe
+    // Check authentication
+    if (!req.session || !req.session.user) {
+      console.log('❌ Authentication failed - no session user');
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const userProfileID = req.session.user.userID;
+    console.log('✅ User authenticated:', userProfileID);
+
+    // First, get the current foodID from the recipe
     console.log('🔍 Getting current food ID for recipe:', recipeId);
     const [currentRecipe] = await db.query(
-      'SELECT foodID FROM recipe WHERE recipeID = ?',
-      [recipeId]
+      'SELECT foodID FROM recipe WHERE recipeID = ? AND userProfileID = ?',
+      [recipeId, userProfileID]
     );
 
     if (currentRecipe.length === 0) {
-      console.log('❌ Recipe not found');
-      return res.status(404).json({ error: 'Recipe not found' });
+      console.log('❌ Recipe not found or user not authorized');
+      return res.status(404).json({ error: 'Recipe not found or access denied' });
     }
 
     const foodId = currentRecipe[0].foodID;
@@ -644,6 +679,7 @@ router.put('/update/recipes/:id', async (req, res) => {
       foodParams.push(processedImage);
     }
     
+    // Always add foodId at the end
     foodParams.push(foodId);
     
     console.log('📝 Executing food update with params:', foodParams);
@@ -658,7 +694,7 @@ router.put('/update/recipes/:id', async (req, res) => {
       UPDATE recipe 
       SET ingredients = ?, steps = ?, cookTime = ?, servings = ?, 
           DidYouKnow = ?, chefTips = ?, status = ?
-      WHERE foodID = ?
+      WHERE foodID = ? AND userProfileID = ?
     `;
     
     const recipeParams = [
@@ -669,7 +705,8 @@ router.put('/update/recipes/:id', async (req, res) => {
       funFact || '', 
       chefTips || '',
       'Pending', // Reset status to Pending for re-review
-      foodId
+      foodId,
+      userProfileID
     ];
     
     console.log('📝 Executing recipe update with foodID:', foodId);

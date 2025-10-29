@@ -50,7 +50,7 @@ const uploadAvatar = async () => {
     console.log('🔍 Full API_BASE_URL:', API_BASE_URL);
 
     const res = await fetch(uploadUrl, {
-      method: 'PUT',
+      method: 'POST',
       credentials: 'include',
       body: formData,
     });
@@ -335,7 +335,7 @@ export default function UserProfilePage() {
       formData.append('avatar', avatarFile);
 
       const res = await fetch(`${API_BASE_URL}/api/userProfile/avatar`, {
-        method: 'PUT',
+        method: 'POST',
         credentials: 'include',
         body: formData,
       });
