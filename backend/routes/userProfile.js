@@ -149,7 +149,10 @@ const updateUserStats = async (userID) => {
     // Count likes received by user (from likes table)
     console.log(`❤️ Counting likes for user: ${userID}`);
     const [likeCount] = await db.execute(
-      `SELECT COUNT(*) as count FROM likes WHERE userProfileID = ?`, 
+      `SELECT COUNT(*) as count 
+       FROM likes l
+       INNER JOIN posts p ON l.postID = p.postID 
+       WHERE p.userProfileID = ?`, 
       [userID]
     );
 
