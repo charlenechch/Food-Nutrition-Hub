@@ -600,6 +600,73 @@
   background: #b83535;
 }
 
+/* === Recipe Database Table === */
+.recipe-status-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 15px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* Approved = green */
+.recipe-status-tag.approved {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+/* Pending = amber */
+.recipe-status-tag.pending {
+  background: #fff8e1;
+  color: #8d6e00;
+  border: 1px solid #ffecb3;
+}
+
+/* Rejected = red */
+.recipe-status-tag.rejected {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
+.admin-recipe-action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px; 
+}
+
+.review-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.review-btn {
+  background: #f9f6f2;
+  color: #3d2b1f;
+  border: 1px solid #d8c7b2;
+}
+.review-btn:hover {
+  background: #f3e8dc;
+}
+
+.review-btn:focus, 
+.review-btn:focus-visible,
+.review-btn:active {
+  outline: none;
+  box-shadow: none;
+}
+
 /* user management tab */
 .user-mgmt {
   padding: 16px;
