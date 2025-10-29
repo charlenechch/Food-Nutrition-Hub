@@ -93,8 +93,15 @@ export default function FoodDetailPage() {
   };
   // Check if user is logged in 
   const isLoggedIn = () => {
-    return user && user.userProfileID && user.role !== "guest";
-  };
+  const loggedIn = user && user.role !== "guest";
+  console.log('🔐 isLoggedIn check:', {
+    loggedIn,
+    user: user,
+    hasUserProfileID: user?.userProfileID,
+    role: user?.role
+  });
+  return loggedIn;
+};
   
   const getUserInitials = (comment) => {
   console.log('Available fields:', Object.keys(comment)); // DEBUG
@@ -151,7 +158,7 @@ export default function FoodDetailPage() {
     console.error("❌ User data incomplete - cannot save food");
     console.log("Current user object:", user);
     // Try to refresh user data
-    await validateSession();
+    setShowLoginPrompt(true); 
     return;
   }
 

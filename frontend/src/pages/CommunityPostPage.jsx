@@ -72,7 +72,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
     const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
     
     if (isLiked) {
-      // Unlike the post - use DELETE method
+      // Unlike the post 
       const response = await fetch(`${API_BASE_URL}/api/likes/`, {
         method: "DELETE",
         headers: {
@@ -80,7 +80,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
         },
         credentials: "include",
         body: JSON.stringify({
-          postID: postId, // Note: your backend expects postID (uppercase D)
+          postID: postId, 
           userProfileID: userProfileID,
         }),
       });
@@ -95,7 +95,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
         throw new Error(result.message || "Failed to unlike post");
       }
     } else {
-      // Like the post - use POST method
+      // Like the post 
       const response = await fetch(`${API_BASE_URL}/api/likes/`, {
         method: "POST",
         headers: {
@@ -103,7 +103,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
         },
         credentials: "include",
         body: JSON.stringify({
-          postID: postId, // Note: your backend expects postID (uppercase D)
+          postID: postId, 
           userProfileID: userProfileID,
         }),
       });
