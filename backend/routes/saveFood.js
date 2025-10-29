@@ -101,11 +101,11 @@ router.post('/:foodId', async (req, res) => {
   console.log('=== SAVE FOOD REQUEST ===');
   console.log('Session:', req.session);
   console.log('Session user:', req.session.user);
-  console.log('Request body:', req.body); // Add this line
+  console.log('Request body:', req.body); 
   
   try {
     const { foodId } = req.params;
-    const { userProfileID: bodyUserProfileID } = req.body; // Rename to avoid conflict
+    const { userProfileID: bodyUserProfileID } = req.body; 
 
     // Use userProfileID from body OR from session
     const finalUserProfileID = bodyUserProfileID || req.session.user?.userProfileID;
@@ -124,9 +124,6 @@ router.post('/:foodId', async (req, res) => {
       });
     }
 
-    // REMOVE THIS CONFLICTING CODE - you were re-declaring userProfileID
-    // const userProfileID = req.session.user.userProfileID; // ❌ DELETE THIS LINE
-    
     if (!finalUserProfileID) {
       console.log('❌ userProfileID is missing from both session and body');
       console.log('Available session user keys:', req.session.user ? Object.keys(req.session.user) : 'No user object');
@@ -150,7 +147,7 @@ router.post('/:foodId', async (req, res) => {
     // Check if food exists
     console.log('🔍 Checking if food exists in database...');
     const [foodExists] = await db.execute(
-      'SELECT foodID, foodName FROM food WHERE foodID = ?',
+      'SELECT foodID, name FROM food WHERE foodID = ?',
       [foodId]
     );
 
@@ -193,7 +190,7 @@ router.post('/:foodId', async (req, res) => {
       console.log('💾 Inserting new save...');
       const [result] = await db.execute(
         'INSERT INTO saveFood (foodID, userProfileID) VALUES (?, ?)',
-        [foodId, finalUserProfileID] // Use finalUserProfileID here
+        [foodId, finalUserProfileID]
       );
       console.log('✅ Food saved successfully with ID:', result.insertId);
       return res.json({ 
