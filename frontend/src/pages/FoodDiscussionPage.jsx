@@ -129,7 +129,7 @@ const Comment = React.memo(function Comment({
                 key={reply.replyID || idx}
                 item={reply}
                 isReply={true}
-                likedIds={likedIds}
+                //likedIds={likedIds}
                 onToggleLike={onToggleLike}
                 replyToId={replyToId}
                 setReplyToId={setReplyToId}
@@ -168,7 +168,6 @@ export default function FoodDiscussionPage() {
   const [loading, setLoading] = useState(true);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   // ✅ Fetch comments
-  useEffect(() => {
     const fetchComments = async () => {
       try {
         setLoading(true);
@@ -189,6 +188,7 @@ export default function FoodDiscussionPage() {
       }
     };
 
+  useEffect(() => {
     if (foodId) fetchComments();
   }, [foodId]);
 
@@ -284,50 +284,33 @@ export default function FoodDiscussionPage() {
   };
 
   const toggleLike = async (targetId) => {
-    if (isGuest) return setShowLoginPrompt(true);
+  if (isGuest) return setShowLoginPrompt(true);
 
-    const finalProfileID = user?.userProfileID || user?.userID || user?.id;
+  const finalProfileID = user?.userProfileID || user?.userID || user?.id;
 
-    if (!finalProfileID) {
+  if (!finalProfileID) {
     console.error("No valid userProfileID found");
     return;
-    }
+  }
 
-    try {
-      const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          userProfileID: finalProfileID  
-        }),
-      });
-      const data = await res.json();
+  try {
+    const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        userProfileID: finalProfileID  
+      }),
+    });
+    const data = await res.json();
 
-      if (res.ok && data.success) {
-        setComments((prev) =>
-          prev.map((c) =>
-            c.id === targetId || c.discussionID === targetId
-              ? { ...c, likes: data.data.likes } // Use returned likes count
-              : c
-          )
-        );
-        
-        // Toggle the liked state locally
-        setLikedIds((prev) => {
-          const newSet = new Set(prev);
-          if (newSet.has(targetId)) {
-            newSet.delete(targetId);
-          } else {
-            newSet.add(targetId);
-          }
-          return newSet;
-        });
-      }
-    } catch (err) {
-      console.error("Error updating like:", err);
+    if (res.ok && data.success) {
+      fetchComments(); 
     }
-  };
+  } catch (err) {
+    console.error("Error updating like:", err);
+  }
+};
 
   // ✅ Render Loading
   if (loading) {
