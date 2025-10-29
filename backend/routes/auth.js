@@ -197,4 +197,36 @@ router.post("/verifyAccountDeletion", async (req, res) => {
   }
 });
 
+// Sync email verification status from Firebase to MySQL
+router.post("/syncEmailVerification", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    // Update verified status in MySQL
+    const [result] = await db.execute(
+      "UPDATE user SET verified = 1 WHERE email = ?",
+      [email]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log(`Email verification synced for: ${email}`);
+    
+    return res.json({ 
+      success: true, 
+      message: "Email verification synced successfully" 
+    });
+
+  } catch (error) {
+    console.error("Error syncing email verification:", error);
+    return res.status(500).json({ error: "Failed to sync verification status" });
+  }
+});
+
 module.exports = router;

@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { applyActionCode } from 'firebase/auth';
-import { auth } from '../config/firebase';
-import '../css/EmailVerificationPage.css';
+import React, { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { auth } from "../config/firebase";
+import "../css/EmailVerificationPage.css";
+import { applyActionCode, checkActionCode } from "firebase/auth";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function EmailVerificationPage() {
   const [searchParams] = useSearchParams();
@@ -14,29 +16,57 @@ export default function EmailVerificationPage() {
   
   useEffect(() => {
     if (!oobCode) {
-      setStatus('error');
-      setMessage('Invalid verification link. Please check your email and try again.');
-      return;
+        setStatus("error");
+        setMessage("Invalid verification link. Please check your email and try again.");
+        return;
     }
     
-    // Verify email with Firebase
-    applyActionCode(auth, oobCode)
-      .then(() => {
-        setStatus('success');
-        setMessage('Email verified successfully!');
-        setTimeout(() => navigate('/loginregister'), 3000);
-      })
-      .catch((error) => {
-        setStatus('error');
-        if (error.code === 'auth/invalid-action-code') {
-          setMessage('This verification link is invalid or has already been used.');
-        } else if (error.code === 'auth/expired-action-code') {
-          setMessage('This verification link has expired. Please request a new one.');
-        } else {
-          setMessage('Verification failed. Please try again or contact support.');
+    const verifyEmail = async () => {
+        try {
+        // Step 1: Get email from verification code
+        const info = await checkActionCode(auth, oobCode);
+        const email = info.data.email;
+        
+        // Step 2: Apply the action code (verify in Firebase)
+        await applyActionCode(auth, oobCode);
+        
+        // Step 3: Sync to MySQL database
+        try {
+            const response = await fetch(`${API_URL}/api/auth/syncEmailVerification`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ email })
+            });
+            
+            if (response.ok) {
+            console.log("Verification synced to database");
+            } else {
+            console.error("Failed to sync verification to database");
+            }
+        } catch (syncError) {
+            console.error("Database sync error:", syncError);
         }
-      });
-  }, [oobCode, navigate]);
+        
+        // Step 4: Show success
+        setStatus("success");
+        setMessage("Email verified successfully!");
+        setTimeout(() => navigate("/loginregister"), 3000);
+        
+        } catch (error) {
+        setStatus("error");
+        if (error.code === "auth/invalid-action-code") {
+            setMessage("This verification link is invalid or has already been used.");
+        } else if (error.code === "auth/expired-action-code") {
+            setMessage("This verification link has expired. Please request a new one.");
+        } else {
+            setMessage("Verification failed. Please try again or contact support.");
+        }
+        }
+    };
+    
+    verifyEmail();
+    }, [oobCode, navigate]);
   
   return (
     <div className="ev-container">
