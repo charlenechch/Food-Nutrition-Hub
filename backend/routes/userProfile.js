@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require("../config/db");
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const admin = require('../config/firebaseAdmin');
+const { deleteFirebaseUser, isInitialized } = require('../config/firebaseAdmin');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -222,11 +222,18 @@ async function deleteUser(userID, firebaseUID) {
     // Delete from Firebase Authentication if Firebase UID exists
     if (firebaseUID) {
       try {
-        await admin.auth().deleteUser(firebaseUID);
-        console.log("Deleted user from Firebase Authentication");
+        console.log("=== FIREBASE DELETION ===");
+        console.log("Attempting to delete Firebase user with UID:", firebaseUID);
+        
+        await deleteFirebaseUser(firebaseUID);
+        
+        console.log("Successfully deleted user from Firebase Authentication");
       } catch (firebaseError) {
-        console.error("Firebase deletion error (continuing anyway):", firebaseError.message);
+        console.error("Firebase deletion error:", firebaseError.message);
+        console.error("Error code:", firebaseError.code);
+        
         // Continue with MySQL deletion even if Firebase fails
+        console.log("Continuing with database deletion despite Firebase error");
       }
     } else {
       console.log("No Firebase UID found, skipping Firebase deletion");

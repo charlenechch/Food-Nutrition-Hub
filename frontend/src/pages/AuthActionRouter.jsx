@@ -18,18 +18,13 @@ export default function AuthActionRouter() {
     // Route based on mode
     switch (mode) {
       case 'resetPassword':
-        // Go to your existing reset password page
+        // Redirect to reset password page
         navigate(`/resetpassword?oobCode=${oobCode}`);
         break;
         
       case 'verifyEmail':
-        // Handle email verification here (since you use Firebase default)
+        // Redirect to email verification page
         navigate(`/verifyemail?oobCode=${oobCode}`);
-        break;
-        
-      case 'recoverEmail':
-        // Handle email recovery
-        navigate(`/loginregister?message=email-recovered`);
         break;
         
       default:
