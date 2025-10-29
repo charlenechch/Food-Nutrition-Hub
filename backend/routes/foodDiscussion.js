@@ -312,7 +312,7 @@ router.post('/:discussionId/replies', async (req, res) => {
 
     const selectSql = `
       SELECT 
-        r.replyID,
+        r.replyID, 
         CONCAT(u.firstname, ' ', u.lastname) AS username,
         up.avatar as avatar,
         r.reply as content,
@@ -379,12 +379,12 @@ router.patch('/:commentId/vote', async (req, res) => {
 
     console.log("🔵 Parsed upvotedBy:", upvotedBy);
     
-    // ✅ FIX: Ensure upvotedBy is always an array
+    // Ensure upvotedBy is always an array
     if (!Array.isArray(upvotedBy)) {
       upvotedBy = [];
     }
     
-    // ✅ FIX: Filter out any invalid values
+    // Filter out any invalid values
     upvotedBy = upvotedBy.filter(id => id !== null && id !== undefined && typeof id === 'number');
     
     console.log("🔵 Cleaned upvotedBy:", upvotedBy);
@@ -396,7 +396,6 @@ router.patch('/:commentId/vote', async (req, res) => {
 
     console.log("🔵 BEFORE - userCurrentlyLiked:", userCurrentlyLiked, "upvotedBy:", upvotedBy);
 
-    // ✅ PROPER TOGGLE LOGIC:
     if (userCurrentlyLiked) {
       // User already liked - REMOVE like
       newUpvoted = upvotedBy.filter(id => id !== userProfileID);

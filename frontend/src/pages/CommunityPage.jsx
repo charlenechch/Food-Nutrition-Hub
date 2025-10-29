@@ -83,6 +83,14 @@ export default function Community() {
       return;
     }
 
+    const userProfileID = user?.userProfileID || user?.userID || user?.id;
+
+    if (!userProfileID) {
+      alert("Your profile is not fully loaded. Please try logging out and logging back in, or contact support.");
+      console.error("❌ userProfileID is missing in user object:", user);
+      return;
+    }
+
     if (!formData.foodName || !formData.culturalOrigin || !formData.culturalStory) {
       alert("Food Name, Cultural Origin and Cultural Story are required.");
       return;
@@ -98,7 +106,7 @@ export default function Community() {
       submitData.append("culturalStory", formData.culturalStory);
       submitData.append("recipe", formData.recipe || "");
       console.log("User object:", user);
-      submitData.append("userProfileID", user.id);
+      submitData.append("userProfileID", user.id || user.userProfileID);
 
       submitData.append("author", user?.firstname || user?.email);
 

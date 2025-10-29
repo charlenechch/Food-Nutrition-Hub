@@ -4,7 +4,12 @@ const db = require("../config/db");
 
 router.get("/", async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM food");
+    const [rows] = await db.query(`
+      SELECT f.*, r.status 
+      FROM food f 
+      JOIN recipe r ON f.foodID = r.foodID 
+      WHERE r.status = 'Approved'
+    `);
     res.json(rows);
   } catch (err) {
     console.error("Error fetching foods:", err);
