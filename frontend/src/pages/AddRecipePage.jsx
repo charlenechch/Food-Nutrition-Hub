@@ -29,7 +29,7 @@ const AddRecipePage = () => {
     serving: "",
     time: "",
     difficulty: "",
-    ingredients: "",
+    //ingredients: "",
     benefits: "",
     tags: "",
   });
