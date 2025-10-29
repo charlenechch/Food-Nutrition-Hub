@@ -95,6 +95,13 @@ export default function FoodDetailPage() {
   const isLoggedIn = () => {
     return user && user.role !== "guest";
   };
+  
+  const getUserInitials = (comment) => {
+  console.log('Available fields:', Object.keys(comment)); // DEBUG
+  const username = comment.username || comment.user || comment.author || 'User';
+  console.log('Found username:', username); // DEBUG
+  return username.substring(0, 2).toUpperCase();
+  };
 
  // Check if food is already saved on mount
   useEffect(() => {
@@ -106,9 +113,17 @@ export default function FoodDetailPage() {
   const checkSavedStatus = async () => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      console.log('🔍 Checking saved status for food:', id);
+
       const response = await fetch(`${API_BASE_URL}/api/saveFood/check/${id}`, {
-        credentials: 'include' // Important for session
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        }, 
       });
+
+      console.log('📊 Save check response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
@@ -125,14 +140,7 @@ export default function FoodDetailPage() {
       setSaved(false);
     }
   };
-
-  const getUserInitials = (comment) => {
-  console.log('Available fields:', Object.keys(comment)); // DEBUG
-  const username = comment.username || comment.user || comment.author || 'User';
-  console.log('Found username:', username); // DEBUG
-  return username.substring(0, 2).toUpperCase();
-  };
-
+  
   const handleSaveFood = async () => {
   if (!isLoggedIn()) {
     setShowLoginPrompt(true);
@@ -142,10 +150,9 @@ export default function FoodDetailPage() {
   setSavedLoading(true);
   try {
     const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    const userProfileID = user?.userProfileID || user?.userID;
     
     const response = await fetch(
-      `${API_BASE_URL}/api/saveFood/${id}?userProfileID=${userProfileID}`, 
+      `${API_BASE_URL}/api/saveFood/${id}`, 
       { 
         method: 'POST',
         headers: {
@@ -154,6 +161,8 @@ export default function FoodDetailPage() {
         credentials: 'include'
       }
     );
+
+    console.log('📊 Save response status:', response.status);
 
     if (response.ok) {
       const data = await response.json();
