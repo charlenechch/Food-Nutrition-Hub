@@ -313,6 +313,7 @@ router.post('/:discussionId/replies', async (req, res) => {
     const selectSql = `
       SELECT 
         r.replyID,
+        r.userProfileID, 
         CONCAT(u.firstname, ' ', u.lastname) AS username,
         up.avatar as avatar,
         r.reply as content,
