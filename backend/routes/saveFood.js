@@ -274,7 +274,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-// Check if food/recipe is saved by user (WITH LINKING)
+// Check if food/recipe is saved by user (USING FOODID LINK)
 router.get('/check/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -301,26 +301,20 @@ router.get('/check/:id', async (req, res) => {
     let foodIdToCheck = null;
     let recipeIdToCheck = null;
 
-    // ✅ FIND BOTH IDs TO CHECK
+    // ✅ USE THE EXISTING FOODID LINK
     if (type === 'food') {
       foodIdToCheck = id;
       
-      // Find linked recipe
-      const [food] = await db.execute('SELECT name FROM food WHERE foodID = ?', [id]);
-      if (food.length > 0) {
-        const [recipes] = await db.execute('SELECT recipeID FROM recipe WHERE name = ?', [food[0].name]);
-        recipeIdToCheck = recipes.length > 0 ? recipes[0].recipeID : null;
-      }
+      // Find recipe that links to this food
+      const [recipes] = await db.execute('SELECT recipeID FROM recipe WHERE foodID = ?', [id]);
+      recipeIdToCheck = recipes.length > 0 ? recipes[0].recipeID : null;
       
     } else if (type === 'recipe') {
       recipeIdToCheck = id;
       
-      // Find linked food
-      const [recipe] = await db.execute('SELECT name FROM recipe WHERE recipeID = ?', [id]);
-      if (recipe.length > 0) {
-        const [foods] = await db.execute('SELECT foodID FROM food WHERE name = ?', [recipe[0].name]);
-        foodIdToCheck = foods.length > 0 ? foods[0].foodID : null;
-      }
+      // Find the food ID that this recipe links to
+      const [recipes] = await db.execute('SELECT foodID FROM recipe WHERE recipeID = ?', [id]);
+      foodIdToCheck = recipes.length > 0 ? recipes[0].foodID : null;
     }
 
     console.log('🔍 Checking - FoodID:', foodIdToCheck, 'RecipeID:', recipeIdToCheck);
@@ -345,141 +339,6 @@ router.get('/check/:id', async (req, res) => {
       success: false, 
       error: 'Internal server error' 
     });
-  }
-});
-
-// Save/Unsave a food or recipe (WITH LINKING)
-router.post('/:id', async (req, res) => {
-  console.log('=== SAVE FOOD/RECIPE REQUEST ===');
-  console.log('Session:', req.session);
-  console.log('Session user:', req.session.user);
-  console.log('Request body:', req.body); 
-  
-  try {
-    const { id } = req.params;
-    const { userProfileID: bodyUserProfileID, type = 'food' } = req.body; 
-
-    const finalUserProfileID = bodyUserProfileID || req.session.user?.userProfileID;
-    
-    console.log('🔍 UserProfileID sources:');
-    console.log('  - From body:', bodyUserProfileID);
-    console.log('  - From session:', req.session.user?.userProfileID);
-    console.log('  - Final userProfileID to use:', finalUserProfileID);
-    console.log('🔍 Save type:', type, 'ID:', id);
-
-    if (!req.session.user && !bodyUserProfileID) {
-      console.log('❌ NO USER IN SESSION AND NO userProfileID IN BODY - UNAUTHORIZED');
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Please log in to continue' 
-      });
-    }
-
-    if (!finalUserProfileID) {
-      console.log('❌ userProfileID is missing from both session and body');
-      return res.status(400).json({
-        success: false,
-        error: 'User profile ID not found'
-      });
-    }
-
-    console.log('✅ Final User Profile ID to use:', finalUserProfileID);
-    console.log('✅ ID from params:', id);
-
-    if (!id || isNaN(id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Valid ID is required'
-      });
-    }
-
-    let foodIdToUse = null;
-    let recipeIdToUse = null;
-
-    // ✅ FIND BOTH FOOD AND RECIPE IDs (THE FIX!)
-    if (type === 'food') {
-      foodIdToUse = id;
-      
-      // Find recipe with same name as this food
-      const [food] = await db.execute('SELECT name FROM food WHERE foodID = ?', [id]);
-      if (food.length > 0) {
-        const foodName = food[0].name;
-        const [recipes] = await db.execute('SELECT recipeID FROM recipe WHERE name = ?', [foodName]);
-        recipeIdToUse = recipes.length > 0 ? recipes[0].recipeID : null;
-      }
-      
-      console.log('🔗 Food ID:', foodIdToUse, 'Linked Recipe ID:', recipeIdToUse);
-
-    } else if (type === 'recipe') {
-      recipeIdToUse = id;
-      
-      // Find food with same name as this recipe
-      const [recipe] = await db.execute('SELECT name FROM recipe WHERE recipeID = ?', [id]);
-      if (recipe.length > 0) {
-        const recipeName = recipe[0].name;
-        const [foods] = await db.execute('SELECT foodID FROM food WHERE name = ?', [recipeName]);
-        foodIdToUse = foods.length > 0 ? foods[0].foodID : null;
-      }
-      
-      console.log('🔗 Recipe ID:', recipeIdToUse, 'Linked Food ID:', foodIdToUse);
-    }
-
-    console.log('📊 Final IDs to save - FoodID:', foodIdToUse, 'RecipeID:', recipeIdToUse);
-
-    // Check if already saved (check by either ID)
-    console.log('🔍 Checking if already saved...');
-    const [existingSaves] = await db.execute(
-      `SELECT saveID FROM saveFood 
-       WHERE userProfileID = ? 
-       AND (foodID = ? OR recipeID = ?)`,
-      [finalUserProfileID, foodIdToUse, recipeIdToUse]
-    );
-
-    console.log('📊 Existing saves result:', existingSaves);
-
-    if (existingSaves.length > 0) {
-      // Unsave both food and recipe
-      console.log('🗑️ Removing existing save...');
-      await db.execute(
-        `DELETE FROM saveFood 
-         WHERE userProfileID = ? 
-         AND (foodID = ? OR recipeID = ?)`,
-        [finalUserProfileID, foodIdToUse, recipeIdToUse]
-      );
-      console.log('✅ Item unsaved successfully');
-      return res.json({ 
-        success: true, 
-        saved: false, 
-        message: 'Item unsaved successfully' 
-      });
-    } else {
-      // Save both food and recipe IDs
-      console.log('💾 Inserting new save with both IDs...');
-      const [result] = await db.execute(
-        'INSERT INTO saveFood (foodID, recipeID, userProfileID) VALUES (?, ?, ?)',
-        [foodIdToUse, recipeIdToUse, finalUserProfileID]
-      );
-      console.log('✅ Item saved successfully with ID:', result.insertId);
-      return res.json({ 
-        success: true, 
-        saved: true, 
-        message: 'Item saved successfully',
-        data: { saveID: result.insertId }
-      });
-    }
-  } catch (error) {
-    console.error('❌ ERROR SAVING ITEM:');
-    console.error('Error message:', error.message);
-    console.error('Error code:', error.code);
-    console.error('Error stack:', error.stack);
-    
-    res.status(500).json({ 
-      success: false, 
-      error: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  } finally {
-    console.log('=== SAVE ITEM REQUEST END ===');
   }
 });
 
