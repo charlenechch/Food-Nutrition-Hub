@@ -120,6 +120,7 @@ router.get('/food/:foodId', async (req, res) => {
     const sql = `
       SELECT 
         d.discussionID as id,
+        d.userProfileID,
         CONCAT(u.firstname, ' ', u.lastname) AS username,
         up.avatar as avatar,
         d.content,
@@ -195,6 +196,7 @@ router.get('/food/:foodId', async (req, res) => {
         const repliesSql = `
           SELECT 
             r.replyID,
+            r.userProfileID,
             CONCAT(u.firstname, ' ', u.lastname) AS username,
             up.avatar as avatar,
             r.reply as content,
@@ -464,6 +466,39 @@ router.delete('/:commentId', async (req, res) => {
   } catch (error) {
     console.error('Error deleting comment:', error);
     res.status(500).json({ success: false, message: 'Failed to delete comment' });
+  }
+});
+
+// ✅ Delete a reply (ownership check)
+router.delete('/:commentId/replies/:replyId', async (req, res) => {
+  try {
+    const { commentId, replyId } = req.params;
+    const { userProfileID } = req.body;
+
+    console.log('🔄 Delete reply request:', { commentId, replyId, userProfileID });
+
+    if (!userProfileID) {
+      return res.status(400).json({ success: false, message: 'userProfileID is required' });
+    }
+
+    // FIX: Changed from discussion_replies to reply table
+    const checkSql = 'SELECT replyID FROM reply WHERE replyID = ? AND userProfileID = ? AND discussionID = ?';
+    const checkRes = await db.query(checkSql, [replyId, userProfileID, commentId]);
+    const rows = firstRows(checkRes);
+    
+    console.log('🔍 Reply ownership check result:', rows);
+
+    if (!rows.length) {
+      return res.status(403).json({ success: false, message: 'Reply not found or permission denied' });
+    }
+
+    // FIX: Changed from discussion_replies to reply table
+    await db.query('DELETE FROM reply WHERE replyID = ?', [replyId]);
+    console.log('✅ Reply deleted successfully');
+    res.json({ success: true, message: 'Reply deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting reply:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete reply' });
   }
 });
 
