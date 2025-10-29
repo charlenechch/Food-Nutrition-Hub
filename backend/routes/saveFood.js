@@ -37,16 +37,17 @@ router.get('/check/:foodId', async (req, res) => {
   
   try {
     const { foodId } = req.params;
+    const { userProfileID } = req.query; 
 
-    if (!req.session.user || !req.session.user.userProfileID) {
+    const finalUserProfileID = req.session.user?.userProfileID || userProfileID;
+
+    if (!finalUserProfileID) {
       console.log('❌ No user in session for check');
       return res.status(401).json({ 
         success: false, 
         error: 'Please log in to continue' 
       });
     }
-
-    const userProfileID = req.session.user.userProfileID;
     
     // Validate foodId
     if (!foodId || isNaN(foodId)) {
@@ -100,31 +101,42 @@ router.post('/:foodId', async (req, res) => {
   console.log('=== SAVE FOOD REQUEST ===');
   console.log('Session:', req.session);
   console.log('Session user:', req.session.user);
+  console.log('Request body:', req.body); // Add this line
   
   try {
     const { foodId } = req.params;
+    const { userProfileID: bodyUserProfileID } = req.body; // Rename to avoid conflict
+
+    // Use userProfileID from body OR from session
+    const finalUserProfileID = bodyUserProfileID || req.session.user?.userProfileID;
     
-    // Enhanced session validation
-    if (!req.session.user) {
-      console.log('❌ NO USER IN SESSION - UNAUTHORIZED');
+    console.log('🔍 UserProfileID sources:');
+    console.log('  - From body:', bodyUserProfileID);
+    console.log('  - From session:', req.session.user?.userProfileID);
+    console.log('  - Final userProfileID to use:', finalUserProfileID);
+
+    // Enhanced session validation - but allow body userProfileID as fallback
+    if (!req.session.user && !bodyUserProfileID) {
+      console.log('❌ NO USER IN SESSION AND NO userProfileID IN BODY - UNAUTHORIZED');
       return res.status(401).json({ 
         success: false, 
         error: 'Please log in to continue' 
       });
     }
 
-    const userProfileID = req.session.user.userProfileID;
+    // REMOVE THIS CONFLICTING CODE - you were re-declaring userProfileID
+    // const userProfileID = req.session.user.userProfileID; // ❌ DELETE THIS LINE
     
-    if (!userProfileID) {
-      console.log('❌ userProfileID is missing from session');
+    if (!finalUserProfileID) {
+      console.log('❌ userProfileID is missing from both session and body');
       console.log('Available session user keys:', req.session.user ? Object.keys(req.session.user) : 'No user object');
       return res.status(400).json({
         success: false,
-        error: 'User profile ID not found in session'
+        error: 'User profile ID not found'
       });
     }
 
-    console.log('✅ User Profile ID from session:', userProfileID);
+    console.log('✅ Final User Profile ID to use:', finalUserProfileID);
     console.log('✅ Food ID from params:', foodId);
 
     // Validate foodId
@@ -154,11 +166,11 @@ router.post('/:foodId', async (req, res) => {
 
     console.log('✅ Food found:', foodExists[0].foodName);
 
-    // Check if already saved
+    // Check if already saved - USE finalUserProfileID
     console.log('🔍 Checking if already saved...');
     const [existingSaves] = await db.execute(
       'SELECT saveID FROM saveFood WHERE foodID = ? AND userProfileID = ?',
-      [foodId, userProfileID]
+      [foodId, finalUserProfileID] // Use finalUserProfileID here
     );
 
     console.log('📊 Existing saves result:', existingSaves);
@@ -168,7 +180,7 @@ router.post('/:foodId', async (req, res) => {
       console.log('🗑️ Removing existing save...');
       await db.execute(
         'DELETE FROM saveFood WHERE foodID = ? AND userProfileID = ?',
-        [foodId, userProfileID]
+        [foodId, finalUserProfileID] // Use finalUserProfileID here
       );
       console.log('✅ Food unsaved successfully');
       return res.json({ 
@@ -181,7 +193,7 @@ router.post('/:foodId', async (req, res) => {
       console.log('💾 Inserting new save...');
       const [result] = await db.execute(
         'INSERT INTO saveFood (foodID, userProfileID) VALUES (?, ?)',
-        [foodId, userProfileID]
+        [foodId, finalUserProfileID] // Use finalUserProfileID here
       );
       console.log('✅ Food saved successfully with ID:', result.insertId);
       return res.json({ 

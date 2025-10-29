@@ -154,7 +154,9 @@ export default function FoodDetailPage() {
     return;
   }
 
-  if (!user?.userProfileID) {
+  const userProfileID = user?.userID;
+
+  if (!userProfileID) {
     console.error("❌ User data incomplete - cannot save food");
     console.log("Current user object:", user);
     // Try to refresh user data
@@ -173,7 +175,10 @@ export default function FoodDetailPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include'
+        credentials: 'include',
+        body: JSON.stringify({
+        userProfileID: userProfileID 
+        })
       }
     );
 
