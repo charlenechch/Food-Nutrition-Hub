@@ -124,7 +124,8 @@ export default function FoodDetailPage() {
     console.log('👤 Current user ID:', user?.userID);
 
     // ADD userProfileID to the URL as query parameter
-    const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${user?.userID}`;
+    //const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${user?.userID}`;
+    const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${user?.userID}&type=food`;
     
     console.log('📤 Making request to:', url);
 
@@ -174,6 +175,18 @@ export default function FoodDetailPage() {
   setSavedLoading(true);
   try {
     const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+     // ✅ Include both foodID and recipeID when saving
+    // const saveData = {
+    //   userProfileID: userProfileID,
+    //   foodID: id, // Current food ID
+    //   recipeID: food?.recipeId || null // Include recipe ID if available
+    // };
+
+    const saveData = {
+      userProfileID: userProfileID,
+      type: 'food'
+    };
     
     const response = await fetch(
       `${API_BASE_URL}/api/saveFood/${id}`, 
