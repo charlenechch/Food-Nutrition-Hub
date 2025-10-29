@@ -21,10 +21,11 @@ export function AuthProvider({ children }) {
       email: raw.email ?? null,
       firstname: raw.firstname ?? raw.firstName ?? null,
       lastname: raw.lastname ?? raw.lastName ?? null,
+      // ✅ Local-only view mode for admin toggling
+      viewMode: raw.viewMode || raw.role || "member",
     };
   };
 
-  // ✅ Detect logged-in user OR guest (401)
   const checkSession = async () => {
     try {
       const res = await fetch(`${API_URL}/api/auth/session`, {
@@ -33,9 +34,9 @@ export function AuthProvider({ children }) {
       const data = await res.json();
 
       if (res.ok && data?.user) {
-        setUser(normalizeUser(data.user));            // ✅ Logged in
+        setUser(normalizeUser(data.user));
       } else if (res.status === 401) {
-        setUser({ role: "guest" });                   // ✅ Guest mode
+        setUser({ role: "guest", viewMode: "guest" });
       } else {
         setUser(null);
       }
@@ -44,6 +45,17 @@ export function AuthProvider({ children }) {
       setUser(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ✅ Toggle view mode (admin can switch UI but stay admin)
+  const toggleRole = async () => {
+    if (!user) return;
+
+    // If admin, just change their viewMode (not role)
+    if (user.role === "admin") {
+      const newMode = user.viewMode === "admin" ? "member" : "admin";
+      setUser((prev) => ({ ...prev, viewMode: newMode }));
     }
   };
 
@@ -68,16 +80,30 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await fetch(`${API_URL}/api/logout`, { method: "POST", credentials: "include" });
+      await fetch(`${API_URL}/api/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
     } finally {
       setUser(null);
     }
   };
 
-  const loginAsGuest = () => setUser({ role: "guest" });
+  const loginAsGuest = () => setUser({ role: "guest", viewMode: "guest" });
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, login, logout, loginAsGuest, checkSession }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        loading,
+        login,
+        logout,
+        loginAsGuest,
+        checkSession,
+        toggleRole,
+      }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );
