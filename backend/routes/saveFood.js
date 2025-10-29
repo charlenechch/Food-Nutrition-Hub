@@ -4,27 +4,41 @@ const db = require('../config/db');
 
 // Middleware to check authentication
 const requireAuth = (req, res, next) => {
+  console.log('=== AUTH MIDDLEWARE CHECK ===');
+  console.log('Session ID:', req.sessionID);
+  console.log('Session user:', req.session.user);
+  console.log('Session keys:', Object.keys(req.session));
+  
   if (!req.session.user) {
+    console.log('❌ No user in session - UNAUTHORIZED');
     return res.status(401).json({ 
       success: false, 
       error: 'Please log in to continue' 
     });
   }
+  
+  if (!req.session.user.userProfileID) {
+    console.log('❌ No userProfileID in session user object');
+    return res.status(400).json({
+      success: false,
+      error: 'User profile ID not found in session'
+    });
+  }
+  
+  console.log('✅ User authenticated:', req.session.user.userProfileID);
   next();
 };
-
-// Apply auth to all routes
-router.use(requireAuth);
 
 // Check if food is saved by user
 router.get('/check/:foodId', async (req, res) => {
   console.log('=== CHECK SAVE STATUS REQUEST ===');
+  console.log('Session:', req.session);
   console.log('Session user:', req.session.user);
   
   try {
     const { foodId } = req.params;
 
-    if (!req.session.user) {
+    if (!req.session.user || !req.session.user.userProfileID) {
       console.log('❌ No user in session for check');
       return res.status(401).json({ 
         success: false, 
@@ -33,14 +47,16 @@ router.get('/check/:foodId', async (req, res) => {
     }
 
     const userProfileID = req.session.user.userProfileID;
-    console.log('Checking save status - Food:', foodId, 'User:', userProfileID);
-
-    if (!userProfileID) {
+    
+    // Validate foodId
+    if (!foodId || isNaN(foodId)) {
       return res.status(400).json({
         success: false,
-        error: 'User profile ID not found'
+        error: 'Valid food ID is required'
       });
     }
+
+    console.log('Checking save status - Food:', foodId, 'User:', userProfileID);
 
     // Check if food exists first
     const [foodExists] = await db.execute(
@@ -64,7 +80,8 @@ router.get('/check/:foodId', async (req, res) => {
 
     res.json({
       success: true,
-      saved: saves.length > 0
+      saved: saves.length > 0,
+      userProfileID: userProfileID // For debugging
     });
   } catch (error) {
     console.error('❌ ERROR CHECKING SAVE STATUS:');
@@ -80,10 +97,14 @@ router.get('/check/:foodId', async (req, res) => {
 
 // Save/Unsave a food 
 router.post('/:foodId', async (req, res) => {
+  console.log('=== SAVE FOOD REQUEST ===');
+  console.log('Session:', req.session);
+  console.log('Session user:', req.session.user);
   
   try {
     const { foodId } = req.params;
     
+    // Enhanced session validation
     if (!req.session.user) {
       console.log('❌ NO USER IN SESSION - UNAUTHORIZED');
       return res.status(401).json({ 
@@ -93,26 +114,28 @@ router.post('/:foodId', async (req, res) => {
     }
 
     const userProfileID = req.session.user.userProfileID;
+    
+    if (!userProfileID) {
+      console.log('❌ userProfileID is missing from session');
+      console.log('Available session user keys:', req.session.user ? Object.keys(req.session.user) : 'No user object');
+      return res.status(400).json({
+        success: false,
+        error: 'User profile ID not found in session'
+      });
+    }
+
     console.log('✅ User Profile ID from session:', userProfileID);
     console.log('✅ Food ID from params:', foodId);
 
-    if (!userProfileID) {
-      console.log('❌ userProfileID is undefined/null');
+    // Validate foodId
+    if (!foodId || isNaN(foodId)) {
       return res.status(400).json({
         success: false,
-        error: 'User profile ID not found'
+        error: 'Valid food ID is required'
       });
     }
 
-    if (!foodId) {
-      console.log('❌ foodId is undefined/null');
-      return res.status(400).json({
-        success: false,
-        error: 'Food ID is required'
-      });
-    }
-
-    // Validate food exists
+    // Check if food exists
     console.log('🔍 Checking if food exists in database...');
     const [foodExists] = await db.execute(
       'SELECT foodID, foodName FROM food WHERE foodID = ?',
@@ -143,7 +166,7 @@ router.post('/:foodId', async (req, res) => {
     if (existingSaves.length > 0) {
       // If already saved, unsave (remove)
       console.log('🗑️ Removing existing save...');
-      const deleteResult = await db.execute(
+      await db.execute(
         'DELETE FROM saveFood WHERE foodID = ? AND userProfileID = ?',
         [foodId, userProfileID]
       );
@@ -173,7 +196,6 @@ router.post('/:foodId', async (req, res) => {
     console.error('Error message:', error.message);
     console.error('Error code:', error.code);
     console.error('Error stack:', error.stack);
-    console.error('Full error object:', error);
     
     res.status(500).json({ 
       success: false, 

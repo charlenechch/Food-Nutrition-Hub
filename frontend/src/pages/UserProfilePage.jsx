@@ -863,18 +863,35 @@ export default function UserProfilePage() {
                             <div className="upp-muted">
                               {c.type || "Food"} • Submitted on {formatContributionDate(c.submittedDate)}
                             </div>
-                            {c.status === "needs_revision" && (
+                            {(c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected") && (
                               <button
                                 className="lrp-btn lrp-btn-outline upp-revise-btn"
-                                onClick={() =>
-                                  navigate(`/revise/${c.id}`, {
-                                    state: {
-                                      owner: `${user.firstName} ${user.lastName}`,
-                                      id: c.id,
-                                      snapshot: JSON.parse(JSON.stringify(c)),
-                                    },
-                                  })
-                                }
+                                onClick={() => {
+                                  // ✅ Navigate to different pages based on contribution type
+                                  if (c.type === "community" || c.type === "post" || c.type === "story") {
+                                    // Navigate to community post revision page
+                                    navigate("/revisecommunitypostpage", {
+                                      state: {
+                                        contribution: c,
+                                        user: user,
+                                        id: c.id,
+                                        snapshot: JSON.parse(JSON.stringify(c)),
+                                      },
+                                    });
+                                  } else {
+                                    // Navigate to food revision page
+                                    navigate(`/revise/${c.id}`, {
+                                      state: {
+                                        owner: `${user.firstName} ${user.lastName}`,
+                                        id: c.id,
+                                        snapshot: JSON.parse(JSON.stringify(c)),
+                                        contributionData: c,
+                                        adminFeedback: c.feedback,
+                                        fieldsWithIssues: c.fieldsWithIssues || []
+                                      },
+                                    });
+                                  }
+                                }}
                                 type="button"
                               >
                                 Revise

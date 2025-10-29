@@ -91,9 +91,23 @@ export default function FoodDetailPage() {
       setCommentsLoading(false);
     }
   };
-  // Check if user is logged in (using AuthContext, NOT localStorage)
+  // Check if user is logged in 
   const isLoggedIn = () => {
-    return user && user.role !== "guest";
+  const loggedIn = user && user.role !== "guest";
+  console.log('🔐 isLoggedIn check:', {
+    loggedIn,
+    user: user,
+    hasUserProfileID: user?.userProfileID,
+    role: user?.role
+  });
+  return loggedIn;
+};
+  
+  const getUserInitials = (comment) => {
+  console.log('Available fields:', Object.keys(comment)); // DEBUG
+  const username = comment.username || comment.user || comment.author || 'User';
+  console.log('Found username:', username); // DEBUG
+  return username.substring(0, 2).toUpperCase();
   };
 
  // Check if food is already saved on mount
@@ -106,9 +120,17 @@ export default function FoodDetailPage() {
   const checkSavedStatus = async () => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      console.log('🔍 Checking saved status for food:', id);
+
       const response = await fetch(`${API_BASE_URL}/api/saveFood/check/${id}`, {
-        credentials: 'include' // Important for session
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        }, 
       });
+
+      console.log('📊 Save check response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
@@ -125,27 +147,27 @@ export default function FoodDetailPage() {
       setSaved(false);
     }
   };
-
-  const getUserInitials = (comment) => {
-  console.log('Available fields:', Object.keys(comment)); // DEBUG
-  const username = comment.username || comment.user || comment.author || 'User';
-  console.log('Found username:', username); // DEBUG
-  return username.substring(0, 2).toUpperCase();
-  };
-
+  
   const handleSaveFood = async () => {
   if (!isLoggedIn()) {
     setShowLoginPrompt(true);
     return;
   }
 
+  if (!user?.userProfileID) {
+    console.error("❌ User data incomplete - cannot save food");
+    console.log("Current user object:", user);
+    // Try to refresh user data
+    setShowLoginPrompt(true); 
+    return;
+  }
+
   setSavedLoading(true);
   try {
     const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    const userProfileID = user?.userProfileID || user?.userID;
     
     const response = await fetch(
-      `${API_BASE_URL}/api/saveFood/${id}?userProfileID=${userProfileID}`, 
+      `${API_BASE_URL}/api/saveFood/${id}`, 
       { 
         method: 'POST',
         headers: {
@@ -154,6 +176,8 @@ export default function FoodDetailPage() {
         credentials: 'include'
       }
     );
+
+    console.log('📊 Save response status:', response.status);
 
     if (response.ok) {
       const data = await response.json();

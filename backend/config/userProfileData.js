@@ -7,7 +7,6 @@ const userProfile = [
     bio: 'Passionate about preserving Sarawak culinary heritage',
     dietaryPreference: 'none',
     allergies: 'noAllergies',
-    avatar: 'IR',
     emailNotifications: true,
     pushNotifications: true,
     profileVisibility: true,
@@ -19,7 +18,6 @@ const userProfile = [
     bio: 'Food enthusiast and recipe collector',
     dietaryPreference: 'vegetarian',
     allergies: 'nutsAllergy',
-    avatar: 'LC',
     emailNotifications: true,
     pushNotifications: false,
     profileVisibility: true,
@@ -31,7 +29,6 @@ const userProfile = [
     bio: 'Traditional Sarawak cuisine lover',
     dietaryPreference: 'halal',
     allergies: 'seafoodAllergy',
-    avatar: 'FC',
     emailNotifications: false,
     pushNotifications: true,
     profileVisibility: true,
@@ -43,7 +40,6 @@ const userProfile = [
     bio: 'Home cook sharing family recipes',
     dietaryPreference: 'vegan',
     allergies: 'noAllergies',
-    avatar: 'VT',
     emailNotifications: true,
     pushNotifications: true,
     profileVisibility: false,
@@ -55,7 +51,6 @@ const userProfile = [
     bio: 'Food blogger and photographer',
     dietaryPreference: 'none',
     allergies: 'spicyRestriction',
-    avatar: 'VL',
     emailNotifications: true,
     pushNotifications: true,
     profileVisibility: true,
@@ -67,7 +62,6 @@ const userProfile = [
     bio: 'Love exploring local markets and street food',
     dietaryPreference: 'vegetarian',
     allergies: 'noAllergies',
-    avatar: 'LS',
     emailNotifications: false,
     pushNotifications: false,
     profileVisibility: true,
@@ -79,7 +73,6 @@ const userProfile = [
     bio: 'Traditional cooking methods expert',
     dietaryPreference: 'halal',
     allergies: 'nutsAllergy',
-    avatar: 'EB',
     emailNotifications: true,
     pushNotifications: true,
     profileVisibility: true,
@@ -91,7 +84,6 @@ const userProfile = [
     bio: 'Indigenous recipes preservationist',
     dietaryPreference: 'none',
     allergies: 'seafoodAllergy',
-    avatar: 'BB',
     emailNotifications: true,
     pushNotifications: false,
     profileVisibility: true,
@@ -103,7 +95,6 @@ const userProfile = [
     bio: 'Fusion cuisine experimenter',
     dietaryPreference: 'vegan',
     allergies: 'spicyRestriction',
-    avatar: 'LJ',
     emailNotifications: false,
     pushNotifications: true,
     profileVisibility: false,
@@ -115,7 +106,6 @@ const userProfile = [
     bio: 'Local ingredients specialist',
     dietaryPreference: 'vegetarian',
     allergies: 'noAllergies',
-    avatar: 'ML',
     emailNotifications: true,
     pushNotifications: true,
     profileVisibility: true,
@@ -127,8 +117,8 @@ const userProfile = [
   try {
     for (const profile of userProfile) {
       const sql = `
-        INSERT INTO userProfile (userID, location, bio, dietaryPreference, allergies, avatar, emailNotifications, pushNotifications, profileVisibility, language)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO userProfile (userID, location, bio, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       const values = [
@@ -137,7 +127,6 @@ const userProfile = [
         profile.bio,
         profile.dietaryPreference,
         profile.allergies,
-        profile.avatar,
         profile.emailNotifications,
         profile.pushNotifications,
         profile.profileVisibility,
