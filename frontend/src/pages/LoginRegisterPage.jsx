@@ -348,7 +348,23 @@ export default function LoginRegisterPage() {
     }
 
     try {
-      // ✅ Step 1 — Register in MySQL database
+      // Create Firebase user
+      const fb = await createUserWithEmailAndPassword(
+        auth,
+        regEmail,
+        regPassword
+      );
+
+      // Capture Firebase UID
+      const firebaseUID = fb.user.uid;
+      console.log("Firebase user created:", firebaseUID);
+
+      // Send Firebase verification email
+      await sendEmailVerification(fb.user, {
+        url: window.location.origin + "/loginregister",
+      });
+
+      // Register in MySQL database WITH Firebase UID
       const res = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         credentials: "include",
@@ -358,6 +374,7 @@ export default function LoginRegisterPage() {
           lastname: lastName,
           email: regEmail,
           password: regPassword,
+          firebaseUID: firebaseUID,
         }),
       });
 
@@ -367,18 +384,6 @@ export default function LoginRegisterPage() {
         return;
       }
 
-      // ✅ Step 2 — Create Firebase user
-      const fb = await createUserWithEmailAndPassword(
-        auth,
-        regEmail,
-        regPassword
-      );
-
-      // ✅ Step 3 — Send Firebase verification email
-      await sendEmailVerification(fb.user, {
-        url: window.location.origin + "/loginregister",
-      });
-
       alert("Registration successful! Please verify your email to continue.");
       setFirstName("");
       setLastName("");
@@ -387,11 +392,25 @@ export default function LoginRegisterPage() {
       setActiveTab("login");
     } catch (err) {
       console.error("Register error:", err);
-      setRegisterError("Something went wrong. Try again.");
+      
+      // Log which system failed for debugging
+      if (err.code === 'auth/email-already-in-use') {
+        console.error("Firebase: Email already exists in Firebase Authentication");
+        setRegisterError("This email is already registered. Please use a different email or try logging in.");
+      } else if (err.code === 'auth/invalid-email') {
+        console.error("Firebase: Invalid email format");
+        setRegisterError("Invalid email format. Please check your email address.");
+      } else if (err.code === 'auth/network-request-failed') {
+        console.error("Firebase: Network request failed");
+        setRegisterError("Network error. Please check your internet connection and try again.");
+      } else {
+        console.error("Firebase: Unknown error -", err.code);
+        setRegisterError("Registration failed. Please try again or contact support.");
+      }
     }
   };
 
-  // ✅ Guest login → does not affect member/admin sessions
+  // Guest login - does not affect member/admin sessions
   const handleGuest = () => {
     loginAsGuest();
     navigate("/home");

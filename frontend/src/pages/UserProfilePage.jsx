@@ -11,7 +11,6 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Bell, Eye, Globe, Shield, ExternalLink, OctagonX, Camera, X } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
-import { getAuth, deleteUser as deleteFirebaseUser } from 'firebase/auth';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -224,27 +223,41 @@ export default function UserProfilePage() {
     loadProfile();
   }, [userProfileID]);
 
-  // Delete account handler
+  // Delete account handler - Backend password verification
   const handleDeleteAccount = async () => {
-    // Confirm before deleting
+    // Confirm deletion
     const confirmed = window.confirm(
       "Are you sure you want to delete your account? This action cannot be undone and will remove all your data."
     );
     
     if (!confirmed) return;
 
+    // Ask for password to verify
+    const password = prompt("For security, please enter your password to confirm account deletion:");
+    
+    if (!password) {
+      alert("Account deletion cancelled.");
+      return;
+    }
+
     try {
-      // Delete from Firebase Authentication (frontend)
-      const { getAuth, deleteUser: deleteFirebaseUser } = await import('firebase/auth');
-      const auth = getAuth();
-      const firebaseUser = auth.currentUser;
-      
-      if (firebaseUser) {
-        await deleteFirebaseUser(firebaseUser);
-        console.log('✓ Deleted from Firebase Authentication');
+      // Verify password with backend
+      const verifyRes = await fetch(`${API_BASE_URL}/api/auth/verifyAccountDeletion`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
+
+      if (!verifyRes.ok) {
+        const verifyData = await verifyRes.json();
+        alert(verifyData.error || "Incorrect password. Account deletion cancelled.");
+        return;
       }
-      
-      // Delete from MySQL database (backend)
+
+      console.log("Password verified");
+
+      // Delete account (backend handles both MySQL and Firebase)
       const res = await fetch(`${API_BASE_URL}/api/userProfile/delete`, {
         method: 'DELETE',
         credentials: 'include',
@@ -255,23 +268,14 @@ export default function UserProfilePage() {
       
       if (res.ok && data.success) {
         alert('Account deleted successfully');
-        
-        // Logout and redirect to home (you might have a logout function from auth context)
-        // If you have useAuth(), call logout() here
-        window.location.href = '/'; // Redirect to home
+        window.location.href = '/';
       } else {
-        alert(data.error || 'Failed to delete account from database');
+        alert(data.error || 'Failed to delete account');
       }
       
     } catch (error) {
       console.error('Error deleting account:', error);
-      
-      // Handle specific Firebase errors
-      if (error.code === 'auth/requires-recent-login') {
-        alert('For security, please log out and log back in before deleting your account.');
-      } else {
-        alert('Failed to delete account. Please try again.');
-      }
+      alert('Failed to delete account. Please try again.');
     }
   };
 
