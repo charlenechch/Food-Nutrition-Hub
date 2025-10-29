@@ -103,10 +103,6 @@ const requireAuth = (req, res, next) => {
 
 // Check if food/recipe is saved by user
 router.get('/check/:id', async (req, res) => {
-  console.log('=== CHECK SAVE STATUS REQUEST ===');
-  console.log('Session:', req.session);
-  console.log('Session user:', req.session.user);
-  console.log('Query params:', req.query); 
   
   try {
     const { id } = req.params;
@@ -142,10 +138,8 @@ router.get('/check/:id', async (req, res) => {
 
     if (type === 'food') {
       // Check if food exists first
-      const [foodExists] = await db.execute(
-        'SELECT foodID FROM food WHERE foodID = ?',
-        [id]
-      );
+      query = 'SELECT saveID FROM saveFood WHERE foodID = ? AND userProfileID = ?';
+      params = [id, finalUserProfileID];
 
       if (foodExists.length === 0) {
         return res.status(404).json({
