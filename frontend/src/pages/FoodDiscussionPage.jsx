@@ -211,12 +211,12 @@ export default function FoodDiscussionPage() {
   const location = useLocation();
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // const isGuest = !user || user.role === "guest";
-  // const userProfileID = isGuest ? null : user?.userProfileID || user?.userID || user?.id || user?.profileID;
-
   const isGuest = !user || user.role === "guest";
-  let userProfileID = isGuest ? null : user?.userProfileID;
-  const canComment = !isGuest && !!userProfileID;
+  const userProfileID = isGuest ? null : user?.userProfileID || user?.userID || user?.id || user?.profileID;
+
+  // const isGuest = !user || user.role === "guest";
+  // let userProfileID = isGuest ? null : user?.userProfileID;
+  // const canComment = !isGuest && !!userProfileID;
 
   const [food, setFood] = useState(location.state?.food || null);
   const [comments, setComments] = useState([]);
@@ -279,20 +279,17 @@ export default function FoodDiscussionPage() {
 
   // ✅ Post Comment
   const postComment = async () => {
-    // if (isGuest) return setShowLoginPrompt(true);
-    // if (!newComment.trim()) return;
+    if (isGuest) return setShowLoginPrompt(true);
+    if (!newComment.trim()) return;
 
-    if (!canComment) {
-    if (isGuest) {
-      setShowLoginPrompt(true);
-    } else {
-      alert("Your account setup is incomplete. Please contact support.");
-    }
-    return;
-  }
-
-  if (isGuest) return setShowLoginPrompt(true);
-  if (!newComment.trim()) return;
+  //   if (!canComment) {
+  //   if (isGuest) {
+  //     setShowLoginPrompt(true);
+  //   } else {
+  //     alert("Your account setup is incomplete. Please contact support.");
+  //   }
+  //   return;
+  // }
 
     const actualUserProfileID = userProfileID;
     const actualFoodID = foodId;
@@ -365,17 +362,17 @@ export default function FoodDiscussionPage() {
 
   // ✅ Post Reply
 const postReply = async (discussionId) => {
-  //if (isGuest) return setShowLoginPrompt(true);
+  if (isGuest) return setShowLoginPrompt(true);
 
-  if (!canComment) {
-    if (isGuest) {
-      setShowLoginPrompt(true);
-    } else {
-      alert("Your account setup is incomplete. Please contact support.");
-    }
-    return;
-  }
-  
+  // if (!canComment) {
+  //   if (isGuest) {
+  //     setShowLoginPrompt(true);
+  //   } else {
+  //     alert("Your account setup is incomplete. Please contact support.");
+  //   }
+  //   return;
+  // }
+
   const text = replyTexts[discussionId]?.trim();
   if (!text) return;
 
