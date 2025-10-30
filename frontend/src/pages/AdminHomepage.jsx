@@ -1,4 +1,4 @@
-import React, {  useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/AdminDashboard.css";
 import Header from "../components/Header";
@@ -22,13 +22,8 @@ import Analytics from "./Analytics";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("food");
-  const [category, setCategory] = useState("All Categories");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef();
   const navigate = useNavigate();
-  const [showFilters, setShowFilters] = useState(false);
-  const [calorieMin, setCalorieMin] = useState(0);
-  const [calorieMax, setCalorieMax] = useState(2000);
+  const [category, setCategory] = useState("All Categories");
 
   const categories = [
     "All Categories",
@@ -50,41 +45,41 @@ const AdminDashboard = () => {
     flaggedContent: 8,
   };
 
+  // food data 
   const foodData = [
     { name: "Manok Pansoh", category: "Poultry", origin: "Iban", updated: "2024-01-15" },
     { name: "Umai", category: "Seafood", origin: "Melanau", updated: "2024-01-14" },
     { name: "Midin Belacan", category: "Vegetables", origin: "Indigenous", updated: "2024-01-13" },
     { name: "Kasam Babi", category: "Dyvak", origin: "Bidayuh", updated: "2024-01-12" },
+    { name: "Kolo Mee", category: "Noodles", origin: "Chinese", updated: "2024-01-10" },
+    { name: "Laksa Sarawak", category: "Soup", origin: "Sarawak", updated: "2024-01-09" },
   ];
 
-  const [recipes, setRecipes] = useState([
-    {
-      name: "Traditional Manok Pansoh", servings: "4 servings", food: "Manok Pansoh", author: "Chef Ahmad",
-      updated: "2024-01-15", status: "Approved"
-    },
-    {
-      name: "Melanau Umai Recipe", servings: "2 servings", food: "Umai", author: "Sarah Lim",
-      updated: "2024-01-14", status: "Pending"
-    },
-    {
-      name: "Jungle Midin Stir-fry", servings: "3 servings", food: "Midin Belacan", author: "Local Chef",
-      updated: "2024-01-13", status: "Approved"
-    },
-    {
-      name: "Bidayuh Linut Dessert", servings: "6 servings", food: "Linut", author: "Heritage Keeper",
-      updated: "2024-01-12", status: "Rejected"
-    },
+    // recipe data
+    const [recipes, setRecipes] = useState([
+    { name: "Traditional Manok Pansoh", servings: "4 servings", food: "Manok Pansoh", author: "Chef Ahmad", updated: "2024-01-15", status: "Approved" },
+    { name: "Melanau Umai Recipe", servings: "2 servings", food: "Umai", author: "Sarah Lim", updated: "2024-01-14", status: "Pending" },
+    { name: "Jungle Midin Stir-fry", servings: "3 servings", food: "Midin Belacan", author: "Local Chef", updated: "2024-01-13", status: "Approved" },
+    { name: "Bidayuh Linut Dessert", servings: "6 servings", food: "Linut", author: "Heritage Keeper", updated: "2024-01-12", status: "Rejected" },
+    { name: "Terung Dayak Curry", servings: "5 servings", food: "Terung Dayak", author: "Chef Kamal", updated: "2024-01-11", status: "Pending" },
+    { name: "Kolo Mee Sarawak", servings: "3 servings", food: "Kolo Mee", author: "Tan Ming", updated: "2024-01-10", status: "Approved" },
   ]);
 
-  useEffect(() => {
-    const close = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
-  }, []);
+  // content data
+  const [contentPosts] = useState([
+    { id: 1, name: "Manok Pansoh", submitter: "Joanna Lee", date: "2025-10-20", status: "Pending" },
+    { id: 2, name: "Laksa Sarawak", submitter: "Brian Tan", date: "2025-10-22", status: "Pending" },
+    { id: 3, name: "Kuih Lapis Sarawak", submitter: "Lucy Goh", date: "2025-10-23", status: "Pending" },
+    { id: 4, name: "Midin Belacan", submitter: "Alyssa Young", date: "2025-10-25", status: "Rejected" },
+    { id: 5, name: "Kek Lapis Modern", submitter: "Amira Binti Salleh", date: "2025-10-26", status: "Approved" },
+  ]);
+
+  // Filterimg
+  const approvedRecipes = recipes.filter(r => r.status === "Approved");
+  const pendingRecipes = recipes.filter(r => r.status === "Pending" || r.status === "Rejected");
+
+  const approvedContent = contentPosts.filter(c => c.status === "Approved");
+  const pendingContent = contentPosts.filter(c => c.status === "Pending" || c.status === "Rejected");
 
   // Function to render content based on active tab
   const renderContent = () => {
@@ -93,6 +88,8 @@ const AdminDashboard = () => {
         return (
           <>
           <FoodDatabaseSection foodData={foodData} categories={categories} />
+          <RecipeDatabaseSection recipes={approvedRecipes} categories={categories}  sectionType="approved"/>
+          <ContentModerationSection pendingContent={approvedContent} onlyApproved />
         </>
         );
 
@@ -102,8 +99,8 @@ const AdminDashboard = () => {
       case "moderation":
         return (
           <>
-          <RecipeDatabaseSection recipes={recipes} categories={categories} />
-          <ContentModerationSection />
+          <RecipeDatabaseSection recipes={pendingRecipes} categories={categories} sectionType="pending"/>
+          <ContentModerationSection pendingContent={pendingContent} />
           </>
         );
 
@@ -176,7 +173,7 @@ const AdminDashboard = () => {
           className={activeTab === "food" ? "active" : ""}
           onClick={() => setActiveTab("food")}
         >
-          <FiDatabase /> Food Database
+          <FiDatabase /> Database
         </button>
         <button
           className={activeTab === "users" ? "active" : ""}
