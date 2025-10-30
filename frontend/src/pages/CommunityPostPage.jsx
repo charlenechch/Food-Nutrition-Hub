@@ -192,7 +192,6 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
       
       if (response.ok && result.success) {
         onCommentDeleted(commentToDelete);
-        alert('Comment deleted successfully!');
       } else {
         alert(result.message || 'Failed to delete comment');
       }
