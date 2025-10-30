@@ -1,4 +1,4 @@
-// ✅ src/pages/FoodDiscussionPage.jsx (FIXED VERSION)
+// ✅ src/pages/FoodDiscussionPage.jsx 
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
@@ -9,25 +9,39 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
-// ✅ Delete Confirmation Modal Component (MOVED OUTSIDE MAIN COMPONENT)
-const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment" }) => {
+// ✅ Delete Confirmation Modal Component
+const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", isAdminAction = false }) => {
   if (!show) return null;
 
   return (
     <div className="modal-overlay">
       <div className="modal-card">
         <div className="modal-card-header">
-          <h3>Delete {type === "reply" ? "Reply" : "Comment"}</h3>
+          <h3>
+            {isAdminAction ? "Admin: Delete " : "Delete "}
+            {type === "reply" ? "Reply" : "Comment"}
+          </h3>
+          {isAdminAction && (
+            <div className="admin-delete-warning">
+              <i className="fas fa-exclamation-triangle"></i>
+              <span>You are deleting this as an administrator</span>
+            </div>
+          )}
         </div>
         <div className="modal-card-body">
-          <p>Are you sure you want to delete this {type}? This action cannot be undone.</p>
+          <p>
+            {isAdminAction 
+              ? `Are you sure you want to delete this ${type} as an administrator? This action cannot be undone.`
+              : `Are you sure you want to delete this ${type}? This action cannot be undone.`
+            }
+          </p>
         </div>
         <div className="modal-card-actions">
           <button className="lrp-btn lrp-btn-outline" onClick={onClose}>
             Cancel
           </button>
-          <button className="lrp-btn lrp-btn-danger" onClick={onConfirm}>
-            Delete
+          <button className={`lrp-btn ${isAdminAction ? 'lrp-btn-warning' : 'lrp-btn-danger'}`} onClick={onConfirm}>
+            {isAdminAction ? "Delete as Admin" : "Delete"}
           </button>
         </div>
       </div>
@@ -83,6 +97,7 @@ const Comment = React.memo(function Comment({
   isGuest,
   setShowLoginPrompt,
   currentUserId,
+  isAdmin = false, // ✅ ADDED: Admin prop
 }) {
   const itemId = isReply ? (item.replyID || item.id) : (item.id || item.discussionID);
   const username = item.username || "User";
@@ -96,6 +111,9 @@ const Comment = React.memo(function Comment({
   
   // Check if current user is the owner of this comment/reply
   const isOwner = currentUserId && commentUserId && currentUserId.toString() === commentUserId.toString();
+  
+  // ✅ ADDED: Admin can delete any comment/reply
+  const canDelete = isOwner || isAdmin;
 
   const handleLike = () => {
     if (isGuest) return setShowLoginPrompt(true);
@@ -119,9 +137,9 @@ const Comment = React.memo(function Comment({
 
   const handleDelete = () => {
     if (isReply) {
-      onDeleteReply(item.discussionID, itemId);
+      onDeleteReply(item.discussionID, itemId, isAdmin && !isOwner);
     } else {
-      onDeleteComment(itemId);
+      onDeleteComment(itemId, isAdmin && !isOwner);
     }
   };
 
@@ -149,14 +167,15 @@ const Comment = React.memo(function Comment({
           <span className="fd-disc-user">{username}</span>
           <span className="fd-disc-time">• {getTimeAgo(timestamp)}</span>
           
-          {/* ✅ CLEAN DELETE BUTTON - Only show if owner */}
-          {isOwner && (
+          {/* ✅ UPDATED DELETE BUTTON - Show for owners AND admins */}
+          {canDelete && (
             <button 
-              className="fd-delete-btn" 
+              className={`fd-delete-btn ${isAdmin && !isOwner ? 'fd-admin-delete-btn' : ''}`} 
               onClick={handleDelete}
-              title={`Delete ${isReply ? 'reply' : 'comment'}`}
+              title={`Delete ${isReply ? 'reply' : 'comment'}${isAdmin && !isOwner ? ' (Admin)' : ''}`}
             >
               <i className="fas fa-trash-alt"></i>
+              {isAdmin && !isOwner && <span className="admin-badge">Admin</span>}
             </button>
           )}
         </div>
@@ -215,6 +234,7 @@ const Comment = React.memo(function Comment({
                   isGuest={isGuest}
                   setShowLoginPrompt={setShowLoginPrompt}
                   currentUserId={currentUserId}
+                  isAdmin={isAdmin} // ✅ PASS ADMIN PROP TO REPLIES
                 />
               ))}
             </div>
@@ -234,6 +254,9 @@ export default function FoodDiscussionPage() {
 
   const isGuest = !user || user.role === "guest";
   const userProfileID = isGuest ? null : user?.userProfileID || user?.userID || user?.id || user?.profileID;
+  
+  // ✅ ADDED: Check if user is admin
+  const isAdmin = user?.role === "admin";
 
   const [food, setFood] = useState(location.state?.food || null);
   const [comments, setComments] = useState([]);
@@ -249,21 +272,23 @@ export default function FoodDiscussionPage() {
     type: "comment", // "comment" or "reply"
     commentId: null,
     replyId: null,
-    onConfirm: null
+    onConfirm: null,
+    isAdminAction: false // ✅ ADDED: Track if this is an admin action
   });
 
-  // ✅ ADD THIS MISSING FUNCTION
-  const showDeleteConfirmation = (type, commentId, replyId = null) => {
+  // ✅ UPDATED: Delete confirmation function
+  const showDeleteConfirmation = (type, commentId, replyId = null, isAdminAction = false) => {
     setDeleteModal({
       show: true,
       type,
       commentId,
       replyId,
+      isAdminAction,
       onConfirm: () => {
         if (type === "comment") {
-          deleteComment(commentId);
+          deleteComment(commentId, isAdminAction);
         } else {
-          deleteReply(commentId, replyId);
+          deleteReply(commentId, replyId, isAdminAction);
         }
       }
     });
@@ -493,8 +518,8 @@ const postReply = async (discussionId) => {
     }
   };
 
-  // ✅ Delete Comment
-  const deleteComment = async (commentId) => {
+  // Delete Comment (with admin support)
+  const deleteComment = async (commentId, isAdminAction = false) => {
     if (isGuest) return setShowLoginPrompt(true);
 
     try {
@@ -503,7 +528,8 @@ const postReply = async (discussionId) => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          userProfileID: userProfileID
+          userProfileID: userProfileID,
+          isAdminAction: isAdminAction // Tell backend this is admin action
         }),
       });
 
@@ -514,7 +540,8 @@ const postReply = async (discussionId) => {
         setComments(prev => prev.filter(comment => 
           comment.id !== commentId && comment.discussionID !== commentId
         ));
-        setDeleteModal({ show: false, type: "comment", commentId: null, replyId: null, onConfirm: null });
+        setDeleteModal({ show: false, type: "comment", commentId: null, replyId: null, onConfirm: null, isAdminAction: false });
+        alert(isAdminAction ? "Comment deleted successfully as administrator." : "Comment deleted successfully.");
       } else {
         alert(data?.message || "Failed to delete comment");
       }
@@ -524,8 +551,8 @@ const postReply = async (discussionId) => {
     }
   };
 
-  // ✅ Delete Reply
-  const deleteReply = async (commentId, replyId) => {
+  // Delete Reply (with admin support)
+  const deleteReply = async (commentId, replyId, isAdminAction = false) => {
     if (isGuest) return setShowLoginPrompt(true);
 
     try {
@@ -534,7 +561,8 @@ const postReply = async (discussionId) => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          userProfileID: userProfileID
+          userProfileID: userProfileID,
+          isAdminAction: isAdminAction // Tell backend this is admin action
         }),
       });
 
@@ -551,7 +579,8 @@ const postReply = async (discussionId) => {
           }
           return comment;
         }));
-        setDeleteModal({ show: false, type: "reply", commentId: null, replyId: null, onConfirm: null });
+        setDeleteModal({ show: false, type: "reply", commentId: null, replyId: null, onConfirm: null, isAdminAction: false });
+        alert(isAdminAction ? "Reply deleted successfully as administrator." : "Reply deleted successfully.");
       } else {
         alert(data?.message || "Failed to delete reply");
       }
@@ -561,14 +590,14 @@ const postReply = async (discussionId) => {
     }
   };
 
-  // ✅ Handle comment deletion
-  const handleDeleteComment = (commentId) => {
-    showDeleteConfirmation("comment", commentId);
+  // ✅ UPDATED: Handle comment deletion
+  const handleDeleteComment = (commentId, isAdminAction = false) => {
+    showDeleteConfirmation("comment", commentId, null, isAdminAction);
   };
 
-  // ✅ Handle reply deletion
-  const handleDeleteReply = (commentId, replyId) => {
-    showDeleteConfirmation("reply", commentId, replyId);
+  // ✅ UPDATED: Handle reply deletion
+  const handleDeleteReply = (commentId, replyId, isAdminAction = false) => {
+    showDeleteConfirmation("reply", commentId, replyId, isAdminAction);
   };
 
   // ✅ Render Loading
@@ -597,9 +626,10 @@ const postReply = async (discussionId) => {
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal 
         show={deleteModal.show}
-        onClose={() => setDeleteModal({ show: false, type: "comment", commentId: null, replyId: null, onConfirm: null })}
+        onClose={() => setDeleteModal({ show: false, type: "comment", commentId: null, replyId: null, onConfirm: null, isAdminAction: false })}
         onConfirm={deleteModal.onConfirm}
         type={deleteModal.type}
+        isAdminAction={deleteModal.isAdminAction}
       />
 
       <div className="fdp-disc-container">
@@ -607,6 +637,13 @@ const postReply = async (discussionId) => {
           <button className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
             ← Back to Food Details
           </button>
+          {/* ✅ ADDED: Admin badge */}
+          {isAdmin && (
+            <div className="admin-banner">
+              <i className="fas fa-shield-alt"></i>
+              <span>Administrator Mode</span>
+            </div>
+          )}
         </div>
 
         <div className="fd-card fd-summary">
@@ -618,6 +655,7 @@ const postReply = async (discussionId) => {
               <div className="fd-sum-stats">
                 <span>💬 {totalComments} comments</span>
                 <span>♡ {totalLikes} likes</span>
+                {isAdmin && <span className="admin-stat">👑 Admin Mode</span>}
               </div>
             </div>
           </div>
@@ -650,6 +688,7 @@ const postReply = async (discussionId) => {
         <div className="fd-card">
           <h3 className="fd-section-title">
             <i className="fas fa-comment-dots" /> Community Comments ({comments.length})
+            {isAdmin && <span className="admin-subtitle"> (Admin Management Enabled)</span>}
           </h3>
           {comments.length > 0 ? (
             <div className="fd-disc-list">
@@ -668,6 +707,7 @@ const postReply = async (discussionId) => {
                     isGuest={isGuest}
                     setShowLoginPrompt={setShowLoginPrompt}
                     currentUserId={userProfileID}
+                    isAdmin={isAdmin} // ✅ PASS ADMIN PROP
                   />
                   {i < comments.length - 1 && <hr className="fd-divider" />}
                 </React.Fragment>
