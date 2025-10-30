@@ -221,7 +221,7 @@
 /* Cards grid layout */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
 }
 .contribution-card {
@@ -758,6 +758,111 @@
   font-style: italic;
 }
 
+.community-filter-bar {
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem auto 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 1320px;
+}
+
+/* Search container */
+.community-search-container {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 240px;
+  background: #f7f2ed;
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  gap: 0.5rem;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.community-search-container:focus-within {
+  border-color: #8b5e3c;
+  box-shadow: 0 0 0 2px rgba(139, 94, 60, 0.1);
+}
+
+.community-search-container input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* Dropdown filters */
+.community-filter-select {
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  background: #f7f2ed;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.95rem;
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.community-filter-select:hover {
+  border-color: #8b5e3c;
+}
+
+.community-filter-select:focus {
+  outline: none;
+  border-color: #8b5e3c;
+  box-shadow: 0 0 0 2px rgba(139, 94, 60, 0.1);
+}
+
+/* Pagination match with Explore Food */
+.community-pagination {
+  text-align: center;
+  margin: 2rem auto 3rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.community-page-btn {
+  display: inline-block;
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #dddddd;
+  background: #f7f2ed;
+  color: #333333;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.community-page-btn:hover:not(:disabled) {
+  background: #f3e6d9;
+  border-color: #8b5e3c;
+  color: #8b5e3c;
+}
+.community-page-btn.active {
+  background: #8b5e3c;
+  color: #fff;
+  border-color: #8b5e3c;
+}
+.community-page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.community-page-btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+
 /* Responsive Layout */
 @media (max-width: 900px) {
   .post-layout {
@@ -767,5 +872,30 @@
     order: -1;
     position: relative;
     top: 0;
+  }
+}
+
+@media (max-width: 992px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .community-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filter-select {
+    width: 100%;
+  }
+  .search-container {
+    width: 100%;
   }
 }
