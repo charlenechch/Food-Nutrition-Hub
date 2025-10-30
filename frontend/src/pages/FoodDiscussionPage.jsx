@@ -214,10 +214,6 @@ export default function FoodDiscussionPage() {
   const isGuest = !user || user.role === "guest";
   const userProfileID = isGuest ? null : user?.userProfileID || user?.userID || user?.id || user?.profileID;
 
-  // const isGuest = !user || user.role === "guest";
-  // let userProfileID = isGuest ? null : user?.userProfileID;
-  // const canComment = !isGuest && !!userProfileID;
-
   const [food, setFood] = useState(location.state?.food || null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -281,15 +277,6 @@ export default function FoodDiscussionPage() {
   const postComment = async () => {
     if (isGuest) return setShowLoginPrompt(true);
     if (!newComment.trim()) return;
-
-  //   if (!canComment) {
-  //   if (isGuest) {
-  //     setShowLoginPrompt(true);
-  //   } else {
-  //     alert("Your account setup is incomplete. Please contact support.");
-  //   }
-  //   return;
-  // }
 
     const actualUserProfileID = userProfileID;
     const actualFoodID = foodId;
@@ -363,16 +350,6 @@ export default function FoodDiscussionPage() {
   // ✅ Post Reply
 const postReply = async (discussionId) => {
   if (isGuest) return setShowLoginPrompt(true);
-
-  // if (!canComment) {
-  //   if (isGuest) {
-  //     setShowLoginPrompt(true);
-  //   } else {
-  //     alert("Your account setup is incomplete. Please contact support.");
-  //   }
-  //   return;
-  // }
-
   const text = replyTexts[discussionId]?.trim();
   if (!text) return;
 
