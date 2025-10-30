@@ -132,6 +132,7 @@ app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
 const allowedOrigins = [
   "http://localhost:5173",
   "https://food-nutrition-hub.vercel.app",
+  "https://food-nutrition-3iuim4cpf-fyp-group10-fnh.vercel.app"
 ];
 
 app.use(
