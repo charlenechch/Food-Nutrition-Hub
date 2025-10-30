@@ -152,7 +152,7 @@
   color: #3d2b1f;
 }
 
-.food-filters { 
+.food-filters {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -164,7 +164,6 @@
   position: relative;
   flex: 1;
 }
-
 .search-box input {
   width: 100%;
   padding: 10px 14px 10px 38px;
@@ -666,6 +665,50 @@
   outline: none;
   box-shadow: none;
 }
+
+.admin-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 18px;
+  gap: 8px;
+}
+
+.admin-pagination button {
+  background: #f9f6f2;
+  border: 1px solid #d8c7b2;
+  color: #3d2b1f;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-pagination button:hover:not(:disabled) {
+  background: #f3e8dc;
+}
+
+.admin-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-pagination button.active {
+  background: #8b5e3c;
+  color: #fff;
+  border-color: #8b5e3c;
+  outline: none; 
+}
+
+.admin-pagination button.focus, .admin-pagination button:focus-visible, 
+.admin-pagination button:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: #d5c2ac !important;
+}
+
+
 
 /* user management tab */
 .user-mgmt {
@@ -1413,3 +1456,4 @@
     padding: 9px;
   }
 }
+

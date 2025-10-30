@@ -4,7 +4,7 @@ import { FaRegFlag, FaPlus } from "react-icons/fa6";
 import { CiSearch, CiFilter } from "react-icons/ci";
 import { MdOutlineFileUpload, MdOutlineRemoveRedEye } from "react-icons/md";
 
-const RecipeDatabaseSection = ({ recipes, categories }) => {
+const RecipeDatabaseSection =({ recipes, categories, sectionType = "approved" }) => {
   const navigate = useNavigate();
 
   const [category, setCategory] = useState("All Categories");
@@ -14,6 +14,19 @@ const RecipeDatabaseSection = ({ recipes, categories }) => {
   const [showFilters, setShowFilters] = useState(false);
   const [calorieMin, setCalorieMin] = useState(0);
   const [calorieMax, setCalorieMax] = useState(2000);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const recipesPerPage = 5;
+
+  const indexOfLastRecipe = currentPage * recipesPerPage;
+  const indexOfFirstRecipe = indexOfLastRecipe - recipesPerPage;
+  const currentRecipes = recipes.slice(indexOfFirstRecipe, indexOfLastRecipe);
+  const totalPages = Math.ceil(recipes.length / recipesPerPage);
+
+  const handlePageChange = (pageNum) => {
+    if (pageNum >= 1 && pageNum <= totalPages) setCurrentPage(pageNum);
+  };
 
   useEffect(() => {
     const closeDropdown = (e) => {
@@ -25,23 +38,50 @@ const RecipeDatabaseSection = ({ recipes, categories }) => {
     return () => document.removeEventListener("click", closeDropdown);
   }, []);
 
+  // Dynamic heading based on sectionType
+  const sectionTitle =
+    sectionType === "approved"
+      ? "Recipe Database"
+      : sectionType === "pending"
+      ? "Pending Recipe Approval"
+      : "Recipe Management";
+
+  // === Defensive check for empty list ===
+  if (!recipes || recipes.length === 0) {
+    return (
+      <div className="recipe-database-section">
+        <h2>
+          <FaRegFlag style={{ marginRight: 8 }} />
+          {sectionTitle}
+        </h2>
+        <p style={{ textAlign: "center", marginTop: "20px" }}>No recipes available.</p>
+      </div>
+    );
+  }
+
+
   return (
     <div className="recipe-database-section">
+      {/* === Header Section === */}
       <div className="recipe-header">
         <h2>
-          <span className="recipe-icon"><FaRegFlag /></span> Recipe Database
+          <span className="recipe-icon"><FaRegFlag /></span> {sectionTitle}
         </h2>
-        <div className="recipe-actions">
-          <button
-            className="admin-recipe-btn-add"
-            onClick={() => navigate("/admin/addrecipe")}
-          >
-            <FaPlus /> Add New Recipe
-          </button>
-          <button className="admin-recipe-btn-import">
-            <MdOutlineFileUpload /> Bulk Import
-          </button>
-        </div>
+
+         {/* Only show Add/Import buttons for Approved view */}
+        {sectionType === "approved" && (
+          <div className="recipe-actions">
+            <button
+              className="admin-recipe-btn-add"
+              onClick={() => navigate("/admin/addrecipe")}
+            >
+              <FaPlus /> Add New Recipe
+            </button>
+            <button className="admin-recipe-btn-import">
+              <MdOutlineFileUpload /> Bulk Import
+            </button>
+          </div>
+        )}
       </div>
 
       {/* === Filters === */}
@@ -174,7 +214,7 @@ const RecipeDatabaseSection = ({ recipes, categories }) => {
       )}
 
       {/* === Recipe Table === */}
-      <table className="food-table">
+      <table className="content-table" style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
             <th>Recipe Name</th>
@@ -186,7 +226,7 @@ const RecipeDatabaseSection = ({ recipes, categories }) => {
           </tr>
         </thead>
         <tbody>
-          {recipes.map((recipe, index) => (
+          {currentRecipes.map((recipe, index) => (
             <tr key={index}>
               <td>
                 {recipe.name}
@@ -218,6 +258,35 @@ const RecipeDatabaseSection = ({ recipes, categories }) => {
           ))}
         </tbody>
       </table>
+
+      {/* ✅ Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="admin-pagination">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            ‹ Prev
+          </button>
+
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              onClick={() => handlePageChange(i + 1)}
+              className={currentPage === i + 1 ? "active" : ""}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next ›
+          </button>
+        </div>
+      )}
     </div>
   );
 };

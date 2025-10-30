@@ -824,12 +824,16 @@
 }
 
 /* Pagination match with Explore Food */
+
 .community-pagination {
-  text-align: center;
-  margin: 2rem auto 3rem;
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 2rem auto 0;
+  width: 100%;
+  text-align: center;
 }
 
 .community-page-btn {
@@ -843,25 +847,36 @@
   font-weight: 500;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
+
 .community-page-btn:hover:not(:disabled) {
   background: #f3e6d9;
   border-color: #8b5e3c;
   color: #8b5e3c;
 }
+
 .community-page-btn.active {
   background: #8b5e3c;
   color: #fff;
   border-color: #8b5e3c;
 }
+
 .community-page-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 .community-page-btn:focus {
   outline: none;
   box-shadow: none;
 }
 
+.community-page-btn:focus,
+.community-page-btn:focus-visible,
+.community-page-btn:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: #d5c2ac !important;
+}
 
 /* Responsive Layout */
 @media (max-width: 900px) {
