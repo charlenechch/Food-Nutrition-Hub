@@ -127,21 +127,24 @@ if (IS_PROD) {
 app.use(helmet.noSniff());
 app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
 
-// ---------- 2) Strict CORS (with credentials) ----------
-const allowlist = [
+// ---------- 2) CORS with credentials (for Railway + Vercel) ----------
+const allowedOrigins = [
   "http://localhost:5173",
   "https://food-nutrition-hub.vercel.app",
-  process.env.FRONTEND_ORIGIN, // optional override
-].filter(Boolean);
+];
 
 app.use(
   cors({
-    origin(origin, cb) {
-      // Allow server-to-server / curl (no origin) and allowlisted sites
-      if (!origin || allowlist.includes(origin)) return cb(null, true);
-      return cb(new Error("CORS: Origin not allowed"));
+    origin: function (origin, callback) {
+      // ✅ Allow requests from allowlist OR from same-origin server (no origin)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn("❌ Blocked CORS origin:", origin);
+        callback(new Error("CORS: Origin not allowed"));
+      }
     },
-    credentials: true,
+    credentials: true, // 🔥 Required for cookies/session to work
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
     optionsSuccessStatus: 204,
