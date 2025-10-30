@@ -4,7 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import LoginPromptModal from "../components/LoginPromptModal"; // make sure this path is correct
+import LoginPromptModal from "../components/LoginPromptModal"; 
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 // ------------ Helpers -------------
 function computeIsLoggedIn(user) {
@@ -145,15 +146,63 @@ const LikeButton = ({ postId, initialLikes, user }) => {
 };
 
 // ------------ Comment Section -------------
-const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
+const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDeleted }) => {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState(null);
 
   const isLoggedIn = computeIsLoggedIn(user);
   const isGuest = !isLoggedIn; // single source of truth
+  const currentUserProfileID = getStableProfileId(user);
 
   const openLoginModal = () => setShowLoginModal(true);
+
+  // Open delete confirmation modal
+  const openDeleteModal = (commentId) => {
+    setCommentToDelete(commentId);
+    setShowDeleteModal(true);
+  };
+
+  // Close delete modal
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setCommentToDelete(null);
+  };
+
+  // Confirm and delete comment
+  const confirmDelete = async () => {
+    if (!commentToDelete) return;
+
+    try {
+      setDeletingCommentId(commentToDelete);
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const userProfileID = getStableProfileId(user);
+      
+      const response = await fetch(`${API_BASE_URL}/api/communityPost/comments/${commentToDelete}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ userProfileID }),
+      });
+
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        onCommentDeleted(commentToDelete);
+      } else {
+        alert(result.message || 'Failed to delete comment');
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Error deleting comment');
+    } finally {
+      setDeletingCommentId(null);
+      closeDeleteModal();
+    }
+  };
 
   // Block typing & show modal when guest interacts with the box
   const trapGuestFocus = (e) => {
@@ -195,7 +244,8 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
       const result = await response.json();
       if (response.ok && result.success) {
         onCommentAdded(result.comment);
-        setComment("");
+        setComment(""); 
+        alert("Comment posted successfully!");
       } else {
         // Leave silent for UX; console helps debugging
         console.error("Comment failed:", result.message);
@@ -207,10 +257,42 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
     }
   };
 
+// Check if current user is the author of a comment
+  const isCommentAuthor = (commentUserProfileID) => {
+    return currentUserProfileID && commentUserProfileID === currentUserProfileID;
+  };
+
   return (
     <div className="comment-section">
+      {/* Login Modal */}
       {showLoginModal && (
         <LoginPromptModal onClose={() => setShowLoginModal(false)} />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <div className="modal-card-header">
+              <h3>Delete Comment</h3>
+            </div>
+            <div className="modal-card-body">
+              <p>Are you sure you want to delete this comment? This action cannot be undone.</p>
+            </div>
+            <div className="modal-card-actions">
+              <button className="lrp-btn lrp-btn-outline" onClick={closeDeleteModal}>
+                Cancel
+              </button>
+              <button 
+                className="lrp-btn lrp-btn-danger" 
+                onClick={confirmDelete}
+                disabled={deletingCommentId}
+              >
+                {deletingCommentId ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <form className="comment-form" onSubmit={handleSubmit} noValidate>
@@ -222,10 +304,9 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
           }
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          // Key bits to block guests:
-          readOnly={isGuest}                 // stops typing
-          onMouseDown={trapGuestFocus}       // clicking shows modal
-          onFocus={trapGuestFocus}           // keyboard/tab focus shows modal
+          readOnly={isGuest}
+          onMouseDown={trapGuestFocus}
+          onFocus={trapGuestFocus}
         />
 
         <button
@@ -260,6 +341,21 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
               <div className="comment-header">
                 <span className="comment-author">{c.author}</span>
                 <span className="comment-date">{c.daysAgo}</span>
+                {/* Delete ICON (not button) - only show if user is the author */}
+                {isCommentAuthor(c.userProfileID) && (
+                  <button
+                    className="fd-delete-btn"
+                    onClick={() => openDeleteModal(c.id)}
+                    disabled={deletingCommentId === c.id}
+                    title="Delete comment"
+                  >
+                    {deletingCommentId === c.id ? (
+                      <i className="fas fa-spinner fa-spin"></i>
+                    ) : (
+                      <i className="fas fa-trash-alt"></i>
+                    )}
+                  </button>
+                )}
               </div>
               <div className="comment-content">{c.text}</div>
             </div>
@@ -313,6 +409,10 @@ export default function CommunityPost() {
       if (prev.some((c) => c.id === newComment.id)) return prev;
       return [...prev, newComment];
     });
+  };
+
+  const handleCommentDeleted = (deletedCommentId) => {
+  setComments(prev => prev.filter(comment => comment.id !== deletedCommentId));
   };
 
   if (loading) {
@@ -438,6 +538,7 @@ export default function CommunityPost() {
             user={user}
             comments={comments}
             onCommentAdded={handleNewComment}
+            onCommentDeleted={handleCommentDeleted}
           />
         </div>
       </div>

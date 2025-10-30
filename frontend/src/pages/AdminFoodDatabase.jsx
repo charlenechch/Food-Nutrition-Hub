@@ -21,6 +21,15 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedFood, setSelectedFood] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const foodsPerPage = 5;
+
+  // Pagination logic
+  const indexOfLast = currentPage * foodsPerPage;
+  const indexOfFirst = indexOfLast - foodsPerPage;
+  const currentFoods = foodData.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(foodData.length / foodsPerPage);
+
   useEffect(() => {
     const closeDropdown = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -188,7 +197,7 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
           </tr>
         </thead>
         <tbody>
-          {foodData.map((food, index) => (
+          {currentFoods.map((food, index) => (
             <tr key={index}>
               <td>{food.name}</td>
               <td><span className="category-tag">{food.category}</span></td>
@@ -221,6 +230,27 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
               <button className="confirm-delete-btn" onClick={handleConfirmDelete}>Delete</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="admin-pagination">
+          <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
+            ‹ Prev
+          </button>
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={currentPage === i + 1 ? "active" : ""}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages}>
+            Next ›
+          </button>
         </div>
       )}
     </div>

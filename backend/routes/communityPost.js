@@ -318,6 +318,77 @@ router.get('/comments/:postId', async (req, res) => {
   }
 });
 
+// to delete a comment
+router.delete('/comments/:commentId', async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { userProfileID } = req.body;
+
+    console.log('🗑️ Deleting comment:', { commentId, userProfileID });
+
+    // Validate required fields
+    if (!commentId || !userProfileID) {
+      return res.status(400).json({
+        success: false,
+        message: 'Comment ID and userProfileID are required'
+      });
+    }
+
+    // First, check if comment exists and user owns it
+    const checkQuery = `
+      SELECT userProfileID FROM comments WHERE commentID = ?
+    `;
+    
+    const [comments] = await db.execute(checkQuery, [commentId]);
+    
+    if (comments.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Comment not found'
+      });
+    }
+
+    const comment = comments[0];
+    
+    // Check if user owns the comment
+    if (comment.userProfileID !== parseInt(userProfileID)) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only delete your own comments'
+      });
+    }
+
+    const deleteQuery = `
+      DELETE FROM comments WHERE commentID = ?
+    `;
+    
+    const [result] = await db.execute(deleteQuery, [commentId]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Comment not found'
+      });
+    }
+
+    console.log('✅ Comment deleted:', commentId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Comment deleted successfully',
+      deletedCommentId: parseInt(commentId)
+    });
+
+  } catch (error) {
+    console.error('❌ Error deleting comment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting comment',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // Create new post
 router.post('/create', upload.array('images', 5), async (req, res) => {
   console.log('=== STARTING POST CREATION ===');

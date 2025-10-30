@@ -327,7 +327,7 @@ export default function FoodDiscussionPage() {
     };
 
     setComments((prev) => [tempComment, ...prev]);
-    setNewComment("");
+    setNewComment(""); 
 
     const res = await fetch(`${API}/api/foodDiscussion`, {
       method: "POST",
@@ -353,6 +353,7 @@ export default function FoodDiscussionPage() {
             : comment
         )
       );
+      alert("Comment posted successfully!");
     } else {
       setComments((prev) => prev.filter(comment => 
         comment.id !== tempComment.id || !comment.isTemp
@@ -396,7 +397,7 @@ const postReply = async (discussionId) => {
       )
     );
     
-    setReplyTexts((prev) => ({ ...prev, [discussionId]: "" }));
+    setReplyTexts((prev) => ({ ...prev, [discussionId]: "" })); // Just clear the input
     setReplyToId(null);
 
     const res = await fetch(`${API}/api/foodDiscussion/${discussionId}/replies`, {
@@ -411,7 +412,7 @@ const postReply = async (discussionId) => {
     const data = await res.json();
 
     if (res.ok && data.success) {
-      // ✅ Replace temporary reply with real one, ensuring userProfileID is included
+      // Replace temporary reply with real one, ensuring userProfileID is included
       setComments((prev) =>
         prev.map((c) =>
           c.id === discussionId || c.discussionID === discussionId
@@ -421,8 +422,8 @@ const postReply = async (discussionId) => {
                   reply.replyID === tempReply.replyID
                     ? { 
                         ...data.data, 
-                        userProfileID: userProfileID, // ✅ Ensure user ID is included
-                        discussionID: discussionId // ✅ Add discussionID for delete function
+                        userProfileID: userProfileID, 
+                        discussionID: discussionId 
                       }
                     : reply
                 ),
@@ -430,6 +431,7 @@ const postReply = async (discussionId) => {
             : c
         )
       );
+      alert("Reply posted successfully!");
     } else {
       // ✅ Remove temporary reply if failed
       setComments((prev) =>
