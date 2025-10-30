@@ -211,8 +211,17 @@ export default function FoodDiscussionPage() {
   const location = useLocation();
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  // const isGuest = !user || user.role === "guest";
+  // const userProfileID = isGuest ? null : user?.userProfileID || user?.userID || user?.id || user?.profileID;
+
   const isGuest = !user || user.role === "guest";
-  const userProfileID = isGuest ? null : user?.userProfileID || user?.userID || user?.id || user?.profileID;
+  const userProfileID = isGuest ? null : user?.userProfileID;
+
+  if (!isGuest && !userProfileID) {
+    // Don't fallback to wrong IDs - handle the real problem
+    console.error('User has no userProfileID! This user cannot comment until their profile is properly created.');
+    return;
+  }
 
   const [food, setFood] = useState(location.state?.food || null);
   const [comments, setComments] = useState([]);
