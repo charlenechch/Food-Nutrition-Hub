@@ -99,6 +99,7 @@ app.use(
         "'unsafe-inline'", // allow Vite dev inline in DEV
         "http://localhost:5173",
         "https://food-nutrition-hub.vercel.app",
+        "https://food-nutrition-3iuim4cpf-fyp-group10-fnh.vercel.app"
       ],
       "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       "font-src": ["'self'", "https://fonts.gstatic.com"],
