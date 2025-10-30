@@ -2,6 +2,27 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
+// ✅ NEW: Validation and sanitization imports
+const Joi = require("joi");
+const validator = require("validator");
+const sanitizeHtml = require("sanitize-html");
+
+// ✅ Helper to sanitize strings
+function sanitizeInput(value) {
+  if (typeof value === "string") {
+    value = sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} });
+    value = validator.trim(value);
+  }
+  return value;
+}
+
+// ✅ NEW: Joi schemas for validation
+const commentSchema = Joi.object({
+  postID: Joi.number().integer().required(),
+  userProfileID: Joi.number().integer().required(),
+  commentText: Joi.string().max(1000).required()
+});
+
 // Get all comments for a specific post
 router.get("/post/:postId", async (req, res) => {
   try {
@@ -99,6 +120,13 @@ router.post("/", async (req, res) => {
   try {
     const { postID, userProfileID, commentText } = req.body;
 
+    // ✅ Validate and sanitize
+    const { error, value } = commentSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error)
+      return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
+    const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+    Object.assign(req.body, cleanData);
+
     if (!commentText || commentText.trim() === '') {
       return res.status(400).json({
         success: false,
@@ -141,6 +169,13 @@ router.put("/:commentId", async (req, res) => {
   try {
     const { commentId } = req.params;
     const { commentText, userProfileID } = req.body;
+
+    // ✅ Validate and sanitize
+    const { error, value } = commentSchema.validate({ ...req.body, postID: 1 }, { abortEarly: false, stripUnknown: true }); // postID dummy for structure
+    if (error)
+      return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
+    const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+    Object.assign(req.body, cleanData);
 
     if (!commentText || commentText.trim() === '') {
       return res.status(400).json({
@@ -197,13 +232,23 @@ router.put("/:commentId", async (req, res) => {
 router.delete("/:commentId", async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { userProfileID } = req.body; // For authorization
+    const { userProfileID } = req.body;
+
+    // ✅ Validate and sanitize
+    const deleteSchema = Joi.object({
+      commentId: Joi.number().integer().required(),
+      userProfileID: Joi.number().integer().required()
+    });
+    const { error, value } = deleteSchema.validate({ commentId, userProfileID }, { abortEarly: false, stripUnknown: true });
+    if (error)
+      return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
+    const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
 
     // Check if comment exists and belongs to user
     const [existingComments] = await db.execute(`
       SELECT * FROM comments 
       WHERE commentID = ? AND userProfileID = ?
-    `, [commentId, userProfileID]);
+    `, [cleanData.commentId, cleanData.userProfileID]);
 
     if (existingComments.length === 0) {
       return res.status(404).json({
@@ -215,7 +260,7 @@ router.delete("/:commentId", async (req, res) => {
     const [result] = await db.execute(`
       DELETE FROM comments 
       WHERE commentID = ?
-    `, [commentId]);
+    `, [cleanData.commentId]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({

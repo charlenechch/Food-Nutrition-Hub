@@ -2,6 +2,26 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
+// ✅ NEW: Validation and sanitization imports
+const Joi = require("joi");
+const validator = require("validator");
+const sanitizeHtml = require("sanitize-html");
+
+// ✅ Helper to sanitize strings
+function sanitizeInput(value) {
+  if (typeof value === "string") {
+    value = sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} });
+    value = validator.trim(value);
+  }
+  return value;
+}
+
+// ✅ NEW: Joi Schema for like requests
+const likeSchema = Joi.object({
+  postID: Joi.number().integer().required(),
+  userProfileID: Joi.number().integer().required(),
+});
+
 // Get all likes for a specific post
 router.get("/post/:postId", async (req, res) => {
   try {
@@ -84,6 +104,13 @@ router.post("/", async (req, res) => {
   try {
     const { postID, userProfileID } = req.body;
 
+    // ✅ Validate and sanitize
+    const { error, value } = likeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error)
+      return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
+    const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+    Object.assign(req.body, cleanData);
+
     // Check if like already exists
     const [existingLikes] = await db.execute(`
       SELECT * FROM likes 
@@ -122,6 +149,13 @@ router.post("/", async (req, res) => {
 router.delete("/", async (req, res) => {
   try {
     const { postID, userProfileID } = req.body;
+
+    // ✅ Validate and sanitize
+    const { error, value } = likeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error)
+      return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
+    const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+    Object.assign(req.body, cleanData);
 
     const [result] = await db.execute(`
       DELETE FROM likes 
