@@ -4,8 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-import { fetchWithCredentials } from "../config/api";
-
 
 // Firebase imports
 import {
@@ -123,7 +121,7 @@ export default function LoginRegisterPage() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) {
         try {
-          await fetchWithCredentials(`${API_URL}/api/verifyEmail/sync`, {
+          await fetch(`${API_URL}/api/verifyEmail/sync`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
@@ -161,7 +159,7 @@ export default function LoginRegisterPage() {
     
     try {
       // Check backend rate limiting
-      const checkRes = await fetchWithCredentials(`${API_URL}/api/resendVerification`, {
+      const checkRes = await fetch(`${API_URL}/api/resendVerification`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -242,7 +240,7 @@ export default function LoginRegisterPage() {
     }
 
     try {
-      const res = await fetchWithCredentials(`${API_URL}/api/login`, {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -386,7 +384,7 @@ export default function LoginRegisterPage() {
       });
 
       // Register in MySQL database WITH Firebase UID
-      const res = await fetchWithCredentials(`${API_URL}/api/register`, {
+      const res = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

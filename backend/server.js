@@ -187,19 +187,19 @@ app.use(
   })
 );
 
-// ---------- 5) CSRF for state-changing requests ----------
-const csrfProtection = csrf({ cookie: false }); // session-based CSRF
+// // ---------- 5) CSRF for state-changing requests ----------
+// const csrfProtection = csrf({ cookie: false }); // uses session
 
-// ✅ The token route itself must use csrfProtection middleware
-app.get("/api/auth/csrf-token", csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
+// // Token endpoint for the SPA to fetch a token and send it via X-CSRF-Token
+// app.get("/api/auth/csrf-token", (req, res) => {
+//   res.json({ csrfToken: req.csrfToken() });
+// });
 
-// ✅ Apply CSRF middleware globally only for mutating methods
-app.use((req, res, next) => {
-  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
-  return csrfProtection(req, res, next);
-});
+// // Apply CSRF ONLY to mutating methods to keep GET/OPTIONS simple
+// app.use((req, res, next) => {
+//   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+//   return csrfProtection(req, res, next);
+// });
 
 // ---------- 6) Rate limiting ----------
 const globalLimiter = rateLimit({
