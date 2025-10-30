@@ -327,8 +327,7 @@ export default function FoodDiscussionPage() {
     };
 
     setComments((prev) => [tempComment, ...prev]);
-    setNewComment("✓ Comment posted!"); 
-    setTimeout(() => setNewComment(""), 1500);
+    setNewComment(""); 
 
     const res = await fetch(`${API}/api/foodDiscussion`, {
       method: "POST",
@@ -354,6 +353,7 @@ export default function FoodDiscussionPage() {
             : comment
         )
       );
+      alert("Comment posted successfully!");
     } else {
       setComments((prev) => prev.filter(comment => 
         comment.id !== tempComment.id || !comment.isTemp
@@ -397,11 +397,7 @@ const postReply = async (discussionId) => {
       )
     );
     
-    const originalText = text;
-    setReplyTexts((prev) => ({ ...prev, [discussionId]: "✓ Reply posted!" }));
-    setTimeout(() => {
-      setReplyTexts((prev) => ({ ...prev, [discussionId]: "" }));
-    }, 1500);
+    setReplyTexts((prev) => ({ ...prev, [discussionId]: "" })); // Just clear the input
     setReplyToId(null);
 
     const res = await fetch(`${API}/api/foodDiscussion/${discussionId}/replies`, {
@@ -435,6 +431,7 @@ const postReply = async (discussionId) => {
             : c
         )
       );
+      alert("Reply posted successfully!");
     } else {
       // ✅ Remove temporary reply if failed
       setComments((prev) =>
