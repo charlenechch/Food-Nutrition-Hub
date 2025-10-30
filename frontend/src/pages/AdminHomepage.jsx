@@ -93,7 +93,6 @@ const AdminDashboard = () => {
         return (
           <>
           <FoodDatabaseSection foodData={foodData} categories={categories} />
-          <RecipeDatabaseSection recipes={recipes} categories={categories} />
         </>
         );
 
@@ -103,6 +102,7 @@ const AdminDashboard = () => {
       case "moderation":
         return (
           <>
+          <RecipeDatabaseSection recipes={recipes} categories={categories} />
           <ContentModerationSection />
           </>
         );

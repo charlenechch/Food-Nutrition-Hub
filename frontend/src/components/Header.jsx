@@ -51,7 +51,7 @@ export default function Header() {
 
   // ✅ Determine label + icon
   const isAdminView = location.pathname.startsWith("/admin");
-  const toggleLabel = isAdminView ? "User" : "Admin";
+  const toggleLabel = isAdminView ? "User View" : "Admin View";
   const toggleIcon = isAdminView ? <FaUser size={14} /> : <FaCrown size={14} />;
 
   return (
