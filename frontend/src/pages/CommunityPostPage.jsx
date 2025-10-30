@@ -4,7 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import LoginPromptModal from "../components/LoginPromptModal"; // make sure this path is correct
+import LoginPromptModal from "../components/LoginPromptModal"; 
+import { toast } from 'react-toastify';
 
 // ------------ Helpers -------------
 function computeIsLoggedIn(user) {
@@ -195,7 +196,8 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
       const result = await response.json();
       if (response.ok && result.success) {
         onCommentAdded(result.comment);
-        setComment("");
+        setComment("✓ Comment posted!"); 
+        setTimeout(() => setComment(""), 1500);
       } else {
         // Leave silent for UX; console helps debugging
         console.error("Comment failed:", result.message);

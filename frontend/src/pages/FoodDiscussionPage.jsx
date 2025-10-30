@@ -327,7 +327,8 @@ export default function FoodDiscussionPage() {
     };
 
     setComments((prev) => [tempComment, ...prev]);
-    setNewComment("");
+    setNewComment("✓ Comment posted!"); 
+    setTimeout(() => setNewComment(""), 1500);
 
     const res = await fetch(`${API}/api/foodDiscussion`, {
       method: "POST",
@@ -396,7 +397,11 @@ const postReply = async (discussionId) => {
       )
     );
     
-    setReplyTexts((prev) => ({ ...prev, [discussionId]: "" }));
+    const originalText = text;
+    setReplyTexts((prev) => ({ ...prev, [discussionId]: "✓ Reply posted!" }));
+    setTimeout(() => {
+      setReplyTexts((prev) => ({ ...prev, [discussionId]: "" }));
+    }, 1500);
     setReplyToId(null);
 
     const res = await fetch(`${API}/api/foodDiscussion/${discussionId}/replies`, {
@@ -411,7 +416,7 @@ const postReply = async (discussionId) => {
     const data = await res.json();
 
     if (res.ok && data.success) {
-      // ✅ Replace temporary reply with real one, ensuring userProfileID is included
+      // Replace temporary reply with real one, ensuring userProfileID is included
       setComments((prev) =>
         prev.map((c) =>
           c.id === discussionId || c.discussionID === discussionId
@@ -421,8 +426,8 @@ const postReply = async (discussionId) => {
                   reply.replyID === tempReply.replyID
                     ? { 
                         ...data.data, 
-                        userProfileID: userProfileID, // ✅ Ensure user ID is included
-                        discussionID: discussionId // ✅ Add discussionID for delete function
+                        userProfileID: userProfileID, 
+                        discussionID: discussionId 
                       }
                     : reply
                 ),
