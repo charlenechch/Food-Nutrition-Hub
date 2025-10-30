@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo  } from "react";
 import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { FaCamera } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Import Modal
+import LoginPromptModal from "../components/LoginPromptModal"; 
 
 export default function Community() {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ export default function Community() {
   const isAuthenticated = user && user.role !== "guest";
 
   const [expanded, setExpanded] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false); // ✅ Modal State
+  const [showLoginModal, setShowLoginModal] = useState(false); 
   const [preview, setPreview] = useState(null);
   const [posts, setPosts] = useState([]);
   const [formData, setFormData] = useState({
@@ -27,6 +27,16 @@ export default function Community() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Filter
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedOrigin, setSelectedOrigin] = useState("all");
+  const [sortOption, setSortOption] = useState("newest");
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 9;
+
+  
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -50,7 +60,55 @@ export default function Community() {
     }
   };
 
-  // ✅ Replace confirm() with LoginPromptModal
+  // Filter + Sort logic
+  const communityFilteredPosts = useMemo(() => {
+    let filtered = posts;
+
+    if (searchQuery.trim() !== "") {
+      filtered = filtered.filter(
+        (p) =>
+          p.foodName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.culturalStory?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.author?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (selectedOrigin !== "all") {
+      filtered = filtered.filter(
+        (p) => p.culturalOrigin?.toLowerCase() === selectedOrigin.toLowerCase()
+      );
+    }
+
+    // Sorting logic
+    if (sortOption === "newest") {
+      filtered = [...filtered].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else if (sortOption === "mostLiked") {
+      filtered = [...filtered].sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+    } else if (sortOption === "mostCommented") {
+      filtered = [...filtered].sort((a, b) => (b.commentCount || 0) - (a.commentCount || 0));
+    }
+
+    return filtered;
+  }, [posts, searchQuery, selectedOrigin, sortOption]);
+
+  // Pagination (based on filtered posts)
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = communityFilteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(communityFilteredPosts.length / postsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedOrigin, sortOption]);
+
+
+    const paginate = (pageNumber) => {
+      if (pageNumber < 1 || pageNumber > totalPages) return;
+      setCurrentPage(pageNumber);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+  // Replace confirm() with LoginPromptModal
   const handleExpand = () => {
     if (!isAuthenticated) {
       setShowLoginModal(true); // ✅ Show modal
@@ -83,14 +141,6 @@ export default function Community() {
       return;
     }
 
-    const userProfileID = user?.userProfileID || user?.userID || user?.id;
-
-    if (!userProfileID) {
-      alert("Your profile is not fully loaded. Please try logging out and logging back in, or contact support.");
-      console.error("❌ userProfileID is missing in user object:", user);
-      return;
-    }
-
     if (!formData.foodName || !formData.culturalOrigin || !formData.culturalStory) {
       alert("Food Name, Cultural Origin and Cultural Story are required.");
       return;
@@ -105,9 +155,8 @@ export default function Community() {
       submitData.append("culturalOrigin", formData.culturalOrigin);
       submitData.append("culturalStory", formData.culturalStory);
       submitData.append("recipe", formData.recipe || "");
-      submitData.append("userProfileID", userProfileID);
-
-      console.log("✅ Using userProfileID:", userProfileID);
+      console.log("User object:", user);
+      submitData.append("userProfileID", user.id);
 
       submitData.append("author", user?.firstname || user?.email);
 
@@ -176,7 +225,7 @@ export default function Community() {
         Celebrate Sarawak's rich heritage by sharing your recipes and stories
       </p>
 
-      {/* ✅ POST CREATION SECTION */}
+      {/* POST CREATION SECTION */}
       <section className={`share-card ${expanded ? "expanded" : ""}`}>
         <h3>Share Your Heritage</h3>
         <p>Upload recipes, photos, and stories to preserve our culture.</p>
@@ -273,18 +322,54 @@ export default function Community() {
         )}
       </section>
 
-      {/* ✅ RECENT POSTS SECTION */}
+       {/* Filter Bar */}
+        <div className="community-filter-bar">
+          <div className="community-search-container">
+            <input
+              type="text"
+              placeholder="Search by name, author, or story..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <select
+            className="community-filter-select"
+            value={selectedOrigin}
+            onChange={(e) => setSelectedOrigin(e.target.value)}
+          >
+            <option value="all">All Origins</option>
+            <option value="Malay">Malay</option>
+            <option value="Chinese">Chinese</option>
+            <option value="Iban">Iban</option>
+            <option value="Melanau">Melanau</option>
+            <option value="Bidayuh">Bidayuh</option>
+            <option value="Dayak">Dayak</option>
+          </select>
+
+          <select
+            className="community-filter-select"
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+          >
+            <option value="newest">Newest</option>
+            <option value="mostLiked">Most Liked</option>
+            <option value="mostCommented">Most Commented</option>
+          </select>
+        </div>
+
+      {/* RECENT POSTS SECTION */}
       <section className="recent-section">
-        <h2>Recent Contributions ({posts.length})</h2>
+        <h2>Recent Contributions ({communityFilteredPosts.length})</h2>
         {loading ? (
           <div className="loading">Loading posts...</div>
-        ) : posts.length === 0 ? (
+        ) : communityFilteredPosts.length === 0 ? (
           <div className="no-posts">
             <p>No contributions yet. Be the first!</p>
           </div>
         ) : (
           <div className="cards-grid">
-            {posts.map((post) => (
+            {currentPosts.map((post) => (
               <div className="contribution-card" key={post.id}>
                 <div className="card-image">
                   <img
@@ -320,6 +405,36 @@ export default function Community() {
             ))}
           </div>
         )}
+
+         {totalPages > 1 && (
+              <div className="community-pagination">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="community-page-btn"
+                >
+                  ← Prev
+                </button>
+
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i + 1}
+                    onClick={() => paginate(i + 1)}
+                    className={`community-page-btn ${currentPage === i + 1 ? "active" : ""}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="community-page-btn"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
       </section>
     </div>
     <Footer />
