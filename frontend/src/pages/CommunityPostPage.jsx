@@ -146,7 +146,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
 };
 
 // ------------ Comment Section -------------
-const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
+const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDeleted }) => {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -191,8 +191,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded }) => {
       const result = await response.json();
       
       if (response.ok && result.success) {
-        // Remove comment from UI
-        setComments(prev => prev.filter(comment => comment.id !== commentToDelete));
+        onCommentDeleted(commentToDelete);
         alert('Comment deleted successfully!');
       } else {
         alert(result.message || 'Failed to delete comment');
@@ -413,6 +412,10 @@ export default function CommunityPost() {
     });
   };
 
+  const handleCommentDeleted = (deletedCommentId) => {
+  setComments(prev => prev.filter(comment => comment.id !== deletedCommentId));
+  };
+
   if (loading) {
     return (
       <div className="community-page">
@@ -536,6 +539,7 @@ export default function CommunityPost() {
             user={user}
             comments={comments}
             onCommentAdded={handleNewComment}
+            onCommentDeleted={handleCommentDeleted}
           />
         </div>
       </div>
