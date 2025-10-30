@@ -126,7 +126,7 @@ export default function Community() {
         throw new Error(result.message || "Failed to submit post");
       }
 
-      alert("✅ Your story has been submitted!");
+      alert("✅ Story Submitted Successfully!\n\nYour story has been submitted for review. Please wait for admin approval before it appears publicly.");
 
       setFormData({
         foodName: "",

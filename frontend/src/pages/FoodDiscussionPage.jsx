@@ -40,11 +40,32 @@ function getTimeAgo(timestamp) {
   const now = new Date();
   const past = new Date(timestamp);
   const diff = Math.floor((now - past) / 1000);
+  
+  // If more than 2 days, show actual date
+  if (diff >= 172800) { 
+    return formatToDate(timestamp);
+  }
+  
   if (diff < 60) return "now";
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
   return `${Math.floor(diff / 2592000)}mo ago`;
+}
+
+function formatToDate(timestamp) {
+  const date = new Date(timestamp);
+  
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  
+  const day = date.getDate();
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+  
+  return `${day} ${month} ${year}`;
 }
 
 // ✅ Single Comment Component

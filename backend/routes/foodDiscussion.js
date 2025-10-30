@@ -10,16 +10,36 @@ const firstRows = (result) => {
   return Array.isArray(result) ? result : [];
 };
 
-// Helper: time ago (string) – keep same behavior as frontend
 function getTimeAgo(timestamp) {
   const now = new Date();
-  const commentTime = new Date(timestamp);
-  const diffInSeconds = Math.floor((now - commentTime) / 1000);
-  if (diffInSeconds < 60) return 'now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-  return `${Math.floor(diffInSeconds / 2592000)}mo ago`;
+  const past = new Date(timestamp);
+  const diff = Math.floor((now - past) / 1000);
+  
+  // If more than 2 days, show actual date
+  if (diff >= 172800) { // 2 days in seconds (2 * 24 * 60 * 60)
+    return formatToDate(timestamp);
+  }
+  
+  if (diff < 60) return "now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
+  return `${Math.floor(diff / 2592000)}mo ago`;
+}
+
+function formatToDate(timestamp) {
+  const date = new Date(timestamp);
+  
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  
+  const day = date.getDate();
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+  
+  return `${day} ${month} ${year}`;
 }
 
 // ✅ Get discussions for a specific food (with replies)

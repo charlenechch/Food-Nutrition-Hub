@@ -288,7 +288,7 @@ export default function RecipesPage() {
       });
       setExpanded(false);
       
-      alert('Recipe created successfully!');
+      alert("👨‍🍳 Recipe Created Successfully!\n\nYour recipe has been submitted for review. It will be visible to others after admin approval.");
       
     } catch (err) {
       console.error('Error creating recipe:', err);

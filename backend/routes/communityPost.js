@@ -514,6 +514,11 @@ function getTimeAgo(timestamp) {
         minute: 60
     };
 
+    // If more than 2 days, show actual date
+    if (seconds > (2 * intervals.day)) {
+        return formatToDate(timestamp);
+    }
+
     for (const [unit, secondsInUnit] of Object.entries(intervals)) {
         const interval = Math.floor(seconds / secondsInUnit);
         if (interval >= 1) {
@@ -522,6 +527,21 @@ function getTimeAgo(timestamp) {
     }
     
     return 'Just now';
+}
+
+function formatToDate(timestamp) {
+    const date = new Date(timestamp);
+    
+    const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    const day = date.getDate();
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    
+    return `${day} ${month} ${year}`;
 }
 
 module.exports = router;
