@@ -3,9 +3,51 @@ const bcrypt = require("bcrypt");
 const router = express.Router();
 const db = require("../config/db"); // shared promise pool
 
-router.post("/", async (req, res) => {
-  const { email, password, rememberDevice } = req.body;
+// ✅ NEW: Validation + sanitization imports
+const Joi = require("joi");
+const validator = require("validator");
+const sanitizeHtml = require("sanitize-html");
 
+// ✅ NEW: Joi schema for login input
+const loginSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    "string.email": "Please enter a valid email address.",
+    "any.required": "Email is required.",
+  }),
+  password: Joi.string().min(8).max(64).required().messages({
+    "string.min": "Password must be at least 8 characters.",
+    "any.required": "Password is required.",
+  }),
+  rememberDevice: Joi.boolean().optional(),
+});
+
+// ✅ NEW: sanitize helper (safe HTML + trim)
+function sanitizeInput(value) {
+  if (typeof value === "string") {
+    value = sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} });
+    value = validator.trim(value);
+  }
+  return value;
+}
+
+router.post("/", async (req, res) => {
+  // ✅ Step 1: Validate with Joi
+  const { error, value } = loginSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.details.map((d) => d.message).join(", "),
+    });
+  }
+
+  // ✅ Step 2: Sanitize fields
+  const cleanData = Object.fromEntries(
+    Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)])
+  );
+
+  const { email, password, rememberDevice } = cleanData;
+
+  // ✅ Step 3: Retain your original logic & comments
   if (!email || !password) {
     return res.status(400).json({ success: false, message: "Email and password are required" });
   }

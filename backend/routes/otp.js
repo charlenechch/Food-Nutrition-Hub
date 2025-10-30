@@ -7,13 +7,39 @@ const db = require("../config/db");
 // Store OTPs temporarily
 const { otpStore } = require("./register");
 
+// ✅ NEW: Validation and sanitization setup (added globally)
+const Joi = require("joi");
+const validator = require("validator");
+const sanitizeHtml = require("sanitize-html");
+
+function sanitizeInput(value) {
+  if (typeof value === "string") {
+    value = sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} });
+    value = validator.trim(value);
+  }
+  return value;
+}
+
+const sendOTPSchema = Joi.object({ email: Joi.string().email().required() });
+const verifyOTPSchema = Joi.object({
+  email: Joi.string().email().required(),
+  otp: Joi.string().length(6).pattern(/^[0-9]+$/).required(),
+});
+
 // Generate 6-digit OTP
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// Send registration OTP
 router.post("/send", async (req, res) => {
   const { email } = req.body;
+
+  // ✅ Validate and sanitize
+  const { error, value } = sendOTPSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+  if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
+  const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+  Object.assign(req.body, cleanData);
 
   if (!email) {
     return res.status(400).json({ error: "Email required" });
@@ -22,7 +48,7 @@ router.post("/send", async (req, res) => {
   try {
     // Check if user exists and is not verified
     const [users] = await db.query(
-      "SELECT verified FROM user WHERE email = ? LIMIT 1", 
+      "SELECT verified FROM user WHERE email = ? LIMIT 1",
       [email]
     );
 
@@ -36,7 +62,7 @@ router.post("/send", async (req, res) => {
 
     // Generate OTP
     const otp = generateOTP();
-    
+
     // Store OTP with expiration and attempts
     otpStore.set(email, {
       code: otp,
@@ -45,7 +71,7 @@ router.post("/send", async (req, res) => {
     });
 
     console.log(`OTP resent: ${otp}`);
-    
+
     // Use shared email template
     const emailSubject = getVerificationEmailSubject(true); // true = resend
     const emailHtml = getVerificationEmailHTML({
@@ -64,17 +90,16 @@ router.post("/send", async (req, res) => {
     // Response handling
     if (emailResult.success) {
       console.log("Email sent");
-      
-      return res.json({ 
-        success: true, 
+      return res.json({
+        success: true,
         message: "OTP sent to your email",
         devOTP: process.env.NODE_ENV !== 'production' ? otp : undefined
       });
     }
 
     console.error("Failed to send email", emailResult.error);
-    
-    return res.status(500).json({ 
+
+    return res.status(500).json({
       error: "Failed to send verification email. Please try again.",
       canRetry: true,
       devOTP: process.env.NODE_ENV !== 'production' ? otp : undefined
@@ -89,6 +114,12 @@ router.post("/send", async (req, res) => {
 // Verify OTP for email verification after registration
 router.post("/verify", async (req, res) => {
   const { email, otp } = req.body;
+
+  // ✅ Validate and sanitize
+  const { error, value } = verifyOTPSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+  if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
+  const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+  Object.assign(req.body, cleanData);
 
   if (!email || !otp) {
     console.log("Missing email or OTP");
@@ -120,12 +151,10 @@ router.post("/verify", async (req, res) => {
 
     // Verify OTP
     if (stored.code !== otp) {
-      // Increment attempts
       stored.attempts += 1;
       otpStore.set(email, stored);
-      
       console.log(`Invalid OTP (attempt ${stored.attempts}/5)`);
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: "Invalid OTP",
         attemptsRemaining: 5 - stored.attempts
       });
@@ -136,16 +165,12 @@ router.post("/verify", async (req, res) => {
     otpStore.delete(email);
 
     // Update user's verified status in database
-    await db.query(
-      "UPDATE user SET verified = 'True' WHERE email = ?",
-      [email]
-    );
+    await db.query("UPDATE user SET verified = 'True' WHERE email = ?", [email]);
 
     console.log(`Email verified successfully`);
-    
-    // Return response
-    return res.json({ 
-      success: true, 
+
+    return res.json({
+      success: true,
       message: "Email verified successfully! You can now log in.",
       redirectTo: "/loginregister"
     });
@@ -160,6 +185,12 @@ router.post("/verify", async (req, res) => {
 router.post("/sendLogin", async (req, res) => {
   const { email } = req.body;
 
+  // ✅ Validate and sanitize
+  const { error, value } = sendOTPSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+  if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
+  const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+  Object.assign(req.body, cleanData);
+
   if (!email) {
     return res.status(400).json({ error: "Email required" });
   }
@@ -167,7 +198,7 @@ router.post("/sendLogin", async (req, res) => {
   try {
     // Check if user exists and is verified
     const [users] = await db.query(
-      "SELECT verified FROM user WHERE email = ? LIMIT 1", 
+      "SELECT verified FROM user WHERE email = ? LIMIT 1",
       [email]
     );
 
@@ -181,16 +212,16 @@ router.post("/sendLogin", async (req, res) => {
 
     // Generate OTP
     const otp = generateOTP();
-    
+
     // Store OTP with expiration
-    otpStore.set(`login_${email}`, {  // Use "login_" prefix to separate from registration OTPs
+    otpStore.set(`login_${email}`, {
       code: otp,
       expires: Date.now() + 10 * 60 * 1000, // 10 minutes
       attempts: 0
     });
 
     console.log(`Login OTP sent: ${otp}`);
-    
+
     // Create email content
     const emailSubject = "Your Login Verification Code";
     const emailHtml = `
@@ -214,14 +245,14 @@ router.post("/sendLogin", async (req, res) => {
     });
 
     if (emailResult.success) {
-      return res.json({ 
-        success: true, 
+      return res.json({
+        success: true,
         message: "Login code sent to your email",
         devOTP: process.env.NODE_ENV !== 'production' ? otp : undefined
       });
     }
 
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Failed to send verification email",
       devOTP: process.env.NODE_ENV !== 'production' ? otp : undefined
     });
@@ -232,16 +263,23 @@ router.post("/sendLogin", async (req, res) => {
   }
 });
 
+
 // Verify login OTP
 router.post("/verifyLogin", async (req, res) => {
   const { email, otp } = req.body;
+
+  // ✅ Validate and sanitize
+  const { error, value } = verifyOTPSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+  if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
+  const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+  Object.assign(req.body, cleanData);
 
   if (!email || !otp) {
     return res.status(400).json({ error: "Email and OTP required" });
   }
 
   try {
-    const stored = otpStore.get(`login_${email}`);  // Use "login_" prefix
+    const stored = otpStore.get(`login_${email}`);
 
     if (!stored) {
       return res.status(401).json({ error: "OTP not found or expired" });
@@ -260,8 +298,7 @@ router.post("/verifyLogin", async (req, res) => {
     if (stored.code !== otp) {
       stored.attempts += 1;
       otpStore.set(`login_${email}`, stored);
-      
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: "Invalid OTP",
         attemptsRemaining: 5 - stored.attempts
       });
@@ -291,16 +328,10 @@ router.post("/verifyLogin", async (req, res) => {
       role: user.role
     };
 
-    return res.json({ 
-      success: true, 
+    return res.json({
+      success: true,
       message: "Login successful",
-      user: {
-        user_id: user.user_id,
-        email: user.email,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        role: user.role
-      }
+      user: req.session.user
     });
 
   } catch (err) {

@@ -4,10 +4,44 @@ const db = require('../config/db');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 
+// ✅ NEW: Validation + sanitization setup (added without removing anything)
+const Joi = require("joi");
+const validator = require("validator");
+const sanitizeHtml = require("sanitize-html");
+
+function sanitizeInput(value) {
+  if (typeof value === "string") {
+    value = sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} });
+    value = validator.trim(value);
+  }
+  return value;
+}
+
+// ✅ NEW: Joi schema for recipe create/update inputs
+const recipeSchema = Joi.object({
+  name: Joi.string().max(100).required(),
+  origin: Joi.string().max(100).required(),
+  difficulty: Joi.string().max(50).allow("", null),
+  prepTime: Joi.number().integer().min(0).allow(null),
+  image: Joi.string().uri().allow("", null),
+  description: Joi.string().max(2000).allow("", null),
+  foodType: Joi.string().max(100).allow("", null),
+  dietaryTags: Joi.alternatives().try(
+    Joi.array().items(Joi.string()),
+    Joi.string().allow("")
+  ).default([]),
+  cookTime: Joi.number().integer().min(0).allow(null),
+  servings: Joi.number().integer().min(1).allow(null),
+  ingredients: Joi.alternatives().try(Joi.array().items(Joi.string()), Joi.string()).required(),
+  instructions: Joi.alternatives().try(Joi.array().items(Joi.string()), Joi.string()).required(),
+  funFact: Joi.string().allow("", null),
+  chefTips: Joi.string().allow("", null)
+});
+
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
+  api_key: process.env.CloudINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
@@ -331,6 +365,14 @@ router.post('/create/recipes', async (req, res) => {
       instructions, funFact, chefTips
     } = req.body;
 
+    // ✅ NEW: Validate and sanitize (added, no removals)
+    {
+      const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+      if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
+      const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+      Object.assign(req.body, cleanData);
+    }
+
     console.log('📊 Request data analysis:', {
       name, 
       origin, 
@@ -463,6 +505,14 @@ router.post('/create/recipes', async (req, res) => {
       instructions, funFact, chefTips
     } = req.body;
 
+    // ✅ NEW: Validate and sanitize (added to this duplicate route as well)
+    {
+      const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+      if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
+      const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+      Object.assign(req.body, cleanData);
+    }
+
     console.log('📊 Request data analysis:', {
       name, 
       origin, 
@@ -589,6 +639,14 @@ router.put('/update/recipes/:id', async (req, res) => {
       foodType, dietaryTags, cookTime, servings, ingredients, 
       instructions, funFact, chefTips
     } = req.body;
+
+    // ✅ NEW: Validate and sanitize (added here as well)
+    {
+      const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+      if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
+      const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+      Object.assign(req.body, cleanData);
+    }
 
     const recipeId = req.params.id;
 

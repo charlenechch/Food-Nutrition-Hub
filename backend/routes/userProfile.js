@@ -5,6 +5,43 @@ const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const { deleteFirebaseUser, isInitialized } = require('../config/firebaseAdmin');
 
+// ✅ NEW: Validation and sanitization imports
+const Joi = require("joi");
+const validator = require("validator");
+const sanitizeHtml = require("sanitize-html");
+
+// ✅ Helper to sanitize strings
+function sanitizeInput(value) {
+  if (typeof value === "string") {
+    value = sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} });
+    value = validator.trim(value);
+  }
+  return value;
+}
+
+// ✅ Added Joi schemas (STRICT for /update and safe for params)
+const profileUpdateSchema = Joi.object({
+  location: Joi.string().max(120).allow(null, ''),
+  bio: Joi.string().max(2000).allow(null, ''),
+  dietary: Joi.array().items(Joi.string().max(60)).default([]),
+  allergies: Joi.array().items(Joi.string().max(60)).default([]),
+  emailNotifications: Joi.boolean().required(),
+  pushNotifications: Joi.boolean().required(),
+  profileVisibility: Joi.boolean().required(),
+  language: Joi.string().max(10).valid('en', 'ms', 'zh', 'id', 'ta', 'hi', 'ar', 'es', 'fr', 'de').default('en')
+})
+.required()
+.unknown(false); // STRICT: reject unknown keys
+
+const identifierSchema = Joi.alternatives().try(
+  Joi.number().integer().min(1),
+  Joi.string().max(120) // allow name queries (firstName)
+);
+
+const sessionUserSchema = Joi.object({
+  userID: Joi.number().integer().min(1).required()
+});
+
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -292,6 +329,14 @@ router.post("/avatar", upload.single('avatar'), async (req, res) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
+    // ✅ Added Joi validation + sanitization (lightweight since multer guards file)
+    try {
+      const { error } = sessionUserSchema.validate({ userID: req.session.user.userID });
+      if (error) return res.status(401).json({ error: "Invalid session" });
+    } catch (e) {
+      return res.status(401).json({ error: "Invalid session" });
+    }
+
     console.log("📁 File details:", {
       originalname: req.file.originalname,
       mimetype: req.file.mimetype,
@@ -366,6 +411,14 @@ router.delete("/avatar", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
+    // ✅ Added Joi validation + sanitization
+    try {
+      const { error } = sessionUserSchema.validate({ userID: req.session.user.userID });
+      if (error) return res.status(401).json({ error: "Invalid session" });
+    } catch (e) {
+      return res.status(401).json({ error: "Invalid session" });
+    }
+
     const userID = req.session.user.userID;
     console.log(`👤 Removing avatar for user: ${userID}`);
 
@@ -430,6 +483,14 @@ router.get("/avatar", async (req, res) => {
   try {
     if (!req.session || !req.session.user) {
       return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    // ✅ Added Joi validation (session sanity)
+    try {
+      const { error } = sessionUserSchema.validate({ userID: req.session.user.userID });
+      if (error) return res.status(401).json({ error: "Invalid session" });
+    } catch (e) {
+      return res.status(401).json({ error: "Invalid session" });
     }
 
     const userID = req.session.user.userID;
@@ -533,6 +594,14 @@ router.get("/", async (req, res) => {
         guest: true,
         message: "Guest access - please login to view profile",
       });
+    }
+
+    // ✅ Added Joi validation (session sanity)
+    try {
+      const { error } = sessionUserSchema.validate({ userID: req.session.user.userID });
+      if (error) return res.status(401).json({ error: "Invalid session" });
+    } catch (e) {
+      return res.status(401).json({ error: "Invalid session" });
     }
 
     const userID = req.session.user.userID;
@@ -666,6 +735,33 @@ router.put("/update", async (req, res) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
+    // ✅ Added Joi validation + sanitization (STRICT schema)
+    const { error, value } = profileUpdateSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error) {
+      return res.status(400).json({ 
+        error: "Invalid profile update payload",
+        details: error.details.map(d => d.message)
+      });
+    }
+    // sanitize strings inside value; arrays handled item-wise
+    const sanitized = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (Array.isArray(v)) {
+        sanitized[k] = v.map(sanitizeInput);
+      } else {
+        sanitized[k] = sanitizeInput(v);
+      }
+    }
+    Object.assign(req.body, sanitized);
+
+    // validate session userID
+    try {
+      const { error: sessionErr } = sessionUserSchema.validate({ userID: req.session.user.userID });
+      if (sessionErr) return res.status(401).json({ error: "Invalid session" });
+    } catch (e) {
+      return res.status(401).json({ error: "Invalid session" });
+    }
+
     const userID = req.session.user.userID;
     const updateData = req.body;
     console.log(`👤 Updating profile for user: ${userID}`);
@@ -715,6 +811,13 @@ router.get("/:identifier", async (req, res) => {
   try {
     const identifier = req.params.identifier;
     console.log(`🔍 Fetching profile for identifier: ${identifier}`);
+
+    // ✅ Added Joi validation + sanitization for identifier param
+    const { error, value } = identifierSchema.validate(identifier);
+    if (error) {
+      return res.status(400).json({ message: "Invalid identifier" });
+    }
+    const cleanIdentifier = typeof value === 'string' ? sanitizeInput(value) : value;
     
     console.log(`📊 Executing profile query`);
     const [rows] = await db.execute(
@@ -727,7 +830,7 @@ router.get("/:identifier", async (req, res) => {
       FROM user u
       LEFT JOIN userProfile up ON up.userID = u.userID
       WHERE u.userID = ? OR u.firstname = ?`,
-      [identifier, identifier]
+      [cleanIdentifier, cleanIdentifier]
     );
     
     console.log(`📄 Query returned ${rows.length} rows`);
@@ -827,6 +930,14 @@ router.delete("/delete", async (req, res) => {
         success: false, 
         error: "Not authenticated. Please log in." 
       });
+    }
+
+    // ✅ Added Joi validation (session sanity)
+    try {
+      const { error } = sessionUserSchema.validate({ userID: req.session.user.userID });
+      if (error) return res.status(401).json({ error: "Invalid session" });
+    } catch (e) {
+      return res.status(401).json({ error: "Invalid session" });
     }
 
     const userID = req.session.user.userID;
