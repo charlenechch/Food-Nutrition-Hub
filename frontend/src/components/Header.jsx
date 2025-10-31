@@ -92,9 +92,13 @@ export default function Header() {
             </li>
           )}
 
-          {user && (
+          {user && user.role !== 'guest' ? (
             <li className="mobile-action logout" onClick={handleLogout}>
               Logout
+            </li>
+          ) : (
+            <li className="mobile-action" onClick={() => { navigate("/loginregister"); closeMenu(); }}>
+              Login / Register
             </li>
           )}
         </ul>
@@ -125,10 +129,14 @@ export default function Header() {
             <User size={20} /> Profile
           </button>
 
-          {/* 🚪 Logout */}
-          {user && (
+          {/* 🚪 Logout / Login */}
+          {user && user.role !== 'guest' ? (
             <button className="logout-btn" onClick={handleLogout}>
               <FaSignOutAlt /> Logout
+            </button>
+          ) : (
+            <button onClick={() => navigate("/loginregister")}>
+              <FaUser size={16} /> Login
             </button>
           )}
         </div>
