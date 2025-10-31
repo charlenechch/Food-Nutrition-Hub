@@ -722,6 +722,220 @@
   transform: none;
 }
 
+/* Admin Delete Button */
+.fd-admin-delete-btn {
+  color: #8B4513;
+  border: 1px solid #8B4513;
+  background-color: #fff;
+}
+
+.fd-admin-delete-btn:hover {
+  background-color: #8B4513;
+  color: white;
+}
+
+/* Comment Header Layout */
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.comment-author {
+  font-weight: bold;
+  color: #333;
+  font-size: 14px;
+}
+
+.comment-date {
+  color: #888;
+  font-size: 12px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  background: white;
+  border-radius: 8px;
+  padding: 0;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-card-header {
+  padding: 20px 20px 0 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-card-header h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.modal-card-body {
+  padding: 20px;
+}
+
+.modal-card-body p {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.modal-card-actions {
+  padding: 0 20px 20px 20px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* Button Styles */
+.lrp-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.lrp-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lrp-btn-outline {
+  background: white;
+  border: 1px solid #ddd;
+  color: #333;
+}
+
+.lrp-btn-outline:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #ccc;
+}
+
+.lrp-btn-danger {
+  background: #8B4513;
+  color: white;
+}
+
+.lrp-btn-danger:hover:not(:disabled) {
+  background: #8B4513;
+}
+
+.lrp-btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.lrp-btn-primary:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+/* Comment Item Styles */
+.comment-item {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid #eee;
+}
+
+.comment-content {
+  color: #333;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* Loading Spinner */
+.fa-spinner.fa-spin {
+  animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* User label for admin */
+.comment-author span[style*="color: #ff4444"] {
+  font-size: 0.7em;
+  font-weight: normal;
+  padding: 1px 4px;
+  background: #ffebee;
+  border-radius: 3px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-card {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .modal-card-actions {
+    flex-direction: column;
+  }
+  
+  .comment-header {
+    flex-wrap: wrap;
+  }
+  
+  .fd-delete-btn {
+    margin-left: auto; /* Push delete button to the right on mobile */
+  }
+}
+
+/* Ensure the delete button is properly positioned */
+.comment-header .fd-delete-btn {
+  margin-left: auto;
+  order: 3; /* Ensure it stays on the right */
+}
+
+/* Hover effects for comment items */
+.comment-item:hover {
+  background: #f5f5f5;
+  border-color: #ddd;
+}
+
+/* Focus states for accessibility */
+.fd-delete-btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.lrp-btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
 /* Font Awesome icon sizing */
 .fd-delete-btn i {
   font-size: 14px;

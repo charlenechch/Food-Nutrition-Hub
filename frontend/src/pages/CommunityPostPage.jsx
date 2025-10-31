@@ -157,18 +157,29 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
   const isLoggedIn = computeIsLoggedIn(user);
   const isGuest = !isLoggedIn; // single source of truth
   const currentUserProfileID = getStableProfileId(user);
-  const isAdmin = user?.role?.toLowerCase() === "admin";
+  const isAdmin = user?.role === "admin";
 
   const openLoginModal = () => setShowLoginModal(true);
 
-  // Check if current user is the author of a comment
-  const isCommentAuthor = (commentUserProfileID) => {
-    return currentUserProfileID && commentUserProfileID === currentUserProfileID;
-  };
-
-  // Check if current user is the author OR admin
-  const isCommentAuthorOrAdmin = (commentUserProfileID) => {
-    return isAdmin || isCommentAuthor(commentUserProfileID);
+  const canDeleteComment = (commentUserProfileID) => {
+    if (!currentUserProfileID) return false;
+    
+    // Convert both to numbers for consistent comparison
+    const currentUserIdNum = parseInt(currentUserProfileID);
+    const commentUserIdNum = parseInt(commentUserProfileID);
+    
+    const isOwner = currentUserIdNum === commentUserIdNum;
+    const canDelete = isOwner || isAdmin;
+    
+    console.log('🔍 Delete Permission Check:', {
+      currentUserId: currentUserIdNum,
+      commentUserId: commentUserIdNum,
+      isOwner,
+      isAdmin,
+      canDelete
+    });
+    
+    return canDelete;
   };
 
   // Open delete confirmation modal
@@ -190,13 +201,23 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
     try {
       setDeletingCommentId(commentToDelete);
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const userProfileID = getStableProfileId(user);
+      
+       const requestBody = {
+        userProfileID: currentUserProfileID,
+        isAdmin: commentToDelete.isAdminAction // Send admin flag to backend
+      };
+
+      console.log('🗑️ Deleting comment request:', {
+        commentId: commentToDelete.id,
+        userProfileID: currentUserProfileID,
+        isAdmin: commentToDelete.isAdminAction
+      });
       
       const response = await fetch(`${API_BASE_URL}/api/communityPost/comments/${commentToDelete}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ userProfileID, isAdmin }),
+        body: JSON.stringify(requestBody),
       });
 
       const result = await response.json();
@@ -287,6 +308,11 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                   : "Delete Comment"
                 }
               </h3>
+              {commentToDelete?.isAdminAction && (
+                <div className="admin-delete-warning">
+                  <i className="fas fa-exclamation-triangle"></i>
+                </div>
+              )}
             </div>
             <div className="modal-card-body">
               <p>
@@ -302,7 +328,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                 Cancel
               </button>
               <button 
-                className="lrp-btn lrp-btn-danger" 
+                className={`lrp-btn ${commentToDelete?.isAdminAction ? 'lrp-btn-warning' : 'lrp-btn-danger'}`}  
                 onClick={confirmDelete}
                 disabled={deletingCommentId}
               >
@@ -354,35 +380,54 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
             No comments yet.
           </p>
         ) : (
-          comments.map((c) => (
+          comments.map((c) => {
+            const canDelete = canDeleteComment(c.userProfileID);
+            const isOwner = currentUserProfileID && c.userProfileID && 
+                           parseInt(currentUserProfileID) === parseInt(c.userProfileID);
+            const isAdminAction = canDelete && !isOwner && isAdmin;
+            
+            console.log('🟢 Comment Display:', {
+              commentId: c.id,
+              commentUserProfileID: c.userProfileID,
+              currentUserProfileID: currentUserProfileID,
+              canDelete,
+              isOwner,
+              isAdmin,
+              isAdminAction
+            });
+
+            return (
             <div key={c.id} className="comment-item">
-              <div className="comment-header">
-                <span className="comment-author">{c.author}
-                  {isAdmin && !isCommentAuthor(c.userProfileID) && (
-                    <span style={{color: '#8B4513', marginLeft: '5px', fontSize: '0.8em'}}>
-                </span>
-                )}
-                </span>
-                <span className="comment-date">{c.daysAgo}</span>
-                {/* Delete ICON (not button) - only show if user is the author */}
-                {isCommentAuthor(c.userProfileID) && (
-                  <button
-                    className="fd-delete-btn"
-                    onClick={() => openDeleteModal(c.id)}
-                    disabled={deletingCommentId === c.id}
-                    title={isAdmin && !isCommentAuthor(c.userProfileID) ? "Delete comment (Admin)" : "Delete comment"}
-                  >
-                    {deletingCommentId === c.id ? (
-                      <i className="fas fa-spinner fa-spin"></i>
-                    ) : (
-                      <i className="fas fa-trash-alt"></i>
+                <div className="comment-header">
+                  <span className="comment-author">
+                    {c.author}
+                    {isAdmin && !isOwner && (
+                      <span style={{color: '#8B4513', marginLeft: '5px', fontSize: '0.8em'}}>
+                      </span>
                     )}
-                  </button>
-                )}
+                  </span>
+                  <span className="comment-date">{c.daysAgo}</span>
+                  
+                  {/* ✅ UPDATED: Delete Button - Show for owners AND admins */}
+                  {canDelete && (
+                    <button
+                      className={`fd-delete-btn ${isAdminAction ? 'fd-admin-delete-btn' : ''}`}
+                      onClick={() => openDeleteModal(c.id, isAdminAction)}
+                      disabled={deletingCommentId === c.id}
+                      title={isAdminAction ? "Delete comment (Admin)" : "Delete comment"}
+                    >
+                      {deletingCommentId === c.id ? (
+                        <i className="fas fa-spinner fa-spin"></i>
+                      ) : (
+                        <i className="fas fa-trash-alt"></i>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <div className="comment-content">{c.text}</div>
               </div>
-              <div className="comment-content">{c.text}</div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
