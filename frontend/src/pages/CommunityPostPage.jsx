@@ -161,6 +161,11 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
 
   const openLoginModal = () => setShowLoginModal(true);
 
+  const isCommentAuthor = (commentUserProfileID) => {
+    if (!currentUserProfileID || !commentUserProfileID) return false;
+    return parseInt(currentUserProfileID) === parseInt(commentUserProfileID);
+  };
+
   const canDeleteComment = (commentUserProfileID) => {
     if (!currentUserProfileID) return false;
     
@@ -184,7 +189,13 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
 
   // Open delete confirmation modal
   const openDeleteModal = (commentId) => {
-    setCommentToDelete(commentId);
+    const comment = comments.find(c => c.id === commentId);
+    const isAdminAction = isAdmin && !isCommentAuthor(comment?.userProfileID);
+    
+    setCommentToDelete({ 
+      id: commentId, 
+      isAdminAction 
+    });
     setShowDeleteModal(true);
   };
 
