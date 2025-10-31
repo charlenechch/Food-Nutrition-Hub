@@ -177,7 +177,7 @@ const Comment = React.memo(function Comment({
               aria-label={`Delete ${isReply ? 'reply' : 'comment'} by ${username}`}
             >
               <i className="fas fa-trash-alt"></i>
-              {isAdmin && !isOwner && <span className="admin-badge">Admin</span>}
+              {isAdmin && !isOwner && <span className="admin-badge"></span>}
             </button>
           )}
         </div>
@@ -356,7 +356,9 @@ export default function FoodDiscussionPage() {
       user_liked: false,
       replies: [],
       timeAgo: 'now',
-      isTemp: true
+      isTemp: true,
+      isAdmin: user?.role === "admin",
+      avatar: user?.avatar
     };
 
     setComments((prev) => [tempComment, ...prev]);
@@ -381,7 +383,12 @@ export default function FoodDiscussionPage() {
           comment.id === tempComment.id && comment.isTemp
             ? { 
                 ...data.data, 
-                userProfileID: actualUserProfileID 
+                userProfileID: actualUserProfileID,
+                username: tempComment.username,
+                isAdmin: tempComment.isAdmin,
+                avatar: tempComment.avatar,
+                // Use backend ID but keep our user info
+                id: data.data.id || data.data.discussionID 
               }
             : comment
         )
@@ -456,6 +463,9 @@ const postReply = async (discussionId) => {
                     ? { 
                         ...data.data, 
                         userProfileID: userProfileID, 
+                        username: tempReply.username,
+                        isAdmin: user?.role === "admin",
+                        avatar: user?.avatar,
                         discussionID: discussionId 
                       }
                     : reply
@@ -549,7 +559,7 @@ const postReply = async (discussionId) => {
           comment.id !== commentId && comment.discussionID !== commentId
         ));
         setDeleteModal({ show: false, type: "comment", commentId: null, replyId: null, onConfirm: null, isAdminAction: false });
-        alert(isAdminAction ? "Comment deleted successfully as administrator." : "Comment deleted successfully.");
+        //alert(isAdminAction ? "Comment deleted successfully as administrator." : "Comment deleted successfully.");
       } else {
         alert(data?.message || "Failed to delete comment");
       }
@@ -696,7 +706,6 @@ const postReply = async (discussionId) => {
         <div className="fd-card">
           <h3 className="fd-section-title">
             <i className="fas fa-comment-dots" /> Community Comments ({comments.length})
-            {isAdmin && <span className="admin-subtitle"> (Admin Management Enabled)</span>}
           </h3>
           {comments.length > 0 ? (
             <div className="fd-disc-list">
