@@ -86,6 +86,8 @@ export function AuthProvider({ children }) {
       });
     } finally {
       setUser(null);
+      // Force a redirect and full page reload to clear all stale state.
+      window.location.href = '/loginregister';
     }
   };
 
