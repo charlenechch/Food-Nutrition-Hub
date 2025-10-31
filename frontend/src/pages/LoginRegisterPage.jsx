@@ -50,7 +50,17 @@ export default function LoginRegisterPage() {
   const [remainingTime, setRemainingTime] = useState(0);
 
   const navigate = useNavigate();
-  const { setUser, loginAsGuest } = useAuth(); // ✅ use setUser instead of login(email)
+  const { user, setUser, loginAsGuest } = useAuth(); // ✅ use setUser instead of login(email)
+  
+  // Redirect 
+  useEffect(() => {
+    // If the user is loaded (not null) and is not a guest, redirect
+    if (user && user.role !== "guest") {
+      navigate(user.role === "admin" ? "/admin" : "/home");
+    }
+    // Run this check whenever the user object changes
+  }, [user, navigate]);
+
   // ✅ Sync lockouts across tabs
   useEffect(() => {
     const sync = (e) => {
