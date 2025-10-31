@@ -398,7 +398,8 @@ export default function FoodDiscussionPage() {
                 isAdmin: tempComment.isAdmin,
                 avatar: tempComment.avatar,
                 // Use backend ID but keep our user info
-                id: data.data.id || data.data.discussionID 
+                id: data.data.id || data.data.discussionID,
+                discussionID: data.data.id || data.data.discussionID
               }
             : comment
         )

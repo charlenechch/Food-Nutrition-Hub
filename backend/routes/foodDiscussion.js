@@ -290,9 +290,9 @@ router.post('/', async (req, res) => {
       FROM discussion d 
       JOIN userProfile up ON d.userProfileID = up.userProfileID 
       JOIN user u ON up.userID = u.userID
-      WHERE d.discussionID = ?
+      WHERE d.discussionID = ? AND d.userProfileID = ?
     `;
-    const newCommentResult = await db.query(newCommentSql, [newCommentId]);
+    const newCommentResult = await db.query(newCommentSql, [newCommentId, userProfileID]);
     const newCommentData = firstRows(newCommentResult)[0];
 
     if (!newCommentData) {
@@ -347,9 +347,9 @@ router.post('/:discussionId/replies', async (req, res) => {
       FROM reply r
       JOIN userProfile up ON r.userProfileID = up.userProfileID 
       JOIN user u ON up.userID = u.userID
-      WHERE r.replyID = ?
+      WHERE r.replyID = ? AND d.userProfileID = ?
     `;
-    const replyResult = await db.query(selectSql, [newReplyId]);
+    const replyResult = await db.query(selectSql, [newReplyId, userProfileID]);
     const newReplyData = firstRows(replyResult)[0];
 
     if (!newReplyData) {
