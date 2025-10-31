@@ -368,7 +368,8 @@ export default function FoodDiscussionPage() {
       timeAgo: 'now',
       isTemp: true,
       isAdmin: user?.role === "admin",
-      avatar: user?.avatar
+      avatar: user?.avatar,
+      userRole: user?.role
     };
 
     setComments((prev) => [tempComment, ...prev]);
@@ -392,14 +393,10 @@ export default function FoodDiscussionPage() {
         prev.map(comment => 
           comment.id === tempComment.id && comment.isTemp
             ? { 
-                ...data.data, 
-                userProfileID: actualUserProfileID,
-                username: tempComment.username,
-                isAdmin: tempComment.isAdmin,
-                avatar: tempComment.avatar,
-                // Use backend ID but keep our user info
-                id: data.data.id || data.data.discussionID,
-                discussionID: data.data.id || data.data.discussionID
+                ...data.data,
+                user_liked: false,
+                timeAgo: 'now',
+                replies: [],
               }
             : comment
         )
@@ -454,7 +451,7 @@ const postReply = async (discussionId) => {
       )
     );
     
-    setReplyTexts((prev) => ({ ...prev, [discussionId]: "" })); // Just clear the input
+    setReplyTexts((prev) => ({ ...prev, [discussionId]: "" })); //Clear the input
     setReplyToId(null);
 
     const res = await fetch(`${API}/api/foodDiscussion/${discussionId}/replies`, {
@@ -478,15 +475,9 @@ const postReply = async (discussionId) => {
                 replies: (c.replies || []).map(reply =>
                   reply.replyID === tempReply.replyID
                     ? { 
-                        ...data.data, 
-                        userProfileID: userProfileID, 
-                        username: tempReply.username,
-                        avatar: tempReply.avatar,
-                        userRole: tempReply.userRole,
-                        isAdmin: tempReply.isAdmin,
+                        ...data.data,
+                        timeAgo: 'now',
                         discussionID: discussionId,
-                        replyID: data.data.replyID || data.data.id,
-                        id: data.data.replyID || data.data.id
                       }
                     : reply
                 ),

@@ -199,6 +199,7 @@ router.post('/', async (req, res) => {
     const newCommentSql = `
       SELECT 
         d.discussionID as id,
+        d.userProfileID,
         CONCAT(u.firstname, ' ', u.lastname) AS username,
         up.avatar as avatar,
         u.role as userRole,
@@ -257,6 +258,7 @@ router.post('/:discussionId/replies', async (req, res) => {
     const selectSql = `
       SELECT 
         r.replyID, 
+        r.userProfileID,
         CONCAT(u.firstname, ' ', u.lastname) AS username,
         up.avatar as avatar,
         u.role as userRole,
