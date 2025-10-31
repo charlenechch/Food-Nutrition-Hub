@@ -322,7 +322,7 @@ router.get('/comments/:postId', async (req, res) => {
 router.delete('/comments/:commentId', async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { userProfileID } = req.body;
+    const { userProfileID, isAdmin } = req.body;
 
     console.log('🗑️ Deleting comment:', { commentId, userProfileID });
 
