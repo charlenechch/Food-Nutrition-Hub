@@ -47,9 +47,7 @@ router.get('/food/:foodId', async (req, res) => {
     const { foodId } = req.params;
     const userProfileID = req.user?.userProfileID;
 
-    const checkingUserProfileID = userProfileID || 0;
-
-    console.log("🟢 GET ROUTE - foodId:", foodId, "userProfileID:", userProfileID, "Type:", typeof userProfileID);
+    console.log("🟢 GET COMMENTS - foodId:", foodId, "userProfileID:", userProfileID);
 
     // First get all comments
     const sql = `
@@ -192,6 +190,8 @@ router.post('/', async (req, res) => {
     const insertResult = await db.query(insertSql, [foodID, userProfileID, content.trim()]);
     const newCommentId = firstRows(insertResult).insertId || insertResult[0]?.insertId;
 
+    console.log("🟢 CREATE COMMENT - New comment ID:", newCommentId);
+
     if (!newCommentId) {
       return res.status(500).json({ success: false, message: 'Failed to create comment' });
     }
@@ -206,24 +206,50 @@ router.post('/', async (req, res) => {
         d.content,
         d.created_At as timestamp,
         d.upVotes as likes,
-        d.downVotes as dislikes
+        d.downVotes as dislikes,
+        d.upvoted_by
       FROM discussion d 
       JOIN userProfile up ON d.userProfileID = up.userProfileID 
       JOIN user u ON up.userID = u.userID
-      WHERE d.discussionID = ? AND d.userProfileID = ?
+      WHERE d.discussionID = ? 
     `;
+
+    console.log("🟢 CREATE COMMENT - Executing SQL for new comment data...");
     const newCommentResult = await db.query(newCommentSql, [newCommentId, userProfileID]);
     const newCommentData = firstRows(newCommentResult)[0];
+
+    console.log("🟢 CREATE COMMENT - Raw SQL result:", newCommentResult);
+    console.log("🟢 CREATE COMMENT - Processed newCommentData:", newCommentData);
 
     if (!newCommentData) {
       return res.status(500).json({ success: false, message: 'Failed to retrieve created comment' });
     }
 
-    res.json({
+    console.log("🔍 CREATE COMMENT - Field check:", {
+      id: newCommentData.id,
+      userProfileID: newCommentData.userProfileID,
+      username: newCommentData.username,
+      avatar: newCommentData.avatar,
+      userRole: newCommentData.userRole,
+      hasAvatar: !!newCommentData.avatar,
+      avatarLength: newCommentData.avatar?.length
+    });
+
+    const responseData = {
       success: true,
       message: 'Comment created successfully',
-      data: { ...newCommentData, timeAgo: 'now', replies: [], isAdmin: newCommentData.userRole === 'admin'},
-    });
+      data: { 
+        ...newCommentData, 
+        timeAgo: 'now', 
+        replies: [], 
+        user_liked: false,
+        isAdmin: newCommentData.userRole === 'admin'
+      },
+    };
+
+    console.log("🟢 CREATE COMMENT - Final response data:", JSON.stringify(responseData, null, 2));
+
+    res.json(responseData);
   } catch (error) {
     console.error('Error creating comment:', error);
     res.status(500).json({ success: false, message: 'Failed to create comment: ' + error.message });
@@ -235,6 +261,9 @@ router.post('/:discussionId/replies', async (req, res) => {
   try {
     const { discussionId } = req.params;
     const { userProfileID, reply } = req.body;
+
+    console.log("🟢 CREATE REPLY - Request params:", { discussionId });
+    console.log("🟢 CREATE REPLY - Request body:", { userProfileID, reply });
 
     if (!discussionId || !userProfileID || !reply?.trim()) {
       return res.status(400).json({
@@ -250,6 +279,8 @@ router.post('/:discussionId/replies', async (req, res) => {
     const insertResult = await db.query(insertSql, [discussionId, userProfileID, reply.trim()]);
     const insertHeader = firstRows(insertResult);
     const newReplyId = insertHeader.insertId || insertResult[0]?.insertId;
+
+    console.log("🟢 CREATE REPLY - New reply ID:", newReplyId);
 
     if (!newReplyId) {
       return res.status(500).json({ success: false, message: 'Failed to create reply' });
@@ -272,23 +303,36 @@ router.post('/:discussionId/replies', async (req, res) => {
     const replyResult = await db.query(selectSql, [newReplyId]);
     const newReplyData = firstRows(replyResult)[0];
 
-    console.log("🔵 BACKEND - Retrieved reply data:", {
-      id: newReplyData?.replyID,
-      username: newReplyData?.username,
-      avatar: newReplyData?.avatar,
-      userRole: newReplyData?.userRole,
-      userProfileID: newReplyData?.userProfileID
-    });
+    console.log("🟢 CREATE REPLY - Raw SQL result:", replyResult);
+    console.log("🟢 CREATE REPLY - Processed newReplyData:", newReplyData);
 
     if (!newReplyData) {
       return res.status(500).json({ success: false, message: 'Failed to retrieve created reply data' });
     }
 
-    res.json({
+    console.log("🔍 CREATE REPLY - Field check:", {
+      replyID: newReplyData.replyID,
+      userProfileID: newReplyData.userProfileID,
+      username: newReplyData.username,
+      avatar: newReplyData.avatar,
+      userRole: newReplyData.userRole,
+      hasAvatar: !!newReplyData.avatar,
+      avatarLength: newReplyData.avatar?.length
+    });
+
+    const responseData = {
       success: true,
       message: 'Reply created successfully',
-      data: { ...newReplyData, timeAgo: 'now', isAdmin: newReplyData.userRole === 'admin' },
-    });
+      data: { 
+        ...newReplyData, 
+        timeAgo: 'now', 
+        isAdmin: newReplyData.userRole === 'admin' 
+      },
+    };
+
+    console.log("🟢 CREATE REPLY - Final response data:", JSON.stringify(responseData, null, 2));
+
+    res.json(responseData);
   } catch (error) {
     console.error('Error creating reply:', error);
     res.status(500).json({ success: false, message: 'Failed to create reply: ' + error.message });

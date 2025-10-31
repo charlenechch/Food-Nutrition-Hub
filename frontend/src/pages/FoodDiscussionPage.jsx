@@ -345,6 +345,19 @@ export default function FoodDiscussionPage() {
     const actualUserProfileID = userProfileID;
     const actualFoodID = foodId;
 
+    console.log("🟢 FRONTEND - postComment called:", {
+    actualUserProfileID,
+    actualFoodID,
+    newComment: newComment.trim(),
+    userData: {
+      username: user?.username,
+      firstname: user?.firstname,
+      lastname: user?.lastname,
+      avatar: user?.avatar,
+      role: user?.role
+    }
+  });
+
     if (!actualUserProfileID) {
       alert("User profile ID not found. Please log in again.");
       return;
@@ -389,6 +402,14 @@ export default function FoodDiscussionPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
+        console.log("🟢 FRONTEND - Backend response data structure:", {
+        id: data.data.id,
+        username: data.data.username,
+        avatar: data.data.avatar,
+        userRole: data.data.userRole,
+        userProfileID: data.data.userProfileID
+      });
+      
       setComments((prev) => 
         prev.map(comment => 
           comment.id === tempComment.id && comment.isTemp
