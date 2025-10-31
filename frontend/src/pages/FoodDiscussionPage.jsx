@@ -430,11 +430,17 @@ const postReply = async (discussionId) => {
     const tempReply = {
       replyID: `temp-reply-${Date.now()}`,
       userProfileID: userProfileID,
-      username: user?.username || user?.firstname,
+      username: user?.username || `${user?.firstname} ${user?.lastname}`.trim() || '',
+      avatar: user?.avatar, 
+      userRole: user?.role,
+      isAdmin: user?.role === 'admin',
       content: text,
+      reply: text,
       timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       timeAgo: 'now',
-      isTemp: true
+      isTemp: true,
+      discussionID: discussionId
     };
 
     setComments((prev) =>
@@ -475,9 +481,12 @@ const postReply = async (discussionId) => {
                         ...data.data, 
                         userProfileID: userProfileID, 
                         username: tempReply.username,
-                        isAdmin: user?.role === "admin",
-                        avatar: user?.avatar,
-                        discussionID: discussionId 
+                        avatar: tempReply.avatar,
+                        userRole: tempReply.userRole,
+                        isAdmin: tempReply.isAdmin,
+                        discussionID: discussionId,
+                        replyID: data.data.replyID || data.data.id,
+                        id: data.data.replyID || data.data.id
                       }
                     : reply
                 ),
