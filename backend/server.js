@@ -77,7 +77,6 @@ promiseDb.execute('SELECT 1 as test')
     console.error('❌ Database connection test failed:', err.message);
   });
 
-
 // ---------- 1) Proxy & security headers ----------
 app.set("trust proxy", 1); // behind Railway/Vercel proxy
 
@@ -137,11 +136,10 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    // Use the array directly. This is cleaner.
     origin: allowedOrigins, 
     credentials: true, // 🔥 Required for cookies/session to work
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token", "CSRF-Token"],
     optionsSuccessStatus: 204,
   })
 );
@@ -163,7 +161,6 @@ const dbOptions = {
   expiration: 24 * 60 * 60 * 1000, // 24 hours
 };
 
-// Strongly recommended: remove any hard-coded DB fallbacks in production.
 const sessionStore = new MySQLStore(dbOptions);
 
 app.use(
@@ -172,7 +169,7 @@ app.use(
     secret: process.env.SESSION_SECRET || "change-me-in-.env",
     store: sessionStore,
     resave: false,
-    saveUninitialized: false, // don't create empty sessions
+    saveUninitialized: false,
     cookie: {
       httpOnly: true,
       sameSite: IS_PROD ? "none" : "lax", // "lax" for local testing
@@ -181,19 +178,27 @@ app.use(
   })
 );
 
-// // ---------- 5) CSRF for state-changing requests ----------
-// const csrfProtection = csrf({ cookie: false }); // uses session
+// ---------- 5) CSRF Protection (ACTIVE) ----------
+// ✅ Create CSRF middleware that uses sessions (no separate cookie)
+const csrfProtection = csrf({ cookie: false });
 
-// // Token endpoint for the SPA to fetch a token and send it via X-CSRF-Token
-// app.get("/api/auth/csrf-token", (req, res) => {
-//   res.json({ csrfToken: req.csrfToken() });
-// });
+// ✅ Token endpoint for SPA (React) to fetch CSRF token
+app.get("/api/csrf-token", csrfProtection, (req, res) => {
+  try {
+    const token = req.csrfToken();
+    console.log("🎟️ CSRF token generated:", token.substring(0, 10) + "...");
+    res.json({ csrfToken: token });
+  } catch (err) {
+    console.error("⚠️ Failed to generate CSRF token:", err.message);
+    res.status(500).json({ error: "CSRF token generation failed" });
+  }
+});
 
-// // Apply CSRF ONLY to mutating methods to keep GET/OPTIONS simple
-// app.use((req, res, next) => {
-//   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
-//   return csrfProtection(req, res, next);
-// });
+// ✅ Apply CSRF ONLY to mutating methods to keep GET/OPTIONS simple
+app.use((req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+  return csrfProtection(req, res, next);
+});
 
 // ---------- 6) Rate limiting ----------
 const globalLimiter = rateLimit({
@@ -249,10 +254,8 @@ app.get("/api/auth/session", (req, res) => {
   console.log(" Session ID:", req.sessionID);
   console.log(" Has session user:", !!req.session?.user);
   
-  // Check if session exists and has user data
   if (req.session && req.session.user) {
     console.log("Valid session found for user:", req.session.user.email);
-    
     return res.status(200).json({
       authenticated: true,
       user: {
@@ -265,7 +268,6 @@ app.get("/api/auth/session", (req, res) => {
     });
   } else {
     console.log("❌ No valid session found");
-    
     return res.status(401).json({
       authenticated: false,
       message: "No active session"
@@ -284,8 +286,8 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  // CSRF errors are common; return a clear message
   if (err.code === "EBADCSRFTOKEN") {
+    console.warn("🚨 CSRF token mismatch detected!");
     return res.status(403).json({ error: "Invalid CSRF token" });
   }
   console.error("❌ Server error:", err);
