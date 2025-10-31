@@ -342,7 +342,10 @@ export default function FoodDiscussionPage() {
     if (isGuest) return setShowLoginPrompt(true);
     if (!newComment.trim()) return;
 
-    const actualUserProfileID = userProfileID;
+    const actualUserProfileID = user?.role === 'admin' 
+    ? (user?.userProfileID || user?.profileID || user?.id)
+    : userProfileID;
+
     const actualFoodID = foodId;
 
     console.log("🟢 FRONTEND - postComment called:", {
@@ -358,8 +361,9 @@ export default function FoodDiscussionPage() {
     }
   });
 
+    
     if (!actualUserProfileID) {
-      alert("User profile ID not found. Please log in again.");
+      alert("Admin account needs a userProfileID to post comments. Please contact support.");
       return;
     }
 
