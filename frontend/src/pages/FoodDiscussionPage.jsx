@@ -177,7 +177,7 @@ const Comment = React.memo(function Comment({
               aria-label={`Delete ${isReply ? 'reply' : 'comment'} by ${username}`}
             >
               <i className="fas fa-trash-alt"></i>
-              {isAdmin && !isOwner && <span className="admin-badge"></span>}
+              {/*isAdmin && !isOwner && <span className="admin-badge"></span>*/}
             </button>
           )}
         </div>
@@ -541,17 +541,23 @@ const postReply = async (discussionId) => {
     if (isGuest) return setShowLoginPrompt(true);
 
     try {
+
+      const requestBody = {
+      userProfileID: userProfileID,
+      isAdminAction: isAdminAction,
+      adminRole: user?.role, 
+      adminId: user?.id || user?.userID
+      };
+
       const res = await fetch(`${API}/api/foodDiscussion/${commentId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          userProfileID: userProfileID,
-          isAdminAction: isAdminAction // Tell backend this is admin action
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await res.json();
+      console.log('Delete response:', data);
 
       if (res.ok && data.success) {
         // Remove comment from state
@@ -574,14 +580,19 @@ const postReply = async (discussionId) => {
     if (isGuest) return setShowLoginPrompt(true);
 
     try {
+
+      const requestBody = {
+      userProfileID: userProfileID,
+      isAdminAction: isAdminAction,
+      adminRole: user?.role,
+      adminId: user?.id || user?.userID
+      };
+
       const res = await fetch(`${API}/api/foodDiscussion/${commentId}/replies/${replyId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          userProfileID: userProfileID,
-          isAdminAction: isAdminAction // Tell backend this is admin action
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await res.json();
@@ -598,7 +609,7 @@ const postReply = async (discussionId) => {
           return comment;
         }));
         setDeleteModal({ show: false, type: "reply", commentId: null, replyId: null, onConfirm: null, isAdminAction: false });
-        alert(isAdminAction ? "Reply deleted successfully as administrator." : "Reply deleted successfully.");
+        //alert(isAdminAction ? "Reply deleted successfully as administrator." : "Reply deleted successfully.");
       } else {
         alert(data?.message || "Failed to delete reply");
       }
@@ -655,13 +666,6 @@ const postReply = async (discussionId) => {
           <button className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
             ← Back to Food Details
           </button>
-          {/* ✅ ADDED: Admin badge */}
-          {isAdmin && (
-            <div className="admin-banner">
-              <i className="fas fa-shield-alt"></i>
-              <span>Administrator Mode</span>
-            </div>
-          )}
         </div>
 
         <div className="fd-card fd-summary">
@@ -673,7 +677,6 @@ const postReply = async (discussionId) => {
               <div className="fd-sum-stats">
                 <span>💬 {totalComments} comments</span>
                 <span>♡ {totalLikes} likes</span>
-                {isAdmin && <span className="admin-stat">👑 Admin Mode</span>}
               </div>
             </div>
           </div>
