@@ -210,7 +210,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
     if (!commentToDelete) return;
 
     try {
-      setDeletingCommentId(commentToDelete);
+      setDeletingCommentId(commentToDelete.id);
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
       
        const requestBody = {
@@ -224,7 +224,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
         isAdmin: commentToDelete.isAdminAction
       });
       
-      const response = await fetch(`${API_BASE_URL}/api/communityPost/comments/${commentToDelete}`, {
+      const response = await fetch(`${API_BASE_URL}/api/communityPost/comments/${commentToDelete.id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -234,7 +234,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
       const result = await response.json();
       
       if (response.ok && result.success) {
-        onCommentDeleted(commentToDelete);
+        onCommentDeleted(commentToDelete.id);
       } else {
         alert(result.message || 'Failed to delete comment');
       }
@@ -252,7 +252,6 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
     if (isGuest) {
       e.preventDefault();
       e.stopPropagation();
-      // blur the element so the caret won't appear
       if (e.target && typeof e.target.blur === "function") e.target.blur();
       openLoginModal();
     }
@@ -343,7 +342,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                 onClick={confirmDelete}
                 disabled={deletingCommentId}
               >
-                {deletingCommentId ? "Deleting..." : "Delete"}
+                {deletingCommentId ? "Deleting..." : (commentToDelete?.isAdminAction ? "Delete as Admin" : "Delete")}
               </button>
             </div>
           </div>
@@ -393,8 +392,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
         ) : (
           comments.map((c) => {
             const canDelete = canDeleteComment(c.userProfileID);
-            const isOwner = currentUserProfileID && c.userProfileID && 
-                           parseInt(currentUserProfileID) === parseInt(c.userProfileID);
+            const isOwner = isCommentAuthor(c.userProfileID);
             const isAdminAction = canDelete && !isOwner && isAdmin;
             
             console.log('🟢 Comment Display:', {
@@ -423,7 +421,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                   {canDelete && (
                     <button
                       className={`fd-delete-btn ${isAdminAction ? 'fd-admin-delete-btn' : ''}`}
-                      onClick={() => openDeleteModal(c.id, isAdminAction)}
+                      onClick={() => openDeleteModal(c.id)}
                       disabled={deletingCommentId === c.id}
                       title={isAdminAction ? "Delete comment (Admin)" : "Delete comment"}
                     >
