@@ -17,6 +17,7 @@ export function AuthProvider({ children }) {
       ...raw,
       userID: raw.userID ?? raw.id ?? null,
       id: raw.id ?? raw.userID ?? null,
+      userProfileID: raw.userProfileID ?? raw.profileID ?? null,
       role: raw.role || "member",
       email: raw.email ?? null,
       firstname: raw.firstname ?? raw.firstName ?? null,
