@@ -97,7 +97,7 @@ const Comment = React.memo(function Comment({
   isGuest,
   setShowLoginPrompt,
   currentUserId,
-  isAdmin = false, // ✅ ADDED: Admin prop
+  isAdmin = false, 
 }) {
   const itemId = isReply ? (item.replyID || item.id) : (item.id || item.discussionID);
   const username = item.username || "User";
@@ -110,7 +110,7 @@ const Comment = React.memo(function Comment({
   const commentIsAdmin = item.isAdmin || item.userRole === 'admin';
   
   // Enhanced user ID extraction 
-  const commentUserId = item.userProfileID;
+  const commentUserId = item.userProfileID || item.userID || item.authorID || item.user_id;
   
   // Check if current user is the owner of this comment/reply
   const isOwner = currentUserId && commentUserId && currentUserId.toString() === commentUserId.toString();
@@ -265,7 +265,7 @@ export default function FoodDiscussionPage() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const isGuest = !user || user.role === "guest";
-  const userProfileID = isGuest ? null : user?.userProfileID;
+  const userProfileID = isGuest ? null : user?.userProfileID || user?.userID || user?.id || user?.profileID;
   
   // Check if user is admin
   const isAdmin = user?.role === "admin";
@@ -409,7 +409,7 @@ export default function FoodDiscussionPage() {
         userRole: data.data.userRole,
         userProfileID: data.data.userProfileID
       });
-
+      
       setComments((prev) => 
         prev.map(comment => 
           comment.id === tempComment.id && comment.isTemp
