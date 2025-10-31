@@ -448,10 +448,26 @@ const postReply = async (discussionId) => {
   const text = replyTexts[discussionId]?.trim();
   if (!text) return;
 
+  const actualUserProfileID = user?.role === 'admin' 
+    ? (user?.userProfileID || user?.profileID || user?.id)
+    : userProfileID;
+
+  console.log("FRONTEND - postReply called:", {
+    discussionId,
+    actualUserProfileID,
+    userRole: user?.role
+  });
+
+  if (!actualUserProfileID) {
+    alert("User profile ID not found. Please log in again.");
+    return;
+  }
+
+
   try {
     const tempReply = {
       replyID: `temp-reply-${Date.now()}`,
-      userProfileID: userProfileID,
+      userProfileID: actualUserProfileID,
       username: user?.username || `${user?.firstname} ${user?.lastname}`.trim() || '',
       avatar: user?.avatar, 
       userRole: user?.role,
@@ -484,7 +500,7 @@ const postReply = async (discussionId) => {
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({
-        userProfileID: userProfileID,
+        userProfileID: actualUserProfileID,
         reply: text,
       }),
     });
