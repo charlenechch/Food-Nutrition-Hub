@@ -80,50 +80,63 @@ router.post("/", async (req, res) => {
 
     // If user is verified, proceed with login
     console.log("Password verified, proceeding with login");
+    console.log("🔍 [DEBUG] Current session ID before regeneration:", req.sessionID);
 
-    // Check if "Remember account" was checked
-    if (rememberDevice) {
-      const sevenDays = 7 * 24 * 60 * 60 * 1000; // 7 days
-      req.session.cookie.maxAge = sevenDays;
-      req.session.cookie.expires = new Date(Date.now() + sevenDays);
-      req.session.rememberMe = true;
-      req.session.loginTime = Date.now();
-      console.log("Session 'Remember Me' set. Expires in 7 days.");
-    } else {
-      req.session.cookie.maxAge = null;
-      req.session.cookie.expires = false;
-      req.session.rememberMe = false;
-      req.session.loginTime = Date.now();
-      console.log("Session-only cookie set");
-    }
+    // ✅✅ NEW FEATURE: Session Regeneration to prevent session fixation
+    req.session.regenerate(async (err) => {
+      if (err) {
+        console.error("Session regeneration failed:", err);
+        return res.status(500).json({ success: false, message: "Session regeneration error" });
+      }
 
-    // Complete login, set user in session
-    req.session.user = {
-      userID: user.userID,
-      email: user.email,
-      firstname: user.firstname,
-      lastname: user.lastname,
-      role: user.role
-    };
+      console.log("✅ [DEBUG] Session successfully regenerated!");
+      console.log("🔐 [DEBUG] New session ID after regeneration:", req.sessionID);
 
-    // Force session save
-    await new Promise((resolve, reject) => {
-      req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
-          reject(err);
-        } else {
-          resolve();
-        }
+      // Check if "Remember account" was checked
+      if (rememberDevice) {
+        const sevenDays = 7 * 24 * 60 * 60 * 1000; // 7 days
+        req.session.cookie.maxAge = sevenDays;
+        req.session.cookie.expires = new Date(Date.now() + sevenDays);
+        req.session.rememberMe = true;
+        req.session.loginTime = Date.now();
+        console.log("Session 'Remember Me' set. Expires in 7 days.");
+      } else {
+        req.session.cookie.maxAge = null;
+        req.session.cookie.expires = false;
+        req.session.rememberMe = false;
+        req.session.loginTime = Date.now();
+        console.log("Session-only cookie set");
+      }
+
+      // Complete login, set user in session
+      req.session.user = {
+        userID: user.userID,
+        email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        role: user.role
+      };
+
+      // Force session save
+      await new Promise((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("Session save error:", err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
       });
-    });
 
-    console.log("Login successful!");
+      console.log("✅ Login successful!");
+      console.log("🆕 [DEBUG] Final session ID stored:", req.sessionID); // for double confirmation
 
-    return res.json({
-      success: true,
-      message: "Login successful!",
-      user: req.session.user
+      return res.json({
+        success: true,
+        message: "Login successful!",
+        user: req.session.user
+      });
     });
 
   } catch (err) {
