@@ -137,15 +137,8 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // ✅ Allow requests from allowlist OR from same-origin server (no origin)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn("❌ Blocked CORS origin:", origin);
-        callback(new Error("CORS: Origin not allowed"));
-      }
-    },
+    // Use the array directly. This is cleaner.
+    origin: allowedOrigins, 
     credentials: true, // 🔥 Required for cookies/session to work
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
@@ -213,7 +206,7 @@ app.use(globalLimiter);
 
 const authLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  limit: 5,
+  limit: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many attempts, try again later." },
