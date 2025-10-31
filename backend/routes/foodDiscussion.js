@@ -47,6 +47,8 @@ router.get('/food/:foodId', async (req, res) => {
     const { foodId } = req.params;
     const userProfileID = req.user?.userProfileID;
 
+    const checkingUserProfileID = userProfileID || 0;
+
     console.log("🟢 GET ROUTE - foodId:", foodId, "userProfileID:", userProfileID, "Type:", typeof userProfileID);
 
     // First get all comments
@@ -94,12 +96,18 @@ router.get('/food/:foodId', async (req, res) => {
             console.log(`   Parsed array:`, upvotedArray);
             console.log(`   Array type:`, typeof upvotedArray, "Is array:", Array.isArray(upvotedArray));
             
+            if (typeof upvotedArray === 'number') {
+              // If it's just a number, convert to array
+              upvotedArray = [upvotedArray];
+              console.log(`   Converted single number to array:`, upvotedArray);
+            }
+
             if (Array.isArray(upvotedArray)) {
               // Clean the array - remove any null/undefined values
               const cleanArray = upvotedArray.filter(id => id !== null && id !== undefined);
               console.log(`   Cleaned array:`, cleanArray);
               
-              user_liked = cleanArray.includes(userProfileID);
+              user_liked = cleanArray.includes(checkingUserProfileID);
               console.log(`   user_liked result:`, user_liked, "(looking for", userProfileID, "in", cleanArray, ")");
             } else {
               console.log(`   ❌ upvoted_by is not an array!`);
@@ -136,7 +144,7 @@ router.get('/food/:foodId', async (req, res) => {
             up.avatar as avatar,
             u.role as userRole,
             r.reply as content,
-            r.createdAt as timestamp,
+            r.createdAt as timestamp
           FROM reply r
           JOIN userProfile up ON r.userProfileID = up.userProfileID 
           JOIN user u ON up.userID = u.userID
