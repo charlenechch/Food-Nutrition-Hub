@@ -101,10 +101,13 @@ const Comment = React.memo(function Comment({
 }) {
   const itemId = isReply ? (item.replyID || item.id) : (item.id || item.discussionID);
   const username = item.username || "User";
+  const avatar = item.avatar;
   const content = item.content || item.reply || "No content";
   const timestamp = item.timestamp || item.createdAt;
   const likes = isReply ? 0 : item.likes || item.upVotes || 0;
   const userLiked = item.user_liked || false;
+
+  const commentIsAdmin = item.isAdmin || item.userRole === 'admin';
   
   // Enhanced user ID extraction 
   const commentUserId = item.userProfileID || item.userID || item.authorID || item.user_id;
@@ -114,6 +117,15 @@ const Comment = React.memo(function Comment({
   
   // Admin can delete any comment/reply
   const canDelete = isOwner || isAdmin;
+
+  console.log('🟢 Comment data:', {
+    username,
+    avatar, 
+    commentIsAdmin,
+    isOwner,
+    currentUserId,
+    commentUserId
+  });
 
   const handleLike = () => {
     if (isGuest) return setShowLoginPrompt(true);
@@ -153,10 +165,9 @@ const Comment = React.memo(function Comment({
               className="fd-disc-avatar-img"
               onError={(e) => {
                 e.target.style.display = 'none';
-                //e.target.nextSibling.style.display = 'flex';
               }}
             />
-          ) : (//null}
+          ) : (
           
           <div className="fd-disc-avatar-initials">
             {username.substring(0, 2).toUpperCase()}
@@ -177,7 +188,6 @@ const Comment = React.memo(function Comment({
               aria-label={`Delete ${isReply ? 'reply' : 'comment'} by ${username}`}
             >
               <i className="fas fa-trash-alt"></i>
-              {/*isAdmin && !isOwner && <span className="admin-badge"></span>*/}
             </button>
           )}
         </div>
@@ -388,7 +398,8 @@ export default function FoodDiscussionPage() {
                 isAdmin: tempComment.isAdmin,
                 avatar: tempComment.avatar,
                 // Use backend ID but keep our user info
-                id: data.data.id || data.data.discussionID 
+                id: data.data.id || data.data.discussionID,
+                discussionID: data.data.id || data.data.discussionID
               }
             : comment
         )
@@ -419,11 +430,17 @@ const postReply = async (discussionId) => {
     const tempReply = {
       replyID: `temp-reply-${Date.now()}`,
       userProfileID: userProfileID,
-      username: user?.username || user?.firstname,
+      username: user?.username || `${user?.firstname} ${user?.lastname}`.trim() || '',
+      avatar: user?.avatar, 
+      userRole: user?.role,
+      isAdmin: user?.role === 'admin',
       content: text,
+      reply: text,
       timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       timeAgo: 'now',
-      isTemp: true
+      isTemp: true,
+      discussionID: discussionId
     };
 
     setComments((prev) =>
@@ -464,9 +481,12 @@ const postReply = async (discussionId) => {
                         ...data.data, 
                         userProfileID: userProfileID, 
                         username: tempReply.username,
-                        isAdmin: user?.role === "admin",
-                        avatar: user?.avatar,
-                        discussionID: discussionId 
+                        avatar: tempReply.avatar,
+                        userRole: tempReply.userRole,
+                        isAdmin: tempReply.isAdmin,
+                        discussionID: discussionId,
+                        replyID: data.data.replyID || data.data.id,
+                        id: data.data.replyID || data.data.id
                       }
                     : reply
                 ),

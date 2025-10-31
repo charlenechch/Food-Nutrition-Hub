@@ -268,12 +268,12 @@
 .lrp-btn-outline {
   background: white;
   border: 2px solid #e0e0e0;
-  color: #333;
+  color: #8B4513;
 }
 
 .lrp-btn-outline:hover {
-  background: #f8f9fa;
-  border-color: #ccc;
+  background: #8B4513;
+  border-color: #8B4513;
   transform: translateY(-1px);
 }
 
@@ -287,10 +287,6 @@
   background: #8B4513;
   border-color: #8B4513;
   transform: translateY(-1px);
-}
-
-.fd-admin-delete-btn {
-  border: 1px solid #8B4513;
 }
 
 /* Responsive Design */

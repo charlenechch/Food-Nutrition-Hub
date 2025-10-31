@@ -42,97 +42,12 @@ function formatToDate(timestamp) {
   return `${day} ${month} ${year}`;
 }
 
-// ✅ Get discussions for a specific food (with replies)
-// router.get('/food/:foodId', async (req, res) => {
-//   try {
-//     const { foodId } = req.params;
-//     const userProfileID = req.user?.userProfileID; // Get current user ID
-
-//     console.log("GET comments - foodId:", foodId, "userProfileID:", userProfileID);
-
-//     const sql = `
-//       SELECT 
-//         d.discussionID as id,
-//         CONCAT(u.firstname, ' ', u.lastname) AS username,
-//         up.avatar as avatar,
-//         d.content,
-//         d.created_At as timestamp,
-//         d.upVotes as likes,
-//         d.downVotes as dislikes,
-//         d.upvoted_by,
-//         CASE 
-//           WHEN d.upvoted_by IS NOT NULL 
-//           AND d.upvoted_by != '[]' 
-//           AND d.upvoted_by != 'null'
-//           AND d.upvoted_by != ''
-//           THEN JSON_CONTAINS(d.upvoted_by, ?)
-//           ELSE false
-//         END as user_liked
-//       FROM discussion d 
-//       JOIN userProfile up ON d.userProfileID = up.userProfileID 
-//       JOIN user u ON up.userID = u.userID
-//       WHERE d.foodID = ? 
-//       ORDER BY d.created_At DESC
-//     `;
-
-//     const results = await db.query(sql, [
-//       JSON.stringify(userProfileID), 
-//       foodId
-//     ]);
-//     const comments = firstRows(results);
-//     console.log("Comments returned:", comments.length);
-
-//     // Debug the first comment
-//     if (comments.length > 0) {
-//       console.log("🔵 First comment:", {
-//         id: comments[0].id,
-//         upvoted_by: comments[0].upvoted_by,
-//         user_liked: comments[0].user_liked,
-//         userProfileID: userProfileID
-//       });
-//     }
-
-//     // Pull replies
-//     const discussionsWithReplies = await Promise.all(
-//       comments.map(async (comment) => {
-//         const repliesSql = `
-//           SELECT 
-//             r.replyID,
-//             CONCAT(u.firstname, ' ', u.lastname) AS username,
-//             up.avatar as avatar,
-//             r.reply as content,
-//             r.createdAt as timestamp,
-//             'Member' as type
-//           FROM reply r
-//           JOIN userProfile up ON r.userProfileID = up.userProfileID 
-//           JOIN user u ON up.userID = u.userID
-//           WHERE r.discussionID = ?
-//           ORDER BY r.createdAt ASC
-//         `;
-//         const repliesResult = await db.query(repliesSql, [comment.id]);
-//         const replies = firstRows(repliesResult).map(r => ({
-//           ...r,
-//           timeAgo: getTimeAgo(r.timestamp),
-//         }));
-//         return {
-//           ...comment,
-//           timeAgo: getTimeAgo(comment.timestamp),
-//           replies,
-//         };
-//       })
-//     );
-
-//     res.json({ success: true, data: discussionsWithReplies, count: discussionsWithReplies.length });
-//   } catch (error) {
-//     console.error('Error fetching discussions:', error);
-//     res.status(500).json({ success: false, message: 'Failed to fetch discussions' });
-//   }
-// });
-
 router.get('/food/:foodId', async (req, res) => {
   try {
     const { foodId } = req.params;
     const userProfileID = req.user?.userProfileID;
+
+    const checkingUserProfileID = userProfileID || 0;
 
     console.log("🟢 GET ROUTE - foodId:", foodId, "userProfileID:", userProfileID, "Type:", typeof userProfileID);
 
@@ -143,6 +58,7 @@ router.get('/food/:foodId', async (req, res) => {
         d.userProfileID,
         CONCAT(u.firstname, ' ', u.lastname) AS username,
         up.avatar as avatar,
+        u.role as userRole, 
         d.content,
         d.created_At as timestamp,
         d.upVotes as likes,
@@ -180,12 +96,18 @@ router.get('/food/:foodId', async (req, res) => {
             console.log(`   Parsed array:`, upvotedArray);
             console.log(`   Array type:`, typeof upvotedArray, "Is array:", Array.isArray(upvotedArray));
             
+            if (typeof upvotedArray === 'number') {
+              // If it's just a number, convert to array
+              upvotedArray = [upvotedArray];
+              console.log(`   Converted single number to array:`, upvotedArray);
+            }
+
             if (Array.isArray(upvotedArray)) {
               // Clean the array - remove any null/undefined values
               const cleanArray = upvotedArray.filter(id => id !== null && id !== undefined);
               console.log(`   Cleaned array:`, cleanArray);
               
-              user_liked = cleanArray.includes(userProfileID);
+              user_liked = cleanArray.includes(checkingUserProfileID);
               console.log(`   user_liked result:`, user_liked, "(looking for", userProfileID, "in", cleanArray, ")");
             } else {
               console.log(`   ❌ upvoted_by is not an array!`);
@@ -206,7 +128,8 @@ router.get('/food/:foodId', async (req, res) => {
 
       return {
         ...comment,
-        user_liked
+        user_liked,
+        isAdmin: comment.userRole === 'admin'
       };
     });
 
@@ -219,9 +142,9 @@ router.get('/food/:foodId', async (req, res) => {
             r.userProfileID,
             CONCAT(u.firstname, ' ', u.lastname) AS username,
             up.avatar as avatar,
+            u.role as userRole,
             r.reply as content,
-            r.createdAt as timestamp,
-            'Member' as type
+            r.createdAt as timestamp
           FROM reply r
           JOIN userProfile up ON r.userProfileID = up.userProfileID 
           JOIN user u ON up.userID = u.userID
@@ -232,6 +155,7 @@ router.get('/food/:foodId', async (req, res) => {
         const replies = firstRows(repliesResult).map(r => ({
           ...r,
           timeAgo: getTimeAgo(r.timestamp),
+          isAdmin: r.userRole === 'admin'
         }));
         return {
           ...comment,
@@ -277,17 +201,17 @@ router.post('/', async (req, res) => {
         d.discussionID as id,
         CONCAT(u.firstname, ' ', u.lastname) AS username,
         up.avatar as avatar,
+        u.role as userRole,
         d.content,
         d.created_At as timestamp,
         d.upVotes as likes,
-        d.downVotes as dislikes,
-        'Member' as type
+        d.downVotes as dislikes
       FROM discussion d 
       JOIN userProfile up ON d.userProfileID = up.userProfileID 
       JOIN user u ON up.userID = u.userID
-      WHERE d.discussionID = ?
+      WHERE d.discussionID = ? AND d.userProfileID = ?
     `;
-    const newCommentResult = await db.query(newCommentSql, [newCommentId]);
+    const newCommentResult = await db.query(newCommentSql, [newCommentId, userProfileID]);
     const newCommentData = firstRows(newCommentResult)[0];
 
     if (!newCommentData) {
@@ -297,7 +221,7 @@ router.post('/', async (req, res) => {
     res.json({
       success: true,
       message: 'Comment created successfully',
-      data: { ...newCommentData, timeAgo: 'now', replies: [] },
+      data: { ...newCommentData, timeAgo: 'now', replies: [], isAdmin: newCommentData.userRole === 'admin'},
     });
   } catch (error) {
     console.error('Error creating comment:', error);
@@ -335,9 +259,9 @@ router.post('/:discussionId/replies', async (req, res) => {
         r.replyID, 
         CONCAT(u.firstname, ' ', u.lastname) AS username,
         up.avatar as avatar,
+        u.role as userRole,
         r.reply as content,
-        r.createdAt as timestamp,
-        'Member' as type
+        r.createdAt as timestamp
       FROM reply r
       JOIN userProfile up ON r.userProfileID = up.userProfileID 
       JOIN user u ON up.userID = u.userID
@@ -346,6 +270,14 @@ router.post('/:discussionId/replies', async (req, res) => {
     const replyResult = await db.query(selectSql, [newReplyId]);
     const newReplyData = firstRows(replyResult)[0];
 
+    console.log("🔵 BACKEND - Retrieved reply data:", {
+      id: newReplyData?.replyID,
+      username: newReplyData?.username,
+      avatar: newReplyData?.avatar,
+      userRole: newReplyData?.userRole,
+      userProfileID: newReplyData?.userProfileID
+    });
+
     if (!newReplyData) {
       return res.status(500).json({ success: false, message: 'Failed to retrieve created reply data' });
     }
@@ -353,7 +285,7 @@ router.post('/:discussionId/replies', async (req, res) => {
     res.json({
       success: true,
       message: 'Reply created successfully',
-      data: { ...newReplyData, timeAgo: 'now' },
+      data: { ...newReplyData, timeAgo: 'now', isAdmin: newReplyData.userRole === 'admin' },
     });
   } catch (error) {
     console.error('Error creating reply:', error);
@@ -463,31 +395,6 @@ router.patch('/:commentId/vote', async (req, res) => {
   }
 });
 
-// ✅ Delete a comment (ownership check)
-// router.delete('/:commentId', async (req, res) => {
-//   try {
-//     const { commentId } = req.params;
-//     const { userProfileID } = req.body;
-
-//     if (!userProfileID) {
-//       return res.status(400).json({ success: false, message: 'userProfileID is required' });
-//     }
-
-//     const checkSql = 'SELECT discussionID FROM discussion WHERE discussionID = ? AND userProfileID = ?';
-//     const checkRes = await db.query(checkSql, [commentId, userProfileID]);
-//     const rows = firstRows(checkRes);
-//     if (!rows.length) {
-//       return res.status(403).json({ success: false, message: 'Comment not found or permission denied' });
-//     }
-
-//     await db.query('DELETE FROM discussion WHERE discussionID = ?', [commentId]);
-//     res.json({ success: true, message: 'Comment deleted successfully' });
-//   } catch (error) {
-//     console.error('Error deleting comment:', error);
-//     res.status(500).json({ success: false, message: 'Failed to delete comment' });
-//   }
-// });
-
 // ✅ Delete a comment (with admin support)
 router.delete('/:commentId', async (req, res) => {
   try {
@@ -554,39 +461,6 @@ router.delete('/:commentId', async (req, res) => {
   }
 });
 
-// ✅ Delete a reply (ownership check)
-// router.delete('/:commentId/replies/:replyId', async (req, res) => {
-//   try {
-//     const { commentId, replyId } = req.params;
-//     const { userProfileID } = req.body;
-
-//     console.log('🔄 Delete reply request:', { commentId, replyId, userProfileID });
-
-//     if (!userProfileID) {
-//       return res.status(400).json({ success: false, message: 'userProfileID is required' });
-//     }
-
-//     // FIX: Changed from discussion_replies to reply table
-//     const checkSql = 'SELECT replyID FROM reply WHERE replyID = ? AND userProfileID = ? AND discussionID = ?';
-//     const checkRes = await db.query(checkSql, [replyId, userProfileID, commentId]);
-//     const rows = firstRows(checkRes);
-    
-//     console.log('🔍 Reply ownership check result:', rows);
-
-//     if (!rows.length) {
-//       return res.status(403).json({ success: false, message: 'Reply not found or permission denied' });
-//     }
-
-//     // FIX: Changed from discussion_replies to reply table
-//     await db.query('DELETE FROM reply WHERE replyID = ?', [replyId]);
-//     console.log('✅ Reply deleted successfully');
-//     res.json({ success: true, message: 'Reply deleted successfully' });
-//   } catch (error) {
-//     console.error('Error deleting reply:', error);
-//     res.status(500).json({ success: false, message: 'Failed to delete reply' });
-//   }
-// });
-
 // ✅ Delete a reply (with admin support)
 router.delete('/:commentId/replies/:replyId', async (req, res) => {
   try {
@@ -597,29 +471,54 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
       return res.status(400).json({ success: false, message: 'userProfileID is required' });
     }
 
-    // check if the reply exists
-    const replyCheckSql = 'SELECT userProfileID FROM discussion_replies WHERE replyID = ? AND discussionID = ?';
-    const replyCheckRes = await db.query(replyCheckSql, [replyId, commentId]);
-    const replyRows = firstRows(replyCheckRes);
-    
-    if (!replyRows.length) {
-      try {
-        replyCheckSql = 'SELECT userProfileID FROM discussion_replies WHERE replyID = ? AND discussionID = ?';
-        replyCheckRes = await db.query(replyCheckSql, [replyId, commentId]);
-        replyRows = firstRows(replyCheckRes);
-      } catch (tableError) {
-        console.log('Alternative table also failed:', tableError.message);
-      }
-    }
+    console.log('🔧 DELETE REPLY REQUEST:', { 
+      commentId, 
+      replyId, 
+      userProfileID, 
+      isAdminAction, 
+      adminRole 
+    });
 
-    console.log('🔧 REPLY CHECK:', {
+    let replyCheckSql = 'SELECT userProfileID FROM reply WHERE replyID = ? AND discussionID = ?';
+    let replyCheckRes = await db.query(replyCheckSql, [replyId, commentId]);
+    let replyRows = firstRows(replyCheckRes);
+
+    console.log('🔧 REPLY CHECK (first attempt - reply table):', {
       replyId,
       commentId,
       rowsFound: replyRows.length,
       replyData: replyRows[0]
     });
-    
+
     if (!replyRows.length) {
+      try {
+        replyCheckSql = 'SELECT userProfileID FROM discussion_reply WHERE replyID = ? AND discussionID = ?';
+        replyCheckRes = await db.query(replyCheckSql, [replyId, commentId]);
+        replyRows = firstRows(replyCheckRes);
+        console.log('🔧 REPLY CHECK (second attempt - discussion_reply table):', {
+          rowsFound: replyRows.length
+        });
+      } catch (tableError) {
+        console.log('❌ discussion_reply table also failed:', tableError.message);
+      }
+    }
+
+    if (!replyRows.length) {
+      try {
+        replyCheckSql = 'SELECT userProfileID FROM discussion_replies WHERE replyID = ? AND discussionID = ?';
+        replyCheckRes = await db.query(replyCheckSql, [replyId, commentId]);
+        replyRows = firstRows(replyCheckRes);
+        console.log('🔧 REPLY CHECK (third attempt - discussion_replies table):', {
+          rowsFound: replyRows.length
+        });
+      } catch (tableError) {
+        console.log('❌ discussion_replies table also failed:', tableError.message);
+      }
+    }
+    
+    // ✅ Final check - if reply not found in any table
+    if (!replyRows.length) {
+      console.log('❌ Reply not found in any table');
       return res.status(404).json({ 
         success: false, 
         message: 'Reply not found' 
@@ -633,7 +532,7 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
     const isOwner = replyOwnerStr === userProfileStr;
     const isAdmin = Boolean(isAdminAction) && adminRole === 'admin';
 
-    console.log('Reply permission check:', { 
+    console.log('🔧 REPLY PERMISSION CHECK:', { 
       replyOwnerID, 
       userProfileID, 
       isOwner, 
@@ -650,13 +549,45 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
       });
     }
 
-    // Delete the reply
+    // ✅ Delete the reply 
+    let deleteSuccess = false;
+    
     try {
-      const deleteReplySql = 'DELETE FROM discussion_reply WHERE replyID = ? AND discussionID = ?';
+      const deleteReplySql = 'DELETE FROM reply WHERE replyID = ? AND discussionID = ?';
       await db.query(deleteReplySql, [replyId, commentId]);
+      console.log('✅ Reply deleted from "reply" table');
+      deleteSuccess = true;
     } catch (deleteError) {
-      const deleteReplySql = 'DELETE FROM discussion_replies WHERE replyID = ? AND discussionID = ?';
-      await db.query(deleteReplySql, [replyId, commentId]);
+      console.log('❌ Failed to delete from "reply" table:', deleteError.message);
+    }
+
+    if (!deleteSuccess) {
+      try {
+        const deleteReplySql = 'DELETE FROM discussion_reply WHERE replyID = ? AND discussionID = ?';
+        await db.query(deleteReplySql, [replyId, commentId]);
+        console.log('✅ Reply deleted from "discussion_reply" table');
+        deleteSuccess = true;
+      } catch (deleteError) {
+        console.log('❌ Failed to delete from "discussion_reply" table:', deleteError.message);
+      }
+    }
+
+    if (!deleteSuccess) {
+      try {
+        const deleteReplySql = 'DELETE FROM discussion_replies WHERE replyID = ? AND discussionID = ?';
+        await db.query(deleteReplySql, [replyId, commentId]);
+        console.log('✅ Reply deleted from "discussion_replies" table');
+        deleteSuccess = true;
+      } catch (deleteError) {
+        console.log('❌ Failed to delete from "discussion_replies" table:', deleteError.message);
+      }
+    }
+
+    if (!deleteSuccess) {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to delete reply from any table' 
+      });
     }
 
     res.json({ 
@@ -666,8 +597,8 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error deleting reply:', error);
-    res.status(500).json({ success: false, message: 'Failed to delete reply' });
+    console.error('❌ Error deleting reply:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete reply: ' + error.message });
   }
 });
 
