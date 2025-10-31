@@ -110,7 +110,7 @@ const Comment = React.memo(function Comment({
   const commentIsAdmin = item.isAdmin || item.userRole === 'admin';
   
   // Enhanced user ID extraction 
-  const commentUserId = item.userProfileID || item.userID || item.authorID || item.user_id;
+  const commentUserId = item.userProfileID;
   
   // Check if current user is the owner of this comment/reply
   const isOwner = currentUserId && commentUserId && currentUserId.toString() === commentUserId.toString();
@@ -265,7 +265,7 @@ export default function FoodDiscussionPage() {
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const isGuest = !user || user.role === "guest";
-  const userProfileID = isGuest ? null : user?.userProfileID || user?.userID || user?.id || user?.profileID;
+  const userProfileID = isGuest ? null : user?.userProfileID;
   
   // Check if user is admin
   const isAdmin = user?.role === "admin";
@@ -409,7 +409,7 @@ export default function FoodDiscussionPage() {
         userRole: data.data.userRole,
         userProfileID: data.data.userProfileID
       });
-      
+
       setComments((prev) => 
         prev.map(comment => 
           comment.id === tempComment.id && comment.isTemp
