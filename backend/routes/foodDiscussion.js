@@ -464,24 +464,84 @@ router.patch('/:commentId/vote', async (req, res) => {
 });
 
 // ✅ Delete a comment (ownership check)
+// router.delete('/:commentId', async (req, res) => {
+//   try {
+//     const { commentId } = req.params;
+//     const { userProfileID } = req.body;
+
+//     if (!userProfileID) {
+//       return res.status(400).json({ success: false, message: 'userProfileID is required' });
+//     }
+
+//     const checkSql = 'SELECT discussionID FROM discussion WHERE discussionID = ? AND userProfileID = ?';
+//     const checkRes = await db.query(checkSql, [commentId, userProfileID]);
+//     const rows = firstRows(checkRes);
+//     if (!rows.length) {
+//       return res.status(403).json({ success: false, message: 'Comment not found or permission denied' });
+//     }
+
+//     await db.query('DELETE FROM discussion WHERE discussionID = ?', [commentId]);
+//     res.json({ success: true, message: 'Comment deleted successfully' });
+//   } catch (error) {
+//     console.error('Error deleting comment:', error);
+//     res.status(500).json({ success: false, message: 'Failed to delete comment' });
+//   }
+// });
+
+// ✅ Delete a comment (with admin support)
 router.delete('/:commentId', async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { userProfileID } = req.body;
+    const { userProfileID, isAdminAction, adminRole } = req.body;
 
     if (!userProfileID) {
       return res.status(400).json({ success: false, message: 'userProfileID is required' });
     }
 
-    const checkSql = 'SELECT discussionID FROM discussion WHERE discussionID = ? AND userProfileID = ?';
-    const checkRes = await db.query(checkSql, [commentId, userProfileID]);
-    const rows = firstRows(checkRes);
-    if (!rows.length) {
-      return res.status(403).json({ success: false, message: 'Comment not found or permission denied' });
+    console.log('Delete request:', { commentId, userProfileID, isAdminAction, adminRole });
+
+    // check if the comment exists
+    const commentCheckSql = 'SELECT userProfileID FROM discussion WHERE discussionID = ?';
+    const commentCheckRes = await db.query(commentCheckSql, [commentId]);
+    const commentRows = firstRows(commentCheckRes);
+    
+    if (!commentRows.length) {
+      return res.status(404).json({ success: false, message: 'Comment not found' });
     }
 
+    const commentOwnerID = commentRows[0].userProfileID;
+    const isOwner = commentOwnerID.toString() === userProfileID.toString();
+    const isAdmin = isAdminAction && adminRole === 'admin';
+
+    console.log('Permission check:', { 
+      commentOwnerID, 
+      userProfileID, 
+      isOwner, 
+      isAdminAction, 
+      adminRole, 
+      isAdmin 
+    });
+
+    // Allow deletion if user is owner OR admin
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Comment not found or permission denied' 
+      });
+    }
+
+    // Delete the comment
     await db.query('DELETE FROM discussion WHERE discussionID = ?', [commentId]);
-    res.json({ success: true, message: 'Comment deleted successfully' });
+    
+    // Also delete any replies to this comment
+    await db.query('DELETE FROM discussion_replies WHERE discussionID = ?', [commentId]);
+
+    res.json({ 
+      success: true, 
+      message: isAdmin ? 'Comment deleted by admin' : 'Comment deleted successfully',
+      deletedByAdmin: isAdmin 
+    });
+
   } catch (error) {
     console.error('Error deleting comment:', error);
     res.status(500).json({ success: false, message: 'Failed to delete comment' });
@@ -489,32 +549,89 @@ router.delete('/:commentId', async (req, res) => {
 });
 
 // ✅ Delete a reply (ownership check)
+// router.delete('/:commentId/replies/:replyId', async (req, res) => {
+//   try {
+//     const { commentId, replyId } = req.params;
+//     const { userProfileID } = req.body;
+
+//     console.log('🔄 Delete reply request:', { commentId, replyId, userProfileID });
+
+//     if (!userProfileID) {
+//       return res.status(400).json({ success: false, message: 'userProfileID is required' });
+//     }
+
+//     // FIX: Changed from discussion_replies to reply table
+//     const checkSql = 'SELECT replyID FROM reply WHERE replyID = ? AND userProfileID = ? AND discussionID = ?';
+//     const checkRes = await db.query(checkSql, [replyId, userProfileID, commentId]);
+//     const rows = firstRows(checkRes);
+    
+//     console.log('🔍 Reply ownership check result:', rows);
+
+//     if (!rows.length) {
+//       return res.status(403).json({ success: false, message: 'Reply not found or permission denied' });
+//     }
+
+//     // FIX: Changed from discussion_replies to reply table
+//     await db.query('DELETE FROM reply WHERE replyID = ?', [replyId]);
+//     console.log('✅ Reply deleted successfully');
+//     res.json({ success: true, message: 'Reply deleted successfully' });
+//   } catch (error) {
+//     console.error('Error deleting reply:', error);
+//     res.status(500).json({ success: false, message: 'Failed to delete reply' });
+//   }
+// });
+
+// ✅ Delete a reply (with admin support)
 router.delete('/:commentId/replies/:replyId', async (req, res) => {
   try {
     const { commentId, replyId } = req.params;
-    const { userProfileID } = req.body;
-
-    console.log('🔄 Delete reply request:', { commentId, replyId, userProfileID });
+    const { userProfileID, isAdminAction, adminRole } = req.body;
 
     if (!userProfileID) {
       return res.status(400).json({ success: false, message: 'userProfileID is required' });
     }
 
-    // FIX: Changed from discussion_replies to reply table
-    const checkSql = 'SELECT replyID FROM reply WHERE replyID = ? AND userProfileID = ? AND discussionID = ?';
-    const checkRes = await db.query(checkSql, [replyId, userProfileID, commentId]);
-    const rows = firstRows(checkRes);
-    
-    console.log('🔍 Reply ownership check result:', rows);
+    console.log('Delete reply request:', { commentId, replyId, userProfileID, isAdminAction, adminRole });
 
-    if (!rows.length) {
-      return res.status(403).json({ success: false, message: 'Reply not found or permission denied' });
+    // First, check if the reply exists
+    const replyCheckSql = 'SELECT userProfileID FROM discussion_replies WHERE replyID = ? AND discussionID = ?';
+    const replyCheckRes = await db.query(replyCheckSql, [replyId, commentId]);
+    const replyRows = firstRows(replyCheckRes);
+    
+    if (!replyRows.length) {
+      return res.status(404).json({ success: false, message: 'Reply not found' });
     }
 
-    // FIX: Changed from discussion_replies to reply table
-    await db.query('DELETE FROM reply WHERE replyID = ?', [replyId]);
-    console.log('✅ Reply deleted successfully');
-    res.json({ success: true, message: 'Reply deleted successfully' });
+    const replyOwnerID = replyRows[0].userProfileID;
+    const isOwner = replyOwnerID.toString() === userProfileID.toString();
+    const isAdmin = isAdminAction && adminRole === 'admin';
+
+    console.log('Reply permission check:', { 
+      replyOwnerID, 
+      userProfileID, 
+      isOwner, 
+      isAdminAction, 
+      adminRole, 
+      isAdmin 
+    });
+
+    // Allow deletion if user is owner OR admin
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Reply not found or permission denied' 
+      });
+    }
+
+    // Delete the reply
+    await db.query('DELETE FROM discussion_replies WHERE replyID = ? AND discussionID = ?', [replyId, commentId]);
+
+    res.json({ 
+      success: true, 
+      message: isAdmin ? 'Reply deleted by admin' : 'Reply deleted successfully',
+      deletedByAdmin: isAdmin 
+    });
+
   } catch (error) {
     console.error('Error deleting reply:', error);
     res.status(500).json({ success: false, message: 'Failed to delete reply' });
