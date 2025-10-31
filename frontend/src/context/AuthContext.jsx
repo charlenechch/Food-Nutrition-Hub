@@ -26,6 +26,16 @@ export function AuthProvider({ children }) {
     };
   };
 
+  // This is now the ONLY way to log a user out on the frontend
+  const forceLogout = () => {
+    setUser(null); // Set user to null
+    
+    // Check if we're already on the login page to avoid a redirect loop
+    if (window.location.pathname !== "/loginregister") {
+      window.location.href = "/loginregister";
+    }
+  };
+
   const checkSession = async () => {
     try {
       const res = await fetch(`${API_URL}/api/auth/session`, {
@@ -35,14 +45,14 @@ export function AuthProvider({ children }) {
 
       if (res.ok && data?.user) {
         setUser(normalizeUser(data.user));
-      } else if (res.status === 401) {
-        setUser({ role: "guest", viewMode: "guest" });
       } else {
-        setUser(null);
+        // If session is not OK, force logout
+        forceLogout(); 
       }
     } catch (err) {
       console.error("Session error:", err);
-      setUser(null);
+      // If session check fails, force logout
+      forceLogout(); 
     } finally {
       setLoading(false);
     }
@@ -85,9 +95,7 @@ export function AuthProvider({ children }) {
         credentials: "include",
       });
     } finally {
-      setUser(null);
-      // Force a redirect and full page reload to clear all stale state.
-      window.location.href = '/loginregister';
+      forceLogout();
     }
   };
 
@@ -104,6 +112,7 @@ export function AuthProvider({ children }) {
         loginAsGuest,
         checkSession,
         toggleRole,
+        forceLogout,
       }}
     >
       {!loading && children}
