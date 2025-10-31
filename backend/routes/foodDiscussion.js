@@ -498,8 +498,6 @@ router.delete('/:commentId', async (req, res) => {
       return res.status(400).json({ success: false, message: 'userProfileID is required' });
     }
 
-    console.log('Delete request:', { commentId, userProfileID, isAdminAction, adminRole });
-
     // check if the comment exists
     const commentCheckSql = 'SELECT userProfileID FROM discussion WHERE discussionID = ?';
     const commentCheckRes = await db.query(commentCheckSql, [commentId]);
@@ -510,8 +508,10 @@ router.delete('/:commentId', async (req, res) => {
     }
 
     const commentOwnerID = commentRows[0].userProfileID;
-    const isOwner = commentOwnerID.toString() === userProfileID.toString();
-    const isAdmin = isAdminAction && adminRole === 'admin';
+    const commentOwnerStr = commentOwnerID?.toString();
+    const userProfileStr = userProfileID.toString();
+    const isOwner = commentOwnerStr === userProfileStr;
+    const isAdmin = Boolean(isAdminAction) && adminRole === 'admin';
 
     console.log('Permission check:', { 
       commentOwnerID, 
@@ -531,10 +531,16 @@ router.delete('/:commentId', async (req, res) => {
     }
 
     // Delete the comment
-    await db.query('DELETE FROM discussion WHERE discussionID = ?', [commentId]);
-    
-    // Also delete any replies to this comment
-    await db.query('DELETE FROM discussion_replies WHERE discussionID = ?', [commentId]);
+    const deleteCommentSql = 'DELETE FROM discussion WHERE discussionID = ?';
+    await db.query(deleteCommentSql, [commentId]);
+
+    try {
+      const deleteRepliesSql = 'DELETE FROM discussion_reply WHERE discussionID = ?';
+      await db.query(deleteRepliesSql, [commentId]);
+      console.log('✅ Successfully deleted replies');
+    } catch (replyError) {
+      console.log('⚠️ No replies table found or already empty:', replyError.message);
+    }
 
     res.json({ 
       success: true, 
@@ -591,20 +597,41 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
       return res.status(400).json({ success: false, message: 'userProfileID is required' });
     }
 
-    console.log('Delete reply request:', { commentId, replyId, userProfileID, isAdminAction, adminRole });
-
-    // First, check if the reply exists
+    // check if the reply exists
     const replyCheckSql = 'SELECT userProfileID FROM discussion_replies WHERE replyID = ? AND discussionID = ?';
     const replyCheckRes = await db.query(replyCheckSql, [replyId, commentId]);
     const replyRows = firstRows(replyCheckRes);
     
     if (!replyRows.length) {
-      return res.status(404).json({ success: false, message: 'Reply not found' });
+      try {
+        replyCheckSql = 'SELECT userProfileID FROM discussion_replies WHERE replyID = ? AND discussionID = ?';
+        replyCheckRes = await db.query(replyCheckSql, [replyId, commentId]);
+        replyRows = firstRows(replyCheckRes);
+      } catch (tableError) {
+        console.log('Alternative table also failed:', tableError.message);
+      }
+    }
+
+    console.log('🔧 REPLY CHECK:', {
+      replyId,
+      commentId,
+      rowsFound: replyRows.length,
+      replyData: replyRows[0]
+    });
+    
+    if (!replyRows.length) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Reply not found' 
+      });
     }
 
     const replyOwnerID = replyRows[0].userProfileID;
-    const isOwner = replyOwnerID.toString() === userProfileID.toString();
-    const isAdmin = isAdminAction && adminRole === 'admin';
+    const replyOwnerStr = replyOwnerID?.toString();
+    const userProfileStr = userProfileID.toString();
+    
+    const isOwner = replyOwnerStr === userProfileStr;
+    const isAdmin = Boolean(isAdminAction) && adminRole === 'admin';
 
     console.log('Reply permission check:', { 
       replyOwnerID, 
@@ -624,7 +651,13 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
     }
 
     // Delete the reply
-    await db.query('DELETE FROM discussion_replies WHERE replyID = ? AND discussionID = ?', [replyId, commentId]);
+    try {
+      const deleteReplySql = 'DELETE FROM discussion_reply WHERE replyID = ? AND discussionID = ?';
+      await db.query(deleteReplySql, [replyId, commentId]);
+    } catch (deleteError) {
+      const deleteReplySql = 'DELETE FROM discussion_replies WHERE replyID = ? AND discussionID = ?';
+      await db.query(deleteReplySql, [replyId, commentId]);
+    }
 
     res.json({ 
       success: true, 
