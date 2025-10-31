@@ -157,9 +157,11 @@
 }
 .rp-field input::placeholder,
 .rp-field textarea::placeholder,
-.rp-input::placeholder { color: #a18a75; }
+.rp-input::placeholder { 
+  color: #a18a75; 
+}
 
-.rp-field input:focus, textarea:focus{
+.rp-field input:focus, textarea:focus, .rp-field select:focus {
   outline: none;
 }
 
@@ -314,4 +316,34 @@
   display: -webkit-box;
   overflow: hidden;
   line-height: 1.4em;
+}
+.login-prompt-btn:focus {
+  outline: none;
+}
+.login-prompt-login {
+  background: #b8926a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 500; 
+}
+.login-prompt-login:hover {
+  background: #a97e52;
+}
+.login-prompt-register {
+  background: #eee;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 500; 
+}
+.login-prompt-register:hover {
+  background: #e0e0e0; 
+}
+.share-btn:focus {
+  outline: none;
 }

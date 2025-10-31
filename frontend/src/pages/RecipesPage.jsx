@@ -372,7 +372,20 @@ export default function RecipesPage() {
               </div>
               <div className="rp-field">
                 <label>Origin *</label>
-                <input name="origin" value={form.origin} onChange={onChangeForm} placeholder="e.g., Iban, Melanau…" required/>
+                <select
+                  name="origin"
+                  value={form.origin}
+                  onChange={onChangeForm}
+                  required
+                >
+                  <option value="">Select Origin</option>
+                  <option value="Malay">Malay</option>
+                  <option value="Chinese">Chinese</option>
+                  <option value="Iban">Iban</option>
+                  <option value="Melanau">Melanau</option>
+                  <option value="Bidayuh">Bidayuh</option>
+                  <option value="Dayak">Dayak</option>
+                </select>
               </div>
             </div>
 
