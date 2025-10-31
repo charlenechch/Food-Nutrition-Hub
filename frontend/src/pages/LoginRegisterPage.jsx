@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-import { useAuth } from '../context/AuthContext';
 
 // Firebase imports
 import {
