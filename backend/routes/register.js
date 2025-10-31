@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-// const sendEmail = require("../config/mailer");
-// const { getVerificationEmailHTML, getVerificationEmailSubject } = require("../utils/emailTemplates");
+const sendEmail = require("../config/mailer");
+const { getVerificationEmailHTML, getVerificationEmailSubject } = require("../utils/emailTemplates");
 const { body, validationResult } = require("express-validator");
 const router = express.Router();
 const db = require("../config/db"); // shared promise pool

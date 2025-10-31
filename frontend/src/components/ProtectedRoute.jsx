@@ -11,14 +11,14 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
     return <div>Loading...</div>;
   }
 
-  // ✅ Not logged in → force login/register page
-  if (!user) {
+  // ✅ Not logged in or guest → force login/register page
+  if (!user || user.role === "guest") {
     return <Navigate to="/loginregister" replace />;
   }
 
   // ✅ Logged in but not allowed (e.g. member trying to access admin)
-  if (!allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />; // You can change to /home if you want
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />;
   }
 
   return children;

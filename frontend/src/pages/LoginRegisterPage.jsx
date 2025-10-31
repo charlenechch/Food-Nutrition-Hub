@@ -220,7 +220,7 @@ export default function LoginRegisterPage() {
     return !!(entry && entry.lockStage >= 3);
   };
 
-  // ✅ LOGIN HANDLER
+  // ✅ Handle login
   const handleLogin = async () => {
     setLoginError("");
 

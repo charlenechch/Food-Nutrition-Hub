@@ -83,12 +83,12 @@ router.post("/", async (req, res) => {
 
     // Check if "Remember account" was checked
     if (rememberDevice) {
-      const sevenDays = 7 * 24 * 60 * 60 * 1000; // 7 days
-      req.session.cookie.maxAge = sevenDays;
-      req.session.cookie.expires = new Date(Date.now() + sevenDays);
+      const twoMinutes = 2 * 60 * 1000; // ⏱️ TEST: 2 minutes
+      req.session.cookie.maxAge = twoMinutes;
+      req.session.cookie.expires = new Date(Date.now() + twoMinutes);
       req.session.rememberMe = true;
       req.session.loginTime = Date.now();
-      console.log("Account trusted for 7 days");
+      console.log("TEST MODE: Session expires in 2 minutes");
     } else {
       req.session.cookie.maxAge = null;
       req.session.cookie.expires = false;

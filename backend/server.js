@@ -167,10 +167,10 @@ const dbOptions = {
   database: process.env.MYSQLDATABASE || process.env.DB_NAME,
   clearExpired: true,
   checkExpirationInterval: 15 * 60 * 1000, // cleanup every 15 min
-  expiration: 7 * 24 * 60 * 60 * 1000, // 7 days
+  expiration: 2 * 60 * 1000, // ⏱️ TEST: 5 minutes
 };
 
-// ⚠️ Strongly recommended: remove any hard-coded DB fallbacks in production.
+// Strongly recommended: remove any hard-coded DB fallbacks in production.
 const sessionStore = new MySQLStore(dbOptions);
 
 app.use(
@@ -248,6 +248,36 @@ app.get("/api/admin/data", (req, res) => {
     return res.status(403).json({ error: "Forbidden: Admins only" });
   }
   res.json({ secret: "This is admin-only data." });
+});
+
+// Session check endpoint
+app.get("/api/auth/session", (req, res) => {
+  console.log(" Session check requested");
+  console.log(" Session ID:", req.sessionID);
+  console.log(" Has session user:", !!req.session?.user);
+  
+  // Check if session exists and has user data
+  if (req.session && req.session.user) {
+    console.log("Valid session found for user:", req.session.user.email);
+    
+    return res.status(200).json({
+      authenticated: true,
+      user: {
+        userID: req.session.user.userID,
+        email: req.session.user.email,
+        firstname: req.session.user.firstname,
+        lastname: req.session.user.lastname,
+        role: req.session.user.role
+      }
+    });
+  } else {
+    console.log("❌ No valid session found");
+    
+    return res.status(401).json({
+      authenticated: false,
+      message: "No active session"
+    });
+  }
 });
 
 // Health check
