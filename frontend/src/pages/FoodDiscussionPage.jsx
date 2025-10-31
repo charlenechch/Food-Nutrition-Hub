@@ -101,10 +101,13 @@ const Comment = React.memo(function Comment({
 }) {
   const itemId = isReply ? (item.replyID || item.id) : (item.id || item.discussionID);
   const username = item.username || "User";
+  const avatar = item.avatar;
   const content = item.content || item.reply || "No content";
   const timestamp = item.timestamp || item.createdAt;
   const likes = isReply ? 0 : item.likes || item.upVotes || 0;
   const userLiked = item.user_liked || false;
+
+  const commentIsAdmin = item.isAdmin || item.userRole === 'admin';
   
   // Enhanced user ID extraction 
   const commentUserId = item.userProfileID || item.userID || item.authorID || item.user_id;
@@ -114,6 +117,15 @@ const Comment = React.memo(function Comment({
   
   // Admin can delete any comment/reply
   const canDelete = isOwner || isAdmin;
+
+  console.log('🟢 Comment data:', {
+    username,
+    avatar, 
+    commentIsAdmin,
+    isOwner,
+    currentUserId,
+    commentUserId
+  });
 
   const handleLike = () => {
     if (isGuest) return setShowLoginPrompt(true);
@@ -153,10 +165,9 @@ const Comment = React.memo(function Comment({
               className="fd-disc-avatar-img"
               onError={(e) => {
                 e.target.style.display = 'none';
-                //e.target.nextSibling.style.display = 'flex';
               }}
             />
-          ) : (//null}
+          ) : (
           
           <div className="fd-disc-avatar-initials">
             {username.substring(0, 2).toUpperCase()}
@@ -177,7 +188,6 @@ const Comment = React.memo(function Comment({
               aria-label={`Delete ${isReply ? 'reply' : 'comment'} by ${username}`}
             >
               <i className="fas fa-trash-alt"></i>
-              {/*isAdmin && !isOwner && <span className="admin-badge"></span>*/}
             </button>
           )}
         </div>
