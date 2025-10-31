@@ -160,7 +160,7 @@ const dbOptions = {
   database: process.env.MYSQLDATABASE || process.env.DB_NAME,
   clearExpired: true,
   checkExpirationInterval: 15 * 60 * 1000, // cleanup every 15 min
-  expiration: 1 * 60 * 1000, // ⏱️ TEST: 5 minutes
+  expiration: 24 * 60 * 60 * 1000, // 24 hours
 };
 
 // Strongly recommended: remove any hard-coded DB fallbacks in production.
