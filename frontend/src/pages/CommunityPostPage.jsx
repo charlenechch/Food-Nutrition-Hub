@@ -360,7 +360,6 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                 <span className="comment-author">{c.author}
                   {isAdmin && !isCommentAuthor(c.userProfileID) && (
                     <span style={{color: '#8B4513', marginLeft: '5px', fontSize: '0.8em'}}>
-                      (User)
                 </span>
                 )}
                 </span>

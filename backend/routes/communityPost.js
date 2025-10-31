@@ -349,9 +349,11 @@ router.delete('/comments/:commentId', async (req, res) => {
     }
 
     const comment = comments[0];
+
+    const isCommentOwner = comment.userProfileID === parseInt(userProfileID);
+    const userIsAdmin = isAdmin === true; 
     
-    // Check if user owns the comment
-    if (comment.userProfileID !== parseInt(userProfileID)) {
+    if (!isCommentOwner && !userIsAdmin) {
       return res.status(403).json({
         success: false,
         message: 'You can only delete your own comments'
@@ -376,7 +378,8 @@ router.delete('/comments/:commentId', async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Comment deleted successfully',
-      deletedCommentId: parseInt(commentId)
+      deletedCommentId: parseInt(commentId),
+      deletedByAdmin: userIsAdmin
     });
 
   } catch (error) {
