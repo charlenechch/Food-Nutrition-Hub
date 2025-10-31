@@ -47,11 +47,6 @@ router.post("/", async (req, res) => {
 
   const { email, password, rememberDevice } = cleanData;
 
-  // ⚠️ TEMPORARY TEST - Force remember me to true
-const testRememberDevice = true;
-console.log('🧪 TEST: Original rememberDevice:', rememberDevice);
-console.log('🧪 TEST: Using hardcoded:', testRememberDevice);
-
   // ✅ Step 3: Retain your original logic & comments
   if (!email || !password) {
     return res.status(400).json({ success: false, message: "Email and password are required" });
