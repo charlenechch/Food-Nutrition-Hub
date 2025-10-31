@@ -106,13 +106,13 @@ const Comment = React.memo(function Comment({
   const likes = isReply ? 0 : item.likes || item.upVotes || 0;
   const userLiked = item.user_liked || false;
   
-  // Enhanced user ID extraction - try ALL possible fields
+  // Enhanced user ID extraction 
   const commentUserId = item.userProfileID || item.userID || item.authorID || item.user_id;
   
   // Check if current user is the owner of this comment/reply
   const isOwner = currentUserId && commentUserId && currentUserId.toString() === commentUserId.toString();
   
-  // ✅ ADDED: Admin can delete any comment/reply
+  // Admin can delete any comment/reply
   const canDelete = isOwner || isAdmin;
 
   const handleLike = () => {
@@ -153,14 +153,15 @@ const Comment = React.memo(function Comment({
               className="fd-disc-avatar-img"
               onError={(e) => {
                 e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
+                //e.target.nextSibling.style.display = 'flex';
               }}
             />
-          ) : null}
+          ) : (//null}
           
           <div className="fd-disc-avatar-initials">
             {username.substring(0, 2).toUpperCase()}
           </div>
+          )}
         </div>
       <div className="fd-disc-body">
         <div className="fd-disc-meta">
@@ -173,6 +174,7 @@ const Comment = React.memo(function Comment({
               className={`fd-delete-btn ${isAdmin && !isOwner ? 'fd-admin-delete-btn' : ''}`} 
               onClick={handleDelete}
               title={`Delete ${isReply ? 'reply' : 'comment'}${isAdmin && !isOwner ? ' (Admin)' : ''}`}
+              aria-label={`Delete ${isReply ? 'reply' : 'comment'} by ${username}`}
             >
               <i className="fas fa-trash-alt"></i>
               {isAdmin && !isOwner && <span className="admin-badge">Admin</span>}
@@ -255,7 +257,7 @@ export default function FoodDiscussionPage() {
   const isGuest = !user || user.role === "guest";
   const userProfileID = isGuest ? null : user?.userProfileID || user?.userID || user?.id || user?.profileID;
   
-  // ✅ ADDED: Check if user is admin
+  // Check if user is admin
   const isAdmin = user?.role === "admin";
 
   const [food, setFood] = useState(location.state?.food || null);
@@ -273,10 +275,10 @@ export default function FoodDiscussionPage() {
     commentId: null,
     replyId: null,
     onConfirm: null,
-    isAdminAction: false // ✅ ADDED: Track if this is an admin action
+    isAdminAction: false // Track if this is an admin action
   });
 
-  // ✅ UPDATED: Delete confirmation function
+  // UPDATED: Delete confirmation function
   const showDeleteConfirmation = (type, commentId, replyId = null, isAdminAction = false) => {
     setDeleteModal({
       show: true,
@@ -301,11 +303,17 @@ export default function FoodDiscussionPage() {
       const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}`, {
         credentials: "include",
       });
+
+      if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+    
       const data = await res.json();
       if (res.ok && data.success) {
         setComments(data.data);
       } else {
         setComments([]);
+        console.error("API returned error:", data.message);
       }
     } catch (err) {
       console.error("Error fetching comments:", err);
@@ -404,7 +412,7 @@ const postReply = async (discussionId) => {
     const tempReply = {
       replyID: `temp-reply-${Date.now()}`,
       userProfileID: userProfileID,
-      username: user?.username || user?.firstname || 'You',
+      username: user?.username || user?.firstname,
       content: text,
       timestamp: new Date().toISOString(),
       timeAgo: 'now',
@@ -693,7 +701,7 @@ const postReply = async (discussionId) => {
           {comments.length > 0 ? (
             <div className="fd-disc-list">
               {comments.map((c, i) => (
-                <React.Fragment key={c.id || c.discussionID || i}>
+                <React.Fragment key={c.id || c.discussionID ||  `comment-${i}`}>
                   <Comment
                     item={c}
                     onToggleLike={toggleLike}
