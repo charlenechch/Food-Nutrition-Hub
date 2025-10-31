@@ -157,8 +157,19 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
   const isLoggedIn = computeIsLoggedIn(user);
   const isGuest = !isLoggedIn; // single source of truth
   const currentUserProfileID = getStableProfileId(user);
+  const isAdmin = user?.role?.toLowerCase() === "admin";
 
   const openLoginModal = () => setShowLoginModal(true);
+
+  // Check if current user is the author of a comment
+  const isCommentAuthor = (commentUserProfileID) => {
+    return currentUserProfileID && commentUserProfileID === currentUserProfileID;
+  };
+
+  // Check if current user is the author OR admin
+  const isCommentAuthorOrAdmin = (commentUserProfileID) => {
+    return isAdmin || isCommentAuthor(commentUserProfileID);
+  };
 
   // Open delete confirmation modal
   const openDeleteModal = (commentId) => {
@@ -185,7 +196,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ userProfileID }),
+        body: JSON.stringify({ userProfileID, isAdmin }),
       });
 
       const result = await response.json();
@@ -257,11 +268,6 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
     }
   };
 
-// Check if current user is the author of a comment
-  const isCommentAuthor = (commentUserProfileID) => {
-    return currentUserProfileID && commentUserProfileID === currentUserProfileID;
-  };
-
   return (
     <div className="comment-section">
       {/* Login Modal */}
@@ -274,10 +280,22 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
         <div className="modal-overlay">
           <div className="modal-card">
             <div className="modal-card-header">
-              <h3>Delete Comment</h3>
+              <h3>
+                {isAdmin && commentToDelete && 
+                !isCommentAuthor(comments.find(c => c.id === commentToDelete)?.userProfileID) 
+                  ? "Delete Comment (Admin)" 
+                  : "Delete Comment"
+                }
+              </h3>
             </div>
             <div className="modal-card-body">
-              <p>Are you sure you want to delete this comment? This action cannot be undone.</p>
+              <p>
+                {isAdmin && commentToDelete && 
+                !isCommentAuthor(comments.find(c => c.id === commentToDelete)?.userProfileID)
+                  ? "You are deleting this comment as an administrator. This action cannot be undone."
+                  : "Are you sure you want to delete this comment? This action cannot be undone."
+                }
+              </p>
             </div>
             <div className="modal-card-actions">
               <button className="lrp-btn lrp-btn-outline" onClick={closeDeleteModal}>
@@ -339,7 +357,13 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
           comments.map((c) => (
             <div key={c.id} className="comment-item">
               <div className="comment-header">
-                <span className="comment-author">{c.author}</span>
+                <span className="comment-author">{c.author}
+                  {isAdmin && !isCommentAuthor(c.userProfileID) && (
+                    <span style={{color: '#8B4513', marginLeft: '5px', fontSize: '0.8em'}}>
+                      (User)
+                </span>
+                )}
+                </span>
                 <span className="comment-date">{c.daysAgo}</span>
                 {/* Delete ICON (not button) - only show if user is the author */}
                 {isCommentAuthor(c.userProfileID) && (
@@ -347,7 +371,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                     className="fd-delete-btn"
                     onClick={() => openDeleteModal(c.id)}
                     disabled={deletingCommentId === c.id}
-                    title="Delete comment"
+                    title={isAdmin && !isCommentAuthor(c.userProfileID) ? "Delete comment (Admin)" : "Delete comment"}
                   >
                     {deletingCommentId === c.id ? (
                       <i className="fas fa-spinner fa-spin"></i>
