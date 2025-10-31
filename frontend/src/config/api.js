@@ -1,50 +1,45 @@
 // frontend/src/config/api.js
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// ✅ Base API URL for both local and production
-export const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+let csrfToken = null;
 
-// ✅ Fetch CSRF token from backend
+// 🔹 Step 1: Fetch CSRF token from backend
 async function getCsrfToken() {
   try {
-    // 👇 Directly call the proper /api/csrf-token route (no replace logic)
-    const res = await fetch(`${API_URL}/csrf-token`, {
+    const res = await fetch(`${API_URL}/api/csrf-token`, {
       credentials: "include",
     });
 
-    if (!res.ok) {
-      throw new Error(`CSRF route returned ${res.status}`);
-    }
-
+    if (!res.ok) throw new Error("CSRF route returned " + res.status);
     const data = await res.json();
+
     if (!data.csrfToken) throw new Error("No CSRF token received");
 
-    return data.csrfToken;
-  } catch (error) {
-    console.error("❌ Failed to fetch CSRF token:", error);
-    return null;
+    csrfToken = data.csrfToken;
+    console.log("✅ CSRF token fetched:", csrfToken.substring(0, 10) + "...");
+  } catch (err) {
+    console.error("❌ Failed to fetch CSRF token:", err);
   }
 }
 
-// ✅ Helper for all API calls (adds CSRF token to POST/PUT/PATCH/DELETE)
+// 🔹 Step 2: Wrapper for all fetch calls
 export async function fetchWithCredentials(endpoint, options = {}) {
-  const method = (options.method || "GET").toUpperCase();
-  const isProtected = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+  // Ensure we have a CSRF token
+  if (!csrfToken) await getCsrfToken();
 
-  let headers = {
+  const headers = {
     "Content-Type": "application/json",
-    ...(options.headers || {}),
+    "X-CSRF-Token": csrfToken, // ✅ Always attach CSRF token
+    ...options.headers,
   };
 
-  if (isProtected) {
-    const csrfToken = await getCsrfToken();
-    if (csrfToken) headers["CSRF-Token"] = csrfToken;
-  }
-
-  // 🔐 Always include credentials (cookies / session)
-  return fetch(`${API_URL}${endpoint}`, {
+  const res = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     credentials: "include",
     headers,
   });
+
+  return res;
 }
+
+export { API_URL, getCsrfToken };
