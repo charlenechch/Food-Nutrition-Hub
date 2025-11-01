@@ -135,7 +135,6 @@ export default function LoginRegisterPage() {
         try {
           await fetchWithCredentials(`${API_URL}/api/verifyEmail/sync`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: user.email }),
           });
           console.log("✅ Verification synced to Database");
@@ -172,7 +171,6 @@ export default function LoginRegisterPage() {
       // Check backend rate limiting
       const checkRes = await fetchWithCredentials(`${API_URL}/api/resendVerification`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
       
@@ -252,7 +250,6 @@ export default function LoginRegisterPage() {
     try {
       const res = await fetchWithCredentials(`${API_URL}/api/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, rememberDevice }),
       });
 
@@ -395,7 +392,6 @@ export default function LoginRegisterPage() {
       // Register in MySQL database WITH Firebase UID
       const res = await fetchWithCredentials(`${API_URL}/api/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstname: firstName,
           lastname: lastName,
