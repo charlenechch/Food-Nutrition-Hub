@@ -18,6 +18,7 @@ import RecipeDatabaseSection from "./AdminRecipeDatabase.jsx";
 import ContentModerationSection from "./AdminContentModeration.jsx";
 import UserManagement from "./AdminUserManagementTab";
 import Analytics from "./Analytics"; 
+import AdminSystemSettings from "./AdminSystemSettings.jsx";
 
 
 const AdminDashboard = () => {
@@ -108,11 +109,7 @@ const AdminDashboard = () => {
         return <Analytics />; // render Analytics component
 
       case "settings":
-        return (
-          <div className="tab-content">
-            <h2>System Settings</h2>
-          </div>
-        );
+        return <AdminSystemSettings onPageChange={setActiveTab} />;
 
       default:
         return (
