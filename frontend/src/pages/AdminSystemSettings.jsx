@@ -138,7 +138,7 @@ export default function AdminSystemSettings({
               <div className="admset-grid-1">
                 <button
                   className="admset-btn admset-btn-outline justify-start"
-                  onClick={openEmail}
+                  onClick={() => setSysEmailOpen(true)}
                 >
                   <Mail className="admset-ic-sm" />
                   Send Announcement

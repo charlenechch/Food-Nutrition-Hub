@@ -1,6 +1,53 @@
 // src/components/EmailComposer.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Mail, X, Bell, Send } from "lucide-react";
+
+function lockScroll() {
+  const g = (window.__scrollLock ||= { count: 0, prev: {}, locked: false });
+  if (g.count === 0 && !g.locked) {
+    const docEl = document.documentElement;
+    const body = document.body;
+    const scrollY = window.scrollY || window.pageYOffset || 0;
+
+    g.prev = {
+      htmlOverflow: docEl.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      savedScrollY: scrollY,
+    };
+
+    // iOS/desktop friendly lock
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    docEl.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+
+    g.locked = true;
+  }
+  g.count += 1;
+}
+
+function unlockScroll() {
+  const g = window.__scrollLock;
+  if (!g) return;
+
+  g.count = Math.max(0, g.count - 1);
+  if (g.count > 0) return; // another modal still open
+
+  const docEl = document.documentElement;
+  const body = document.body;
+
+  docEl.style.overflow = g.prev.htmlOverflow || "";
+  body.style.overflow = g.prev.bodyOverflow || "";
+  body.style.position = g.prev.bodyPosition || "";
+  body.style.top = g.prev.bodyTop || "";
+
+  if (typeof g.prev.savedScrollY === "number") {
+    window.scrollTo(0, g.prev.savedScrollY);
+  }
+  g.locked = false;
+}
 
 // Reuses your existing CSS classes from User Management modal (umg-*)
 export default function EmailComposer({
@@ -26,18 +73,29 @@ export default function EmailComposer({
     markAnnouncement: false,
   });
 
-  useEffect(() => {
-    if (!isOpen) return;
-    // lock scroll + esc close
+  const wasOpen = useRef(false);
+
+    useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    if (isOpen && !wasOpen.current) {
+        lockScroll();
+        document.addEventListener("keydown", onKey);
+        wasOpen.current = true;
+    } else if (!isOpen && wasOpen.current) {
+        unlockScroll();
+        document.removeEventListener("keydown", onKey);
+        wasOpen.current = false;
+    }
     return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+        // clean up if unmounted while open
+        if (wasOpen.current) {
+        unlockScroll();
+        document.removeEventListener("keydown", onKey);
+        wasOpen.current = false;
+        }
     };
-  }, [isOpen, onClose]);
+    }, [isOpen, onClose]);
+
 
   const adminIds = useMemo(
     () => users.filter((u) => u.role === "Admin").map((u) => u.id),
