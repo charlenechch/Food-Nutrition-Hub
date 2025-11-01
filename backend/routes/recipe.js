@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../config/db');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
+const hpp = require('hpp');
 
 // ✅ NEW: Validation + sanitization setup (added without removing anything)
 const Joi = require("joi");
@@ -37,6 +38,14 @@ const recipeSchema = Joi.object({
   funFact: Joi.string().allow("", null),
   chefTips: Joi.string().allow("", null)
 });
+
+app.use(hpp({
+  whitelist: [
+    'name', 'origin', 'difficulty', 'prepTime', 'cookTime', 
+    'servings', 'image', 'description', 'foodType', 'dietaryTags', 
+    'ingredients', 'instructions', 'funFact', 'chefTips'
+  ]
+}));
 
 // Configure Cloudinary
 cloudinary.config({
