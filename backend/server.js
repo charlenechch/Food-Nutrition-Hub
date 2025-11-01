@@ -219,13 +219,22 @@ app.use(
       "token",
       "role",
       "userProfileID",
+      "bio", "location", "firstname", "lastname",
+      "avatar", "allergies", "dietary", "emailNotifications", "prefs",
+      "pushNotifications", "profileVisibility", "language", "recipes",
+      "status", "stats", "saveFoods",
+      "likes",
       "type",
-      "postID",
+      "postId",
       "content",
       "reply",
+      "comment",
+      "foodID", 
+      "likeID",
       "name", "origin", "difficulty", "prepTime", "cookTime", 
       "servings", "image", "description", "foodType", "dietaryTags", 
-      "ingredients", "instructions", "funFact", "chefTips"
+      "ingredients", "instructions", "funFact", "chefTips",
+      "isAdmin", "isAdminAction", "adminRole", "adminId"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));

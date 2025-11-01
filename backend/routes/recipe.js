@@ -373,6 +373,20 @@ router.post('/create/recipes', async (req, res) => {
       Object.assign(req.body, cleanData);
     }
 
+    // image size validation
+    if (image && image.startsWith('data:image')) {
+      const base64Size = (image.length * 3) / 4; // Base64 size estimate in bytes
+      const maxSize = 3 * 1024 * 1024; // 3MB limit
+      
+      console.log(`📏 Image size check: ${Math.round(base64Size / 1024)} KB`);
+      
+      if (base64Size > maxSize) {
+        return res.status(400).json({ 
+          error: 'Image too large. Please use an image smaller than 2MB.' 
+        });
+      }
+    }
+
     console.log('📊 Request data analysis:', {
       name, 
       origin, 
@@ -382,7 +396,8 @@ router.post('/create/recipes', async (req, res) => {
       ingredientsIsArray: Array.isArray(ingredients),
       instructionsIsArray: Array.isArray(instructions),
       ingredientsLength: Array.isArray(ingredients) ? ingredients.length : 'N/A',
-      instructionsLength: Array.isArray(instructions) ? instructions.length : 'N/A'
+      instructionsLength: Array.isArray(instructions) ? instructions.length : 'N/A',
+      imageSize: image ? (image.startsWith('data:image') ? `${Math.round((image.length * 3) / 4 / 1024)} KB` : 'URL') : 'None'
     });
 
     // Validate required fields
@@ -397,12 +412,45 @@ router.post('/create/recipes', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const userProfileID = req.session.user.userID;
-    console.log('✅ User authenticated:', userProfileID);
+    const userID = req.session.user.userID;
+
+    // ✅ Get userProfileID from database
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (profileResult.length === 0) {
+      console.log('❌ No userProfile found for user:', userID);
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+    console.log('✅ User authenticated - userID:', userID, 'userProfileID:', userProfileID);
 
     let processedImage = image || 
     'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
 
+    // CLOUDINARY UPLOAD LOGIC with size protection
+    if (image && image.startsWith('data:image')) {
+      try {
+        console.log('📤 Uploading image to Cloudinary...');
+        const uploadResult = await cloudinary.uploader.upload(image, {
+          folder: 'food-recipes',
+          resource_type: 'image',
+          timeout: 30000 // 30 second timeout
+        });
+        processedImage = uploadResult.secure_url;
+        console.log('✅ Image uploaded to Cloudinary:', processedImage);
+      } catch (uploadError) {
+        console.error('❌ Cloudinary upload failed:', uploadError.message);
+        // Continue with default image - don't fail the entire recipe
+      }
+    } else if (image && image.startsWith('http')) {
+      processedImage = image;
+      console.log('✅ Using existing image URL');
+    }
+    
     console.log('🚀 About to execute FIRST INSERT (food table)');
 
     // Insert into food table
@@ -536,8 +584,22 @@ router.put('/update/recipes/:id', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const userProfileID = req.session.user.userID;
-    console.log('✅ User authenticated:', userProfileID);
+    const userID = req.session.user.userID;
+
+    // ✅ Get userProfileID from database
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (profileResult.length === 0) {
+      console.log('❌ No userProfile found for user:', userID);
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+    console.log('✅ User authenticated - userID:', userID, 'userProfileID:', userProfileID);
+
 
     // First, get the current foodID from the recipe
     console.log('🔍 Getting current food ID for recipe:', recipeId);

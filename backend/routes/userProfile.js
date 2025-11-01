@@ -637,12 +637,18 @@ router.get("/", async (req, res) => {
     }
 
     const profile = rows[0];
-    console.log("✅ Profile found - userProfileID:", profile.userProfileID);
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
 
-    console.log(`📚 Fetching saved foods for userProfileID: ${profile.userProfileID}`);
+    const userProfileID = profileResult[0].userProfileID;
+    console.log(`✅ Verified userProfileID: ${userProfileID}`);
+
+    console.log(`📚 Fetching saved foods for userProfileID: ${userProfileID}`);
     let savedFoodsData = [];
-    
-    if (profile.userProfileID) {
+
+    if (userProfileID) {
       try {
         const [savedFoodsRows] = await db.execute(
           `SELECT 
@@ -656,7 +662,7 @@ router.get("/", async (req, res) => {
           JOIN food f ON sf.foodID = f.foodID
           WHERE sf.userProfileID = ?
           ORDER BY sf.createdAt DESC`,
-          [profile.userProfileID]
+          [userProfileID]
         );
 
         console.log(`🍴 Saved foods found:`, savedFoodsRows);
@@ -852,9 +858,17 @@ router.get("/:identifier", async (req, res) => {
     
     // Update user stats
     const freshStats = await updateUserStats(userID);
-    
+
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID] 
+    );
+
+    const userProfileID = profileResult[0].userProfileID;
+    console.log(`✅ Verified userProfileID for target user: ${userProfileID}`);
+        
     let savedFoodsData = [];
-    if (profile.userProfileID) {
+    if (userProfileID) {
       try {
         const [savedFoodsRows] = await db.execute(
           `SELECT 
@@ -868,7 +882,7 @@ router.get("/:identifier", async (req, res) => {
           JOIN food f ON sf.foodID = f.foodID
           WHERE sf.userProfileID = ?
           ORDER BY sf.createdAt DESC`,
-          [profile.userProfileID]
+          [userProfileID]
         );
 
         savedFoodsData = savedFoodsRows.map(food => ({
@@ -972,30 +986,6 @@ router.delete("/delete", async (req, res) => {
       error: "Failed to delete account",
       details: error.message 
     });
-  }
-});
-
-// Test endpoint to check basic functionality
-router.get("/debug/test", async (req, res) => {
-  console.log("🧪 Debug test endpoint hit");
-  try {
-    console.log("Session:", req.session);
-    console.log("Session user:", req.session?.user);
-    
-    // Test database connection
-    const [dbTest] = await db.execute('SELECT 1 as test');
-    console.log("Database test:", dbTest);
-    
-    res.json({
-      success: true,
-      session: req.session,
-      user: req.session?.user,
-      database: "Connected",
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error("Debug test error:", error);
-    res.status(500).json({ error: error.message });
   }
 });
 

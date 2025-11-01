@@ -6,9 +6,23 @@ const db = require('../config/db');
 router.get('/check/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { userProfileID, type = 'food' } = req.query; 
+    const { type = 'food' } = req.query; 
 
-    const finalUserProfileID = req.session.user?.userProfileID || userProfileID;
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const finalUserProfileID = profileResult[0].userProfileID;
 
     console.log('🔍 Check type:', type, 'ID:', id, 'User:', finalUserProfileID);
 
@@ -77,10 +91,23 @@ router.post('/:id', async (req, res) => {
   
   try {
     const { id } = req.params;
-    const { userProfileID: bodyUserProfileID, type = 'food' } = req.body; 
+    const { type = 'food' } = req.body; 
 
-    const finalUserProfileID = bodyUserProfileID || req.session.user?.userProfileID;
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
     
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const finalUserProfileID = profileResult[0].userProfileID;
     console.log('🔍 Save type:', type, 'ID:', id);
 
     if (!req.session.user && !bodyUserProfileID) {
@@ -191,7 +218,21 @@ router.post('/:id', async (req, res) => {
 // Get user's saved foods and recipes
 router.get('/user/saved', async (req, res) => {
   try {
-    const userProfileID = req.session.user.userProfileID; // From session
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
     
     const [savedItems] = await db.execute(
       `SELECT 

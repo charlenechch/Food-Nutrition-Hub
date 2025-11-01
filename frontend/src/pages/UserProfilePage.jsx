@@ -92,14 +92,15 @@ const uploadAvatar = async () => {
 };
 
 const normalizePrefs = (data = {}) => {
-  const dietary = Array.isArray(data.dietary) ? data.dietary : 
-                 (typeof data.dietary === 'string' ? JSON.parse(data.dietary || "[]") : []);
+  const dietaryRestrictions = Array.isArray(data.dietaryRestrictions) ? data.dietaryRestrictions : 
+                 (typeof data.dietaryRestrictions === 'string' ? JSON.parse(data.dietaryRestrictions || "[]") : []);
   
   const allergies = Array.isArray(data.allergies) ? data.allergies : 
                    (typeof data.allergies === 'string' ? JSON.parse(data.allergies || "[]") : []);
+
   return {
     ...DEFAULT_PREFS,
-    dietary: dietary,
+    dietary: dietaryRestrictions, 
     allergies: allergies,
     emailNotifications: data.emailNotifications ?? true,
     pushNotifications: data.pushNotifications ?? true,
@@ -528,70 +529,82 @@ export default function UserProfilePage() {
     if (fileInput) fileInput.value = '';
   };
 
-  // ===== Save: Personal Info =====
-  const savePersonal = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ 
-          location: form.location, 
-          bio: bio 
-        }),
-      });
-      
-      if (!res.ok) throw new Error(`Failed to update profile (${res.status})`);
-      
-      const result = await res.json();
-      if (result.success) {
-        alert("Profile updated successfully!");
+  // ===== Unified Update Function =====
+const updateProfile = async (updateData, type = 'profile') => {
+  try {
+    console.log(`📤 Updating ${type}:`, updateData);
 
-        // Reload the user after update
-        const endpoint = userProfileID
-          ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
-          : `${API_BASE_URL}/api/userProfile`;
-        const r2 = await fetch(endpoint, { credentials: "include" });
-        if (r2.ok) setUser(await r2.json());
-      } else {
-        throw new Error(result.error || "Update failed");
-      }
-    } catch (e) {
-      alert(e.message);
-      console.error("Update error:", e);
-    }
-  };
+    // Use FormData for ALL updates to match avatar upload success
+    const formData = new FormData();
+    
+    // Add all update data as JSON string
+    formData.append('updateData', JSON.stringify(updateData));
+    formData.append('updateType', type);
 
-  // ===== Save: Preferences =====
-  const savePrefs = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ 
-          dietary: prefs.dietary,
-          allergies: prefs.allergies,
-          emailNotifications: prefs.emailNotifications,
-          pushNotifications: prefs.pushNotifications,
-          profileVisibility: prefs.profileVisibility,
-          language: prefs.language
-        }),
-      });
-      
-      if (!res.ok) throw new Error(`Failed to update preferences (${res.status})`);
-      
-      const result = await res.json();
-      if (result.success) {
-        alert("Preferences updated successfully!");
-      } else {
-        throw new Error(result.error || "Update failed");
-      }
-    } catch (e) {
-      alert(e.message);
-      console.error("Preferences update error:", e);
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+      method: 'POST', // Use POST instead of PUT
+      credentials: 'include',
+      body: formData, // Use FormData like avatar upload
+    });
+
+    console.log(`📥 ${type} update response status:`, res.status);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`❌ ${type} update error:`, errorText);
+      throw new Error(`Failed to update ${type} (${res.status}): ${errorText}`);
     }
-  };
+
+    const result = await res.json();
+    console.log(`✅ ${type} update result:`, result);
+
+    if (result.success) {
+      return result;
+    } else {
+      throw new Error(result.error || `Update failed for ${type}`);
+    }
+  } catch (error) {
+    console.error(`${type} update error:`, error);
+    throw error;
+  }
+};
+
+// ===== Save: Personal Info =====
+const savePersonal = async () => {
+  try {
+    const updateData = {
+      location: form.location,
+      bio: bio
+    };
+
+    await updateProfile(updateData, 'personal info');
+    alert("Profile updated successfully!");
+
+    // Update local state immediately
+    setUser(prev => ({ ...prev, location: form.location, bio: bio }));
+  } catch (e) {
+    alert(e.message || "Failed to update profile");
+  }
+};
+
+// ===== Save: Preferences =====
+const savePrefs = async () => {
+  try {
+    const preferencesPayload = {
+      dietaryRestrictions: prefs.dietary || [],
+      allergies: prefs.allergies || [],
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language
+    };
+
+    await updateProfile(preferencesPayload, 'preferences');
+    alert("Preferences updated successfully!");
+  } catch (e) {
+    alert(e.message || "Failed to update preferences");
+  }
+};
 
   // ===== LOADING STATE =====
   if (isLoading) {

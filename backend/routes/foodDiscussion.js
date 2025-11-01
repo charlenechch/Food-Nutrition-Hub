@@ -105,7 +105,7 @@ router.get('/food/:foodId', async (req, res) => {
               const cleanArray = upvotedArray.filter(id => id !== null && id !== undefined);
               console.log(`   Cleaned array:`, cleanArray);
               
-              user_liked = cleanArray.includes(checkingUserProfileID);
+              user_liked = cleanArray.includes(userProfileID);
               console.log(`   user_liked result:`, user_liked, "(looking for", userProfileID, "in", cleanArray, ")");
             } else {
               console.log(`   ❌ upvoted_by is not an array!`);
@@ -173,7 +173,23 @@ router.get('/food/:foodId', async (req, res) => {
 // ✅ Create a new discussion comment
 router.post('/', async (req, res) => {
   try {
-    const { foodID, userProfileID, content } = req.body;
+    const { foodID, content } = req.body;
+
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
 
     if (!foodID || !userProfileID || !content?.trim()) {
       return res.status(400).json({
@@ -260,10 +276,23 @@ router.post('/', async (req, res) => {
 router.post('/:discussionId/replies', async (req, res) => {
   try {
     const { discussionId } = req.params;
-    const { userProfileID, reply } = req.body;
+    const { reply } = req.body;
 
-    console.log("🟢 CREATE REPLY - Request params:", { discussionId });
-    console.log("🟢 CREATE REPLY - Request body:", { userProfileID, reply });
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
 
     if (!discussionId || !userProfileID || !reply?.trim()) {
       return res.status(400).json({
@@ -342,9 +371,22 @@ router.post('/:discussionId/replies', async (req, res) => {
 router.patch('/:commentId/vote', async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { userProfileID } = req.body;
-
-    console.log("🔵 Backend vote request:", { commentId, userProfileID });
+    
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
 
     if (!userProfileID || typeof userProfileID !== 'number') {
       return res.status(400).json({ 
@@ -445,7 +487,23 @@ router.patch('/:commentId/vote', async (req, res) => {
 router.delete('/:commentId', async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { userProfileID, isAdminAction, adminRole } = req.body;
+    const { isAdminAction, adminRole } = req.body;
+
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
 
     if (!userProfileID) {
       return res.status(400).json({ success: false, message: 'userProfileID is required' });
@@ -511,7 +569,23 @@ router.delete('/:commentId', async (req, res) => {
 router.delete('/:commentId/replies/:replyId', async (req, res) => {
   try {
     const { commentId, replyId } = req.params;
-    const { userProfileID, isAdminAction, adminRole } = req.body;
+    const { isAdminAction, adminRole } = req.body;
+
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
 
     if (!userProfileID) {
       return res.status(400).json({ success: false, message: 'userProfileID is required' });
