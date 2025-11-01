@@ -207,7 +207,7 @@ app.use(
 // ---------- 7) Global HPP protection for everything else ----------
 app.use(
   hppProtect({
-    policy: "reject", // block duplicates globally
+    policy: "first", // block duplicates globally
     allowlist: [
       "id",
       "page",
