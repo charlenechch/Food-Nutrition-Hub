@@ -191,15 +191,27 @@ app.use(
   })
 );
 
-// ---------- 5) CSRF (optional, currently commented) ----------
-// const csrfProtection = csrf({ cookie: false });
-// app.get("/api/auth/csrf-token", (req, res) => {
-//   res.json({ csrfToken: req.csrfToken() });
-// });
-// app.use((req, res, next) => {
-//   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
-//   return csrfProtection(req, res, next);
-// });
+// ---------- 5) CSRF Protection ----------
+const csrfProtection = csrf({ cookie: false });
+
+// ✅ Route for frontend to fetch CSRF token
+app.get("/api/csrf-token", csrfProtection, (req, res) => {
+  try {
+    const token = req.csrfToken();
+    console.log("🎟️ CSRF token generated:", token.substring(0, 10) + "...");
+    res.json({ csrfToken: token });
+  } catch (err) {
+    console.error("⚠️ Failed to generate CSRF token:", err.message);
+    res.status(500).json({ error: "CSRF token generation failed" });
+  }
+});
+
+// ✅ Apply CSRF protection only for state-changing requests
+app.use((req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+  return csrfProtection(req, res, next);
+});
+
 
 // ---------- 6) Rate limiting ----------
 const globalLimiter = rateLimit({
@@ -224,7 +236,15 @@ const authLimiter = rateLimit({
 });
 
 // ---------- 7) Routes with per-route HPP overrides ----------
-app.use("/api/login", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password"] }), loginRoutes);
+app.use(
+  "/api/login",
+  authLimiter,
+  hppProtect({
+    policy: "reject",
+    allowlist: ["email", "password", "rememberDevice"], // ✅ add this
+  }),
+  loginRoutes
+);
 app.use("/api/logout", logoutRoutes);
 app.use("/api/register", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password", "firstname", "lastname"] }), registerRoutes);
 app.use("/api/verifyEmail", verifyEmailRoute);
