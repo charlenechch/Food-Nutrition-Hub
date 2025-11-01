@@ -234,15 +234,15 @@ export default function LoginRegisterPage() {
   const handleLogin = async () => {
     setLoginError("");
 
-    const locked = lockouts[email];
-    if (locked?.unlockAt && locked.unlockAt > Date.now()) {
-      setLoginError(
-        `Account locked. Try again in ${formatTime(
-          Math.ceil((locked.unlockAt - Date.now()) / 1000)
-        )}.`
-      );
-      return;
-    }
+    //const locked = lockouts[email];
+    //if (locked?.unlockAt && locked.unlockAt > Date.now()) {
+    //  setLoginError(
+    //    `Account locked. Try again in ${formatTime(
+    //      Math.ceil((locked.unlockAt - Date.now()) / 1000)
+    //    )}.`
+    //  );
+    //  return;
+    //}
 
     if (!email || !password) {
       setLoginError("Please fill in all fields.");
@@ -281,7 +281,7 @@ export default function LoginRegisterPage() {
       }
 
       // ❌ Wrong credentials → Lockout system
-      handleFailedAttempt(email);
+      //handleFailedAttempt(email);
       setLoginError(data.message || "Invalid email or password.");
     } catch (err) {
       console.error("Login error:", err);
