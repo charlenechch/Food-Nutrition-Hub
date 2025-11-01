@@ -1,14 +1,13 @@
 // frontend/src/config/api.js
 
-const API_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
-  : "http://localhost:5000/api";
+// ✅ Base URL — do NOT include "/api" here
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 let csrfToken = null;
 
 // ✅ Fetch CSRF token (used for secure state-changing requests)
 async function getCsrfToken() {
-  const res = await fetch(`${API_URL}/csrf-token`, {
+  const res = await fetch(`${API_URL}/api/csrf-token`, {
     credentials: "include",
   });
   if (!res.ok) {
@@ -28,16 +27,24 @@ export async function fetchWithCredentials(endpoint, options = {}) {
     ...(options.headers || {}),
   };
 
+  // Automatically attach CSRF for state-changing requests
   if (needsCsrf) {
     if (!csrfToken) await getCsrfToken();
     headers["X-CSRF-Token"] = csrfToken;
   }
 
-  const res = await fetch(`${API_URL}${endpoint}`, {
+  // ✅ Always prefix endpoints with "/api"
+  const res = await fetch(`${API_URL}/api${endpoint}`, {
     ...options,
     credentials: "include",
     headers,
   });
+
+  // Optional auto-refresh if CSRF token expired (403)
+  if (res.status === 403 && csrfToken) {
+    csrfToken = await getCsrfToken();
+    return fetchWithCredentials(endpoint, options);
+  }
 
   return res;
 }
