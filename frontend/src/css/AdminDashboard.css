@@ -1640,11 +1640,11 @@
   margin-left: auto;
 }
 .admset-badge.good {
-  background: green;
+  background: lightgreen;
   color: white;
 }
 .admset-badge.warn {
-  background: yellow;
+  background: orange;
   color: white;
 }
 .admset-badge.danger {
