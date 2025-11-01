@@ -233,7 +233,7 @@ app.use(
       "name", "origin", "difficulty", "prepTime", "cookTime", 
       "servings", "image", "description", "foodType", "dietaryTags", 
       "ingredients", "instructions", "funFact", "chefTips",
-      "isAdmin"
+      "isAdmin", "isAdminAction", "adminRole", "adminId"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));
