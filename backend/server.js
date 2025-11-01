@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-require('dotenv').config();
+require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
@@ -10,7 +10,7 @@ const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 const csrf = require("csurf");
 const mysql = require("mysql2");
 const path = require("path");
-const hppProtect = require("./middleware/hpp-protect"); // ✅ custom HPP middleware
+const hppProtect = require("./middleware/hpp-protect");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 // ---------- Routes ----------
@@ -36,10 +36,10 @@ const PORT = process.env.PORT || 5000;
 const IS_PROD = process.env.NODE_ENV === "production";
 
 // ---------- Environment Validation ----------
-const requiredEnvVars = ['MYSQLHOST', 'MYSQLUSER', 'MYSQLPASSWORD', 'MYSQLDATABASE'];
-const missingEnvVars = requiredEnvVars.filter(v => !process.env[v]);
+const requiredEnvVars = ["MYSQLHOST", "MYSQLUSER", "MYSQLPASSWORD", "MYSQLDATABASE"];
+const missingEnvVars = requiredEnvVars.filter((v) => !process.env[v]);
 if (missingEnvVars.length > 0) {
-  console.error('❌ Missing required environment variables:', missingEnvVars);
+  console.error("❌ Missing required environment variables:", missingEnvVars);
   process.exit(1);
 }
 
@@ -55,7 +55,7 @@ const dbConfig = {
   queueLimit: 0,
 };
 
-console.log('🔧 Database Config:', {
+console.log("🔧 Database Config:", {
   host: dbConfig.host,
   port: dbConfig.port,
   user: dbConfig.user,
@@ -66,9 +66,10 @@ const db = mysql.createPool(dbConfig);
 const promiseDb = db.promise();
 
 // Test DB connection
-promiseDb.execute('SELECT 1 as test')
-  .then(() => console.log('✅ Database connection test successful'))
-  .catch(err => console.error('❌ Database connection failed:', err.message));
+promiseDb
+  .execute("SELECT 1 as test")
+  .then(() => console.log("✅ Database connection test successful"))
+  .catch((err) => console.error("❌ Database connection failed:", err.message));
 
 // ---------- 1) Proxy & security headers ----------
 app.set("trust proxy", 1); // behind Railway/Vercel
@@ -137,32 +138,33 @@ app.use(
   })
 );
 
-// ---------- 3) Body parsers & Enhanced HPP ----------
+// ---------- 3) Body parsers ----------
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
-// ✅ Enhanced HPP protection
-app.use(
-  hppProtect({
-    policy: "reject", // block duplicates globally
-    allowlist: [
-      "id",
-      "page",
-      "q",
-      "sort",
-      "email",
-      "password",
-      "userID",
-      "token",
-      "role",
-    ],
-    logger: (tag, meta) => {
-      console.warn(`[${tag}]`, JSON.stringify(meta));
-    },
-  })
-);
+// ---------- 4) Rate limiting ----------
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(globalLimiter);
 
-// ---------- 4) Sessions ----------
+const authLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many attempts, try again later." },
+  keyGenerator: (req, res) => {
+    const ipKey = ipKeyGenerator(req, res);
+    const emailKey = req.body?.email || "guest";
+    return `${ipKey}-${emailKey}`;
+  },
+});
+
+// ---------- 5) Sessions ----------
 const dbOptions = {
   host: process.env.MYSQLHOST,
   port: Number(process.env.MYSQLPORT) || 3306,
@@ -191,58 +193,58 @@ app.use(
   })
 );
 
-// ---------- 5) CSRF (optional, currently commented) ----------
-// const csrfProtection = csrf({ cookie: false });
-// app.get("/api/auth/csrf-token", (req, res) => {
-//   res.json({ csrfToken: req.csrfToken() });
-// });
-// app.use((req, res, next) => {
-//   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
-//   return csrfProtection(req, res, next);
-// });
-
-// ---------- 6) Rate limiting ----------
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 300,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(globalLimiter);
-
-const authLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  limit: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Too many attempts, try again later." },
-  keyGenerator: (req, res) => {
-    const ipKey = ipKeyGenerator(req, res);
-    const emailKey = req.body?.email || "guest";
-    return `${ipKey}-${emailKey}`;
-  },
-});
-
-// ---------- 7) Routes with per-route HPP overrides ----------
+// ---------- 6) Routes that must come BEFORE global HPP ----------
 app.use(
   "/api/login",
   authLimiter,
   hppProtect({
     policy: "reject",
-    allowlist: ["email", "password", "rememberDevice"], // ✅ Added
+    allowlist: ["email", "password", "rememberDevice"], // ✅ Remember Me allowed
   }),
   loginRoutes
 );
+
+// ---------- 7) Global HPP protection for everything else ----------
+app.use(
+  hppProtect({
+    policy: "reject", // block duplicates globally
+    allowlist: [
+      "id",
+      "page",
+      "q",
+      "sort",
+      "email",
+      "password",
+      "userID",
+      "token",
+      "role",
+    ],
+    logger: (tag, meta) => {
+      console.warn(`[${tag}]`, JSON.stringify(meta));
+    },
+  })
+);
+
+// ---------- 8) Other Routes ----------
 app.use("/api/logout", logoutRoutes);
-app.use("/api/register", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password", "firstname", "lastname"] }), registerRoutes);
+app.use(
+  "/api/register",
+  authLimiter,
+  hppProtect({
+    policy: "reject",
+    allowlist: ["email", "password", "firstname", "lastname"],
+  }),
+  registerRoutes
+);
 app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes);
-
-// For exploration routes, we can safely canonicalize duplicates
-app.use("/api/exploreFood", hppProtect({ policy: "first", allowlist: ["q", "page", "sort"] }), exploreFoodRoutes);
-
+app.use(
+  "/api/exploreFood",
+  hppProtect({ policy: "first", allowlist: ["q", "page", "sort"] }),
+  exploreFoodRoutes
+);
 app.use("/api/foodDetail", foodDetailRoutes);
 app.use("/api/foodDiscussion", foodDiscussionRoutes);
 app.use("/api/recipe", recipeRoutes);
@@ -270,13 +272,7 @@ app.get("/api/auth/session", (req, res) => {
     console.log("Valid session for:", req.session.user.email);
     return res.status(200).json({
       authenticated: true,
-      user: {
-        userID: req.session.user.userID,
-        email: req.session.user.email,
-        firstname: req.session.user.firstname,
-        lastname: req.session.user.lastname,
-        role: req.session.user.role,
-      },
+      user: req.session.user,
     });
   } else {
     console.log("❌ No valid session");
@@ -292,7 +288,7 @@ app.get("/", (req, res) => {
   res.send("🚀 Backend running with advanced security, MySQL & sessions!");
 });
 
-// ---------- 8) 404 + Error handler ----------
+// ---------- 9) 404 + Error handler ----------
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
 });
@@ -307,7 +303,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ---------- 9) Start server ----------
+// ---------- 10) Start server ----------
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT} (mode: ${process.env.NODE_ENV || "dev"})`);
 });
