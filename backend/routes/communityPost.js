@@ -222,21 +222,41 @@ router.post('/comments', async (req, res) => {
     }
     
     const userID = req.session.user.userID;
-    const [profileResult] = await db.execute(
+    const userRole = req.session.user.role;
+
+    let [profileResult] = await db.execute(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
     );
     
+    // If no profile exists, create one
     if (profileResult.length === 0) {
-      return res.status(400).json({ error: 'User profile not found' });
+      console.log('🆕 Creating missing userProfile for user:', userID);
+      const [createResult] = await db.execute(
+        `INSERT INTO userProfile 
+         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
+         VALUES (?, '[]', '[]', true, true, true, 'en')`,
+        [userID]
+      );
+      
+      // Get the newly created profile
+      [profileResult] = await db.execute(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+      );
+      
+      if (profileResult.length === 0) {
+        return res.status(500).json({ error: 'Failed to create user profile' });
+      }
     }
     
     const userProfileID = profileResult[0].userProfileID;
+    console.log('✅ Using userProfileID:', userProfileID);
 
-    // ✅ Validate and sanitize
     const { error, value } = commentSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
     if (error)
       return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
+    
     const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
     Object.assign(req.body, cleanData);
 

@@ -577,13 +577,18 @@ const savePersonal = async () => {
   try {
     const updateData = { 
       location: form.location, 
-      bio: bio 
+      bio: bio,
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language,
+      dietary: prefs.dietary || [],
+      allergies: prefs.allergies || []
     };
 
     console.log("📤 Saving personal info:", updateData);
 
-    // Try the correct endpoint that exists
-    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, { // ✅ Correct endpoint
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -603,7 +608,6 @@ const savePersonal = async () => {
     
     if (result.success) {
       alert("Profile updated successfully!");
-      // Update local state immediately
       setUser(prev => ({ ...prev, location: form.location, bio: bio }));
     } else {
       throw new Error(result.error || "Update failed");
@@ -618,18 +622,19 @@ const savePersonal = async () => {
 const savePrefs = async () => {
   try {
     const preferencesPayload = {
-      dietary: prefs.dietary || [], // ✅ Use 'dietary' not 'dietaryRestrictions'
+      dietary: prefs.dietary || [],
       allergies: prefs.allergies || [],
       emailNotifications: prefs.emailNotifications,
       pushNotifications: prefs.pushNotifications,
       profileVisibility: prefs.profileVisibility,
-      language: prefs.language
+      language: prefs.language,
+      location: user?.location || "",
+      bio: user?.bio || ""
     };
 
     console.log("📤 Saving preferences:", preferencesPayload);
 
-    // Try the correct endpoint that exists
-    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, { // ✅ Correct endpoint
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
