@@ -195,11 +195,21 @@ app.use(
 
 // ---------- 6) Routes that must come BEFORE global HPP ----------
 app.use(
+  "/api/register",
+  authLimiter,
+  hppProtect({
+    policy: "reject",
+    allowlist: ["email", "password", "firstname", "lastname", "firebaseUID"],
+  }),
+  registerRoutes
+);
+
+app.use(
   "/api/login",
   //authLimiter,
   hppProtect({
     policy: "reject",
-    allowlist: ["email", "password", "rememberDevice"], // ✅ Remember Me allowed
+    allowlist: ["email", "password", "rememberDevice"], // Remember Me allowed
   }),
   loginRoutes
 );
@@ -219,6 +229,7 @@ app.use(
       "token",
       "role",
       "userProfileID",
+      "firebase_uid",
       "bio", "location", "firstname", "lastname",
       "avatar", "allergies", "dietary", "emailNotifications", "prefs",
       "pushNotifications", "profileVisibility", "language", "recipes",
@@ -244,15 +255,6 @@ app.use(
 
 // ---------- 8) Other Routes ----------
 app.use("/api/logout", logoutRoutes);
-app.use(
-  "/api/register",
-  //authLimiter,
-  hppProtect({
-    policy: "reject",
-    allowlist: ["email", "password", "firstname", "lastname"],
-  }),
-  registerRoutes
-);
 app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
 app.use("/api/auth", authRoutes);
