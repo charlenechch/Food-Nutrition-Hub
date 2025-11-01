@@ -13,15 +13,20 @@ if (admin.apps.length > 0) {
     
     if (serviceAccountEnv) {
       // PRODUCTION / ENV variable
-      const serviceAccount = JSON.parse(serviceAccountEnv);
-      
+
+      // Decode the Base64 string back into JSON text
+      const serviceAccountJson = Buffer.from(serviceAccountEnv, 'base64').toString('utf8');
+
+      // Parse the decoded JSON text
+      const serviceAccount = JSON.parse(serviceAccountJson);
+
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
-      
+
       isInitialized = true;
-      console.log("✅ Firebase Admin initialized from environment variable.");
-    } 
+      console.log("✅ Firebase Admin initialized from Base64 env variable.");
+    }
     else if (process.env.NODE_ENV !== 'production') {
       // LOCAL DEVELOPMENT / FILE
       // Only try to load the local file if NOT in production
