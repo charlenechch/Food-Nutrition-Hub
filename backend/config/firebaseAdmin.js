@@ -1,52 +1,70 @@
 const admin = require("firebase-admin");
 
-// Initialize Firebase Admin SDK
-if (!admin.apps.length) {
+let isInitialized = false;
+
+// Check if Firebase Admin is already initialized (e.g., by another module)
+if (admin.apps.length > 0) {
+  isInitialized = true;
+  console.log("Firebase Admin was already initialized.");
+} else {
+  // Not initialized, so let's try.
   try {
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    const serviceAccountEnv = process.env.FIREBASE_SERVICE_ACCOUNT;
+    
+    if (serviceAccountEnv) {
+      // PRODUCTION / ENV variable
+      const serviceAccount = JSON.parse(serviceAccountEnv);
       
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
       
-      console.log("Firebase Admin initialized from environment variable");
+      isInitialized = true;
+      console.log("✅ Firebase Admin initialized from environment variable.");
     } 
-    else {
+    else if (process.env.NODE_ENV !== 'production') {
+      // LOCAL DEVELOPMENT / FILE
+      // Only try to load the local file if NOT in production
       const serviceAccount = require("./firebase-service-account-key.json");
       
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
       
-      console.log("Firebase Admin initialized from local file");
+      isInitialized = true;
+      console.log("✅ Firebase Admin initialized from local file (dev mode).");
+    }
+    else {
+      // --- PRODUCTION ERROR ---
+      console.error("❌ CRITICAL: FIREBASE_SERVICE_ACCOUNT is NOT set in production!");
     }
   } catch (error) {
-    console.error("Failed to initialize Firebase Admin:", error.message);
+    // This will catch JSON.parse errors or bad service account files
+    console.error("❌ CRITICAL: Failed to initialize Firebase Admin:", error.message);
   }
-} else {
-  console.log("Firebase Admin already initialized");
 }
 
 // Helper function to delete Firebase user
 async function deleteFirebaseUser(uid) {
+  // Check our flag *before* trying to use the admin SDK.
+  if (!isInitialized) {
+    console.error("❌ Firebase deletion failed: Admin SDK is not initialized.");
+    // This is the error you were seeing, just clearer
+    throw new Error("app/no-app: Firebase Admin SDK is not initialized.");
+  }
+  
   try {
-    console.log("deleteFirebaseUser called with UID:", uid);
-    console.log("admin.apps.length inside function:", admin.apps.length);
-    
-    // Try to delete directly without checking
-    const result = await admin.auth().deleteUser(uid);
-    console.log("Firebase deletion successful");
-    return result;
+    await admin.auth().deleteUser(uid);
+    console.log("✅ Firebase deletion successful for UID:", uid);
   } catch (error) {
-    console.error("Firebase deletion failed:", error.message);
-    throw error;
+    console.error("❌ Firebase deletion failed:", error.message);
+    throw error; // Re-throw the error to be caught by userProfile.js
   }
 }
 
 // Helper function to check if initialized
 function isInitialized() {
-  return admin.apps.length > 0;
+  return isInitialized;
 }
 
 module.exports = {
