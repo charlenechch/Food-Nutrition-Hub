@@ -218,6 +218,11 @@ app.use(
       "userID",
       "token",
       "role",
+      "userProfileID",
+      "type",
+      "postID",
+      "content",
+      "reply",
       "name", "origin", "difficulty", "prepTime", "cookTime", 
       "servings", "image", "description", "foodType", "dietaryTags", 
       "ingredients", "instructions", "funFact", "chefTips"
