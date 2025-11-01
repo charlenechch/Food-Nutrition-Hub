@@ -62,11 +62,6 @@ async function deleteFirebaseUser(uid) {
   }
 }
 
-// Helper function to check if initialized
-function isInitialized() {
-  return isInitialized;
-}
-
 module.exports = {
   admin,
   deleteFirebaseUser,
