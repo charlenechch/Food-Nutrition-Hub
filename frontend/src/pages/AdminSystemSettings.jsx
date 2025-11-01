@@ -1,5 +1,6 @@
 // AdminSystemSettings.jsx
 import React, { useMemo, useState } from "react";
+import EmailComposer from "../components/EmailComposer";
 import {
   FiSettings as Settings,
   FiBell as Bell,
@@ -37,7 +38,7 @@ export default function AdminSystemSettings({
   const [emailEnabled, setEmailEnabled] = useState(true);
 
   const t = {
-    platform: "Platform",
+    platform: "SarawakEats",
     backupRestore: "Backup/Restore",
     dataExport: "Data Export",
     backup: "Backup",
@@ -67,6 +68,37 @@ export default function AdminSystemSettings({
     }, 900);
   };
 
+  const [sysEmailOpen, setSysEmailOpen] = useState(false);
+
+  // Use a real user list from database later
+  const allUsers = useMemo(
+    () => (users && users.length ? users : [
+      { id: 1, name: "Admin A", email: "admin.a@example.com", role: "Admin" },
+      { id: 2, name: "User A", email: "user.a@example.com", role: "User" },
+    ]),
+    [users]
+  );
+
+  const platformName = "SarawakEats";
+  const SYSTEM_EMAIL_TEMPLATES = {
+    "Custom message": { subject: "", message: "" },
+    "Maintenance Window": {
+      subject: "Scheduled Maintenance Notice",
+      message:
+        `Hello,\n\nWe will perform scheduled maintenance from <Date>, <Time> to <Date>, <Time>. ${platformName} may be unavailable during this time.\n\nThanks,\nSystem Admin`,
+    },
+    "Policy Update": {
+      subject: "Platform Policy Update",
+      message:
+        `Hello,\n\nWe've updated our community guidelines and privacy policy. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSystem Admin`,
+    },
+    "New Feature Rollout": {
+      subject: "New Features Released",
+      message:
+        `Hello,\n\nWe've rolled out new features to improve your experience. Check out the website.\n\nThanks,\nSystem Admin`,
+    },
+  };
+
   return (
     <div className="admset-wrap">
       <div className="admset-grid">
@@ -75,7 +107,7 @@ export default function AdminSystemSettings({
           <div className="admset-card-header">
             <h3 className="admset-card-title">
               <Settings className="admset-ic" />
-              {t.platform} Configuration
+              {t.platform} Settings Configuration
             </h3>
           </div>
 
@@ -106,7 +138,7 @@ export default function AdminSystemSettings({
               <div className="admset-grid-1">
                 <button
                   className="admset-btn admset-btn-outline justify-start"
-                  onClick={openEmail}
+                  onClick={() => setSysEmailOpen(true)}
                 >
                   <Mail className="admset-ic-sm" />
                   Send Announcement
@@ -256,6 +288,21 @@ export default function AdminSystemSettings({
           </div>
         </div>
       )}
+      <EmailComposer
+        isOpen={sysEmailOpen}
+        onClose={() => setSysEmailOpen(false)}
+        users={allUsers}
+        title="Send System Announcement"
+        templates={SYSTEM_EMAIL_TEMPLATES}
+        defaultTemplateKey="Maintenance Window"
+        defaultRecipientsOption="All users"
+        allowSpecificUsers={false}   // simpler flow from Settings
+        showAnnouncementToggle={true}
+        onSend={(payload) => {
+          console.log("SYSTEM SETTINGS SEND ▶", payload);
+          // TODO: call your backend here
+        }}
+      />
     </div>
   );
 }

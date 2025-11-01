@@ -1293,7 +1293,7 @@
   cursor: pointer;
 }
 .umg-btn-warning:hover { 
-  background: #ffefc5; 
+  background: #f7f2ec; 
 }
 
 /* Responsive modal width and spacing */
@@ -1479,7 +1479,7 @@
   background: #fff;
   border: 1px solid #eadfd3;
   border-radius: 14px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.35);
   overflow: hidden;
 }
 
@@ -1489,7 +1489,7 @@
 }
 
 .admset-card-title {
-  color: #e7eaf0;
+  
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -1520,7 +1520,7 @@
 }
 
 .admset-label {
-  color: #e7eaf0;
+  
   font-weight: 600;
   font-size: 14px;
 }
@@ -1565,11 +1565,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #111319;
-  border: 1px solid #eadfd3;
+  background: #f7f2ec;
+  border: none;
   border-radius: 12px;
   padding: 12px 14px;
-  color: #e7eaf0;
+  
 }
 .admset-callout .muted {
   color: #9aa3b2;
@@ -1590,7 +1590,12 @@
   will-change: transform;
 }
 
-.admset-btn:active { transform: translateY(1px); }
+.admset-btn:active { 
+  transform: translateY(1px); 
+}
+.admset-btn:focus { 
+  outline: none;
+}
 
 /* primary */
 .admset-btn-primary {
@@ -1599,19 +1604,16 @@
   border: 1px solid transparent;
 }
 .admset-btn-primary:hover {
-  background: #5d412a;
-  box-shadow: 0 0 0 4px rgba(106, 74, 47, 0.4);
+  background: rgb(147, 113, 87)
 }
 
 /* outline */
 .admset-btn-outline {
   background: transparent;
-  color: #e7eaf0;
   border: 1px solid #eadfd3;
 }
 .admset-btn-outline:hover {
-  background: #191e2a;
-  border-color: #2a3242;
+  background: #f7f2ec;
   box-shadow: 0 0 0 4px rgba(255,255,255,0.02);
 }
 
@@ -1621,7 +1623,7 @@
   color: #6a4a2f;
 }
 .primary-outline:hover {
-  background: #3d2a1b;
+  background: #6a4a2f;
   color: #fff;
   border-color: #5d412a;
 }
@@ -1637,16 +1639,17 @@
   margin-left: auto;
 }
 .admset-badge.good {
-  background: rgba(22, 163, 74, .15);
-  color: #86efac;
+  background: lightgreen;
+  color: black;
+  font-weight: 300;
 }
 .admset-badge.warn {
-  background: rgba(202, 138, 4, .15);
-  color: #fde68a;
+  background: orange;
+  color: white;
 }
 .admset-badge.danger {
-  background: rgba(220, 38, 38, .18);
-  color: #fecaca;
+  background: red;
+  color: white;
 }
 
 /* switch */
@@ -1654,18 +1657,21 @@
   width: 46px;
   height: 26px;
   border-radius: 999px;
-  background: #2b3243;
-  border: 1px solid #394155;
+  background: #f7f2ec;
+  border: 1px solid darkgrey;
   display: inline-flex;
   align-items: center;
   padding: 3px;
   position: relative;
   transition: background .2s ease, border-color .2s ease;
 }
+.admset-switch:focus {
+  outline: none;
+}
 .admset-switch .knob {
   width: 20px;
   height: 20px;
-  background: #c4c9d4;
+  background: #d1d7e2;
   border-radius: 999px;
   transition: transform .2s ease, background .2s ease;
 }
@@ -1694,7 +1700,7 @@
   background: #fff;
   border: 1px solid #eadfd3;
   border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.35);
   overflow: hidden;
 }
 .admset-modal-header {
@@ -1703,7 +1709,7 @@
   justify-content: space-between;
   padding: 12px 14px;
   border-bottom: 1px solid #eadfd3;
-  color: #e7eaf0;
+  
   font-weight: 700;
 }
 .admset-modal-body {
@@ -1718,7 +1724,9 @@
 }
 
 /* inputs */
-.admset-field + .admset-field { margin-top: 12px; }
+.admset-field + .admset-field { 
+  margin-top: 12px; 
+}
 .admset-field label {
   display: block;
   color: #9aa3b2;
@@ -1728,9 +1736,8 @@
 .admset-field input,
 .admset-field textarea {
   width: 100%;
-  background: #0f131b;
-  color: #e7eaf0;
-  border: 1px solid #2b3243;
+  background: #f7f2ec;
+  border: 1px solid black;
   border-radius: 10px;
   padding: 10px 12px;
   outline: none;
@@ -1738,8 +1745,8 @@
 }
 .admset-field input:focus,
 .admset-field textarea:focus {
-  border-color: #5d412a;
-  box-shadow: 0 0 0 4px rgba(106, 74, 47, 0.4);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(106, 74, 47, 0.4);
 }
 
 /* chips */
@@ -1749,9 +1756,8 @@
   gap: 6px;
 }
 .admset-chip {
-  background: #1a2030;
-  border: 1px solid #2b3243;
-  color: #e7eaf0;
+  background: #f7f2ec;
+  border: 1px solid black;
   padding: 4px 8px;
   border-radius: 999px;
   font-size: 12px;
@@ -1772,7 +1778,6 @@
 .admset-icon-btn {
   background: transparent;
   border: 1px solid transparent;
-  color: #e7eaf0;
   display: inline-grid;
   place-items: center;
   border-radius: 10px;
@@ -1780,8 +1785,7 @@
   height: 34px;
   transition: background .2s ease, border-color .2s ease;
 }
-.admset-icon-btn:hover {
-  background: #1b2130;
-  border-color: #2b3243;
+.admset-icon-btn:focus {
+  outline: none;
 }
 
