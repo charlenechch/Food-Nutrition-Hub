@@ -37,7 +37,7 @@ export default function AdminSystemSettings({
   const [emailEnabled, setEmailEnabled] = useState(true);
 
   const t = {
-    platform: "Platform",
+    platform: "SarawakEats",
     backupRestore: "Backup/Restore",
     dataExport: "Data Export",
     backup: "Backup",
@@ -75,7 +75,7 @@ export default function AdminSystemSettings({
           <div className="admset-card-header">
             <h3 className="admset-card-title">
               <Settings className="admset-ic" />
-              {t.platform} Configuration
+              {t.platform} Settings Configuration
             </h3>
           </div>
 

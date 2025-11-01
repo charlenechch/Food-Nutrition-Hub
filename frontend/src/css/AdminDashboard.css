@@ -1479,7 +1479,7 @@
   background: #fff;
   border: 1px solid #eadfd3;
   border-radius: 14px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.35);
   overflow: hidden;
 }
 
@@ -1610,8 +1610,8 @@
   border: 1px solid #eadfd3;
 }
 .admset-btn-outline:hover {
-  background: #191e2a;
-  border-color: #2a3242;
+  background: #ffefc5;
+  border-color: #f0d08a;
   box-shadow: 0 0 0 4px rgba(255,255,255,0.02);
 }
 
@@ -1694,7 +1694,7 @@
   background: #fff;
   border: 1px solid #eadfd3;
   border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.35);
   overflow: hidden;
 }
 .admset-modal-header {
@@ -1781,7 +1781,7 @@
   transition: background .2s ease, border-color .2s ease;
 }
 .admset-icon-btn:hover {
-  background: #1b2130;
-  border-color: #2b3243;
+  background: #ffefc5;
+  border-color: #f0d08a;
 }
 
