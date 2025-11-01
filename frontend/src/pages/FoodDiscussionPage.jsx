@@ -355,11 +355,6 @@ export default function FoodDiscussionPage() {
     role: user?.role,
     fullUserObject: user
   });
-
-  if (user?.role === 'admin') {
-    actualUserProfileID = 11; // Hardcode the known correct userProfileID
-  }
-
     
     if (!actualUserProfileID) {
       alert("Admin account needs a userProfileID to post comments. Please contact support.");

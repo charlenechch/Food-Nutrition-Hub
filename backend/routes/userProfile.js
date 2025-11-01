@@ -637,11 +637,6 @@ router.get("/", async (req, res) => {
     }
 
     const profile = rows[0];
-    console.log("✅ Profile found - userProfileID:", userProfileID);
-
-    console.log(`📚 Fetching saved foods for userProfileID: ${userProfileID}`);
-    let savedFoodsData = [];
-
     const [profileResult] = await db.execute(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
@@ -649,7 +644,10 @@ router.get("/", async (req, res) => {
 
     const userProfileID = profileResult[0].userProfileID;
     console.log(`✅ Verified userProfileID: ${userProfileID}`);
-    
+
+    console.log(`📚 Fetching saved foods for userProfileID: ${userProfileID}`);
+    let savedFoodsData = [];
+
     if (userProfileID) {
       try {
         const [savedFoodsRows] = await db.execute(
