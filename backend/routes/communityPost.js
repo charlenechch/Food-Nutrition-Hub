@@ -26,7 +26,7 @@ const postSchema = Joi.object({
   culturalOrigin: Joi.string().max(100).required(),
   culturalStory: Joi.string().max(2000).required(),
   recipe: Joi.string().allow("", null),
-  userProfileID: Joi.number().integer().required(),
+  userID: Joi.number().integer().required(),
 });
 
 const commentSchema = Joi.object({
