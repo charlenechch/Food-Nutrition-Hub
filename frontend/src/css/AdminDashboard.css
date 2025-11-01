@@ -1593,7 +1593,7 @@
 .admset-btn:active { 
   transform: translateY(1px); 
 }
-.admset-btn:active { 
+.admset-btn:focus { 
   outline: none;
 }
 
