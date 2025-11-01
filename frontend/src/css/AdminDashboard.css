@@ -1566,7 +1566,7 @@
   align-items: center;
   justify-content: space-between;
   background: #f7f2ec;
-  border: 1px solid black;
+  border: none;
   border-radius: 12px;
   padding: 12px 14px;
   
@@ -1615,7 +1615,6 @@
 }
 .admset-btn-outline:hover {
   background: #f7f2ec;
-  border-color: #5d412a;
   box-shadow: 0 0 0 4px rgba(255,255,255,0.02);
 }
 
@@ -1659,12 +1658,15 @@
   height: 26px;
   border-radius: 999px;
   background: #f7f2ec;
-  border: 1px solid black;
+  border: none;
   display: inline-flex;
   align-items: center;
   padding: 3px;
   position: relative;
   transition: background .2s ease, border-color .2s ease;
+}
+.admset-switch:focus {
+  outline: none;
 }
 .admset-switch .knob {
   width: 20px;
@@ -1743,8 +1745,8 @@
 }
 .admset-field input:focus,
 .admset-field textarea:focus {
-  border-color: #5d412a;
-  box-shadow: 0 0 0 4px rgba(106, 74, 47, 0.4);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(106, 74, 47, 0.4);
 }
 
 /* chips */
@@ -1776,7 +1778,6 @@
 .admset-icon-btn {
   background: transparent;
   border: 1px solid transparent;
-  
   display: inline-grid;
   place-items: center;
   border-radius: 10px;
@@ -1784,8 +1785,7 @@
   height: 34px;
   transition: background .2s ease, border-color .2s ease;
 }
-.admset-icon-btn:hover {
-  background: #f7f2ec;
-  border-color: #f0d08a;
+.admset-icon-btn:focus {
+  outline: none;
 }
 
