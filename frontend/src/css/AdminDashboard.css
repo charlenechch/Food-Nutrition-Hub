@@ -1604,7 +1604,7 @@
   border: 1px solid transparent;
 }
 .admset-btn-primary:hover {
-  background: #3d2a1b;
+  background: rgb(147, 113, 87)
 }
 
 /* outline */
@@ -1640,7 +1640,7 @@
 }
 .admset-badge.good {
   background: lightgreen;
-  color: white;
+  color: black;
 }
 .admset-badge.warn {
   background: orange;
@@ -1657,7 +1657,7 @@
   height: 26px;
   border-radius: 999px;
   background: #f7f2ec;
-  border: none;
+  border: 1px solid #6a4a2f;
   display: inline-flex;
   align-items: center;
   padding: 3px;
