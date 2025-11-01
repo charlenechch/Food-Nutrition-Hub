@@ -297,15 +297,18 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
 
       const userProfileID = getStableProfileId(user);
 
+      const requestBody = {
+      content: comment,
+      postId,
+      userProfileID,
+      isAdmin: user?.role === "admin"
+      };
+
       const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          content: comment,
-          postId,
-          userProfileID,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const result = await response.json();
