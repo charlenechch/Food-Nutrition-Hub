@@ -82,29 +82,13 @@ export default function LoginPromptModal({
         <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
           <button
             onClick={handleLoginRedirect}
-            style={{
-              backgroundColor: "#b8926a",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              padding: "8px 16px",
-              cursor: "pointer",
-              fontWeight: "500",
-            }}
+            className="login-prompt-btn login-prompt-login"
           >
             Log In
           </button>
           <button
             onClick={handleLoginRedirect}
-            style={{
-              backgroundColor: "#eee",
-              color: "#333",
-              border: "none",
-              borderRadius: "8px",
-              padding: "8px 16px",
-              cursor: "pointer",
-              fontWeight: "500",
-            }}
+            className="login-prompt-btn login-prompt-register"
           >
             Register
           </button>
@@ -123,6 +107,7 @@ export default function LoginPromptModal({
             color: "#888",
             cursor: "pointer",
           }}
+          className="login-prompt-btn"
         >
           ✕
         </button>

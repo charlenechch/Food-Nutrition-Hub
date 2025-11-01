@@ -38,6 +38,17 @@ export function AuthProvider({ children }) {
   };
 
   const checkSession = async () => {
+    // Define the public pages that don't need a redirect
+    const publicAuthPaths = [
+      '/loginregister',
+      '/auth/action',
+      '/verifyemail',
+      '/forgotpassword',
+      '/resetpassword',
+      '/otpverification'
+    ];
+    const currentPath = window.location.pathname;
+
     try {
       const res = await fetch(`${API_URL}/api/auth/session`, {
         credentials: "include",
@@ -47,13 +58,17 @@ export function AuthProvider({ children }) {
       if (res.ok && data?.user) {
         setUser(normalizeUser(data.user));
       } else {
-        // If session is not OK, force logout
-        forceLogout(); 
+        // If session is not OK, only force logout if user is not on one of the public auth pages
+        if (!publicAuthPaths.includes(currentPath)) {
+          forceLogout();
+        }
       }
     } catch (err) {
       console.error("Session error:", err);
-      // If session check fails, force logout
-      forceLogout(); 
+      // If session check fails, only force logout if user is not on one of the public auth pages.
+      if (!publicAuthPaths.includes(currentPath)) {
+        forceLogout();
+      }
     } finally {
       setLoading(false);
     }
