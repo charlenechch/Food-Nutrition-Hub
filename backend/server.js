@@ -230,6 +230,7 @@ app.use(
       "reply",
       "comment",
       "foodID", 
+      "likeID",
       "name", "origin", "difficulty", "prepTime", "cookTime", 
       "servings", "image", "description", "foodType", "dietaryTags", 
       "ingredients", "instructions", "funFact", "chefTips",

@@ -412,8 +412,21 @@ router.post('/create/recipes', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const userProfileID = req.session.user.userID;
-    console.log('✅ User authenticated:', userProfileID);
+    const userID = req.session.user.userID;
+
+    // ✅ Get userProfileID from database
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (profileResult.length === 0) {
+      console.log('❌ No userProfile found for user:', userID);
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+    console.log('✅ User authenticated - userID:', userID, 'userProfileID:', userProfileID);
 
     let processedImage = image || 
     'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
