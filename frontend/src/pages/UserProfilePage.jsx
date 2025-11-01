@@ -160,6 +160,76 @@ export default function UserProfilePage() {
   const [currentSaved, setCurrentSaved] = useState([]);
   const [totalSavedPages, setTotalSavedPages] = useState(1);
 
+  const isCommunity = (c) => ["community", "post", "story"].includes((c?.type || "").toLowerCase());
+  const isRecipe    = (c) => ["recipe", "food"].includes((c?.type || "").toLowerCase());
+  const byDateDesc  = (a, b) => new Date(b?.submittedDate || 0) - new Date(a?.submittedDate || 0);
+
+  const ContributionRow = ({ c }) => (
+    <div className="upp-row-card" key={`${c.type}-${c.id}`}>
+      <div className="upp-row-thumb">
+        {c.image ? <img src={c.image} alt={c.title} /> : <div className="upp-noimg" />}
+      </div>
+      <div className="upp-row-body">
+        <div className="upp-row-top">
+          <h4 className="upp-food-title upp-row-title">{c.title}</h4>
+          <span
+            className={`upp-chip ${
+              c.status === "approved" || c.status === "Approved"
+                ? "chip-blue"
+                : c.status === "pending" || c.status === "Pending"
+                ? "chip-yellow"
+                : c.status === "rejected" || c.status === "Rejected"
+                ? "chip-red"
+                : "chip-gray"
+            }`}
+          >
+            {fmtStatus(c.status)}
+          </span>
+        </div>
+
+        <div className="upp-row-meta">
+          <div className="upp-muted">
+            {(c.type || "Food")} • Submitted on {formatContributionDate(c.submittedDate)}
+          </div>
+
+          {(c.status === "needs_revision" ||
+            c.status === "rejected" ||
+            c.status === "Rejected") && (
+            <button
+              className="lrp-btn lrp-btn-outline upp-revise-btn"
+              type="button"
+              onClick={() => {
+                if (isCommunity(c)) {
+                  navigate("/revisecommunitypostpage", {
+                    state: {
+                      contribution: c,
+                      user,
+                      id: c.id,
+                      snapshot: JSON.parse(JSON.stringify(c)),
+                    },
+                  });
+                } else {
+                  navigate(`/revise/${c.id}`, {
+                    state: {
+                      owner: `${user.firstName} ${user.lastName}`,
+                      id: c.id,
+                      snapshot: JSON.parse(JSON.stringify(c)),
+                      contributionData: c,
+                      adminFeedback: c.feedback,
+                      fieldsWithIssues: c.fieldsWithIssues || [],
+                    },
+                  });
+                }
+              }}
+            >
+              Revise
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   // ✅ Fetch Profile Data
   useEffect(() => {
     const loadProfile = async () => {
@@ -835,76 +905,41 @@ export default function UserProfilePage() {
             {/* ===== Contributions (Status) ===== */}
             {tab === "status" && (
               <>
-                {user?.status?.length ? (
-                  <div className="upp-stack">
-                    {user.status.map((c) => (
-                      <div className="upp-row-card" key={c.id}>
-                        <div className="upp-row-thumb">
-                          {c.image ? <img src={c.image} alt={c.title} /> : <div className="upp-noimg" />}
-                        </div>
-                        <div className="upp-row-body">
-                          <div className="upp-row-top">
-                            <h4 className="upp-food-title upp-row-title">{c.title}</h4>
-                            <span
-                              className={`upp-chip ${
-                                c.status === "approved" || c.status === "Approved"
-                                  ? "chip-blue"
-                                  : c.status === "pending" || c.status === "Pending"
-                                  ? "chip-yellow"
-                                  : c.status === "rejected" || c.status === "Rejected"
-                                  ? "chip-red"
-                                  : "chip-gray"
-                              }`}
-                            >
-                              {fmtStatus(c.status)}
-                            </span>
+                {Array.isArray(user?.status) && user.status.length ? (() => {
+                  const all = user.status.slice(); // shallow copy
+                  const recipes = all.filter(isRecipe).sort(byDateDesc);
+                  const community = all.filter(isCommunity).sort(byDateDesc);
+
+                  return (
+                    <div className="upp-stack">
+                      {/* Recipes Section */}
+                      <div className="upp-card">
+                        <h3 className="upp-card-title">Recipes ({recipes.length})</h3>
+                        {recipes.length ? (
+                          <div className="upp-stack">
+                            {recipes.map((c) => <ContributionRow key={`r-${c.id}`} c={c} />)}
                           </div>
-                          <div className="upp-row-meta">
-                            <div className="upp-muted">
-                              {c.type || "Food"} • Submitted on {formatContributionDate(c.submittedDate)}
-                            </div>
-                            {(c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected") && (
-                              <button
-                                className="lrp-btn lrp-btn-outline upp-revise-btn"
-                                onClick={() => {
-                                  // ✅ Navigate to different pages based on contribution type
-                                  if (c.type === "community" || c.type === "post" || c.type === "story") {
-                                    // Navigate to community post revision page
-                                    navigate("/revisecommunitypostpage", {
-                                      state: {
-                                        contribution: c,
-                                        user: user,
-                                        id: c.id,
-                                        snapshot: JSON.parse(JSON.stringify(c)),
-                                      },
-                                    });
-                                  } else {
-                                    // Navigate to food revision page
-                                    navigate(`/revise/${c.id}`, {
-                                      state: {
-                                        owner: `${user.firstName} ${user.lastName}`,
-                                        id: c.id,
-                                        snapshot: JSON.parse(JSON.stringify(c)),
-                                        contributionData: c,
-                                        adminFeedback: c.feedback,
-                                        fieldsWithIssues: c.fieldsWithIssues || []
-                                      },
-                                    });
-                                  }
-                                }}
-                                type="button"
-                              >
-                                Revise
-                              </button>
-                            )}
-                          </div>
-                        </div>
+                        ) : (
+                          <div className="upp-muted">No recipe contributions</div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                ) : (
+
+                      {/* Community Posts Section */}
+                      <div className="upp-card">
+                        <h3 className="upp-card-title">Community Posts ({community.length})</h3>
+                        {community.length ? (
+                          <div className="upp-stack">
+                            {community.map((c) => <ContributionRow key={`p-${c.id}`} c={c} />)}
+                          </div>
+                        ) : (
+                          <div className="upp-muted">No community posts</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })() : (
                   <div className="upp-center">
-                    <p className="upp-muted">No contributions</p>
+                    <p className="upp-muted">No contributions yet</p>
                   </div>
                 )}
               </>
