@@ -228,26 +228,29 @@ export default function RecipesPage() {
 
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+      const payload = {
+        name: name,
+        origin: origin,
+        difficulty: form.difficulty,
+        prepTime: Number(form.prepTime),
+        cookTime: Number(form.cookTime),
+        servings: Number(form.servings),
+        image: form.imageData,
+        description: form.description.trim(),
+        foodType: finalFoodType,
+        dietaryTags: [...(form.dietaryTags || []), ...customTags],
+        ingredients: form.ingredients, 
+        instructions: form.instructions, 
+        funFact: form.funFact.trim(),
+        chefTips: form.chefTips.trim(),
+      };
+
       const res = await fetch(`${API_BASE_URL}/api/recipe/create/recipes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          name: name,
-          origin: origin,
-          difficulty: form.difficulty,
-          prepTime: Number(form.prepTime),
-          cookTime: Number(form.cookTime),
-          servings: Number(form.servings),
-          image: form.imageData,
-          description: form.description.trim(),
-          foodType: finalFoodType,
-          dietaryTags: dedup([...(form.dietaryTags || []), ...customTags]),
-          ingredients: toLines(form.ingredients),
-          instructions: toLines(form.instructions),
-          funFact: form.funFact.trim(),
-          chefTips: form.chefTips.trim(),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {

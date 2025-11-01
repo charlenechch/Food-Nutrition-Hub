@@ -207,7 +207,7 @@ app.use(
 // ---------- 7) Global HPP protection for everything else ----------
 app.use(
   hppProtect({
-    policy: "reject", // block duplicates globally
+    policy: "first", // block duplicates globally
     allowlist: [
       "id",
       "page",
@@ -218,6 +218,11 @@ app.use(
       "userID",
       "token",
       "role",
+      "userProfileID",
+      "type",
+      "postID",
+      "content",
+      "reply",
       "name", "origin", "difficulty", "prepTime", "cookTime", 
       "servings", "image", "description", "foodType", "dietaryTags", 
       "ingredients", "instructions", "funFact", "chefTips"
