@@ -92,21 +92,24 @@ const uploadAvatar = async () => {
 };
 
 const normalizePrefs = (data = {}) => {
-  const dietaryRestrictions = Array.isArray(data.dietaryRestrictions) ? data.dietaryRestrictions : 
-                 (typeof data.dietaryRestrictions === 'string' ? JSON.parse(data.dietaryRestrictions || "[]") : []);
-  
-  const allergies = Array.isArray(data.allergies) ? data.allergies : 
-                   (typeof data.allergies === 'string' ? JSON.parse(data.allergies || "[]") : []);
+  const prefsData = data.prefs || data;
 
-  return {
-    ...DEFAULT_PREFS,
-    dietary: dietaryRestrictions, 
+  const dietary = Array.isArray(prefsData.dietary) ? prefsData.dietary : 
+                 (typeof prefsData.dietary === 'string' ? JSON.parse(prefsData.dietary || "[]") : []);
+  
+  const allergies = Array.isArray(prefsData.allergies) ? prefsData.allergies : 
+                   (typeof prefsData.allergies === 'string' ? JSON.parse(prefsData.allergies || "[]") : []);
+  const normalized = {
+    dietary: dietary,
     allergies: allergies,
-    emailNotifications: data.emailNotifications ?? true,
-    pushNotifications: data.pushNotifications ?? true,
-    profileVisibility: data.profileVisibility ?? true,
-    language: data.language || "en"
+    emailNotifications: prefsData.emailNotifications ?? true,
+    pushNotifications: prefsData.pushNotifications ?? true,
+    profileVisibility: prefsData.profileVisibility ?? true,
+    language: prefsData.language || "en"
   };
+
+  console.log("🔄 Normalized preferences:", normalized);
+  return normalized;
 };
 
 const toggleInArray = (arr, value) =>
@@ -530,59 +533,83 @@ export default function UserProfilePage() {
   };
 
   // ===== Unified Update Function =====
-const updateProfile = async (updateData, type = 'profile') => {
-  try {
-    console.log(`📤 Updating ${type}:`, updateData);
+// const updateProfile = async (updateData, type = 'profile') => {
+//   try {
+//     console.log(`📤 Updating ${type}:`, updateData);
 
-    // Use FormData for ALL updates to match avatar upload success
-    const formData = new FormData();
+//     // Use FormData for ALL updates to match avatar upload success
+//     const formData = new FormData();
     
-    // Add all update data as JSON string
-    formData.append('updateData', JSON.stringify(updateData));
-    formData.append('updateType', type);
+//     // Add all update data as JSON string
+//     formData.append('updateData', JSON.stringify(updateData));
+//     formData.append('updateType', type);
 
-    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-      method: 'POST', // Use POST instead of PUT
-      credentials: 'include',
-      body: formData, // Use FormData like avatar upload
-    });
+//     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+//       method: 'POST', // Use POST instead of PUT
+//       credentials: 'include',
+//       body: formData, // Use FormData like avatar upload
+//     });
 
-    console.log(`📥 ${type} update response status:`, res.status);
+//     console.log(`📥 ${type} update response status:`, res.status);
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`❌ ${type} update error:`, errorText);
-      throw new Error(`Failed to update ${type} (${res.status}): ${errorText}`);
-    }
+//     if (!res.ok) {
+//       const errorText = await res.text();
+//       console.error(`❌ ${type} update error:`, errorText);
+//       throw new Error(`Failed to update ${type} (${res.status}): ${errorText}`);
+//     }
 
-    const result = await res.json();
-    console.log(`✅ ${type} update result:`, result);
+//     const result = await res.json();
+//     console.log(`✅ ${type} update result:`, result);
 
-    if (result.success) {
-      return result;
-    } else {
-      throw new Error(result.error || `Update failed for ${type}`);
-    }
-  } catch (error) {
-    console.error(`${type} update error:`, error);
-    throw error;
-  }
-};
+//     if (result.success) {
+//       return result;
+//     } else {
+//       throw new Error(result.error || `Update failed for ${type}`);
+//     }
+//   } catch (error) {
+//     console.error(`${type} update error:`, error);
+//     throw error;
+//   }
+// };
 
 // ===== Save: Personal Info =====
 const savePersonal = async () => {
   try {
-    const updateData = {
-      location: form.location,
-      bio: bio
+    const updateData = { 
+      location: form.location, 
+      bio: bio 
     };
 
-    await updateProfile(updateData, 'personal info');
-    alert("Profile updated successfully!");
+    console.log("📤 Saving personal info:", updateData);
 
-    // Update local state immediately
-    setUser(prev => ({ ...prev, location: form.location, bio: bio }));
+    // Try the correct endpoint that exists
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, { // ✅ Correct endpoint
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(updateData),
+    });
+    
+    console.log("📥 Personal info response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Personal info update error:", errorText);
+      throw new Error(`Failed to update profile (${res.status}): ${errorText}`);
+    }
+    
+    const result = await res.json();
+    console.log("✅ Personal info update result:", result);
+    
+    if (result.success) {
+      alert("Profile updated successfully!");
+      // Update local state immediately
+      setUser(prev => ({ ...prev, location: form.location, bio: bio }));
+    } else {
+      throw new Error(result.error || "Update failed");
+    }
   } catch (e) {
+    console.error("Personal info update error:", e);
     alert(e.message || "Failed to update profile");
   }
 };
@@ -591,7 +618,7 @@ const savePersonal = async () => {
 const savePrefs = async () => {
   try {
     const preferencesPayload = {
-      dietaryRestrictions: prefs.dietary || [],
+      dietary: prefs.dietary || [], // ✅ Use 'dietary' not 'dietaryRestrictions'
       allergies: prefs.allergies || [],
       emailNotifications: prefs.emailNotifications,
       pushNotifications: prefs.pushNotifications,
@@ -599,9 +626,34 @@ const savePrefs = async () => {
       language: prefs.language
     };
 
-    await updateProfile(preferencesPayload, 'preferences');
-    alert("Preferences updated successfully!");
+    console.log("📤 Saving preferences:", preferencesPayload);
+
+    // Try the correct endpoint that exists
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, { // ✅ Correct endpoint
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(preferencesPayload),
+    });
+    
+    console.log("📥 Preferences response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Preferences update error:", errorText);
+      throw new Error(`Failed to update preferences (${res.status}): ${errorText}`);
+    }
+    
+    const result = await res.json();
+    console.log("✅ Preferences update result:", result);
+    
+    if (result.success) {
+      alert("Preferences updated successfully!");
+    } else {
+      throw new Error(result.error || "Update failed");
+    }
   } catch (e) {
+    console.error("Preferences update error:", e);
     alert(e.message || "Failed to update preferences");
   }
 };

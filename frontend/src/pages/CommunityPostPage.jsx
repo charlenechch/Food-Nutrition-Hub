@@ -17,13 +17,33 @@ function computeIsLoggedIn(user) {
     const hasAdminId = Boolean(user?.userProfileID || user?.userID || user?.id || user?.adminID);
     return Boolean(user && user.role === "admin" && hasAdminId);
   }
-  
+
   const hasId = Boolean(user?.userID || user?.id || user?.userProfileID);
   const notGuest = user?.role && user.role.toLowerCase() !== "guest";
   return Boolean(user && hasId && notGuest);
 }
 
 function getStableProfileId(user) {
+  
+  if (user?.role === "admin") {
+    const adminProfileId = user?.userProfileID || user?.userID || user?.id;
+    
+    console.log("🔍 Admin Profile ID Check:", {
+      userProfileID: user?.userProfileID,
+      userID: user?.userID,
+      id: user?.id,
+      finalProfileId: adminProfileId
+    });
+    
+    if (!adminProfileId) {
+      console.error("❌ Admin user missing profile ID - this will prevent posting");
+      return "admin-fallback";
+    }
+    
+    return adminProfileId;
+  }
+  
+  // For regular users
   return user?.userProfileID || user?.userID || user?.id || null;
 }
 
