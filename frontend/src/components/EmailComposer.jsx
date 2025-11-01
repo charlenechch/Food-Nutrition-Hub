@@ -52,7 +52,7 @@ function unlockScroll() {
 // Reuses your existing CSS classes from User Management modal (umg-*)
 export default function EmailComposer({
   isOpen,
-  onClose,
+  handleClose,
   users = [],
   title = "Send Email",
   templates = {},
@@ -72,11 +72,16 @@ export default function EmailComposer({
     message: templates[defaultTemplateKey]?.message || "",
     markAnnouncement: false,
   });
+  const handleClose = () => {
+    try { unlockScroll(); } catch {}
+    wasOpen.current = false;
+    handleClose?.();
+    };
 
     const wasOpen = useRef(false);
 
     useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
+    const onKey = (e) => e.key === "Escape" && handleClose();
 
     if (isOpen && !wasOpen.current) {
         lockScroll();
@@ -97,7 +102,7 @@ export default function EmailComposer({
         wasOpen.current = false;
         }
     };
-    }, [isOpen, onClose]);
+    }, [isOpen, handleClose]);
 
     useEffect(() => {
     return () => {
@@ -150,12 +155,12 @@ export default function EmailComposer({
   if (!isOpen) return null;
 
   return (
-    <div className="umg-modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
+    <div className="umg-modal-backdrop" role="dialog" aria-modal="true" onClick={handleClose}>
       <div className="umg-modal" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="umg-modal-header">
           <h3><Mail size={18}/> {title}</h3>
-          <button className="umg-modal-close" onClick={onClose} aria-label="Close">
+          <button className="umg-modal-close" onClick={handleClose} aria-label="Close">
             <X />
           </button>
         </div>
@@ -306,7 +311,7 @@ export default function EmailComposer({
 
         {/* Footer */}
         <div className="umg-modal-footer">
-          <button className="umg-btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="umg-btn-secondary" onClick={handleClose}>Cancel</button>
           <button
             className="umg-btn-primary"
             onClick={() => {
@@ -336,7 +341,7 @@ export default function EmailComposer({
                 recipientsOption: emailForm.recipientsOption,
               });
 
-              onClose();
+              handleClose();
             }}
           >
             <Send size={18} /> Send Email
