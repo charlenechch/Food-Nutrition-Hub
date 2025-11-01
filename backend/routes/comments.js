@@ -19,7 +19,7 @@ function sanitizeInput(value) {
 // ✅ NEW: Joi schemas for validation
 const commentSchema = Joi.object({
   postID: Joi.number().integer().required(),
-  userProfileID: Joi.number().integer().required(),
+  //userProfileID: Joi.number().integer().required(),
   commentText: Joi.string().max(1000).required()
 });
 
@@ -118,7 +118,23 @@ router.get("/user/:userProfileID", async (req, res) => {
 // Add a comment
 router.post("/", async (req, res) => {
   try {
-    const { postID, userProfileID, commentText } = req.body;
+    const { postID, commentText } = req.body;
+
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
 
     // ✅ Validate and sanitize
     const { error, value } = commentSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
@@ -232,7 +248,22 @@ router.put("/:commentId", async (req, res) => {
 router.delete("/:commentId", async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { userProfileID } = req.body;
+
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
 
     // ✅ Validate and sanitize
     const deleteSchema = Joi.object({

@@ -19,7 +19,7 @@ function sanitizeInput(value) {
 // ✅ NEW: Joi Schema for like requests
 const likeSchema = Joi.object({
   postID: Joi.number().integer().required(),
-  userProfileID: Joi.number().integer().required(),
+  //userProfileID: Joi.number().integer().required(),
 });
 
 // Get all likes for a specific post
@@ -78,7 +78,23 @@ router.get("/count/:postId", async (req, res) => {
 // Check if user liked a post
 router.get("/check", async (req, res) => {
   try {
-    const { postId, userProfileID } = req.query;
+    const { postId } = req.query;
+
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
     
     const [likes] = await db.execute(`
       SELECT * FROM likes 
@@ -102,7 +118,23 @@ router.get("/check", async (req, res) => {
 // Add a like
 router.post("/", async (req, res) => {
   try {
-    const { postID, userProfileID } = req.body;
+    const { postID } = req.body;
+
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
 
     // ✅ Validate and sanitize
     const { error, value } = likeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
@@ -148,7 +180,23 @@ router.post("/", async (req, res) => {
 // Remove a like (unlike)
 router.delete("/", async (req, res) => {
   try {
-    const { postID, userProfileID } = req.body;
+    const { postID } = req.body;
+
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
 
     // ✅ Validate and sanitize
     const { error, value } = likeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
@@ -217,7 +265,21 @@ router.delete("/:likeId", async (req, res) => {
 // Get all posts liked by a user
 router.get("/user/:userProfileID", async (req, res) => {
   try {
-    const { userProfileID } = req.params;
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
     
     const [likedPosts] = await db.execute(`
       SELECT p.*, f.title, f.category
