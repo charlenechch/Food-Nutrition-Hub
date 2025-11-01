@@ -52,7 +52,7 @@ function unlockScroll() {
 // Reuses your existing CSS classes from User Management modal (umg-*)
 export default function EmailComposer({
   isOpen,
-  handleClose,
+  onClose,
   users = [],
   title = "Send Email",
   templates = {},
@@ -75,13 +75,13 @@ export default function EmailComposer({
   const handleClose = () => {
     try { unlockScroll(); } catch {}
     wasOpen.current = false;
-    handleClose?.();
+    onClose?.();
     };
 
     const wasOpen = useRef(false);
 
     useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && handleClose();
+    const onKey = (e) => e.key === "Escape" && onClose();
 
     if (isOpen && !wasOpen.current) {
         lockScroll();
@@ -102,7 +102,7 @@ export default function EmailComposer({
         wasOpen.current = false;
         }
     };
-    }, [isOpen, handleClose]);
+    }, [isOpen, onClose]);
 
     useEffect(() => {
     return () => {
@@ -341,7 +341,7 @@ export default function EmailComposer({
                 recipientsOption: emailForm.recipientsOption,
               });
 
-              handleClose();
+              onClose();
             }}
           >
             <Send size={18} /> Send Email
