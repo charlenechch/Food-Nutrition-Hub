@@ -236,15 +236,7 @@ const authLimiter = rateLimit({
 });
 
 // ---------- 7) Routes with per-route HPP overrides ----------
-app.use(
-  "/api/login",
-  authLimiter,
-  hppProtect({
-    policy: "reject",
-    allowlist: ["email", "password", "rememberDevice"], // ✅ add this
-  }),
-  loginRoutes
-);
+app.use("/api/login", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password"] }), loginRoutes);
 app.use("/api/logout", logoutRoutes);
 app.use("/api/register", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password", "firstname", "lastname"] }), registerRoutes);
 app.use("/api/verifyEmail", verifyEmailRoute);

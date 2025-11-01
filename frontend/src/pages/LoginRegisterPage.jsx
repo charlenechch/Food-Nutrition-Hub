@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
+import { fetchWithCredentials } from "../config/api"; // ✅ ADDED THIS
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -132,10 +133,8 @@ export default function LoginRegisterPage() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) {
         try {
-          await fetch(`${API_URL}/api/verifyEmail/sync`, {
+          await fetchWithCredentials(`${API_URL}/api/verifyEmail/sync`, {
             method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: user.email }),
           });
           console.log("✅ Verification synced to Database");
@@ -170,10 +169,8 @@ export default function LoginRegisterPage() {
     
     try {
       // Check backend rate limiting
-      const checkRes = await fetch(`${API_URL}/api/resendVerification`, {
+      const checkRes = await fetchWithCredentials(`${API_URL}/api/resendVerification`, {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
       
@@ -251,10 +248,8 @@ export default function LoginRegisterPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/api/login`, {
+      const res = await fetchWithCredentials(`${API_URL}/api/login`, {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, rememberDevice }),
       });
 
@@ -395,10 +390,8 @@ export default function LoginRegisterPage() {
       });
 
       // Register in MySQL database WITH Firebase UID
-      const res = await fetch(`${API_URL}/api/register`, {
+      const res = await fetchWithCredentials(`${API_URL}/api/register`, {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstname: firstName,
           lastname: lastName,
