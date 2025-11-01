@@ -143,26 +143,26 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
 // ---------- 4) Rate limiting ----------
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 300,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(globalLimiter);
+//const globalLimiter = rateLimit({
+//  windowMs: 15 * 60 * 1000,
+//  limit: 300,
+//  standardHeaders: true,
+//  legacyHeaders: false,
+//});
+//app.use(globalLimiter);
 
-const authLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  limit: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Too many attempts, try again later." },
-  keyGenerator: (req, res) => {
-    const ipKey = ipKeyGenerator(req, res);
-    const emailKey = req.body?.email || "guest";
-    return `${ipKey}-${emailKey}`;
-  },
-});
+//const authLimiter = rateLimit({
+//  windowMs: 10 * 60 * 1000,
+//  limit: 10,
+//  standardHeaders: true,
+//  legacyHeaders: false,
+//  message: { error: "Too many attempts, try again later." },
+// keyGenerator: (req, res) => {
+//    const ipKey = ipKeyGenerator(req, res);
+//    const emailKey = req.body?.email || "guest";
+//    return `${ipKey}-${emailKey}`;
+//  },
+//});
 
 // ---------- 5) Sessions ----------
 const dbOptions = {
@@ -206,10 +206,10 @@ app.use(
 
 app.use(
   "/api/login",
-  authLimiter,
+  //authLimiter,
   hppProtect({
     policy: "reject",
-    allowlist: ["email", "password", "rememberDevice"], // ✅ Remember Me allowed
+    allowlist: ["email", "password", "rememberDevice"], // Remember Me allowed
   }),
   loginRoutes
 );
@@ -217,7 +217,7 @@ app.use(
 // ---------- 7) Global HPP protection for everything else ----------
 app.use(
   hppProtect({
-    policy: "reject", // block duplicates globally
+    policy: "first", // block duplicates globally
     allowlist: [
       "id",
       "page",
@@ -228,6 +228,24 @@ app.use(
       "userID",
       "token",
       "role",
+      "userProfileID",
+      "firebase_uid",
+      "bio", "location", "firstname", "lastname",
+      "avatar", "allergies", "dietary", "emailNotifications", "prefs",
+      "pushNotifications", "profileVisibility", "language", "recipes",
+      "status", "stats", "saveFoods",
+      "likes",
+      "type",
+      "postId",
+      "content",
+      "reply",
+      "comment",
+      "foodID", 
+      "likeID",
+      "name", "origin", "difficulty", "prepTime", "cookTime", 
+      "servings", "image", "description", "foodType", "dietaryTags", 
+      "ingredients", "instructions", "funFact", "chefTips",
+      "isAdmin", "isAdminAction", "adminRole", "adminId"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));

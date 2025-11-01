@@ -26,13 +26,13 @@ const postSchema = Joi.object({
   culturalOrigin: Joi.string().max(100).required(),
   culturalStory: Joi.string().max(2000).required(),
   recipe: Joi.string().allow("", null),
-  userProfileID: Joi.number().integer().required(),
+  //userProfileID: Joi.number().integer().required(),
 });
 
 const commentSchema = Joi.object({
   content: Joi.string().max(1000).required(),
   postId: Joi.number().integer().required(),
-  userProfileID: Joi.number().integer().required(),
+  //userProfileID: Joi.number().integer().required(),
 });
 
 // Configure Cloudinary
@@ -214,7 +214,24 @@ router.get("/:id", async (req, res) => {
 // POST route to create a new comment
 router.post('/comments', async (req, res) => {
   try {
-    const { content, postId, userProfileID } = req.body;
+    const { content, postId } = req.body;
+
+    // ✅ Get userProfileID from session + database
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
 
     // ✅ Validate and sanitize
     const { error, value } = commentSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
@@ -322,10 +339,25 @@ router.get('/comments/:postId', async (req, res) => {
 router.delete('/comments/:commentId', async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { userProfileID, isAdmin } = req.body;
+    const { isAdmin } = req.body;
 
-    console.log('🗑️ Deleting comment:', { commentId, userProfileID });
-
+    // ✅ Get userProfileID from session + database
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
+   
     // Validate required fields
     if (!commentId || !userProfileID) {
       return res.status(400).json({
@@ -399,7 +431,24 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
   console.log('📁 Uploaded files:', req.files ? req.files.map(f => f.filename) : 'No files');
   
   try {
-    const { foodName, culturalOrigin, culturalStory, recipe, userProfileID } = req.body;
+    const { foodName, culturalOrigin, culturalStory, recipe} = req.body;
+
+    // ✅ Get userProfileID from session + database
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
 
     // ✅ Validate and sanitize
     const { error, value } = postSchema.validate(req.body, { abortEarly: false, stripUnknown: true });

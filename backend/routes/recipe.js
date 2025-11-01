@@ -373,6 +373,20 @@ router.post('/create/recipes', async (req, res) => {
       Object.assign(req.body, cleanData);
     }
 
+    // image size validation
+    if (image && image.startsWith('data:image')) {
+      const base64Size = (image.length * 3) / 4; // Base64 size estimate in bytes
+      const maxSize = 3 * 1024 * 1024; // 3MB limit
+      
+      console.log(`📏 Image size check: ${Math.round(base64Size / 1024)} KB`);
+      
+      if (base64Size > maxSize) {
+        return res.status(400).json({ 
+          error: 'Image too large. Please use an image smaller than 2MB.' 
+        });
+      }
+    }
+
     console.log('📊 Request data analysis:', {
       name, 
       origin, 
@@ -382,7 +396,8 @@ router.post('/create/recipes', async (req, res) => {
       ingredientsIsArray: Array.isArray(ingredients),
       instructionsIsArray: Array.isArray(instructions),
       ingredientsLength: Array.isArray(ingredients) ? ingredients.length : 'N/A',
-      instructionsLength: Array.isArray(instructions) ? instructions.length : 'N/A'
+      instructionsLength: Array.isArray(instructions) ? instructions.length : 'N/A',
+      imageSize: image ? (image.startsWith('data:image') ? `${Math.round((image.length * 3) / 4 / 1024)} KB` : 'URL') : 'None'
     });
 
     // Validate required fields
@@ -397,12 +412,45 @@ router.post('/create/recipes', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const userProfileID = req.session.user.userID;
-    console.log('✅ User authenticated:', userProfileID);
+    const userID = req.session.user.userID;
+
+    // ✅ Get userProfileID from database
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (profileResult.length === 0) {
+      console.log('❌ No userProfile found for user:', userID);
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+    console.log('✅ User authenticated - userID:', userID, 'userProfileID:', userProfileID);
 
     let processedImage = image || 
     'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
 
+    // CLOUDINARY UPLOAD LOGIC with size protection
+    if (image && image.startsWith('data:image')) {
+      try {
+        console.log('📤 Uploading image to Cloudinary...');
+        const uploadResult = await cloudinary.uploader.upload(image, {
+          folder: 'food-recipes',
+          resource_type: 'image',
+          timeout: 30000 // 30 second timeout
+        });
+        processedImage = uploadResult.secure_url;
+        console.log('✅ Image uploaded to Cloudinary:', processedImage);
+      } catch (uploadError) {
+        console.error('❌ Cloudinary upload failed:', uploadError.message);
+        // Continue with default image - don't fail the entire recipe
+      }
+    } else if (image && image.startsWith('http')) {
+      processedImage = image;
+      console.log('✅ Using existing image URL');
+    }
+    
     console.log('🚀 About to execute FIRST INSERT (food table)');
 
     // Insert into food table
@@ -494,141 +542,6 @@ router.post('/create/recipes', async (req, res) => {
   }
 });
 
-// POST new recipe 
-router.post('/create/recipes', async (req, res) => {
-  console.log('🔍 START: Recipe creation endpoint called');
-  
-  try {
-    const {
-      name, origin, difficulty, prepTime, image, description, 
-      foodType, dietaryTags, cookTime, servings, ingredients, 
-      instructions, funFact, chefTips
-    } = req.body;
-
-    // ✅ NEW: Validate and sanitize (added to this duplicate route as well)
-    {
-      const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
-      if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
-      const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
-      Object.assign(req.body, cleanData);
-    }
-
-    console.log('📊 Request data analysis:', {
-      name, 
-      origin, 
-      foodType,
-      hasImage: !!image,
-      imageType: image ? (image.startsWith('data:image') ? 'base64' : 'url') : 'none'
-    });
-
-    // Validate required fields
-    if (!name || !origin) {
-      console.log('❌ Validation failed: missing name or origin');
-      return res.status(400).json({ error: 'Name and origin are required' });
-    }
-
-    // Check authentication
-    if (!req.session || !req.session.user) {
-      console.log('❌ Authentication failed - no session user');
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-
-    const userProfileID = req.session.user.userID;
-    console.log('✅ User authenticated:', userProfileID);
-
-    let processedImage = 'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
-
-    // CLOUDINARY UPLOAD LOGIC
-    if (image && image.startsWith('data:image')) {
-      try {
-        console.log('📤 Uploading image to Cloudinary...');
-        const uploadResult = await cloudinary.uploader.upload(image, {
-          folder: 'food-recipes',
-          resource_type: 'image'
-        });
-        processedImage = uploadResult.secure_url;
-        console.log('✅ Image uploaded to Cloudinary:', processedImage);
-      } catch (uploadError) {
-        console.error('❌ Cloudinary upload failed:', uploadError);
-        // Continue with default image
-      }
-    } else if (image && image.startsWith('http')) {
-      processedImage = image;
-      console.log('✅ Using existing image URL');
-    }
-
-    console.log('🚀 About to execute FIRST INSERT (food table)');
-
-    // Insert into food table
-    const foodQuery = `
-      INSERT INTO food (
-        name, origin, difficulty, prepTime, image, description, 
-        foodType, category, dietaryTags, commonIngredients
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    
-    const foodParams = [
-      name, 
-      origin, 
-      difficulty || 'Easy', 
-      prepTime || 0, 
-      processedImage, 
-      description || '', 
-      foodType || 'Other',
-      foodType || 'Other',
-      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
-      null
-    ];
-    
-    console.log('📝 Executing food insert with params:', foodParams);
-    
-    const [foodResult] = await db.query(foodQuery, foodParams);
-    console.log('✅ Food insert successful - insertId:', foodResult.insertId);
-    
-    const foodId = foodResult.insertId;
-
-    if (!foodId) {
-      throw new Error('Could not retrieve the inserted food ID');
-    }
-
-    console.log('🚀 About to execute SECOND INSERT (recipe table)');
-
-    // Insert into recipe table
-    const recipeQuery = `
-      INSERT INTO recipe (
-        foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    
-    const recipeParams = [
-      foodId, 
-      userProfileID,
-      Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
-      Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
-      cookTime || 0, 
-      servings || 1,
-      funFact || '', 
-      chefTips || '',
-      'Pending' 
-    ];
-    
-    console.log('📝 Executing recipe insert with foodID:', foodId);
-    await db.query(recipeQuery, recipeParams);
-    
-    console.log('✅ Recipe created successfully with ID:', foodId);
-    
-    res.status(201).json({ 
-      message: 'Recipe created successfully', 
-      id: foodId,
-      status: 'Pending'
-    });
-    
-  } catch (error) {
-    console.error('❌ Error creating recipe:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // Add this route to your backend
 router.put('/update/recipes/:id', async (req, res) => {
   console.log('🔍 START: Recipe update endpoint called for ID:', req.params.id);
@@ -671,8 +584,22 @@ router.put('/update/recipes/:id', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const userProfileID = req.session.user.userID;
-    console.log('✅ User authenticated:', userProfileID);
+    const userID = req.session.user.userID;
+
+    // ✅ Get userProfileID from database
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (profileResult.length === 0) {
+      console.log('❌ No userProfile found for user:', userID);
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+    console.log('✅ User authenticated - userID:', userID, 'userProfileID:', userProfileID);
+
 
     // First, get the current foodID from the recipe
     console.log('🔍 Getting current food ID for recipe:', recipeId);

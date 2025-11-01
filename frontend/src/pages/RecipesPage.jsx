@@ -228,26 +228,29 @@ export default function RecipesPage() {
 
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+      const payload = {
+        name: name,
+        origin: origin,
+        difficulty: form.difficulty,
+        prepTime: Number(form.prepTime),
+        cookTime: Number(form.cookTime),
+        servings: Number(form.servings),
+        image: form.imageData,
+        description: form.description.trim(),
+        foodType: finalFoodType,
+        dietaryTags: [...(form.dietaryTags || []), ...customTags],
+        ingredients: form.ingredients, 
+        instructions: form.instructions, 
+        funFact: form.funFact.trim(),
+        chefTips: form.chefTips.trim(),
+      };
+
       const res = await fetch(`${API_BASE_URL}/api/recipe/create/recipes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          name: name,
-          origin: origin,
-          difficulty: form.difficulty,
-          prepTime: Number(form.prepTime),
-          cookTime: Number(form.cookTime),
-          servings: Number(form.servings),
-          image: form.imageData,
-          description: form.description.trim(),
-          foodType: finalFoodType,
-          dietaryTags: dedup([...(form.dietaryTags || []), ...customTags]),
-          ingredients: toLines(form.ingredients),
-          instructions: toLines(form.instructions),
-          funFact: form.funFact.trim(),
-          chefTips: form.chefTips.trim(),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -297,14 +300,40 @@ export default function RecipesPage() {
   };
 
   function handleImageUpload(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm(prev => ({ ...prev, imageData: reader.result })); // base64
-    };
-    reader.readAsDataURL(file);
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  // ✅ Add image validation
+  const maxSize = 2 * 1024 * 1024; // 2MB limit
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+
+  // Check file size
+  if (file.size > maxSize) {
+    alert('❌ Image too large! Please choose an image smaller than 2MB.');
+    e.target.value = ''; 
+    return;
   }
+
+  // Check file type
+  if (!allowedTypes.includes(file.type)) {
+    alert('❌ Please select a valid image (JPEG, JPG, PNG, or WebP).');
+    e.target.value = ''; 
+    return;
+  }
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  console.log(`✅ Image selected: ${file.name} (${formatSize(file.size)})`);
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    setForm(prev => ({ ...prev, imageData: reader.result })); // base64
+  };
+  reader.readAsDataURL(file);
+}
 
   // checkboxes (kept)
   const DIET_OPTIONS = [

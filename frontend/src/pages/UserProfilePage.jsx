@@ -92,20 +92,24 @@ const uploadAvatar = async () => {
 };
 
 const normalizePrefs = (data = {}) => {
-  const dietary = Array.isArray(data.dietary) ? data.dietary : 
-                 (typeof data.dietary === 'string' ? JSON.parse(data.dietary || "[]") : []);
+  const prefsData = data.prefs || data;
+
+  const dietary = Array.isArray(prefsData.dietary) ? prefsData.dietary : 
+                 (typeof prefsData.dietary === 'string' ? JSON.parse(prefsData.dietary || "[]") : []);
   
-  const allergies = Array.isArray(data.allergies) ? data.allergies : 
-                   (typeof data.allergies === 'string' ? JSON.parse(data.allergies || "[]") : []);
-  return {
-    ...DEFAULT_PREFS,
+  const allergies = Array.isArray(prefsData.allergies) ? prefsData.allergies : 
+                   (typeof prefsData.allergies === 'string' ? JSON.parse(prefsData.allergies || "[]") : []);
+  const normalized = {
     dietary: dietary,
     allergies: allergies,
-    emailNotifications: data.emailNotifications ?? true,
-    pushNotifications: data.pushNotifications ?? true,
-    profileVisibility: data.profileVisibility ?? true,
-    language: data.language || "en"
+    emailNotifications: prefsData.emailNotifications ?? true,
+    pushNotifications: prefsData.pushNotifications ?? true,
+    profileVisibility: prefsData.profileVisibility ?? true,
+    language: prefsData.language || "en"
   };
+
+  console.log("🔄 Normalized preferences:", normalized);
+  return normalized;
 };
 
 const toggleInArray = (arr, value) =>
@@ -159,6 +163,105 @@ export default function UserProfilePage() {
   const [savedPage, setSavedPage] = useState(1);
   const [currentSaved, setCurrentSaved] = useState([]);
   const [totalSavedPages, setTotalSavedPages] = useState(1);
+
+  // --- Hardcoded community contributions (frontend only) ---
+  const HARDCODED_COMMUNITY = [
+    {
+      id: "hc-1",
+      title: "Grandma’s Kuih Lapis Story",
+      image: "https://picsum.photos/seed/kuih-lapis/480/320", // or your asset
+      status: "Approved",
+      submittedDate: "2025-10-01T10:00:00.000Z",
+      type: "community",
+    },
+    {
+      id: "hc-2",
+      title: "Harvest Festival Food Memories",
+      image: "https://picsum.photos/seed/gawai/480/320",
+      status: "Pending",
+      submittedDate: "2025-10-15T09:12:00.000Z",
+      type: "community",
+    },
+    {
+      id: "hc-3",
+      title: "Sarawak Laksa Origins (Photo Essay)",
+      image: "https://picsum.photos/seed/laksa/480/320",
+      status: "Rejected",
+      submittedDate: "2025-09-26T08:30:00.000Z",
+      type: "community",
+    },
+  ];
+
+
+  const isCommunity = (c) => ["community", "post", "story"].includes((c?.type || "").toLowerCase());
+  const isRecipe    = (c) => ["recipe", "food"].includes((c?.type || "").toLowerCase());
+  const byDateDesc  = (a, b) => new Date(b?.submittedDate || 0) - new Date(a?.submittedDate || 0);
+
+  const ContributionRow = ({ c }) => (
+    <div className="upp-row-card" key={`${c.type}-${c.id}`}>
+      <div className="upp-row-thumb">
+        {c.image ? <img src={c.image} alt={c.title} /> : <div className="upp-noimg" />}
+      </div>
+      <div className="upp-row-body">
+        <div className="upp-row-top">
+          <h4 className="upp-food-title upp-row-title">{c.title}</h4>
+          <span
+            className={`upp-chip ${
+              c.status === "approved" || c.status === "Approved"
+                ? "chip-blue"
+                : c.status === "pending" || c.status === "Pending"
+                ? "chip-yellow"
+                : c.status === "rejected" || c.status === "Rejected"
+                ? "chip-red"
+                : "chip-gray"
+            }`}
+          >
+            {fmtStatus(c.status)}
+          </span>
+        </div>
+
+        <div className="upp-row-meta">
+          <div className="upp-muted">
+            {(c.type || "Food")} • Submitted on {formatContributionDate(c.submittedDate)}
+          </div>
+
+          {(c.status === "needs_revision" ||
+            c.status === "rejected" ||
+            c.status === "Rejected") && (
+            <button
+              className="lrp-btn lrp-btn-outline upp-revise-btn"
+              type="button"
+              onClick={() => {
+                if (isCommunity(c)) {
+                  navigate("/revisecommunitypostpage", {
+                    state: {
+                      contribution: c,
+                      user,
+                      id: c.id,
+                      snapshot: JSON.parse(JSON.stringify(c)),
+                    },
+                  });
+                } else {
+                  navigate(`/revise/${c.id}`, {
+                    state: {
+                      owner: `${user.firstName} ${user.lastName}`,
+                      id: c.id,
+                      snapshot: JSON.parse(JSON.stringify(c)),
+                      contributionData: c,
+                      adminFeedback: c.feedback,
+                      fieldsWithIssues: c.fieldsWithIssues || [],
+                    },
+                  });
+                }
+              }}
+            >
+              Revise
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   // ✅ Fetch Profile Data
   useEffect(() => {
@@ -429,70 +532,131 @@ export default function UserProfilePage() {
     if (fileInput) fileInput.value = '';
   };
 
-  // ===== Save: Personal Info =====
-  const savePersonal = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ 
-          location: form.location, 
-          bio: bio 
-        }),
-      });
-      
-      if (!res.ok) throw new Error(`Failed to update profile (${res.status})`);
-      
-      const result = await res.json();
-      if (result.success) {
-        alert("Profile updated successfully!");
+  // ===== Unified Update Function =====
+// const updateProfile = async (updateData, type = 'profile') => {
+//   try {
+//     console.log(`📤 Updating ${type}:`, updateData);
 
-        // Reload the user after update
-        const endpoint = userProfileID
-          ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
-          : `${API_BASE_URL}/api/userProfile`;
-        const r2 = await fetch(endpoint, { credentials: "include" });
-        if (r2.ok) setUser(await r2.json());
-      } else {
-        throw new Error(result.error || "Update failed");
-      }
-    } catch (e) {
-      alert(e.message);
-      console.error("Update error:", e);
-    }
-  };
+//     // Use FormData for ALL updates to match avatar upload success
+//     const formData = new FormData();
+    
+//     // Add all update data as JSON string
+//     formData.append('updateData', JSON.stringify(updateData));
+//     formData.append('updateType', type);
 
-  // ===== Save: Preferences =====
-  const savePrefs = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ 
-          dietary: prefs.dietary,
-          allergies: prefs.allergies,
-          emailNotifications: prefs.emailNotifications,
-          pushNotifications: prefs.pushNotifications,
-          profileVisibility: prefs.profileVisibility,
-          language: prefs.language
-        }),
-      });
-      
-      if (!res.ok) throw new Error(`Failed to update preferences (${res.status})`);
-      
-      const result = await res.json();
-      if (result.success) {
-        alert("Preferences updated successfully!");
-      } else {
-        throw new Error(result.error || "Update failed");
-      }
-    } catch (e) {
-      alert(e.message);
-      console.error("Preferences update error:", e);
+//     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+//       method: 'POST', // Use POST instead of PUT
+//       credentials: 'include',
+//       body: formData, // Use FormData like avatar upload
+//     });
+
+//     console.log(`📥 ${type} update response status:`, res.status);
+
+//     if (!res.ok) {
+//       const errorText = await res.text();
+//       console.error(`❌ ${type} update error:`, errorText);
+//       throw new Error(`Failed to update ${type} (${res.status}): ${errorText}`);
+//     }
+
+//     const result = await res.json();
+//     console.log(`✅ ${type} update result:`, result);
+
+//     if (result.success) {
+//       return result;
+//     } else {
+//       throw new Error(result.error || `Update failed for ${type}`);
+//     }
+//   } catch (error) {
+//     console.error(`${type} update error:`, error);
+//     throw error;
+//   }
+// };
+
+// ===== Save: Personal Info =====
+const savePersonal = async () => {
+  try {
+    const updateData = { 
+      location: form.location, 
+      bio: bio 
+    };
+
+    console.log("📤 Saving personal info:", updateData);
+
+    // Try the correct endpoint that exists
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, { // ✅ Correct endpoint
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(updateData),
+    });
+    
+    console.log("📥 Personal info response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Personal info update error:", errorText);
+      throw new Error(`Failed to update profile (${res.status}): ${errorText}`);
     }
-  };
+    
+    const result = await res.json();
+    console.log("✅ Personal info update result:", result);
+    
+    if (result.success) {
+      alert("Profile updated successfully!");
+      // Update local state immediately
+      setUser(prev => ({ ...prev, location: form.location, bio: bio }));
+    } else {
+      throw new Error(result.error || "Update failed");
+    }
+  } catch (e) {
+    console.error("Personal info update error:", e);
+    alert(e.message || "Failed to update profile");
+  }
+};
+
+// ===== Save: Preferences =====
+const savePrefs = async () => {
+  try {
+    const preferencesPayload = {
+      dietary: prefs.dietary || [], // ✅ Use 'dietary' not 'dietaryRestrictions'
+      allergies: prefs.allergies || [],
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language
+    };
+
+    console.log("📤 Saving preferences:", preferencesPayload);
+
+    // Try the correct endpoint that exists
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, { // ✅ Correct endpoint
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(preferencesPayload),
+    });
+    
+    console.log("📥 Preferences response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Preferences update error:", errorText);
+      throw new Error(`Failed to update preferences (${res.status}): ${errorText}`);
+    }
+    
+    const result = await res.json();
+    console.log("✅ Preferences update result:", result);
+    
+    if (result.success) {
+      alert("Preferences updated successfully!");
+    } else {
+      throw new Error(result.error || "Update failed");
+    }
+  } catch (e) {
+    console.error("Preferences update error:", e);
+    alert(e.message || "Failed to update preferences");
+  }
+};
 
   // ===== LOADING STATE =====
   if (isLoading) {
@@ -835,76 +999,54 @@ export default function UserProfilePage() {
             {/* ===== Contributions (Status) ===== */}
             {tab === "status" && (
               <>
-                {user?.status?.length ? (
-                  <div className="upp-stack">
-                    {user.status.map((c) => (
-                      <div className="upp-row-card" key={c.id}>
-                        <div className="upp-row-thumb">
-                          {c.image ? <img src={c.image} alt={c.title} /> : <div className="upp-noimg" />}
-                        </div>
-                        <div className="upp-row-body">
-                          <div className="upp-row-top">
-                            <h4 className="upp-food-title upp-row-title">{c.title}</h4>
-                            <span
-                              className={`upp-chip ${
-                                c.status === "approved" || c.status === "Approved"
-                                  ? "chip-blue"
-                                  : c.status === "pending" || c.status === "Pending"
-                                  ? "chip-yellow"
-                                  : c.status === "rejected" || c.status === "Rejected"
-                                  ? "chip-red"
-                                  : "chip-gray"
-                              }`}
-                            >
-                              {fmtStatus(c.status)}
-                            </span>
+                {Array.isArray(user?.status) && user.status.length ? (() => {
+                  const all = user.status.slice(); // real data from backend (likely recipes only)
+                  const recipes = all.filter(isRecipe).sort(byDateDesc);
+                  
+                  const community = HARDCODED_COMMUNITY.slice().sort(byDateDesc);
+
+                  return (
+                    <div className="upp-stack">
+                      {/* Recipes Section (REAL) */}
+                      <div className="upp-card">
+                        <h3 className="upp-card-title">Recipes ({recipes.length})</h3>
+                        {recipes.length ? (
+                          <div className="upp-stack">
+                            {recipes.map((c) => <ContributionRow key={`r-${c.id}`} c={c} />)}
                           </div>
-                          <div className="upp-row-meta">
-                            <div className="upp-muted">
-                              {c.type || "Food"} • Submitted on {formatContributionDate(c.submittedDate)}
-                            </div>
-                            {(c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected") && (
-                              <button
-                                className="lrp-btn lrp-btn-outline upp-revise-btn"
-                                onClick={() => {
-                                  // ✅ Navigate to different pages based on contribution type
-                                  if (c.type === "community" || c.type === "post" || c.type === "story") {
-                                    // Navigate to community post revision page
-                                    navigate("/revisecommunitypostpage", {
-                                      state: {
-                                        contribution: c,
-                                        user: user,
-                                        id: c.id,
-                                        snapshot: JSON.parse(JSON.stringify(c)),
-                                      },
-                                    });
-                                  } else {
-                                    // Navigate to food revision page
-                                    navigate(`/revise/${c.id}`, {
-                                      state: {
-                                        owner: `${user.firstName} ${user.lastName}`,
-                                        id: c.id,
-                                        snapshot: JSON.parse(JSON.stringify(c)),
-                                        contributionData: c,
-                                        adminFeedback: c.feedback,
-                                        fieldsWithIssues: c.fieldsWithIssues || []
-                                      },
-                                    });
-                                  }
-                                }}
-                                type="button"
-                              >
-                                Revise
-                              </button>
-                            )}
-                          </div>
-                        </div>
+                        ) : (
+                          <div className="upp-muted">No recipe contributions</div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="upp-center">
-                    <p className="upp-muted">No contributions</p>
+
+                      {/* Community Posts Section (HARDCODED) */}
+                      <div className="upp-card">
+                        <h3 className="upp-card-title">Community Posts ({community.length})</h3>
+                        {community.length ? (
+                          <div className="upp-stack">
+                            {community.map((c) => <ContributionRow key={`hc-${c.id}`} c={c} />)}
+                          </div>
+                        ) : (
+                          <div className="upp-muted">No community posts</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })() : (
+                  // If backend returns no status at all, still show hardcoded community
+                  <div className="upp-stack">
+                    <div className="upp-card">
+                      <h3 className="upp-card-title">Recipes (0)</h3>
+                      <div className="upp-muted">No recipe contributions</div>
+                    </div>
+                    <div className="upp-card">
+                      <h3 className="upp-card-title">Community Posts ({HARDCODED_COMMUNITY.length})</h3>
+                      <div className="upp-stack">
+                        {HARDCODED_COMMUNITY.slice().sort(byDateDesc).map((c) => (
+                          <ContributionRow key={`hc-${c.id}`} c={c} />
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
               </>
