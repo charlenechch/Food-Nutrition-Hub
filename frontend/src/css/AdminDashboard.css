@@ -1476,8 +1476,8 @@
 
 /* card */
 .admset-card {
-  background: #151923;
-  border: 1px solid #1f2430;
+  background: #fff;
+  border: 1px solid #eadfd3;
   border-radius: 14px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.35);
   overflow: hidden;
@@ -1485,7 +1485,7 @@
 
 .admset-card-header {
   padding: 14px 1.25rem;
-  border-bottom: 1px solid #1f2430;
+  border-bottom: 1px solid #eadfd3;
 }
 
 .admset-card-title {
@@ -1541,7 +1541,7 @@
 /* separator */
 .admset-sep {
   border: 0;
-  border-top: 1px solid #1f2430;
+  border-top: 1px solid #eadfd3;
   margin: 16px 0;
 }
 
@@ -1566,7 +1566,7 @@
   align-items: center;
   justify-content: space-between;
   background: #111319;
-  border: 1px solid #1f2430;
+  border: 1px solid #eadfd3;
   border-radius: 12px;
   padding: 12px 14px;
   color: #e7eaf0;
@@ -1607,7 +1607,7 @@
 .admset-btn-outline {
   background: transparent;
   color: #e7eaf0;
-  border: 1px solid #1f2430;
+  border: 1px solid #eadfd3;
 }
 .admset-btn-outline:hover {
   background: #191e2a;
@@ -1691,8 +1691,8 @@
 .admset-modal {
   width: 100%;
   max-width: 640px;
-  background: #151923;
-  border: 1px solid #1f2430;
+  background: #fff;
+  border: 1px solid #eadfd3;
   border-radius: 16px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.35);
   overflow: hidden;
@@ -1702,7 +1702,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border-bottom: 1px solid #1f2430;
+  border-bottom: 1px solid #eadfd3;
   color: #e7eaf0;
   font-weight: 700;
 }
@@ -1714,7 +1714,7 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 12px 14px;
-  border-top: 1px solid #1f2430;
+  border-top: 1px solid #eadfd3;
 }
 
 /* inputs */
