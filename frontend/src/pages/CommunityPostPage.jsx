@@ -13,6 +13,11 @@ function computeIsLoggedIn(user) {
   // - user exists, AND
   // - has a non-guest role, AND
   // - has a stable id we can use (userID / id / userProfileID)
+  if (user?.role === "admin") {
+    const hasAdminId = Boolean(user?.userProfileID || user?.userID || user?.id || user?.adminID);
+    return Boolean(user && user.role === "admin" && hasAdminId);
+  }
+  
   const hasId = Boolean(user?.userID || user?.id || user?.userProfileID);
   const notGuest = user?.role && user.role.toLowerCase() !== "guest";
   return Boolean(user && hasId && notGuest);
