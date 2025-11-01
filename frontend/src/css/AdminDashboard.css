@@ -1566,7 +1566,7 @@
   align-items: center;
   justify-content: space-between;
   background: #f7f2ec;
-  border: 1px solid #eadfd3;
+  border: 1px solid black;
   border-radius: 12px;
   padding: 12px 14px;
   
@@ -1654,8 +1654,8 @@
   width: 46px;
   height: 26px;
   border-radius: 999px;
-  background: #2b3243;
-  border: 1px solid #394155;
+  background: #f7f2ec;
+  border: 1px solid black;
   display: inline-flex;
   align-items: center;
   padding: 3px;
@@ -1718,7 +1718,9 @@
 }
 
 /* inputs */
-.admset-field + .admset-field { margin-top: 12px; }
+.admset-field + .admset-field { 
+  margin-top: 12px; 
+}
 .admset-field label {
   display: block;
   color: #9aa3b2;
@@ -1728,9 +1730,8 @@
 .admset-field input,
 .admset-field textarea {
   width: 100%;
-  background: #0f131b;
-  
-  border: 1px solid #2b3243;
+  background: #f7f2ec;
+  border: 1px solid black;
   border-radius: 10px;
   padding: 10px 12px;
   outline: none;
@@ -1749,9 +1750,8 @@
   gap: 6px;
 }
 .admset-chip {
-  background: #1a2030;
-  border: 1px solid #2b3243;
-  
+  background: #f7f2ec;
+  border: 1px solid black;
   padding: 4px 8px;
   border-radius: 999px;
   font-size: 12px;
