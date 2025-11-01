@@ -300,14 +300,40 @@ export default function RecipesPage() {
   };
 
   function handleImageUpload(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm(prev => ({ ...prev, imageData: reader.result })); // base64
-    };
-    reader.readAsDataURL(file);
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  // ✅ Add image validation
+  const maxSize = 2 * 1024 * 1024; // 2MB limit
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+
+  // Check file size
+  if (file.size > maxSize) {
+    alert('❌ Image too large! Please choose an image smaller than 2MB.');
+    e.target.value = ''; 
+    return;
   }
+
+  // Check file type
+  if (!allowedTypes.includes(file.type)) {
+    alert('❌ Please select a valid image (JPEG, JPG, PNG, or WebP).');
+    e.target.value = ''; 
+    return;
+  }
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  console.log(`✅ Image selected: ${file.name} (${formatSize(file.size)})`);
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    setForm(prev => ({ ...prev, imageData: reader.result })); // base64
+  };
+  reader.readAsDataURL(file);
+}
 
   // checkboxes (kept)
   const DIET_OPTIONS = [
