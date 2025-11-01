@@ -1641,6 +1641,7 @@
 .admset-badge.good {
   background: lightgreen;
   color: black;
+  font-weight: 300;
 }
 .admset-badge.warn {
   background: orange;
@@ -1657,7 +1658,7 @@
   height: 26px;
   border-radius: 999px;
   background: #f7f2ec;
-  border: 1px solid #6a4a2f;
+  border: 1px solid darkgrey;
   display: inline-flex;
   align-items: center;
   padding: 3px;
