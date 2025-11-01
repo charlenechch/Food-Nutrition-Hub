@@ -73,21 +73,24 @@ export default function EmailComposer({
     markAnnouncement: false,
   });
 
-  const wasOpen = useRef(false);
+    const wasOpen = useRef(false);
 
     useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
+
     if (isOpen && !wasOpen.current) {
         lockScroll();
         document.addEventListener("keydown", onKey);
         wasOpen.current = true;
-    } else if (!isOpen && wasOpen.current) {
+    }
+
+    if (!isOpen && wasOpen.current) {
         unlockScroll();
         document.removeEventListener("keydown", onKey);
         wasOpen.current = false;
     }
+
     return () => {
-        // clean up if unmounted while open
         if (wasOpen.current) {
         unlockScroll();
         document.removeEventListener("keydown", onKey);
@@ -95,6 +98,13 @@ export default function EmailComposer({
         }
     };
     }, [isOpen, onClose]);
+
+    useEffect(() => {
+    return () => {
+        try { unlockScroll(); } catch {}
+        wasOpen.current = false;
+    };
+    }, []);
 
 
   const adminIds = useMemo(
