@@ -1293,7 +1293,7 @@
   cursor: pointer;
 }
 .umg-btn-warning:hover { 
-  background: #ffefc5; 
+  background: #f7f2ec; 
 }
 
 /* Responsive modal width and spacing */
@@ -1590,7 +1590,12 @@
   will-change: transform;
 }
 
-.admset-btn:active { transform: translateY(1px); }
+.admset-btn:active { 
+  transform: translateY(1px); 
+}
+.admset-btn:active { 
+  outline: none;
+}
 
 /* primary */
 .admset-btn-primary {
@@ -1606,12 +1611,11 @@
 /* outline */
 .admset-btn-outline {
   background: transparent;
-  
   border: 1px solid #eadfd3;
 }
 .admset-btn-outline:hover {
-  background: #ffefc5;
-  border-color: #f0d08a;
+  background: #f7f2ec;
+  border-color: #5d412a;
   box-shadow: 0 0 0 4px rgba(255,255,255,0.02);
 }
 
@@ -1781,7 +1785,7 @@
   transition: background .2s ease, border-color .2s ease;
 }
 .admset-icon-btn:hover {
-  background: #ffefc5;
+  background: #f7f2ec;
   border-color: #f0d08a;
 }
 
