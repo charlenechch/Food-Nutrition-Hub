@@ -192,6 +192,14 @@
 
 .upp-tabs {
     margin: 2rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-bottom: 1px solid #e8dfd6;
+    padding-bottom: 8px;
+}
+.upp-tab { 
+    flex: 1 1 auto; 
 }
 .upp-tab-content {
     margin-bottom: 5rem;
@@ -303,12 +311,17 @@
 }
 @media (max-width: 900px) { 
     .upp-card-grid { 
-    grid-template-columns: 1fr 1fr; 
-} }
+        grid-template-columns: 1fr 1fr; 
+    } 
+}
 @media (max-width: 600px) { 
     .upp-card-grid { 
-    grid-template-columns: 1fr; 
-} }
+        grid-template-columns: 1fr; 
+    } 
+    .upp-tab { 
+        flex: 1 0 calc(50% - 8px); 
+    }
+}
 .upp-food-card { 
     cursor: pointer;
     border: 1px solid var(--border, #e5e7eb);
