@@ -93,26 +93,26 @@ router.get('/food/:foodId', async (req, res) => {
       
       if (userProfileID && comment.upvoted_by) {
         try {
-          // Handle different possible upvoted_by values
-          if (comment.upvoted_by === 'null' || comment.upvoted_by === '' || comment.upvoted_by === '[]' || comment.upvoted_by === '[null]') {
-            user_liked = false;
+          const upvotedData = comment.upvoted_by;
+          
+          // Handle JSON database type
+          let upvotedArray;
+          if (Array.isArray(upvotedData)) {
+            upvotedArray = upvotedData; // Already an array (JSON type)
+          } else if (typeof upvotedData === 'string') {
+            // String fallback
+            upvotedArray = JSON.parse(upvotedData);
           } else {
-            let upvotedArray = JSON.parse(comment.upvoted_by);
-            
-            // Handle single number case
-            if (typeof upvotedArray === 'number') {
-              upvotedArray = [upvotedArray];
-            }
-
-            if (Array.isArray(upvotedArray)) {
-              // Convert all IDs to numbers for consistent comparison
-              const cleanArray = upvotedArray
-                .filter(id => id !== null && id !== undefined)
-                .map(id => Number(id));
-              
-              user_liked = cleanArray.includes(Number(userProfileID));
-            }
+            upvotedArray = [];
           }
+          
+          // Clean and convert to numbers
+          const cleanArray = upvotedArray
+            .filter(id => id !== null && id !== undefined)
+            .map(id => Number(id));
+          
+          user_liked = cleanArray.includes(Number(userProfileID));
+          
         } catch (error) {
           console.error(`❌ Error parsing upvoted_by for comment ${comment.id}:`, error.message);
           user_liked = false;
@@ -402,6 +402,7 @@ router.post('/:discussionId/replies', async (req, res) => {
 });
 
 router.patch('/:commentId/vote', async (req, res) => {
+  let connection;
   try {
     const { commentId } = req.params;
     
@@ -436,25 +437,41 @@ router.patch('/:commentId/vote', async (req, res) => {
     let upvotedBy = [];
     const currentUpvotedBy = existing[0].upvoted_by;
     
-    // Parse the upvoted_by field
-    if (currentUpvotedBy && currentUpvotedBy !== 'null' && currentUpvotedBy !== '' && currentUpvotedBy !== '[]') {
+    console.log("🟡 RAW upvoted_by from DB:", currentUpvotedBy);
+    console.log("🟡 Type of upvoted_by:", typeof currentUpvotedBy);
+    
+    // Handle JSON database type properly
+    if (currentUpvotedBy !== null && currentUpvotedBy !== undefined) {
       try {
-        upvotedBy = JSON.parse(currentUpvotedBy);
+        // If it's already a JavaScript array (JSON database type)
+        if (Array.isArray(currentUpvotedBy)) {
+          upvotedBy = currentUpvotedBy;
+        } 
+        // If it's a string (shouldn't happen with JSON type, but just in case)
+        else if (typeof currentUpvotedBy === 'string') {
+          upvotedBy = JSON.parse(currentUpvotedBy);
+        }
+        // If it's an object (MySQL JSON type might return object)
+        else if (typeof currentUpvotedBy === 'object' && currentUpvotedBy !== null) {
+          // Convert object to array if needed
+          upvotedBy = Object.values(currentUpvotedBy);
+        }
       } catch (e) {
+        console.error('❌ Parse error:', e.message);
         upvotedBy = [];
       }
     }
 
-    // Ensure it's an array
+    // Ensure it's an array and clean it
     if (!Array.isArray(upvotedBy)) {
       upvotedBy = [];
     }
 
-    // Clean the array
-    upvotedBy = upvotedBy.filter(id => id != null).map(id => Number(id));
+    // Convert all IDs to numbers for consistent comparison
+    upvotedBy = upvotedBy.map(id => Number(id)).filter(id => !isNaN(id) && id !== null);
     const userProfileIDNum = Number(userProfileID);
 
-    console.log("🟡 BEFORE - upvotedBy:", upvotedBy, "userProfileID:", userProfileIDNum);
+    console.log("🟡 PARSED upvotedBy:", upvotedBy, "userProfileID:", userProfileIDNum);
 
     let newUpvotedBy;
     let voteChange;
@@ -468,39 +485,43 @@ router.patch('/:commentId/vote', async (req, res) => {
       newUpvotedBy = upvotedBy.filter(id => id !== userProfileIDNum);
       voteChange = -1;
       userLiked = false;
-      console.log("🟡 ACTION: REMOVING like");
+      console.log("🟡 ACTION: REMOVING like - user found at index:", userIndex);
     } else {
       // User hasn't liked - ADD like
       newUpvotedBy = [...upvotedBy, userProfileIDNum];
       voteChange = 1;
       userLiked = true;
-      console.log("🟡 ACTION: ADDING like");
+      console.log("🟡 ACTION: ADDING like - user not found in array");
     }
 
-    console.log("🟡 AFTER - newUpvotedBy:", newUpvotedBy);
+    console.log("🟡 NEW upvotedBy to save:", newUpvotedBy);
 
-    // Update database
-    await db.query(
+    // For JSON database type, we can pass the JavaScript array directly
+    const updateResult = await db.query(
       `UPDATE discussion SET 
-        upVotes = upVotes + ?, 
+        upVotes = GREATEST(0, upVotes + ?), 
         upvoted_by = ?
        WHERE discussionID = ?`,
-      [voteChange, JSON.stringify(newUpvotedBy), commentId]
+      [voteChange, newUpvotedBy, commentId] // Pass array directly for JSON type
     );
 
-    // Get updated count
-    const [updated] = await db.query(
-      `SELECT upVotes as likes FROM discussion WHERE discussionID = ?`,
+    console.log("🟡 UPDATE result - affected rows:", updateResult[0]?.affectedRows);
+
+    // VERIFY the update worked by reading it back immediately
+    const [verify] = await db.query(
+      `SELECT upVotes as likes, upvoted_by FROM discussion WHERE discussionID = ?`,
       [commentId]
     );
 
-    console.log("✅ UPDATE SUCCESS - New likes:", updated[0]?.likes, "User liked:", userLiked);
+    console.log("🟡 VERIFICATION - stored upvoted_by:", verify[0]?.upvoted_by);
+    console.log("🟡 VERIFICATION - type of stored:", typeof verify[0]?.upvoted_by);
+    console.log("🟡 VERIFICATION - stored likes:", verify[0]?.likes);
 
     res.json({ 
       success: true, 
       message: userLiked ? 'Liked successfully' : 'Unliked successfully',
       data: {
-        likes: updated[0]?.likes || 0,
+        likes: verify[0]?.likes || 0,
         userLiked: userLiked
       }
     });
