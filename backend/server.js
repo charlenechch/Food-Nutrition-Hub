@@ -282,7 +282,7 @@ app.use(
       "likes",
       "type",
       "postId", "postID",
-      "content",
+      "content","title", "culturalOrigin", "recipe",
       "reply",
       "comment",
       "foodID", 

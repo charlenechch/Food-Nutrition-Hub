@@ -38,9 +38,11 @@ export default function ReviseRecipePage() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const { contribution, adminFeedback, fieldsWithIssues } = state || {};
-  const item = contribution;
-
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [item, setItem] = useState(contribution); // Make item stateful
+  const [form, setForm] = useState({});
+
   const needsFix = new Set(item?.fieldsWithIssues || []);
 
   useEffect(() => {
@@ -89,60 +91,37 @@ export default function ReviseRecipePage() {
     fetchRecipeData();
   }, [id, contribution, navigate]);
 
-  // Map the stored payload into the form shape used by your Recipe page
-  const [initial] = useState(() => {
-    if (!item) return {};
-    const p = item.payload || {};
-    return {
-      name: p.name || p.title || "",
-      origin: p.origin || "",
-      difficulty: p.difficulty || "",
-      prepTime: p.prepTime ?? "",
-      cookTime: p.cookTime ?? "",
-      servings: p.servings ?? "",
-      imageData: p.imageData || (p.images?.[0] ?? ""),
-      description: p.description || "",
-      ingredients: p.ingredients || "",
-      instructions: p.instructions || "",
-      funFact: p.funFact || "",
-      chefTips: p.chefTips || "",
-      dietaryTags: p.dietaryTags || [],
-      otherDietEnabled: !!p.otherDietEnabled,
-      otherDietText: p.otherDietText || "",
-      foodType: p.foodType || "",
-      otherFoodEnabled: !!p.otherFoodEnabled,
-      otherFoodText: p.otherFoodText || "",
-    };
-  });
-
-  const [form, setForm] = useState(initial);
-
-  // Update form when item data loads
+  // Initialize form when item data is available
   useEffect(() => {
     if (item && !isLoading) {
-      console.log("🔄 Updating form with item data:", item);
+      console.log("🔄 Initializing form with item data:", item);
       const p = item.payload || item;
       
-      setForm(prev => ({
-        ...prev,
-        name: p.name || p.title || "", 
+      const initialForm = {
+        name: p.name || p.title || "",
         origin: p.origin || "",
         difficulty: p.difficulty || "Easy",
         prepTime: p.prepTime ?? "",
         cookTime: p.cookTime ?? "",
-        foodType: p.foodType || p.category || "Poultry", // Use category as fallback
-        description: p.description || "",
-        imageData: p.image || p.imageData || "", 
         servings: p.servings ?? "",
+        imageData: p.imageData || p.image || (p.images?.[0] ?? ""),
+        description: p.description || "",
         ingredients: p.ingredients || "",
-        instructions: p.instructions || p.steps || "", // Map steps to instructions
-        dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
-        funFact: p.funFact || p.DidYouKnow || "", // Map DidYouKnow to funFact
+        instructions: p.instructions || p.steps || "",
+        funFact: p.funFact || p.DidYouKnow || "",
         chefTips: p.chefTips || "",
+        dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
+        otherDietEnabled: !!p.otherDietEnabled,
+        otherDietText: p.otherDietText || "",
+        foodType: p.foodType || p.category || "Poultry",
+        otherFoodEnabled: !!p.otherFoodEnabled,
+        otherFoodText: p.otherFoodText || "",
         culturalSignificance: p.culturalSignificance || "",
         traditionalPreparation: p.traditionalPreparation || "",
         healthTips: p.healthTips || "",
-      }));
+      };
+      
+      setForm(initialForm);
     }
   }, [item, isLoading]);
   
@@ -203,6 +182,9 @@ export default function ReviseRecipePage() {
 
       console.log('📤 Sending update request with data:', revisedData);
 
+      const users = loadUsers();
+      const ownerUsername = "currentUser";
+
       // Use your update endpoint instead of create endpoint
       const response = await fetch(`/api/recipe/update/recipes/${id}`, {
         method: "PUT",
@@ -253,30 +235,6 @@ export default function ReviseRecipePage() {
       setIsSubmitting(false);
     }
   };
-
-  useEffect(() => {
-  if (contribution) {
-    console.log("📝 Initializing form with real contribution:", contribution);
-    const p = contribution;
-    setForm(prev => ({
-        ...prev,
-        name: p.title || "", 
-        origin: p.origin || "",
-        difficulty: p.difficulty || "Easy",
-        prepTime: p.prepTime ?? "",
-        cookTime: p.cookTime ?? "",
-        foodType: p.foodType || "Poultry",
-        description: p.description || "",
-        imageData: p.image || "", 
-        servings: p.servings ?? "",
-        ingredients: p.ingredients || "",
-        instructions: p.instructions || "",
-        dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
-        funFact: p.funFact || "",
-        chefTips: p.chefTips || ""
-    }));
-  }
-}, [contribution]);
 
   const fieldLabels = {
     name: "Recipe Name",
