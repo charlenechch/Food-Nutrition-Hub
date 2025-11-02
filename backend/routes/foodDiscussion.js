@@ -402,7 +402,6 @@ router.post('/:discussionId/replies', async (req, res) => {
 });
 
 router.patch('/:commentId/vote', async (req, res) => {
-  let connection;
   try {
     const { commentId } = req.params;
     
@@ -424,7 +423,7 @@ router.patch('/:commentId/vote', async (req, res) => {
     
     const userProfileID = profileResult[0].userProfileID;
 
-    // 1. Get current upvoted_by data
+    // 1. Get current upvoted_by data and upVotes
     const [existing] = await db.query(
       `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ?`,
       [commentId]
@@ -436,24 +435,32 @@ router.patch('/:commentId/vote', async (req, res) => {
 
     let upvotedBy = [];
     const currentUpvotedBy = existing[0].upvoted_by;
+    const currentUpVotes = existing[0].upVotes || 0;
     
     console.log("🟡 RAW upvoted_by from DB:", currentUpvotedBy);
     console.log("🟡 Type of upvoted_by:", typeof currentUpvotedBy);
     
-    // Handle JSON database type properly
+    // Handle different data types for upvoted_by
     if (currentUpvotedBy !== null && currentUpvotedBy !== undefined) {
       try {
         // If it's already a JavaScript array (JSON database type)
         if (Array.isArray(currentUpvotedBy)) {
           upvotedBy = currentUpvotedBy;
         } 
-        // If it's a string (shouldn't happen with JSON type, but just in case)
+        // If it's a string that might be JSON
         else if (typeof currentUpvotedBy === 'string') {
-          upvotedBy = JSON.parse(currentUpvotedBy);
+          // Check if it's a valid JSON string
+          if (currentUpvotedBy.trim().startsWith('[') || currentUpvotedBy.trim().startsWith('{')) {
+            const parsed = JSON.parse(currentUpvotedBy);
+            // If it's an object, extract values; if array, use as-is
+            upvotedBy = Array.isArray(parsed) ? parsed : Object.values(parsed);
+          } else {
+            // If it's not JSON, treat as empty array
+            upvotedBy = [];
+          }
         }
-        // If it's an object (MySQL JSON type might return object)
+        // If it's an object, convert to array
         else if (typeof currentUpvotedBy === 'object' && currentUpvotedBy !== null) {
-          // Convert object to array if needed
           upvotedBy = Object.values(currentUpvotedBy);
         }
       } catch (e) {
@@ -474,7 +481,7 @@ router.patch('/:commentId/vote', async (req, res) => {
     console.log("🟡 PARSED upvotedBy:", upvotedBy, "userProfileID:", userProfileIDNum);
 
     let newUpvotedBy;
-    let voteChange;
+    let newUpVotes;
     let userLiked;
 
     // Check if user already liked
@@ -483,45 +490,37 @@ router.patch('/:commentId/vote', async (req, res) => {
     if (userIndex > -1) {
       // User already liked - REMOVE like
       newUpvotedBy = upvotedBy.filter(id => id !== userProfileIDNum);
-      voteChange = -1;
+      newUpVotes = Math.max(0, currentUpVotes - 1);
       userLiked = false;
       console.log("🟡 ACTION: REMOVING like - user found at index:", userIndex);
     } else {
       // User hasn't liked - ADD like
       newUpvotedBy = [...upvotedBy, userProfileIDNum];
-      voteChange = 1;
+      newUpVotes = currentUpVotes + 1;
       userLiked = true;
       console.log("🟡 ACTION: ADDING like - user not found in array");
     }
 
     console.log("🟡 NEW upvotedBy to save:", newUpvotedBy);
+    console.log("🟡 NEW upVotes:", newUpVotes);
 
-    // For JSON database type, we can pass the JavaScript array directly
+    // FIXED: Use proper JSON stringification for MySQL JSON type
+    // For MySQL JSON columns, we need to stringify the array
     const updateResult = await db.query(
       `UPDATE discussion SET 
-        upVotes = GREATEST(0, upVotes + ?), 
+        upVotes = ?, 
         upvoted_by = ?
        WHERE discussionID = ?`,
-      [voteChange, newUpvotedBy, commentId] // Pass array directly for JSON type
+      [newUpVotes, JSON.stringify(newUpvotedBy), commentId]
     );
 
     console.log("🟡 UPDATE result - affected rows:", updateResult[0]?.affectedRows);
-
-    // VERIFY the update worked by reading it back immediately
-    const [verify] = await db.query(
-      `SELECT upVotes as likes, upvoted_by FROM discussion WHERE discussionID = ?`,
-      [commentId]
-    );
-
-    console.log("🟡 VERIFICATION - stored upvoted_by:", verify[0]?.upvoted_by);
-    console.log("🟡 VERIFICATION - type of stored:", typeof verify[0]?.upvoted_by);
-    console.log("🟡 VERIFICATION - stored likes:", verify[0]?.likes);
 
     res.json({ 
       success: true, 
       message: userLiked ? 'Liked successfully' : 'Unliked successfully',
       data: {
-        likes: verify[0]?.likes || 0,
+        likes: newUpVotes,
         userLiked: userLiked
       }
     });
