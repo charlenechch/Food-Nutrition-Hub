@@ -108,6 +108,13 @@ router.get("/post/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    
+    if (!req.body) {
+      return res.status(400).json({ 
+        error: 'Request body is missing or invalid' 
+      });
+    }
+    
     const { title, culturalOrigin, content, recipe, status } = req.body;
     
     console.log(`📝 Updating community post ${id}:`, { 
@@ -118,27 +125,12 @@ router.put("/:id", async (req, res) => {
       status 
     });
 
-    // First, check if the post exists
-    const [existingPosts] = await db.execute(
-      'SELECT postID FROM posts WHERE postID = ?',
-      [id]
-    );
-
-    if (existingPosts.length === 0) {
-      return res.status(404).json({ 
-        error: 'Community post not found' 
-      });
-    }
-
-    // Update the post
+    // Rest of your update logic...
     const query = `
       UPDATE posts 
       SET foodName = ?, culturalStory = ?, origin = ?, recipe = ?, status = ?, updated_at = NOW()
       WHERE postID = ?
     `;
-    
-    console.log('🔧 Executing query:', query);
-    console.log('🔧 With parameters:', [title, content, culturalOrigin, recipe || '', status || 'Pending', id]);
     
     const [result] = await db.execute(query, [
       title, 

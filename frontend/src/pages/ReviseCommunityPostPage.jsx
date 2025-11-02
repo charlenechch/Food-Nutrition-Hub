@@ -84,37 +84,32 @@ export default function ReviseCommunityPostPage() {
   };
 
   const submitRevision = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError("");
-    setSuccess("");
+  e.preventDefault();
+  setIsSubmitting(true);
+  setError("");
+  setSuccess("");
 
-    try {
-      console.log("📤 Submitting community post revision for ID:", id);
-      console.log("📤 Form data:", form);
+  try {
+    console.log("📤 Submitting community post revision for ID:", id);
 
-      // Use FormData to handle both text fields and file upload
-      const formData = new FormData();
-      formData.append('title', form.title.trim());
-      formData.append('culturalOrigin', form.culturalOrigin);
-      formData.append('content', form.content.trim());
-      formData.append('recipe', form.recipe);
-      formData.append('status', 'Pending'); // Reset status to Pending
+    const revisedData = {
+      title: form.title.trim(),
+      culturalOrigin: form.culturalOrigin,
+      content: form.content.trim(),
+      recipe: form.recipe,
+      status: "Pending"
+    };
 
-      // If a new file was selected, append it
-      if (selectedFile) {
-        formData.append('image', selectedFile);
-        console.log("📁 Including new image file:", selectedFile.name);
-      }
+    console.log("📤 Sending JSON data:", revisedData);
 
-      console.log("📤 Sending FormData to API");
-
-      const res = await fetch(`${API_BASE_URL}/api/reviseCommunityPost/${id}`, {
-        method: "PUT",
-        credentials: "include",
-        body: formData, // Send as FormData instead of JSON
-        // Don't set Content-Type header - browser will set it with boundary
-      });
+    const res = await fetch(`${API_BASE_URL}/api/reviseCommunityPost/${id}`, {
+      method: "PUT",
+      headers: { 
+        "Content-Type": "application/json" // ✅ Add this header
+      },
+      credentials: "include",
+      body: JSON.stringify(revisedData), // ✅ Send as JSON, not FormData
+    });
 
       console.log("📥 Response status:", res.status);
 

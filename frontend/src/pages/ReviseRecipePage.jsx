@@ -34,7 +34,7 @@ const DIET_OPTIONS = [
 ];
 
 export default function ReviseRecipePage() {
-  const { id } = useParams();              // /revise/:id
+  const { id } = useParams();              
   const navigate = useNavigate();
   const { state } = useLocation();
   const { contribution, adminFeedback, fieldsWithIssues } = state || {};
@@ -42,6 +42,52 @@ export default function ReviseRecipePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const needsFix = new Set(item?.fieldsWithIssues || []);
+
+  useEffect(() => {
+    const fetchRecipeData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // If we have state data, use it as base
+        if (contribution) {
+          console.log("📝 Using state contribution:", contribution);
+          setItem(contribution);
+        }
+        
+        // Always fetch complete data from API
+        console.log("🔍 Fetching complete recipe data for ID:", id);
+        const response = await fetch(`/api/recipe/${id}?includeFood=true`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch recipe: ${response.status}`);
+        }
+        
+        const completeRecipeData = await response.json();
+        console.log("✅ Complete recipe data:", completeRecipeData);
+        
+        // Merge with state data if available
+        setItem(prev => ({
+          ...prev,
+          ...completeRecipeData,
+          // Preserve admin feedback and issues from state
+          feedback: prev?.feedback || completeRecipeData.feedback,
+          fieldsWithIssues: prev?.fieldsWithIssues || completeRecipeData.fieldsWithIssues
+        }));
+        
+      } catch (error) {
+        console.error("❌ Error fetching recipe:", error);
+        // If API fails but we have state data, we can still proceed
+        if (!contribution) {
+          alert("Failed to load recipe data. Please try again.");
+          navigate(-1);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRecipeData();
+  }, [id, contribution, navigate]);
 
   // Map the stored payload into the form shape used by your Recipe page
   const [initial] = useState(() => {
@@ -70,6 +116,35 @@ export default function ReviseRecipePage() {
   });
 
   const [form, setForm] = useState(initial);
+
+  // Update form when item data loads
+  useEffect(() => {
+    if (item && !isLoading) {
+      console.log("🔄 Updating form with item data:", item);
+      const p = item.payload || item;
+      
+      setForm(prev => ({
+        ...prev,
+        name: p.name || p.title || "", 
+        origin: p.origin || "",
+        difficulty: p.difficulty || "Easy",
+        prepTime: p.prepTime ?? "",
+        cookTime: p.cookTime ?? "",
+        foodType: p.foodType || p.category || "Poultry", // Use category as fallback
+        description: p.description || "",
+        imageData: p.image || p.imageData || "", 
+        servings: p.servings ?? "",
+        ingredients: p.ingredients || "",
+        instructions: p.instructions || p.steps || "", // Map steps to instructions
+        dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
+        funFact: p.funFact || p.DidYouKnow || "", // Map DidYouKnow to funFact
+        chefTips: p.chefTips || "",
+        culturalSignificance: p.culturalSignificance || "",
+        traditionalPreparation: p.traditionalPreparation || "",
+        healthTips: p.healthTips || "",
+      }));
+    }
+  }, [item, isLoading]);
   
   const onChangeForm = (e) => {
     const { name, value } = e.target;
