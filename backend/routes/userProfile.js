@@ -36,7 +36,6 @@ const profileUpdateSchema = Joi.object({
         const parsed = JSON.parse(value);
         processedArray = Array.isArray(parsed) ? parsed : [parsed];
       } catch (e) {
-        // If it's not JSON, treat as comma-separated or single value
         if (value.includes(',')) {
           processedArray = value.split(',').map(item => item.trim()).filter(Boolean);
         } else if (value.trim()) {
@@ -46,19 +45,12 @@ const profileUpdateSchema = Joi.object({
     } else if (Array.isArray(value)) {
       processedArray = value;
     } else if (value && typeof value === 'object') {
-      // Handle object case (like from frontend)
       processedArray = Object.values(value).filter(item => typeof item === 'string');
     }
     
-    // Clean and validate each item
     const cleanedArray = processedArray
-      .map(item => {
-        if (typeof item === 'string') {
-          return item.trim().substring(0, 60); // Enforce max length
-        }
-        return null;
-      })
-      .filter(item => item !== null && item !== '' && item !== undefined);
+      .map(item => typeof item === 'string' ? item.trim().substring(0, 60) : null)
+      .filter(item => item !== null && item !== '');
     
     console.log('✅ Processed dietary array:', cleanedArray);
     return cleanedArray;
@@ -90,13 +82,8 @@ const profileUpdateSchema = Joi.object({
     }
     
     const cleanedArray = processedArray
-      .map(item => {
-        if (typeof item === 'string') {
-          return item.trim().substring(0, 60);
-        }
-        return null;
-      })
-      .filter(item => item !== null && item !== '' && item !== undefined);
+      .map(item => typeof item === 'string' ? item.trim().substring(0, 60) : null)
+      .filter(item => item !== null && item !== '');
     
     console.log('✅ Processed allergies array:', cleanedArray);
     return cleanedArray;

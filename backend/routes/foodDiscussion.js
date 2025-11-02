@@ -180,16 +180,44 @@ router.post('/', async (req, res) => {
     }
     
     const userID = req.session.user.userID;
-    const [profileResult] = await db.query(
+    const userRole = req.session.user.role; // Get user role
+
+    console.log('👤 User attempting comment:', { userID, userRole });
+
+    //Handle both regular users and admins
+    let userProfileID;
+    let [profileResult] = await db.query(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
     );
     
     if (profileResult.length === 0) {
-      return res.status(400).json({ error: 'User profile not found' });
+      console.log('🆕 Creating userProfile for user:', { userID, userRole });
+      
+      // Create userProfile if it doesn't exist (works for both regular users and admins)
+      const [createResult] = await db.query(
+        `INSERT INTO userProfile 
+         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
+         VALUES (?, '[]', '[]', true, true, true, 'en')`,
+        [userID]
+      );
+      
+      // Get the newly created userProfileID
+      [profileResult] = await db.query(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+      );
+      
+      if (profileResult.length === 0) {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to create user profile' 
+        });
+      }
     }
     
-    const userProfileID = profileResult[0].userProfileID;
+    userProfileID = profileResult[0].userProfileID;
+    console.log('✅ Using userProfileID:', userProfileID, 'for role:', userRole);
 
     if (!foodID || !userProfileID || !content?.trim()) {
       return res.status(400).json({
@@ -230,26 +258,12 @@ router.post('/', async (req, res) => {
       WHERE d.discussionID = ? 
     `;
 
-    console.log("🟢 CREATE COMMENT - Executing SQL for new comment data...");
-    const newCommentResult = await db.query(newCommentSql, [newCommentId, userProfileID]);
+    const newCommentResult = await db.query(newCommentSql, [newCommentId]);
     const newCommentData = firstRows(newCommentResult)[0];
-
-    console.log("🟢 CREATE COMMENT - Raw SQL result:", newCommentResult);
-    console.log("🟢 CREATE COMMENT - Processed newCommentData:", newCommentData);
 
     if (!newCommentData) {
       return res.status(500).json({ success: false, message: 'Failed to retrieve created comment' });
     }
-
-    console.log("🔍 CREATE COMMENT - Field check:", {
-      id: newCommentData.id,
-      userProfileID: newCommentData.userProfileID,
-      username: newCommentData.username,
-      avatar: newCommentData.avatar,
-      userRole: newCommentData.userRole,
-      hasAvatar: !!newCommentData.avatar,
-      avatarLength: newCommentData.avatar?.length
-    });
 
     const responseData = {
       success: true,
@@ -263,7 +277,11 @@ router.post('/', async (req, res) => {
       },
     };
 
-    console.log("🟢 CREATE COMMENT - Final response data:", JSON.stringify(responseData, null, 2));
+    console.log("✅ Comment created by:", { 
+      user: newCommentData.username, 
+      role: newCommentData.userRole,
+      isAdmin: newCommentData.userRole === 'admin'
+    });
 
     res.json(responseData);
   } catch (error) {
@@ -272,7 +290,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✅ Add reply to a discussion
+// ✅ Add reply to a discussion 
 router.post('/:discussionId/replies', async (req, res) => {
   try {
     const { discussionId } = req.params;
@@ -283,16 +301,43 @@ router.post('/:discussionId/replies', async (req, res) => {
     }
     
     const userID = req.session.user.userID;
-    const [profileResult] = await db.query(
+    const userRole = req.session.user.role;
+
+    console.log('👤 User attempting reply:', { userID, userRole });
+
+    //Handle both regular users and admins
+    let userProfileID;
+    let [profileResult] = await db.query(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
     );
     
     if (profileResult.length === 0) {
-      return res.status(400).json({ error: 'User profile not found' });
+      console.log('🆕 Creating userProfile for user:', { userID, userRole });
+      
+      // Create userProfile if it doesn't exist
+      const [createResult] = await db.query(
+        `INSERT INTO userProfile 
+         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
+         VALUES (?, '[]', '[]', true, true, true, 'en')`,
+        [userID]
+      );
+      
+      [profileResult] = await db.query(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+      );
+      
+      if (profileResult.length === 0) {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to create user profile' 
+        });
+      }
     }
     
-    const userProfileID = profileResult[0].userProfileID;
+    userProfileID = profileResult[0].userProfileID;
+    console.log('✅ Using userProfileID:', userProfileID, 'for role:', userRole);
 
     if (!discussionId || !userProfileID || !reply?.trim()) {
       return res.status(400).json({
@@ -332,22 +377,9 @@ router.post('/:discussionId/replies', async (req, res) => {
     const replyResult = await db.query(selectSql, [newReplyId]);
     const newReplyData = firstRows(replyResult)[0];
 
-    console.log("🟢 CREATE REPLY - Raw SQL result:", replyResult);
-    console.log("🟢 CREATE REPLY - Processed newReplyData:", newReplyData);
-
     if (!newReplyData) {
       return res.status(500).json({ success: false, message: 'Failed to retrieve created reply data' });
     }
-
-    console.log("🔍 CREATE REPLY - Field check:", {
-      replyID: newReplyData.replyID,
-      userProfileID: newReplyData.userProfileID,
-      username: newReplyData.username,
-      avatar: newReplyData.avatar,
-      userRole: newReplyData.userRole,
-      hasAvatar: !!newReplyData.avatar,
-      avatarLength: newReplyData.avatar?.length
-    });
 
     const responseData = {
       success: true,
@@ -359,7 +391,11 @@ router.post('/:discussionId/replies', async (req, res) => {
       },
     };
 
-    console.log("🟢 CREATE REPLY - Final response data:", JSON.stringify(responseData, null, 2));
+    console.log("✅ Reply created by:", { 
+      user: newReplyData.username, 
+      role: newReplyData.userRole,
+      isAdmin: newReplyData.userRole === 'admin'
+    });
 
     res.json(responseData);
   } catch (error) {
