@@ -683,6 +683,67 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
   }
 });
 
+// ✅ UPDATE community post (revision) 
+router.put("/revise/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!req.body) {
+      return res.status(400).json({ 
+        error: 'Request body is missing or invalid' 
+      });
+    }
+    
+    const { title, culturalOrigin, content, recipe, status } = req.body;
+    
+    console.log(`📝 Updating community post ${id}:`, { 
+      title, 
+      culturalOrigin, 
+      content: content ? content.substring(0, 100) + "..." : "empty",
+      recipe: recipe || "none",
+      status 
+    });
+
+    // FIXED: Correct SQL query that matches your posts table structure
+    const query = `
+      UPDATE posts 
+      SET foodName = ?, origin = ?, culturalStory = ?, recipe = ?, status = ?
+      WHERE postID = ?
+    `;
+    
+    const [result] = await db.execute(query, [
+      title,                       // maps to foodName
+      culturalOrigin,              // maps to origin  
+      content,                     // maps to culturalStory
+      recipe || '',                // maps to recipe
+      status || 'Pending',         // maps to status
+      id                           // postID
+    ]);
+
+    console.log(`✅ Community post ${id} updated successfully, affected rows:`, result.affectedRows);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ 
+        error: 'No changes made or post not found' 
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Community post updated successfully' 
+    });
+  } catch (error) {
+    console.error('❌ Error updating community post:', error);
+    console.error('❌ Error details:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    
+    res.status(500).json({ 
+      error: 'Failed to update community post',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // Helper function to calculate time ago
 function getTimeAgo(timestamp) {
   const seconds = Math.floor((new Date() - new Date(timestamp)) / 1000);
