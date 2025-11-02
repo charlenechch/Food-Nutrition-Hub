@@ -29,6 +29,7 @@ const communityPostRoutes = require("./routes/communityPost");
 const saveFoodRoutes = require("./routes/saveFood");
 const otpRoutes = require("./routes/otp");
 const likeRoutes = require("./routes/likes");
+const reviseCommunityPostRoutes = require('./routes/reviseCommunityPostRoutes');
 
 // ✅ Safe import for userProfile route (prevents crash if Firebase fails)
 let userProfileRoutes;
@@ -350,6 +351,7 @@ app.use("/api/likes", likeRoutes);
 console.log("🔗 Loading /api/admin...");
 app.use("/api/admin", adminRoutes);
 
+app.use('/api/reviseCommunityPost', reviseCommunityPostRoutes);
 
 // ---------- Example Admin Guard ----------
 app.get("/api/admin/data", (req, res) => {

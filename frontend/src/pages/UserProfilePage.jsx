@@ -89,77 +89,6 @@ const normalizePrefs = (data = {}) => {
   return normalized;
 };
 
-// // ✅ FIXED: Complete save function with proper array handling
-// const saveToBackend = async (updateData, type = 'preferences') => {
-//   try {
-//     // Ensure proper array format with the complex handling that works
-//     const payload = {
-//       ...updateData,
-//       dietary: Array.isArray(updateData.dietary) ? updateData.dietary : 
-//                (typeof updateData.dietary === 'string' ? JSON.parse(updateData.dietary) : 
-//                (updateData.dietary && typeof updateData.dietary === 'object' ? Object.values(updateData.dietary) : [])),
-//       allergies: Array.isArray(updateData.allergies) ? updateData.allergies : 
-//                  (typeof updateData.allergies === 'string' ? JSON.parse(updateData.allergies) : 
-//                  (updateData.allergies && typeof updateData.allergies === 'object' ? Object.values(updateData.allergies) : [])),
-//       emailNotifications: Boolean(updateData.emailNotifications),
-//       pushNotifications: Boolean(updateData.pushNotifications),
-//       profileVisibility: Boolean(updateData.profileVisibility)
-//     };
-
-//     console.log(`📤 Sending ${type} payload:`, payload);
-//     console.log("🔍 Dietary payload:", payload.dietary, "type:", typeof payload.dietary, "isArray:", Array.isArray(payload.dietary));
-//     console.log("🔍 Allergies payload:", payload.allergies, "type:", typeof payload.allergies, "isArray:", Array.isArray(payload.allergies));
-
-//     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-//       method: "PUT",
-//       headers: { "Content-Type": "application/json" },
-//       credentials: "include",
-//       body: JSON.stringify(payload),
-//     });
-    
-//     console.log(`📥 ${type} response status:`, res.status);
-    
-//     if (!res.ok) {
-//       const errorText = await res.text();
-//       console.error(`❌ ${type} update error:`, errorText);
-      
-//       // Try to parse error for better message
-//       try {
-//         const errorData = JSON.parse(errorText);
-//         throw new Error(errorData.details ? errorData.details.join(', ') : errorData.error);
-//       } catch (e) {
-//         throw new Error(`Failed to update ${type} (${res.status}): ${errorText}`);
-//       }
-//     }
-    
-//     const result = await res.json();
-//     console.log(`✅ ${type} update result:`, result);
-    
-//     if (result.success) {
-//       alert(`${type === 'preferences' ? 'Preferences' : 'Profile'} updated successfully!`);
-      
-//       // Update local user state if needed
-//       if (type === 'profile') {
-//         setUser(prev => ({ 
-//           ...prev, 
-//           location: updateData.location, 
-//           bio: updateData.bio 
-//         }));
-//       }
-      
-//       return result;
-//     } else {
-//       throw new Error(result.error || `Update failed for ${type}`);
-//     }
-//   } catch (e) {
-//     console.error(`${type} update error:`, e);
-//     alert(e.message || `Failed to update ${type}`);
-//     throw e;
-//   }
-// };
-
-
-
 const toggleInArray = (arr, value) =>
   arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 
@@ -184,6 +113,35 @@ const formatContributionDate = (dateString) => {
   return isNaN(d.getTime())
     ? "Date not available"
     : d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+};
+
+const isCommunity = (c) => {
+  const type = (c?.type || "").toLowerCase();
+  return ["community", "post", "story", "community_post"].includes(type);
+};
+
+const isRecipe = (c) => {
+  const type = (c?.type || "").toLowerCase();
+  return ["recipe", "food", "dish"].includes(type);
+};
+
+const byDateDesc = (a, b) => {
+  const dateA = new Date(a?.submittedDate || a?.created_at || 0);
+  const dateB = new Date(b?.submittedDate || b?.created_at || 0);
+  return dateB - dateA;
+};
+
+// Helper function for status classes
+const getStatusClass = (status) => {
+  const statusMap = {
+    "approved": "chip-blue",
+    "pending": "chip-yellow", 
+    "rejected": "chip-red",
+    "Approved": "chip-blue",
+    "Pending": "chip-yellow",
+    "Rejected": "chip-red"
+  };
+  return statusMap[status] || "chip-gray";
 };
 
 export default function UserProfilePage() {
@@ -211,6 +169,11 @@ export default function UserProfilePage() {
   const [savedPage, setSavedPage] = useState(1);
   const [currentSaved, setCurrentSaved] = useState([]);
   const [totalSavedPages, setTotalSavedPages] = useState(1);
+
+  // Community Posts State
+  const [communityPosts, setCommunityPosts] = useState([]);
+  const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
+
 
   // ===== Save: Personal Info =====
 const savePersonal = async () => {
@@ -303,104 +266,65 @@ const savePrefs = async () => {
   }
 };
 
-  // --- Hardcoded community contributions (frontend only) ---
-  const HARDCODED_COMMUNITY = [
-    {
-      id: "hc-1",
-      title: "Grandma’s Kuih Lapis Story",
-      image: "https://picsum.photos/seed/kuih-lapis/480/320", // or your asset
-      status: "Approved",
-      submittedDate: "2025-10-01T10:00:00.000Z",
-      type: "community",
-    },
-    {
-      id: "hc-2",
-      title: "Harvest Festival Food Memories",
-      image: "https://picsum.photos/seed/gawai/480/320",
-      status: "Pending",
-      submittedDate: "2025-10-15T09:12:00.000Z",
-      type: "community",
-    },
-    {
-      id: "hc-3",
-      title: "Sarawak Laksa Origins (Photo Essay)",
-      image: "https://picsum.photos/seed/laksa/480/320",
-      status: "Rejected",
-      submittedDate: "2025-09-26T08:30:00.000Z",
-      type: "community",
-    },
-  ];
+  const ContributionRow = ({ c }) => {
+    const handleRevise = () => {
+      if (isCommunity(c)) {
+        navigate("/revisecommunitypost", {
+          state: {
+            contribution: c,
+            user,
+            id: c.id,
+            snapshot: JSON.parse(JSON.stringify(c)),
+            adminFeedback: c.feedback,
+            fieldsWithIssues: c.fieldsWithIssues || [],
+          },
+        });
+      } else {
+        navigate(`/revise/${c.id}`, {
+          state: {
+            owner: `${user.firstName} ${user.lastName}`,
+            id: c.id,
+            snapshot: JSON.parse(JSON.stringify(c)),
+            contributionData: c,
+            adminFeedback: c.feedback,
+            fieldsWithIssues: c.fieldsWithIssues || [],
+          },
+        });
+      }
+    };
 
-
-  const isCommunity = (c) => ["community", "post", "story"].includes((c?.type || "").toLowerCase());
-  const isRecipe    = (c) => ["recipe", "food"].includes((c?.type || "").toLowerCase());
-  const byDateDesc  = (a, b) => new Date(b?.submittedDate || 0) - new Date(a?.submittedDate || 0);
-
-  const ContributionRow = ({ c }) => (
-    <div className="upp-row-card" key={`${c.type}-${c.id}`}>
-      <div className="upp-row-thumb">
-        {c.image ? <img src={c.image} alt={c.title} /> : <div className="upp-noimg" />}
-      </div>
-      <div className="upp-row-body">
-        <div className="upp-row-top">
-          <h4 className="upp-food-title upp-row-title">{c.title}</h4>
-          <span
-            className={`upp-chip ${
-              c.status === "approved" || c.status === "Approved"
-                ? "chip-blue"
-                : c.status === "pending" || c.status === "Pending"
-                ? "chip-yellow"
-                : c.status === "rejected" || c.status === "Rejected"
-                ? "chip-red"
-                : "chip-gray"
-            }`}
-          >
-            {fmtStatus(c.status)}
-          </span>
+    return (
+      <div className="upp-row-card" key={`${c.type}-${c.id}`}>
+        <div className="upp-row-thumb">
+          {c.image ? <img src={c.image} alt={c.title} /> : <div className="upp-noimg" />}
         </div>
-
-        <div className="upp-row-meta">
-          <div className="upp-muted">
-            {(c.type || "Food")} • Submitted on {formatContributionDate(c.submittedDate)}
+        <div className="upp-row-body">
+          <div className="upp-row-top">
+            <h4 className="upp-food-title upp-row-title">{c.title}</h4>
+            <span className={`upp-chip ${getStatusClass(c.status)}`}>
+              {fmtStatus(c.status)}
+            </span>
           </div>
 
-          {(c.status === "needs_revision" ||
-            c.status === "rejected" ||
-            c.status === "Rejected") && (
-            <button
-              className="lrp-btn lrp-btn-outline upp-revise-btn"
-              type="button"
-              onClick={() => {
-                if (isCommunity(c)) {
-                  navigate("/revisecommunitypostpage", {
-                    state: {
-                      contribution: c,
-                      user,
-                      id: c.id,
-                      snapshot: JSON.parse(JSON.stringify(c)),
-                    },
-                  });
-                } else {
-                  navigate(`/revise/${c.id}`, {
-                    state: {
-                      owner: `${user.firstName} ${user.lastName}`,
-                      id: c.id,
-                      snapshot: JSON.parse(JSON.stringify(c)),
-                      contributionData: c,
-                      adminFeedback: c.feedback,
-                      fieldsWithIssues: c.fieldsWithIssues || [],
-                    },
-                  });
-                }
-              }}
-            >
-              Revise
-            </button>
-          )}
+          <div className="upp-row-meta">
+            <div className="upp-muted">
+              {(c.type || "Food")} • Submitted on {formatContributionDate(c.submittedDate)}
+            </div>
+
+            {(c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected") && (
+              <button 
+                className="lrp-btn lrp-btn-outline upp-revise-btn" 
+                onClick={handleRevise}
+                type="button"
+              >
+                Revise
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // ✅ Fetch Profile Data
   useEffect(() => {
@@ -464,6 +388,31 @@ const savePrefs = async () => {
 
     loadProfile();
   }, [userProfileID]);
+
+  // ✅ Fetch Community Posts separately
+  useEffect(() => {
+    const fetchCommunityPosts = async () => {
+      if (tab === 'status' && user && !user.communityPosts) {
+        try {
+          setIsLoadingCommunity(true);
+          const res = await fetch(`${API_BASE_URL}/api/reviseCommunityPost/user/${user.userID}`, {
+            credentials: "include"
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            setCommunityPosts(data);
+          }
+        } catch (error) {
+          console.error('Failed to fetch community posts:', error);
+        } finally {
+          setIsLoadingCommunity(false);
+        }
+      }
+    };
+
+    fetchCommunityPosts();
+  }, [tab, user]);
 
   // Delete account handler - Backend password verification
   const handleDeleteAccount = async () => {
@@ -1009,59 +958,64 @@ const savePrefs = async () => {
               </>
             )}
 
-            {/* ===== Contributions (Status) ===== */}
+            {/*// ===== Contributions (Status) =====*/}
             {tab === "status" && (
               <>
-                {Array.isArray(user?.status) && user.status.length ? (() => {
-                  const all = user.status.slice(); // real data from backend (likely recipes only)
-                  const recipes = all.filter(isRecipe).sort(byDateDesc);
-                  
-                  const community = HARDCODED_COMMUNITY.slice().sort(byDateDesc);
+                {(() => {
+                  // Get real recipe contributions from backend
+                  const recipeContributions = Array.isArray(user?.status) 
+                    ? user.status.filter(isRecipe).sort(byDateDesc)
+                    : [];
+
+                  // Get real community post contributions from backend
+                  const communityContributions = Array.isArray(user?.communityPosts)
+                    ? user.communityPosts.filter(isCommunity).sort(byDateDesc)
+                    : Array.isArray(user?.status)
+                    ? user.status.filter(isCommunity).sort(byDateDesc)
+                    : communityPosts.filter(isCommunity).sort(byDateDesc);
+
+                  const hasAnyContributions = recipeContributions.length > 0 || communityContributions.length > 0;
 
                   return (
                     <div className="upp-stack">
                       {/* Recipes Section (REAL) */}
                       <div className="upp-card">
-                        <h3 className="upp-card-title">Recipes ({recipes.length})</h3>
-                        {recipes.length ? (
+                        <h3 className="upp-card-title">Recipes ({recipeContributions.length})</h3>
+                        {recipeContributions.length ? (
                           <div className="upp-stack">
-                            {recipes.map((c) => <ContributionRow key={`r-${c.id}`} c={c} />)}
+                            {recipeContributions.map((c) => <ContributionRow key={`recipe-${c.id}`} c={c} />)}
                           </div>
                         ) : (
-                          <div className="upp-muted">No recipe contributions</div>
+                          <div className="upp-muted">No recipe contributions yet</div>
                         )}
                       </div>
 
-                      {/* Community Posts Section (HARDCODED) */}
+                      {/* Community Posts Section (REAL) */}
                       <div className="upp-card">
-                        <h3 className="upp-card-title">Community Posts ({community.length})</h3>
-                        {community.length ? (
+                        <h3 className="upp-card-title">Community Posts ({communityContributions.length})</h3>
+                        {communityContributions.length ? (
                           <div className="upp-stack">
-                            {community.map((c) => <ContributionRow key={`hc-${c.id}`} c={c} />)}
+                            {communityContributions.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
                           </div>
                         ) : (
-                          <div className="upp-muted">No community posts</div>
+                          <div className="upp-muted">No community posts yet</div>
                         )}
                       </div>
+
+                      {!hasAnyContributions && (
+                        <div className="upp-center">
+                          <p className="upp-muted">You haven't made any contributions yet</p>
+                          <button 
+                            className="lrp-btn lrp-btn-primary"
+                            onClick={() => navigate('/addrecipe')}
+                          >
+                            Share Your First Recipe
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
-                })() : (
-                  // If backend returns no status at all, still show hardcoded community
-                  <div className="upp-stack">
-                    <div className="upp-card">
-                      <h3 className="upp-card-title">Recipes (0)</h3>
-                      <div className="upp-muted">No recipe contributions</div>
-                    </div>
-                    <div className="upp-card">
-                      <h3 className="upp-card-title">Community Posts ({HARDCODED_COMMUNITY.length})</h3>
-                      <div className="upp-stack">
-                        {HARDCODED_COMMUNITY.slice().sort(byDateDesc).map((c) => (
-                          <ContributionRow key={`hc-${c.id}`} c={c} />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                })()}
               </>
             )}
 
