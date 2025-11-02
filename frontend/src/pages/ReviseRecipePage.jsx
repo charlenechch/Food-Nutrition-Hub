@@ -288,6 +288,20 @@ export default function ReviseRecipePage() {
     dietaryTags: "Dietary Tags"
   };
 
+  if (isLoading) {
+    return (
+      <div className="revise-recipe-page">
+        <Header />
+        <div className="upp-page">
+          <div className="upp-wrap">
+            <div className="loading-state">Loading recipe data...</div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   if (!item) {
     return (
       <div className="upp-wrap">
