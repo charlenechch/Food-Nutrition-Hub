@@ -196,7 +196,6 @@
     flex-wrap: wrap;
     gap: 8px;
     border-bottom: 1px solid #e8dfd6;
-    padding-bottom: 8px;
 }
 .upp-tab { 
     flex: 1 1 auto; 
