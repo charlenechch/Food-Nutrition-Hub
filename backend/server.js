@@ -30,8 +30,6 @@ const saveFoodRoutes = require("./routes/saveFood");
 const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
-// ✅ NEW: Admin route import (for Admin User Management)
-const adminRoutes = require("./routes/admin");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -159,7 +157,7 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many attempts, try again later." },
-  keyGenerator: (req, res) => {
+ keyGenerator: (req, res) => {
     const ipKey = ipKeyGenerator(req, res);
     const emailKey = req.body?.email || "guest";
     return `${ipKey}-${emailKey}`;
@@ -275,9 +273,6 @@ app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/foods", foodRoutes);
 app.use("/api/userProfile", userProfileRoutes);
 app.use("/api/likes", likeRoutes);
-
-// ✅ NEW: Link Admin Management routes (for Admin User Management tab)
-app.use("/api/admin", adminRoutes);
 
 // ---------- Example Admin Guard ----------
 app.get("/api/admin/data", (req, res) => {
