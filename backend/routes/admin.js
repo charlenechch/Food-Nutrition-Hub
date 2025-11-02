@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const { requireAdmin } = require("../middleware/auth");
 const db = require("../config/db");
-const { deleteUser } = require("../routes/userProfile");
+const userProfileRoutes = require("../routes/userProfile");
+const deleteUser = userProfileRoutes.deleteUser;
 
 // ✅ Example Admin API – only admins can access
 router.get("/dashboard", requireAdmin, (req, res) => {
