@@ -397,7 +397,7 @@ const savePrefs = async () => {
         try {
           setIsLoadingCommunity(true);
           console.log("🔄 Fetching community posts for user:", user.userID);
-          const res = await fetch(`${API_BASE_URL}/api/reviseCommunityPost/user/${user.userID}`, {
+          const res = await fetch(`${API_BASE_URL}/api/communityPost/user/${user.userID}`, {
             credentials: "include"
           });
 
