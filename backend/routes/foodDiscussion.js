@@ -938,15 +938,40 @@ router.get('/food/:foodId/like-status', async (req, res) => {
 });
 
 // ✅ Toggle food like
+  router.get('/food/:foodId/like-status', async (req, res) => {
+  try {
+    const { foodId } = req.params;
+
+    const [foodResult] = await db.query(
+      `SELECT likes_count FROM food WHERE foodID = ?`,
+      [foodId]
+    );
+
+    const likesCount = foodResult.length > 0 ? (foodResult[0].likes_count || 0) : 0;
+
+    res.json({
+      success: true,
+      data: { likesCount }
+    });
+    } catch (error) {
+      console.error('❌ like-status error:', error);
+      res.json({ success: true, data: { likesCount: 0 } });
+    }
+  });
+
+  // ✅ Toggle food like (POST route)
 router.post('/food/:foodId/toggle-like', async (req, res) => {
   try {
     const { foodId } = req.params;
+    console.log('🔵 BACKEND toggle-like - foodId:', foodId);
 
     if (!req.session || !req.session.user) {
       return res.status(401).json({ success: false, message: 'Not authenticated' });
     }
 
     const userID = req.session.user.userID;
+    console.log('🔵 BACKEND toggle-like - userID:', userID);
+    
     const [profileResult] = await db.query(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
@@ -957,8 +982,9 @@ router.post('/food/:foodId/toggle-like', async (req, res) => {
     }
 
     const userProfileID = profileResult[0].userProfileID;
+    console.log('🔵 BACKEND toggle-like - userProfileID:', userProfileID);
 
-    // ✅ Get current food like data from FOOD table
+    // Get current food like data from FOOD table
     const [foodResult] = await db.query(
       `SELECT likes_count, liked_by 
        FROM food 
@@ -1005,20 +1031,27 @@ router.post('/food/:foodId/toggle-like', async (req, res) => {
       newLikedBy = currentLikedBy.filter(id => id !== userProfileIDNum);
       newLikesCount = Math.max(0, currentLikesCount - 1);
       isLiked = false;
+      console.log('🔵 BACKEND toggle-like - UNLIKING food');
     } else {
       // Like: add user to array
       newLikedBy = [...currentLikedBy, userProfileIDNum];
       newLikesCount = currentLikesCount + 1;
       isLiked = true;
+      console.log('🔵 BACKEND toggle-like - LIKING food');
     }
 
-    // ✅ Update the FOOD table
+    console.log('🔵 BACKEND toggle-like - newLikesCount:', newLikesCount);
+    console.log('🔵 BACKEND toggle-like - newLikedBy:', newLikedBy);
+
+    // Update the FOOD table
     await db.query(
       `UPDATE food 
        SET likes_count = ?, liked_by = ?
        WHERE foodID = ?`,
       [newLikesCount, JSON.stringify(newLikedBy), foodId]
     );
+
+    console.log('🟢 BACKEND toggle-like - Update successful');
 
     res.json({
       success: true,
@@ -1028,7 +1061,7 @@ router.post('/food/:foodId/toggle-like', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error toggling food like:', error);
+    console.error('❌ BACKEND toggle-like - Error:', error);
     res.status(500).json({ success: false, message: 'Failed to toggle like' });
   }
 });

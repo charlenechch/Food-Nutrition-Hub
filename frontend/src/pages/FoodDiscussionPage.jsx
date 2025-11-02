@@ -347,26 +347,36 @@ export default function FoodDiscussionPage() {
   }, [foodId]);
 
   // ✅ NEW: Fetch food like status
-const fetchFoodLikeStatus = async () => {
-  try {
-    const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/like-status`, {
-      credentials: "include",
-    });
+  const fetchFoodLikeStatus = async () => {
+    try {
+      const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/like-status`, {
+        credentials: "include",
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success) {
-        setFoodLike(prev => ({
-          ...prev,
-          isLiked: data.data.isLiked,
-          likesCount: data.data.likesCount
-        }));
+      console.log('🟡 fetchFoodLikeStatus - Response status:', res.status);
+      
+      if (res.ok) {
+        const data = await res.json();
+        console.log('🟡 fetchFoodLikeStatus - Response data:', data);
+        
+        if (data.success) {
+          setFoodLike(prev => ({
+            ...prev,
+            isLiked: data.data.isLiked,
+            likesCount: data.data.likesCount
+          }));
+          console.log('🟢 fetchFoodLikeStatus - Updated state:', { 
+            isLiked: data.data.isLiked, 
+            likesCount: data.data.likesCount 
+          });
+        }
+      } else {
+        console.log('🔴 fetchFoodLikeStatus - API error:', res.status);
       }
+    } catch (error) {
+      console.error('❌ fetchFoodLikeStatus - Network error:', error);
     }
-  } catch (error) {
-    console.error('Error fetching food like status:', error);
-  }
-};
+  };
 
   // Toggle food like
   const toggleFoodLike = async () => {
