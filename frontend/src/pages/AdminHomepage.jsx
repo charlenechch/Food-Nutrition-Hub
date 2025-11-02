@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/AdminDashboard.css";
 import Header from "../components/Header";
@@ -20,6 +20,7 @@ import UserManagement from "./AdminUserManagementTab";
 import Analytics from "./Analytics"; 
 import AdminSystemSettings from "./AdminSystemSettings.jsx";
 
+const API_URL = import.meta.env.VITE_API_URL;
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("food");
@@ -39,12 +40,33 @@ const AdminDashboard = () => {
     "Meat",
   ];
   
-  const summary = {
-    totalFoods: 347,
+  // === Summary State (Dynamic for totalFoods) ===
+  const [summary, setSummary] = useState({
+    totalFoods: 0,
     totalUsers: 1247,
     pendingApproval: 23,
     flaggedContent: 8,
-  };
+  });
+
+  // ✅ Fetch total food count dynamically from backend
+  useEffect(() => {
+    const fetchTotalFoods = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/foods/count`);
+        const data = await res.json();
+
+        if (data.success) {
+          setSummary((prev) => ({ ...prev, totalFoods: data.total }));
+        } else {
+          console.error("Failed to fetch total foods:", data.error);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching total foods:", error);
+      }
+    };
+
+    fetchTotalFoods();
+  }, []);
 
   // food data 
   const foodData = [
@@ -75,7 +97,7 @@ const AdminDashboard = () => {
     { id: 5, name: "Kek Lapis Modern", submitter: "Amira Binti Salleh", date: "2025-10-26", status: "Approved" },
   ]);
 
-  // Filterimg
+  // Filtering
   const approvedRecipes = recipes.filter(r => r.status === "Approved");
   const pendingRecipes = recipes.filter(r => r.status === "Pending" || r.status === "Rejected");
 

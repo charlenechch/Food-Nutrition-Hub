@@ -3,7 +3,18 @@ const router = express.Router();
 const db = require("../config/db");
 const { requireAuth, requireAdmin } = require("../middleware/auth");
 
-// ✅ Get all foods (PUBLIC)
+// ✅ Get total food count (for Admin Dashboard)
+router.get("/count", async (req, res) => {
+  try {
+    const [result] = await db.query("SELECT COUNT(*) AS total FROM food");
+    res.json({ success: true, total: result[0].total });
+  } catch (err) {
+    console.error("❌ Count foods error:", err.message);
+    res.status(500).json({ success: false, error: "Failed to count foods" });
+  }
+});
+
+// ✅ Get all foods (PUBLIC - anyone can view)
 router.get("/", async (req, res) => {
   try {
     const [foods] = await db.query("SELECT * FROM food");
@@ -110,8 +121,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     const sql = `
       UPDATE food 
       SET name=?, origin=?, Energy_kcal=?, Protein_g=?, Fat_g=?, Carbohydrates_g=?, Fiber_g=?, VitaminC_mg=?
-      WHERE foodID=?
-    `;
+      WHERE foodID=?`;
     const values = [
       name,
       origin,
