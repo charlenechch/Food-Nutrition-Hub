@@ -162,14 +162,14 @@ const saveToBackend = async (updateData, type = 'preferences') => {
 const savePersonal = async () => {
   try {
     const updateData = { 
-      location: form.location, 
+      location: location, 
       bio: bio,
-      emailNotifications: prefs.emailNotifications,
-      pushNotifications: prefs.pushNotifications,
-      profileVisibility: prefs.profileVisibility,
-      language: prefs.language,
-      dietary: prefs.dietary,
-      allergies: prefs.allergies
+      emailNotifications: emailNotifications,
+      pushNotifications: pushNotifications,
+      profileVisibility: profileVisibility,
+      language: language,
+      dietary: dietary,
+      allergies: allergies
     };
     
     console.log("📤 Saving personal info:", updateData);
@@ -194,7 +194,7 @@ const savePersonal = async () => {
     
     if (result.success) {
       alert("Profile updated successfully!");
-      setUser(prev => ({ ...prev, location: form.location, bio: bio }));
+      setUser(prev => ({ ...prev, location: location, bio: bio }));
     } else {
       throw new Error(result.error || "Update failed");
     }
@@ -862,14 +862,14 @@ export default function UserProfilePage() {
                       <label>
                         <span>First Name</span>
                         <input
-                          value={form.firstName}
+                          value={firstName}
                           onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))}
                         />
                       </label>
                       <label>
                         <span>Last Name</span>
                         <input
-                          value={form.lastName}
+                          value={lastName}
                           onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))}
                         />
                       </label>
@@ -881,7 +881,7 @@ export default function UserProfilePage() {
                         <span>Email</span>
                         <input
                           type="email"
-                          value={form.email}
+                          value={email}
                           onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                         />
                       </label>
@@ -889,7 +889,7 @@ export default function UserProfilePage() {
                       <label>
                         <span>Location</span>
                         <input
-                          value={form.location}
+                          value={location}
                           onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
                         />
                       </label>
@@ -1071,17 +1071,17 @@ export default function UserProfilePage() {
                   <h3 className="upp-card-title">Dietary Preferences</h3>
                   <div className="upp-choice-grid">
                     {DIETARY_OPTIONS.map((id) => (
-                      <label key={id} className={`upp-choice ${prefs.dietary.includes(id) ? "is-on" : ""}`}>
+                      <label key={id} className={`upp-choice ${dietary.includes(id) ? "is-on" : ""}`}>
                         <input
                           type="checkbox"
-                          checked={prefs.dietary.includes(id)}
+                          checked={dietary.includes(id)}
                           onChange={() => setPrefs((p) => ({ ...p, dietary: toggleInArray(p.dietary, id) }))}
                         />
                         {id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                       </label>
                     ))}
                   </div>
-                  {prefs.dietary.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No dietary preferences selected</div>}
+                  {dietary.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No dietary preferences selected</div>}
                 </div>
 
                 {/* Allergies */}
@@ -1089,17 +1089,17 @@ export default function UserProfilePage() {
                   <h3 className="upp-card-title">Allergies / Restrictions</h3>
                   <div className="upp-choice-grid">
                     {ALLERGY_OPTIONS.map((id) => (
-                      <label key={id} className={`upp-choice ${prefs.allergies.includes(id) ? "is-on" : ""}`}>
+                      <label key={id} className={`upp-choice ${allergies.includes(id) ? "is-on" : ""}`}>
                         <input
                           type="checkbox"
-                          checked={prefs.allergies.includes(id)}
+                          checked={allergies.includes(id)}
                           onChange={() => setPrefs((p) => ({ ...p, allergies: toggleInArray(p.allergies, id) }))}
                         />
                         {id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                       </label>
                     ))}
                   </div>
-                  {prefs.allergies.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No allergies selected</div>}
+                  {allergies.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No allergies selected</div>}
                 </div>
 
                 <button className="lrp-btn lrp-btn-primary" onClick={savePrefs}>Save Preferences</button>
@@ -1119,7 +1119,7 @@ export default function UserProfilePage() {
                     <label className="upp-switch">
                       <input
                         type="checkbox"
-                        checked={prefs.emailNotifications}
+                        checked={emailNotifications}
                         onChange={(e) => setPrefs((p) => ({ ...p, emailNotifications: e.target.checked }))}
                       />
                       <span />
@@ -1134,7 +1134,7 @@ export default function UserProfilePage() {
                     <label className="upp-switch">
                       <input
                         type="checkbox"
-                        checked={prefs.pushNotifications}
+                        checked={pushNotifications}
                         onChange={(e) => setPrefs((p) => ({ ...p, pushNotifications: e.target.checked }))}
                       />
                       <span />
@@ -1153,7 +1153,7 @@ export default function UserProfilePage() {
                       className="lrp-btn lrp-btn-outline upp-btn"
                       onClick={() => setPrefs((p) => ({ ...p, language: p.language === "en" ? "ms" : "en" }))}
                     >
-                      {prefs.language === "en" ? "Bahasa Malaysia" : "English"}
+                      {language === "en" ? "Bahasa Malaysia" : "English"}
                     </button>
                   </div>
                 </div>
@@ -1168,7 +1168,7 @@ export default function UserProfilePage() {
                     <label className="upp-switch">
                       <input
                         type="checkbox"
-                        checked={prefs.profileVisibility}
+                        checked={profileVisibility}
                         onChange={(e) => setPrefs((p) => ({ ...p, profileVisibility: e.target.checked }))}
                       />
                       <span />
