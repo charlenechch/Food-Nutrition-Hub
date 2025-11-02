@@ -958,36 +958,34 @@ router.post('/food/:foodId/toggle-like', async (req, res) => {
 
     const userProfileID = profileResult[0].userProfileID;
 
-    // Get current food like data
-    const [discussionResult] = await db.query(
+    // ✅ Get current food like data from FOOD table
+    const [foodResult] = await db.query(
       `SELECT likes_count, liked_by 
-       FROM discussion 
-       WHERE foodID = ? 
-       ORDER BY created_At DESC 
-       LIMIT 1`,
+       FROM food 
+       WHERE foodID = ?`,
       [foodId]
     );
 
-    let currentLikesCount = 0;
-    let currentLikedBy = [];
+    if (foodResult.length === 0) {
+      return res.status(404).json({ success: false, message: 'Food not found' });
+    }
 
-    if (discussionResult.length > 0) {
-      const discussion = discussionResult[0];
-      currentLikesCount = discussion.likes_count || 0;
-      
-      // Parse existing liked_by data
-      const likedBy = discussion.liked_by;
-      if (likedBy) {
-        try {
-          if (Array.isArray(likedBy)) {
-            currentLikedBy = likedBy;
-          } else if (typeof likedBy === 'string') {
-            currentLikedBy = JSON.parse(likedBy);
-          }
-        } catch (error) {
-          console.error('Error parsing existing liked_by:', error);
-          currentLikedBy = [];
+    const food = foodResult[0];
+    let currentLikesCount = food.likes_count || 0;
+    let currentLikedBy = [];
+    
+    // Parse existing liked_by data
+    const likedBy = food.liked_by;
+    if (likedBy) {
+      try {
+        if (Array.isArray(likedBy)) {
+          currentLikedBy = likedBy;
+        } else if (typeof likedBy === 'string') {
+          currentLikedBy = JSON.parse(likedBy);
         }
+      } catch (error) {
+        console.error('Error parsing existing liked_by:', error);
+        currentLikedBy = [];
       }
     }
 
@@ -1014,9 +1012,9 @@ router.post('/food/:foodId/toggle-like', async (req, res) => {
       isLiked = true;
     }
 
-    // Update ALL discussion entries for this food to keep consistency
+    // ✅ Update the FOOD table
     await db.query(
-      `UPDATE discussion 
+      `UPDATE food 
        SET likes_count = ?, liked_by = ?
        WHERE foodID = ?`,
       [newLikesCount, JSON.stringify(newLikedBy), foodId]

@@ -281,11 +281,11 @@ export default function FoodDiscussionPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // ✅ NEW: Food like state
-const [foodLike, setFoodLike] = useState({
-  isLiked: false,
-  likesCount: 0,
-  loading: false
-});
+  const [foodLike, setFoodLike] = useState({
+    isLiked: false,
+    likesCount: 0,
+    loading: false
+  });
   
   // Delete confirmation modal state
   const [deleteModal, setDeleteModal] = useState({
@@ -368,64 +368,71 @@ const fetchFoodLikeStatus = async () => {
   }
 };
 
-// ✅ NEW: Toggle food like
-const toggleFoodLike = async () => {
-  if (isGuest) return setShowLoginPrompt(true);
-  
-  if (foodLike.loading) return;
+  // Toggle food like
+  const toggleFoodLike = async () => {
+    if (isGuest) return setShowLoginPrompt(true);
+    
+    if (foodLike.loading) return;
 
-  // Optimistic update
-  const previousState = { ...foodLike };
-  setFoodLike(prev => ({
-    ...prev,
-    isLiked: !prev.isLiked,
-    likesCount: prev.isLiked ? prev.likesCount - 1 : prev.likesCount + 1,
-    loading: true
-  }));
+    console.log('🟡 BEFORE toggle - isLiked:', foodLike.isLiked, 'likesCount:', foodLike.likesCount);
 
-  try {
-    const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/toggle-like`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
+    // Optimistic update
+    const previousState = { ...foodLike };
+    setFoodLike(prev => ({
+      ...prev,
+      isLiked: !prev.isLiked,
+      likesCount: prev.isLiked ? prev.likesCount - 1 : prev.likesCount + 1,
+      loading: true
+    }));
 
-    const data = await res.json();
+    try {
+      console.log('🟡 Calling toggle-like API for food:', foodId);
+      const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/toggle-like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
 
-    if (res.ok && data.success) {
-      setFoodLike(prev => ({
-        ...prev,
-        isLiked: data.data.isLiked,
-        likesCount: data.data.likesCount,
-        loading: false
-      }));
-    } else {
+      console.log('🟡 API Response status:', res.status);
+      const data = await res.json();
+      console.log('🟡 API Response data:', data);
+
+      if (res.ok && data.success) {
+        console.log('🟢 API Success - isLiked:', data.data.isLiked, 'likesCount:', data.data.likesCount);
+        setFoodLike(prev => ({
+          ...prev,
+          isLiked: data.data.isLiked,
+          likesCount: data.data.likesCount,
+          loading: false
+        }));
+      } else {
+        console.log('🔴 API Error:', data.message);
+        // Revert on error
+        setFoodLike(prev => ({
+          ...prev,
+          ...previousState,
+          loading: false
+        }));
+        alert(data?.message || "Failed to update like");
+      }
+    } catch (err) {
+      console.error("❌ Network error:", err);
       // Revert on error
       setFoodLike(prev => ({
         ...prev,
         ...previousState,
         loading: false
       }));
-      alert(data?.message || "Failed to update like");
+      alert("Network error while updating like");
     }
-  } catch (err) {
-    console.error("Error toggling food like:", err);
-    // Revert on error
-    setFoodLike(prev => ({
-      ...prev,
-      ...previousState,
-      loading: false
-    }));
-    alert("Network error while updating like");
-  }
-};
+  };
 
-useEffect(() => {
-  if (foodId) {
-    fetchComments();
-    fetchFoodLikeStatus(); // ✅ Fetch like status on component mount
-  }
-}, [foodId]);
+  useEffect(() => {
+    if (foodId) {
+      fetchComments();
+      fetchFoodLikeStatus(); // ✅ Fetch like status on component mount
+    }
+  }, [foodId]);
 
   // ✅ Post Comment
   const postComment = async () => {
@@ -856,14 +863,14 @@ const postReply = async (discussionId) => {
               <p className="fd-muted">{food?.description}</p>
               <div className="fd-sum-stats">
                 <span>💬 {totalComments} comments</span>
-                <button 
-                  className={`fd-food-like-btn ${foodLike.isLiked ? 'liked' : ''} ${foodLike.loading ? 'loading' : ''}`}
+                <span 
+                  className="fd-food-like-btn"
                   onClick={toggleFoodLike}
-                  disabled={foodLike.loading}
+                  style={{cursor: 'pointer'}}
                   title={foodLike.isLiked ? "Unlike this food" : "Like this food"}
                 >
                   {foodLike.isLiked ? "♥" : "♡"} {foodLike.likesCount} likes
-                </button>
+                </span>
               </div>
             </div>
           </div>
