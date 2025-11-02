@@ -28,8 +28,47 @@ const recipeRoutes = require("./routes/recipe");
 const communityPostRoutes = require("./routes/communityPost");
 const saveFoodRoutes = require("./routes/saveFood");
 const otpRoutes = require("./routes/otp");
-const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
+
+// ✅ Safe import for userProfile route (prevents crash if Firebase fails)
+let userProfileRoutes;
+try {
+  userProfileRoutes = require("./routes/userProfile");
+  if (
+    typeof userProfileRoutes !== "function" &&
+    typeof userProfileRoutes?.use !== "function"
+  ) {
+    throw new Error("Invalid userProfile router export");
+  }
+  console.log("✅ userProfile route loaded successfully");
+} catch (err) {
+  console.error("⚠️ Failed to load userProfile route:", err.message);
+  userProfileRoutes = express.Router();
+  userProfileRoutes.use((req, res) =>
+    res
+      .status(503)
+      .json({ error: "UserProfile route unavailable (Firebase not configured)" })
+  );
+}
+
+// ✅ Safe import for admin route
+let adminRoutes;
+try {
+  adminRoutes = require("./routes/admin");
+  if (
+    typeof adminRoutes !== "function" &&
+    typeof adminRoutes?.use !== "function"
+  ) {
+    throw new Error("Invalid admin router export");
+  }
+  console.log("✅ admin route loaded successfully");
+} catch (err) {
+  console.error("⚠️ Failed to load admin route:", err.message);
+  adminRoutes = express.Router();
+  adminRoutes.use((req, res) =>
+    res.status(503).json({ error: "Admin route unavailable" })
+  );
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -157,7 +196,7 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many attempts, try again later." },
- keyGenerator: (req, res) => {
+  keyGenerator: (req, res) => {
     const ipKey = ipKeyGenerator(req, res);
     const emailKey = req.body?.email || "guest";
     return `${ipKey}-${emailKey}`;
@@ -189,7 +228,7 @@ app.use(
       httpOnly: true,
       sameSite: IS_PROD ? "none" : "lax",
       secure: IS_PROD,
-      maxAge: 24 * 60 * 60 * 1000
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
@@ -231,22 +270,49 @@ app.use(
       "role",
       "userProfileID",
       "firebase_uid",
-      "bio", "location", "firstname", "lastname",
-      "avatar", "allergies", "dietary", "emailNotifications", "prefs",
-      "pushNotifications", "profileVisibility", "language", "recipes",
-      "status", "stats", "saveFoods",
+      "bio",
+      "location",
+      "firstname",
+      "lastname",
+      "avatar",
+      "allergies",
+      "dietary",
+      "emailNotifications",
+      "prefs",
+      "pushNotifications",
+      "profileVisibility",
+      "language",
+      "recipes",
+      "status",
+      "stats",
+      "saveFoods",
       "likes",
       "type",
-      "postId", "postID",
+      "postId",
+      "postID",
       "content",
       "reply",
       "comment",
-      "foodID", 
+      "foodID",
       "likeID",
-      "name", "origin", "difficulty", "prepTime", "cookTime", 
-      "servings", "image", "description", "foodType", "dietaryTags", 
-      "ingredients", "instructions", "funFact", "chefTips",
-      "isAdmin", "isAdminAction", "adminRole", "adminId"
+      "name",
+      "origin",
+      "difficulty",
+      "prepTime",
+      "cookTime",
+      "servings",
+      "image",
+      "description",
+      "foodType",
+      "dietaryTags",
+      "ingredients",
+      "instructions",
+      "funFact",
+      "chefTips",
+      "isAdmin",
+      "isAdminAction",
+      "adminRole",
+      "adminId",
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));
@@ -260,19 +326,30 @@ app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes);
-app.use(
-  "/api/exploreFood",
-  hppProtect({ policy: "first", allowlist: ["q", "page", "sort"] }),
-  exploreFoodRoutes
-);
+app.use("/api/exploreFood", exploreFoodRoutes);
 app.use("/api/foodDetail", foodDetailRoutes);
 app.use("/api/foodDiscussion", foodDiscussionRoutes);
+console.log("🔗 Loading /api/recipe...");
 app.use("/api/recipe", recipeRoutes);
+
+console.log("🔗 Loading /api/saveFood...");
 app.use("/api/saveFood", saveFoodRoutes);
+
+console.log("🔗 Loading /api/communityPost...");
 app.use("/api/communityPost", communityPostRoutes);
+
+console.log("🔗 Loading /api/foods...");
 app.use("/api/foods", foodRoutes);
+
+console.log("🔗 Loading /api/userProfile...");
 app.use("/api/userProfile", userProfileRoutes);
+
+console.log("🔗 Loading /api/likes...");
 app.use("/api/likes", likeRoutes);
+
+console.log("🔗 Loading /api/admin...");
+app.use("/api/admin", adminRoutes);
+
 
 // ---------- Example Admin Guard ----------
 app.get("/api/admin/data", (req, res) => {
@@ -284,9 +361,9 @@ app.get("/api/admin/data", (req, res) => {
 
 // ---------- Session check ----------
 app.get("/api/auth/session", (req, res) => {
-  console.log(" Session check requested");
-  console.log(" Session ID:", req.sessionID);
-  console.log(" Has session user:", !!req.session?.user);
+  console.log("Session check requested");
+  console.log("Session ID:", req.sessionID);
+  console.log("Has session user:", !!req.session?.user);
 
   if (req.session && req.session.user) {
     console.log("Valid session for:", req.session.user.email);
