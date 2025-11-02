@@ -683,6 +683,67 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
   }
 });
 
+// ✅ GET user's community posts for profile contributions
+router.get("/user/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log(`📥 Fetching community posts for user: ${userId}`);
+
+    // First get userProfileID from userID
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userId]
+    );
+
+    if (profileResult.length === 0) {
+      return res.json([]); // Return empty array if no profile found
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+
+    const query = `
+      SELECT 
+        postID as id,
+        foodName as title,
+        photos as image,
+        status,
+        created_at as submittedDate,
+        'community' as type,
+        origin as culturalOrigin,
+        culturalStory as content,
+        recipe
+      FROM posts 
+      WHERE userProfileID = ?
+      ORDER BY created_at DESC
+    `;
+    
+    const [posts] = await db.execute(query, [userProfileID]);
+    
+    console.log(`✅ Found ${posts.length} community posts for user ${userId}`);
+
+    // Format the posts
+    const formattedPosts = posts.map(post => ({
+      id: post.id,
+      title: post.title,
+      image: post.image ? post.image.split(',')[0] : null, // Take first image if multiple
+      status: post.status,
+      submittedDate: post.submittedDate,
+      type: post.type,
+      culturalOrigin: post.culturalOrigin,
+      content: post.content,
+      recipe: post.recipe
+    }));
+
+    res.json(formattedPosts);
+  } catch (error) {
+    console.error('❌ Error fetching user community posts:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch community posts',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // ✅ UPDATE community post (revision) 
 router.put("/revise/:id", async (req, res) => {
   try {

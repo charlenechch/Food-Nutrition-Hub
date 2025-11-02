@@ -111,7 +111,7 @@ export default function ReviseCommunityPostPage() {
 
     console.log("📤 Sending JSON data:", revisedData);
 
-    const res = await fetch(`${API_BASE_URL}/api/communityPost/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/api/communityPost/revise/${id}`, {
       method: "PUT",
       headers: { 
         "Content-Type": "application/json" // ✅ Add this header
