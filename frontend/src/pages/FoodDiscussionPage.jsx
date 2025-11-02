@@ -856,14 +856,14 @@ const postReply = async (discussionId) => {
               <p className="fd-muted">{food?.description}</p>
               <div className="fd-sum-stats">
                 <span>💬 {totalComments} comments</span>
-                <button 
-                  className={`fd-food-like-btn ${foodLike.isLiked ? 'liked' : ''} ${foodLike.loading ? 'loading' : ''}`}
+                <span 
+                  className="fd-food-like-btn"
                   onClick={toggleFoodLike}
-                  disabled={foodLike.loading}
+                  style={{cursor: 'pointer'}}
                   title={foodLike.isLiked ? "Unlike this food" : "Like this food"}
                 >
                   {foodLike.isLiked ? "♥" : "♡"} {foodLike.likesCount} likes
-                </button>
+                </span>
               </div>
             </div>
           </div>
