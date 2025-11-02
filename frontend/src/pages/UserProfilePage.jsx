@@ -286,7 +286,7 @@ const savePrefs = async () => {
             owner: `${user.firstName} ${user.lastName}`,
             id: c.id,
             snapshot: JSON.parse(JSON.stringify(c)),
-            contributionData: c,
+            contribution: c,
             adminFeedback: c.feedback,
             fieldsWithIssues: c.fieldsWithIssues || [],
           },
