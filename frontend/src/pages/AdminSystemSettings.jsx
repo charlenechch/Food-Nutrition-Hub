@@ -25,23 +25,43 @@ export default function AdminSystemSettings({
     };
     const [emailEnabled, setEmailEnabled] = useState(true);
 
+    function formatNowKuching() {
+        return new Intl.DateTimeFormat("en-MY", {
+            timeZone: "Asia/Kuching",
+            dateStyle: "long",   // e.g., 3 November 2025
+            timeStyle: "short",  // e.g., 10:35 PM
+        }).format(new Date());
+    }
+
+    function fillTokens(str) {
+        if (!str) return "";
+        const now = formatNowKuching();
+        return str.replaceAll("{DATE}", now);
+    }
+
     const platformName = "SarawakEats";
+    const platformemail = "info@sarawakeats.com";
     const SYSTEM_EMAIL_TEMPLATES = {
         "Custom message": { subject: "", message: "" },
-        "Maintenance Window": {
+        "Maintenance Notice": {
             subject: "Scheduled Maintenance Notice",
             message:
                 `Hello,\n\nWe will perform scheduled maintenance from <Date>, <Time> to <Date>, <Time>. ${platformName} may be unavailable during this time.\n\nThanks,\nSystem Admin`,
         },
         "Policy Update": {
-            subject: "Platform Policy Update",
+            subject: "Platform Policy Update - {DATE}",
             message:
-                `Hello,\n\nWe've updated our community guidelines and privacy policy. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWe've updated our community guidelines and privacy policyon {DATE}. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSystem Admin`,
         },
-        "New Feature Rollout": {
-            subject: "New Features Released",
+        "System Update": {
+            subject: `${platformName} Platform Update - {DATE}`,
             message:
-                `Hello,\n\nWe've rolled out new features to improve your experience. Check out the website.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWeve made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on {DATE}.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSystem Admin`,
+        },
+        "Outage Resolved": {
+            subject: `${platformName} Service Restored - {DATE}`,
+            message:
+                `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on {DATE}.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSystem Admin`,
         },
     };
     const allUsers = useMemo(
@@ -69,9 +89,9 @@ export default function AdminSystemSettings({
         recipientsOption: "All users",     // same options as UM
         selectedUserIds: [],
         customEmails: "",
-        template: "Maintenance Window",
-        subject: SYSTEM_EMAIL_TEMPLATES["Maintenance Window"].subject,
-        message: SYSTEM_EMAIL_TEMPLATES["Maintenance Window"].message,
+        template: "Custom message",
+        subject: SYSTEM_EMAIL_TEMPLATES["Custom message"].subject,
+        message: SYSTEM_EMAIL_TEMPLATES["Custom message"].message,
         markAnnouncement: true,
     });
 
@@ -242,182 +262,182 @@ export default function AdminSystemSettings({
                     onClick={() => setShowSysEmailModal(false)}
                 >
                     <div className="umg-modal" onClick={(e) => e.stopPropagation()}>
-                    {/* Header */}
-                    <div className="umg-modal-header">
-                        <h3><Mail size={18}/> Send System Announcement</h3>
-                        <button className="umg-modal-close" onClick={() => setShowSysEmailModal(false)} aria-label="Close">×</button>
-                    </div>
+                        {/* Header */}
+                        <div className="umg-modal-header">
+                            <h3><Mail size={18} /> Send System Announcement</h3>
+                            <button className="umg-modal-close" onClick={() => setShowSysEmailModal(false)} aria-label="Close">×</button>
+                        </div>
 
-                    {/* Body */}
-                    <div className="umg-modal-body">
-                        {/* Recipients */}
-                        <div className="umg-field">
-                        <label className="umg-label">Recipients</label>
-                        <select
-                            className="umg-input"
-                            value={sysEmailForm.recipientsOption}
-                            onChange={(e) => setSysEmailForm({ ...sysEmailForm, recipientsOption: e.target.value })}
-                        >
-                            <option>All users</option>
-                            <option>Administrators only</option>
-                            {/* If you want to allow picking specific users from Settings, keep this next option */}
-                            <option>Specific users</option>
-                            <option>Custom Email Addresses</option>
-                        </select>
+                        {/* Body */}
+                        <div className="umg-modal-body">
+                            {/* Recipients */}
+                            <div className="umg-field">
+                                <label className="umg-label">Recipients</label>
+                                <select
+                                    className="umg-input"
+                                    value={sysEmailForm.recipientsOption}
+                                    onChange={(e) => setSysEmailForm({ ...sysEmailForm, recipientsOption: e.target.value })}
+                                >
+                                    <option>All users</option>
+                                    <option>Administrators only</option>
+                                    {/* If you want to allow picking specific users from Settings, keep this next option */}
+                                    <option>Specific users</option>
+                                    <option>Custom Email Addresses</option>
+                                </select>
 
-                        {/* Specific users */}
-                        {sysEmailForm.recipientsOption === "Specific users" && (
-                            <div className="umg-specific-list">
-                            <input
-                                className="umg-input"
-                                placeholder="Search users to select…"
-                                value={sysSpecificSearch}
-                                onChange={(e) => setSysSpecificSearch(e.target.value)}
-                            />
-                            <div className="umg-specific-scroll">
-                                {filteredSysUsers.length === 0 ? (
-                                <div className="umg-empty">No matches.</div>
-                                ) : (
-                                filteredSysUsers.map(u => (
-                                    <label key={u.id} className="umg-specific-row">
-                                    <input
-                                        type="checkbox"
-                                        className="umg-row-checkbox"
-                                        checked={sysEmailForm.selectedUserIds.includes(u.id)}
-                                        onChange={(e) => {
-                                        const checked = e.target.checked;
+                                {/* Specific users */}
+                                {sysEmailForm.recipientsOption === "Specific users" && (
+                                    <div className="umg-specific-list">
+                                        <input
+                                            className="umg-input"
+                                            placeholder="Search users to select…"
+                                            value={sysSpecificSearch}
+                                            onChange={(e) => setSysSpecificSearch(e.target.value)}
+                                        />
+                                        <div className="umg-specific-scroll">
+                                            {filteredSysUsers.length === 0 ? (
+                                                <div className="umg-empty">No matches.</div>
+                                            ) : (
+                                                filteredSysUsers.map(u => (
+                                                    <label key={u.id} className="umg-specific-row">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="umg-row-checkbox"
+                                                            checked={sysEmailForm.selectedUserIds.includes(u.id)}
+                                                            onChange={(e) => {
+                                                                const checked = e.target.checked;
+                                                                setSysEmailForm(prev => ({
+                                                                    ...prev,
+                                                                    selectedUserIds: checked
+                                                                        ? [...prev.selectedUserIds, u.id]
+                                                                        : prev.selectedUserIds.filter(id => id !== u.id),
+                                                                }));
+                                                            }}
+                                                        />
+                                                        <div>
+                                                            <div className="umg-name">{u.name}</div>
+                                                            <div className="umg-subline">{u.email}</div>
+                                                            {u.city && <div className="umg-subline">{u.city}</div>}
+                                                        </div>
+                                                    </label>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Custom emails */}
+                                {sysEmailForm.recipientsOption === "Custom Email Addresses" && (
+                                    <div className="umg-field">
+                                        <label className="umg-label">Enter email addresses</label>
+                                        <textarea
+                                            className="umg-input umg-textarea"
+                                            placeholder="alice@mail.com, bob@mail.com"
+                                            value={sysEmailForm.customEmails}
+                                            onChange={(e) => setSysEmailForm({ ...sysEmailForm, customEmails: e.target.value })}
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="umg-hint">Total Recipients: {sysTotalRecipients}</div>
+                            </div>
+
+                            {/* Template */}
+                            <div className="umg-field">
+                                <label className="umg-label">Email Template</label>
+                                <select
+                                    className="umg-input"
+                                    value={sysEmailForm.template}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        const tpl = SYSTEM_EMAIL_TEMPLATES[value] || { subject: "", message: "" };
                                         setSysEmailForm(prev => ({
                                             ...prev,
-                                            selectedUserIds: checked
-                                            ? [...prev.selectedUserIds, u.id]
-                                            : prev.selectedUserIds.filter(id => id !== u.id),
+                                            template: value,
+                                            subject: fillTokens(tpl.subject),
+                                            message: fillTokens(tpl.message),
                                         }));
-                                        }}
-                                    />
-                                    <div>
-                                        <div className="umg-name">{u.name}</div>
-                                        <div className="umg-subline">{u.email}</div>
-                                        {u.city && <div className="umg-subline">{u.city}</div>}
-                                    </div>
-                                    </label>
-                                ))
-                                )}
+                                    }}
+                                >
+                                    {Object.keys(SYSTEM_EMAIL_TEMPLATES).map(k => (
+                                        <option key={k} value={k}>{k}</option>
+                                    ))}
+                                </select>
                             </div>
-                            </div>
-                        )}
 
-                        {/* Custom emails */}
-                        {sysEmailForm.recipientsOption === "Custom Email Addresses" && (
+                            {/* Subject */}
                             <div className="umg-field">
-                            <label className="umg-label">Enter email addresses</label>
-                            <textarea
-                                className="umg-input umg-textarea"
-                                placeholder="alice@mail.com, bob@mail.com"
-                                value={sysEmailForm.customEmails}
-                                onChange={(e) => setSysEmailForm({ ...sysEmailForm, customEmails: e.target.value })}
-                            />
+                                <label className="umg-label">Subject</label>
+                                <input
+                                    className="umg-input"
+                                    placeholder="Enter email subject"
+                                    value={sysEmailForm.subject}
+                                    onChange={(e) => setSysEmailForm(prev => ({ ...prev, subject: e.target.value }))}
+                                />
                             </div>
-                        )}
 
-                        <div className="umg-hint">Total Recipients: {sysTotalRecipients}</div>
+                            {/* Message */}
+                            <div className="umg-field">
+                                <label className="umg-label">Message</label>
+                                <textarea
+                                    className="umg-input umg-textarea"
+                                    placeholder="Enter your message"
+                                    value={sysEmailForm.message}
+                                    onChange={(e) => setSysEmailForm(prev => ({ ...prev, message: e.target.value }))}
+                                />
+                            </div>
+
+                            {/* Announcement */}
+                            <label className="umg-check">
+                                <input
+                                    type="checkbox"
+                                    checked={sysEmailForm.markAnnouncement}
+                                    onChange={(e) => setSysEmailForm({ ...sysEmailForm, markAnnouncement: e.target.checked })}
+                                />
+                                <div>
+                                    <div><Bell size={16} /> Mark as Announcement</div>
+                                    <div className="umg-check-hint">Announcements appear in user notifications</div>
+                                </div>
+                            </label>
                         </div>
 
-                        {/* Template */}
-                        <div className="umg-field">
-                        <label className="umg-label">Email Template</label>
-                        <select
-                            className="umg-input"
-                            value={sysEmailForm.template}
-                            onChange={(e) => {
-                            const value = e.target.value;
-                            const tpl = SYSTEM_EMAIL_TEMPLATES[value] || { subject: "", message: "" };
-                            setSysEmailForm(prev => ({
-                                ...prev,
-                                template: value,
-                                subject: tpl.subject,
-                                message: tpl.message,
-                            }));
-                            }}
-                        >
-                            {Object.keys(SYSTEM_EMAIL_TEMPLATES).map(k => (
-                            <option key={k} value={k}>{k}</option>
-                            ))}
-                        </select>
+                        {/* Footer */}
+                        <div className="umg-modal-footer">
+                            <button className="umg-btn-secondary" onClick={() => setShowSysEmailModal(false)}>Cancel</button>
+                            <button
+                                className="umg-btn-primary"
+                                onClick={() => {
+                                    if (!sysEmailForm.subject.trim() || !sysEmailForm.message.trim()) {
+                                        alert("Please provide a subject and message.");
+                                        return;
+                                    }
+                                    let recipients = [];
+                                    if (sysEmailForm.recipientsOption === "All users") {
+                                        recipients = allUsers.map(u => u.email);
+                                    } else if (sysEmailForm.recipientsOption === "Administrators only") {
+                                        recipients = allUsers.filter(u => u.role === "Admin").map(u => u.email);
+                                    } else if (sysEmailForm.recipientsOption === "Specific users") {
+                                        const chosen = new Set(sysEmailForm.selectedUserIds);
+                                        recipients = allUsers.filter(u => chosen.has(u.id)).map(u => u.email);
+                                    } else if (sysEmailForm.recipientsOption === "Custom Email Addresses") {
+                                        recipients = parseCustomEmails(sysEmailForm.customEmails);
+                                    }
+
+                                    console.log("SYSTEM SETTINGS SEND ▶", {
+                                        ...sysEmailForm,
+                                        recipients,
+                                        total: recipients.length,
+                                    });
+
+                                    setShowSysEmailModal(false);
+                                }}
+                            >
+                                Send Email
+                            </button>
                         </div>
-
-                        {/* Subject */}
-                        <div className="umg-field">
-                        <label className="umg-label">Subject</label>
-                        <input
-                            className="umg-input"
-                            placeholder="Enter email subject"
-                            value={sysEmailForm.subject}
-                            onChange={(e) => setSysEmailForm(prev => ({ ...prev, subject: e.target.value }))}
-                        />
-                        </div>
-
-                        {/* Message */}
-                        <div className="umg-field">
-                        <label className="umg-label">Message</label>
-                        <textarea
-                            className="umg-input umg-textarea"
-                            placeholder="Enter your message"
-                            value={sysEmailForm.message}
-                            onChange={(e) => setSysEmailForm(prev => ({ ...prev, message: e.target.value }))}
-                        />
-                        </div>
-
-                        {/* Announcement */}
-                        <label className="umg-check">
-                        <input
-                            type="checkbox"
-                            checked={sysEmailForm.markAnnouncement}
-                            onChange={(e) => setSysEmailForm({ ...sysEmailForm, markAnnouncement: e.target.checked })}
-                        />
-                        <div>
-                            <div><Bell size={16} /> Mark as Announcement</div>
-                            <div className="umg-check-hint">Announcements appear in user notifications</div>
-                        </div>
-                        </label>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="umg-modal-footer">
-                        <button className="umg-btn-secondary" onClick={() => setShowSysEmailModal(false)}>Cancel</button>
-                        <button
-                        className="umg-btn-primary"
-                        onClick={() => {
-                            if (!sysEmailForm.subject.trim() || !sysEmailForm.message.trim()) {
-                            alert("Please provide a subject and message.");
-                            return;
-                            }
-                            let recipients = [];
-                            if (sysEmailForm.recipientsOption === "All users") {
-                            recipients = allUsers.map(u => u.email);
-                            } else if (sysEmailForm.recipientsOption === "Administrators only") {
-                            recipients = allUsers.filter(u => u.role === "Admin").map(u => u.email);
-                            } else if (sysEmailForm.recipientsOption === "Specific users") {
-                            const chosen = new Set(sysEmailForm.selectedUserIds);
-                            recipients = allUsers.filter(u => chosen.has(u.id)).map(u => u.email);
-                            } else if (sysEmailForm.recipientsOption === "Custom Email Addresses") {
-                            recipients = parseCustomEmails(sysEmailForm.customEmails);
-                            }
-
-                            console.log("SYSTEM SETTINGS SEND ▶", {
-                            ...sysEmailForm,
-                            recipients,
-                            total: recipients.length,
-                            });
-
-                            setShowSysEmailModal(false);
-                        }}
-                        >
-                        Send Email
-                        </button>
-                    </div>
                     </div>
                 </div>
-                )}
+            )}
         </div>
     );
 }
