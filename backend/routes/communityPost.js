@@ -223,17 +223,14 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// POST route to create a new comment
+// POST route to create a new comment 
 router.post('/comments', async (req, res) => {
+  console.log('=== COMMENT CREATION STARTED ===');
+  console.log('📦 Request body:', req.body);
+  console.log('🔐 Session user:', req.session?.user);
+
   try {
-    const { content, postId } = req.body;
-
-    console.log('🔐 Comment Session Debug:', {
-      hasSession: !!req.session,
-      sessionUser: req.session?.user,
-      userID: req.session?.user?.userID
-    });
-
+    // ✅ Enhanced session validation
     if (!req.session || !req.session.user || !req.session.user.userID) {
       console.log('❌ No valid session user found');
       return res.status(401).json({ 
@@ -247,43 +244,20 @@ router.post('/comments', async (req, res) => {
 
     console.log('✅ Processing comment for:', { userID, userRole });
 
+    // ✅ Get userProfileID
     let userProfileID;
-
-    // ✅ FIXED: Handle both regular users and admins
-    if (userRole === 'admin') {
-      console.log('👑 Admin user detected, using admin profile');
-      
-      // For admins, check if they have a profile or create one
-      let [adminProfileResult] = await db.execute(
+    try {
+      const [profileResult] = await db.execute(
         'SELECT userProfileID FROM userProfile WHERE userID = ?',
         [userID]
       );
       
-      if (adminProfileResult.length === 0) {
-        console.log('🆕 Creating admin userProfile for admin user:', userID);
-        const [createResult] = await db.execute(
-          `INSERT INTO userProfile 
-           (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, isAdmin) 
-           VALUES (?, '[]', '[]', true, true, true, 'en', true)`,
-          [userID]
-        );
-        
-        [adminProfileResult] = await db.execute(
-          'SELECT userProfileID FROM userProfile WHERE userID = ?',
-          [userID]
-        );
-      }
-      
-      userProfileID = adminProfileResult[0]?.userProfileID;
-    } else {
-      // Regular user flow
-      let [profileResult] = await db.execute(
-        'SELECT userProfileID FROM userProfile WHERE userID = ?',
-        [userID]
-      );
+      console.log('🔍 Profile query result:', profileResult);
       
       if (profileResult.length === 0) {
         console.log('🆕 Creating userProfile for user:', userID);
+        
+        // Create userProfile if it doesn't exist
         const [createResult] = await db.execute(
           `INSERT INTO userProfile 
            (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
@@ -291,13 +265,18 @@ router.post('/comments', async (req, res) => {
           [userID]
         );
         
-        [profileResult] = await db.execute(
-          'SELECT userProfileID FROM userProfile WHERE userID = ?',
-          [userID]
-        );
+        userProfileID = createResult.insertId;
+        console.log('✅ Created new userProfile with ID:', userProfileID);
+      } else {
+        userProfileID = profileResult[0].userProfileID;
+        console.log('✅ Found userProfileID:', userProfileID);
       }
-      
-      userProfileID = profileResult[0]?.userProfileID;
+    } catch (dbError) {
+      console.error('❌ Database error fetching userProfile:', dbError);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Server error accessing user profile' 
+      });
     }
 
     if (!userProfileID) {
@@ -307,39 +286,78 @@ router.post('/comments', async (req, res) => {
       });
     }
 
-    console.log('✅ Using userProfileID:', userProfileID, 'for role:', userRole);
+    const { content, postId } = req.body;
 
-    // ✅ Validation
-    const { error, value } = commentSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
-    if (error) {
-      return res.status(400).json({ 
-        success: false, 
-        message: error.details.map(d => d.message).join(", ") 
+    // ✅ Enhanced validation
+    if (!content || !postId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: content and postId are required'
       });
     }
-    
-    const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
-    Object.assign(req.body, cleanData);
 
-    console.log('📝 Creating new comment:', { content, postId, userProfileID });
+    if (content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Comment content cannot be empty'
+      });
+    }
 
-    // Insert comment into database
+    console.log('✅ Validated input:', { 
+      postId, 
+      userProfileID, 
+      contentLength: content.length,
+      userRole 
+    });
+
+    // ✅ Validate post exists
+    try {
+      const [postCheck] = await db.execute(
+        'SELECT postID FROM posts WHERE postID = ? AND status = "Approved"',
+        [postId]
+      );
+
+      if (postCheck.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Post not found or not approved'
+        });
+      }
+    } catch (postError) {
+      console.error('❌ Error checking post:', postError);
+      return res.status(500).json({
+        success: false,
+        message: 'Error validating post'
+      });
+    }
+
+    // ✅ Sanitize content (no Joi validation to avoid complexity)
+    const cleanContent = sanitizeInput(content.trim());
+
+    console.log('📝 Creating new comment:', { 
+      content: cleanContent, 
+      postId, 
+      userProfileID 
+    });
+
+    // ✅ Insert comment into database
     const insertQuery = `
       INSERT INTO comments (comment, postID, userProfileID, created_at) 
       VALUES (?, ?, ?, NOW())
     `;
     
-    const isAdminComment = userRole === 'admin';
-    const [result] = await db.execute(insertQuery, [cleanContent, postId, userProfileID, isAdminComment]);
+    const [result] = await db.execute(insertQuery, [cleanContent, postId, userProfileID]);
     console.log('✅ Comment inserted with ID:', result.insertId);
 
+    // ✅ Retrieve the created comment with user info
     const commentQuery = `
       SELECT 
         c.commentID,
         c.comment AS text,
         c.created_at,
         up.userProfileID,
-        CONCAT(u.firstname, ' ', u.lastname) AS author
+        CONCAT(u.firstname, ' ', u.lastname) AS author,
+        u.role
       FROM comments c
       JOIN userProfile up ON c.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
@@ -347,14 +365,12 @@ router.post('/comments', async (req, res) => {
     `;
 
     const [comments] = await db.execute(commentQuery, [result.insertId]);
-    if (comments.length === 0) throw new Error('Failed to retrieve created comment');
+    
+    if (comments.length === 0) {
+      throw new Error('Failed to retrieve created comment');
+    }
 
     const newComment = comments[0];
-
-    let authorName = newComment.author;
-    if (newComment.isAdmin || userRole === 'admin') {
-      authorName = `👑 ${newComment.author} (Admin)`;
-    }
 
     const formattedComment = {
       id: newComment.commentID,
@@ -362,21 +378,28 @@ router.post('/comments', async (req, res) => {
       author: newComment.author,
       daysAgo: getTimeAgo(newComment.created_at),
       userProfileID: newComment.userProfileID,
-      isAdmin: newComment.isAdmin || userRole === 'admin'
+      isAdmin: newComment.role === 'admin'
     };
+
+    console.log('✅ Comment created successfully:', {
+      commentId: formattedComment.id,
+      author: formattedComment.author
+    });
 
     res.status(201).json({
       success: true,
-      comment: formattedComment,
-      message: 'Comment posted successfully'
+      message: 'Comment posted successfully',
+      comment: formattedComment
     });
 
   } catch (error) {
     console.error('❌ Error posting comment:', error);
+    console.error('❌ Error stack:', error.stack);
+    
     res.status(500).json({
       success: false,
       message: 'Error posting comment',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });

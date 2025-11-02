@@ -284,46 +284,64 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (isGuest) {
-      openLoginModal();
-      return;
-    }
-    if (!comment.trim()) return;
+  e.preventDefault();
+  if (isGuest) {
+    openLoginModal();
+    return;
+  }
+  if (!comment.trim()) return;
 
-    try {
-      setLoading(true);
-      const API_BASE_URL =
-        import.meta.env.VITE_API_URL || "http://localhost:5000";
+  try {
+    setLoading(true);
+    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-      const userProfileID = getStableProfileId(user);
+    console.log("📤 Sending comment:", { 
+      content: comment, 
+      postId 
+    });
 
-      const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          content: comment,
-          postId,
-          userProfileID,
-        }),
-      });
+    const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        content: comment,
+        postId: postId,
+      }),
+    });
 
-      const result = await response.json();
-      if (response.ok && result.success) {
-        onCommentAdded(result.comment);
-        setComment(""); 
-        alert("Comment posted successfully!");
-      } else {
-        // Leave silent for UX; console helps debugging
-        console.error("Comment failed:", result.message);
+    console.log("📥 Response status:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ Server error response:", errorText);
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.message || `Failed to post comment (${response.status})`);
+      } catch (e) {
+        throw new Error(`Server error ${response.status}: ${errorText}`);
       }
-    } catch (err) {
-      console.error("Error posting comment:", err);
-    } finally {
-      setLoading(false);
     }
-  };
+
+    const result = await response.json();
+    console.log("✅ Comment result:", result);
+    
+    if (result.success && result.comment) {
+      onCommentAdded(result.comment);
+      setComment("");
+      // Optional: Show success message
+      alert("Comment posted successfully!");
+    } else {
+      throw new Error(result.message || "Failed to post comment");
+    }
+  } catch (err) {
+    console.error("Error posting comment:", err);
+    alert(err.message || "Failed to post comment. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="comment-section">
