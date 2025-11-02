@@ -89,87 +89,141 @@ const normalizePrefs = (data = {}) => {
   return normalized;
 };
 
-// ✅ FIXED: Complete save function with proper array handling
-const saveToBackend = async (updateData, type = 'preferences') => {
-  try {
-    // Ensure proper array format with the complex handling that works
-    const payload = {
-      ...updateData,
-      dietary: Array.isArray(updateData.dietary) ? updateData.dietary : 
-               (typeof updateData.dietary === 'string' ? JSON.parse(updateData.dietary) : 
-               (updateData.dietary && typeof updateData.dietary === 'object' ? Object.values(updateData.dietary) : [])),
-      allergies: Array.isArray(updateData.allergies) ? updateData.allergies : 
-                 (typeof updateData.allergies === 'string' ? JSON.parse(updateData.allergies) : 
-                 (updateData.allergies && typeof updateData.allergies === 'object' ? Object.values(updateData.allergies) : [])),
-      emailNotifications: Boolean(updateData.emailNotifications),
-      pushNotifications: Boolean(updateData.pushNotifications),
-      profileVisibility: Boolean(updateData.profileVisibility)
-    };
+// // ✅ FIXED: Complete save function with proper array handling
+// const saveToBackend = async (updateData, type = 'preferences') => {
+//   try {
+//     // Ensure proper array format with the complex handling that works
+//     const payload = {
+//       ...updateData,
+//       dietary: Array.isArray(updateData.dietary) ? updateData.dietary : 
+//                (typeof updateData.dietary === 'string' ? JSON.parse(updateData.dietary) : 
+//                (updateData.dietary && typeof updateData.dietary === 'object' ? Object.values(updateData.dietary) : [])),
+//       allergies: Array.isArray(updateData.allergies) ? updateData.allergies : 
+//                  (typeof updateData.allergies === 'string' ? JSON.parse(updateData.allergies) : 
+//                  (updateData.allergies && typeof updateData.allergies === 'object' ? Object.values(updateData.allergies) : [])),
+//       emailNotifications: Boolean(updateData.emailNotifications),
+//       pushNotifications: Boolean(updateData.pushNotifications),
+//       profileVisibility: Boolean(updateData.profileVisibility)
+//     };
 
-    console.log(`📤 Sending ${type} payload:`, payload);
-    console.log("🔍 Dietary payload:", payload.dietary, "type:", typeof payload.dietary, "isArray:", Array.isArray(payload.dietary));
-    console.log("🔍 Allergies payload:", payload.allergies, "type:", typeof payload.allergies, "isArray:", Array.isArray(payload.allergies));
+//     console.log(`📤 Sending ${type} payload:`, payload);
+//     console.log("🔍 Dietary payload:", payload.dietary, "type:", typeof payload.dietary, "isArray:", Array.isArray(payload.dietary));
+//     console.log("🔍 Allergies payload:", payload.allergies, "type:", typeof payload.allergies, "isArray:", Array.isArray(payload.allergies));
 
-    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
+//     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+//       method: "PUT",
+//       headers: { "Content-Type": "application/json" },
+//       credentials: "include",
+//       body: JSON.stringify(payload),
+//     });
     
-    console.log(`📥 ${type} response status:`, res.status);
+//     console.log(`📥 ${type} response status:`, res.status);
     
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`❌ ${type} update error:`, errorText);
+//     if (!res.ok) {
+//       const errorText = await res.text();
+//       console.error(`❌ ${type} update error:`, errorText);
       
-      // Try to parse error for better message
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.details ? errorData.details.join(', ') : errorData.error);
-      } catch (e) {
-        throw new Error(`Failed to update ${type} (${res.status}): ${errorText}`);
-      }
-    }
+//       // Try to parse error for better message
+//       try {
+//         const errorData = JSON.parse(errorText);
+//         throw new Error(errorData.details ? errorData.details.join(', ') : errorData.error);
+//       } catch (e) {
+//         throw new Error(`Failed to update ${type} (${res.status}): ${errorText}`);
+//       }
+//     }
     
-    const result = await res.json();
-    console.log(`✅ ${type} update result:`, result);
+//     const result = await res.json();
+//     console.log(`✅ ${type} update result:`, result);
     
-    if (result.success) {
-      alert(`${type === 'preferences' ? 'Preferences' : 'Profile'} updated successfully!`);
+//     if (result.success) {
+//       alert(`${type === 'preferences' ? 'Preferences' : 'Profile'} updated successfully!`);
       
-      // Update local user state if needed
-      if (type === 'profile') {
-        setUser(prev => ({ 
-          ...prev, 
-          location: updateData.location, 
-          bio: updateData.bio 
-        }));
-      }
+//       // Update local user state if needed
+//       if (type === 'profile') {
+//         setUser(prev => ({ 
+//           ...prev, 
+//           location: updateData.location, 
+//           bio: updateData.bio 
+//         }));
+//       }
       
-      return result;
-    } else {
-      throw new Error(result.error || `Update failed for ${type}`);
-    }
-  } catch (e) {
-    console.error(`${type} update error:`, e);
-    alert(e.message || `Failed to update ${type}`);
-    throw e;
-  }
+//       return result;
+//     } else {
+//       throw new Error(result.error || `Update failed for ${type}`);
+//     }
+//   } catch (e) {
+//     console.error(`${type} update error:`, e);
+//     alert(e.message || `Failed to update ${type}`);
+//     throw e;
+//   }
+// };
+
+
+
+const toggleInArray = (arr, value) =>
+  arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
+
+const fmtStatus = (s) => {
+  if (!s) return "Unknown";
+  
+  const statusMap = {
+    "approved": "Approved",
+    "pending": "Pending Review", 
+    "rejected": "Rejected",
+    "Approved": "Approved",
+    "Pending": "Pending Review",
+    "Rejected": "Rejected"
+  };
+  
+  return statusMap[s] || "Unknown";
 };
 
-// ===== Save: Personal Info =====
+const formatContributionDate = (dateString) => {
+  if (!dateString) return "Date not available";
+  const d = new Date(dateString);
+  return isNaN(d.getTime())
+    ? "Date not available"
+    : d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+};
+
+export default function UserProfilePage() {
+  const { userProfileID } = useParams();
+  const navigate = useNavigate();
+
+  // State
+  const [user, setUser] = useState(null);
+  const [prefs, setPrefs] = useState(DEFAULT_PREFS);
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", location: "" });
+  const [bio, setBio] = useState("");
+
+  const [tab, setTab] = useState("info");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false); // ✅ Guest popup control
+
+  // ✅ Avatar Upload State
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+
+  // Saved Foods Pagination
+  const [savedPage, setSavedPage] = useState(1);
+  const [currentSaved, setCurrentSaved] = useState([]);
+  const [totalSavedPages, setTotalSavedPages] = useState(1);
+
+  // ===== Save: Personal Info =====
 const savePersonal = async () => {
   try {
     const updateData = { 
-      location: location, 
+      location: form.location, 
       bio: bio,
-      emailNotifications: emailNotifications,
-      pushNotifications: pushNotifications,
-      profileVisibility: profileVisibility,
-      language: language,
-      dietary: dietary,
-      allergies: allergies
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language,
+      dietary: prefs.dietary,
+      allergies: prefs.allergies
     };
     
     console.log("📤 Saving personal info:", updateData);
@@ -194,7 +248,7 @@ const savePersonal = async () => {
     
     if (result.success) {
       alert("Profile updated successfully!");
-      setUser(prev => ({ ...prev, location: location, bio: bio }));
+      setUser(prev => ({ ...prev, location: form.location, bio: bio }));
     } else {
       throw new Error(result.error || "Update failed");
     }
@@ -248,58 +302,6 @@ const savePrefs = async () => {
     alert(e.message || "Failed to update preferences");
   }
 };
-
-const toggleInArray = (arr, value) =>
-  arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
-
-const fmtStatus = (s) => {
-  if (!s) return "Unknown";
-  
-  const statusMap = {
-    "approved": "Approved",
-    "pending": "Pending Review", 
-    "rejected": "Rejected",
-    "Approved": "Approved",
-    "Pending": "Pending Review",
-    "Rejected": "Rejected"
-  };
-  
-  return statusMap[s] || "Unknown";
-};
-
-const formatContributionDate = (dateString) => {
-  if (!dateString) return "Date not available";
-  const d = new Date(dateString);
-  return isNaN(d.getTime())
-    ? "Date not available"
-    : d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-};
-
-export default function UserProfilePage() {
-  const { userProfileID } = useParams();
-  const navigate = useNavigate();
-
-  // State
-  const [user, setUser] = useState(null);
-  const [prefs, setPrefs] = useState(DEFAULT_PREFS);
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", location: "" });
-  const [bio, setBio] = useState("");
-
-  const [tab, setTab] = useState("info");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false); // ✅ Guest popup control
-
-  // ✅ Avatar Upload State
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState(null);
-  const [avatarFile, setAvatarFile] = useState(null);
-
-  // Saved Foods Pagination
-  const [savedPage, setSavedPage] = useState(1);
-  const [currentSaved, setCurrentSaved] = useState([]);
-  const [totalSavedPages, setTotalSavedPages] = useState(1);
 
   // --- Hardcoded community contributions (frontend only) ---
   const HARDCODED_COMMUNITY = [
@@ -862,14 +864,14 @@ export default function UserProfilePage() {
                       <label>
                         <span>First Name</span>
                         <input
-                          value={firstName}
+                          value={form.firstName}
                           onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))}
                         />
                       </label>
                       <label>
                         <span>Last Name</span>
                         <input
-                          value={lastName}
+                          value={form.lastName}
                           onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))}
                         />
                       </label>
@@ -881,7 +883,7 @@ export default function UserProfilePage() {
                         <span>Email</span>
                         <input
                           type="email"
-                          value={email}
+                          value={form.email}
                           onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                         />
                       </label>
@@ -889,7 +891,7 @@ export default function UserProfilePage() {
                       <label>
                         <span>Location</span>
                         <input
-                          value={location}
+                          value={form.location}
                           onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
                         />
                       </label>
@@ -1071,17 +1073,17 @@ export default function UserProfilePage() {
                   <h3 className="upp-card-title">Dietary Preferences</h3>
                   <div className="upp-choice-grid">
                     {DIETARY_OPTIONS.map((id) => (
-                      <label key={id} className={`upp-choice ${dietary.includes(id) ? "is-on" : ""}`}>
+                      <label key={id} className={`upp-choice ${prefs.dietary.includes(id) ? "is-on" : ""}`}>
                         <input
                           type="checkbox"
-                          checked={dietary.includes(id)}
+                          checked={prefs.dietary.includes(id)}
                           onChange={() => setPrefs((p) => ({ ...p, dietary: toggleInArray(p.dietary, id) }))}
                         />
                         {id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                       </label>
                     ))}
                   </div>
-                  {dietary.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No dietary preferences selected</div>}
+                  {prefs.dietary.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No dietary preferences selected</div>}
                 </div>
 
                 {/* Allergies */}
@@ -1089,17 +1091,17 @@ export default function UserProfilePage() {
                   <h3 className="upp-card-title">Allergies / Restrictions</h3>
                   <div className="upp-choice-grid">
                     {ALLERGY_OPTIONS.map((id) => (
-                      <label key={id} className={`upp-choice ${allergies.includes(id) ? "is-on" : ""}`}>
+                      <label key={id} className={`upp-choice ${prefs.allergies.includes(id) ? "is-on" : ""}`}>
                         <input
                           type="checkbox"
-                          checked={allergies.includes(id)}
+                          checked={prefs.allergies.includes(id)}
                           onChange={() => setPrefs((p) => ({ ...p, allergies: toggleInArray(p.allergies, id) }))}
                         />
                         {id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                       </label>
                     ))}
                   </div>
-                  {allergies.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No allergies selected</div>}
+                  {prefs.allergies.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No allergies selected</div>}
                 </div>
 
                 <button className="lrp-btn lrp-btn-primary" onClick={savePrefs}>Save Preferences</button>
@@ -1119,7 +1121,7 @@ export default function UserProfilePage() {
                     <label className="upp-switch">
                       <input
                         type="checkbox"
-                        checked={emailNotifications}
+                        checked={prefs.emailNotifications}
                         onChange={(e) => setPrefs((p) => ({ ...p, emailNotifications: e.target.checked }))}
                       />
                       <span />
@@ -1134,7 +1136,7 @@ export default function UserProfilePage() {
                     <label className="upp-switch">
                       <input
                         type="checkbox"
-                        checked={pushNotifications}
+                        checked={prefs.pushNotifications}
                         onChange={(e) => setPrefs((p) => ({ ...p, pushNotifications: e.target.checked }))}
                       />
                       <span />
@@ -1153,7 +1155,7 @@ export default function UserProfilePage() {
                       className="lrp-btn lrp-btn-outline upp-btn"
                       onClick={() => setPrefs((p) => ({ ...p, language: p.language === "en" ? "ms" : "en" }))}
                     >
-                      {language === "en" ? "Bahasa Malaysia" : "English"}
+                      {prefs.language === "en" ? "Bahasa Malaysia" : "English"}
                     </button>
                   </div>
                 </div>
@@ -1168,7 +1170,7 @@ export default function UserProfilePage() {
                     <label className="upp-switch">
                       <input
                         type="checkbox"
-                        checked={profileVisibility}
+                        checked={prefs.profileVisibility}
                         onChange={(e) => setPrefs((p) => ({ ...p, profileVisibility: e.target.checked }))}
                       />
                       <span />
