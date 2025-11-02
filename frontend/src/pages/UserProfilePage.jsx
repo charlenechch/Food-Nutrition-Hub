@@ -31,65 +31,65 @@ const DEFAULT_PREFS = {
   language: "en"
 };
 
-const uploadAvatar = async () => {
-  if (!avatarFile) {
-    alert('Please select an image first');
-    return;
-  }
+// const uploadAvatar = async () => {
+//   if (!avatarFile) {
+//     alert('Please select an image first');
+//     return;
+//   }
 
-  try {
-    setIsUploadingAvatar(true);
+//   try {
+//     setIsUploadingAvatar(true);
     
-    const formData = new FormData();
-    formData.append('avatar', avatarFile);
+//     const formData = new FormData();
+//     formData.append('avatar', avatarFile);
 
-    // ✅ DEBUG: Log the exact URL being called
-    const uploadUrl = `${API_BASE_URL}/api/userProfile/avatar`;
-    console.log('🔍 Uploading to URL:', uploadUrl);
-    console.log('🔍 Full API_BASE_URL:', API_BASE_URL);
+//     // ✅ DEBUG: Log the exact URL being called
+//     const uploadUrl = `${API_BASE_URL}/api/userProfile/avatar`;
+//     console.log('🔍 Uploading to URL:', uploadUrl);
+//     console.log('🔍 Full API_BASE_URL:', API_BASE_URL);
 
-    const res = await fetch(uploadUrl, {
-      method: 'POST',
-      credentials: 'include',
-      body: formData,
-    });
+//     const res = await fetch(uploadUrl, {
+//       method: 'POST',
+//       credentials: 'include',
+//       body: formData,
+//     });
 
-    console.log('🔍 Response status:', res.status);
-    console.log('🔍 Response headers:', res.headers);
+//     console.log('🔍 Response status:', res.status);
+//     console.log('🔍 Response headers:', res.headers);
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('❌ Server error response:', errorText);
-      throw new Error(`Failed to upload avatar (${res.status}): ${errorText}`);
-    }
+//     if (!res.ok) {
+//       const errorText = await res.text();
+//       console.error('❌ Server error response:', errorText);
+//       throw new Error(`Failed to upload avatar (${res.status}): ${errorText}`);
+//     }
 
-    const result = await res.json();
+//     const result = await res.json();
     
-    if (result.success) {
-      // Update user state with new avatar
-      setUser(prev => ({ ...prev, avatar: result.avatarUrl }));
-      alert('Avatar updated successfully!');
-      closeAvatarModal();
+//     if (result.success) {
+//       // Update user state with new avatar
+//       setUser(prev => ({ ...prev, avatar: result.avatarUrl }));
+//       alert('Avatar updated successfully!');
+//       closeAvatarModal();
       
-      // Reload the profile to get updated data
-      const endpoint = userProfileID
-        ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
-        : `${API_BASE_URL}/api/userProfile`;
-      const r2 = await fetch(endpoint, { credentials: "include" });
-      if (r2.ok) {
-        const updatedUser = await r2.json();
-        setUser(updatedUser);
-      }
-    } else {
-      throw new Error(result.error || 'Upload failed');
-    }
-  } catch (error) {
-    console.error('Avatar upload error:', error);
-    alert(error.message || 'Failed to upload avatar');
-  } finally {
-    setIsUploadingAvatar(false);
-  }
-};
+//       // Reload the profile to get updated data
+//       const endpoint = userProfileID
+//         ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
+//         : `${API_BASE_URL}/api/userProfile`;
+//       const r2 = await fetch(endpoint, { credentials: "include" });
+//       if (r2.ok) {
+//         const updatedUser = await r2.json();
+//         setUser(updatedUser);
+//       }
+//     } else {
+//       throw new Error(result.error || 'Upload failed');
+//     }
+//   } catch (error) {
+//     console.error('Avatar upload error:', error);
+//     alert(error.message || 'Failed to upload avatar');
+//   } finally {
+//     setIsUploadingAvatar(false);
+//   }
+// };
 
 // ✅ FIXED: Better normalization that ensures clean string arrays
 const normalizePrefs = (data = {}) => {
@@ -220,34 +220,93 @@ const saveToBackend = async (updateData, type = 'preferences') => {
 
 // ===== Save: Personal Info =====
 const savePersonal = async () => {
-  const updateData = { 
-    location: form.location, 
-    bio: bio,
-    emailNotifications: prefs.emailNotifications,
-    pushNotifications: prefs.pushNotifications,
-    profileVisibility: prefs.profileVisibility,
-    language: prefs.language,
-    dietary: prefs.dietary,
-    allergies: prefs.allergies
-  };
-  
-  await saveToBackend(updateData, 'profile');
+  try {
+    const updateData = { 
+      location: form.location, 
+      bio: bio,
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language,
+      dietary: prefs.dietary,
+      allergies: prefs.allergies
+    };
+    
+    console.log("📤 Saving personal info:", updateData);
+    
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(updateData),
+    });
+    
+    console.log("📥 Personal info response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Personal info update error:", errorText);
+      throw new Error(`Failed to update profile (${res.status}): ${errorText}`);
+    }
+    
+    const result = await res.json();
+    console.log("✅ Personal info update result:", result);
+    
+    if (result.success) {
+      alert("Profile updated successfully!");
+      setUser(prev => ({ ...prev, location: form.location, bio: bio }));
+    } else {
+      throw new Error(result.error || "Update failed");
+    }
+  } catch (e) {
+    console.error("Personal info update error:", e);
+    alert(e.message || "Failed to update profile");
+  }
 };
 
 // ===== Save: Preferences =====
 const savePrefs = async () => {
-  const preferencesPayload = {
-    dietary: prefs.dietary,
-    allergies: prefs.allergies,
-    emailNotifications: prefs.emailNotifications,
-    pushNotifications: prefs.pushNotifications,
-    profileVisibility: prefs.profileVisibility,
-    language: prefs.language,
-    location: user?.location || "",
-    bio: user?.bio || ""
-  };
-  
-  await saveToBackend(preferencesPayload, 'preferences');
+  try {
+    const preferencesPayload = {
+      dietary: prefs.dietary,
+      allergies: prefs.allergies,
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language,
+      location: user?.location || "",
+      bio: user?.bio || ""
+    };
+    
+    console.log("📤 Saving preferences:", preferencesPayload);
+
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(preferencesPayload),
+    });
+    
+    console.log("📥 Preferences response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Preferences update error:", errorText);
+      throw new Error(`Failed to update preferences (${res.status}): ${errorText}`);
+    }
+    
+    const result = await res.json();
+    console.log("✅ Preferences update result:", result);
+    
+    if (result.success) {
+      alert("Preferences updated successfully!");
+    } else {
+      throw new Error(result.error || "Update failed");
+    }
+  } catch (e) {
+    console.error("Preferences update error:", e);
+    alert(e.message || "Failed to update preferences");
+  }
 };
 
 const toggleInArray = (arr, value) =>
