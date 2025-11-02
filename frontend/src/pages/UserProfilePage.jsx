@@ -582,12 +582,15 @@ const savePersonal = async () => {
       pushNotifications: prefs.pushNotifications === true || prefs.pushNotifications === 'true',
       profileVisibility: prefs.profileVisibility === true || prefs.profileVisibility === 'true',
       language: prefs.language,
-      dietary: Array.isArray(prefs.dietary) ? prefs.dietary : [prefs.dietary].filter(item => item && item !== ''),
-      allergies: Array.isArray(prefs.allergies) ? prefs.allergies : [prefs.allergies].filter(item => item && item !== '')
-    
+      dietary: Array.isArray(prefs.dietary) ? prefs.dietary : 
+               (typeof prefs.dietary === 'string' ? [prefs.dietary] : []),
+      allergies: Array.isArray(prefs.allergies) ? prefs.allergies : 
+                 (typeof prefs.allergies === 'string' ? [prefs.allergies] : [])
     };
 
     console.log("📤 Saving personal info:", updateData);
+    console.log("🔍 Dietary type:", typeof prefs.dietary, "value:", prefs.dietary);
+    console.log("🔍 Allergies type:", typeof prefs.allergies, "value:", prefs.allergies);
 
     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
       method: "PUT",
@@ -623,8 +626,10 @@ const savePersonal = async () => {
 const savePrefs = async () => {
   try {
     const preferencesPayload = {
-      dietary: Array.isArray(prefs.dietary) ? prefs.dietary : [prefs.dietary].filter(item => item && item !== ''),
-      allergies: Array.isArray(prefs.allergies) ? prefs.allergies : [prefs.allergies].filter(item => item && item !== ''),
+      dietary: Array.isArray(prefs.dietary) ? prefs.dietary : 
+               (typeof prefs.dietary === 'string' ? [prefs.dietary] : []),
+      allergies: Array.isArray(prefs.allergies) ? prefs.allergies : 
+                 (typeof prefs.allergies === 'string' ? [prefs.allergies] : []),
       emailNotifications: prefs.emailNotifications === true || prefs.emailNotifications === 'true',
       pushNotifications: prefs.pushNotifications === true || prefs.pushNotifications === 'true',
       profileVisibility: prefs.profileVisibility === true || prefs.profileVisibility === 'true',
@@ -634,6 +639,8 @@ const savePrefs = async () => {
     };
 
     console.log("📤 Saving preferences:", preferencesPayload);
+    console.log("🔍 Dietary type:", typeof prefs.dietary, "value:", prefs.dietary);
+    console.log("🔍 Allergies type:", typeof prefs.allergies, "value:", prefs.allergies);
 
     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
       method: "PUT",
