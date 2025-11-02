@@ -63,83 +63,83 @@ router.get("/user/:userId", async (req, res) => {
   }
 });
 
-// ✅ GET single community post for revision
-// router.get("/post/:id", async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     console.log(`📥 Fetching community post for revision: ${id}`);
+//✅ GET single community post for revision
+router.get("/post/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`📥 Fetching community post for revision: ${id}`);
 
-//     const query = `
-//       SELECT 
-//         postID as id,
-//         foodName as title,
-//         photos as image,
-//         status,
-//         created_at as submittedDate,
-//         origin as culturalOrigin,
-//         culturalStory as content,
-//         recipe
-//       FROM posts 
-//       WHERE postID = ?
-//     `;
+    const query = `
+      SELECT 
+        postID as id,
+        foodName as title,
+        photos as image,
+        status,
+        created_at as submittedDate,
+        origin as culturalOrigin,
+        culturalStory as content,
+        recipe
+      FROM posts 
+      WHERE postID = ?
+    `;
     
-//     const [posts] = await db.execute(query, [id]);
+    const [posts] = await db.execute(query, [id]);
     
-//     if (posts.length === 0) {
-//       return res.status(404).json({ error: 'Community post not found' });
-//     }
+    if (posts.length === 0) {
+      return res.status(404).json({ error: 'Community post not found' });
+    }
 
-//     const post = posts[0];
+    const post = posts[0];
     
-//     res.json({
-//       success: true,
-//       data: post
-//     });
-//   } catch (error) {
-//     console.error('❌ Error fetching community post:', error);
-//     res.status(500).json({ 
-//       error: 'Failed to fetch community post',
-//       details: process.env.NODE_ENV === 'development' ? error.message : undefined
-//     });
-//   }
-// });
+    res.json({
+      success: true,
+      data: post
+    });
+  } catch (error) {
+    console.error('❌ Error fetching community post:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch community post',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
 
-// // ✅ UPDATE community post (revision)
-// router.put("/:id", async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { title, content, culturalOrigin, recipe, status } = req.body;
+// ✅ UPDATE community post (revision)
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content, culturalOrigin, recipe, status } = req.body;
     
-//     console.log(`📝 Updating community post ${id}:`, { title, culturalOrigin });
+    console.log(`📝 Updating community post ${id}:`, { title, culturalOrigin });
 
-//     const query = `
-//       UPDATE posts 
-//       SET foodName = ?, culturalStory = ?, origin = ?, recipe = ?, status = ?, updated_at = NOW()
-//       WHERE postID = ?
-//     `;
+    const query = `
+      UPDATE posts 
+      SET foodName = ?, culturalStory = ?, origin = ?, recipe = ?, status = ?, updated_at = NOW()
+      WHERE postID = ?
+    `;
     
-//     await db.execute(query, [
-//       title, 
-//       content, 
-//       culturalOrigin, 
-//       recipe || '', 
-//       status || 'pending', 
-//       id
-//     ]);
+    await db.execute(query, [
+      title, 
+      content, 
+      culturalOrigin, 
+      recipe || '', 
+      status || 'pending', 
+      id
+    ]);
 
-//     console.log(`✅ Community post ${id} updated successfully`);
+    console.log(`✅ Community post ${id} updated successfully`);
     
-//     res.json({ 
-//       success: true, 
-//       message: 'Community post updated successfully' 
-//     });
-//   } catch (error) {
-//     console.error('❌ Error updating community post:', error);
-//     res.status(500).json({ 
-//       error: 'Failed to update community post',
-//       details: process.env.NODE_ENV === 'development' ? error.message : undefined
-//     });
-//   }
-// });
+    res.json({ 
+      success: true, 
+      message: 'Community post updated successfully' 
+    });
+  } catch (error) {
+    console.error('❌ Error updating community post:', error);
+    res.status(500).json({ 
+      error: 'Failed to update community post',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
 
 module.exports = router;

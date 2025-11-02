@@ -37,19 +37,8 @@ export default function ReviseRecipePage() {
   const { id } = useParams();              // /revise/:id
   const navigate = useNavigate();
   const { state } = useLocation();
-  const users = useMemo(loadUsers, []);
-  
-  const { ownerUsername, item } = useMemo(() => {
-    const targetId = state?.id || id;
-    for (const [uname, u] of Object.entries(users)) {
-        const hit = (u?.pending || []).find(p => String(p.id) === String(targetId));
-        if (hit) return { ownerUsername: uname, item: hit };
-    }
-    if (state?.snapshot && state?.owner) {
-        return { ownerUsername: state.owner, item: state.snapshot };
-    }
-    return { ownerUsername: null, item: null };
-  }, [users, id, state]);
+  const { contribution, adminFeedback, fieldsWithIssues } = state || {};
+  const item = contribution;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const needsFix = new Set(item?.fieldsWithIssues || []);
@@ -140,7 +129,7 @@ export default function ReviseRecipePage() {
       console.log('📤 Sending update request with data:', revisedData);
 
       // Use your update endpoint instead of create endpoint
-      const response = await fetch(`/api/recipe/update/recipes/${item.id}`, {
+      const response = await fetch(`/api/recipe/update/recipes/${id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json" 
@@ -191,30 +180,28 @@ export default function ReviseRecipePage() {
   };
 
   useEffect(() => {
-    if (!item) return;
-    const p = item.payload || {};
+  if (contribution) {
+    console.log("📝 Initializing form with real contribution:", contribution);
+    const p = contribution;
     setForm(prev => ({
         ...prev,
-        name: p.name || p.title || "",
+        name: p.title || "", 
         origin: p.origin || "",
         difficulty: p.difficulty || "Easy",
         prepTime: p.prepTime ?? "",
         cookTime: p.cookTime ?? "",
         foodType: p.foodType || "Poultry",
-        otherFoodEnabled: !!p.otherFoodEnabled,
-        otherFoodText: p.otherFoodText || "",
         description: p.description || "",
-        imageData: p.imageData || (p.images?.[0] ?? ""),
+        imageData: p.image || "", 
         servings: p.servings ?? "",
         ingredients: p.ingredients || "",
         instructions: p.instructions || "",
-        dietaryTags: p.dietaryTags || [],
-        otherDietEnabled: !!p.otherDietEnabled,
-        otherDietText: p.otherDietText || "",
+        dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
         funFact: p.funFact || "",
         chefTips: p.chefTips || ""
     }));
-  }, [item]);
+  }
+}, [contribution]);
 
   const fieldLabels = {
     name: "Recipe Name",

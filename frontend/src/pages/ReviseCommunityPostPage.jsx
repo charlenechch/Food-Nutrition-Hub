@@ -37,6 +37,7 @@ export default function ReviseCommunityPostPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
 
   // Initialize form with real contribution data
   useEffect(() => {
@@ -74,6 +75,8 @@ export default function ReviseCommunityPostPage() {
       return;
     }
 
+    setSelectedFile(file);
+    
     const reader = new FileReader();
     reader.onload = () =>
       setForm((prev) => ({ ...prev, image: reader.result }));
@@ -90,31 +93,35 @@ export default function ReviseCommunityPostPage() {
       console.log("📤 Submitting community post revision for ID:", id);
       console.log("📤 Form data:", form);
 
-      // Build revised payload
-      const revisedData = {
-        title: form.title.trim(),
-        culturalOrigin: form.culturalOrigin,
-        content: form.content.trim(),
-        recipe: form.recipe,
-        status: "Pending" // ✅ Reset status to Pending for re-review
-      };
+      // Use FormData to handle both text fields and file upload
+      const formData = new FormData();
+      formData.append('title', form.title.trim());
+      formData.append('culturalOrigin', form.culturalOrigin);
+      formData.append('content', form.content.trim());
+      formData.append('recipe', form.recipe);
+      formData.append('status', 'Pending'); // Reset status to Pending
 
-      console.log("📤 Sending to API:", revisedData);
+      // If a new file was selected, append it
+      if (selectedFile) {
+        formData.append('image', selectedFile);
+        console.log("📁 Including new image file:", selectedFile.name);
+      }
+
+      console.log("📤 Sending FormData to API");
 
       const res = await fetch(`${API_BASE_URL}/api/reviseCommunityPost/${id}`, {
         method: "PUT",
-        headers: { 
-          "Content-Type": "application/json" 
-        },
         credentials: "include",
-        body: JSON.stringify(revisedData),
+        body: formData, // Send as FormData instead of JSON
+        // Don't set Content-Type header - browser will set it with boundary
       });
 
       console.log("📥 Response status:", res.status);
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || `Failed to update community post (${res.status})`);
+        const errorText = await res.text();
+        console.error('❌ Server error response:', errorText);
+        throw new Error(`Failed to update community post (${res.status}): ${errorText}`);
       }
 
       const result = await res.json();
@@ -319,8 +326,10 @@ export default function ReviseCommunityPostPage() {
                   accept="image/*"
                   style={{ display: "none" }}
                   onChange={handleImageUpload}
-                  required={!form.image}
                 />
+                <div className="upp-muted" style={{ marginTop: "4px", fontSize: "0.875rem" }}>
+                  {selectedFile ? `New file: ${selectedFile.name}` : "Current image will be kept if no new file selected"}
+                </div>
               </div>
 
               {/* Actions */}
@@ -335,13 +344,19 @@ export default function ReviseCommunityPostPage() {
                 <button
                   className="rp-btn rp-btn-muted"
                   type="button"
-                  onClick={() => setForm({
-                    title: contribution.title || "",
-                    culturalOrigin: contribution.culturalOrigin || "",
-                    content: contribution.content || "",
-                    recipe: contribution.recipe || "",
-                    image: contribution.image || ""
-                  })}
+                  onClick={() => {
+                    setForm({
+                      title: contribution.title || "",
+                      culturalOrigin: contribution.culturalOrigin || "",
+                      content: contribution.content || "",
+                      recipe: contribution.recipe || "",
+                      image: contribution.image || ""
+                    });
+                    setSelectedFile(null);
+                    // Clear file input
+                    const fileInput = document.getElementById("ccp-file-input");
+                    if (fileInput) fileInput.value = '';
+                  }}
                   disabled={isSubmitting}
                 >
                   Reset
