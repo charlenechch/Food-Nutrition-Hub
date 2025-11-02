@@ -580,137 +580,92 @@ router.get("/avatar", async (req, res) => {
   }
 });
 
-// Helper function to get user contributions with rejected/pending/approved status
-const getUserContributions = async (userID, userRole = 'member') => {
+// Enhanced version that includes both recipes and posts
+const getUserContributions = async (userID) => {
   try {
-    console.log(`📝 Fetching contributions for user: ${userID}, role: ${userRole}`);
+    console.log(`📝 Fetching contributions for user: ${userID}`);
     
-    let contributions = [];
-
-    // For ALL users (both members and admins) - get recipe contributions
-    console.log(`🍳 Checking recipe table for contributions...`);
-    const [recipeContributions] = await db.execute(
-      `SELECT 
-        r.recipeID as id,
-        f.name as title,
-        f.image as image,
-        r.status,
-        r.createdAt as submittedDate,
-        'recipe' as type
-      FROM recipe r
-      JOIN food f ON r.foodID = f.foodID
-      WHERE r.userProfileID = ?
-      ORDER BY r.createdAt DESC`,
+    // First, get the userProfileID for this user
+    console.log(`🔍 Getting userProfileID for user: ${userID}`);
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
     );
 
-    contributions = [...recipeContributions];
-
-    // If user is ADMIN, also get admin-specific contributions
-    if (userRole === 'admin') {
-      console.log(`👑 Fetching admin-specific contributions...`);
-      
-      // 1. Get admin actions (approvals/rejections)
-      try {
-        const [adminActions] = await db.execute(
-          `SELECT 
-            actionID as id,
-            action_type as title,
-            target_type as type,
-            created_at as submittedDate,
-            status,
-            'admin_action' as contributionType
-          FROM admin_actions 
-          WHERE admin_id = ?
-          ORDER BY created_at DESC`,
-          [userID]
-        );
-        
-        if (adminActions.length > 0) {
-          contributions = [...contributions, ...adminActions.map(action => ({
-            ...action,
-            type: action.type || 'admin_action',
-            image: null // Admin actions typically don't have images
-          }))];
-        }
-      } catch (adminError) {
-        console.log('⚠️ No admin_actions table or error fetching admin actions:', adminError.message);
-      }
-
-      // 2. Get content moderation actions
-      try {
-        const [moderationActions] = await db.execute(
-          `SELECT 
-            moderationID as id,
-            CONCAT('Moderated: ', content_type) as title,
-            action as status,
-            moderated_at as submittedDate,
-            'moderation' as type
-          FROM content_moderation 
-          WHERE moderator_id = ?
-          ORDER BY moderated_at DESC`,
-          [userID]
-        );
-        
-        if (moderationActions.length > 0) {
-          contributions = [...contributions, ...moderationActions];
-        }
-      } catch (modError) {
-        console.log('⚠️ No content_moderation table or error fetching moderation actions:', modError.message);
-      }
-
-      // 3. Get admin posts/announcements
-      try {
-        const [adminPosts] = await db.execute(
-          `SELECT 
-            postID as id,
-            title,
-            image,
-            status,
-            createdAt as submittedDate,
-            'admin_post' as type
-          FROM posts 
-          WHERE userProfileID = ? AND is_admin_post = true
-          ORDER BY createdAt DESC`,
-          [userID]
-        );
-        
-        if (adminPosts.length > 0) {
-          contributions = [...contributions, ...adminPosts];
-        }
-      } catch (postError) {
-        console.log('⚠️ Error fetching admin posts:', postError.message);
-      }
+    if (!profileResult.length) {
+      console.log('❌ No userProfile found for user:', userID);
+      return [];
     }
 
-    console.log(`📊 Total contributions found: ${contributions.length}`);
+    const userProfileID = profileResult[0].userProfileID;
+    console.log(`✅ Found userProfileID: ${userProfileID} for user: ${userID}`);
+
+    let allContributions = [];
+
+    // 1. Get recipe contributions
+    console.log(`🍳 Checking recipe table for contributions...`);
+    try {
+      const [recipeContributions] = await db.execute(
+        `SELECT 
+          r.recipeID as id,
+          f.name as title,
+          f.image as image,
+          r.status,
+          r.createdAt as submittedDate,
+          'recipe' as type
+        FROM recipe r
+        JOIN food f ON r.foodID = f.foodID
+        WHERE r.userProfileID = ?
+        ORDER BY r.createdAt DESC`,
+        [userProfileID]
+      );
+      allContributions = [...allContributions, ...recipeContributions];
+      console.log(`✅ Found ${recipeContributions.length} recipe contributions`);
+    } catch (recipeError) {
+      console.error('❌ Error fetching recipe contributions:', recipeError.message);
+    }
+
+    // 2. Get post contributions
+    console.log(`📝 Checking posts table for contributions...`);
+    try {
+      const [postContributions] = await db.execute(
+        `SELECT 
+          postID as id,
+          title,
+          image,
+          status,
+          createdAt as submittedDate,
+          'post' as type
+        FROM posts 
+        WHERE userProfileID = ?
+        ORDER BY createdAt DESC`,
+        [userProfileID]
+      );
+      allContributions = [...allContributions, ...postContributions];
+      console.log(`✅ Found ${postContributions.length} post contributions`);
+    } catch (postError) {
+      console.error('❌ Error fetching post contributions:', postError.message);
+    }
+
+    console.log(`📊 Total contributions found: ${allContributions.length}`);
     
-    if (contributions.length > 0) {
-      console.log(`📊 Contribution details:`, contributions.map(c => ({ 
-        id: c.id, 
-        title: c.title,
-        type: c.type, 
-        status: c.status,
-        role: userRole
-      })));
-      
-      // Count by status
-      const statusCounts = contributions.reduce((acc, item) => {
-        acc[item.status] = (acc[item.status] || 0) + 1;
+    if (allContributions.length > 0) {
+      console.log(`📊 Contribution breakdown by type:`);
+      const typeCounts = allContributions.reduce((acc, item) => {
+        acc[item.type] = (acc[item.type] || 0) + 1;
         return acc;
       }, {});
-      console.log(`📊 Status counts:`, statusCounts);
+      console.log(`📊 Type counts:`, typeCounts);
     }
 
     // Format the contributions
-    const formattedContributions = contributions.map(item => ({
+    const formattedContributions = allContributions.map(item => ({
       id: item.id,
       title: item.title,
       image: item.image,
       status: item.status,
       submittedDate: item.submittedDate ? new Date(item.submittedDate).toISOString() : new Date().toISOString(),
-      type: item.type,
-      isAdminContribution: userRole === 'admin' && ['admin_action', 'moderation', 'admin_post'].includes(item.type)
+      type: item.type
     }));
 
     console.log(`🎯 Formatted contributions:`, formattedContributions);
@@ -783,8 +738,6 @@ router.get("/", async (req, res) => {
     }
 
     const profile = rows[0];
-    const userRole = profile.role || 'member';
-
     const [profileResult] = await db.execute(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
@@ -840,7 +793,7 @@ router.get("/", async (req, res) => {
 
     // ✅ FETCH CONTRIBUTIONS
     console.log(`📝 Fetching contributions for user: ${userID}`);
-    const contributions = await getUserContributions(userID, userRole);
+    const contributions = await getUserContributions(userID);
 
     
     const response = {
@@ -1006,8 +959,7 @@ router.get("/:identifier", async (req, res) => {
 
     const profile = rows[0];
     const userID = profile.userID;
-    const userRole = profile.role || 'member'; 
-    console.log(`✅ User found: ${profile.firstName} ${profile.lastName} (ID: ${userID}, Role: ${userRole})`);
+    console.log(`✅ User found: ${profile.firstName} ${profile.lastName} (ID: ${userID})`);
     
     // Ensure userProfile exists for the requested user
     if (!profile.userProfileID) {
@@ -1064,21 +1016,11 @@ router.get("/:identifier", async (req, res) => {
     }
 
     console.log(`📝 Fetching contributions for user: ${userID}`);
-    const contributions = await getUserContributions(userID, userRole);
+    const contributions = await getUserContributions(userID);
     
     console.log("📤 Sending user profile response");
     res.json({
-      // ✅ Keep only basic user info
-      userID: profile.userID,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      email: profile.email,
-      role: profile.role,
-      userProfileID: profile.userProfileID,
-      location: profile.location,
-      bio: profile.bio,
-      avatar: profile.avatar,
-      
+      ...profile,
       savedFoods: savedFoodsData, 
       status: contributions, 
       stats: {
@@ -1086,8 +1028,6 @@ router.get("/:identifier", async (req, res) => {
         posts: freshStats.posts || profile.posts || 0,
         likes: freshStats.likes || profile.likes || 0,
       },
-      
-      // ✅ This is now the ONLY place for preferences
       prefs: {
         dietary: profile.dietary ? JSON.parse(profile.dietary || "[]") : [],
         allergies: profile.allergies ? JSON.parse(profile.allergies || "[]") : [],
