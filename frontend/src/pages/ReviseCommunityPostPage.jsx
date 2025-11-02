@@ -90,7 +90,16 @@ export default function ReviseCommunityPostPage() {
   setSuccess("");
 
   try {
-    console.log("📤 Submitting community post revision for ID:", id);
+    console.log("🔍 DEBUG: Starting revision submission");
+    console.log("🔍 DEBUG: Post ID:", id);
+    console.log("🔍 DEBUG: API URL:", `${API_BASE_URL}/api/reviseCommunityPost/${id}`);
+    console.log("🔍 DEBUG: Form data to send:", {
+      title: form.title.trim(),
+      culturalOrigin: form.culturalOrigin,
+      content: form.content.trim(),
+      recipe: form.recipe,
+      status: "Pending"
+    });
 
     const revisedData = {
       title: form.title.trim(),
