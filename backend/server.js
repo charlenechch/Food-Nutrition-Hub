@@ -30,7 +30,7 @@ const saveFoodRoutes = require("./routes/saveFood");
 const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
-const reviseCommunityPostRoutes = require('./routes/reviseCommunityPostRoutes');
+const reviseCommunityPostRoutes = require('./routes/reviseCommunityPost');
 
 // ✅ Safe import for userProfile route (prevents crash if Firebase fails)
 // let userProfileRoutes;
