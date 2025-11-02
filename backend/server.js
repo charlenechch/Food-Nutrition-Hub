@@ -28,7 +28,9 @@ const recipeRoutes = require("./routes/recipe");
 const communityPostRoutes = require("./routes/communityPost");
 const saveFoodRoutes = require("./routes/saveFood");
 const otpRoutes = require("./routes/otp");
+const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
+<<<<<<< HEAD
 const reviseCommunityPostRoutes = require('./routes/reviseCommunityPostRoutes');
 
 // ✅ Safe import for userProfile route (prevents crash if Firebase fails)
@@ -70,6 +72,10 @@ try {
     res.status(503).json({ error: "Admin route unavailable" })
   );
 }
+=======
+// ✅ NEW: Admin route import (for Admin User Management)
+const adminRoutes = require("./routes/admin");
+>>>>>>> 4f217098b80dc69927a036f17a4c8aeed954bbfd
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -229,7 +235,7 @@ app.use(
       httpOnly: true,
       sameSite: IS_PROD ? "none" : "lax",
       secure: IS_PROD,
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000
     },
   })
 );
@@ -271,49 +277,22 @@ app.use(
       "role",
       "userProfileID",
       "firebase_uid",
-      "bio",
-      "location",
-      "firstname",
-      "lastname",
-      "avatar",
-      "allergies",
-      "dietary",
-      "emailNotifications",
-      "prefs",
-      "pushNotifications",
-      "profileVisibility",
-      "language",
-      "recipes",
-      "status",
-      "stats",
-      "saveFoods",
+      "bio", "location", "firstname", "lastname",
+      "avatar", "allergies", "dietary", "emailNotifications", "prefs",
+      "pushNotifications", "profileVisibility", "language", "recipes",
+      "status", "stats", "saveFoods",
       "likes",
       "type",
-      "postId",
-      "postID",
+      "postId", "postID",
       "content",
       "reply",
       "comment",
-      "foodID",
+      "foodID", 
       "likeID",
-      "name",
-      "origin",
-      "difficulty",
-      "prepTime",
-      "cookTime",
-      "servings",
-      "image",
-      "description",
-      "foodType",
-      "dietaryTags",
-      "ingredients",
-      "instructions",
-      "funFact",
-      "chefTips",
-      "isAdmin",
-      "isAdminAction",
-      "adminRole",
-      "adminId",
+      "name", "origin", "difficulty", "prepTime", "cookTime", 
+      "servings", "image", "description", "foodType", "dietaryTags", 
+      "ingredients", "instructions", "funFact", "chefTips",
+      "isAdmin", "isAdminAction", "adminRole", "adminId"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));
@@ -327,32 +306,28 @@ app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes);
-app.use("/api/exploreFood", exploreFoodRoutes);
+app.use(
+  "/api/exploreFood",
+  hppProtect({ policy: "first", allowlist: ["q", "page", "sort"] }),
+  exploreFoodRoutes
+);
 app.use("/api/foodDetail", foodDetailRoutes);
 app.use("/api/foodDiscussion", foodDiscussionRoutes);
-console.log("🔗 Loading /api/recipe...");
 app.use("/api/recipe", recipeRoutes);
-
-console.log("🔗 Loading /api/saveFood...");
 app.use("/api/saveFood", saveFoodRoutes);
-
-console.log("🔗 Loading /api/communityPost...");
 app.use("/api/communityPost", communityPostRoutes);
-
-console.log("🔗 Loading /api/foods...");
 app.use("/api/foods", foodRoutes);
-
-console.log("🔗 Loading /api/userProfile...");
 app.use("/api/userProfile", userProfileRoutes);
-
-console.log("🔗 Loading /api/likes...");
 app.use("/api/likes", likeRoutes);
 
-console.log("🔗 Loading /api/admin...");
+// ✅ NEW: Link Admin Management routes (for Admin User Management tab)
 app.use("/api/admin", adminRoutes);
 
+<<<<<<< HEAD
 app.use('/api/reviseCommunityPost', reviseCommunityPostRoutes);
 
+=======
+>>>>>>> 4f217098b80dc69927a036f17a4c8aeed954bbfd
 // ---------- Example Admin Guard ----------
 app.get("/api/admin/data", (req, res) => {
   if (!req.session?.user || req.session.user.role !== "admin") {
@@ -363,9 +338,9 @@ app.get("/api/admin/data", (req, res) => {
 
 // ---------- Session check ----------
 app.get("/api/auth/session", (req, res) => {
-  console.log("Session check requested");
-  console.log("Session ID:", req.sessionID);
-  console.log("Has session user:", !!req.session?.user);
+  console.log(" Session check requested");
+  console.log(" Session ID:", req.sessionID);
+  console.log(" Has session user:", !!req.session?.user);
 
   if (req.session && req.session.user) {
     console.log("Valid session for:", req.session.user.email);
