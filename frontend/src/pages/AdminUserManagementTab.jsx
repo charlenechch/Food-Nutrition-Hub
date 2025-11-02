@@ -4,7 +4,12 @@ import { Mail, Shield, Users, Activity, CircleCheckBig, CircleX, X, Bell, Send }
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function UserManagement() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [userSearch, setUserSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All Roles");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
@@ -22,6 +27,39 @@ export default function UserManagement() {
     markAnnouncement: false,
   });
   const [specificSearch, setSpecificSearch] = useState("");
+
+  // Fetch users from backend on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/api/admin/users`, {
+          credentials: "include",
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch users: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && Array.isArray(data.users)) {
+          setUsers(data.users);
+          setError(null);
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError(err.message);
+        setUsers([]); // Fallback to empty array
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []); // Empty dependency array = run once on mount
 
     const categories = [
     "All Categories",
@@ -63,369 +101,6 @@ export default function UserManagement() {
         `Hello,\n\nWe've made some exciting updates to the ${platformName} platform! Check out the new features and improvements designed to enhance your experience exploring Sarawakian cuisine and culture.\n\nThanks,\n${platformName} Team`,
     },
   };
-    //hardcoded user data
-    const [users, setUsers] = useState([
-      {
-        id: 1,
-        name: "Ahmad Rahman",
-        email: "ahmad.rahman@email.com",
-        city: "Kuching, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 15,
-        approved: 12,
-        lastLogin: "16/01/2024, 02:30 pm",
-      },
-      {
-        id: 2,
-        name: "Sarah Lim",
-        email: "sarah.lim@email.com",
-        city: "Sibu, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 23,
-        approved: 21,
-        lastLogin: "14/01/2024, 09:15 am",
-      },
-      {
-        id: 3,
-        name: "Rajesh Kumar",
-        email: "rajesh.kumar@email.com",
-        city: "Miri, Sarawak",
-        role: "User",
-        status: "Suspended",
-        suspendedOn: "2024-01-11",
-        submissions: 3,
-        approved: 1,
-        lastLogin: "10/01/2024, 04:45 pm",
-      },
-      {
-        id: 4,
-        name: "Maria Santos",
-        email: "maria.santos@email.com",
-        city: "Kuching, Sarawak",
-        role: "Admin",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 0,
-        approved: 0,
-        lastLogin: "16/01/2024, 11:22 am",
-      },
-      {
-        id: 5,
-        name: "Jennifer Wong",
-        email: "jennifer.wong@email.com",
-        city: "Bintulu, Sarawak",
-        role: "User",
-        status: "Inactive",
-        suspendedOn: null,
-        submissions: 7,
-        approved: 5,
-        lastLogin: "15/12/2023, 01:55 pm",
-      },
-      {
-        id: 6,
-        name: "Kelvin Tan",
-        email: "kelvin.tan@email.com",
-        city: "Mukah, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 9,
-        approved: 7,
-        lastLogin: "12/01/2024, 08:20 pm",
-      },
-      {
-        id: 7,
-        name: "Nur Aisyah",
-        email: "aisyah.nur@email.com",
-        city: "Kuching, Sarawak",
-        role: "User",
-        status: "Inactive",
-        suspendedOn: null,
-        submissions: 2,
-        approved: 2,
-        lastLogin: "02/01/2024, 10:00 am",
-      },
-      {
-        id: 8,
-        name: "Daniel Lee",
-        email: "daniel.lee@email.com",
-        city: "Samarahan, Sarawak",
-        role: "Admin",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 4,
-        approved: 4,
-        lastLogin: "17/01/2024, 03:05 pm",
-      },
-      {
-        id: 9,
-        name: "Aman Shah",
-        email: "aman.shah@email.com",
-        city: "Miri, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 11,
-        approved: 9,
-        lastLogin: "13/01/2024, 07:40 pm",
-      },
-      {
-        id: 10,
-        name: "Grace Chong",
-        email: "grace.chong@email.com",
-        city: "Bintulu, Sarawak",
-        role: "User",
-        status: "Suspended",
-        suspendedOn: "2024-01-09",
-        submissions: 5,
-        approved: 3,
-        lastLogin: "09/01/2024, 12:10 pm",
-      },
-      {
-        id: 11,
-        name: "Hendry Goh",
-        email: "hendry.goh@email.com",
-        city: "Sibu, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 1,
-        approved: 1,
-        lastLogin: "05/01/2024, 06:25 pm",
-      },
-      {
-        id: 12,
-        name: "Mei Lin",
-        email: "mei.lin@email.com",
-        city: "Kapit, Sarawak",
-        role: "User",
-        status: "Inactive",
-        suspendedOn: null,
-        submissions: 0,
-        approved: 0,
-        lastLogin: "—",
-      },
-      {
-        id: 13,
-        name: "Farah Zain",
-        email: "farah.zain@email.com",
-        city: "Limbang, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 6,
-        approved: 4,
-        lastLogin: "11/01/2024, 01:18 pm",
-      },
-      {
-        id: 14,
-        name: "Jonathan Ng",
-        email: "jon.ng@email.com",
-        city: "Kuching, Sarawak",
-        role: "Admin",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 12,
-        approved: 12,
-        lastLogin: "17/01/2024, 04:10 pm",
-      },
-      {
-        id: 15,
-        name: "Melissa Tiong",
-        email: "melissa.tiong@email.com",
-        city: "Sarikei, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 8,
-        approved: 6,
-        lastLogin: "08/01/2024, 09:05 am",
-      },
-      {
-        id: 16,
-        name: "Ivan Lau",
-        email: "ivan.lau@email.com",
-        city: "Kuching, Sarawak",
-        role: "User",
-        status: "Inactive",
-        suspendedOn: null,
-        submissions: 3,
-        approved: 2,
-        lastLogin: "28/12/2023, 05:45 pm",
-      },
-      {
-        id: 17,
-        name: "Zarina Ali",
-        email: "zarina.ali@email.com",
-        city: "Miri, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 14,
-        approved: 10,
-        lastLogin: "16/01/2024, 10:42 am",
-      },
-      {
-        id: 18,
-        name: "Kelisa Yong",
-        email: "kelisa.yong@email.com",
-        city: "Bau, Sarawak",
-        role: "User",
-        status: "Suspended",
-        suspendedOn: "2023-12-30",
-        submissions: 2,
-        approved: 0,
-        lastLogin: "30/12/2023, 03:30 pm",
-      },
-      {
-        id: 19,
-        name: "Faizal Rahim",
-        email: "faizal.rahim@email.com",
-        city: "Sibu, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 18,
-        approved: 16,
-        lastLogin: "15/01/2024, 08:12 pm",
-      },
-      {
-        id: 20,
-        name: "Claudia Ting",
-        email: "claudia.ting@email.com",
-        city: "Kuching, Sarawak",
-        role: "Admin",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 1,
-        approved: 1,
-        lastLogin: "17/01/2024, 01:05 pm",
-      },
-      {
-        id: 21,
-        name: "Haziq Hamdan",
-        email: "haziq.hamdan@email.com",
-        city: "Bintulu, Sarawak",
-        role: "User",
-        status: "Inactive",
-        suspendedOn: null,
-        submissions: 0,
-        approved: 0,
-        lastLogin: "—",
-      },
-      {
-        id: 22,
-        name: "Tracy Lim",
-        email: "tracy.lim@email.com",
-        city: "Miri, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 10,
-        approved: 8,
-        lastLogin: "12/01/2024, 10:50 am",
-      },
-      {
-        id: 23,
-        name: "Samuel Goh",
-        email: "samuel.goh@email.com",
-        city: "Samarahan, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 4,
-        approved: 3,
-        lastLogin: "13/01/2024, 02:25 pm",
-      },
-      {
-        id: 24,
-        name: "Nabila Hassan",
-        email: "nabila.hassan@email.com",
-        city: "Kapit, Sarawak",
-        role: "User",
-        status: "Suspended",
-        suspendedOn: "2024-01-05",
-        submissions: 6,
-        approved: 1,
-        lastLogin: "05/01/2024, 10:00 am",
-      },
-      {
-        id: 25,
-        name: "Ricky Chai",
-        email: "ricky.chai@email.com",
-        city: "Kuching, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 13,
-        approved: 11,
-        lastLogin: "17/01/2024, 05:40 pm",
-      },
-      {
-        id: 26,
-        name: "Adele Liew",
-        email: "adele.liew@email.com",
-        city: "Sibu, Sarawak",
-        role: "User",
-        status: "Inactive",
-        suspendedOn: null,
-        submissions: 2,
-        approved: 1,
-        lastLogin: "20/12/2023, 09:00 am",
-      },
-      {
-        id: 27,
-        name: "Muhd Iqbal",
-        email: "m.iqbal@email.com",
-        city: "Miri, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 9,
-        approved: 7,
-        lastLogin: "16/01/2024, 07:05 pm",
-      },
-      {
-        id: 28,
-        name: "Vivian Toh",
-        email: "vivian.toh@email.com",
-        city: "Bintulu, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 1,
-        approved: 1,
-        lastLogin: "11/01/2024, 03:12 pm",
-      },
-      {
-        id: 29,
-        name: "Rafidah Ahmad",
-        email: "rafidah.ahmad@email.com",
-        city: "Lundu, Sarawak",
-        role: "User",
-        status: "Active",
-        suspendedOn: null,
-        submissions: 7,
-        approved: 6,
-        lastLogin: "14/01/2024, 08:42 am",
-      },
-      {
-        id: 30,
-        name: "Kenji Yong",
-        email: "kenji.yong@email.com",
-        city: "Miri, Sarawak",
-        role: "User",
-        status: "Inactive",
-        suspendedOn: null,
-        submissions: 0,
-        approved: 0,
-        lastLogin: "—",
-      },
-    ]);
   
     // Summary metrics (derived so they always stay fresh)
     const totalUsers = users.length;
@@ -555,48 +230,111 @@ export default function UserManagement() {
     };
 
     // Save (Create or Update)
-    const saveUser = () => {
+    const saveUser = async () => {
     // basic validation
     if (!userForm.name.trim()) return alert("Name is required.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email)) return alert("Valid email is required.");
 
-    if (userMode === "create") {
-        // generate a simple id; replace with backend id when you wire API
-        const nextId = users.length ? Math.max(...users.map(u => u.id)) + 1 : 1;
-        const newUser = {
-        ...userForm,
-        id: nextId,
-        lastLogin: userForm.lastLogin || "—",
-        suspendedOn: userForm.status === "Suspended"
-            ? (userForm.suspendedOn || new Date().toISOString().slice(0,10))
-            : null,
-        };
-        setUsers(prev => [newUser, ...prev]); // prepend for visibility
-    } else {
-        setUsers(prev =>
-        prev.map(u =>
-            u.id === userForm.id
-            ? {
-                ...userForm,
-                suspendedOn: userForm.status === "Suspended"
-                    ? (userForm.suspendedOn || new Date().toISOString().slice(0,10))
-                    : null,
-                }
-            : u
-        )
-        );
+    try {
+      if (userMode === "create") {
+        // Call backend to create user
+        const response = await fetch(`${API_URL}/api/admin/users`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            name: userForm.name,
+            email: userForm.email,
+            city: userForm.city,
+            role: userForm.role,
+            status: userForm.status,
+            suspendedOn: userForm.status === "Suspended" 
+              ? (userForm.suspendedOn || new Date().toISOString().slice(0,10))
+              : null,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to create user");
+        }
+
+        const data = await response.json();
+        
+        // Add new user to local state
+        if (data.success && data.user) {
+          setUsers(prev => [data.user, ...prev]); // prepend for visibility
+        }
+
+      } else {
+        // Call backend to update user
+        const response = await fetch(`${API_URL}/api/admin/users/${userForm.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            name: userForm.name,
+            email: userForm.email,
+            city: userForm.city,
+            role: userForm.role,
+            status: userForm.status,
+            suspendedOn: userForm.status === "Suspended"
+              ? (userForm.suspendedOn || new Date().toISOString().slice(0,10))
+              : null,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to update user");
+        }
+
+        const data = await response.json();
+
+        // Update user in local state
+        if (data.success && data.user) {
+          setUsers(prev =>
+            prev.map(u => u.id === userForm.id ? data.user : u)
+          );
+        }
+      }
+
+      setShowUserModal(false);
+      setPage(1);
+      alert(userMode === "create" ? "User created successfully!" : "User updated successfully!");
+
+    } catch (err) {
+      console.error("Error saving user:", err);
+      alert(`Error: ${err.message}`);
     }
-    setShowUserModal(false);
-    setPage(1); // optional: jump to first page after changes
     };
 
     // Delete
-    const deleteUserById = (id) => {
+    const deleteUserById = async (id) => {
     const u = users.find(x => x.id === id);
     if (!u) return;
+    
     if (window.confirm(`Delete user "${u.name}"? This cannot be undone.`)) {
-        setUsers(prev => prev.filter(x => x.id !== id));
-        setPage(1);
+        try {
+            const response = await fetch(`${API_URL}/api/admin/users/${id}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Failed to delete user");
+            }
+
+            // Remove user from local state after successful deletion
+            setUsers(prev => prev.filter(x => x.id !== id));
+            setPage(1);
+            alert("User deleted successfully!");
+
+        } catch (err) {
+            console.error("Error deleting user:", err);
+            alert(`Error: ${err.message}`);
+        }
     }
     };
 
@@ -617,6 +355,34 @@ export default function UserManagement() {
     return (
         // User Management
         <div className="user-mgmt">
+          {/* ✅ ADD THESE 3 BLOCKS HERE - RIGHT AFTER <div className="user-mgmt"> */}
+          
+          {/* Loading State */}
+          {loading && (
+            <div className="umg-loading-container">
+              <div className="umg-loading-spinner"></div>
+              <p className="umg-loading-text">Loading users...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <div className="umg-error-container">
+              <div className="umg-error-icon">⚠️</div>
+              <h3 className="umg-error-title">Failed to Load Users</h3>
+              <p className="umg-error-message">{error}</p>
+              <button 
+                className="umg-error-retry-btn"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {/* Wrap existing content - only show when loaded successfully */}
+          {!loading && !error && (
+            <>
           <div className="umg-header-row">
             <div>
               <h2 className="umg-title">Enhanced User Management</h2>
@@ -1182,7 +948,8 @@ export default function UserManagement() {
                 </div>
             </div>
             )}
-
+            </>
+          )}
         </div>
     );
 };
