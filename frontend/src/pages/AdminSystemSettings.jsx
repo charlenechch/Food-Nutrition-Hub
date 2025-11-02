@@ -49,14 +49,9 @@ export default function AdminSystemSettings({
                 `Hello,\n\nWe will perform scheduled maintenance from <Date>, <Time> to <Date>, <Time>. ${platformName} may be unavailable during this time.\n\nThanks,\nSystem Admin`,
         },
         "Policy Update": {
-            subject: "Platform Policy Update",
+            subject: "Platform Policy Update - {DATE}",
             message:
-                `Hello,\n\nWe've updated our community guidelines and privacy policy. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSystem Admin`,
-        },
-        "New Feature Rollout": {
-            subject: "New Features Released",
-            message:
-                `Hello,\n\nWe've rolled out new features to improve your experience. Check out the website.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWe've updated our community guidelines and privacy policyon {DATE}. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSystem Admin`,
         },
         "System Update": {
             subject: `${platformName} Platform Update - {DATE}`,
