@@ -578,12 +578,13 @@ const savePersonal = async () => {
     const updateData = { 
       location: form.location, 
       bio: bio,
-      emailNotifications: prefs.emailNotifications,
-      pushNotifications: prefs.pushNotifications,
-      profileVisibility: prefs.profileVisibility,
+      emailNotifications: prefs.emailNotifications === true || prefs.emailNotifications === 'true',
+      pushNotifications: prefs.pushNotifications === true || prefs.pushNotifications === 'true',
+      profileVisibility: prefs.profileVisibility === true || prefs.profileVisibility === 'true',
       language: prefs.language,
-      dietary: prefs.dietary || [],
-      allergies: prefs.allergies || []
+      dietary: Array.isArray(prefs.dietary) ? prefs.dietary : [prefs.dietary].filter(item => item && item !== ''),
+      allergies: Array.isArray(prefs.allergies) ? prefs.allergies : [prefs.allergies].filter(item => item && item !== '')
+    
     };
 
     console.log("📤 Saving personal info:", updateData);
@@ -622,11 +623,11 @@ const savePersonal = async () => {
 const savePrefs = async () => {
   try {
     const preferencesPayload = {
-      dietary: prefs.dietary || [],
-      allergies: prefs.allergies || [],
-      emailNotifications: prefs.emailNotifications,
-      pushNotifications: prefs.pushNotifications,
-      profileVisibility: prefs.profileVisibility,
+      dietary: Array.isArray(prefs.dietary) ? prefs.dietary : [prefs.dietary].filter(item => item && item !== ''),
+      allergies: Array.isArray(prefs.allergies) ? prefs.allergies : [prefs.allergies].filter(item => item && item !== ''),
+      emailNotifications: prefs.emailNotifications === true || prefs.emailNotifications === 'true',
+      pushNotifications: prefs.pushNotifications === true || prefs.pushNotifications === 'true',
+      profileVisibility: prefs.profileVisibility === true || prefs.profileVisibility === 'true',
       language: prefs.language,
       location: user?.location || "",
       bio: user?.bio || ""

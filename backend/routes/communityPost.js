@@ -52,6 +52,18 @@ router.use((req, res, next) => {
   next();
 });
 
+router.use((req, res, next) => {
+  console.log('🔐 Session Check:', {
+    hasSession: !!req.session,
+    hasUser: !!req.session?.user,
+    user: req.session?.user,
+    sessionID: req.sessionID,
+    path: req.path,
+    method: req.method
+  });
+  next();
+});
+
 // Get all approved posts with joined data including like/comment counts
 router.get("/counts", async (req, res) => {
   try {
@@ -216,46 +228,95 @@ router.post('/comments', async (req, res) => {
   try {
     const { content, postId } = req.body;
 
-    // ✅ Get userProfileID from session + database
-    if (!req.session || !req.session.user) {
-      return res.status(401).json({ error: 'Not authenticated' });
+    console.log('🔐 Comment Session Debug:', {
+      hasSession: !!req.session,
+      sessionUser: req.session?.user,
+      userID: req.session?.user?.userID
+    });
+
+    if (!req.session || !req.session.user || !req.session.user.userID) {
+      console.log('❌ No valid session user found');
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Not authenticated - please log in again' 
+      });
     }
     
     const userID = req.session.user.userID;
     const userRole = req.session.user.role;
 
-    let [profileResult] = await db.execute(
-      'SELECT userProfileID FROM userProfile WHERE userID = ?',
-      [userID]
-    );
-    
-    // If no profile exists, create one
-    if (profileResult.length === 0) {
-      console.log('🆕 Creating missing userProfile for user:', userID);
-      const [createResult] = await db.execute(
-        `INSERT INTO userProfile 
-         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
-         VALUES (?, '[]', '[]', true, true, true, 'en')`,
+    console.log('✅ Processing comment for:', { userID, userRole });
+
+    let userProfileID;
+
+    // ✅ FIXED: Handle both regular users and admins
+    if (userRole === 'admin') {
+      console.log('👑 Admin user detected, using admin profile');
+      
+      // For admins, check if they have a profile or create one
+      let [adminProfileResult] = await db.execute(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
         [userID]
       );
       
-      // Get the newly created profile
-      [profileResult] = await db.execute(
+      if (adminProfileResult.length === 0) {
+        console.log('🆕 Creating admin userProfile for admin user:', userID);
+        const [createResult] = await db.execute(
+          `INSERT INTO userProfile 
+           (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, isAdmin) 
+           VALUES (?, '[]', '[]', true, true, true, 'en', true)`,
+          [userID]
+        );
+        
+        [adminProfileResult] = await db.execute(
+          'SELECT userProfileID FROM userProfile WHERE userID = ?',
+          [userID]
+        );
+      }
+      
+      userProfileID = adminProfileResult[0]?.userProfileID;
+    } else {
+      // Regular user flow
+      let [profileResult] = await db.execute(
         'SELECT userProfileID FROM userProfile WHERE userID = ?',
         [userID]
       );
       
       if (profileResult.length === 0) {
-        return res.status(500).json({ error: 'Failed to create user profile' });
+        console.log('🆕 Creating userProfile for user:', userID);
+        const [createResult] = await db.execute(
+          `INSERT INTO userProfile 
+           (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
+           VALUES (?, '[]', '[]', true, true, true, 'en')`,
+          [userID]
+        );
+        
+        [profileResult] = await db.execute(
+          'SELECT userProfileID FROM userProfile WHERE userID = ?',
+          [userID]
+        );
       }
+      
+      userProfileID = profileResult[0]?.userProfileID;
     }
-    
-    const userProfileID = profileResult[0].userProfileID;
-    console.log('✅ Using userProfileID:', userProfileID);
 
+    if (!userProfileID) {
+      return res.status(500).json({ 
+        success: false,
+        message: 'Failed to get user profile ID' 
+      });
+    }
+
+    console.log('✅ Using userProfileID:', userProfileID, 'for role:', userRole);
+
+    // ✅ Validation
     const { error, value } = commentSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
-    if (error)
-      return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
+    if (error) {
+      return res.status(400).json({ 
+        success: false, 
+        message: error.details.map(d => d.message).join(", ") 
+      });
+    }
     
     const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
     Object.assign(req.body, cleanData);
@@ -268,7 +329,8 @@ router.post('/comments', async (req, res) => {
       VALUES (?, ?, ?, NOW())
     `;
     
-    const [result] = await db.execute(insertQuery, [content, postId, userProfileID]);
+    const isAdminComment = userRole === 'admin';
+    const [result] = await db.execute(insertQuery, [cleanContent, postId, userProfileID, isAdminComment]);
     console.log('✅ Comment inserted with ID:', result.insertId);
 
     const commentQuery = `
@@ -288,12 +350,19 @@ router.post('/comments', async (req, res) => {
     if (comments.length === 0) throw new Error('Failed to retrieve created comment');
 
     const newComment = comments[0];
+
+    let authorName = newComment.author;
+    if (newComment.isAdmin || userRole === 'admin') {
+      authorName = `👑 ${newComment.author} (Admin)`;
+    }
+
     const formattedComment = {
       id: newComment.commentID,
       text: newComment.text,
       author: newComment.author,
       daysAgo: getTimeAgo(newComment.created_at),
-      userProfileID: newComment.userProfileID
+      userProfileID: newComment.userProfileID,
+      isAdmin: newComment.isAdmin || userRole === 'admin'
     };
 
     res.status(201).json({
@@ -362,8 +431,11 @@ router.delete('/comments/:commentId', async (req, res) => {
     const { isAdmin } = req.body;
 
     // ✅ Get userProfileID from session + database
-    if (!req.session || !req.session.user) {
-      return res.status(401).json({ error: 'Not authenticated' });
+    if (!req.session || !req.session.user || !req.session.user.userID) {
+      return res.status(401).json({ 
+        success: false,
+        message: 'Not authenticated' 
+      });
     }
     
     const userID = req.session.user.userID;
