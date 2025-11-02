@@ -30,7 +30,7 @@ const saveFoodRoutes = require("./routes/saveFood");
 const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
-<<<<<<< HEAD
+
 const reviseCommunityPostRoutes = require('./routes/reviseCommunityPostRoutes');
 
 // ✅ Safe import for userProfile route (prevents crash if Firebase fails)
@@ -72,10 +72,9 @@ try {
     res.status(503).json({ error: "Admin route unavailable" })
   );
 }
-=======
+
 // ✅ NEW: Admin route import (for Admin User Management)
 const adminRoutes = require("./routes/admin");
->>>>>>> 4f217098b80dc69927a036f17a4c8aeed954bbfd
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -323,11 +322,8 @@ app.use("/api/likes", likeRoutes);
 // ✅ NEW: Link Admin Management routes (for Admin User Management tab)
 app.use("/api/admin", adminRoutes);
 
-<<<<<<< HEAD
 app.use('/api/reviseCommunityPost', reviseCommunityPostRoutes);
 
-=======
->>>>>>> 4f217098b80dc69927a036f17a4c8aeed954bbfd
 // ---------- Example Admin Guard ----------
 app.get("/api/admin/data", (req, res) => {
   if (!req.session?.user || req.session.user.role !== "admin") {
