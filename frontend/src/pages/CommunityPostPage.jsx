@@ -68,7 +68,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
         const response = await fetch(
-          `${API_BASE_URL}/api/likes/check?postId=${postId}&userProfileID=${userProfileID}`,
+          `${API_BASE_URL}/api/likes/check?postId=${postId}`,
           {
             credentials: "include",
           }
@@ -108,7 +108,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
         credentials: "include",
         body: JSON.stringify({
           postID: postId, 
-          userProfileID: userProfileID,
+          //userProfileID: userProfileID,
         }),
       });
 
@@ -131,7 +131,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
         credentials: "include",
         body: JSON.stringify({
           postID: postId, 
-          userProfileID: userProfileID,
+          //userProfileID: userProfileID,
         }),
       });
 

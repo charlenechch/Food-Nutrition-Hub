@@ -195,8 +195,10 @@ const Comment = React.memo(function Comment({
 
         {!isReply && (
           <div className="fd-disc-actions">
-            <button className={`fd-link-btn ${userLiked ? 'liked' : ''}`} 
-               onClick={handleLike}>
+            <button 
+              className={`fd-link-btn ${userLiked ? 'liked' : ''}`} 
+              onClick={handleLike}
+            >
               {userLiked ? "♥" : "♡"} {likes}
             </button>
             <button className="fd-link-btn" onClick={handleToggleReply}>
@@ -552,7 +554,7 @@ const postReply = async (discussionId) => {
   }
 };
 
-  // ✅ Toggle Like
+  // Toggle Like
   const toggleLike = async (targetId) => {
     if (isGuest) return setShowLoginPrompt(true);
 
@@ -560,6 +562,20 @@ const postReply = async (discussionId) => {
       console.error("No valid userProfileID found");
       return;
     }
+
+    setComments(prev => prev.map(comment => {
+      if (comment.id === targetId || comment.discussionID === targetId) {
+        const currentlyLiked = comment.user_liked || false;
+        const currentLikes = comment.likes || 0;
+        
+        return {
+          ...comment,
+          user_liked: !currentlyLiked,
+          likes: currentlyLiked ? currentLikes - 1 : currentLikes + 1
+        };
+      }
+      return comment;
+    }));
 
     try {
       const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
@@ -570,15 +586,43 @@ const postReply = async (discussionId) => {
           userProfileID: userProfileID  
         }),
       });
+      
       const data = await res.json();
 
-      if (res.ok && data.success) {
-        fetchComments(); 
-      } else {
+      if (!res.ok || !data.success) {
+        // REVERT if API call fails
         console.error("Like failed:", data.message);
+        setComments(prev => prev.map(comment => {
+          if (comment.id === targetId || comment.discussionID === targetId) {
+            const currentlyLiked = comment.user_liked || false;
+            const currentLikes = comment.likes || 0;
+            
+            return {
+              ...comment,
+              user_liked: !currentlyLiked, // Revert back
+              likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1 // Revert back
+            };
+          }
+          return comment;
+        }));
       }
+      // If successful, the state is already correct
     } catch (err) {
       console.error("Error updating like:", err);
+      // ✅ REVERT on error
+      setComments(prev => prev.map(comment => {
+        if (comment.id === targetId || comment.discussionID === targetId) {
+          const currentlyLiked = comment.user_liked || false;
+          const currentLikes = comment.likes || 0;
+          
+          return {
+            ...comment,
+            user_liked: !currentlyLiked, // Revert back
+            likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1 // Revert back
+          };
+        }
+        return comment;
+      }));
     }
   };
 
@@ -690,7 +734,7 @@ const postReply = async (discussionId) => {
 
   const handleBack = () => navigate(-1);
   const totalComments =
-    comments.length + comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0);
+  comments.length + comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0);
   const totalLikes = comments.reduce((acc, c) => acc + (c.likes || 0), 0);
 
   return (

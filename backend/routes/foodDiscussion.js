@@ -424,74 +424,51 @@ router.patch('/:commentId/vote', async (req, res) => {
     
     const userProfileID = profileResult[0].userProfileID;
 
-    if (!userProfileID || typeof userProfileID !== 'number') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid userProfileID' 
-      });
-    }
-    
-    // 1. Get current state
+    // Get current state with transaction for safety
     const [existing] = await db.query(
-      `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ?`,
+      `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ? FOR UPDATE`,
       [commentId]
     );
 
-    console.log("🔵 Existing data:", existing[0]);
+    if (!existing.length) {
+      return res.status(404).json({ success: false, message: 'Comment not found' });
+    }
 
     let upvotedBy = [];
     try {
-      if (existing[0]?.upvoted_by) {
-        const upvotedData = existing[0].upvoted_by;
-        console.log("🔵 Raw upvoted_by:", upvotedData);
-        if (upvotedData && upvotedData !== 'null' && upvotedData !== '' && upvotedData !== '[]') {
-          upvotedBy = JSON.parse(upvotedData);
-        }
+      const upvotedData = existing[0].upvoted_by;
+      if (upvotedData && upvotedData !== 'null' && upvotedData !== '' && upvotedData !== '[]') {
+        upvotedBy = JSON.parse(upvotedData);
       }
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
       upvotedBy = [];
     }
 
-    console.log("🔵 Parsed upvotedBy:", upvotedBy);
-    
-    // Ensure upvotedBy is always an array
-    if (!Array.isArray(upvotedBy)) {
-      upvotedBy = [];
-    }
-    
-    // Filter out any invalid values
+    // Ensure it's an array and clean it
+    if (!Array.isArray(upvotedBy)) upvotedBy = [];
     upvotedBy = upvotedBy.filter(id => id !== null && id !== undefined && typeof id === 'number');
     
-    console.log("🔵 Cleaned upvotedBy:", upvotedBy);
-    console.log("🔵 User currently liked:", upvotedBy.includes(userProfileID));
+    const userIndex = upvotedBy.indexOf(userProfileID);
+    let newUpvoted, voteChange, userLiked;
 
-    let newUpvoted = [...upvotedBy];
-    let voteChange = 0;
-    let userCurrentlyLiked = upvotedBy.includes(userProfileID);
-
-    console.log("🔵 BEFORE - userCurrentlyLiked:", userCurrentlyLiked, "upvotedBy:", upvotedBy);
-
-    if (userCurrentlyLiked) {
-      // User already liked - REMOVE like
-      newUpvoted = upvotedBy.filter(id => id !== userProfileID);
+    if (userIndex > -1) {
+      // User already liked - remove like
+      newUpvoted = [...upvotedBy];
+      newUpvoted.splice(userIndex, 1);
       voteChange = -1;
-      userCurrentlyLiked = false;
-      console.log("🔵 REMOVING like");
+      userLiked = false;
     } else {
-      // User hasn't liked - ADD like
-      newUpvoted.push(userProfileID);
+      // User hasn't liked - add like
+      newUpvoted = [...upvotedBy, userProfileID];
       voteChange = 1;
-      userCurrentlyLiked = true;
-      console.log("🔵 ADDING like");
+      userLiked = true;
     }
-
-    console.log("🔵 AFTER - userCurrentlyLiked:", userCurrentlyLiked, "newUpvoted:", newUpvoted, "voteChange:", voteChange);
 
     // Update database
     await db.query(
       `UPDATE discussion SET 
-        upVotes = upVotes + ?, 
+        upVotes = GREATEST(0, upVotes + ?), 
         upvoted_by = ?
        WHERE discussionID = ?`,
       [voteChange, JSON.stringify(newUpvoted), commentId]
@@ -503,14 +480,12 @@ router.patch('/:commentId/vote', async (req, res) => {
       [commentId]
     );
 
-    console.log("🔵 Final result - likes:", updated[0]?.likes, "userLiked:", userCurrentlyLiked);
-
     res.json({ 
       success: true, 
-      message: userCurrentlyLiked ? 'Liked successfully' : 'Unliked successfully',
+      message: userLiked ? 'Liked successfully' : 'Unliked successfully',
       data: {
         likes: updated[0]?.likes || 0,
-        userLiked: userCurrentlyLiked
+        userLiked: userLiked
       }
     });
   } catch (error) {
@@ -771,6 +746,88 @@ router.get('/food/:foodId/stats', async (req, res) => {
   } catch (error) {
     console.error('Error fetching comment stats:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch comment statistics' });
+  }
+});
+
+// DELETE like from the comment
+router.delete('/:commentId/like', async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
+
+    // Get current upvoted_by array
+    const [existing] = await db.query(
+      `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ?`,
+      [commentId]
+    );
+
+    if (!existing.length) {
+      return res.status(404).json({ success: false, message: 'Comment not found' });
+    }
+
+    let upvotedBy = [];
+    try {
+      if (existing[0]?.upvoted_by && existing[0].upvoted_by !== 'null' && existing[0].upvoted_by !== '' && existing[0].upvoted_by !== '[]') {
+        upvotedBy = JSON.parse(existing[0].upvoted_by);
+      }
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      upvotedBy = [];
+    }
+
+    // Check if user actually liked this post
+    const userIndex = upvotedBy.indexOf(userProfileID);
+    if (userIndex === -1) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'You have not liked this comment' 
+      });
+    }
+
+    // Remove user from upvoted_by array
+    upvotedBy.splice(userIndex, 1);
+    
+    // Update database
+    await db.query(
+      `UPDATE discussion SET 
+        upVotes = upVotes - 1, 
+        upvoted_by = ?
+       WHERE discussionID = ?`,
+      [JSON.stringify(upvotedBy), commentId]
+    );
+
+    // Get updated count
+    const [updated] = await db.query(
+      `SELECT upVotes as likes FROM discussion WHERE discussionID = ?`,
+      [commentId]
+    );
+
+    res.json({ 
+      success: true, 
+      message: 'Like removed successfully',
+      data: {
+        likes: updated[0]?.likes || 0,
+        userLiked: false
+      }
+    });
+  } catch (error) {
+    console.error('Error removing like:', error);
+    res.status(500).json({ success: false, message: 'Failed to remove like' });
   }
 });
 
