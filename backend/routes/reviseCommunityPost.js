@@ -104,30 +104,58 @@ router.get("/post/:id", async (req, res) => {
   }
 });
 
-// ✅ UPDATE community post (revision)
+// ✅ UPDATE community post (revision) 
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, culturalOrigin, recipe, status } = req.body;
+    const { title, culturalOrigin, content, recipe, status } = req.body;
     
-    console.log(`📝 Updating community post ${id}:`, { title, culturalOrigin });
+    console.log(`📝 Updating community post ${id}:`, { 
+      title, 
+      culturalOrigin, 
+      content: content ? content.substring(0, 100) + "..." : "empty",
+      recipe: recipe || "none",
+      status 
+    });
 
+    // First, check if the post exists
+    const [existingPosts] = await db.execute(
+      'SELECT postID FROM posts WHERE postID = ?',
+      [id]
+    );
+
+    if (existingPosts.length === 0) {
+      return res.status(404).json({ 
+        error: 'Community post not found' 
+      });
+    }
+
+    // Update the post
     const query = `
       UPDATE posts 
       SET foodName = ?, culturalStory = ?, origin = ?, recipe = ?, status = ?, updated_at = NOW()
       WHERE postID = ?
     `;
     
-    await db.execute(query, [
+    console.log('🔧 Executing query:', query);
+    console.log('🔧 With parameters:', [title, content, culturalOrigin, recipe || '', status || 'Pending', id]);
+    
+    const [result] = await db.execute(query, [
       title, 
       content, 
       culturalOrigin, 
       recipe || '', 
-      status || 'pending', 
+      status || 'Pending', 
       id
     ]);
 
-    console.log(`✅ Community post ${id} updated successfully`);
+    console.log(`✅ Community post ${id} updated successfully, affected rows:`, result.affectedRows);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ 
+        error: 'No changes made or post not found' 
+      });
+    }
     
     res.json({ 
       success: true, 
@@ -135,6 +163,9 @@ router.put("/:id", async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error updating community post:', error);
+    console.error('❌ Error details:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    
     res.status(500).json({ 
       error: 'Failed to update community post',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
