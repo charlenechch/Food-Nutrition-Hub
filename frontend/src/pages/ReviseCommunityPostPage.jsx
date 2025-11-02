@@ -23,7 +23,7 @@ export default function ReviseCommunityPostPage() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Get data from navigation state passed from UserProfilePage
+  // Get real data from navigation state
   const { contribution, adminFeedback, fieldsWithIssues } = location.state || {};
 
   const [form, setForm] = useState({
@@ -37,16 +37,16 @@ export default function ReviseCommunityPostPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Initialize form with contribution data
+  // Initialize form with real contribution data
   useEffect(() => {
     if (contribution) {
-      console.log("📝 Initializing form with contribution:", contribution);
+      console.log("📝 Initializing form with real contribution:", contribution);
       setForm({
         foodName: contribution.title || "",
         origin: contribution.culturalOrigin || "",
         culturalStory: contribution.content || "",
         recipe: contribution.recipe || "",
-        imageData: contribution.image || "" // Use existing image if available
+        imageData: contribution.image || ""
       });
     }
   }, [contribution]);
@@ -112,7 +112,7 @@ export default function ReviseCommunityPostPage() {
       if (result.success) {
         setSuccess("Revision submitted successfully! It will be reviewed again.");
         setTimeout(() => {
-          navigate("/profile"); // Go back to profile page
+          navigate("/profile");
         }, 2000);
       }
     } catch (err) {
@@ -165,7 +165,7 @@ export default function ReviseCommunityPostPage() {
           <div className="rcp-wrap">
             <h2 className="rp-title">Revise Community Contribution</h2>
             <p className="upp-muted" style={{ marginBottom: 16 }}>
-              Fix the highlighted fields and resubmit. Original submission date:{" "}
+              Fix the highlighted fields and resubmit. Your original submission date:{" "}
               {contribution.submittedDate ? new Date(contribution.submittedDate).toLocaleDateString("en-GB") : "Unknown"}
             </p>
 
@@ -176,7 +176,7 @@ export default function ReviseCommunityPostPage() {
                 style={{ borderColor: "#ffd6d6", background: "#fff8f8" }}
               >
                 <div className="upp-strong" style={{ marginBottom: 6 }}>
-                  Admin Feedback
+                  Reviewer Feedback
                 </div>
                 <div>{adminFeedback}</div>
                 {fieldsWithIssues && fieldsWithIssues.length > 0 && (
@@ -257,7 +257,6 @@ export default function ReviseCommunityPostPage() {
                   onChange={onChangeForm}
                   placeholder="Tell us the story behind this dish—when is it served, how is it meaningful to your community, etc."
                   required
-                  rows={6}
                 />
               </div>
 
@@ -269,7 +268,6 @@ export default function ReviseCommunityPostPage() {
                   value={form.recipe}
                   onChange={onChangeForm}
                   placeholder="Share the recipe if you'd like (optional)"
-                  rows={4}
                 />
               </div>
 
@@ -306,8 +304,20 @@ export default function ReviseCommunityPostPage() {
                 <button
                   className="rp-btn rp-btn-muted"
                   type="button"
+                  onClick={() => setForm({
+                    foodName: contribution.title || "",
+                    origin: contribution.culturalOrigin || "",
+                    culturalStory: contribution.content || "",
+                    recipe: contribution.recipe || "",
+                    imageData: contribution.image || ""
+                  })}
+                >
+                  Reset
+                </button>
+                <button
+                  className="rp-btn rp-btn-muted"
+                  type="button"
                   onClick={() => navigate("/profile")}
-                  disabled={isLoading}
                 >
                   Cancel
                 </button>
