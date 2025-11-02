@@ -581,13 +581,15 @@ router.get("/avatar", async (req, res) => {
 });
 
 // Helper function to get user contributions with rejected/pending/approved status
-const getUserContributions = async (userID) => {
+const getUserContributions = async (userID, userRole = 'member') => {
   try {
-    console.log(`📝 Fetching contributions for user: ${userID}`);
+    console.log(`📝 Fetching contributions for user: ${userID}, role: ${userRole}`);
     
-    // Get contributions from recipe table JOINED with food table
+    let contributions = [];
+
+    // For ALL users (both members and admins) - get recipe contributions
     console.log(`🍳 Checking recipe table for contributions...`);
-    const [contributions] = await db.execute(
+    const [recipeContributions] = await db.execute(
       `SELECT 
         r.recipeID as id,
         f.name as title,
@@ -602,15 +604,94 @@ const getUserContributions = async (userID) => {
       [userID]
     );
 
-    console.log(`📊 Raw contributions query result:`, contributions);
-    console.log(`📊 Number of contributions found: ${contributions.length}`);
+    contributions = [...recipeContributions];
+
+    // If user is ADMIN, also get admin-specific contributions
+    if (userRole === 'admin') {
+      console.log(`👑 Fetching admin-specific contributions...`);
+      
+      // 1. Get admin actions (approvals/rejections)
+      try {
+        const [adminActions] = await db.execute(
+          `SELECT 
+            actionID as id,
+            action_type as title,
+            target_type as type,
+            created_at as submittedDate,
+            status,
+            'admin_action' as contributionType
+          FROM admin_actions 
+          WHERE admin_id = ?
+          ORDER BY created_at DESC`,
+          [userID]
+        );
+        
+        if (adminActions.length > 0) {
+          contributions = [...contributions, ...adminActions.map(action => ({
+            ...action,
+            type: action.type || 'admin_action',
+            image: null // Admin actions typically don't have images
+          }))];
+        }
+      } catch (adminError) {
+        console.log('⚠️ No admin_actions table or error fetching admin actions:', adminError.message);
+      }
+
+      // 2. Get content moderation actions
+      try {
+        const [moderationActions] = await db.execute(
+          `SELECT 
+            moderationID as id,
+            CONCAT('Moderated: ', content_type) as title,
+            action as status,
+            moderated_at as submittedDate,
+            'moderation' as type
+          FROM content_moderation 
+          WHERE moderator_id = ?
+          ORDER BY moderated_at DESC`,
+          [userID]
+        );
+        
+        if (moderationActions.length > 0) {
+          contributions = [...contributions, ...moderationActions];
+        }
+      } catch (modError) {
+        console.log('⚠️ No content_moderation table or error fetching moderation actions:', modError.message);
+      }
+
+      // 3. Get admin posts/announcements
+      try {
+        const [adminPosts] = await db.execute(
+          `SELECT 
+            postID as id,
+            title,
+            image,
+            status,
+            createdAt as submittedDate,
+            'admin_post' as type
+          FROM posts 
+          WHERE userProfileID = ? AND is_admin_post = true
+          ORDER BY createdAt DESC`,
+          [userID]
+        );
+        
+        if (adminPosts.length > 0) {
+          contributions = [...contributions, ...adminPosts];
+        }
+      } catch (postError) {
+        console.log('⚠️ Error fetching admin posts:', postError.message);
+      }
+    }
+
+    console.log(`📊 Total contributions found: ${contributions.length}`);
     
     if (contributions.length > 0) {
       console.log(`📊 Contribution details:`, contributions.map(c => ({ 
         id: c.id, 
         title: c.title,
         type: c.type, 
-        status: c.status 
+        status: c.status,
+        role: userRole
       })));
       
       // Count by status
@@ -628,7 +709,8 @@ const getUserContributions = async (userID) => {
       image: item.image,
       status: item.status,
       submittedDate: item.submittedDate ? new Date(item.submittedDate).toISOString() : new Date().toISOString(),
-      type: item.type
+      type: item.type,
+      isAdminContribution: userRole === 'admin' && ['admin_action', 'moderation', 'admin_post'].includes(item.type)
     }));
 
     console.log(`🎯 Formatted contributions:`, formattedContributions);
@@ -701,6 +783,8 @@ router.get("/", async (req, res) => {
     }
 
     const profile = rows[0];
+    const userRole = profile.role || 'member';
+
     const [profileResult] = await db.execute(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
@@ -756,7 +840,7 @@ router.get("/", async (req, res) => {
 
     // ✅ FETCH CONTRIBUTIONS
     console.log(`📝 Fetching contributions for user: ${userID}`);
-    const contributions = await getUserContributions(userID);
+    const contributions = await getUserContributions(userID, userRole);
 
     
     const response = {
@@ -922,7 +1006,8 @@ router.get("/:identifier", async (req, res) => {
 
     const profile = rows[0];
     const userID = profile.userID;
-    console.log(`✅ User found: ${profile.firstName} ${profile.lastName} (ID: ${userID})`);
+    const userRole = profile.role || 'member'; 
+    console.log(`✅ User found: ${profile.firstName} ${profile.lastName} (ID: ${userID}, Role: ${userRole})`);
     
     // Ensure userProfile exists for the requested user
     if (!profile.userProfileID) {
@@ -979,7 +1064,7 @@ router.get("/:identifier", async (req, res) => {
     }
 
     console.log(`📝 Fetching contributions for user: ${userID}`);
-    const contributions = await getUserContributions(userID);
+    const contributions = await getUserContributions(userID, userRole);
     
     console.log("📤 Sending user profile response");
     res.json({
