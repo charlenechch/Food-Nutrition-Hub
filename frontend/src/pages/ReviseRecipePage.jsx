@@ -34,53 +34,132 @@ const DIET_OPTIONS = [
 ];
 
 export default function ReviseRecipePage() {
-  const { id } = useParams();              // /revise/:id
+  const { id } = useParams();              
   const navigate = useNavigate();
   const { state } = useLocation();
-  const users = useMemo(loadUsers, []);
-  
-  const { ownerUsername, item } = useMemo(() => {
-    const targetId = state?.id || id;
-    for (const [uname, u] of Object.entries(users)) {
-        const hit = (u?.pending || []).find(p => String(p.id) === String(targetId));
-        if (hit) return { ownerUsername: uname, item: hit };
-    }
-    if (state?.snapshot && state?.owner) {
-        return { ownerUsername: state.owner, item: state.snapshot };
-    }
-    return { ownerUsername: null, item: null };
-  }, [users, id, state]);
-
+  const { contribution, adminFeedback, fieldsWithIssues } = state || {};
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const needsFix = new Set(item?.fieldsWithIssues || []);
-
-  // Map the stored payload into the form shape used by your Recipe page
-  const [initial] = useState(() => {
-    if (!item) return {};
-    const p = item.payload || {};
-    return {
-      name: p.name || p.title || "",
-      origin: p.origin || "",
-      difficulty: p.difficulty || "",
-      prepTime: p.prepTime ?? "",
-      cookTime: p.cookTime ?? "",
-      servings: p.servings ?? "",
-      imageData: p.imageData || (p.images?.[0] ?? ""),
-      description: p.description || "",
-      ingredients: p.ingredients || "",
-      instructions: p.instructions || "",
-      funFact: p.funFact || "",
-      chefTips: p.chefTips || "",
-      dietaryTags: p.dietaryTags || [],
-      otherDietEnabled: !!p.otherDietEnabled,
-      otherDietText: p.otherDietText || "",
-      foodType: p.foodType || "",
-      otherFoodEnabled: !!p.otherFoodEnabled,
-      otherFoodText: p.otherFoodText || "",
-    };
+  const [item, setItem] = useState(contribution); // Make item stateful
+  const [form, setForm] = useState({
+    name: "",
+    origin: "",
+    difficulty: "Easy",
+    prepTime: "",
+    cookTime: "",
+    servings: "",
+    imageData: "",
+    description: "",
+    ingredients: "",
+    instructions: "",
+    funFact: "",
+    chefTips: "",
+    dietaryTags: [],
+    otherDietEnabled: false,
+    otherDietText: "",
+    foodType: "Poultry",
+    otherFoodEnabled: false,
+    otherFoodText: "",
   });
 
-  const [form, setForm] = useState(initial);
+  const needsFix = new Set(item?.fieldsWithIssues || []);
+
+  useEffect(() => {
+    const initializeForm = () => {
+      // Use the contribution from state if available
+      if (contribution) {
+        console.log("📝 Using state contribution:", contribution);
+        setItem(contribution);
+        
+        const p = contribution.payload || contribution;
+        const initialForm = {
+          name: p.name || p.title || "",
+          origin: p.origin || "",
+          difficulty: p.difficulty || "Easy",
+          prepTime: p.prepTime ?? "",
+          cookTime: p.cookTime ?? "",
+          servings: p.servings ?? "",
+          imageData: p.imageData || p.image || "",
+          description: p.description || "",
+          ingredients: p.ingredients || "",
+          instructions: p.instructions || p.steps || "",
+          funFact: p.funFact || p.DidYouKnow || "",
+          chefTips: p.chefTips || "",
+          dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
+          otherDietEnabled: false,
+          otherDietText: "",
+          foodType: p.foodType || "Poultry",
+          otherFoodEnabled: false,
+          otherFoodText: "",
+        };
+        
+        setForm(initialForm);
+        setIsLoading(false);
+      }
+    };
+
+    // Try to fetch from API first, fall back to state data
+    const fetchRecipeData = async () => {
+      try {
+        console.log("🔍 Fetching complete recipe data for ID:", id);
+        const response = await fetch(`/api/recipe/${id}`);
+        
+        // Check if response is HTML (error page) or JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Server returned HTML instead of JSON');
+        }
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch recipe: ${response.status}`);
+        }
+        
+        const completeRecipeData = await response.json();
+        console.log("✅ Complete recipe data:", completeRecipeData);
+        
+        // Use API data if available
+        setItem(prev => ({
+          ...prev,
+          ...completeRecipeData,
+          feedback: prev?.feedback || completeRecipeData.feedback,
+          fieldsWithIssues: prev?.fieldsWithIssues || completeRecipeData.fieldsWithIssues
+        }));
+
+        const p = completeRecipeData.payload || completeRecipeData;
+        setForm(prev => ({
+          ...prev,
+          name: p.name || p.title || "",
+          origin: p.origin || "",
+          difficulty: p.difficulty || "Easy",
+          prepTime: p.prepTime ?? "",
+          cookTime: p.cookTime ?? "",
+          servings: p.servings ?? "",
+          imageData: p.imageData || p.image || "",
+          description: p.description || "",
+          ingredients: p.ingredients || "",
+          instructions: p.instructions || p.steps || "",
+          funFact: p.funFact || p.DidYouKnow || "",
+          chefTips: p.chefTips || "",
+          dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
+          foodType: p.foodType || "Poultry",
+        }));
+        
+      } catch (error) {
+        console.error("❌ Error fetching from API, using state data:", error);
+        // Fall back to state data
+        initializeForm();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (contribution) {
+      fetchRecipeData();
+    } else {
+      // If no state data, we can't proceed
+      setIsLoading(false);
+    }
+  }, [id, contribution]);
   
   const onChangeForm = (e) => {
     const { name, value } = e.target;
@@ -139,8 +218,11 @@ export default function ReviseRecipePage() {
 
       console.log('📤 Sending update request with data:', revisedData);
 
+      const users = loadUsers();
+      const ownerUsername = "currentUser";
+
       // Use your update endpoint instead of create endpoint
-      const response = await fetch(`/api/recipe/update/recipes/${item.id}`, {
+      const response = await fetch(`/api/recipe/update/recipes/${id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json" 
@@ -190,32 +272,6 @@ export default function ReviseRecipePage() {
     }
   };
 
-  useEffect(() => {
-    if (!item) return;
-    const p = item.payload || {};
-    setForm(prev => ({
-        ...prev,
-        name: p.name || p.title || "",
-        origin: p.origin || "",
-        difficulty: p.difficulty || "Easy",
-        prepTime: p.prepTime ?? "",
-        cookTime: p.cookTime ?? "",
-        foodType: p.foodType || "Poultry",
-        otherFoodEnabled: !!p.otherFoodEnabled,
-        otherFoodText: p.otherFoodText || "",
-        description: p.description || "",
-        imageData: p.imageData || (p.images?.[0] ?? ""),
-        servings: p.servings ?? "",
-        ingredients: p.ingredients || "",
-        instructions: p.instructions || "",
-        dietaryTags: p.dietaryTags || [],
-        otherDietEnabled: !!p.otherDietEnabled,
-        otherDietText: p.otherDietText || "",
-        funFact: p.funFact || "",
-        chefTips: p.chefTips || ""
-    }));
-  }, [item]);
-
   const fieldLabels = {
     name: "Recipe Name",
     origin: "Origin",
@@ -225,6 +281,20 @@ export default function ReviseRecipePage() {
     instructions: "Instructions",
     dietaryTags: "Dietary Tags"
   };
+
+  if (isLoading) {
+    return (
+      <div className="revise-recipe-page">
+        <Header />
+        <div className="upp-page">
+          <div className="upp-wrap">
+            <div className="loading-state">Loading recipe data...</div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!item) {
     return (

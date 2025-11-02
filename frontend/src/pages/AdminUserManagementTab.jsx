@@ -16,17 +16,17 @@ export default function UserManagement() {
   const [page, setPage] = useState(1);
   const initialPageSize = typeof window !== "undefined" && window.innerWidth <= 680 ? 6 : 10;
   const [pageSize, setPageSize] = useState(initialPageSize);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [emailForm, setEmailForm] = useState({
-    recipientsOption: "All users",   
-    selectedUserIds: [],               
-    customEmails: "",                  
-    template: "",
-    subject: "",
-    message: "",
-    markAnnouncement: false,
-  });
-  const [specificSearch, setSpecificSearch] = useState("");
+  // const [showEmailModal, setShowEmailModal] = useState(false);
+  // const [emailForm, setEmailForm] = useState({
+  //   recipientsOption: "All users",   
+  //   selectedUserIds: [],               
+  //   customEmails: "",                  
+  //   template: "",
+  //   subject: "",
+  //   message: "",
+  //   markAnnouncement: false,
+  // });
+  // const [specificSearch, setSpecificSearch] = useState("");
 
   // Fetch users from backend on component mount
   useEffect(() => {
@@ -149,55 +149,55 @@ export default function UserManagement() {
       }
     }, [totalPages, page]);
   
-    useEffect(() => {
-      if (!showEmailModal) return;
-      const onKey = (e) => e.key === "Escape" && setShowEmailModal(false);
-      document.addEventListener("keydown", onKey);
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.removeEventListener("keydown", onKey);
-        document.body.style.overflow = prev;
-      };
-    }, [showEmailModal]);
+    // useEffect(() => {
+    //   if (!showEmailModal) return;
+    //   const onKey = (e) => e.key === "Escape" && setShowEmailModal(false);
+    //   document.addEventListener("keydown", onKey);
+    //   const prev = document.body.style.overflow;
+    //   document.body.style.overflow = "hidden";
+    //   return () => {
+    //     document.removeEventListener("keydown", onKey);
+    //     document.body.style.overflow = prev;
+    //   };
+    // }, [showEmailModal]);
   
-    const adminIds = users.filter(u => u.role === "Admin").map(u => u.id);
+    // const adminIds = users.filter(u => u.role === "Admin").map(u => u.id);
   
-    const parseCustomEmails = (text) => {
-      if (!text.trim()) return [];
-      // split by comma, trim, basic email shape check, unique
-      const seen = new Set();
-      return text
-        .split(",")
-        .map(s => s.trim())
-        .filter(s => s.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s))
-        .filter(s => (seen.has(s) ? false : (seen.add(s), true)));
-    };
+    // const parseCustomEmails = (text) => {
+    //   if (!text.trim()) return [];
+    //   // split by comma, trim, basic email shape check, unique
+    //   const seen = new Set();
+    //   return text
+    //     .split(",")
+    //     .map(s => s.trim())
+    //     .filter(s => s.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s))
+    //     .filter(s => (seen.has(s) ? false : (seen.add(s), true)));
+    // };
   
-    const totalRecipients = (() => {
-      switch (emailForm.recipientsOption) {
-        case "All users":
-          return users.length;
-        case "Administrators only":
-          return adminIds.length;
-        case "Specific users":
-          return emailForm.selectedUserIds.length;
-        case "Custom Email Addresses":
-          return parseCustomEmails(emailForm.customEmails).length;
-        default:
-          return 0;
-      }
-    })();
+    // const totalRecipients = (() => {
+    //   switch (emailForm.recipientsOption) {
+    //     case "All users":
+    //       return users.length;
+    //     case "Administrators only":
+    //       return adminIds.length;
+    //     case "Specific users":
+    //       return emailForm.selectedUserIds.length;
+    //     case "Custom Email Addresses":
+    //       return parseCustomEmails(emailForm.customEmails).length;
+    //     default:
+    //       return 0;
+    //   }
+    // })();
   
-    const filteredSpecificUsers = users.filter(u => {
-      if (specificSearch.trim() === "") return true;
-      const q = specificSearch.toLowerCase();
-      return (
-        u.name.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q) ||
-        u.city.toLowerCase().includes(q)
-      );
-    });
+    // const filteredSpecificUsers = users.filter(u => {
+    //   if (specificSearch.trim() === "") return true;
+    //   const q = specificSearch.toLowerCase();
+    //   return (
+    //     u.name.toLowerCase().includes(q) ||
+    //     u.email.toLowerCase().includes(q) ||
+    //     u.city.toLowerCase().includes(q)
+    //   );
+    // });
 
     const [showUserModal, setShowUserModal] = useState(false);
     const [userMode, setUserMode] = useState("create"); // "create" | "edit"
@@ -388,10 +388,10 @@ export default function UserManagement() {
               <h2 className="umg-title">Enhanced User Management</h2>
               <p className="umg-subtitle">Comprehensive user account administration</p>
             </div>
-            <button className="umg-email-btn" onClick={() => setShowEmailModal(true)}>
+            {/* <button className="umg-email-btn" onClick={() => setShowEmailModal(true)}>
               <Mail />
               Send Email Notification
-            </button>
+            </button> */}
           </div>
 
           {/* Summary cards */}
@@ -595,7 +595,7 @@ export default function UserManagement() {
               </div>
             </div>
           </div>
-          {showEmailModal && (
+          {/* {showEmailModal && (
           <div
             className="umg-modal-backdrop"
             role="dialog"
@@ -606,15 +606,13 @@ export default function UserManagement() {
               className="umg-modal"
               onClick={(e) => e.stopPropagation()} // prevent backdrop close
             >
-              {/* Header */}
               <div className="umg-modal-header">
                 <h3><Mail size = "18"/> Send Email Notification</h3>
                 <button className="umg-modal-close" onClick={() => setShowEmailModal(false)} aria-label="Close"><X/></button>
               </div>
 
-              {/* Body */}
               <div className="umg-modal-body">
-                {/* Recipients */}
+
                 <div className="umg-field">
                   <label className="umg-label">Recipients</label>
                   <select
@@ -628,7 +626,6 @@ export default function UserManagement() {
                     <option>Custom Email Addresses</option>
                   </select>
                   
-                  {/* Specific users: show a compact checklist */}
                   {emailForm.recipientsOption === "Specific users" && (
                     <div className="umg-specific-list">
                       <input
@@ -669,7 +666,6 @@ export default function UserManagement() {
                     </div>
                   )}
 
-                  {/* Custom emails: show input */}
                   {emailForm.recipientsOption === "Custom Email Addresses" && (
                     <div className="umg-field">
                       <label className="umg-label">Enter email addresses</label>
@@ -687,7 +683,6 @@ export default function UserManagement() {
                   <div className="umg-hint">Total Recipients: {totalRecipients}</div>
                 </div>
 
-                {/* Template */}
                 <div className="umg-field">
                   <label className="umg-label">Email Template</label>
                   <select
@@ -712,7 +707,6 @@ export default function UserManagement() {
                   </select>
                 </div>
 
-                {/* Subject */}
                 <div className="umg-field">
                   <label className="umg-label">Subject</label>
                   <input
@@ -723,7 +717,6 @@ export default function UserManagement() {
                   />
                 </div>
 
-                {/* Message */}
                 <div className="umg-field">
                   <label className="umg-label">Message</label>
                   <textarea
@@ -734,7 +727,6 @@ export default function UserManagement() {
                   />
                 </div>
 
-                {/* Announcement checkbox */}
                 <label className="umg-check">
                   <input
                     type="checkbox"
@@ -748,7 +740,6 @@ export default function UserManagement() {
                 </label>
               </div>
 
-              {/* Footer */}
               <div className="umg-modal-footer">
                 <button className="umg-btn-secondary" onClick={() => setShowEmailModal(false)}>Cancel</button>
                 <button
@@ -785,7 +776,7 @@ export default function UserManagement() {
               </div>
             </div>
           </div>
-        )}
+        )} */}
         {showUserModal && (
             <div
                 className="umg-modal-backdrop"
