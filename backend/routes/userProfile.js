@@ -758,16 +758,26 @@ router.get("/", async (req, res) => {
     console.log(`📝 Fetching contributions for user: ${userID}`);
     const contributions = await getUserContributions(userID);
 
-    // BUILD RESPONSE WITH savedFoods INCLUDED
+    
     const response = {
-      ...profile,
-      savedFoods: savedFoodsData, // ✅ Make sure this is included
-      status: contributions, // ✅ Add contributions data
+      userID: profile.userID,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      email: profile.email,
+      role: profile.role,
+      userProfileID: profile.userProfileID,
+      location: profile.location,
+      bio: profile.bio,
+      avatar: profile.avatar,
+
+      savedFoods: savedFoodsData,
+      status: contributions,
       stats: {
         recipes: freshStats.recipes || 0,
         posts: freshStats.posts || 0,
         likes: freshStats.likes || 0,
       },
+    
       prefs: {
         dietary: profile.dietary ? JSON.parse(profile.dietary || "[]") : [],
         allergies: profile.allergies ? JSON.parse(profile.allergies || "[]") : [],
@@ -973,7 +983,17 @@ router.get("/:identifier", async (req, res) => {
     
     console.log("📤 Sending user profile response");
     res.json({
-      ...profile,
+      // ✅ Keep only basic user info
+      userID: profile.userID,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      email: profile.email,
+      role: profile.role,
+      userProfileID: profile.userProfileID,
+      location: profile.location,
+      bio: profile.bio,
+      avatar: profile.avatar,
+      
       savedFoods: savedFoodsData, 
       status: contributions, 
       stats: {
@@ -981,6 +1001,8 @@ router.get("/:identifier", async (req, res) => {
         posts: freshStats.posts || profile.posts || 0,
         likes: freshStats.likes || profile.likes || 0,
       },
+      
+      // ✅ This is now the ONLY place for preferences
       prefs: {
         dietary: profile.dietary ? JSON.parse(profile.dietary || "[]") : [],
         allergies: profile.allergies ? JSON.parse(profile.allergies || "[]") : [],
