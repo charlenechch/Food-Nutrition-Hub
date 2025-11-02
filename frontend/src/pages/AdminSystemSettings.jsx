@@ -43,7 +43,7 @@ export default function AdminSystemSettings({
     const platformemail = "info@sarawakeats.com";
     const SYSTEM_EMAIL_TEMPLATES = {
         "Custom message": { subject: "", message: "" },
-        "Maintenance Window": {
+        "Maintenance Notice": {
             subject: "Scheduled Maintenance Notice",
             message:
                 `Hello,\n\nWe will perform scheduled maintenance from <Date>, <Time> to <Date>, <Time>. ${platformName} may be unavailable during this time.\n\nThanks,\nSystem Admin`,
