@@ -143,26 +143,26 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
 // ---------- 4) Rate limiting ----------
-//const globalLimiter = rateLimit({
-//  windowMs: 15 * 60 * 1000,
-//  limit: 300,
-//  standardHeaders: true,
-//  legacyHeaders: false,
-//});
-//app.use(globalLimiter);
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(globalLimiter);
 
-//const authLimiter = rateLimit({
-//  windowMs: 10 * 60 * 1000,
-//  limit: 10,
-//  standardHeaders: true,
-//  legacyHeaders: false,
-//  message: { error: "Too many attempts, try again later." },
-// keyGenerator: (req, res) => {
-//    const ipKey = ipKeyGenerator(req, res);
-//    const emailKey = req.body?.email || "guest";
-//    return `${ipKey}-${emailKey}`;
-//  },
-//});
+const authLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many attempts, try again later." },
+ keyGenerator: (req, res) => {
+    const ipKey = ipKeyGenerator(req, res);
+    const emailKey = req.body?.email || "guest";
+    return `${ipKey}-${emailKey}`;
+  },
+});
 
 // ---------- 5) Sessions ----------
 const dbOptions = {
@@ -206,7 +206,7 @@ app.use(
 
 app.use(
   "/api/login",
-  //authLimiter,
+  authLimiter,
   hppProtect({
     policy: "reject",
     allowlist: ["email", "password", "rememberDevice"], // Remember Me allowed
