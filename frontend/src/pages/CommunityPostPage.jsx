@@ -24,8 +24,9 @@ function computeIsLoggedIn(user) {
 }
 
 function getStableProfileId(user) {
-  
+  // For admin users, we need to handle the case where userProfileID is null
   if (user?.role === "admin") {
+    // Try to get userProfileID from multiple possible sources
     const adminProfileId = user?.userProfileID || user?.userID || user?.id;
     
     console.log("🔍 Admin Profile ID Check:", {
@@ -37,7 +38,7 @@ function getStableProfileId(user) {
     
     if (!adminProfileId) {
       console.error("❌ Admin user missing profile ID - this will prevent posting");
-      return "admin-fallback";
+      return "admin-fallback"; 
     }
     
     return adminProfileId;
@@ -297,18 +298,15 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
 
       const userProfileID = getStableProfileId(user);
 
-      const requestBody = {
-      content: comment,
-      postId,
-      userProfileID,
-      isAdmin: user?.role === "admin"
-      };
-
       const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          content: comment,
+          postId,
+          userProfileID,
+        }),
       });
 
       const result = await response.json();
