@@ -30,48 +30,47 @@ const saveFoodRoutes = require("./routes/saveFood");
 const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
-
 const reviseCommunityPostRoutes = require('./routes/reviseCommunityPostRoutes');
 
 // ✅ Safe import for userProfile route (prevents crash if Firebase fails)
-let userProfileRoutes;
-try {
-  userProfileRoutes = require("./routes/userProfile");
-  if (
-    typeof userProfileRoutes !== "function" &&
-    typeof userProfileRoutes?.use !== "function"
-  ) {
-    throw new Error("Invalid userProfile router export");
-  }
-  console.log("✅ userProfile route loaded successfully");
-} catch (err) {
-  console.error("⚠️ Failed to load userProfile route:", err.message);
-  userProfileRoutes = express.Router();
-  userProfileRoutes.use((req, res) =>
-    res
-      .status(503)
-      .json({ error: "UserProfile route unavailable (Firebase not configured)" })
-  );
-}
+// let userProfileRoutes;
+// try {
+//   userProfileRoutes = require("./routes/userProfile");
+//   if (
+//     typeof userProfileRoutes !== "function" &&
+//     typeof userProfileRoutes?.use !== "function"
+//   ) {
+//     throw new Error("Invalid userProfile router export");
+//   }
+//   console.log("✅ userProfile route loaded successfully");
+// } catch (err) {
+//   console.error("⚠️ Failed to load userProfile route:", err.message);
+//   userProfileRoutes = express.Router();
+//   userProfileRoutes.use((req, res) =>
+//     res
+//       .status(503)
+//       .json({ error: "UserProfile route unavailable (Firebase not configured)" })
+//   );
+// }
 
-// ✅ Safe import for admin route
-let adminRoutes;
-try {
-  adminRoutes = require("./routes/admin");
-  if (
-    typeof adminRoutes !== "function" &&
-    typeof adminRoutes?.use !== "function"
-  ) {
-    throw new Error("Invalid admin router export");
-  }
-  console.log("✅ admin route loaded successfully");
-} catch (err) {
-  console.error("⚠️ Failed to load admin route:", err.message);
-  adminRoutes = express.Router();
-  adminRoutes.use((req, res) =>
-    res.status(503).json({ error: "Admin route unavailable" })
-  );
-}
+// // ✅ Safe import for admin route
+// let adminRoutes;
+// try {
+//   adminRoutes = require("./routes/admin");
+//   if (
+//     typeof adminRoutes !== "function" &&
+//     typeof adminRoutes?.use !== "function"
+//   ) {
+//     throw new Error("Invalid admin router export");
+//   }
+//   console.log("✅ admin route loaded successfully");
+// } catch (err) {
+//   console.error("⚠️ Failed to load admin route:", err.message);
+//   adminRoutes = express.Router();
+//   adminRoutes.use((req, res) =>
+//     res.status(503).json({ error: "Admin route unavailable" })
+//   );
+// }
 
 // ✅ NEW: Admin route import (for Admin User Management)
 const adminRoutes = require("./routes/admin");
