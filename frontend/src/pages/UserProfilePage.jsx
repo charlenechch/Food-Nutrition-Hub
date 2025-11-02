@@ -400,12 +400,20 @@ const savePrefs = async () => {
           const res = await fetch(`${API_BASE_URL}/api/reviseCommunityPost/user/${user.userID}`, {
             credentials: "include"
           });
+
+        console.log("📥 Community posts response status:", res.status);
+        console.log("📥 Community posts response ok:", res.ok);
+        console.log("📥 Community posts response headers:", res.headers);
           
           if (res.ok) {
             const data = await res.json();
             console.log("✅ Community posts data received:", data);
             console.error("❌ Failed to fetch community posts:", res.status);
             setCommunityPosts(data);
+          }else {
+          console.error("❌ Failed to fetch community posts - response not ok");
+          const errorText = await res.text();
+          console.error("❌ Error response:", errorText);
           }
         } catch (error) {
           console.error('Failed to fetch community posts:', error);
@@ -1001,13 +1009,13 @@ const savePrefs = async () => {
 
                       {/* Community Posts Section (REAL) */}
                       <div className="upp-card">
-                        <h3 className="upp-card-title">Community Posts ({communityContributions.length})</h3>
-                        {communityContributions.length ? (
+                        <h3 className="upp-card-title">Community Posts ({communityPosts.length})</h3>
+                        {communityPosts.length ? (
                           <div className="upp-stack">
-                            {communityContributions.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
+                            {communityPosts.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
                           </div>
                         ) : (
-                          <div className="upp-muted">No community posts yet</div>
+                          <div className="upp-muted">{isLoadingCommunity ? 'Loading community posts...' : 'No community posts yet'}</div>
                         )}
                       </div>
 
