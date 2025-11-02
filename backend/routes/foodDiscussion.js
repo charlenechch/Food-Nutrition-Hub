@@ -45,7 +45,20 @@ function formatToDate(timestamp) {
 router.get('/food/:foodId', async (req, res) => {
   try {
     const { foodId } = req.params;
-    const userProfileID = req.user?.userProfileID;
+    //const userProfileID = req.user?.userProfileID;
+
+    let userProfileID = null;
+    if (req.session && req.session.user) {
+      const userID = req.session.user.userID;
+      const [profileResult] = await db.query(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+      );
+
+      if (profileResult.length > 0) {
+        userProfileID = profileResult[0].userProfileID;
+      }
+    }
 
     console.log("🟢 GET COMMENTS - foodId:", foodId, "userProfileID:", userProfileID);
 
@@ -74,55 +87,39 @@ router.get('/food/:foodId', async (req, res) => {
 
     console.log("🟢 Raw comments from DB:", comments.length);
     
-    // ✅ MANUAL user_liked check with detailed debugging
+    // check user_liked 
     comments = comments.map(comment => {
-      console.log(`🟢 Processing comment ${comment.id}:`);
-      console.log(`   upvoted_by:`, comment.upvoted_by);
-      console.log(`   userProfileID to check:`, userProfileID);
-      
       let user_liked = false;
       
-      try {
-        if (comment.upvoted_by) {
-          // Handle different possible values
+      if (userProfileID && comment.upvoted_by) {
+        try {
+          // Handle different possible upvoted_by values
           if (comment.upvoted_by === 'null' || comment.upvoted_by === '' || comment.upvoted_by === '[]' || comment.upvoted_by === '[null]') {
-            console.log(`   Empty upvoted_by, setting user_liked: false`);
             user_liked = false;
           } else {
-            console.log(`   Parsing upvoted_by...`);
-            const upvotedArray = JSON.parse(comment.upvoted_by);
-            console.log(`   Parsed array:`, upvotedArray);
-            console.log(`   Array type:`, typeof upvotedArray, "Is array:", Array.isArray(upvotedArray));
+            let upvotedArray = JSON.parse(comment.upvoted_by);
             
+            // Handle single number case
             if (typeof upvotedArray === 'number') {
-              // If it's just a number, convert to array
               upvotedArray = [upvotedArray];
-              console.log(`   Converted single number to array:`, upvotedArray);
             }
 
             if (Array.isArray(upvotedArray)) {
-              // Clean the array - remove any null/undefined values
-              const cleanArray = upvotedArray.filter(id => id !== null && id !== undefined);
-              console.log(`   Cleaned array:`, cleanArray);
+              // Convert all IDs to numbers for consistent comparison
+              const cleanArray = upvotedArray
+                .filter(id => id !== null && id !== undefined)
+                .map(id => Number(id));
               
-              user_liked = cleanArray.includes(userProfileID);
-              console.log(`   user_liked result:`, user_liked, "(looking for", userProfileID, "in", cleanArray, ")");
-            } else {
-              console.log(`   ❌ upvoted_by is not an array!`);
-              user_liked = false;
+              user_liked = cleanArray.includes(Number(userProfileID));
             }
           }
-        } else {
-          console.log(`   No upvoted_by field`);
+        } catch (error) {
+          console.error(`❌ Error parsing upvoted_by for comment ${comment.id}:`, error.message);
           user_liked = false;
         }
-      } catch (error) {
-        console.error(`   ❌ Error parsing upvoted_by:`, error.message);
-        user_liked = false;
       }
 
-      console.log(`   Final user_liked for comment ${comment.id}:`, user_liked);
-      console.log(`   ---`);
+      console.log(`✅ Comment ${comment.id}: user_liked = ${user_liked} (userProfileID: ${userProfileID})`);
 
       return {
         ...comment,

@@ -237,7 +237,7 @@ app.use(
       "status", "stats", "saveFoods",
       "likes",
       "type",
-      "postId",
+      "postId", "postID",
       "content",
       "reply",
       "comment",
