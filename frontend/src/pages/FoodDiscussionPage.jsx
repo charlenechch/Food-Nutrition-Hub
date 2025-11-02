@@ -279,6 +279,13 @@ export default function FoodDiscussionPage() {
   const [replyTexts, setReplyTexts] = useState({});
   const [loading, setLoading] = useState(true);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  // ✅ NEW: Food like state
+const [foodLike, setFoodLike] = useState({
+  isLiked: false,
+  likesCount: 0,
+  loading: false
+});
   
   // Delete confirmation modal state
   const [deleteModal, setDeleteModal] = useState({
@@ -338,6 +345,87 @@ export default function FoodDiscussionPage() {
   useEffect(() => {
     if (foodId) fetchComments();
   }, [foodId]);
+
+  // ✅ NEW: Fetch food like status
+const fetchFoodLikeStatus = async () => {
+  try {
+    const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/like-status`, {
+      credentials: "include",
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
+        setFoodLike(prev => ({
+          ...prev,
+          isLiked: data.data.isLiked,
+          likesCount: data.data.likesCount
+        }));
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching food like status:', error);
+  }
+};
+
+// ✅ NEW: Toggle food like
+const toggleFoodLike = async () => {
+  if (isGuest) return setShowLoginPrompt(true);
+  
+  if (foodLike.loading) return;
+
+  // Optimistic update
+  const previousState = { ...foodLike };
+  setFoodLike(prev => ({
+    ...prev,
+    isLiked: !prev.isLiked,
+    likesCount: prev.isLiked ? prev.likesCount - 1 : prev.likesCount + 1,
+    loading: true
+  }));
+
+  try {
+    const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/toggle-like`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      setFoodLike(prev => ({
+        ...prev,
+        isLiked: data.data.isLiked,
+        likesCount: data.data.likesCount,
+        loading: false
+      }));
+    } else {
+      // Revert on error
+      setFoodLike(prev => ({
+        ...prev,
+        ...previousState,
+        loading: false
+      }));
+      alert(data?.message || "Failed to update like");
+    }
+  } catch (err) {
+    console.error("Error toggling food like:", err);
+    // Revert on error
+    setFoodLike(prev => ({
+      ...prev,
+      ...previousState,
+      loading: false
+    }));
+    alert("Network error while updating like");
+  }
+};
+
+useEffect(() => {
+  if (foodId) {
+    fetchComments();
+    fetchFoodLikeStatus(); // ✅ Fetch like status on component mount
+  }
+}, [foodId]);
 
   // ✅ Post Comment
   const postComment = async () => {
@@ -737,7 +825,7 @@ const postReply = async (discussionId) => {
   const handleBack = () => navigate(-1);
   const totalComments =
   comments.length + comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0);
-  const totalLikes = comments.reduce((acc, c) => acc + (c.likes || 0), 0);
+  //const totalLikes = comments.reduce((acc, c) => acc + (c.likes || 0), 0);
 
   return (
     <div className="food-discussion-page">
@@ -768,7 +856,14 @@ const postReply = async (discussionId) => {
               <p className="fd-muted">{food?.description}</p>
               <div className="fd-sum-stats">
                 <span>💬 {totalComments} comments</span>
-                <span>♡ {totalLikes} likes</span>
+                <button 
+                  className={`fd-food-like-btn ${foodLike.isLiked ? 'liked' : ''} ${foodLike.loading ? 'loading' : ''}`}
+                  onClick={toggleFoodLike}
+                  disabled={foodLike.loading}
+                  title={foodLike.isLiked ? "Unlike this food" : "Like this food"}
+                >
+                  {foodLike.isLiked ? "♥" : "♡"} {foodLike.likesCount} likes
+                </button>
               </div>
             </div>
           </div>
