@@ -1,29 +1,12 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { FaCamera, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa"; 
-import LS_KEY from "./UserProfilePage"; 
-import "../css/ReviseRecipePage.css"; // Import the CSS
+import "../css/ReviseRecipePage.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// Helper to load users from localStorage (same shape as your profile page)
-function loadUsers() {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-function saveUsers(obj) {
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify(obj));
-  } catch {}
-}
-
-// You can keep these in a shared constants file if you like
 const DIET_OPTIONS = [
   "gluten-free",
   "dairy-free",
@@ -36,54 +19,57 @@ const DIET_OPTIONS = [
 ];
 
 export default function ReviseRecipePage() {
-  const { id } = useParams();              // /revise/:id
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { state } = useLocation();
-  const users = useMemo(loadUsers, []);
+  const location = useLocation();
   
-  const { ownerUsername, item } = useMemo(() => {
-    const targetId = state?.id || id;
-    for (const [uname, u] of Object.entries(users)) {
-        const hit = (u?.pending || []).find(p => String(p.id) === String(targetId));
-        if (hit) return { ownerUsername: uname, item: hit };
-    }
-    if (state?.snapshot && state?.owner) {
-        return { ownerUsername: state.owner, item: state.snapshot };
-    }
-    return { ownerUsername: null, item: null };
-  }, [users, id, state]);
+  // Get real data from navigation state passed from UserProfilePage
+  const { contribution, adminFeedback, fieldsWithIssues } = location.state || {};
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const needsFix = new Set(item?.fieldsWithIssues || []);
-
-  // Map the stored payload into the form shape used by your Recipe page
-  const [initial] = useState(() => {
-    if (!item) return {};
-    const p = item.payload || {};
-    return {
-      name: p.name || p.title || "",
-      origin: p.origin || "",
-      difficulty: p.difficulty || "",
-      prepTime: p.prepTime ?? "",
-      cookTime: p.cookTime ?? "",
-      servings: p.servings ?? "",
-      imageData: p.imageData || (p.images?.[0] ?? ""),
-      description: p.description || "",
-      ingredients: p.ingredients || "",
-      instructions: p.instructions || "",
-      funFact: p.funFact || "",
-      chefTips: p.chefTips || "",
-      dietaryTags: p.dietaryTags || [],
-      otherDietEnabled: !!p.otherDietEnabled,
-      otherDietText: p.otherDietText || "",
-      foodType: p.foodType || "",
-      otherFoodEnabled: !!p.otherFoodEnabled,
-      otherFoodText: p.otherFoodText || "",
-    };
+  const [form, setForm] = useState({
+    name: "",
+    origin: "",
+    difficulty: "Easy",
+    prepTime: "",
+    cookTime: "",
+    servings: "",
+    imageData: "",
+    description: "",
+    ingredients: "",
+    instructions: "",
+    funFact: "",
+    chefTips: "",
+    dietaryTags: [],
+    foodType: "Poultry"
   });
-
-  const [form, setForm] = useState(initial);
   
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // Initialize form with real contribution data
+  useEffect(() => {
+    if (contribution) {
+      console.log("📝 Initializing form with real contribution:", contribution);
+      setForm({
+        name: contribution.title || "",
+        origin: contribution.origin || "",
+        difficulty: contribution.difficulty || "Easy",
+        prepTime: contribution.prepTime || "",
+        cookTime: contribution.cookTime || "",
+        servings: contribution.servings || "",
+        imageData: contribution.image || "",
+        description: contribution.description || "",
+        ingredients: contribution.ingredients || "",
+        instructions: contribution.instructions || "",
+        funFact: contribution.funFact || "",
+        chefTips: contribution.chefTips || "",
+        dietaryTags: Array.isArray(contribution.dietaryTags) ? contribution.dietaryTags : [],
+        foodType: contribution.foodType || "Poultry"
+      });
+    }
+    setIsInitializing(false);
+  }, [contribution]);
+
   const onChangeForm = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
@@ -114,7 +100,7 @@ export default function ReviseRecipePage() {
     setIsSubmitting(true);
 
     try {
-      console.log('🚀 Starting recipe revision for ID:', item.id);
+      console.log('🚀 Starting recipe revision for ID:', id);
 
       // Build the data in the same format as your create endpoint
       const revisedData = {
@@ -124,14 +110,11 @@ export default function ReviseRecipePage() {
         prepTime: form.prepTime,
         cookTime: form.cookTime,
         servings: form.servings,
-        image: form.imageData, // This can be base64 or URL
+        image: form.imageData,
         description: form.description,
         foodType: form.foodType,
         dietaryTags: [
           ...form.dietaryTags,
-          ...(form.otherDietEnabled && form.otherDietText
-            ? form.otherDietText.split(",").map(s => s.trim()).filter(Boolean)
-            : []),
         ],
         ingredients: form.ingredients,
         instructions: form.instructions,
@@ -142,7 +125,7 @@ export default function ReviseRecipePage() {
       console.log('📤 Sending update request with data:', revisedData);
 
       // Use your update endpoint instead of create endpoint
-      const response = await fetch(`/api/recipe/update/recipes/${item.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/recipe/update/recipes/${id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json" 
@@ -163,24 +146,8 @@ export default function ReviseRecipePage() {
       console.log('✅ Update successful:', result);
 
       if (result.success || result.message) {
-        // Also update localStorage if you're using it
-        const nextUsers = { ...users };
-        const list = nextUsers[ownerUsername].pending.map(p => {
-          if (String(p.id) !== String(item.id)) return p;
-          return {
-            ...p,
-            status: "Pending", // Reset to pending for re-review
-            feedback: "", // Clear old feedback
-            fieldsWithIssues: [],
-            payload: revisedData,
-            resubmittedDate: new Date().toISOString(),
-          };
-        });
-        nextUsers[ownerUsername] = { ...nextUsers[ownerUsername], pending: list };
-        saveUsers(nextUsers);
-
         alert("Recipe revised successfully! It will be reviewed again.");
-        navigate(-1); // Go back to profile
+        navigate("/profile");
       } else {
         throw new Error(result.error || "Update failed");
       }
@@ -192,32 +159,9 @@ export default function ReviseRecipePage() {
     }
   };
 
-  useEffect(() => {
-    if (!item) return;
-    const p = item.payload || {};
-    setForm(prev => ({
-        ...prev,
-        name: p.name || p.title || "",
-        origin: p.origin || "",
-        difficulty: p.difficulty || "Easy",
-        prepTime: p.prepTime ?? "",
-        cookTime: p.cookTime ?? "",
-        foodType: p.foodType || "Poultry",
-        otherFoodEnabled: !!p.otherFoodEnabled,
-        otherFoodText: p.otherFoodText || "",
-        description: p.description || "",
-        imageData: p.imageData || (p.images?.[0] ?? ""),
-        servings: p.servings ?? "",
-        ingredients: p.ingredients || "",
-        instructions: p.instructions || "",
-        dietaryTags: p.dietaryTags || [],
-        otherDietEnabled: !!p.otherDietEnabled,
-        otherDietText: p.otherDietText || "",
-        funFact: p.funFact || "",
-        chefTips: p.chefTips || ""
-    }));
-  }, [item]);
-
+  // Check which fields need fixing
+  const needsFix = new Set(fieldsWithIssues || []);
+  
   const fieldLabels = {
     name: "Recipe Name",
     origin: "Origin",
@@ -228,10 +172,22 @@ export default function ReviseRecipePage() {
     dietaryTags: "Dietary Tags"
   };
 
-  if (!item) {
+  if (isInitializing) {
+    return (
+      <div className="revise-recipe-page">
+        <Header />
+        <div className="upp-page">
+          <div className="upp-loading">Loading recipe data...</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!contribution) {
     return (
       <div className="upp-wrap">
-        <button className="lrp-btn lrp-btn-outline rcp-back" onClick={() => navigate(-1)}>← Back</button>
+        <button className="lrp-btn lrp-btn-outline rcp-back" onClick={() => navigate("/profile")}>← Back to Profile</button>
         <h2 className="upp-404-h2">This contribution isn't available to revise.</h2>
         <p className="upp-muted">
             It may have been re-submitted or reviewed already. Try refreshing your profile's "Pending" tab.
@@ -245,7 +201,7 @@ export default function ReviseRecipePage() {
       <Header />
       <div className="upp-page">
         <div className="upp-wrap">
-          <button className="lrp-btn lrp-btn-outline rcp-back" onClick={() => navigate(-1)}>← Back</button>
+          <button className="lrp-btn lrp-btn-outline rcp-back" onClick={() => navigate("/profile")}>← Back to Profile</button>
           <div className="rcp-wrap">
           <h2 className="rp-title">Revise Recipe</h2>
           
@@ -257,8 +213,8 @@ export default function ReviseRecipePage() {
             </div>
             
             <div className="rcp-alert-content">
-              {item.feedback ? (
-                <p className="rcp-feedback-message">{item.feedback}</p>
+              {adminFeedback ? (
+                <p className="rcp-feedback-message">{adminFeedback}</p>
               ) : (
                 <p className="rcp-feedback-message">
                   Your recipe requires revisions before it can be approved. Please address the issues highlighted below.
@@ -281,7 +237,7 @@ export default function ReviseRecipePage() {
           </div>
 
           <p className="upp-muted" style={{ marginBottom: 16 }}>
-            Fix the highlighted fields and resubmit. Your original submission date: {new Date(item.submittedDate).toLocaleDateString()}
+            Fix the highlighted fields and resubmit. Your original submission date: {contribution.submittedDate ? new Date(contribution.submittedDate).toLocaleDateString() : "Unknown"}
           </p>
 
           <form className="rp-form" onSubmit={addRecipe}>
@@ -495,7 +451,7 @@ export default function ReviseRecipePage() {
               <button
                 className="rp-btn rp-btn-muted"
                 type="button"
-                onClick={() => navigate(-1)}
+                onClick={() => navigate("/profile")}
               >
                 Cancel
               </button>

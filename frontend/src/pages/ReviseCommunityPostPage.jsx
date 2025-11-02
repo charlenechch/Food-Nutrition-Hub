@@ -1,13 +1,12 @@
 // src/pages/ReviseCommunityPostPage.jsx
-import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { FaCamera } from "react-icons/fa";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// You can expand this list if your dropdown supports more origins
 const ORIGIN_OPTIONS = [
   "Iban",
   "Melanau",
@@ -20,24 +19,35 @@ const ORIGIN_OPTIONS = [
 ];
 
 export default function ReviseCommunityPostPage() {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get real data from navigation state
+  const { contribution, adminFeedback, fieldsWithIssues } = location.state || {};
 
-  const item = useMemo(() => REVIEW_ITEM, []);
-  const needsFix = useMemo(() => new Set(item.fieldsWithIssues || []), [item]);
-
-  // Initial form data based on the original payload
-  const [initial] = useState(() => {
-    const p = item.payload || {};
-    return {
-      foodName: p.foodName || "",
-      origin: p.origin || "",
-      culturalStory: p.culturalStory || "",
-      recipe: p.recipe || "",
-      imageData: p.imageData || "",
-    };
+  // Use real field names that match your backend
+  const [form, setForm] = useState({
+    title: "", // Changed from foodName to title
+    culturalOrigin: "", // Changed from origin to culturalOrigin
+    content: "", // Changed from culturalStory to content
+    recipe: "",
+    image: "" // Changed from imageData to image
   });
 
-  const [form, setForm] = useState(initial);
+  // Initialize form with real contribution data using correct field names
+  useEffect(() => {
+    if (contribution) {
+      console.log("📝 Initializing form with real contribution:", contribution);
+      setForm({
+        title: contribution.title || "",
+        culturalOrigin: contribution.culturalOrigin || "",
+        content: contribution.content || "",
+        recipe: contribution.recipe || "",
+        image: contribution.image || ""
+      });
+    }
+  }, [contribution]);
 
   const onChangeForm = (e) => {
     const { name, value } = e.target;
@@ -49,34 +59,76 @@ export default function ReviseCommunityPostPage() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () =>
-      setForm((prev) => ({ ...prev, imageData: reader.result }));
+      setForm((prev) => ({ ...prev, image: reader.result })); // Changed to image
     reader.readAsDataURL(file);
   };
 
-  const submitRevision = (e) => {
+  const submitRevision = async (e) => {
     e.preventDefault();
 
-    // Build revised payload in the same shape (mocked)
+    // Build revised payload with correct field names
     const revisedPayload = {
-      ...item.payload,
-      foodName: form.foodName.trim(),
-      origin: form.origin,
-      culturalStory: form.culturalStory.trim(),
+      title: form.title.trim(),
+      culturalOrigin: form.culturalOrigin,
+      content: form.content.trim(),
       recipe: form.recipe,
-      imageData: form.imageData,
+      status: "pending" // Reset to pending for review
     };
 
-    // In a real app, you’d POST/PATCH this to your backend.
-    // Here we just show a confirmation and go back.
     console.log("REVISED COMMUNITY POST ▶", {
-      id: item.id,
-      revisedPayload,
-      previousPayload: item.payload,
+      id: id,
+      revisedPayload
     });
 
-    alert("Revision submitted! We’ll review it shortly.");
-    navigate(-1);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/reviseCommunityPost/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(revisedPayload),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update community post");
+      }
+
+      const result = await res.json();
+      
+      if (result.success) {
+        alert("Revision submitted! We'll review it shortly.");
+        navigate(-1);
+      }
+    } catch (err) {
+      console.error("❌ Error submitting revision:", err);
+      alert("Failed to submit revision. Please try again.");
+    }
   };
+
+  // Check which fields need fixing
+  const needsFix = new Set(fieldsWithIssues || []);
+
+  if (!contribution) {
+    return (
+      <div className="revise-recipe-page">
+        <Header />
+        <div className="upp-page">
+          <div className="upp-wrap">
+            <div className="rcp-error">
+              <h2>Error</h2>
+              <p>No community post data found for revision.</p>
+              <button 
+                className="lrp-btn lrp-btn-primary"
+                onClick={() => navigate("/profile")}
+              >
+                Back to Profile
+              </button>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="revise-recipe-page">
@@ -96,10 +148,10 @@ export default function ReviseCommunityPostPage() {
             <p className="upp-muted" style={{ marginBottom: 16 }}>
               Fix the highlighted fields and resubmit. Your original submission
               date:{" "}
-              {new Date(item.submittedDate).toLocaleDateString("en-GB")}
+              {contribution.submittedDate ? new Date(contribution.submittedDate).toLocaleDateString("en-GB") : "Unknown"}
             </p>
 
-            {item.feedback ? (
+            {adminFeedback ? (
               <div
                 className="upp-card"
                 style={{ borderColor: "#ffd6d6", background: "#fff8f8" }}
@@ -107,7 +159,7 @@ export default function ReviseCommunityPostPage() {
                 <div className="upp-strong" style={{ marginBottom: 6 }}>
                   Reviewer Feedback
                 </div>
-                <div>{item.feedback}</div>
+                <div>{adminFeedback}</div>
               </div>
             ) : null}
 
@@ -116,13 +168,13 @@ export default function ReviseCommunityPostPage() {
               <div className="rp-grid-2">
                 <div
                   className={`rp-field ${
-                    needsFix.has("foodName") ? "needs-fix" : ""
+                    needsFix.has("title") || needsFix.has("foodName") ? "needs-fix" : ""
                   }`}
                 >
                   <label>Food Name *</label>
                   <input
-                    name="foodName"
-                    value={form.foodName}
+                    name="title" // Changed to title
+                    value={form.title} // Changed to title
                     onChange={onChangeForm}
                     placeholder="e.g., Manok Pansoh"
                     required
@@ -131,13 +183,13 @@ export default function ReviseCommunityPostPage() {
 
                 <div
                   className={`rp-field ${
-                    needsFix.has("origin") ? "needs-fix" : ""
+                    needsFix.has("culturalOrigin") || needsFix.has("origin") ? "needs-fix" : ""
                   }`}
                 >
                   <label>Cultural Origin *</label>
                   <select
-                    name="origin"
-                    value={form.origin}
+                    name="culturalOrigin" // Changed to culturalOrigin
+                    value={form.culturalOrigin} // Changed to culturalOrigin
                     onChange={onChangeForm}
                     required
                   >
@@ -154,13 +206,13 @@ export default function ReviseCommunityPostPage() {
               {/* Cultural Story */}
               <div
                 className={`rp-field ${
-                  needsFix.has("culturalStory") ? "needs-fix" : ""
+                  needsFix.has("content") || needsFix.has("culturalStory") ? "needs-fix" : ""
                 }`}
               >
                 <label>Cultural Story *</label>
                 <textarea
-                  name="culturalStory"
-                  value={form.culturalStory}
+                  name="content" // Changed to content
+                  value={form.content} // Changed to content
                   onChange={onChangeForm}
                   placeholder="Tell us the story behind this dish—when is it served, how is it meaningful to your community, etc."
                   required
@@ -174,14 +226,14 @@ export default function ReviseCommunityPostPage() {
                   name="recipe"
                   value={form.recipe}
                   onChange={onChangeForm}
-                  placeholder="Share the recipe if you’d like (optional)"
+                  placeholder="Share the recipe if you'd like (optional)"
                 />
               </div>
 
               {/* Upload Photo */}
               <div
                 className={`rp-field ${
-                  needsFix.has("imageData") ? "needs-fix" : ""
+                  needsFix.has("image") || needsFix.has("imageData") ? "needs-fix" : ""
                 }`}
               >
                 <label>Upload Photo *</label>
@@ -193,9 +245,9 @@ export default function ReviseCommunityPostPage() {
                   role="button"
                   tabIndex={0}
                 >
-                  {form.imageData ? (
+                  {form.image ? ( // Changed to image
                     <img
-                      src={form.imageData}
+                      src={form.image} // Changed to image
                       alt="Preview"
                       className="preview-img"
                     />
@@ -212,7 +264,7 @@ export default function ReviseCommunityPostPage() {
                   accept="image/*"
                   style={{ display: "none" }}
                   onChange={handleImageUpload}
-                  required={!form.imageData}
+                  required={!form.image} // Changed to image
                 />
               </div>
 
@@ -224,7 +276,13 @@ export default function ReviseCommunityPostPage() {
                 <button
                   className="rp-btn rp-btn-muted"
                   type="button"
-                  onClick={() => setForm(initial)}
+                  onClick={() => setForm({
+                    title: contribution.title || "",
+                    culturalOrigin: contribution.culturalOrigin || "",
+                    content: contribution.content || "",
+                    recipe: contribution.recipe || "",
+                    image: contribution.image || ""
+                  })}
                 >
                   Reset
                 </button>
