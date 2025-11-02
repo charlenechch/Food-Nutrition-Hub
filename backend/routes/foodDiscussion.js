@@ -939,86 +939,23 @@ router.get('/food/:foodId/like-status', async (req, res) => {
 
 // ✅ Toggle food like
   router.get('/food/:foodId/like-status', async (req, res) => {
-    try {
-      const { foodId } = req.params;
-      console.log('🔵 BACKEND like-status - foodId:', foodId);
+  try {
+    const { foodId } = req.params;
 
-      if (!req.session || !req.session.user) {
-        console.log('🔵 BACKEND like-status - No session, returning default');
-        return res.json({ success: true, data: { isLiked: false, likesCount: 0 } });
-      }
+    const [foodResult] = await db.query(
+      `SELECT likes_count FROM food WHERE foodID = ?`,
+      [foodId]
+    );
 
-      const userID = req.session.user.userID;
-      console.log('🔵 BACKEND like-status - userID:', userID);
-      
-      const [profileResult] = await db.query(
-        'SELECT userProfileID FROM userProfile WHERE userID = ?',
-        [userID]
-      );
+    const likesCount = foodResult.length > 0 ? (foodResult[0].likes_count || 0) : 0;
 
-      if (profileResult.length === 0) {
-        console.log('🔵 BACKEND like-status - No profile found');
-        return res.json({ success: true, data: { isLiked: false, likesCount: 0 } });
-      }
-
-      const userProfileID = profileResult[0].userProfileID;
-      console.log('🔵 BACKEND like-status - userProfileID:', userProfileID);
-
-      // Get food like data from FOOD table
-      const [foodResult] = await db.query(
-        `SELECT likes_count, liked_by 
-        FROM food 
-        WHERE foodID = ?`,
-        [foodId]
-      );
-
-      console.log('🔵 BACKEND like-status - foodResult:', foodResult);
-
-      let isLiked = false;
-      let likesCount = 0;
-
-      if (foodResult.length > 0) {
-        const food = foodResult[0];
-        likesCount = food.likes_count || 0;
-        
-        console.log('🔵 BACKEND like-status - likes_count from DB:', likesCount);
-        console.log('🔵 BACKEND like-status - liked_by from DB:', food.liked_by);
-
-        // Check if user liked this food
-        const likedBy = food.liked_by;
-        if (likedBy) {
-          try {
-            let likedByArray = [];
-            if (Array.isArray(likedBy)) {
-              likedByArray = likedBy;
-            } else if (typeof likedBy === 'string') {
-              likedByArray = JSON.parse(likedBy);
-            }
-            
-            // Convert to numbers and check if user exists
-            likedByArray = likedByArray.map(id => Number(id)).filter(id => !isNaN(id));
-            isLiked = likedByArray.includes(Number(userProfileID));
-            
-            console.log('🔵 BACKEND like-status - parsed likedByArray:', likedByArray);
-            console.log('🔵 BACKEND like-status - isLiked result:', isLiked);
-          } catch (error) {
-            console.error('❌ BACKEND like-status - Error parsing liked_by:', error);
-          }
-        }
-      }
-
-      console.log('🟢 BACKEND like-status - Final response:', { isLiked, likesCount });
-
-      res.json({
-        success: true,
-        data: {
-          isLiked,
-          likesCount
-        }
-      });
+    res.json({
+      success: true,
+      data: { likesCount }
+    });
     } catch (error) {
-      console.error('❌ BACKEND like-status - Error:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch like status' });
+      console.error('❌ like-status error:', error);
+      res.json({ success: true, data: { likesCount: 0 } });
     }
   });
 

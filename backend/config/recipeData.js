@@ -1,4 +1,4 @@
-/* const db = require("./db");
+const db = require("./db");
 
 // recipeData.js
 const recipeData = [
@@ -313,4 +313,4 @@ const recipeData = [
     console.error("❌ Error inserting data:", err.message);
     process.exit(1);
   }
-})(); */
+})(); 
