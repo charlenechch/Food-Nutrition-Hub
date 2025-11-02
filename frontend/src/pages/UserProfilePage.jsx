@@ -117,6 +117,7 @@ const formatContributionDate = (dateString) => {
 
 const isCommunity = (c) => {
   const type = (c?.type || "").toLowerCase();
+  console.log("🔍 Checking if community:", c?.title, "type:", type);
   return ["community", "post", "story", "community_post"].includes(type);
 };
 
@@ -392,19 +393,23 @@ const savePrefs = async () => {
   // ✅ Fetch Community Posts separately
   useEffect(() => {
     const fetchCommunityPosts = async () => {
-      if (tab === 'status' && user && !user.communityPosts) {
+      if (tab === 'status' && user) {
         try {
           setIsLoadingCommunity(true);
+          console.log("🔄 Fetching community posts for user:", user.userID);
           const res = await fetch(`${API_BASE_URL}/api/reviseCommunityPost/user/${user.userID}`, {
             credentials: "include"
           });
           
           if (res.ok) {
             const data = await res.json();
+            console.log("✅ Community posts data received:", data);
+            console.error("❌ Failed to fetch community posts:", res.status);
             setCommunityPosts(data);
           }
         } catch (error) {
           console.error('Failed to fetch community posts:', error);
+          console.error('❌ Error fetching community posts:', error);
         } finally {
           setIsLoadingCommunity(false);
         }
@@ -974,6 +979,10 @@ const savePrefs = async () => {
                     ? user.status.filter(isCommunity).sort(byDateDesc)
                     : communityPosts.filter(isCommunity).sort(byDateDesc);
 
+                  console.log("📊 Recipe contributions:", recipeContributions);
+                  console.log("📊 Community contributions:", communityContributions);
+                  console.log("📊 Community posts state:", communityPosts);
+
                   const hasAnyContributions = recipeContributions.length > 0 || communityContributions.length > 0;
 
                   return (
@@ -1002,7 +1011,7 @@ const savePrefs = async () => {
                         )}
                       </div>
 
-                      {!hasAnyContributions && (
+                      {!hasAnyContributions && !isLoadingCommunity &&(
                         <div className="upp-center">
                           <p className="upp-muted">You haven't made any contributions yet</p>
                           <button 
