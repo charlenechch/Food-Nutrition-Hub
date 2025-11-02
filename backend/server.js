@@ -41,7 +41,7 @@ const reviseCommunityPostRoutes = require('./routes/reviseCommunityPostRoutes');
 //     typeof userProfileRoutes?.use !== "function"
 //   ) {
 //     throw new Error("Invalid userProfile router export");
-//   }
+//   }.
 //   console.log("✅ userProfile route loaded successfully");
 // } catch (err) {
 //   console.error("⚠️ Failed to load userProfile route:", err.message);
