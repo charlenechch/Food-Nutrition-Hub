@@ -1,5 +1,5 @@
 // AdminSystemSettings.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
     FiSettings as Settings,
     FiBell as Bell,
@@ -16,6 +16,14 @@ export default function AdminSystemSettings({
     language = "en",
     users = [],
 }) {
+    const t = {
+        platform: "SarawakEats",
+        backupRestore: "Backup/Restore",
+        dataExport: "Data Export",
+        backup: "Backup",
+        restore: "Restore",
+    };
+    const [emailEnabled, setEmailEnabled] = useState(true);
 
     const platformName = "SarawakEats";
     const SYSTEM_EMAIL_TEMPLATES = {
@@ -99,15 +107,6 @@ export default function AdminSystemSettings({
             default: return 0;
         }
     })();
-
-    // --- open from the button under Communication ---
-    <button
-        className="admset-btn admset-btn-outline justify-start"
-        onClick={() => setShowSysEmailModal(true)}
-    >
-        <Mail className="admset-ic-sm" />
-        Send Announcement
-    </button>
 
     return (
         <div className="admset-wrap">
@@ -235,69 +234,6 @@ export default function AdminSystemSettings({
                     </div>
                 </div>
             </div>
-
-            {/* ===== Announcement Modal ===== */}
-            {emailOpen && (
-                <div className="admset-modal-overlay" role="dialog" aria-modal="true">
-                    <div className="admset-modal">
-                        <div className="admset-modal-header">
-                            <h4>Send Announcement</h4>
-                            <button className="admset-icon-btn" onClick={closeEmail} aria-label="Close">
-                                <X />
-                            </button>
-                        </div>
-
-                        <div className="admset-modal-body">
-                            <div className="admset-field">
-                                <label>To</label>
-                                <div className="admset-chip-list">
-                                    {mockUsers.map((u) => (
-                                        <span key={u.id} className="admset-chip">
-                                            {u.name}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="admset-field">
-                                <label>Subject</label>
-                                <input
-                                    value={emailSubject}
-                                    onChange={(e) => setEmailSubject(e.target.value)}
-                                    placeholder="Announcement subject"
-                                />
-                            </div>
-
-                            <div className="admset-field">
-                                <label>Message</label>
-                                <textarea
-                                    rows={5}
-                                    value={emailBody}
-                                    onChange={(e) => setEmailBody(e.target.value)}
-                                    placeholder="Write your announcement here…"
-                                />
-                            </div>
-
-                            {emailSuccess && (
-                                <div className="admset-alert success">Announcement queued (demo).</div>
-                            )}
-                        </div>
-
-                        <div className="admset-modal-footer">
-                            <button className="admset-btn admset-btn-outline" onClick={closeEmail} disabled={emailSending}>
-                                Cancel
-                            </button>
-                            <button
-                                className="admset-btn admset-btn-primary"
-                                onClick={sendEmail}
-                                disabled={emailSending || !emailSubject.trim() || !emailBody.trim()}
-                            >
-                                {emailSending ? "Sending…" : "Send"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
             {showSysEmailModal && (
                 <div
                     className="umg-modal-backdrop"
