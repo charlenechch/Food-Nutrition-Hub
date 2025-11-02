@@ -125,20 +125,20 @@ router.put("/:id", async (req, res) => {
       status 
     });
 
-    // Rest of your update logic...
+    // FIXED: Correct SQL query that matches your posts table structure
     const query = `
       UPDATE posts 
-      SET foodName = ?, culturalStory = ?, origin = ?, recipe = ?, status = ?, updated_at = NOW()
+      SET foodName = ?, origin = ?, culturalStory = ?, recipe = ?, status = ?
       WHERE postID = ?
     `;
     
     const [result] = await db.execute(query, [
-      title, 
-      content, 
-      culturalOrigin, 
-      recipe || '', 
-      status || 'Pending', 
-      id
+      title,                       // maps to foodName
+      culturalOrigin,              // maps to origin  
+      content,                     // maps to culturalStory
+      recipe || '',                // maps to recipe
+      status || 'Pending',         // maps to status
+      id                           // postID
     ]);
 
     console.log(`✅ Community post ${id} updated successfully, affected rows:`, result.affectedRows);

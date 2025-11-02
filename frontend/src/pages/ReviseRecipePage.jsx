@@ -41,24 +41,74 @@ export default function ReviseRecipePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [item, setItem] = useState(contribution); // Make item stateful
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState({
+    name: "",
+    origin: "",
+    difficulty: "Easy",
+    prepTime: "",
+    cookTime: "",
+    servings: "",
+    imageData: "",
+    description: "",
+    ingredients: "",
+    instructions: "",
+    funFact: "",
+    chefTips: "",
+    dietaryTags: [],
+    otherDietEnabled: false,
+    otherDietText: "",
+    foodType: "Poultry",
+    otherFoodEnabled: false,
+    otherFoodText: "",
+  });
 
   const needsFix = new Set(item?.fieldsWithIssues || []);
 
   useEffect(() => {
+    const initializeForm = () => {
+      // Use the contribution from state if available
+      if (contribution) {
+        console.log("📝 Using state contribution:", contribution);
+        setItem(contribution);
+        
+        const p = contribution.payload || contribution;
+        const initialForm = {
+          name: p.name || p.title || "",
+          origin: p.origin || "",
+          difficulty: p.difficulty || "Easy",
+          prepTime: p.prepTime ?? "",
+          cookTime: p.cookTime ?? "",
+          servings: p.servings ?? "",
+          imageData: p.imageData || p.image || "",
+          description: p.description || "",
+          ingredients: p.ingredients || "",
+          instructions: p.instructions || p.steps || "",
+          funFact: p.funFact || p.DidYouKnow || "",
+          chefTips: p.chefTips || "",
+          dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
+          otherDietEnabled: false,
+          otherDietText: "",
+          foodType: p.foodType || "Poultry",
+          otherFoodEnabled: false,
+          otherFoodText: "",
+        };
+        
+        setForm(initialForm);
+        setIsLoading(false);
+      }
+    };
+
+    // Try to fetch from API first, fall back to state data
     const fetchRecipeData = async () => {
       try {
-        setIsLoading(true);
-        
-        // If we have state data, use it as base
-        if (contribution) {
-          console.log("📝 Using state contribution:", contribution);
-          setItem(contribution);
-        }
-        
-        // Always fetch complete data from API
         console.log("🔍 Fetching complete recipe data for ID:", id);
-        const response = await fetch(`/api/recipe/${id}?includeFood=true`);
+        const response = await fetch(`/api/recipe/${id}`);
+        
+        // Check if response is HTML (error page) or JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Server returned HTML instead of JSON');
+        }
         
         if (!response.ok) {
           throw new Error(`Failed to fetch recipe: ${response.status}`);
@@ -67,63 +117,49 @@ export default function ReviseRecipePage() {
         const completeRecipeData = await response.json();
         console.log("✅ Complete recipe data:", completeRecipeData);
         
-        // Merge with state data if available
+        // Use API data if available
         setItem(prev => ({
           ...prev,
           ...completeRecipeData,
-          // Preserve admin feedback and issues from state
           feedback: prev?.feedback || completeRecipeData.feedback,
           fieldsWithIssues: prev?.fieldsWithIssues || completeRecipeData.fieldsWithIssues
         }));
+
+        const p = completeRecipeData.payload || completeRecipeData;
+        setForm(prev => ({
+          ...prev,
+          name: p.name || p.title || "",
+          origin: p.origin || "",
+          difficulty: p.difficulty || "Easy",
+          prepTime: p.prepTime ?? "",
+          cookTime: p.cookTime ?? "",
+          servings: p.servings ?? "",
+          imageData: p.imageData || p.image || "",
+          description: p.description || "",
+          ingredients: p.ingredients || "",
+          instructions: p.instructions || p.steps || "",
+          funFact: p.funFact || p.DidYouKnow || "",
+          chefTips: p.chefTips || "",
+          dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
+          foodType: p.foodType || "Poultry",
+        }));
         
       } catch (error) {
-        console.error("❌ Error fetching recipe:", error);
-        // If API fails but we have state data, we can still proceed
-        if (!contribution) {
-          alert("Failed to load recipe data. Please try again.");
-          navigate(-1);
-        }
+        console.error("❌ Error fetching from API, using state data:", error);
+        // Fall back to state data
+        initializeForm();
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchRecipeData();
-  }, [id, contribution, navigate]);
-
-  // Initialize form when item data is available
-  useEffect(() => {
-    if (item && !isLoading) {
-      console.log("🔄 Initializing form with item data:", item);
-      const p = item.payload || item;
-      
-      const initialForm = {
-        name: p.name || p.title || "",
-        origin: p.origin || "",
-        difficulty: p.difficulty || "Easy",
-        prepTime: p.prepTime ?? "",
-        cookTime: p.cookTime ?? "",
-        servings: p.servings ?? "",
-        imageData: p.imageData || p.image || (p.images?.[0] ?? ""),
-        description: p.description || "",
-        ingredients: p.ingredients || "",
-        instructions: p.instructions || p.steps || "",
-        funFact: p.funFact || p.DidYouKnow || "",
-        chefTips: p.chefTips || "",
-        dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
-        otherDietEnabled: !!p.otherDietEnabled,
-        otherDietText: p.otherDietText || "",
-        foodType: p.foodType || p.category || "Poultry",
-        otherFoodEnabled: !!p.otherFoodEnabled,
-        otherFoodText: p.otherFoodText || "",
-        culturalSignificance: p.culturalSignificance || "",
-        traditionalPreparation: p.traditionalPreparation || "",
-        healthTips: p.healthTips || "",
-      };
-      
-      setForm(initialForm);
+    if (contribution) {
+      fetchRecipeData();
+    } else {
+      // If no state data, we can't proceed
+      setIsLoading(false);
     }
-  }, [item, isLoading]);
+  }, [id, contribution]);
   
   const onChangeForm = (e) => {
     const { name, value } = e.target;
