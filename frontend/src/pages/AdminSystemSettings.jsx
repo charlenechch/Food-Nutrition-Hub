@@ -61,12 +61,12 @@ export default function AdminSystemSettings({
         "System Update": {
             subject: `${platformName} Platform Update - {DATE}`,
             message:
-                `Hello,\n\nWeve made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on ${DATE}.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWeve made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on {DATE}.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSystem Admin`,
         },
         "Outage Resolved": {
-            subject: `${platformName} Service Restored - ${DATE}`,
+            subject: `${platformName} Service Restored - {DATE}`,
             message:
-                `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on ${DATE}.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on {DATE}.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSystem Admin`,
         },
     };
     const allUsers = useMemo(
