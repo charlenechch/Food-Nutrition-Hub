@@ -19,19 +19,47 @@ function sanitizeInput(value) {
   return value;
 }
 
-// ✅ Added Joi schemas (STRICT for /update and safe for params)
+// Update Joi schemas to handle stringified arrays
 const profileUpdateSchema = Joi.object({
   location: Joi.string().max(120).allow(null, ''),
   bio: Joi.string().max(2000).allow(null, ''),
-  dietary: Joi.array().items(Joi.string().max(60)).default([]),
-  allergies: Joi.array().items(Joi.string().max(60)).default([]),
+  dietary: Joi.alternatives().try(
+    Joi.array().items(Joi.string().max(60)),
+    Joi.string().max(1000) // Handle stringified JSON
+  ).custom((value, helpers) => {
+    // Convert string to array if needed
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        return helpers.error('any.invalid');
+      }
+    }
+    return Array.isArray(value) ? value : [];
+  }, 'Array coercion').default([]),
+  allergies: Joi.alternatives().try(
+    Joi.array().items(Joi.string().max(60)),
+    Joi.string().max(1000) // Handle stringified JSON
+  ).custom((value, helpers) => {
+    // Convert string to array if needed
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        return helpers.error('any.invalid');
+      }
+    }
+    return Array.isArray(value) ? value : [];
+  }, 'Array coercion').default([]),
   emailNotifications: Joi.boolean().required(),
   pushNotifications: Joi.boolean().required(),
   profileVisibility: Joi.boolean().required(),
   language: Joi.string().max(10).valid('en', 'ms', 'zh', 'id', 'ta', 'hi', 'ar', 'es', 'fr', 'de').default('en')
 })
 .required()
-.unknown(false); // STRICT: reject unknown keys
+.unknown(false);
 
 const identifierSchema = Joi.alternatives().try(
   Joi.number().integer().min(1),

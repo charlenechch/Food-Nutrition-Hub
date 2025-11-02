@@ -183,12 +183,13 @@ app.use(
     name: "sid",
     secret: process.env.SESSION_SECRET || "change-me",
     store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
       httpOnly: true,
       sameSite: IS_PROD ? "none" : "lax",
       secure: IS_PROD,
+      maxAge: 24 * 60 * 60 * 1000
     },
   })
 );

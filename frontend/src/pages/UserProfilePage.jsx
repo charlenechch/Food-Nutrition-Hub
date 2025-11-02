@@ -94,14 +94,27 @@ const uploadAvatar = async () => {
 const normalizePrefs = (data = {}) => {
   const prefsData = data.prefs || data;
 
-  const dietary = Array.isArray(prefsData.dietary) ? prefsData.dietary : 
-                 (typeof prefsData.dietary === 'string' ? JSON.parse(prefsData.dietary || "[]") : []);
-  
-  const allergies = Array.isArray(prefsData.allergies) ? prefsData.allergies : 
-                   (typeof prefsData.allergies === 'string' ? JSON.parse(prefsData.allergies || "[]") : []);
+  // Ensure we always return proper arrays
+  const ensureArray = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return value ? [value] : [];
+      }
+    }
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      // Convert object to array if needed
+      return Object.values(value);
+    }
+    return [];
+  };
+
   const normalized = {
-    dietary: dietary,
-    allergies: allergies,
+    dietary: ensureArray(prefsData.dietary),
+    allergies: ensureArray(prefsData.allergies),
     emailNotifications: prefsData.emailNotifications ?? true,
     pushNotifications: prefsData.pushNotifications ?? true,
     profileVisibility: prefsData.profileVisibility ?? true,
@@ -109,6 +122,9 @@ const normalizePrefs = (data = {}) => {
   };
 
   console.log("🔄 Normalized preferences:", normalized);
+  console.log("🔍 Dietary final type:", typeof normalized.dietary, "value:", normalized.dietary);
+  console.log("🔍 Allergies final type:", typeof normalized.allergies, "value:", normalized.allergies);
+  
   return normalized;
 };
 
@@ -532,46 +548,6 @@ export default function UserProfilePage() {
     if (fileInput) fileInput.value = '';
   };
 
-  // ===== Unified Update Function =====
-// const updateProfile = async (updateData, type = 'profile') => {
-//   try {
-//     console.log(`📤 Updating ${type}:`, updateData);
-
-//     // Use FormData for ALL updates to match avatar upload success
-//     const formData = new FormData();
-    
-//     // Add all update data as JSON string
-//     formData.append('updateData', JSON.stringify(updateData));
-//     formData.append('updateType', type);
-
-//     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-//       method: 'POST', // Use POST instead of PUT
-//       credentials: 'include',
-//       body: formData, // Use FormData like avatar upload
-//     });
-
-//     console.log(`📥 ${type} update response status:`, res.status);
-
-//     if (!res.ok) {
-//       const errorText = await res.text();
-//       console.error(`❌ ${type} update error:`, errorText);
-//       throw new Error(`Failed to update ${type} (${res.status}): ${errorText}`);
-//     }
-
-//     const result = await res.json();
-//     console.log(`✅ ${type} update result:`, result);
-
-//     if (result.success) {
-//       return result;
-//     } else {
-//       throw new Error(result.error || `Update failed for ${type}`);
-//     }
-//   } catch (error) {
-//     console.error(`${type} update error:`, error);
-//     throw error;
-//   }
-// };
-
 // ===== Save: Personal Info =====
 const savePersonal = async () => {
   try {
@@ -583,14 +559,16 @@ const savePersonal = async () => {
       profileVisibility: prefs.profileVisibility === true || prefs.profileVisibility === 'true',
       language: prefs.language,
       dietary: Array.isArray(prefs.dietary) ? prefs.dietary : 
-               (typeof prefs.dietary === 'string' ? [prefs.dietary] : []),
+               (typeof prefs.dietary === 'string' ? JSON.parse(prefs.dietary) : 
+               (prefs.dietary && typeof prefs.dietary === 'object' ? Object.values(prefs.dietary) : [])),
       allergies: Array.isArray(prefs.allergies) ? prefs.allergies : 
-                 (typeof prefs.allergies === 'string' ? [prefs.allergies] : [])
+                 (typeof prefs.allergies === 'string' ? JSON.parse(prefs.allergies) : 
+                 (prefs.allergies && typeof prefs.allergies === 'object' ? Object.values(prefs.allergies) : []))
     };
 
     console.log("📤 Saving personal info:", updateData);
-    console.log("🔍 Dietary type:", typeof prefs.dietary, "value:", prefs.dietary);
-    console.log("🔍 Allergies type:", typeof prefs.allergies, "value:", prefs.allergies);
+    console.log("🔍 Dietary final payload type:", typeof updateData.dietary, "value:", updateData.dietary);
+    console.log("🔍 Allergies final payload type:", typeof updateData.allergies, "value:", updateData.allergies);
 
     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
       method: "PUT",
@@ -627,9 +605,11 @@ const savePrefs = async () => {
   try {
     const preferencesPayload = {
       dietary: Array.isArray(prefs.dietary) ? prefs.dietary : 
-               (typeof prefs.dietary === 'string' ? [prefs.dietary] : []),
+               (typeof prefs.dietary === 'string' ? JSON.parse(prefs.dietary) : 
+               (prefs.dietary && typeof prefs.dietary === 'object' ? Object.values(prefs.dietary) : [])),
       allergies: Array.isArray(prefs.allergies) ? prefs.allergies : 
-                 (typeof prefs.allergies === 'string' ? [prefs.allergies] : []),
+                 (typeof prefs.allergies === 'string' ? JSON.parse(prefs.allergies) : 
+                 (prefs.allergies && typeof prefs.allergies === 'object' ? Object.values(prefs.allergies) : [])),
       emailNotifications: prefs.emailNotifications === true || prefs.emailNotifications === 'true',
       pushNotifications: prefs.pushNotifications === true || prefs.pushNotifications === 'true',
       profileVisibility: prefs.profileVisibility === true || prefs.profileVisibility === 'true',
@@ -639,8 +619,8 @@ const savePrefs = async () => {
     };
 
     console.log("📤 Saving preferences:", preferencesPayload);
-    console.log("🔍 Dietary type:", typeof prefs.dietary, "value:", prefs.dietary);
-    console.log("🔍 Allergies type:", typeof prefs.allergies, "value:", prefs.allergies);
+    console.log("🔍 Dietary final payload type:", typeof preferencesPayload.dietary, "value:", preferencesPayload.dietary);
+    console.log("🔍 Allergies final payload type:", typeof preferencesPayload.allergies, "value:", preferencesPayload.allergies);
 
     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
       method: "PUT",
