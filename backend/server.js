@@ -132,11 +132,14 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: allowedOrigins,
-    credentials: true,
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("CORS not allowed for origin: " + origin));
+    },
+    credentials: true, // ✅ allow sending cookies across origins
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
-    optionsSuccessStatus: 204,
   })
 );
 
@@ -187,11 +190,13 @@ app.use(
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    proxy: true, // ✅ required when behind Railway/Vercel proxy
     cookie: {
       httpOnly: true,
-      sameSite: IS_PROD ? "none" : "lax",
-      secure: IS_PROD,
-      maxAge: 24 * 60 * 60 * 1000
+      sameSite: IS_PROD ? "none" : "lax", // ✅ allow frontend/backend cookie sharing
+      secure: IS_PROD, // ✅ required for HTTPS
+      domain: IS_PROD ? ".vercel.app" : undefined, // ✅ allow cookie access for Vercel domain
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
 );
@@ -289,21 +294,21 @@ app.get("/api/admin/data", (req, res) => {
 
 // ---------- Session check ----------
 app.get("/api/auth/session", (req, res) => {
-  console.log(" Session check requested");
-  console.log(" Session ID:", req.sessionID);
-  console.log(" Has session user:", !!req.session?.user);
+  console.log("🧩 Session check requested");
+  console.log("Cookie Header:", req.headers.cookie);
+  console.log("Session ID:", req.sessionID);
+  console.log("Session Data:", req.session);
 
   if (req.session && req.session.user) {
-    console.log("Valid session for:", req.session.user.email);
     return res.status(200).json({
       authenticated: true,
       user: req.session.user,
     });
   } else {
-    console.log("❌ No valid session");
     return res.status(401).json({
       authenticated: false,
-      message: "No active session",
+      guest: true,
+      message: "Not logged in",
     });
   }
 });
