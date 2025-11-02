@@ -405,7 +405,10 @@ router.patch('/:commentId/vote', async (req, res) => {
   try {
     const { commentId } = req.params;
     
+    console.log("🟡 VOTE REQUEST STARTED - commentId:", commentId);
+    
     if (!req.session || !req.session.user) {
+      console.log("❌ No session found");
       return res.status(401).json({ error: 'Not authenticated' });
     }
     
@@ -416,77 +419,107 @@ router.patch('/:commentId/vote', async (req, res) => {
     );
     
     if (profileResult.length === 0) {
+      console.log("❌ User profile not found");
       return res.status(400).json({ error: 'User profile not found' });
     }
     
     const userProfileID = profileResult[0].userProfileID;
+    console.log("🟡 UserProfileID:", userProfileID);
 
-    // Get current state with transaction for safety
+    // 1. Get current state with detailed logging
     const [existing] = await db.query(
-      `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ? FOR UPDATE`,
+      `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ?`,
       [commentId]
     );
 
+    console.log("🟡 Existing data from DB:", existing[0]);
+
     if (!existing.length) {
+      console.log("❌ Comment not found in database");
       return res.status(404).json({ success: false, message: 'Comment not found' });
     }
 
     let upvotedBy = [];
     try {
-      const upvotedData = existing[0].upvoted_by;
-      if (upvotedData && upvotedData !== 'null' && upvotedData !== '' && upvotedData !== '[]') {
-        upvotedBy = JSON.parse(upvotedData);
+      if (existing[0]?.upvoted_by) {
+        console.log("🟡 Raw upvoted_by:", existing[0].upvoted_by);
+        if (existing[0].upvoted_by !== 'null' && existing[0].upvoted_by !== '' && existing[0].upvoted_by !== '[]') {
+          upvotedBy = JSON.parse(existing[0].upvoted_by);
+        }
       }
     } catch (parseError) {
-      console.error('JSON parse error:', parseError);
+      console.error('❌ JSON parse error:', parseError);
       upvotedBy = [];
     }
 
-    // Ensure it's an array and clean it
-    if (!Array.isArray(upvotedBy)) upvotedBy = [];
+    console.log("🟡 Parsed upvotedBy:", upvotedBy);
+    
+    // Ensure upvotedBy is always an array and clean it
+    if (!Array.isArray(upvotedBy)) {
+      upvotedBy = [];
+    }
+    
     upvotedBy = upvotedBy.filter(id => id !== null && id !== undefined && typeof id === 'number');
     
-    const userIndex = upvotedBy.indexOf(userProfileID);
-    let newUpvoted, voteChange, userLiked;
+    console.log("🟡 Cleaned upvotedBy:", upvotedBy);
+    
+    const userCurrentlyLiked = upvotedBy.includes(userProfileID);
+    console.log("🟡 User currently liked before change:", userCurrentlyLiked);
 
-    if (userIndex > -1) {
-      // User already liked - remove like
-      newUpvoted = [...upvotedBy];
-      newUpvoted.splice(userIndex, 1);
+    let newUpvoted = [...upvotedBy];
+    let voteChange = 0;
+    let newUserLikedState;
+
+    if (userCurrentlyLiked) {
+      // User already liked - REMOVE like
+      newUpvoted = upvotedBy.filter(id => id !== userProfileID);
       voteChange = -1;
-      userLiked = false;
+      newUserLikedState = false;
+      console.log("🟡 ACTION: REMOVING like");
     } else {
-      // User hasn't liked - add like
-      newUpvoted = [...upvotedBy, userProfileID];
+      // User hasn't liked - ADD like
+      newUpvoted.push(userProfileID);
       voteChange = 1;
-      userLiked = true;
+      newUserLikedState = true;
+      console.log("🟡 ACTION: ADDING like");
     }
 
-    // Update database
-    await db.query(
+    console.log("🟡 New upvotedBy:", newUpvoted);
+    console.log("🟡 Vote change:", voteChange);
+    console.log("🟡 New user liked state:", newUserLikedState);
+
+    // Update database with transaction for safety
+    const updateResult = await db.query(
       `UPDATE discussion SET 
-        upVotes = GREATEST(0, upVotes + ?), 
+        upVotes = upVotes + ?, 
         upvoted_by = ?
        WHERE discussionID = ?`,
       [voteChange, JSON.stringify(newUpvoted), commentId]
     );
 
-    // Get updated count
+    console.log("🟡 Database update result:", updateResult);
+
+    // Verify the update worked
     const [updated] = await db.query(
-      `SELECT upVotes as likes FROM discussion WHERE discussionID = ?`,
+      `SELECT upVotes as likes, upvoted_by FROM discussion WHERE discussionID = ?`,
       [commentId]
     );
 
+    console.log("🟡 Verified update - new data:", updated[0]);
+
     res.json({ 
       success: true, 
-      message: userLiked ? 'Liked successfully' : 'Unliked successfully',
+      message: newUserLikedState ? 'Liked successfully' : 'Unliked successfully',
       data: {
         likes: updated[0]?.likes || 0,
-        userLiked: userLiked
+        userLiked: newUserLikedState
       }
     });
+
+    console.log("✅ VOTE REQUEST COMPLETED SUCCESSFULLY");
+
   } catch (error) {
-    console.error('Error updating like:', error);
+    console.error('❌ Error updating like:', error);
     res.status(500).json({ success: false, message: 'Failed to update like' });
   }
 });
