@@ -556,95 +556,51 @@ const postReply = async (discussionId) => {
 
   // Toggle Like
   const toggleLike = async (targetId) => {
-    if (isGuest) return setShowLoginPrompt(true);
+  if (isGuest) return setShowLoginPrompt(true);
 
-    if (!userProfileID) {
-      console.error("❌ No valid userProfileID found");
-      return;
+  if (!userProfileID) {
+    console.error("No valid userProfileID found");
+    return;
+  }
+
+  // ✅ IMMEDIATELY update UI state
+  setComments(prev => prev.map(comment => {
+    if (comment.id === targetId || comment.discussionID === targetId) {
+      const currentlyLiked = comment.user_liked || false;
+      const currentLikes = comment.likes || 0;
+      
+      return {
+        ...comment,
+        user_liked: !currentlyLiked,
+        likes: currentlyLiked ? currentLikes - 1 : currentLikes + 1
+      };
     }
+    return comment;
+  }));
 
-    console.log("🟡 FRONTEND: Toggle like for comment:", targetId);
-    console.log("🟡 FRONTEND: Current userProfileID:", userProfileID);
-
-    // Get current state before updating
-    const currentComment = comments.find(c => c.id === targetId || c.discussionID === targetId);
-    console.log("🟡 FRONTEND: Current state before update:", {
-      currentlyLiked: currentComment?.user_liked,
-      currentLikes: currentComment?.likes
+  try {
+    const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        userProfileID: userProfileID  
+      }),
     });
+    
+    const data = await res.json();
 
-    setComments(prev => prev.map(comment => {
-      if (comment.id === targetId || comment.discussionID === targetId) {
-        const currentlyLiked = comment.user_liked || false;
-        const currentLikes = comment.likes || 0;
-        
-        console.log("🟡 FRONTEND: Updating UI - changing liked from", currentlyLiked, "to", !currentlyLiked);
-        
-        return {
-          ...comment,
-          user_liked: !currentlyLiked,
-          likes: currentlyLiked ? currentLikes - 1 : currentLikes + 1
-        };
-      }
-      return comment;
-    }));
-
-    try {
-      console.log("🟡 FRONTEND: Sending API request...");
-      
-      const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          userProfileID: userProfileID  
-        }),
-      });
-      
-      console.log("🟡 FRONTEND: API response status:", res.status);
-      
-      const data = await res.json();
-      console.log("🟡 FRONTEND: API response data:", data);
-
-      if (!res.ok || !data.success) {
-        // ✅ REVERT if API call fails
-        console.error("❌ FRONTEND: Like API failed, reverting UI");
-        setComments(prev => prev.map(comment => {
-          if (comment.id === targetId || comment.discussionID === targetId) {
-            const currentlyLiked = comment.user_liked || false;
-            const currentLikes = comment.likes || 0;
-            
-            console.log("🟡 FRONTEND: Reverting UI - changing liked from", currentlyLiked, "to", !currentlyLiked);
-            
-            return {
-              ...comment,
-              user_liked: !currentlyLiked, // Revert back
-              likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1 // Revert back
-            };
-          }
-          return comment;
-        }));
-      } else {
-        console.log("✅ FRONTEND: Like API successful");
-      }
-    } catch (err) {
-      console.error("❌ FRONTEND: Error updating like:", err);
-      // ✅ REVERT on error
-      setComments(prev => prev.map(comment => {
-        if (comment.id === targetId || comment.discussionID === targetId) {
-          const currentlyLiked = comment.user_liked || false;
-          const currentLikes = comment.likes || 0;
-          
-          return {
-            ...comment,
-            user_liked: !currentlyLiked, // Revert back
-            likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1 // Revert back
-          };
-        }
-        return comment;
-      }));
+    if (!res.ok || !data.success) {
+      console.error("Like failed:", data.message);
+      // Don't revert - let the user see the error but keep the UI state
+      alert("Failed to update like: " + data.message);
     }
-  };
+  } catch (err) {
+    console.error("Error updating like:", err);
+    // Don't revert - let the user see there was an error
+    alert("Network error while updating like");
+  }
+};
 
   // Delete Comment (with admin support)
   const deleteComment = async (commentId, isAdminAction = false) => {
