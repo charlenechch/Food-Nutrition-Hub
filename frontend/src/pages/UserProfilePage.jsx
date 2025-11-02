@@ -270,7 +270,7 @@ const savePrefs = async () => {
   const ContributionRow = ({ c }) => {
     const handleRevise = () => {
       if (isCommunity(c)) {
-        navigate(`/revisecommunitypost/${c.id}`, {
+        navigate(`/revisecommunitypostpage/${c.id}`, {
           state: {
             contribution: c,
             user,
