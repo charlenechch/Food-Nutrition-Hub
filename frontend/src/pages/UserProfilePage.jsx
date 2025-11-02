@@ -91,41 +91,163 @@ const uploadAvatar = async () => {
   }
 };
 
+// ✅ FIXED: Better normalization that ensures clean string arrays
 const normalizePrefs = (data = {}) => {
   const prefsData = data.prefs || data;
 
-  // Ensure we always return proper arrays
-  const ensureArray = (value) => {
-    if (Array.isArray(value)) return value;
-    if (typeof value === 'string') {
+  // Enhanced array normalizer
+  const ensureCleanArray = (value) => {
+    console.log("🔄 Raw value to normalize:", value);
+    
+    let resultArray = [];
+    
+    if (Array.isArray(value)) {
+      resultArray = value.map(item => 
+        typeof item === 'string' ? item.trim() : String(item).trim()
+      );
+    } else if (typeof value === 'string') {
       try {
+        // Try to parse as JSON first
         const parsed = JSON.parse(value);
-        return Array.isArray(parsed) ? parsed : [];
+        if (Array.isArray(parsed)) {
+          resultArray = parsed.map(item => 
+            typeof item === 'string' ? item.trim() : String(item).trim()
+          );
+        } else {
+          resultArray = [String(parsed).trim()];
+        }
       } catch (e) {
-        return value ? [value] : [];
+        // If not JSON, use as is
+        resultArray = value.trim() ? [value.trim()] : [];
       }
+    } else if (value && typeof value === 'object') {
+      // Convert object to array (handle the case where it's object-like)
+      resultArray = Object.values(value)
+        .map(item => typeof item === 'string' ? item.trim() : String(item).trim())
+        .filter(item => item !== '' && item !== 'null' && item !== 'undefined');
     }
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      // Convert object to array if needed
-      return Object.values(value);
-    }
-    return [];
+    
+    // Final cleanup - ensure all values are valid strings
+    const finalArray = resultArray
+      .filter(item => item && typeof item === 'string')
+      .map(item => item.substring(0, 60)); // Enforce max length like backend
+    
+    console.log("✅ Normalized array result:", finalArray);
+    return finalArray;
   };
 
   const normalized = {
-    dietary: ensureArray(prefsData.dietary),
-    allergies: ensureArray(prefsData.allergies),
-    emailNotifications: prefsData.emailNotifications ?? true,
-    pushNotifications: prefsData.pushNotifications ?? true,
-    profileVisibility: prefsData.profileVisibility ?? true,
+    dietary: ensureCleanArray(prefsData.dietary),
+    allergies: ensureCleanArray(prefsData.allergies),
+    emailNotifications: Boolean(prefsData.emailNotifications ?? true),
+    pushNotifications: Boolean(prefsData.pushNotifications ?? true),
+    profileVisibility: Boolean(prefsData.profileVisibility ?? true),
     language: prefsData.language || "en"
   };
 
-  console.log("🔄 Normalized preferences:", normalized);
-  console.log("🔍 Dietary final type:", typeof normalized.dietary, "value:", normalized.dietary);
-  console.log("🔍 Allergies final type:", typeof normalized.allergies, "value:", normalized.allergies);
-  
+  console.log("🎯 Final normalized prefs:", normalized);
   return normalized;
+};
+
+// ✅ FIXED: Complete save function with proper array handling
+const saveToBackend = async (updateData, type = 'preferences') => {
+  try {
+    // Ensure proper array format with the complex handling that works
+    const payload = {
+      ...updateData,
+      dietary: Array.isArray(updateData.dietary) ? updateData.dietary : 
+               (typeof updateData.dietary === 'string' ? JSON.parse(updateData.dietary) : 
+               (updateData.dietary && typeof updateData.dietary === 'object' ? Object.values(updateData.dietary) : [])),
+      allergies: Array.isArray(updateData.allergies) ? updateData.allergies : 
+                 (typeof updateData.allergies === 'string' ? JSON.parse(updateData.allergies) : 
+                 (updateData.allergies && typeof updateData.allergies === 'object' ? Object.values(updateData.allergies) : [])),
+      emailNotifications: Boolean(updateData.emailNotifications),
+      pushNotifications: Boolean(updateData.pushNotifications),
+      profileVisibility: Boolean(updateData.profileVisibility)
+    };
+
+    console.log(`📤 Sending ${type} payload:`, payload);
+    console.log("🔍 Dietary payload:", payload.dietary, "type:", typeof payload.dietary, "isArray:", Array.isArray(payload.dietary));
+    console.log("🔍 Allergies payload:", payload.allergies, "type:", typeof payload.allergies, "isArray:", Array.isArray(payload.allergies));
+
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    
+    console.log(`📥 ${type} response status:`, res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`❌ ${type} update error:`, errorText);
+      
+      // Try to parse error for better message
+      try {
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.details ? errorData.details.join(', ') : errorData.error);
+      } catch (e) {
+        throw new Error(`Failed to update ${type} (${res.status}): ${errorText}`);
+      }
+    }
+    
+    const result = await res.json();
+    console.log(`✅ ${type} update result:`, result);
+    
+    if (result.success) {
+      alert(`${type === 'preferences' ? 'Preferences' : 'Profile'} updated successfully!`);
+      
+      // Update local user state if needed
+      if (type === 'profile') {
+        setUser(prev => ({ 
+          ...prev, 
+          location: updateData.location, 
+          bio: updateData.bio 
+        }));
+      }
+      
+      return result;
+    } else {
+      throw new Error(result.error || `Update failed for ${type}`);
+    }
+  } catch (e) {
+    console.error(`${type} update error:`, e);
+    alert(e.message || `Failed to update ${type}`);
+    throw e;
+  }
+};
+
+// ===== Save: Personal Info =====
+const savePersonal = async () => {
+  const updateData = { 
+    location: form.location, 
+    bio: bio,
+    emailNotifications: prefs.emailNotifications,
+    pushNotifications: prefs.pushNotifications,
+    profileVisibility: prefs.profileVisibility,
+    language: prefs.language,
+    dietary: prefs.dietary,
+    allergies: prefs.allergies
+  };
+  
+  await saveToBackend(updateData, 'profile');
+};
+
+// ===== Save: Preferences =====
+const savePrefs = async () => {
+  const preferencesPayload = {
+    dietary: prefs.dietary,
+    allergies: prefs.allergies,
+    emailNotifications: prefs.emailNotifications,
+    pushNotifications: prefs.pushNotifications,
+    profileVisibility: prefs.profileVisibility,
+    language: prefs.language,
+    location: user?.location || "",
+    bio: user?.bio || ""
+  };
+  
+  await saveToBackend(preferencesPayload, 'preferences');
 };
 
 const toggleInArray = (arr, value) =>
@@ -549,107 +671,107 @@ export default function UserProfilePage() {
   };
 
 // ===== Save: Personal Info =====
-const savePersonal = async () => {
-  try {
-    const updateData = { 
-      location: form.location, 
-      bio: bio,
-      emailNotifications: prefs.emailNotifications === true || prefs.emailNotifications === 'true',
-      pushNotifications: prefs.pushNotifications === true || prefs.pushNotifications === 'true',
-      profileVisibility: prefs.profileVisibility === true || prefs.profileVisibility === 'true',
-      language: prefs.language,
-      dietary: Array.isArray(prefs.dietary) ? prefs.dietary : 
-               (typeof prefs.dietary === 'string' ? JSON.parse(prefs.dietary) : 
-               (prefs.dietary && typeof prefs.dietary === 'object' ? Object.values(prefs.dietary) : [])),
-      allergies: Array.isArray(prefs.allergies) ? prefs.allergies : 
-                 (typeof prefs.allergies === 'string' ? JSON.parse(prefs.allergies) : 
-                 (prefs.allergies && typeof prefs.allergies === 'object' ? Object.values(prefs.allergies) : []))
-    };
+// const savePersonal = async () => {
+//   try {
+//     const updateData = { 
+//       location: form.location, 
+//       bio: bio,
+//       emailNotifications: prefs.emailNotifications === true || prefs.emailNotifications === 'true',
+//       pushNotifications: prefs.pushNotifications === true || prefs.pushNotifications === 'true',
+//       profileVisibility: prefs.profileVisibility === true || prefs.profileVisibility === 'true',
+//       language: prefs.language,
+//       dietary: Array.isArray(prefs.dietary) ? prefs.dietary : 
+//                (typeof prefs.dietary === 'string' ? JSON.parse(prefs.dietary) : 
+//                (prefs.dietary && typeof prefs.dietary === 'object' ? Object.values(prefs.dietary) : [])),
+//       allergies: Array.isArray(prefs.allergies) ? prefs.allergies : 
+//                  (typeof prefs.allergies === 'string' ? JSON.parse(prefs.allergies) : 
+//                  (prefs.allergies && typeof prefs.allergies === 'object' ? Object.values(prefs.allergies) : []))
+//     };
 
-    console.log("📤 Saving personal info:", updateData);
-    console.log("🔍 Dietary final payload type:", typeof updateData.dietary, "value:", updateData.dietary);
-    console.log("🔍 Allergies final payload type:", typeof updateData.allergies, "value:", updateData.allergies);
+//     console.log("📤 Saving personal info:", updateData);
+//     console.log("🔍 Dietary final payload type:", typeof updateData.dietary, "value:", updateData.dietary);
+//     console.log("🔍 Allergies final payload type:", typeof updateData.allergies, "value:", updateData.allergies);
 
-    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(updateData),
-    });
+//     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+//       method: "PUT",
+//       headers: { "Content-Type": "application/json" },
+//       credentials: "include",
+//       body: JSON.stringify(updateData),
+//     });
     
-    console.log("📥 Personal info response status:", res.status);
+//     console.log("📥 Personal info response status:", res.status);
     
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("❌ Personal info update error:", errorText);
-      throw new Error(`Failed to update profile (${res.status}): ${errorText}`);
-    }
+//     if (!res.ok) {
+//       const errorText = await res.text();
+//       console.error("❌ Personal info update error:", errorText);
+//       throw new Error(`Failed to update profile (${res.status}): ${errorText}`);
+//     }
     
-    const result = await res.json();
-    console.log("✅ Personal info update result:", result);
+//     const result = await res.json();
+//     console.log("✅ Personal info update result:", result);
     
-    if (result.success) {
-      alert("Profile updated successfully!");
-      setUser(prev => ({ ...prev, location: form.location, bio: bio }));
-    } else {
-      throw new Error(result.error || "Update failed");
-    }
-  } catch (e) {
-    console.error("Personal info update error:", e);
-    alert(e.message || "Failed to update profile");
-  }
-};
+//     if (result.success) {
+//       alert("Profile updated successfully!");
+//       setUser(prev => ({ ...prev, location: form.location, bio: bio }));
+//     } else {
+//       throw new Error(result.error || "Update failed");
+//     }
+//   } catch (e) {
+//     console.error("Personal info update error:", e);
+//     alert(e.message || "Failed to update profile");
+//   }
+// };
 
-// ===== Save: Preferences =====
-const savePrefs = async () => {
-  try {
-    const preferencesPayload = {
-      dietary: Array.isArray(prefs.dietary) ? prefs.dietary : 
-               (typeof prefs.dietary === 'string' ? JSON.parse(prefs.dietary) : 
-               (prefs.dietary && typeof prefs.dietary === 'object' ? Object.values(prefs.dietary) : [])),
-      allergies: Array.isArray(prefs.allergies) ? prefs.allergies : 
-                 (typeof prefs.allergies === 'string' ? JSON.parse(prefs.allergies) : 
-                 (prefs.allergies && typeof prefs.allergies === 'object' ? Object.values(prefs.allergies) : [])),
-      emailNotifications: prefs.emailNotifications === true || prefs.emailNotifications === 'true',
-      pushNotifications: prefs.pushNotifications === true || prefs.pushNotifications === 'true',
-      profileVisibility: prefs.profileVisibility === true || prefs.profileVisibility === 'true',
-      language: prefs.language,
-      location: user?.location || "",
-      bio: user?.bio || ""
-    };
+// // ===== Save: Preferences =====
+// const savePrefs = async () => {
+//   try {
+//     const preferencesPayload = {
+//       dietary: Array.isArray(prefs.dietary) ? prefs.dietary : 
+//                (typeof prefs.dietary === 'string' ? JSON.parse(prefs.dietary) : 
+//                (prefs.dietary && typeof prefs.dietary === 'object' ? Object.values(prefs.dietary) : [])),
+//       allergies: Array.isArray(prefs.allergies) ? prefs.allergies : 
+//                  (typeof prefs.allergies === 'string' ? JSON.parse(prefs.allergies) : 
+//                  (prefs.allergies && typeof prefs.allergies === 'object' ? Object.values(prefs.allergies) : [])),
+//       emailNotifications: prefs.emailNotifications === true || prefs.emailNotifications === 'true',
+//       pushNotifications: prefs.pushNotifications === true || prefs.pushNotifications === 'true',
+//       profileVisibility: prefs.profileVisibility === true || prefs.profileVisibility === 'true',
+//       language: prefs.language,
+//       location: user?.location || "",
+//       bio: user?.bio || ""
+//     };
 
-    console.log("📤 Saving preferences:", preferencesPayload);
-    console.log("🔍 Dietary final payload type:", typeof preferencesPayload.dietary, "value:", preferencesPayload.dietary);
-    console.log("🔍 Allergies final payload type:", typeof preferencesPayload.allergies, "value:", preferencesPayload.allergies);
+//     console.log("📤 Saving preferences:", preferencesPayload);
+//     console.log("🔍 Dietary final payload type:", typeof preferencesPayload.dietary, "value:", preferencesPayload.dietary);
+//     console.log("🔍 Allergies final payload type:", typeof preferencesPayload.allergies, "value:", preferencesPayload.allergies);
 
-    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(preferencesPayload),
-    });
+//     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+//       method: "PUT",
+//       headers: { "Content-Type": "application/json" },
+//       credentials: "include",
+//       body: JSON.stringify(preferencesPayload),
+//     });
     
-    console.log("📥 Preferences response status:", res.status);
+//     console.log("📥 Preferences response status:", res.status);
     
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("❌ Preferences update error:", errorText);
-      throw new Error(`Failed to update preferences (${res.status}): ${errorText}`);
-    }
+//     if (!res.ok) {
+//       const errorText = await res.text();
+//       console.error("❌ Preferences update error:", errorText);
+//       throw new Error(`Failed to update preferences (${res.status}): ${errorText}`);
+//     }
     
-    const result = await res.json();
-    console.log("✅ Preferences update result:", result);
+//     const result = await res.json();
+//     console.log("✅ Preferences update result:", result);
     
-    if (result.success) {
-      alert("Preferences updated successfully!");
-    } else {
-      throw new Error(result.error || "Update failed");
-    }
-  } catch (e) {
-    console.error("Preferences update error:", e);
-    alert(e.message || "Failed to update preferences");
-  }
-};
+//     if (result.success) {
+//       alert("Preferences updated successfully!");
+//     } else {
+//       throw new Error(result.error || "Update failed");
+//     }
+//   } catch (e) {
+//     console.error("Preferences update error:", e);
+//     alert(e.message || "Failed to update preferences");
+//   }
+// };
 
   // ===== LOADING STATE =====
   if (isLoading) {

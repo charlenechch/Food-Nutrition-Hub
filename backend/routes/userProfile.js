@@ -25,34 +25,83 @@ const profileUpdateSchema = Joi.object({
   bio: Joi.string().max(2000).allow(null, ''),
   dietary: Joi.alternatives().try(
     Joi.array().items(Joi.string().max(60)),
-    Joi.string().max(1000) // Handle stringified JSON
+    Joi.string().max(1000)
   ).custom((value, helpers) => {
-    // Convert string to array if needed
+    console.log('🔄 Processing dietary input:', value, 'type:', typeof value);
+    
+    let processedArray = [];
+    
     if (typeof value === 'string') {
       try {
         const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) return parsed;
+        processedArray = Array.isArray(parsed) ? parsed : [parsed];
       } catch (e) {
-        return helpers.error('any.invalid');
+        // If it's not JSON, treat as comma-separated or single value
+        if (value.includes(',')) {
+          processedArray = value.split(',').map(item => item.trim()).filter(Boolean);
+        } else if (value.trim()) {
+          processedArray = [value.trim()];
+        }
       }
+    } else if (Array.isArray(value)) {
+      processedArray = value;
+    } else if (value && typeof value === 'object') {
+      // Handle object case (like from frontend)
+      processedArray = Object.values(value).filter(item => typeof item === 'string');
     }
-    return Array.isArray(value) ? value : [];
-  }, 'Array coercion').default([]),
+    
+    // Clean and validate each item
+    const cleanedArray = processedArray
+      .map(item => {
+        if (typeof item === 'string') {
+          return item.trim().substring(0, 60); // Enforce max length
+        }
+        return null;
+      })
+      .filter(item => item !== null && item !== '' && item !== undefined);
+    
+    console.log('✅ Processed dietary array:', cleanedArray);
+    return cleanedArray;
+  }, 'Array processing').default([]),
+  
   allergies: Joi.alternatives().try(
     Joi.array().items(Joi.string().max(60)),
-    Joi.string().max(1000) // Handle stringified JSON
+    Joi.string().max(1000)
   ).custom((value, helpers) => {
-    // Convert string to array if needed
+    console.log('🔄 Processing allergies input:', value, 'type:', typeof value);
+    
+    let processedArray = [];
+    
     if (typeof value === 'string') {
       try {
         const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) return parsed;
+        processedArray = Array.isArray(parsed) ? parsed : [parsed];
       } catch (e) {
-        return helpers.error('any.invalid');
+        if (value.includes(',')) {
+          processedArray = value.split(',').map(item => item.trim()).filter(Boolean);
+        } else if (value.trim()) {
+          processedArray = [value.trim()];
+        }
       }
+    } else if (Array.isArray(value)) {
+      processedArray = value;
+    } else if (value && typeof value === 'object') {
+      processedArray = Object.values(value).filter(item => typeof item === 'string');
     }
-    return Array.isArray(value) ? value : [];
-  }, 'Array coercion').default([]),
+    
+    const cleanedArray = processedArray
+      .map(item => {
+        if (typeof item === 'string') {
+          return item.trim().substring(0, 60);
+        }
+        return null;
+      })
+      .filter(item => item !== null && item !== '' && item !== undefined);
+    
+    console.log('✅ Processed allergies array:', cleanedArray);
+    return cleanedArray;
+  }, 'Array processing').default([]),
+  
   emailNotifications: Joi.boolean().required(),
   pushNotifications: Joi.boolean().required(),
   profileVisibility: Joi.boolean().required(),

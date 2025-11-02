@@ -520,36 +520,67 @@ router.delete('/comments/:commentId', async (req, res) => {
 router.post('/create', upload.array('images', 5), async (req, res) => {
   console.log('=== STARTING POST CREATION ===');
   console.log('📦 Request body:', req.body);
-  console.log('📁 Uploaded files:', req.files ? req.files.map(f => f.filename) : 'No files');
+  console.log('📁 Uploaded files:', req.files ? req.files.map(f => f.originalname) : 'No files');
+  console.log('🔐 Session user:', req.session?.user);
   
   try {
-    const { foodName, culturalOrigin, culturalStory, recipe} = req.body;
-
-    // ✅ Get userProfileID from session + database
-    if (!req.session || !req.session.user) {
-      return res.status(401).json({ error: 'Not authenticated' });
+    // ✅ Enhanced session validation
+    if (!req.session || !req.session.user || !req.session.user.userID) {
+      console.log('❌ No valid session or userID');
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Not authenticated. Please log in again.' 
+      });
     }
     
     const userID = req.session.user.userID;
-    const [profileResult] = await db.execute(
-      'SELECT userProfileID FROM userProfile WHERE userID = ?',
-      [userID]
-    );
-    
-    if (profileResult.length === 0) {
-      return res.status(400).json({ error: 'User profile not found' });
-    }
-    
-    const userProfileID = profileResult[0].userProfileID;
+    console.log('👤 User ID from session:', userID);
 
-    // ✅ Validate and sanitize
-    const { error, value } = postSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
-    if (error)
-      return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
-    const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
-    Object.assign(req.body, cleanData);
-    
-    console.log('✅ All required fields present');
+    // ✅ Get userProfileID with better error handling
+    let userProfileID;
+    try {
+      const [profileResult] = await db.execute(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+      );
+      
+      console.log('🔍 Profile query result:', profileResult);
+      
+      if (profileResult.length === 0) {
+        console.log('❌ User profile not found, creating one...');
+        
+        // Create userProfile if it doesn't exist
+        const [createResult] = await db.execute(
+          `INSERT INTO userProfile (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
+           VALUES (?, '[]', '[]', true, true, true, 'en')`,
+          [userID]
+        );
+        
+        userProfileID = createResult.insertId;
+        console.log('✅ Created new userProfile with ID:', userProfileID);
+      } else {
+        userProfileID = profileResult[0].userProfileID;
+        console.log('✅ Found userProfileID:', userProfileID);
+      }
+    } catch (dbError) {
+      console.error('❌ Database error fetching userProfile:', dbError);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Server error accessing user profile' 
+      });
+    }
+
+    const { foodName, culturalOrigin, culturalStory, recipe } = req.body;
+
+    // ✅ Enhanced validation
+    if (!foodName || !culturalOrigin || !culturalStory) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: foodName, culturalOrigin, and culturalStory are required'
+      });
+    }
+
+    console.log('✅ All required fields present:', { foodName, culturalOrigin });
 
     const imageUrls = [];
     if (req.files && req.files.length > 0) {
