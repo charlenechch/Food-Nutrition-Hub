@@ -43,6 +43,16 @@ export default function AdminSystemSettings({
             message:
                 `Hello,\n\nWe've rolled out new features to improve your experience. Check out the website.\n\nThanks,\nSystem Admin`,
         },
+          "System Update": {
+            subject: `${platformName} Platform Update`,
+            message:
+            `Hello,\n\nWe’ve made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on <Date> at <Time>.\n\nIf you notice any issues, please report them via <support channel/email>.\n\nThanks,\nSystem Admin`,
+        },
+        "Outage Resolved": {
+            subject: `${platformName} Service Restored`,
+            message:
+            `Hello,\n\nService has been restored on ${platformName} following an outage between <Start Date/Time> and <End Date/Time> (UTC+08). The root cause was <short cause, e.g., database connection saturation>, and a fix has been applied.\n\nWe apologize for the disruption. If you still experience issues, please contact <support channel/email> and reference incident <INC-#####>.\n\nThanks,\nSystem Admin`,
+        },
     };
     const allUsers = useMemo(
         () => (users && users.length ? users : [
@@ -69,9 +79,9 @@ export default function AdminSystemSettings({
         recipientsOption: "All users",     // same options as UM
         selectedUserIds: [],
         customEmails: "",
-        template: "Maintenance Window",
-        subject: SYSTEM_EMAIL_TEMPLATES["Maintenance Window"].subject,
-        message: SYSTEM_EMAIL_TEMPLATES["Maintenance Window"].message,
+        template: "Custom message",
+        subject: SYSTEM_EMAIL_TEMPLATES["Custom message"].subject,
+        message: SYSTEM_EMAIL_TEMPLATES["Custom message"].message,
         markAnnouncement: true,
     });
 
