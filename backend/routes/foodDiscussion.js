@@ -504,8 +504,6 @@ router.patch('/:commentId/vote', async (req, res) => {
     console.log("🟡 NEW upvotedBy to save:", newUpvotedBy);
     console.log("🟡 NEW upVotes:", newUpVotes);
 
-    // FIXED: Use proper JSON stringification for MySQL JSON type
-    // For MySQL JSON columns, we need to stringify the array
     const updateResult = await db.query(
       `UPDATE discussion SET 
         upVotes = ?, 
@@ -865,6 +863,175 @@ router.delete('/:commentId/like', async (req, res) => {
   } catch (error) {
     console.error('Error removing like:', error);
     res.status(500).json({ success: false, message: 'Failed to remove like' });
+  }
+});
+
+// ✅ Get food like status for current user
+router.get('/food/:foodId/like-status', async (req, res) => {
+  try {
+    const { foodId } = req.params;
+
+    if (!req.session || !req.session.user) {
+      return res.json({ success: true, data: { isLiked: false, likesCount: 0 } });
+    }
+
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (profileResult.length === 0) {
+      return res.json({ success: true, data: { isLiked: false, likesCount: 0 } });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+
+    // Get food like data from discussion table
+    const [discussionResult] = await db.query(
+      `SELECT likes_count, liked_by 
+       FROM discussion 
+       WHERE foodID = ? 
+       ORDER BY created_At DESC 
+       LIMIT 1`,
+      [foodId]
+    );
+
+    let isLiked = false;
+    let likesCount = 0;
+
+    if (discussionResult.length > 0) {
+      const discussion = discussionResult[0];
+      likesCount = discussion.likes_count || 0;
+      
+      // Check if user liked this food
+      const likedBy = discussion.liked_by;
+      if (likedBy) {
+        try {
+          let likedByArray = [];
+          if (Array.isArray(likedBy)) {
+            likedByArray = likedBy;
+          } else if (typeof likedBy === 'string') {
+            likedByArray = JSON.parse(likedBy);
+          }
+          
+          // Convert to numbers and check if user exists
+          likedByArray = likedByArray.map(id => Number(id)).filter(id => !isNaN(id));
+          isLiked = likedByArray.includes(Number(userProfileID));
+        } catch (error) {
+          console.error('Error parsing liked_by:', error);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        isLiked,
+        likesCount
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching food like status:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch like status' });
+  }
+});
+
+// ✅ Toggle food like
+router.post('/food/:foodId/toggle-like', async (req, res) => {
+  try {
+    const { foodId } = req.params;
+
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (profileResult.length === 0) {
+      return res.status(400).json({ success: false, message: 'User profile not found' });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+
+    // Get current food like data
+    const [discussionResult] = await db.query(
+      `SELECT likes_count, liked_by 
+       FROM discussion 
+       WHERE foodID = ? 
+       ORDER BY created_At DESC 
+       LIMIT 1`,
+      [foodId]
+    );
+
+    let currentLikesCount = 0;
+    let currentLikedBy = [];
+
+    if (discussionResult.length > 0) {
+      const discussion = discussionResult[0];
+      currentLikesCount = discussion.likes_count || 0;
+      
+      // Parse existing liked_by data
+      const likedBy = discussion.liked_by;
+      if (likedBy) {
+        try {
+          if (Array.isArray(likedBy)) {
+            currentLikedBy = likedBy;
+          } else if (typeof likedBy === 'string') {
+            currentLikedBy = JSON.parse(likedBy);
+          }
+        } catch (error) {
+          console.error('Error parsing existing liked_by:', error);
+          currentLikedBy = [];
+        }
+      }
+    }
+
+    // Clean the array
+    currentLikedBy = currentLikedBy.map(id => Number(id)).filter(id => !isNaN(id));
+    const userProfileIDNum = Number(userProfileID);
+
+    let newLikedBy;
+    let newLikesCount;
+    let isLiked;
+
+    // Check if user already liked
+    const userIndex = currentLikedBy.indexOf(userProfileIDNum);
+    
+    if (userIndex > -1) {
+      // Unlike: remove user from array
+      newLikedBy = currentLikedBy.filter(id => id !== userProfileIDNum);
+      newLikesCount = Math.max(0, currentLikesCount - 1);
+      isLiked = false;
+    } else {
+      // Like: add user to array
+      newLikedBy = [...currentLikedBy, userProfileIDNum];
+      newLikesCount = currentLikesCount + 1;
+      isLiked = true;
+    }
+
+    // Update ALL discussion entries for this food to keep consistency
+    await db.query(
+      `UPDATE discussion 
+       SET likes_count = ?, liked_by = ?
+       WHERE foodID = ?`,
+      [newLikesCount, JSON.stringify(newLikedBy), foodId]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        isLiked,
+        likesCount: newLikesCount
+      }
+    });
+  } catch (error) {
+    console.error('Error toggling food like:', error);
+    res.status(500).json({ success: false, message: 'Failed to toggle like' });
   }
 });
 
