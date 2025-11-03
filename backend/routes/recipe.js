@@ -638,7 +638,7 @@ router.post('/create/recipes', async (req, res) => {
   }
 });
 
-// ✅ GET recipes by user ID - DEBUG VERSION
+// ✅ GET recipes by user ID 
 router.get("/user/:userId", async (req, res) => {
   console.log('=== STARTING USER RECIPES FETCH ===');
   console.log('📝 Request params:', req.params);
@@ -715,7 +715,7 @@ router.get("/user/:userId", async (req, res) => {
     }
 
     if (profileResult.length === 0) {
-      console.log('ℹ️ No user profile found for user:', numericUserId);
+      console.log('No user profile found for user:', numericUserId);
       return res.status(200).json({
         success: true,
         message: 'No recipes found',
@@ -731,28 +731,36 @@ router.get("/user/:userId", async (req, res) => {
     const userProfileID = profileResult[0].userProfileID;
     console.log('✅ User profile ID:', userProfileID);
 
-    // ✅ Get recipes with better error handling
     let recipes;
     try {
       console.log('🍳 Fetching recipes...');
       const recipeQuery = `
         SELECT 
-          p.postID,
-          p.foodName,
-          p.origin AS culturalOrigin,
-          p.status,
-          p.culturalStory,
-          p.photos,
-          p.recipe,
-          p.created_at,
+          f.foodID AS id,
+          f.name AS foodName,
+          f.origin AS culturalOrigin,
+          r.status,
+          f.description AS culturalStory,
+          f.image AS photos,
+          r.ingredients,
+          r.steps AS instructions,
+          f.created_at,
           up.userProfileID,
           CONCAT(u.firstname, ' ', u.lastname) AS author,
-          u.userID
-        FROM posts p
-        JOIN userProfile up ON p.userProfileID = up.userProfileID
+          u.userID,
+          r.cookTime,
+          r.servings,
+          r.DidYouKnow AS funFact,
+          r.chefTips,
+          f.difficulty,
+          f.prepTime,
+          f.foodType
+        FROM recipes r
+        JOIN food f ON r.foodID = f.foodID
+        JOIN userProfile up ON r.userProfileID = up.userProfileID
         JOIN user u ON up.userID = u.userID
         WHERE up.userProfileID = ?
-        ORDER BY p.created_at DESC
+        ORDER BY f.created_at DESC
       `;
       
       console.log('📊 Executing query:', recipeQuery);
@@ -780,34 +788,62 @@ router.get("/user/:userId", async (req, res) => {
       });
     }
 
-    // ✅ Format the response data safely
+    // ✅ Format the response data safely for RECIPES
     const formattedRecipes = recipes.map(recipe => {
       // Handle potential undefined values
       let images = [];
       try {
         if (recipe.photos && typeof recipe.photos === 'string' && recipe.photos.trim() !== '') {
-          images = recipe.photos.split(',').filter(url => url.trim() !== '');
+          // For recipes, typically one main image, not comma-separated
+          images = [recipe.photos];
         }
       } catch (photoError) {
-        console.warn('⚠️ Error processing photos for recipe:', recipe.postID, photoError);
+        console.warn('⚠️ Error processing photos for recipe:', recipe.id, photoError);
+      }
+
+      // Handle ingredients and instructions 
+      let ingredients = [];
+      let instructions = [];
+      
+      if (recipe.ingredients && typeof recipe.ingredients === 'string') {
+        ingredients = recipe.ingredients.split('\n').filter(line => line.trim() !== '');
+      }
+      
+      if (recipe.instructions && typeof recipe.instructions === 'string') {
+        instructions = recipe.instructions.split('\n').filter(line => line.trim() !== '');
       }
 
       return {
-        postId: recipe.postID,
+        id: recipe.id, 
         foodName: recipe.foodName || 'Untitled Recipe',
         culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
         status: (recipe.status || 'pending').toLowerCase(),
         culturalStory: recipe.culturalStory || '',
         images: images,
-        recipe: recipe.recipe || '',
+        ingredients: ingredients, // ✅ Include ingredients array
+        instructions: instructions, // ✅ Include instructions array
         author: recipe.author || 'Unknown Author',
         userId: recipe.userID,
         userProfileID: recipe.userProfileID,
-        createdAt: recipe.created_at
+        createdAt: recipe.created_at,
+        cookTime: recipe.cookTime || 0,
+        servings: recipe.servings || 1,
+        funFact: recipe.funFact || '',
+        chefTips: recipe.chefTips || '',
+        difficulty: recipe.difficulty || 'Easy',
+        prepTime: recipe.prepTime || 0,
+        foodType: recipe.foodType || 'Other'
       };
     });
 
     console.log('✅ Successfully formatted recipes:', formattedRecipes.length);
+    console.log('📊 Sample recipe:', formattedRecipes.length > 0 ? {
+      id: formattedRecipes[0].id,
+      name: formattedRecipes[0].foodName,
+      status: formattedRecipes[0].status,
+      ingredientsCount: formattedRecipes[0].ingredients?.length,
+      instructionsCount: formattedRecipes[0].instructions?.length
+    } : 'No recipes found');
 
     res.status(200).json({
       success: true,
