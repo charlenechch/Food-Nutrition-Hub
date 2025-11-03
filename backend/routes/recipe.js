@@ -760,7 +760,8 @@ router.put('/revise/recipes/:id', async (req, res) => {
       funFact || '',
       chefTips || '',
       status || 'Pending',
-      id
+      id,
+      userProfileID
     ];
 
     console.log('📝 Executing RECIPE UPDATE with params:', recipeParams);
@@ -775,7 +776,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
     `;
     await db.query(insertRecipeQuery, [
       id,
-      userProfileID, // 👈 Include this line
+      userProfileID, 
       Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
       Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
       cookTime || 0,
