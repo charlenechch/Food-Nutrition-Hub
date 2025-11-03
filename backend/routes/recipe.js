@@ -744,7 +744,7 @@ router.get("/user/:userId", async (req, res) => {
           f.image AS photos,
           r.ingredients,
           r.steps AS instructions,
-          f.createdAt AS created_at,
+          r.createdAt AS created_at,
           up.userProfileID,
           CONCAT(u.firstname, ' ', u.lastname) AS author,
           u.userID,
@@ -760,7 +760,7 @@ router.get("/user/:userId", async (req, res) => {
         JOIN userProfile up ON r.userProfileID = up.userProfileID
         JOIN user u ON up.userID = u.userID
         WHERE up.userProfileID = ?
-        ORDER BY f.createdAt DESC
+        ORDER BY r.createdAt DESC
       `;
       
       console.log('📊 Executing query:', recipeQuery);
