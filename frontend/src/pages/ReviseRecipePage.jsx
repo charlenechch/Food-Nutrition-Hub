@@ -73,7 +73,7 @@ export default function ReviseRecipePage() {
         console.log("📝 Using state contribution:", contribution);
         setItem(contribution);
         
-        const p = contribution.payload || contribution;
+        const { payload: p = completeRecipeData } = completeRecipeData;
         const initialForm = {
           name: p.name || p.title || "",
           origin: p.origin || "",
@@ -104,14 +104,18 @@ export default function ReviseRecipePage() {
     const fetchRecipeData = async () => {
       try {
         console.log("🔍 Fetching complete recipe data");
-        console.log("📌 URL ID from params:", id);
-        console.log("📌 Contribution ID from state:", contribution?.id);
-        console.log("📌 Item ID from state:", item?.id);
         const recipeId = id || contribution?.id || item?.id;
         console.log("🎯 Using recipe ID:", recipeId);
 
-        const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${id}`);
-       
+        if (!recipeId) {
+          console.warn("⚠️ No recipe ID available — skipping fetch.");
+          setIsLoading(false);
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${recipeId}`);
+        console.log("📡 Response status:", response.status, "OK:", response.ok);
+    
         // Check if response is HTML (error page) or JSON
         const contentType = response.headers.get('content-type');
         console.log("📡 Content-Type:", contentType);
@@ -126,9 +130,15 @@ export default function ReviseRecipePage() {
           throw new Error(`Failed to fetch recipe: ${response.status}`);
         }
         
-        const completeRecipeData = await response.json();
+        let completeRecipeData;
+        try {
+          completeRecipeData = await response.json();
+        } catch (parseError) {
+          console.error("❌ Failed to parse JSON:", parseError);
+          throw new Error("Invalid JSON from API");
+        }
+
         console.log("✅ Complete recipe data:", completeRecipeData);
-        
         // Use API data if available
         setItem(prev => ({
           ...prev,
