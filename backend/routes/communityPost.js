@@ -760,48 +760,82 @@ router.put("/revise/:id", async (req, res) => {
     console.log(`📝 Updating community post ${id}:`, { 
       title, 
       culturalOrigin, 
-      content: content ? content.substring(0, 100) + "..." : "empty",
-      recipe: recipe || "none",
+      contentLength: content ? content.length : 0,
+      recipeLength: recipe ? recipe.length : 0,
       status,
       hasImage: !!image
     });
 
-    // FIXED: Added image field to the UPDATE query
-    const query = `
+    // check if the post exists and get current data
+    const checkQuery = 'SELECT * FROM posts WHERE postID = ?';
+    const [existingPost] = await db.execute(checkQuery, [id]);
+    
+    if (existingPost.length === 0) {
+      return res.status(404).json({ 
+        error: 'Community post not found' 
+      });
+    }
+
+    console.log('📋 Current post data:', existingPost[0]);
+
+    let finalImage = image;
+    if (!image && existingPost[0].image) {
+      finalImage = existingPost[0].image;
+      console.log('🖼️ Keeping existing image');
+    }
+
+    const updateQuery = `
       UPDATE posts 
       SET foodName = ?, origin = ?, culturalStory = ?, recipe = ?, status = ?, image = ?
       WHERE postID = ?
     `;
     
-    const [result] = await db.execute(query, [
-      title,                       // maps to foodName
-      culturalOrigin,              // maps to origin  
-      content,                     // maps to culturalStory
-      recipe || '',                // maps to recipe
-      status || 'Pending',         // maps to status
-      image || '',                 // maps to image
-      id                           // postID
+    console.log('🚀 Executing update query...');
+    const [result] = await db.execute(updateQuery, [
+      title || existingPost[0].foodName,           // foodName
+      culturalOrigin || existingPost[0].origin,    // origin  
+      content || existingPost[0].culturalStory,    // culturalStory
+      recipe || existingPost[0].recipe,            // recipe
+      status || 'Pending',                         // status
+      finalImage || '',                            // image 
+      id                                           // postID
     ]);
 
     console.log(`✅ Community post ${id} updated successfully, affected rows:`, result.affectedRows);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ 
-        error: 'No changes made or post not found' 
+        error: 'No changes made - post may not exist' 
       });
     }
     
+    // Get the updated post to return
+    const [updatedPost] = await db.execute('SELECT * FROM posts WHERE postID = ?', [id]);
+    
     res.json({ 
       success: true, 
-      message: 'Community post updated successfully' 
+      message: 'Community post updated successfully',
+      post: updatedPost[0]
     });
+    
   } catch (error) {
     console.error('❌ Error updating community post:', error);
     console.error('❌ Error details:', error.message);
-    console.error('❌ Error stack:', error.stack);
+    console.error('❌ SQL Error code:', error.code);
+    console.error('❌ SQL Error number:', error.errno);
+    
+    let errorMessage = 'Failed to update community post';
+    
+    if (error.code === 'ER_NO_SUCH_TABLE') {
+      errorMessage = 'Database table not found - check table name';
+    } else if (error.code === 'ER_BAD_FIELD_ERROR') {
+      errorMessage = 'Invalid column name in query';
+    } else if (error.errno === 1452) {
+      errorMessage = 'Foreign key constraint fails';
+    }
     
     res.status(500).json({ 
-      error: 'Failed to update community post',
+      error: errorMessage,
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

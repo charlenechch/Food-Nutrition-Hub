@@ -237,11 +237,38 @@ function createRecipeFromFlatObject(data) {
   };
 }
 
+// Add this temporary debug route to check what's actually in your database
+router.get('/debug/recipe/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('🔍 DEBUG: Checking ALL recipe data for ID:', id);
+    
+    // Check food table
+    const foodQuery = 'SELECT * FROM food WHERE foodID = ?';
+    const foodResult = await db.query(foodQuery, [id]);
+    console.log('🍽️ Food table data:', JSON.stringify(foodResult, null, 2));
+    
+    // Check recipe table  
+    const recipeQuery = 'SELECT * FROM recipe WHERE foodID = ?';
+    const recipeResult = await db.query(recipeQuery, [id]);
+    console.log('📝 Recipe table data:', JSON.stringify(recipeResult, null, 2));
+    
+    res.json({
+      food: foodResult,
+      recipe: recipeResult
+    });
+    
+  } catch (error) {
+    console.error('Debug error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET single recipe by ID 
 router.get('/recipes/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Fetching recipe with ID:', id);
+    console.log('🔍 Fetching recipe with ID:', id);
     
     const query = `
       SELECT 
@@ -261,100 +288,184 @@ router.get('/recipes/:id', async (req, res) => {
         r.steps AS instructions, 
         r.DidYouKnow AS funFact, 
         r.chefTips,
-        r.userProfileID,
-        r.status
+        r.status,
+        r.submittedDate
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
       WHERE f.foodID = ? 
     `;
     
+    console.log('📝 Executing query for foodID:', id);
     const result = await db.query(query, [id]);
-    console.log('Raw result for single recipe:', result);
-    
-    const rows = Array.isArray(result) ? result : (result.rows || result);
+
+    const rows = Array.isArray(result) ? result : [];
     
     if (rows.length === 0) {
+      console.log('❌ No recipe found with ID:', id);
       return res.status(404).json({ error: 'Recipe not found' });
     }
     
-    let row = rows[0];
+    const row = rows[0];
+    console.log('✅ Raw row data received:', row);
     
-    // DEBUG
-    console.log('Single recipe row structure:', {
-      keys: Object.keys(row),
-      hasNumericKeys: Object.keys(row).some(key => !isNaN(parseInt(key))),
-      hasNamedProps: row.id !== undefined || row.name !== undefined,
-      sampleValues: Object.values(row).slice(0, 3)
-    });
+    const recipe = {
+      id: row.id,
+      name: row.name || '',
+      origin: row.origin || '',
+      difficulty: row.difficulty || 'Easy',
+      prepTime: row.prepTime || 0,
+      cookTime: row.cookTime || 0,
+      servings: row.servings || 0,
+      image: row.image || '',
+      description: row.description || '',
+      foodType: row.foodType || row.category || 'Other',
+      dietaryTags: row.dietaryTags ? 
+        (typeof row.dietaryTags === 'string' ? 
+          row.dietaryTags.split(',').map(tag => tag.trim()).filter(tag => tag) : 
+          []) : [],
+      ingredients: row.ingredients || '',
+      instructions: row.instructions || '',
+      funFact: row.funFact || '',
+      chefTips: row.chefTips || '',
+      status: row.status || 'Unknown',
+      submittedDate: row.submittedDate || null
+    };
     
-    // Extract the actual recipe data
-    let recipeData = row;
-    
-    // If row has numeric keys, look for the actual recipe object
-    if ((row.id === undefined || row.name === undefined) && Object.keys(row).some(key => !isNaN(key))) {
-      console.log('Looking for recipe in numeric keys...');
-      
-      // Check each numeric key for a recipe-like object
-      Object.keys(row).forEach(key => {
-        const value = row[key];
-        if (value && typeof value === 'object' && value.id !== undefined && value.name !== undefined) {
-          console.log(`Found recipe at key ${key}:`, { id: value.id, name: value.name });
-          recipeData = value;
-        }
-      });
-    }
-    
-    if (recipeData.id === undefined || recipeData.name === undefined) {
-      console.log('Using direct mapping for single recipe');
-      // Map numeric indices to field names based on SELECT order
-      const fieldMap = {
-        0: 'id', 1: 'name', 2: 'origin', 3: 'difficulty', 4: 'prepTime', 5: 'image',
-        6: 'description', 7: 'foodType', 8: 'category', 9: 'dietaryTags',
-        10: 'cookTime', 11: 'servings', 12: 'ingredients', 13: 'instructions',
-        14: 'funFact', 15: 'chefTips', 
-      };
-      
-      const mappedData = {};
-      Object.keys(recipeData).forEach(key => {
-        const numKey = parseInt(key);
-        if (!isNaN(numKey) && fieldMap[numKey] !== undefined) {
-          mappedData[fieldMap[numKey]] = recipeData[key];
-        } else if (isNaN(numKey) && key !== 'userProfileID' && key !== 'status') {
-          // Only include non-numeric keys that are NOT the internal fields
-          mappedData[key] = recipeData[key];
-        }
-      });
-      recipeData = mappedData;
-    } else {
-      // Remove internal fields if they exist as named properties
-      const { userProfileID, status, ...cleanData } = recipeData;
-      recipeData = cleanData;
-    }
-    
-    console.log('Final recipe data before transformation:', {
-      id: recipeData.id,
-      name: recipeData.name,
-      status: recipeData.status,
-      typeOfId: typeof recipeData.id,
-      typeOfName: typeof recipeData.name
-    });
-    
-    const recipe = createRecipeFromFlatObject(recipeData);
-    
-    console.log('Sending transformed recipe:', { 
-      id: recipe.id, 
+    console.log('🚀 Sending recipe to frontend:', {
+      id: recipe.id,
       name: recipe.name,
       origin: recipe.origin,
-      status: recipe.status, 
+      foodType: recipe.foodType,
+      status: recipe.status,
+      hasImage: !!recipe.image
     });
     
     res.json(recipe);
     
   } catch (error) {
-    console.error('Error fetching recipe:', error);
+    console.error('💥 Error fetching recipe:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
+// GET single recipe by ID 
+// router.get('/recipes/:id', async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     console.log('Fetching recipe with ID:', id);
+    
+//     const query = `
+//       SELECT 
+//         f.foodID AS id,
+//         f.name, 
+//         f.origin, 
+//         f.difficulty, 
+//         f.prepTime, 
+//         f.image, 
+//         f.description, 
+//         f.foodType,
+//         f.category,
+//         f.dietaryTags,
+//         r.cookTime, 
+//         r.servings, 
+//         r.ingredients, 
+//         r.steps AS instructions, 
+//         r.DidYouKnow AS funFact, 
+//         r.chefTips,
+//         r.userProfileID,
+//         r.status
+//       FROM food f
+//       LEFT JOIN recipe r ON f.foodID = r.foodID
+//       WHERE f.foodID = ? 
+//     `;
+    
+//     const result = await db.query(query, [id]);
+//     console.log('Raw result for single recipe:', result);
+    
+//     const rows = Array.isArray(result) ? result : (result.rows || result);
+    
+//     if (rows.length === 0) {
+//       return res.status(404).json({ error: 'Recipe not found' });
+//     }
+    
+//     let row = rows[0];
+    
+//     // DEBUG
+//     console.log('Single recipe row structure:', {
+//       keys: Object.keys(row),
+//       hasNumericKeys: Object.keys(row).some(key => !isNaN(parseInt(key))),
+//       hasNamedProps: row.id !== undefined || row.name !== undefined,
+//       sampleValues: Object.values(row).slice(0, 3)
+//     });
+    
+//     // Extract the actual recipe data
+//     let recipeData = row;
+    
+//     // If row has numeric keys, look for the actual recipe object
+//     if ((row.id === undefined || row.name === undefined) && Object.keys(row).some(key => !isNaN(key))) {
+//       console.log('Looking for recipe in numeric keys...');
+      
+//       // Check each numeric key for a recipe-like object
+//       Object.keys(row).forEach(key => {
+//         const value = row[key];
+//         if (value && typeof value === 'object' && value.id !== undefined && value.name !== undefined) {
+//           console.log(`Found recipe at key ${key}:`, { id: value.id, name: value.name });
+//           recipeData = value;
+//         }
+//       });
+//     }
+    
+//     if (recipeData.id === undefined || recipeData.name === undefined) {
+//       console.log('Using direct mapping for single recipe');
+//       // Map numeric indices to field names based on SELECT order
+//       const fieldMap = {
+//         0: 'id', 1: 'name', 2: 'origin', 3: 'difficulty', 4: 'prepTime', 5: 'image',
+//         6: 'description', 7: 'foodType', 8: 'category', 9: 'dietaryTags',
+//         10: 'cookTime', 11: 'servings', 12: 'ingredients', 13: 'instructions',
+//         14: 'funFact', 15: 'chefTips', 
+//       };
+      
+//       const mappedData = {};
+//       Object.keys(recipeData).forEach(key => {
+//         const numKey = parseInt(key);
+//         if (!isNaN(numKey) && fieldMap[numKey] !== undefined) {
+//           mappedData[fieldMap[numKey]] = recipeData[key];
+//         } else if (isNaN(numKey) && key !== 'userProfileID' && key !== 'status') {
+//           // Only include non-numeric keys that are NOT the internal fields
+//           mappedData[key] = recipeData[key];
+//         }
+//       });
+//       recipeData = mappedData;
+//     } else {
+//       // Remove internal fields if they exist as named properties
+//       const { userProfileID, status, ...cleanData } = recipeData;
+//       recipeData = cleanData;
+//     }
+    
+//     console.log('Final recipe data before transformation:', {
+//       id: recipeData.id,
+//       name: recipeData.name,
+//       status: recipeData.status,
+//       typeOfId: typeof recipeData.id,
+//       typeOfName: typeof recipeData.name
+//     });
+    
+//     const recipe = createRecipeFromFlatObject(recipeData);
+    
+//     console.log('Sending transformed recipe:', { 
+//       id: recipe.id, 
+//       name: recipe.name,
+//       origin: recipe.origin,
+//       status: recipe.status, 
+//     });
+    
+//     res.json(recipe);
+    
+//   } catch (error) {
+//     console.error('Error fetching recipe:', error);
+//     res.status(500).json({ error: error.message });
+//   }
+// });
 
 // POST new recipe 
 router.post('/create/recipes', async (req, res) => {
