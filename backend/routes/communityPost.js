@@ -744,7 +744,7 @@ router.get("/user/:userId", async (req, res) => {
   }
 });
 
-// ✅ UPDATE community post (revision) 
+// ✅ UPDATE community post 
 router.put("/revise/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -755,20 +755,21 @@ router.put("/revise/:id", async (req, res) => {
       });
     }
     
-    const { title, culturalOrigin, content, recipe, status } = req.body;
+    const { title, culturalOrigin, content, recipe, status, image } = req.body;
     
     console.log(`📝 Updating community post ${id}:`, { 
       title, 
       culturalOrigin, 
       content: content ? content.substring(0, 100) + "..." : "empty",
       recipe: recipe || "none",
-      status 
+      status,
+      hasImage: !!image
     });
 
-    // FIXED: Correct SQL query that matches your posts table structure
+    // FIXED: Added image field to the UPDATE query
     const query = `
       UPDATE posts 
-      SET foodName = ?, origin = ?, culturalStory = ?, recipe = ?, status = ?
+      SET foodName = ?, origin = ?, culturalStory = ?, recipe = ?, status = ?, image = ?
       WHERE postID = ?
     `;
     
@@ -778,6 +779,7 @@ router.put("/revise/:id", async (req, res) => {
       content,                     // maps to culturalStory
       recipe || '',                // maps to recipe
       status || 'Pending',         // maps to status
+      image || '',                 // maps to image
       id                           // postID
     ]);
 

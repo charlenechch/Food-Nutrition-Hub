@@ -545,7 +545,7 @@ router.post('/create/recipes', async (req, res) => {
   }
 });
 
-// Add this route to your backend
+// update recipe
 router.put('/update/recipes/:id', async (req, res) => {
   console.log('🔍 START: Recipe update endpoint called for ID:', req.params.id);
   
