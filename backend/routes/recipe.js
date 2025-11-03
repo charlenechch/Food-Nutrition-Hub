@@ -745,7 +745,6 @@ router.get("/user/:userId", async (req, res) => {
           p.photos,
           p.recipe,
           p.created_at,
-          p.updated_at,
           up.userProfileID,
           CONCAT(u.firstname, ' ', u.lastname) AS author,
           u.userID
@@ -804,8 +803,7 @@ router.get("/user/:userId", async (req, res) => {
         author: recipe.author || 'Unknown Author',
         userId: recipe.userID,
         userProfileID: recipe.userProfileID,
-        createdAt: recipe.created_at,
-        updatedAt: recipe.updated_at
+        createdAt: recipe.created_at
       };
     });
 
