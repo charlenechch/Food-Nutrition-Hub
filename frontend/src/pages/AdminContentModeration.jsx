@@ -4,38 +4,50 @@ import { BsFileEarmarkCheck } from "react-icons/bs";
 
 const ContentModerationSection = ({ pendingContent = [], onlyApproved = false }) => {
   const navigate = useNavigate();
-  
-   // === Pagination ===
+
+  // ✅ Normalize incoming data (works for live recipes or old dummy content)
+  const formattedContent = pendingContent.map((item) => ({
+    id: item.id || item.recipeID || item.ID || Math.random(), // fallback ID
+    name: item.name || item.recipe_name || "Untitled Recipe",
+    submitter: item.submitter || item.author || "Unknown Author",
+    date: item.date || item.updated || item.updatedAt || "—",
+    status: item.status || "Pending",
+  }));
+
+  // === Pagination ===
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentItems = pendingContent.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(pendingContent.length / itemsPerPage);
+  const currentItems = formattedContent.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(formattedContent.length / itemsPerPage);
 
   const handlePageChange = (pageNum) => {
     if (pageNum >= 1 && pageNum <= totalPages) setCurrentPage(pageNum);
   };
 
-  // === Dynamic Heading ===
+  // === Dynamic Title ===
   const title = onlyApproved
     ? "Approved Content Database"
     : "Pending / Rejected Content Review";
 
-// === Defensive check ===
-  if (!pendingContent || pendingContent.length === 0) {
+  // === Defensive check for empty content ===
+  if (!formattedContent || formattedContent.length === 0) {
     return (
       <div className="content-moderation-section">
         <h2>
           <BsFileEarmarkCheck style={{ marginRight: 8 }} />
           {title}
         </h2>
-        <p style={{ textAlign: "center", marginTop: "20px" }}>No content available.</p>
+        <p style={{ textAlign: "center", marginTop: "20px" }}>
+          No content available.
+        </p>
       </div>
     );
   }
 
+  // === Render Section ===
   return (
     <div className="content-moderation-section">
       <div className="content-header">
@@ -44,7 +56,10 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
         </h2>
       </div>
 
-       <table className="content-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+      <table
+        className="content-table"
+        style={{ width: "100%", borderCollapse: "collapse" }}
+      >
         <thead>
           <tr>
             <th>Content</th>
@@ -62,13 +77,24 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
               <td>{item.submitter}</td>
               <td>{item.date}</td>
               <td>
-                <span className={`recipe-status-tag ${item.status.toLowerCase().replace(" ", "-")}`}>
+                <span
+                  className={`recipe-status-tag ${item.status
+                    .toLowerCase()
+                    .replace(" ", "-")}`}
+                >
                   {item.status}
                 </span>
               </td>
+
+              {/* Actions only for pending/rejected items */}
               {!onlyApproved && (
                 <td className="admin-recipe-action-buttons">
-                  <button className="review-btn" onClick={() => navigate(`/admin/reviewcontent/${item.id}`)}>
+                  <button
+                    className="review-btn"
+                    onClick={() =>
+                      navigate(`/admin/reviewcontent/${item.id}`)
+                    }
+                  >
                     Review
                   </button>
                 </td>
@@ -78,7 +104,7 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
         </tbody>
       </table>
 
-      {/* Pagination Controls */}
+      {/* === Pagination Controls === */}
       {totalPages > 1 && (
         <div className="admin-pagination">
           <button
@@ -109,6 +135,5 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
     </div>
   );
 };
-
 
 export default ContentModerationSection;

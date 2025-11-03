@@ -31,48 +31,11 @@ const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
 
-// ✅ Safe import for userProfile route (prevents crash if Firebase fails)
-// let userProfileRoutes;
-// try {
-//   userProfileRoutes = require("./routes/userProfile");
-//   if (
-//     typeof userProfileRoutes !== "function" &&
-//     typeof userProfileRoutes?.use !== "function"
-//   ) {
-//     throw new Error("Invalid userProfile router export");
-//   }.
-//   console.log("✅ userProfile route loaded successfully");
-// } catch (err) {
-//   console.error("⚠️ Failed to load userProfile route:", err.message);
-//   userProfileRoutes = express.Router();
-//   userProfileRoutes.use((req, res) =>
-//     res
-//       .status(503)
-//       .json({ error: "UserProfile route unavailable (Firebase not configured)" })
-//   );
-// }
-
-// // ✅ Safe import for admin route
-// let adminRoutes;
-// try {
-//   adminRoutes = require("./routes/admin");
-//   if (
-//     typeof adminRoutes !== "function" &&
-//     typeof adminRoutes?.use !== "function"
-//   ) {
-//     throw new Error("Invalid admin router export");
-//   }
-//   console.log("✅ admin route loaded successfully");
-// } catch (err) {
-//   console.error("⚠️ Failed to load admin route:", err.message);
-//   adminRoutes = express.Router();
-//   adminRoutes.use((req, res) =>
-//     res.status(503).json({ error: "Admin route unavailable" })
-//   );
-// }
-
 // ✅ NEW: Admin route import (for Admin User Management)
 const adminRoutes = require("./routes/admin");
+
+// ❌ REMOVED: Content Moderation route import (no longer needed)
+// const contentRoutes = require("./routes/content");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -232,7 +195,7 @@ app.use(
       httpOnly: true,
       sameSite: IS_PROD ? "none" : "lax",
       secure: IS_PROD,
-      maxAge: 24 * 60 * 60 * 1000
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
@@ -263,30 +226,13 @@ app.use(
   hppProtect({
     policy: "first", // block duplicates globally
     allowlist: [
-      "id",
-      "page",
-      "q",
-      "sort",
-      "email",
-      "password",
-      "userID",
-      "token",
-      "role",
-      "userProfileID",
-      "firebase_uid",
-      "bio", "location", "firstname", "lastname",
+      "id", "page", "q", "sort", "email", "password", "userID", "token", "role",
+      "userProfileID", "firebase_uid", "bio", "location", "firstname", "lastname",
       "avatar", "allergies", "dietary", "emailNotifications", "prefs",
       "pushNotifications", "profileVisibility", "language", "recipes",
-      "status", "stats", "saveFoods",
-      "likes",
-      "type",
-      "postId", "postID",
-      "content","title", "culturalOrigin", "recipe",
-      "reply",
-      "comment",
-      "foodID", 
-      "likeID",
-      "name", "origin", "difficulty", "prepTime", "cookTime", 
+      "status", "stats", "saveFoods", "likes", "type", "postId", "postID",
+      "content","title", "culturalOrigin", "recipe", "reply", "comment", "foodID", 
+      "likeID","name", "origin", "difficulty", "prepTime", "cookTime", 
       "servings", "image", "description", "foodType", "dietaryTags", 
       "ingredients", "instructions", "funFact", "chefTips",
       "isAdmin", "isAdminAction", "adminRole", "adminId"
@@ -303,11 +249,7 @@ app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes);
-app.use(
-  "/api/exploreFood",
-  hppProtect({ policy: "first", allowlist: ["q", "page", "sort"] }),
-  exploreFoodRoutes
-);
+app.use("/api/exploreFood", hppProtect({ policy: "first", allowlist: ["q", "page", "sort"] }), exploreFoodRoutes);
 app.use("/api/foodDetail", foodDetailRoutes);
 app.use("/api/foodDiscussion", foodDiscussionRoutes);
 app.use("/api/recipe", recipeRoutes);
@@ -319,6 +261,9 @@ app.use("/api/likes", likeRoutes);
 
 // ✅ NEW: Link Admin Management routes (for Admin User Management tab)
 app.use("/api/admin", adminRoutes);
+
+// ❌ REMOVED: Link Content Moderation route (no longer needed)
+// app.use("/api/content", contentRoutes);
 
 // ---------- Example Admin Guard ----------
 app.get("/api/admin/data", (req, res) => {
