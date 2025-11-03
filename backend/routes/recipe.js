@@ -638,109 +638,201 @@ router.post('/create/recipes', async (req, res) => {
   }
 });
 
-// ✅ GET recipes by user ID
+// ✅ GET recipes by user ID - DEBUG VERSION
 router.get("/user/:userId", async (req, res) => {
+  console.log('=== STARTING USER RECIPES FETCH ===');
+  console.log('📝 Request params:', req.params);
+  console.log('🔍 Query params:', req.query);
+  
   try {
     const { userId } = req.params;
     
     console.log(`📖 Fetching recipes for user ID: ${userId}`);
 
-    // Validate user ID
-    if (!userId || isNaN(userId)) {
+    // ✅ Enhanced validation
+    if (!userId) {
+      console.log('❌ No user ID provided');
       return res.status(400).json({
         success: false,
-        error: 'Valid user ID is required'
+        error: 'User ID is required'
       });
     }
 
-    // Check if user exists
-    const [userCheck] = await db.execute(
-      'SELECT userID FROM user WHERE userID = ?',
-      [userId]
-    );
+    // Convert to number and validate
+    const numericUserId = parseInt(userId);
+    if (isNaN(numericUserId) || numericUserId <= 0) {
+      console.log('❌ Invalid user ID format:', userId);
+      return res.status(400).json({
+        success: false,
+        error: 'Valid numeric user ID is required'
+      });
+    }
+
+    console.log('🔢 Numeric user ID:', numericUserId);
+
+    // ✅ Check if user exists with better error handling
+    let userCheck;
+    try {
+      console.log('👤 Checking if user exists...');
+      [userCheck] = await db.execute(
+        'SELECT userID, firstname, lastname FROM user WHERE userID = ?',
+        [numericUserId]
+      );
+      console.log('✅ User check result:', userCheck);
+    } catch (dbError) {
+      console.error('❌ Database error checking user:', dbError);
+      return res.status(500).json({
+        success: false,
+        error: 'Database error while checking user',
+        details: process.env.NODE_ENV === 'development' ? dbError.message : undefined
+      });
+    }
 
     if (userCheck.length === 0) {
+      console.log('❌ User not found with ID:', numericUserId);
       return res.status(404).json({
         success: false,
         error: 'User not found'
       });
     }
 
-    // Get userProfileID first
-    const [profileResult] = await db.execute(
-      'SELECT userProfileID FROM userProfile WHERE userID = ?',
-      [userId]
-    );
+    // ✅ Get userProfileID
+    let profileResult;
+    try {
+      console.log('📋 Fetching user profile...');
+      [profileResult] = await db.execute(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [numericUserId]
+      );
+      console.log('✅ Profile result:', profileResult);
+    } catch (profileError) {
+      console.error('❌ Database error fetching profile:', profileError);
+      return res.status(500).json({
+        success: false,
+        error: 'Database error while fetching user profile',
+        details: process.env.NODE_ENV === 'development' ? profileError.message : undefined
+      });
+    }
 
     if (profileResult.length === 0) {
+      console.log('ℹ️ No user profile found for user:', numericUserId);
       return res.status(200).json({
         success: true,
-        message: 'No user profile found',
-        data: []
+        message: 'No recipes found',
+        data: [],
+        userInfo: {
+          userId: numericUserId,
+          username: `${userCheck[0].firstname} ${userCheck[0].lastname}`,
+          totalRecipes: 0
+        }
       });
     }
 
     const userProfileID = profileResult[0].userProfileID;
+    console.log('✅ User profile ID:', userProfileID);
 
-    // Get recipes/posts by this user
-    const [recipes] = await db.execute(
-      `SELECT 
-        p.postID,
-        p.foodName,
-        p.origin AS culturalOrigin,
-        p.status,
-        p.culturalStory,
-        p.photos,
-        p.recipe,
-        p.created_at,
-        p.updated_at,
-        up.userProfileID,
-        CONCAT(u.firstname, ' ', u.lastname) AS author,
-        u.userID
-      FROM posts p
-      JOIN userProfile up ON p.userProfileID = up.userProfileID
-      JOIN user u ON up.userID = u.userID
-      WHERE up.userProfileID = ?
-      ORDER BY p.created_at DESC`,
-      [userProfileID]
-    );
+    // ✅ Get recipes with better error handling
+    let recipes;
+    try {
+      console.log('🍳 Fetching recipes...');
+      const recipeQuery = `
+        SELECT 
+          p.postID,
+          p.foodName,
+          p.origin AS culturalOrigin,
+          p.status,
+          p.culturalStory,
+          p.photos,
+          p.recipe,
+          p.created_at,
+          p.updated_at,
+          up.userProfileID,
+          CONCAT(u.firstname, ' ', u.lastname) AS author,
+          u.userID
+        FROM posts p
+        JOIN userProfile up ON p.userProfileID = up.userProfileID
+        JOIN user u ON up.userID = u.userID
+        WHERE up.userProfileID = ?
+        ORDER BY p.created_at DESC
+      `;
+      
+      console.log('📊 Executing query:', recipeQuery);
+      console.log('📋 With parameter:', userProfileID);
+      
+      [recipes] = await db.execute(recipeQuery, [userProfileID]);
+      console.log(`✅ Found ${recipes.length} recipes`);
+      
+    } catch (recipeError) {
+      console.error('❌ Database error fetching recipes:', recipeError);
+      console.error('❌ Error details:', {
+        code: recipeError.code,
+        errno: recipeError.errno,
+        sqlMessage: recipeError.sqlMessage
+      });
+      
+      return res.status(500).json({
+        success: false,
+        error: 'Database error while fetching recipes',
+        details: process.env.NODE_ENV === 'development' ? {
+          message: recipeError.message,
+          code: recipeError.code,
+          sqlMessage: recipeError.sqlMessage
+        } : undefined
+      });
+    }
 
-    console.log(`✅ Found ${recipes.length} recipes for user ${userId}`);
+    // ✅ Format the response data safely
+    const formattedRecipes = recipes.map(recipe => {
+      // Handle potential undefined values
+      let images = [];
+      try {
+        if (recipe.photos && typeof recipe.photos === 'string' && recipe.photos.trim() !== '') {
+          images = recipe.photos.split(',').filter(url => url.trim() !== '');
+        }
+      } catch (photoError) {
+        console.warn('⚠️ Error processing photos for recipe:', recipe.postID, photoError);
+      }
 
-    // Format the response data
-    const formattedRecipes = recipes.map(recipe => ({
-      postId: recipe.postID,
-      foodName: recipe.foodName,
-      culturalOrigin: recipe.culturalOrigin,
-      status: recipe.status?.toLowerCase() || 'pending',
-      culturalStory: recipe.culturalStory,
-      images: recipe.photos ? recipe.photos.split(',').filter(url => url.trim() !== '') : [],
-      recipe: recipe.recipe,
-      author: recipe.author,
-      userId: recipe.userID,
-      userProfileID: recipe.userProfileID,
-      createdAt: recipe.created_at,
-      updatedAt: recipe.updated_at
-    }));
+      return {
+        postId: recipe.postID,
+        foodName: recipe.foodName || 'Untitled Recipe',
+        culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
+        status: (recipe.status || 'pending').toLowerCase(),
+        culturalStory: recipe.culturalStory || '',
+        images: images,
+        recipe: recipe.recipe || '',
+        author: recipe.author || 'Unknown Author',
+        userId: recipe.userID,
+        userProfileID: recipe.userProfileID,
+        createdAt: recipe.created_at,
+        updatedAt: recipe.updated_at
+      };
+    });
+
+    console.log('✅ Successfully formatted recipes:', formattedRecipes.length);
 
     res.status(200).json({
       success: true,
       message: `Found ${formattedRecipes.length} recipes`,
       data: formattedRecipes,
       userInfo: {
-        userId: parseInt(userId),
-        author: recipes.length > 0 ? recipes[0].author : 'Unknown',
+        userId: numericUserId,
+        username: `${userCheck[0].firstname} ${userCheck[0].lastname}`,
         totalRecipes: formattedRecipes.length
       }
     });
 
   } catch (error) {
-    console.error('❌ Error fetching user recipes:', error);
+    console.error('❌ UNEXPECTED ERROR in user recipes route:', error);
+    console.error('❌ Error stack:', error.stack);
     
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch user recipes',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        stack: error.stack
+      } : undefined
     });
   }
 });
