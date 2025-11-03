@@ -272,8 +272,9 @@ const savePrefs = async () => {
 };
 
   const ContributionRow = ({ c }) => {
+  const navigate = useNavigate(); 
+  
   const handleRevise = () => {
-    // Only handle recipe revisions
     navigate(`/revise/${c.id}`, {
       state: {
         owner: `${user.firstName} ${user.lastName}`,
@@ -999,27 +1000,27 @@ const savePrefs = async () => {
             {tab === "status" && (
               <>
                 {(() => {
-                  const recipeContributions = Array.isArray(recipeContributions?.data) 
-                    ? recipeContributions.data.filter(isRecipe).sort(byDateDesc)
+                  const recipeData = Array.isArray(recipeContributions) 
+                    ? recipeContributions.filter(isRecipe).sort(byDateDesc)  // ✅ Use state directly
                     : [];
 
-                  const communityContributions = Array.isArray(communityPosts)
+                  const communityData = Array.isArray(communityPosts)
                     ? communityPosts.filter(isCommunity).sort(byDateDesc)
                     : [];
 
-                  console.log("📊 Recipe contributions:", recipeContributions);
-                  console.log("📊 Community contributions:", communityContributions);
+                  console.log("📊 Recipe data:", recipeData);
+                  console.log("📊 Community data:", communityData);
                   
-                  const hasAnyContributions = recipeContributions.length > 0 || communityContributions.length > 0;
+                  const hasAnyContributions = recipeData.length > 0 || communityData.length > 0;
 
                   return (
                     <div className="upp-stack">
                       {/* Recipes Section (REAL) */}
                       <div className="upp-card">
-                        <h3 className="upp-card-title">Recipes ({recipeContributions.length})</h3>
+                        <h3 className="upp-card-title">Recipes ({recipeData.length})</h3>
                         {recipeContributions.length ? (
                           <div className="upp-stack">
-                            {recipeContributions.map((c) => <ContributionRow key={`recipe-${c.id}`} c={c} />)}
+                            {recipeData.map((c) => <ContributionRow key={`recipe-${c.id}`} c={c} />)}
                           </div>
                         ) : (
                           <div className="upp-muted">No recipe contributions yet</div>
@@ -1028,10 +1029,10 @@ const savePrefs = async () => {
 
                       {/* Community Posts Section (REAL) */}
                       <div className="upp-card">
-                        <h3 className="upp-card-title">Community Posts ({communityContributions.length})</h3>
-                        {communityContributions.length ? (
+                        <h3 className="upp-card-title">Community Posts ({communityData.length})</h3>
+                        {communityData.length ? (
                           <div className="upp-stack">
-                            {communityContributions.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
+                            {communityPosts.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
                           </div>
                         ) : (
                           <div className="upp-muted">{isLoadingCommunity ? 'Loading community posts...' : 'No community posts yet'}</div>
