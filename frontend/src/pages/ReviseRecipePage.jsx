@@ -110,7 +110,7 @@ export default function ReviseRecipePage() {
         const recipeId = id || contribution?.id || item?.id;
         console.log("🎯 Using recipe ID:", recipeId);
 
-        const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${recipeId}`);
+        const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${id}`);
         
         console.log("📡 Response status:", response.status);
         console.log("📡 Response ok:", response.ok);

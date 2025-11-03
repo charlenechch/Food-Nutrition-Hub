@@ -767,7 +767,10 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
     });
 
     // Check if post exists
-    const [existingPost] = await db.execute('SELECT *, DATE_FORMAT(created_at, "%Y-%m-%d %H:%i:%s") as created_at FROM posts WHERE postID = ?', [id]);
+    const [existingPost] = await db.execute(
+      'SELECT *, DATE_FORMAT(created_at, "%Y-%m-%d %H:%i:%s") as created_at, DATE_FORMAT(updated_at, "%Y-%m-%d %H:%i:%s") as updated_at FROM posts WHERE postID = ?', 
+      [id]
+    );
     
     if (existingPost.length === 0) {
       return res.status(404).json({ error: 'Community post not found' });
@@ -829,6 +832,7 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
       ? "🖼️ Keeping existing image" 
       : "✅ Using new Cloudinary image URL");
 
+    // Update query with updated_at instead of created_at
     const updateQuery = `
       UPDATE posts 
       SET 
@@ -837,7 +841,8 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
         culturalStory = ?, 
         recipe = ?, 
         status = ?, 
-        photos = ?
+        photos = ?,
+        updated_at = CURRENT_TIMESTAMP
       WHERE postID = ?
     `;
     
@@ -858,8 +863,11 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
       return res.status(404).json({ error: 'No changes made - post may not exist' });
     }
 
-    // Get updated post with formatted created_at
-    const [updatedPost] = await db.execute('SELECT *, DATE_FORMAT(created_at, "%Y-%m-%d %H:%i:%s") as created_at FROM posts WHERE postID = ?', [id]);
+    // Get updated post with formatted dates
+    const [updatedPost] = await db.execute(
+      'SELECT *, DATE_FORMAT(created_at, "%Y-%m-%d %H:%i:%s") as created_at, DATE_FORMAT(updated_at, "%Y-%m-%d %H:%i:%s") as updated_at FROM posts WHERE postID = ?', 
+      [id]
+    );
     
     res.json({ 
       success: true, 
