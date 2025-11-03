@@ -171,6 +171,10 @@ export default function UserProfilePage() {
   const [currentSaved, setCurrentSaved] = useState([]);
   const [totalSavedPages, setTotalSavedPages] = useState(1);
 
+  //recipe contributions
+  const [recipeContributions, setRecipeContributions] = useState([]);
+  const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
+
   // Community Posts State
   const [communityPosts, setCommunityPosts] = useState([]);
   const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
@@ -389,6 +393,39 @@ const savePrefs = async () => {
 
     loadProfile();
   }, [userProfileID]);
+
+  useEffect(() => {
+    const fetchRecipeContributions = async () => {
+      if (tab === 'status' && user) {
+        try {
+          setIsLoadingRecipes(true);
+          console.log("🔄 Fetching recipe contributions for user:", user.userID);
+          
+          const res = await fetch(`${API_BASE_URL}/api/recipe/user/${user.userID}`, {
+            credentials: "include"
+          });
+
+          console.log("📥 Recipe contributions response status:", res.status);
+          
+          if (res.ok) {
+            const data = await res.json();
+            console.log("✅ Recipe contributions data received:", data);
+            setRecipeContributions(data);
+          } else {
+            console.error("❌ Failed to fetch recipe contributions");
+            const errorText = await res.text();
+            console.error("❌ Error response:", errorText);
+          }
+        } catch (error) {
+          console.error('❌ Error fetching recipe contributions:', error);
+        } finally {
+          setIsLoadingRecipes(false);
+        }
+      }
+    };
+
+    fetchRecipeContributions();
+  }, [tab, user]);
 
   // ✅ Fetch Community Posts separately
   useEffect(() => {
