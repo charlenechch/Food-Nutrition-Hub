@@ -696,6 +696,7 @@ router.get("/user/:userId", async (req, res) => {
     );
 
     if (profileResult.length === 0) {
+      console.warn(`⚠️ No userProfile found for userID: ${userId}`);
       return res.json([]); // Return empty array if no profile found
     }
 
@@ -703,14 +704,14 @@ router.get("/user/:userId", async (req, res) => {
 
     const query = `
       SELECT 
-        postID as id,
-        foodName as title,
-        photos as image,
+        postID AS id,
+        foodName AS title,
+        photos AS image,
         status,
-        created_at as submittedDate,
-        'community' as type,
-        origin as culturalOrigin,
-        culturalStory as content,
+        created_at AS submittedDate,
+        'community' AS type,
+        origin AS culturalOrigin,
+        culturalStory AS content,
         recipe
       FROM posts 
       WHERE userProfileID = ?
@@ -721,11 +722,11 @@ router.get("/user/:userId", async (req, res) => {
     
     console.log(`✅ Found ${posts.length} community posts for user ${userId}`);
 
-    // Format the posts
+    // Format posts (take first image only if multiple)
     const formattedPosts = posts.map(post => ({
       id: post.id,
       title: post.title,
-      image: post.image ? post.image.split(',')[0] : null, // Take first image if multiple
+      image: post.image ? post.image.split(',')[0] : null,
       status: post.status,
       submittedDate: post.submittedDate,
       type: post.type,
@@ -744,19 +745,18 @@ router.get("/user/:userId", async (req, res) => {
   }
 });
 
-// ✅ UPDATE community post 
+
+// ✅ UPDATE community post
 router.put("/revise/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    
-    if (!req.body) {
-      return res.status(400).json({ 
-        error: 'Request body is missing or invalid' 
-      });
+
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: 'Request body is missing or invalid' });
     }
-    
+
     const { title, culturalOrigin, content, recipe, status, image } = req.body;
-    
+
     console.log(`📝 Updating community post ${id}:`, { 
       title, 
       culturalOrigin, 
@@ -766,50 +766,51 @@ router.put("/revise/:id", async (req, res) => {
       hasImage: !!image
     });
 
-    // check if the post exists and get current data
-    const checkQuery = 'SELECT * FROM posts WHERE postID = ?';
-    const [existingPost] = await db.execute(checkQuery, [id]);
+    // Check if post exists
+    const [existingPost] = await db.execute('SELECT * FROM posts WHERE postID = ?', [id]);
     
     if (existingPost.length === 0) {
-      return res.status(404).json({ 
-        error: 'Community post not found' 
-      });
+      return res.status(404).json({ error: 'Community post not found' });
     }
 
-    console.log('📋 Current post data:', existingPost[0]);
+    const current = existingPost[0];
+    console.log('📋 Current post data:', current);
 
-    let finalImage = image;
-    if (!image && existingPost[0].photos) { 
-      finalImage = existingPost[0].photos;
-      console.log('🖼️ Keeping existing image from photos column');
-    }
+    // 🖼️ Keep old image if no new one uploaded
+    let finalImage = (image && image.trim() !== "") ? image : current.photos;
+    console.log(finalImage === current.photos 
+      ? "🖼️ Keeping existing image" 
+      : "✅ Using new uploaded image");
 
     const updateQuery = `
       UPDATE posts 
-      SET foodName = ?, origin = ?, culturalStory = ?, recipe = ?, status = ?, photos = ?
+      SET 
+        foodName = ?, 
+        origin = ?, 
+        culturalStory = ?, 
+        recipe = ?, 
+        status = ?, 
+        photos = ?
       WHERE postID = ?
     `;
     
     console.log('🚀 Executing update query...');
     const [result] = await db.execute(updateQuery, [
-      title || existingPost[0].foodName,           // foodName
-      culturalOrigin || existingPost[0].origin,    // origin  
-      content || existingPost[0].culturalStory,    // culturalStory
-      recipe || existingPost[0].recipe,            // recipe
-      status || 'Pending',                         // status
-      finalImage || '',                            // photos 
-      id                                           // postID
+      title || current.foodName,
+      culturalOrigin || current.origin,
+      content || current.culturalStory,
+      recipe || current.recipe,
+      status || current.status || 'Pending',
+      finalImage || current.photos || '',
+      id
     ]);
 
-    console.log(`✅ Community post ${id} updated successfully, affected rows:`, result.affectedRows);
+    console.log(`✅ Community post ${id} updated successfully (affected rows: ${result.affectedRows})`);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ 
-        error: 'No changes made - post may not exist' 
-      });
+      return res.status(404).json({ error: 'No changes made - post may not exist' });
     }
-    
-    // Get the updated post to return
+
     const [updatedPost] = await db.execute('SELECT * FROM posts WHERE postID = ?', [id]);
     
     res.json({ 
@@ -817,15 +818,11 @@ router.put("/revise/:id", async (req, res) => {
       message: 'Community post updated successfully',
       post: updatedPost[0]
     });
-    
+
   } catch (error) {
     console.error('❌ Error updating community post:', error);
-    console.error('❌ Error details:', error.message);
-    console.error('❌ SQL Error code:', error.code);
-    console.error('❌ SQL Error number:', error.errno);
-    
+
     let errorMessage = 'Failed to update community post';
-    
     if (error.code === 'ER_NO_SUCH_TABLE') {
       errorMessage = 'Database table not found - check table name';
     } else if (error.code === 'ER_BAD_FIELD_ERROR') {
@@ -833,7 +830,7 @@ router.put("/revise/:id", async (req, res) => {
     } else if (error.errno === 1452) {
       errorMessage = 'Foreign key constraint fails';
     }
-    
+
     res.status(500).json({ 
       error: errorMessage,
       details: process.env.NODE_ENV === 'development' ? error.message : undefined

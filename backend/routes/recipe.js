@@ -274,7 +274,7 @@ router.get('/recipes/:id', async (req, res) => {
         r.status
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
-      WHERE f.foodID = ? AND r.status = 'Approved'
+      WHERE f.foodID = ? 
     `;
     
     const result = await db.query(query, [id]);

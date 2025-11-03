@@ -106,7 +106,8 @@ export default function ReviseCommunityPostPage() {
       culturalOrigin: form.culturalOrigin,
       content: form.content.trim(),
       recipe: form.recipe,
-      status: "Pending"
+      status: "Pending",
+      image: form.image
     };
 
     console.log("📤 Sending JSON data:", revisedData);
@@ -114,10 +115,10 @@ export default function ReviseCommunityPostPage() {
     const res = await fetch(`${API_BASE_URL}/api/communityPost/revise/${id}`, {
       method: "PUT",
       headers: { 
-        "Content-Type": "application/json" // ✅ Add this header
+        "Content-Type": "application/json" 
       },
       credentials: "include",
-      body: JSON.stringify(revisedData), // ✅ Send as JSON, not FormData
+      body: JSON.stringify(revisedData),
     });
 
       console.log("📥 Response status:", res.status);

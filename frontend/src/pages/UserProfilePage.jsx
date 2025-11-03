@@ -408,7 +408,6 @@ const savePrefs = async () => {
           if (res.ok) {
             const data = await res.json();
             console.log("✅ Community posts data received:", data);
-            console.error("❌ Failed to fetch community posts:", res.status);
             setCommunityPosts(data);
           }else {
           console.error("❌ Failed to fetch community posts - response not ok");
