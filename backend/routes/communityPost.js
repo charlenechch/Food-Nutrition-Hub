@@ -779,14 +779,14 @@ router.put("/revise/:id", async (req, res) => {
     console.log('📋 Current post data:', existingPost[0]);
 
     let finalImage = image;
-    if (!image && existingPost[0].image) {
-      finalImage = existingPost[0].image;
-      console.log('🖼️ Keeping existing image');
+    if (!image && existingPost[0].photos) { 
+      finalImage = existingPost[0].photos;
+      console.log('🖼️ Keeping existing image from photos column');
     }
 
     const updateQuery = `
       UPDATE posts 
-      SET foodName = ?, origin = ?, culturalStory = ?, recipe = ?, status = ?, image = ?
+      SET foodName = ?, origin = ?, culturalStory = ?, recipe = ?, status = ?, photos = ?
       WHERE postID = ?
     `;
     
@@ -797,7 +797,7 @@ router.put("/revise/:id", async (req, res) => {
       content || existingPost[0].culturalStory,    // culturalStory
       recipe || existingPost[0].recipe,            // recipe
       status || 'Pending',                         // status
-      finalImage || '',                            // image 
+      finalImage || '',                            // photos 
       id                                           // postID
     ]);
 

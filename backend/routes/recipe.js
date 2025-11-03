@@ -237,33 +237,6 @@ function createRecipeFromFlatObject(data) {
   };
 }
 
-// Add this temporary debug route to check what's actually in your database
-router.get('/debug/recipe/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    console.log('🔍 DEBUG: Checking ALL recipe data for ID:', id);
-    
-    // Check food table
-    const foodQuery = 'SELECT * FROM food WHERE foodID = ?';
-    const foodResult = await db.query(foodQuery, [id]);
-    console.log('🍽️ Food table data:', JSON.stringify(foodResult, null, 2));
-    
-    // Check recipe table  
-    const recipeQuery = 'SELECT * FROM recipe WHERE foodID = ?';
-    const recipeResult = await db.query(recipeQuery, [id]);
-    console.log('📝 Recipe table data:', JSON.stringify(recipeResult, null, 2));
-    
-    res.json({
-      food: foodResult,
-      recipe: recipeResult
-    });
-    
-  } catch (error) {
-    console.error('Debug error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // GET single recipe by ID 
 router.get('/recipes/:id', async (req, res) => {
   try {
@@ -288,8 +261,7 @@ router.get('/recipes/:id', async (req, res) => {
         r.steps AS instructions, 
         r.DidYouKnow AS funFact, 
         r.chefTips,
-        r.status,
-        r.submittedDate
+        r.status
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
       WHERE f.foodID = ? 
@@ -327,8 +299,7 @@ router.get('/recipes/:id', async (req, res) => {
       instructions: row.instructions || '',
       funFact: row.funFact || '',
       chefTips: row.chefTips || '',
-      status: row.status || 'Unknown',
-      submittedDate: row.submittedDate || null
+      status: row.status || 'Unknown'
     };
     
     console.log('🚀 Sending recipe to frontend:', {
@@ -337,7 +308,9 @@ router.get('/recipes/:id', async (req, res) => {
       origin: recipe.origin,
       foodType: recipe.foodType,
       status: recipe.status,
-      hasImage: !!recipe.image
+      hasImage: !!recipe.image,
+      hasIngredients: !!recipe.ingredients,
+      hasInstructions: !!recipe.instructions
     });
     
     res.json(recipe);
