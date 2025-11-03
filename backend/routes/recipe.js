@@ -755,7 +755,7 @@ router.get("/user/:userId", async (req, res) => {
           f.difficulty,
           f.prepTime,
           f.foodType
-        FROM recipes r
+        FROM recipe r
         JOIN food f ON r.foodID = f.foodID
         JOIN userProfile up ON r.userProfileID = up.userProfileID
         JOIN user u ON up.userID = u.userID
