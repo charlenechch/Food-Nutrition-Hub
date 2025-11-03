@@ -272,31 +272,19 @@ const savePrefs = async () => {
 };
 
   const ContributionRow = ({ c }) => {
-    const handleRevise = () => {
-      if (isCommunity(c)) {
-        navigate(`/revisecommunitypostpage/${c.id}`, {
-          state: {
-            contribution: c,
-            user,
-            id: c.id,
-            snapshot: JSON.parse(JSON.stringify(c)),
-            adminFeedback: c.feedback,
-            fieldsWithIssues: c.fieldsWithIssues || [],
-          },
-        });
-      } else {
-        navigate(`/revise/${c.id}`, {
-          state: {
-            owner: `${user.firstName} ${user.lastName}`,
-            id: c.id,
-            snapshot: JSON.parse(JSON.stringify(c)),
-            contribution: c,
-            adminFeedback: c.feedback,
-            fieldsWithIssues: c.fieldsWithIssues || [],
-          },
-        });
-      }
-    };
+  const handleRevise = () => {
+    // Only handle recipe revisions
+    navigate(`/revise/${c.id}`, {
+      state: {
+        owner: `${user.firstName} ${user.lastName}`,
+        id: c.id,
+        snapshot: JSON.parse(JSON.stringify(c)),
+        contribution: c,
+        adminFeedback: c.feedback,
+        fieldsWithIssues: c.fieldsWithIssues || [],
+      },
+    });
+  };
 
     return (
       <div className="upp-row-card" key={`${c.type}-${c.id}`}>
@@ -410,7 +398,7 @@ const savePrefs = async () => {
           if (res.ok) {
             const data = await res.json();
             console.log("✅ Recipe contributions data received:", data);
-            setRecipeContributions(data);
+            setRecipeContributions(data.data || []);
           } else {
             console.error("❌ Failed to fetch recipe contributions");
             const errorText = await res.text();
@@ -1011,22 +999,17 @@ const savePrefs = async () => {
             {tab === "status" && (
               <>
                 {(() => {
-                  // Get real recipe contributions from backend
-                  const recipeContributions = Array.isArray(user?.pending) 
-                  ? user.pending.filter(isRecipe).sort(byDateDesc)
-                  : [];
+                  const recipeContributions = Array.isArray(recipeContributions?.data) 
+                    ? recipeContributions.data.filter(isRecipe).sort(byDateDesc)
+                    : [];
 
-                  // Get real community post contributions from backend
-                  const communityContributions = Array.isArray(user?.communityPosts)
-                    ? user.communityPosts.filter(isCommunity).sort(byDateDesc)
-                    : Array.isArray(user?.status)
-                    ? user.status.filter(isCommunity).sort(byDateDesc)
-                    : communityPosts.filter(isCommunity).sort(byDateDesc);
+                  const communityContributions = Array.isArray(communityPosts)
+                    ? communityPosts.filter(isCommunity).sort(byDateDesc)
+                    : [];
 
                   console.log("📊 Recipe contributions:", recipeContributions);
                   console.log("📊 Community contributions:", communityContributions);
-                  console.log("📊 Community posts state:", communityPosts);
-
+                  
                   const hasAnyContributions = recipeContributions.length > 0 || communityContributions.length > 0;
 
                   return (
@@ -1045,17 +1028,17 @@ const savePrefs = async () => {
 
                       {/* Community Posts Section (REAL) */}
                       <div className="upp-card">
-                        <h3 className="upp-card-title">Community Posts ({communityPosts.length})</h3>
-                        {communityPosts.length ? (
+                        <h3 className="upp-card-title">Community Posts ({communityContributions.length})</h3>
+                        {communityContributions.length ? (
                           <div className="upp-stack">
-                            {communityPosts.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
+                            {communityContributions.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
                           </div>
                         ) : (
                           <div className="upp-muted">{isLoadingCommunity ? 'Loading community posts...' : 'No community posts yet'}</div>
                         )}
                       </div>
 
-                      {!hasAnyContributions && !isLoadingCommunity &&(
+                      {!hasAnyContributions && !isLoadingCommunity && !isLoadingCommunity && (
                         <div className="upp-center">
                           <p className="upp-muted">You haven't made any contributions yet</p>
                           <button 
