@@ -650,6 +650,28 @@ router.put('/revise/recipes/:id', async (req, res) => {
 
     console.log('🆔 Updating recipe with ID:', id);
 
+    // Check authentication
+    if (!req.session || !req.session.user) {
+      console.log('❌ Authentication failed - no session user');
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const userID = req.session.user.userID;
+
+    // ✅ Get userProfileID from database
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (profileResult.length === 0) {
+      console.log('❌ No userProfile found for user:', userID);
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+    console.log('✅ User authenticated - userID:', userID, 'userProfileID:', userProfileID);
+
     // ✅ Validate and sanitize input
     {
       const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
@@ -728,7 +750,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
         DidYouKnow = ?, 
         chefTips = ?, 
         status = ?
-      WHERE foodID = ?
+      WHERE foodID = ? AND userProfileID = ? 
     `;
     const recipeParams = [
       Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
@@ -738,31 +760,33 @@ router.put('/revise/recipes/:id', async (req, res) => {
       funFact || '',
       chefTips || '',
       status || 'Pending',
-      id
+      id,
+      userProfileID
     ];
 
     console.log('📝 Executing RECIPE UPDATE with params:', recipeParams);
     const [updateResult] = await db.query(updateRecipeQuery, recipeParams);
 
     if (updateResult.affectedRows === 0) {
-      console.log('⚠️ No existing recipe found, inserting new recipe entry instead');
-      const insertRecipeQuery = `
-        INSERT INTO recipe (
-          foodID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      await db.query(insertRecipeQuery, [
-        id,
-        Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
-        Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
-        cookTime || 0,
-        servings || 1,
-        funFact || '',
-        chefTips || '',
-        status || 'Pending'
-      ]);
-      console.log('✅ Inserted new recipe entry for foodID:', id);
-    }
+    console.log('⚠️ No existing recipe found, inserting new recipe entry instead');
+    const insertRecipeQuery = `
+      INSERT INTO recipe (
+        foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    await db.query(insertRecipeQuery, [
+      id,
+      userProfileID, 
+      Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
+      Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
+      cookTime || 0,
+      servings || 1,
+      funFact || '',
+      chefTips || '',
+      status || 'Pending'
+    ]);
+    console.log('✅ Inserted new recipe entry for foodID:', id, 'by userProfileID:', userProfileID);
+  }
 
     console.log('✅ Recipe updated successfully');
     res.json({ message: 'Recipe updated successfully', id });
