@@ -277,8 +277,11 @@ router.get('/recipes/:id', async (req, res) => {
       WHERE f.foodID = ? 
     `;
     
-    const [rows] = await db.query(query, [id]); // ✅ Fix here
-    console.log('✅ SQL rows:', rows);
+    console.log('🔍 SQL Query:', query);
+    console.log('🔍 Query parameter (id):', id);
+    
+    const [rows] = await db.query(query, [id]);
+    console.log('✅ SQL rows found:', rows.length);
     
     if (!rows || rows.length === 0) {
       return res.status(404).json({ error: 'Recipe not found' });

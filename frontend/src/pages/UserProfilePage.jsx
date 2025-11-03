@@ -975,9 +975,9 @@ const savePrefs = async () => {
               <>
                 {(() => {
                   // Get real recipe contributions from backend
-                  const recipeContributions = Array.isArray(user?.status) 
-                    ? user.status.filter(isRecipe).sort(byDateDesc)
-                    : [];
+                  const recipeContributions = Array.isArray(user?.pending) 
+                  ? user.pending.filter(isRecipe).sort(byDateDesc)
+                  : [];
 
                   // Get real community post contributions from backend
                   const communityContributions = Array.isArray(user?.communityPosts)
