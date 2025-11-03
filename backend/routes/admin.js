@@ -30,7 +30,7 @@ router.get("/users", requireAdmin, async (req, res) => {
         up.posts
       FROM user u
       LEFT JOIN userProfile up ON u.userID = up.userID
-      ORDER BY u.firstname, u.lastname;
+      ORDER BY u.userID ASC;
     `;
 
     // Use the imported 'db' object
@@ -138,6 +138,146 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
     return res.status(500).json({ 
       success: false, 
       message: "Failed to delete user",
+      error: error.message 
+    });
+  }
+});
+
+// Admin update user by ID
+router.put("/users/:id", requireAdmin, async (req, res) => {
+  console.log("Admin user update request received");
+  try {
+    const targetUserID = parseInt(req.params.id, 10);
+    
+    if (!targetUserID || isNaN(targetUserID)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid user ID" 
+      });
+    }
+
+    const { name, email, city, role, status, suspendedOn } = req.body;
+
+    // Validation
+    if (!name || !email) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Name and email are required" 
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid email format" 
+      });
+    }
+
+    // Check if user exists
+    const [existingUser] = await db.execute(
+      'SELECT userID, email FROM user WHERE userID = ?',
+      [targetUserID]
+    );
+
+    if (existingUser.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "User not found" 
+      });
+    }
+
+    // Check if email is being changed to one that already exists
+    if (email !== existingUser[0].email) {
+      const [emailCheck] = await db.execute(
+        'SELECT userID FROM user WHERE email = ? AND userID != ?',
+        [email, targetUserID]
+      );
+
+      if (emailCheck.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Email already exists for another user" 
+        });
+      }
+    }
+
+    // Split name into firstname and lastname
+    const nameParts = name.trim().split(' ');
+    const firstname = nameParts[0] || '';
+    const lastname = nameParts.slice(1).join(' ') || '';
+
+    // Update user table
+    const userRole = role === 'Admin' ? 'admin' : 'member';
+    await db.execute(
+      'UPDATE user SET firstname = ?, lastname = ?, email = ?, role = ? WHERE userID = ?',
+      [firstname, lastname, email, userRole, targetUserID]
+    );
+
+    // Update or create userProfile
+    const [profileCheck] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [targetUserID]
+    );
+
+    if (profileCheck.length === 0) {
+      // Create profile if it doesn't exist
+      await db.execute(
+        `INSERT INTO userProfile 
+         (userID, location, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, recipes, posts, likes) 
+         VALUES (?, ?, '[]', '[]', true, true, true, 'en', 0, 0, 0)`,
+        [targetUserID, city || null]
+      );
+    } else {
+      // Update existing profile
+      await db.execute(
+        'UPDATE userProfile SET location = ? WHERE userID = ?',
+        [city || null, targetUserID]
+      );
+    }
+
+    console.log(`✅ Admin updated user: ${email} (ID: ${targetUserID})`);
+
+    // Get updated user stats
+    const [updatedUser] = await db.execute(
+      `SELECT 
+        u.userID, u.firstname, u.lastname, u.email, u.role,
+        up.location, up.recipes, up.posts
+      FROM user u
+      LEFT JOIN userProfile up ON u.userID = up.userID
+      WHERE u.userID = ?`,
+      [targetUserID]
+    );
+
+    const user = updatedUser[0];
+    const approvedCount = (user.recipes || 0) + (user.posts || 0);
+
+    // Return updated user in the format expected by frontend
+    const updatedUserData = {
+      id: user.userID,
+      name: `${user.firstname || ''} ${user.lastname || ''}`.trim(),
+      email: user.email,
+      city: user.location || "N/A",
+      role: user.role === 'admin' ? 'Admin' : 'User',
+      status: status || "Active",
+      suspendedOn: status === "Suspended" ? (suspendedOn || null) : null,
+      submissions: approvedCount,
+      approved: approvedCount,
+      lastLogin: "—"
+    };
+
+    return res.json({
+      success: true,
+      message: "User updated successfully",
+      user: updatedUserData
+    });
+
+  } catch (error) {
+    console.error("Admin user update error:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Failed to update user",
       error: error.message 
     });
   }
