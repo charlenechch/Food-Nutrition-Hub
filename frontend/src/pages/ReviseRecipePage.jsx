@@ -6,6 +6,8 @@ import { FaCamera, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa";
 import LS_KEY from "./UserProfilePage"; 
 import "../css/ReviseRecipePage.css"; // Import the CSS
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 // Helper to load users from localStorage (same shape as your profile page)
 function loadUsers() {
   try {
@@ -102,7 +104,7 @@ export default function ReviseRecipePage() {
     const fetchRecipeData = async () => {
       try {
         console.log("🔍 Fetching complete recipe data for ID:", id);
-        const response = await fetch(`/api/recipe/recipes/${id}`);
+        const response = await fetch(`${API_BASE_URL}api/recipe/recipes/${id}`);
         
         console.log("📡 Response status:", response.status);
         console.log("📡 Response ok:", response.ok);
