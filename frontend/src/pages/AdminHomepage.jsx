@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/AdminDashboard.css";
+
+// === Components ===
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import FoodDatabaseSection from "./AdminFoodDatabase.jsx";
+import RecipeDatabaseSection from "./AdminRecipeDatabase.jsx";
+import ContentModerationSection from "./AdminContentModeration.jsx";
+import UserManagement from "./AdminUserManagementTab";
+import Analytics from "./Analytics";
+import AdminSystemSettings from "./AdminSystemSettings.jsx";
 
 // === Icons ===
 import { FiDatabase } from "react-icons/fi";
@@ -12,15 +20,7 @@ import { FaRegFlag } from "react-icons/fa6";
 import { FaRegChartBar } from "react-icons/fa";
 import { CiSettings } from "react-icons/ci";
 
-// === Sections ===
-import FoodDatabaseSection from "./AdminFoodDatabase.jsx";
-import RecipeDatabaseSection from "./AdminRecipeDatabase.jsx";
-import ContentModerationSection from "./AdminContentModeration.jsx";
-import UserManagement from "./AdminUserManagementTab";
-import Analytics from "./Analytics";
-import AdminSystemSettings from "./AdminSystemSettings.jsx";
-
-// ✅ API endpoint
+// ✅ Backend API endpoint
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AdminDashboard = () => {
@@ -47,11 +47,37 @@ const AdminDashboard = () => {
     pendingApproval: 0,
     flaggedContent: 0,
   });
+
   const [foodData, setFoodData] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch food data
+  // ========================================================
+  // ✅ Fetch total food count directly from backend
+  // ========================================================
+  useEffect(() => {
+    const fetchTotalFoods = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/foods/count`);
+        const data = await response.json();
+
+        if (data.success) {
+          setSummary((prev) => ({ ...prev, totalFoods: data.total }));
+          console.log("✅ Total food count fetched:", data.total);
+        } else {
+          console.error("❌ Failed to fetch total foods:", data.error);
+        }
+      } catch (err) {
+        console.error("❌ Error fetching total foods:", err.message);
+      }
+    };
+
+    fetchTotalFoods();
+  }, []);
+
+  // ========================================================
+  // ✅ Fetch full food data (for table / database display)
+  // ========================================================
   useEffect(() => {
     const fetchFoods = async () => {
       try {
@@ -65,7 +91,9 @@ const AdminDashboard = () => {
     fetchFoods();
   }, []);
 
+  // ========================================================
   // ✅ Fetch recipe data
+  // ========================================================
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
@@ -81,22 +109,25 @@ const AdminDashboard = () => {
     fetchRecipes();
   }, []);
 
+  // ========================================================
   // ✅ Update summary dynamically
+  // ========================================================
   useEffect(() => {
     setSummary((prev) => ({
       ...prev,
-      totalFoods: foodData.length,
-      pendingApproval: recipes.filter(r => r.status === "Pending").length,
+      // totalFoods is already live-fetched from backend count
+      pendingApproval: recipes.filter((r) => r.status === "Pending").length,
     }));
-  }, [recipes, foodData]);
+  }, [recipes]);
 
+  // ========================================================
   // ✅ Derived datasets
-  const approvedRecipes = recipes.filter(r => r.status === "Approved");
+  // ========================================================
+  const approvedRecipes = recipes.filter((r) => r.status === "Approved");
   const pendingRecipes = recipes.filter(
-    r => r.status === "Pending" || r.status === "Rejected"
+    (r) => r.status === "Pending" || r.status === "Rejected"
   );
 
-  // ✅ Unified content moderation data (always updates with recipes)
   const [approvedContent, setApprovedContent] = useState([]);
   const [pendingContent, setPendingContent] = useState([]);
 
@@ -108,7 +139,6 @@ const AdminDashboard = () => {
   // ========================================================
   // 💾 OLD HARDCODED DATA (COMMENTED OUT for reference only)
   // ========================================================
-
   /*
   const summary = {
     totalFoods: 347,
@@ -141,7 +171,7 @@ const AdminDashboard = () => {
   */
 
   // ========================================================
-  // ✅ RENDER HANDLER
+  // ✅ Render content dynamically by activeTab
   // ========================================================
   const renderContent = () => {
     switch (activeTab) {
@@ -158,7 +188,7 @@ const AdminDashboard = () => {
               sectionType="approved"
             />
 
-            {/* === Approved Content (Unified with recipes) === */}
+            {/* === Approved Content === */}
             <ContentModerationSection
               pendingContent={approvedContent}
               onlyApproved={true}
@@ -199,76 +229,90 @@ const AdminDashboard = () => {
   };
 
   // ========================================================
-  // ✅ MAIN RENDER
+  // ✅ Main Render
   // ========================================================
   return (
-    <div>
-      <div className="admin-dashboard">
-        <Header />
-        <div className="dashboard-header">
-          <h1>Admin Dashboard</h1>
-          <p>Sarawakian Food Heritage Management System</p>
+    <div className="admin-dashboard">
+      <Header />
+      <div className="dashboard-header">
+        <h1>Admin Dashboard</h1>
+        <p>Sarawakian Food Heritage Management System</p>
+      </div>
+
+      {/* === Summary Cards === */}
+      <div className="summary-cards">
+        <div className="summary-card">
+          <div>
+            <h3>Total Food Database</h3>
+            <p>{summary.totalFoods}</p>
+          </div>
+          <div className="summary-icon"><FiDatabase /></div>
         </div>
 
-        {/* === Summary Cards === */}
-        <div className="summary-cards">
-          <div className="summary-card">
-            <div>
-              <h3>Total Food Database</h3>
-              <p>{summary.totalFoods}</p>
-            </div>
-            <div className="summary-icon"><FiDatabase /></div>
+        <div className="summary-card">
+          <div>
+            <h3>Total User Management</h3>
+            <p>{summary.totalUsers}</p>
           </div>
-
-          <div className="summary-card">
-            <div>
-              <h3>Total User Management</h3>
-              <p>{summary.totalUsers}</p>
-            </div>
-            <div className="summary-icon"><GoPeople /></div>
-          </div>
-
-          <div className="summary-card">
-            <div>
-              <h3>Pending Approval</h3>
-              <p>{summary.pendingApproval}</p>
-            </div>
-            <div className="summary-icon"><LuFileCheck /></div>
-          </div>
-
-          <div className="summary-card">
-            <div>
-              <h3>Flagged Content</h3>
-              <p>{summary.flaggedContent}</p>
-            </div>
-            <div className="summary-icon"><FaRegFlag /></div>
-          </div>
+          <div className="summary-icon"><GoPeople /></div>
         </div>
 
-        {/* === Tab Navigation === */}
-        <div className="dashboard-tabs">
-          <button className={activeTab === "food" ? "active" : ""} onClick={() => setActiveTab("food")}>
-            <FiDatabase /> Database
-          </button>
-          <button className={activeTab === "users" ? "active" : ""} onClick={() => setActiveTab("users")}>
-            <GoPeople /> User Management
-          </button>
-          <button className={activeTab === "moderation" ? "active" : ""} onClick={() => setActiveTab("moderation")}>
-            <LuFileCheck /> Content Moderation
-          </button>
-          <button className={activeTab === "analytics" ? "active" : ""} onClick={() => setActiveTab("analytics")}>
-            <FaRegChartBar /> Analytics
-          </button>
-          <button className={activeTab === "settings" ? "active" : ""} onClick={() => setActiveTab("settings")}>
-            <CiSettings /> System Settings
-          </button>
+        <div className="summary-card">
+          <div>
+            <h3>Pending Approval</h3>
+            <p>{summary.pendingApproval}</p>
+          </div>
+          <div className="summary-icon"><LuFileCheck /></div>
         </div>
 
-        {/* === Dashboard Content === */}
-        <div className="dashboard-content">
-          {loading ? <p>Loading data...</p> : renderContent()}
+        <div className="summary-card">
+          <div>
+            <h3>Flagged Content</h3>
+            <p>{summary.flaggedContent}</p>
+          </div>
+          <div className="summary-icon"><FaRegFlag /></div>
         </div>
       </div>
+
+      {/* === Tab Navigation === */}
+      <div className="dashboard-tabs">
+        <button
+          className={activeTab === "food" ? "active" : ""}
+          onClick={() => setActiveTab("food")}
+        >
+          <FiDatabase /> Database
+        </button>
+        <button
+          className={activeTab === "users" ? "active" : ""}
+          onClick={() => setActiveTab("users")}
+        >
+          <GoPeople /> User Management
+        </button>
+        <button
+          className={activeTab === "moderation" ? "active" : ""}
+          onClick={() => setActiveTab("moderation")}
+        >
+          <LuFileCheck /> Content Moderation
+        </button>
+        <button
+          className={activeTab === "analytics" ? "active" : ""}
+          onClick={() => setActiveTab("analytics")}
+        >
+          <FaRegChartBar /> Analytics
+        </button>
+        <button
+          className={activeTab === "settings" ? "active" : ""}
+          onClick={() => setActiveTab("settings")}
+        >
+          <CiSettings /> System Settings
+        </button>
+      </div>
+
+      {/* === Dashboard Content === */}
+      <div className="dashboard-content">
+        {loading ? <p>Loading data...</p> : renderContent()}
+      </div>
+
       <Footer />
     </div>
   );
