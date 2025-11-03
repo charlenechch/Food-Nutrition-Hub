@@ -102,14 +102,10 @@ export default function ReviseRecipePage() {
 
     const fetchRecipeData = async () => {
     try {
-      console.log("🔍 Fetching complete recipe data");
-      console.log("📌 URL ID from params:", id);
-      console.log("📌 Contribution ID from state:", contribution?.id);
-      console.log("📌 Item ID from state:", item?.id);
       const recipeId = id || contribution?.id || item?.id;
       console.log("🎯 Using recipe ID:", recipeId);
 
-      const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${id}`);
+      const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${recipeId}`);
       
       console.log("📡 Response status:", response.status);
       console.log("📡 Response ok:", response.ok);
@@ -266,10 +262,16 @@ export default function ReviseRecipePage() {
         throw new Error(`Failed to update recipe (${response.status}): ${errorText}`);
       }
 
-      const result = await response.json();
-      console.log('✅ Update successful:', result);
+     let result;
+      try {
+        result = await response.json();
+        console.log('✅ Update successful:', result);
+      } catch (parseError) {
+        console.error('❌ JSON parse error:', parseError);
+        throw new Error('Invalid response from server');
+      }
 
-      if (result.success || result.message) {
+      if (result.success || result.message || result.id) {
         // Also update localStorage if you're using it
         const nextUsers = { ...users };
         const list = nextUsers[ownerUsername].pending.map(p => {
