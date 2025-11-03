@@ -92,7 +92,7 @@ export default function ReviseCommunityPostPage() {
   try {
     console.log("🔍 DEBUG: Starting revision submission");
     console.log("🔍 DEBUG: Post ID:", id);
-    console.log("🔍 DEBUG: API URL:", `${API_BASE_URL}/api/reviseCommunityPost/${id}`);
+    console.log("🔍 DEBUG: API URL:", `${API_BASE_URL}/api/communityPost/${id}`);
     console.log("🔍 DEBUG: Form data to send:", {
       title: form.title.trim(),
       culturalOrigin: form.culturalOrigin,
@@ -134,9 +134,7 @@ export default function ReviseCommunityPostPage() {
       
       if (result.success) {
         setSuccess("Community post revised successfully! It has been resubmitted for admin review.");
-        setTimeout(() => {
-          navigate("/profile"); // Go back to profile page
-        }, 2000);
+        navigate("/profile"); // Go back to profile page
       } else {
         throw new Error(result.error || "Update failed");
       }

@@ -440,7 +440,7 @@ export default function FoodDiscussionPage() {
   useEffect(() => {
     if (foodId) {
       fetchComments();
-      //fetchFoodLikeStatus(); 
+      fetchFoodLikeStatus(); 
     }
   }, [foodId]);
 

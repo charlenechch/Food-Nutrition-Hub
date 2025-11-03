@@ -249,7 +249,7 @@ export default function ReviseRecipePage() {
       const ownerUsername = "currentUser";
 
       // Use your update endpoint instead of create endpoint
-      const response = await fetch(`${API_BASE_URL}/api/recipe/update/recipes/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/recipe/revise/recipes/${id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json" 
