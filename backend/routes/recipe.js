@@ -232,7 +232,8 @@ function createRecipeFromFlatObject(data) {
     ingredients: ingredients,
     instructions: instructions,
     funFact: getSafe(data, 'funFact') || '',
-    chefTips: getSafe(data, 'chefTips') || ''
+    chefTips: getSafe(data, 'chefTips') || '',
+    status: getSafe(data, 'status'),
   };
 }
 
@@ -264,7 +265,7 @@ router.get('/recipes/:id', async (req, res) => {
         r.status
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
-      WHERE f.foodID = ? AND r.status = 'Approved'
+      WHERE f.foodID = ? 
     `;
     
     const result = await db.query(query, [id]);
@@ -333,6 +334,7 @@ router.get('/recipes/:id', async (req, res) => {
     console.log('Final recipe data before transformation:', {
       id: recipeData.id,
       name: recipeData.name,
+      status: recipeData.status,
       typeOfId: typeof recipeData.id,
       typeOfName: typeof recipeData.name
     });
@@ -342,7 +344,8 @@ router.get('/recipes/:id', async (req, res) => {
     console.log('Sending transformed recipe:', { 
       id: recipe.id, 
       name: recipe.name,
-      origin: recipe.origin 
+      origin: recipe.origin,
+      status: recipe.status, 
     });
     
     res.json(recipe);

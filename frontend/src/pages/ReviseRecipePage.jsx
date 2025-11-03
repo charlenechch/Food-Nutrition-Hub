@@ -104,9 +104,16 @@ export default function ReviseRecipePage() {
         console.log("🔍 Fetching complete recipe data for ID:", id);
         const response = await fetch(`/api/recipe/recipes/${id}`);
         
+        console.log("📡 Response status:", response.status);
+        console.log("📡 Response ok:", response.ok);
+    
         // Check if response is HTML (error page) or JSON
         const contentType = response.headers.get('content-type');
+        console.log("📡 Content-Type:", contentType);
+
         if (!contentType || !contentType.includes('application/json')) {
+          const htmlText = await response.text();
+          console.error("❌ Server returned HTML instead of JSON. First 500 chars:", htmlText.substring(0, 500));
           throw new Error('Server returned HTML instead of JSON');
         }
         
