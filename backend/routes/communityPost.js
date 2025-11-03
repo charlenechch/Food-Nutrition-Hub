@@ -45,7 +45,21 @@ cloudinary.config({
 
 // Use memory storage for multer
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ 
+  dest: 'uploads/',
+  limits: {
+    fileSize: 10 * 1024 * 1024, 
+    files: 1
+  },
+  fileFilter: (req, file, cb) => {
+    // Check file type
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
 
 // ✅ Add database middleware to ensure req.db is available
 router.use((req, res, next) => {
@@ -782,16 +796,22 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
     if (req.file) {
       try {
         console.log('☁️ Uploading image to Cloudinary...');
+        console.log('📁 File details:', {
+          size: req.file.size,
+          mimetype: req.file.mimetype,
+          originalname: req.file.originalname
+        });
         
-        // Upload to Cloudinary
+        // Upload to Cloudinary with better error handling
         const cloudinaryResult = await cloudinary.uploader.upload(req.file.path, {
           folder: 'community-posts',
           resource_type: 'image',
           transformation: [
-            { width: 800, height: 600, crop: 'limit' },
-            { quality: 'auto' },
+            { width: 1200, height: 800, crop: 'limit' }, // Increased size limit
+            { quality: 'auto:good' }, 
             { format: 'jpg' }
-          ]
+          ],
+          timeout: 60000 // 60 second timeout
         });
 
         console.log('✅ Image uploaded to Cloudinary:', cloudinaryResult.secure_url);
@@ -806,16 +826,19 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
         if (req.file && fs.existsSync(req.file.path)) {
           fs.unlinkSync(req.file.path);
         }
-        // Continue without updating the image
         console.log('🔄 Continuing with existing image due to upload failure');
       }
-    } else if (req.body.image) {
+    } else if (req.body.image && req.body.image.trim() !== "") {
       // If image comes as base64 in body (fallback), try to upload it
       try {
         console.log('☁️ Uploading base64 image to Cloudinary...');
         const cloudinaryResult = await cloudinary.uploader.upload(req.body.image, {
           folder: 'community-posts',
-          resource_type: 'image'
+          resource_type: 'image',
+          transformation: [
+            { width: 1200, height: 800, crop: 'limit' },
+            { quality: 'auto:good' }
+          ]
         });
         finalImage = cloudinaryResult.secure_url;
         console.log('✅ Base64 image uploaded to Cloudinary');
@@ -829,7 +852,6 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
       ? "🖼️ Keeping existing image" 
       : "✅ Using new Cloudinary image URL");
 
-    // Update query with updated_at
     const updateQuery = `
       UPDATE posts 
       SET 
@@ -839,7 +861,7 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
         recipe = ?, 
         status = ?, 
         photos = ?,
-        updated_at = CURRENT_TIMESTAMP
+        updated_at = NOW()  -- Use NOW() instead of CURRENT_TIMESTAMP for consistency
       WHERE postID = ?
     `;
     
@@ -860,8 +882,13 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
       return res.status(404).json({ error: 'No changes made - post may not exist' });
     }
 
-    // Get updated post 
-    const [updatedPost] = await db.execute('SELECT * FROM posts WHERE postID = ?', [id]);
+    // Get updated post with formatted timestamp for response
+    const [updatedPost] = await db.execute(
+      'SELECT *, DATE_FORMAT(updated_at, "%Y-%m-%d %H:%i:%s") as updated_at FROM posts WHERE postID = ?', 
+      [id]
+    );
+    
+    console.log('🕒 Updated timestamp:', updatedPost[0]?.updated_at);
    
     res.json({ 
       success: true, 

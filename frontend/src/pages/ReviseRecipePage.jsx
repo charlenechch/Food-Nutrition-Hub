@@ -130,27 +130,27 @@ export default function ReviseRecipePage() {
       
       const completeRecipeData = await response.json();
       console.log("✅ Complete recipe data:", completeRecipeData);
-      
-      // Use API data if available
+
+      // ✅ Correct — unwrap payload
+      const p = completeRecipeData.payload || completeRecipeData;
+
+      // Now update your state properly
       setItem(prev => ({
         ...prev,
-        ...completeRecipeData,
-        feedback: prev?.feedback || completeRecipeData.feedback,
-        fieldsWithIssues: prev?.fieldsWithIssues || completeRecipeData.fieldsWithIssues
+        ...p,
+        feedback: prev?.feedback || p.feedback,
+        fieldsWithIssues: prev?.fieldsWithIssues || p.fieldsWithIssues
       }));
 
-      // FIX: Remove the .payload since backend sends flat object
-      const p = completeRecipeData; // Remove .payload since data is already flat
-      
       setForm(prev => ({
         ...prev,
-        name: p.name || p.title || "",
+        name: p.name || "",
         origin: p.origin || "",
         difficulty: p.difficulty || "Easy",
         prepTime: p.prepTime ?? "",
         cookTime: p.cookTime ?? "",
         servings: p.servings ?? "",
-        imageData: p.image || p.imageData || "", // Note: backend sends 'image' not 'imageData'
+        imageData: p.image || "",
         description: p.description || "",
         ingredients: p.ingredients || "",
         instructions: p.instructions || "",
@@ -161,7 +161,7 @@ export default function ReviseRecipePage() {
         category: p.category || "",
         status: p.status || "Pending"
       }));
-      
+   
     } catch (error) {
       console.error("❌ Error fetching from API, using state data:", error);
       // Fall back to state data

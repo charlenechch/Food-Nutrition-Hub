@@ -320,10 +320,7 @@ router.get('/recipes/:id', async (req, res) => {
       hasImage: !!recipe.image
     });
     
-    res.json({ 
-      success: true,
-      payload: recipe 
-    });
+    res.json(recipe);
     
   } catch (error) {
     console.error('Error fetching recipe:', error);
