@@ -101,80 +101,77 @@ export default function ReviseRecipePage() {
     };
 
     const fetchRecipeData = async () => {
-    try {
-      const recipeId = id || contribution?.id || item?.id;
-      console.log("🎯 Using recipe ID:", recipeId);
+      try {
+        const recipeId = id;
+        console.log("🎯 Using recipe ID from URL:", recipeId);
+        console.log("🔍 Available IDs:", { 
+          urlId: id, 
+          contributionId: contribution?.id, 
+          itemId: item?.id 
+        });
 
-      const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${recipeId}`);
-      
-      console.log("📡 Response status:", response.status);
-      console.log("📡 Response ok:", response.ok);
+        if (!recipeId) {
+          throw new Error("No recipe ID provided in URL");
+        }
 
-      // Check if response is HTML (error page) or JSON
-      const contentType = response.headers.get('content-type');
-      console.log("📡 Content-Type:", contentType);
+        const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${recipeId}`);
+        
+        console.log("📡 Response status:", response.status);
 
-      if (!contentType || !contentType.includes('application/json')) {
-        const htmlText = await response.text();
-        console.error("❌ Server returned HTML instead of JSON. First 500 chars:", htmlText.substring(0, 500));
-        throw new Error('Server returned HTML instead of JSON');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch recipe: ${response.status}`);
+        }
+
+        const recipeData = await response.json();
+        console.log("✅ Recipe data received:", {
+          id: recipeData.id,
+          name: recipeData.name,
+          origin: recipeData.origin
+        });
+
+        // ✅ FIX: Use the actual recipeData variable (not p)
+        setItem(prev => ({
+          ...prev,
+          ...recipeData, // Use recipeData, not p
+          id: recipeId
+        }));
+
+        setForm(prev => ({
+          ...prev,
+          name: recipeData.name || "",
+          origin: recipeData.origin || "",
+          difficulty: recipeData.difficulty || "Easy",
+          prepTime: recipeData.prepTime ?? "",
+          cookTime: recipeData.cookTime ?? "",
+          servings: recipeData.servings ?? "",
+          imageData: recipeData.image || "",
+          description: recipeData.description || "",
+          ingredients: recipeData.ingredients || "",
+          instructions: recipeData.instructions || "",
+          funFact: recipeData.funFact || recipeData.DidYouKnow || "",
+          chefTips: recipeData.chefTips || "",
+          dietaryTags: Array.isArray(recipeData.dietaryTags) ? recipeData.dietaryTags : [],
+          foodType: recipeData.foodType || "",
+          category: recipeData.category || "",
+          status: recipeData.status || "Pending"
+        }));
+
+        console.log("🧾 Form state after mapping:", {
+          name: recipeData.name,
+          imageData: recipeData.image,
+          description: recipeData.description,
+          ingredients: recipeData.ingredients,
+          instructions: recipeData.instructions
+        });
+
+      } catch (error) {
+        console.error("❌ Error fetching from API, using state data:", error);
+        // Fall back to state data
+        initializeForm();
+      } finally {
+        setIsLoading(false);
       }
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch recipe: ${response.status}`);
-      }
-      
-      const completeRecipeData = await response.json();
-      console.log("✅ Complete recipe data:", completeRecipeData);
-
-      const p = completeRecipeData.payload || completeRecipeData;
-      console.log("🧩 Unwrapped payload:", p);
-
-      // Now update your state properly
-      setItem(prev => ({
-        ...prev,
-        ...p,
-        // feedback: prev?.feedback || p.feedback,
-        // fieldsWithIssues: prev?.fieldsWithIssues || p.fieldsWithIssues
-      }));
-
-      setForm(prev => ({
-        ...prev,
-        name: p.name || "",
-        origin: p.origin || "",
-        difficulty: p.difficulty || "Easy",
-        prepTime: p.prepTime ?? "",
-        cookTime: p.cookTime ?? "",
-        servings: p.servings ?? "",
-        imageData: p.image || "",
-        description: p.description || "",
-        ingredients: p.ingredients || "",
-        instructions: p.instructions || "",
-        funFact: p.funFact || p.DidYouKnow || "",
-        chefTips: p.chefTips || "",
-        //dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
-        foodType: p.foodType || "",
-        category: p.category || "",
-        status: p.status || "Pending"
-      }));
-
-      console.log("🧾 Form state after mapping:", {
-      name: p.name,
-      imageData: p.image,
-      description: p.description,
-      ingredients: p.ingredients,
-      instructions: p.instructions
-    });
-
-   
-    } catch (error) {
-      console.error("❌ Error fetching from API, using state data:", error);
-      // Fall back to state data
-      initializeForm();
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
     if (contribution) {
       fetchRecipeData();
@@ -214,29 +211,25 @@ export default function ReviseRecipePage() {
     setIsSubmitting(true);
 
     try {
-      console.log('🚀 Starting recipe revision for ID:', item.id);
+      console.log('🚀 Starting recipe revision for ID:', id); // ✅ FIX: Use id
 
       // Build the data in the same format as your create endpoint
       const revisedData = {
         name: form.name,
         origin: form.origin,
         difficulty: form.difficulty,
-        prepTime: form.prepTime,
-        cookTime: form.cookTime,
-        servings: form.servings,
-        image: form.imageData, // This can be base64 or URL
+        prepTime: parseInt(form.prepTime) || 0, // ✅ Convert to number
+        cookTime: parseInt(form.cookTime) || 0, // ✅ Convert to number
+        servings: parseInt(form.servings) || 1, // ✅ Convert to number
+        image: form.imageData,
         description: form.description,
         foodType: form.foodType,
-        dietaryTags: [
-          ...form.dietaryTags,
-          ...(form.otherDietEnabled && form.otherDietText
-            ? form.otherDietText.split(",").map(s => s.trim()).filter(Boolean)
-            : []),
-        ],
+        dietaryTags: form.dietaryTags,
         ingredients: form.ingredients,
         instructions: form.instructions,
         funFact: form.funFact,
         chefTips: form.chefTips,
+        status: "Pending"
       };
 
       console.log('📤 Sending update request with data:', revisedData);
@@ -244,7 +237,6 @@ export default function ReviseRecipePage() {
       const users = loadUsers();
       const ownerUsername = "currentUser";
 
-      // Use your update endpoint instead of create endpoint
       const response = await fetch(`${API_BASE_URL}/api/recipe/revise/recipes/${id}`, {
         method: "PUT",
         headers: { 
@@ -262,7 +254,7 @@ export default function ReviseRecipePage() {
         throw new Error(`Failed to update recipe (${response.status}): ${errorText}`);
       }
 
-     let result;
+      let result;
       try {
         result = await response.json();
         console.log('✅ Update successful:', result);
@@ -275,11 +267,11 @@ export default function ReviseRecipePage() {
         // Also update localStorage if you're using it
         const nextUsers = { ...users };
         const list = nextUsers[ownerUsername].pending.map(p => {
-          if (String(p.id) !== String(item.id)) return p;
+          if (String(p.id) !== String(id)) return p; // ✅ FIX: Use id
           return {
             ...p,
-            status: "Pending", // Reset to pending for re-review
-            feedback: "", // Clear old feedback
+            status: "Pending",
+            feedback: "",
             fieldsWithIssues: [],
             payload: revisedData,
             resubmittedDate: new Date().toISOString(),
@@ -289,7 +281,7 @@ export default function ReviseRecipePage() {
         saveUsers(nextUsers);
 
         alert("Recipe revised successfully! It will be reviewed again.");
-        navigate(-1); // Go back to profile
+        navigate(-1);
       } else {
         throw new Error(result.error || "Update failed");
       }
