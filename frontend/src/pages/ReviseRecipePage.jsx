@@ -104,17 +104,16 @@ export default function ReviseRecipePage() {
     const fetchRecipeData = async () => {
       try {
         console.log("🔍 Fetching complete recipe data");
+        console.log("📌 URL ID from params:", id);
+        console.log("📌 Contribution ID from state:", contribution?.id);
+        console.log("📌 Item ID from state:", item?.id);
         const recipeId = id || contribution?.id || item?.id;
         console.log("🎯 Using recipe ID:", recipeId);
 
-        if (!recipeId) {
-          console.warn("⚠️ No recipe ID available — skipping fetch.");
-          setIsLoading(false);
-          return;
-        }
-
         const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${recipeId}`);
-        console.log("📡 Response status:", response.status, "OK:", response.ok);
+        
+        console.log("📡 Response status:", response.status);
+        console.log("📡 Response ok:", response.ok);
     
         // Check if response is HTML (error page) or JSON
         const contentType = response.headers.get('content-type');
@@ -130,15 +129,9 @@ export default function ReviseRecipePage() {
           throw new Error(`Failed to fetch recipe: ${response.status}`);
         }
         
-        let completeRecipeData;
-        try {
-          completeRecipeData = await response.json();
-        } catch (parseError) {
-          console.error("❌ Failed to parse JSON:", parseError);
-          throw new Error("Invalid JSON from API");
-        }
-
+        const completeRecipeData = await response.json();
         console.log("✅ Complete recipe data:", completeRecipeData);
+        
         // Use API data if available
         setItem(prev => ({
           ...prev,

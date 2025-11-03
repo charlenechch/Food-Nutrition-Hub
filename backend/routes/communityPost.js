@@ -5,6 +5,7 @@ const multer = require('multer');
 // const path = require('path');
 // const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
+const fs = require('fs');
 
 // ✅ NEW: Validation and sanitization imports
 const Joi = require("joi");
@@ -745,9 +746,8 @@ router.get("/user/:userId", async (req, res) => {
   }
 });
 
-
 // ✅ UPDATE community post
-router.put("/revise/:id", async (req, res) => {
+router.put("/revise/:id", upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -755,7 +755,7 @@ router.put("/revise/:id", async (req, res) => {
       return res.status(400).json({ error: 'Request body is missing or invalid' });
     }
 
-    const { title, culturalOrigin, content, recipe, status, image } = req.body;
+    const { title, culturalOrigin, content, recipe, status } = req.body;
 
     console.log(`📝 Updating community post ${id}:`, { 
       title, 
@@ -763,7 +763,7 @@ router.put("/revise/:id", async (req, res) => {
       contentLength: content ? content.length : 0,
       recipeLength: recipe ? recipe.length : 0,
       status,
-      hasImage: !!image
+      hasImage: !!req.file
     });
 
     // Check if post exists
@@ -776,11 +776,58 @@ router.put("/revise/:id", async (req, res) => {
     const current = existingPost[0];
     console.log('📋 Current post data:', current);
 
-    // 🖼️ Keep old image if no new one uploaded
-    let finalImage = (image && image.trim() !== "") ? image : current.photos;
+    let finalImage = current.photos; // Default to existing image
+
+    // 🖼️ Handle image upload to Cloudinary if new image provided
+    if (req.file) {
+      try {
+        console.log('☁️ Uploading image to Cloudinary...');
+        
+        // Upload to Cloudinary
+        const cloudinaryResult = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'community-posts',
+          resource_type: 'image',
+          transformation: [
+            { width: 800, height: 600, crop: 'limit' },
+            { quality: 'auto' },
+            { format: 'jpg' }
+          ]
+        });
+
+        console.log('✅ Image uploaded to Cloudinary:', cloudinaryResult.secure_url);
+        finalImage = cloudinaryResult.secure_url; // Store Cloudinary URL instead of base64
+
+        // Delete the temporary file
+        fs.unlinkSync(req.file.path);
+        
+      } catch (uploadError) {
+        console.error('❌ Cloudinary upload failed:', uploadError);
+        // Delete temporary file if upload fails
+        if (req.file && fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        // Continue without updating the image
+        console.log('🔄 Continuing with existing image due to upload failure');
+      }
+    } else if (req.body.image) {
+      // If image comes as base64 in body (fallback), try to upload it
+      try {
+        console.log('☁️ Uploading base64 image to Cloudinary...');
+        const cloudinaryResult = await cloudinary.uploader.upload(req.body.image, {
+          folder: 'community-posts',
+          resource_type: 'image'
+        });
+        finalImage = cloudinaryResult.secure_url;
+        console.log('✅ Base64 image uploaded to Cloudinary');
+      } catch (base64Error) {
+        console.error('❌ Base64 image upload failed:', base64Error);
+        // Keep existing image if upload fails
+      }
+    }
+
     console.log(finalImage === current.photos 
       ? "🖼️ Keeping existing image" 
-      : "✅ Using new uploaded image");
+      : "✅ Using new Cloudinary image URL");
 
     const updateQuery = `
       UPDATE posts 
@@ -801,7 +848,7 @@ router.put("/revise/:id", async (req, res) => {
       content || current.culturalStory,
       recipe || current.recipe,
       status || current.status || 'Pending',
-      finalImage || current.photos || '',
+      finalImage || '', // This will now be a short URL string
       id
     ]);
 
@@ -821,6 +868,11 @@ router.put("/revise/:id", async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error updating community post:', error);
+
+    // Clean up temporary file if it exists
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
 
     let errorMessage = 'Failed to update community post';
     if (error.code === 'ER_NO_SUCH_TABLE') {
