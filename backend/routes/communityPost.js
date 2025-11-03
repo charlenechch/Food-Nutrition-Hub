@@ -3,7 +3,6 @@ const router = express.Router();
 const db = require("../config/db");
 const multer = require('multer');
 // const path = require('path');
-// const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 
@@ -45,14 +44,13 @@ cloudinary.config({
 
 // Use memory storage for multer
 const storage = multer.memoryStorage();
-const upload = multer({ 
-  dest: 'uploads/',
+const upload = multer({
+  storage: multer.memoryStorage(),  // Use memory storage
   limits: {
     fileSize: 10 * 1024 * 1024, 
-    files: 1
+    files: 5  // Change to 5
   },
   fileFilter: (req, file, cb) => {
-    // Check file type
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
@@ -761,7 +759,7 @@ router.get("/user/:userId", async (req, res) => {
 });
 
 // ✅ UPDATE community post
-router.put("/revise/:id", upload.single('image'), async (req, res) => {
+router.put("/revise/:id", upload.array('images', 5), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -777,7 +775,7 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
       contentLength: content ? content.length : 0,
       recipeLength: recipe ? recipe.length : 0,
       status,
-      hasImage: !!req.file
+      imageCount: req.files ? req.files.length : 0
     });
 
     // Check if post exists 
@@ -790,69 +788,63 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
     const current = existingPost[0];
     console.log('📋 Current post data:', current);
 
-    let finalImage = current.photos; // Default to existing image
+    let finalImages = current.photos; // Default to existing images
 
-    // 🖼️ Handle image upload to Cloudinary if new image provided
-    if (req.file) {
+    // 🖼️ Handle multiple image uploads to Cloudinary - UPDATED FOR MULTIPLE FILES
+    if (req.files && req.files.length > 0) {
       try {
-        console.log('☁️ Uploading image to Cloudinary...');
-        console.log('📁 File details:', {
-          size: req.file.size,
-          mimetype: req.file.mimetype,
-          originalname: req.file.originalname
-        });
+        console.log(`☁️ Uploading ${req.files.length} images to Cloudinary...`);
         
-        // Upload to Cloudinary with better error handling
-        const cloudinaryResult = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'community-posts',
-          resource_type: 'image',
-          use_filename: true,
-          unique_filename: true,
-          overwrite: true,
-          chunk_size: 6000000, // 6MB chunks for large files
-          timeout: 120000,     // 2-minute timeout
-          transformation: [
-            { width: 1600, height: 1600, crop: 'limit' }, // Larger safe limit
-            { quality: "auto" }
-          ]
-        });
+        const imageUrls = [];
+        
+        for (const file of req.files) {
+          console.log('📁 Processing file:', {
+            originalname: file.originalname,
+            size: file.size,
+            mimetype: file.mimetype
+          });
+          
+          const cloudinaryResult = await cloudinary.uploader.upload(
+            `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+            {
+              folder: 'community-posts',
+              resource_type: 'image',
+              use_filename: true,
+              unique_filename: true,
+              overwrite: true,
+              transformation: [
+                { width: 1600, height: 1600, crop: 'limit' },
+                { quality: "auto" }
+              ]
+            }
+          );
 
-        console.log('✅ Image uploaded to Cloudinary:', cloudinaryResult.secure_url);
-        finalImage = cloudinaryResult.secure_url; // Store Cloudinary URL instead of base64
+          console.log('✅ Image uploaded to Cloudinary:', cloudinaryResult.secure_url);
+          imageUrls.push(cloudinaryResult.secure_url);
+        }
 
-        // Delete the temporary file
-        fs.unlinkSync(req.file.path);
+        // Join multiple image URLs with comma (same as your POST route)
+        finalImages = imageUrls.join(',');
         
       } catch (uploadError) {
         console.error('❌ Cloudinary upload failed:', uploadError);
-        // Delete temporary file if upload fails
-        if (req.file && fs.existsSync(req.file.path)) {
-          console.log('🔄 Continuing with existing image due to upload failure');
-        }  
+        // If upload fails, keep existing images
       }
-    } else if (req.body.image && req.body.image.trim() !== "") {
-      // If image comes as base64 in body (fallback), try to upload it
+    } else if (req.body.images && req.body.images.trim() !== "") {
+      // If images come as base64 in body (fallback)
       try {
-        console.log('☁️ Uploading base64 image to Cloudinary...');
-        const cloudinaryResult = await cloudinary.uploader.upload(req.body.image, {
-          folder: 'community-posts',
-          resource_type: 'image',
-          transformation: [
-            { width: 1200, height: 800, crop: 'limit' },
-            { quality: 'auto:good' }
-          ]
-        });
-        finalImage = cloudinaryResult.secure_url;
-        console.log('✅ Base64 image uploaded to Cloudinary');
+        console.log('☁️ Processing base64 images...');
+        // Handle base64 images if needed
+        finalImages = req.body.images; // Or process them similarly
+        console.log('✅ Using provided base64 images');
       } catch (base64Error) {
-        console.error('❌ Base64 image upload failed:', base64Error);
-        // Keep existing image if upload fails
+        console.error('❌ Base64 images processing failed:', base64Error);
       }
     }
 
-    console.log(finalImage === current.photos 
-      ? "🖼️ Keeping existing image" 
-      : "✅ Using new Cloudinary image URL");
+    console.log(finalImages === current.photos 
+      ? "🖼️ Keeping existing images" 
+      : `✅ Using ${req.files ? req.files.length : 'new'} images`);
 
     const updateQuery = `
       UPDATE posts 
@@ -874,7 +866,7 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
       content || current.culturalStory,
       recipe || current.recipe,
       status || current.status || 'Pending',
-      finalImage || '', 
+      finalImages || '', 
       id
     ]);
 
@@ -891,7 +883,6 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
       [id]
     );
 
-    
     console.log('🕒 Updated timestamp:', updatedPost[0]?.created_at);
    
     res.json({ 
@@ -902,11 +893,6 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error updating community post:', error);
-
-    // Clean up temporary file if it exists
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
 
     let errorMessage = 'Failed to update community post';
     if (error.code === 'ER_NO_SUCH_TABLE') {

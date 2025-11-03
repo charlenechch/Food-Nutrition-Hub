@@ -638,6 +638,113 @@ router.post('/create/recipes', async (req, res) => {
   }
 });
 
+// ✅ GET recipes by user ID
+router.get("/user/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    console.log(`📖 Fetching recipes for user ID: ${userId}`);
+
+    // Validate user ID
+    if (!userId || isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid user ID is required'
+      });
+    }
+
+    // Check if user exists
+    const [userCheck] = await db.execute(
+      'SELECT userID FROM user WHERE userID = ?',
+      [userId]
+    );
+
+    if (userCheck.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Get userProfileID first
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userId]
+    );
+
+    if (profileResult.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No user profile found',
+        data: []
+      });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+
+    // Get recipes/posts by this user
+    const [recipes] = await db.execute(
+      `SELECT 
+        p.postID,
+        p.foodName,
+        p.origin AS culturalOrigin,
+        p.status,
+        p.culturalStory,
+        p.photos,
+        p.recipe,
+        p.created_at,
+        p.updated_at,
+        up.userProfileID,
+        CONCAT(u.firstname, ' ', u.lastname) AS author,
+        u.userID
+      FROM posts p
+      JOIN userProfile up ON p.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      WHERE up.userProfileID = ?
+      ORDER BY p.created_at DESC`,
+      [userProfileID]
+    );
+
+    console.log(`✅ Found ${recipes.length} recipes for user ${userId}`);
+
+    // Format the response data
+    const formattedRecipes = recipes.map(recipe => ({
+      postId: recipe.postID,
+      foodName: recipe.foodName,
+      culturalOrigin: recipe.culturalOrigin,
+      status: recipe.status?.toLowerCase() || 'pending',
+      culturalStory: recipe.culturalStory,
+      images: recipe.photos ? recipe.photos.split(',').filter(url => url.trim() !== '') : [],
+      recipe: recipe.recipe,
+      author: recipe.author,
+      userId: recipe.userID,
+      userProfileID: recipe.userProfileID,
+      createdAt: recipe.created_at,
+      updatedAt: recipe.updated_at
+    }));
+
+    res.status(200).json({
+      success: true,
+      message: `Found ${formattedRecipes.length} recipes`,
+      data: formattedRecipes,
+      userInfo: {
+        userId: parseInt(userId),
+        author: recipes.length > 0 ? recipes[0].author : 'Unknown',
+        totalRecipes: formattedRecipes.length
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching user recipes:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch user recipes',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // PUT update recipe
 router.put('/revise/recipes/:id', async (req, res) => {
   console.log('🔧 START: Recipe update endpoint called');
