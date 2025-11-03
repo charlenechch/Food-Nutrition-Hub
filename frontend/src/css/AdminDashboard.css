@@ -1789,3 +1789,89 @@
   outline: none;
 }
 
+/* Loading and Error States for User Management */
+.umg-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  min-height: 400px;
+}
+
+.umg-loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e8dccf;
+  border-top: 4px solid #916848;
+  border-radius: 50%;
+  animation: umg-spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes umg-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.umg-loading-text {
+  font-size: 16px;
+  color: #7a6b5a;
+  font-weight: 500;
+}
+
+.umg-error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  min-height: 400px;
+  background: #fff5f5;
+  border: 2px solid #feb2b2;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.umg-error-icon {
+  font-size: 48px;
+  color: #f56565;
+  margin-bottom: 16px;
+}
+
+.umg-error-title {
+  font-size: 20px;
+  color: #742a2a;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.umg-error-message {
+  font-size: 14px;
+  color: #9b2c2c;
+  margin-bottom: 24px;
+  text-align: center;
+  max-width: 500px;
+}
+
+.umg-error-retry-btn {
+  background: #916848;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.umg-error-retry-btn:hover {
+  background: #7a5838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(145, 104, 72, 0.3);
+}
+
+.umg-error-retry-btn:active {
+  transform: translateY(0);
+}
