@@ -73,7 +73,7 @@ export default function ReviseRecipePage() {
         console.log("📝 Using state contribution:", contribution);
         setItem(contribution);
         
-        const { payload: p = completeRecipeData } = completeRecipeData;
+        const p = contribution.payload || contribution;
         const initialForm = {
           name: p.name || p.title || "",
           origin: p.origin || "",

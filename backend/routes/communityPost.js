@@ -767,7 +767,7 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
     });
 
     // Check if post exists
-    const [existingPost] = await db.execute('SELECT * FROM posts WHERE postID = ?', [id]);
+    const [existingPost] = await db.execute('SELECT *, DATE_FORMAT(created_at, "%Y-%m-%d %H:%i:%s") as created_at FROM posts WHERE postID = ?', [id]);
     
     if (existingPost.length === 0) {
       return res.status(404).json({ error: 'Community post not found' });
@@ -848,7 +848,7 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
       content || current.culturalStory,
       recipe || current.recipe,
       status || current.status || 'Pending',
-      finalImage || '', // This will now be a short URL string
+      finalImage || '', 
       id
     ]);
 
@@ -858,7 +858,8 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
       return res.status(404).json({ error: 'No changes made - post may not exist' });
     }
 
-    const [updatedPost] = await db.execute('SELECT * FROM posts WHERE postID = ?', [id]);
+    // Get updated post with formatted created_at
+    const [updatedPost] = await db.execute('SELECT *, DATE_FORMAT(created_at, "%Y-%m-%d %H:%i:%s") as created_at FROM posts WHERE postID = ?', [id]);
     
     res.json({ 
       success: true, 
