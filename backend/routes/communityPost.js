@@ -806,12 +806,15 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
         const cloudinaryResult = await cloudinary.uploader.upload(req.file.path, {
           folder: 'community-posts',
           resource_type: 'image',
+          use_filename: true,
+          unique_filename: true,
+          overwrite: true,
+          chunk_size: 6000000, // 6MB chunks for large files
+          timeout: 120000,     // 2-minute timeout
           transformation: [
-            { width: 1200, height: 800, crop: 'limit' }, // Increased size limit
-            { quality: 'auto:good' }, 
-            { format: 'jpg' }
-          ],
-          timeout: 60000 // 60 second timeout
+            { width: 1600, height: 1600, crop: 'limit' }, // Larger safe limit
+            { quality: "auto" }
+          ]
         });
 
         console.log('✅ Image uploaded to Cloudinary:', cloudinaryResult.secure_url);
@@ -824,9 +827,8 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
         console.error('❌ Cloudinary upload failed:', uploadError);
         // Delete temporary file if upload fails
         if (req.file && fs.existsSync(req.file.path)) {
-          fs.unlinkSync(req.file.path);
-        }
-        console.log('🔄 Continuing with existing image due to upload failure');
+          console.log('🔄 Continuing with existing image due to upload failure');
+        }  
       }
     } else if (req.body.image && req.body.image.trim() !== "") {
       // If image comes as base64 in body (fallback), try to upload it
@@ -861,7 +863,7 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
         recipe = ?, 
         status = ?, 
         photos = ?,
-        updated_at = NOW()  -- Use NOW() instead of CURRENT_TIMESTAMP for consistency
+        updated_at = NOW()  
       WHERE postID = ?
     `;
     
@@ -884,9 +886,11 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
 
     // Get updated post with formatted timestamp for response
     const [updatedPost] = await db.execute(
-      'SELECT *, DATE_FORMAT(updated_at, "%Y-%m-%d %H:%i:%s") as updated_at FROM posts WHERE postID = ?', 
+      `SELECT *, DATE_FORMAT(CONVERT_TZ(updated_at, '+00:00', '+08:00'), '%Y-%m-%d %H:%i:%s') AS updated_at 
+      FROM posts WHERE postID = ?`,
       [id]
     );
+
     
     console.log('🕒 Updated timestamp:', updatedPost[0]?.updated_at);
    

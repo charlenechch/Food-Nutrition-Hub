@@ -131,15 +131,15 @@ export default function ReviseRecipePage() {
       const completeRecipeData = await response.json();
       console.log("✅ Complete recipe data:", completeRecipeData);
 
-      // ✅ Correct — unwrap payload
       const p = completeRecipeData.payload || completeRecipeData;
+      console.log("🧩 Unwrapped payload:", p);
 
       // Now update your state properly
       setItem(prev => ({
         ...prev,
         ...p,
-        feedback: prev?.feedback || p.feedback,
-        fieldsWithIssues: prev?.fieldsWithIssues || p.fieldsWithIssues
+        // feedback: prev?.feedback || p.feedback,
+        // fieldsWithIssues: prev?.fieldsWithIssues || p.fieldsWithIssues
       }));
 
       setForm(prev => ({
@@ -154,13 +154,22 @@ export default function ReviseRecipePage() {
         description: p.description || "",
         ingredients: p.ingredients || "",
         instructions: p.instructions || "",
-        funFact: p.funFact || "",
+        funFact: p.funFact || p.DidYouKnow || "",
         chefTips: p.chefTips || "",
-        dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
-        foodType: p.foodType || "Poultry",
+        //dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
+        foodType: p.foodType || "",
         category: p.category || "",
         status: p.status || "Pending"
       }));
+
+      console.log("🧾 Form state after mapping:", {
+      name: p.name,
+      imageData: p.image,
+      description: p.description,
+      ingredients: p.ingredients,
+      instructions: p.instructions
+    });
+
    
     } catch (error) {
       console.error("❌ Error fetching from API, using state data:", error);
