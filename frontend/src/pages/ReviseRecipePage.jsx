@@ -100,73 +100,76 @@ export default function ReviseRecipePage() {
       }
     };
 
-    // Try to fetch from API first, fall back to state data
     const fetchRecipeData = async () => {
-      try {
-        console.log("🔍 Fetching complete recipe data");
-        console.log("📌 URL ID from params:", id);
-        console.log("📌 Contribution ID from state:", contribution?.id);
-        console.log("📌 Item ID from state:", item?.id);
-        const recipeId = id || contribution?.id || item?.id;
-        console.log("🎯 Using recipe ID:", recipeId);
+    try {
+      console.log("🔍 Fetching complete recipe data");
+      console.log("📌 URL ID from params:", id);
+      console.log("📌 Contribution ID from state:", contribution?.id);
+      console.log("📌 Item ID from state:", item?.id);
+      const recipeId = id || contribution?.id || item?.id;
+      console.log("🎯 Using recipe ID:", recipeId);
 
-        const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${id}`);
-        
-        console.log("📡 Response status:", response.status);
-        console.log("📡 Response ok:", response.ok);
-    
-        // Check if response is HTML (error page) or JSON
-        const contentType = response.headers.get('content-type');
-        console.log("📡 Content-Type:", contentType);
+      const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${id}`);
+      
+      console.log("📡 Response status:", response.status);
+      console.log("📡 Response ok:", response.ok);
 
-        if (!contentType || !contentType.includes('application/json')) {
-          const htmlText = await response.text();
-          console.error("❌ Server returned HTML instead of JSON. First 500 chars:", htmlText.substring(0, 500));
-          throw new Error('Server returned HTML instead of JSON');
-        }
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch recipe: ${response.status}`);
-        }
-        
-        const completeRecipeData = await response.json();
-        console.log("✅ Complete recipe data:", completeRecipeData);
-        
-        // Use API data if available
-        setItem(prev => ({
-          ...prev,
-          ...completeRecipeData,
-          feedback: prev?.feedback || completeRecipeData.feedback,
-          fieldsWithIssues: prev?.fieldsWithIssues || completeRecipeData.fieldsWithIssues
-        }));
+      // Check if response is HTML (error page) or JSON
+      const contentType = response.headers.get('content-type');
+      console.log("📡 Content-Type:", contentType);
 
-        const p = completeRecipeData.payload || completeRecipeData;
-        setForm(prev => ({
-          ...prev,
-          name: p.name || p.title || "",
-          origin: p.origin || "",
-          difficulty: p.difficulty || "Easy",
-          prepTime: p.prepTime ?? "",
-          cookTime: p.cookTime ?? "",
-          servings: p.servings ?? "",
-          imageData: p.imageData || p.image || "",
-          description: p.description || "",
-          ingredients: p.ingredients || "",
-          instructions: p.instructions || p.steps || "",
-          funFact: p.funFact || p.DidYouKnow || "",
-          chefTips: p.chefTips || "",
-          dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
-          foodType: p.foodType || "Poultry",
-        }));
-        
-      } catch (error) {
-        console.error("❌ Error fetching from API, using state data:", error);
-        // Fall back to state data
-        initializeForm();
-      } finally {
-        setIsLoading(false);
+      if (!contentType || !contentType.includes('application/json')) {
+        const htmlText = await response.text();
+        console.error("❌ Server returned HTML instead of JSON. First 500 chars:", htmlText.substring(0, 500));
+        throw new Error('Server returned HTML instead of JSON');
       }
-    };
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch recipe: ${response.status}`);
+      }
+      
+      const completeRecipeData = await response.json();
+      console.log("✅ Complete recipe data:", completeRecipeData);
+      
+      // Use API data if available
+      setItem(prev => ({
+        ...prev,
+        ...completeRecipeData,
+        feedback: prev?.feedback || completeRecipeData.feedback,
+        fieldsWithIssues: prev?.fieldsWithIssues || completeRecipeData.fieldsWithIssues
+      }));
+
+      // FIX: Remove the .payload since backend sends flat object
+      const p = completeRecipeData; // Remove .payload since data is already flat
+      
+      setForm(prev => ({
+        ...prev,
+        name: p.name || p.title || "",
+        origin: p.origin || "",
+        difficulty: p.difficulty || "Easy",
+        prepTime: p.prepTime ?? "",
+        cookTime: p.cookTime ?? "",
+        servings: p.servings ?? "",
+        imageData: p.image || p.imageData || "", // Note: backend sends 'image' not 'imageData'
+        description: p.description || "",
+        ingredients: p.ingredients || "",
+        instructions: p.instructions || "",
+        funFact: p.funFact || "",
+        chefTips: p.chefTips || "",
+        dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
+        foodType: p.foodType || "Poultry",
+        category: p.category || "",
+        status: p.status || "Pending"
+      }));
+      
+    } catch (error) {
+      console.error("❌ Error fetching from API, using state data:", error);
+      // Fall back to state data
+      initializeForm();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
     if (contribution) {
       fetchRecipeData();
