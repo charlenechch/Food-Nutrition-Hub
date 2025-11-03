@@ -224,7 +224,7 @@ export default function ReviseRecipePage() {
         image: form.imageData,
         description: form.description,
         foodType: form.foodType,
-        dietaryTags: form.dietaryTags,
+        //dietaryTags: form.dietaryTags,
         ingredients: form.ingredients,
         instructions: form.instructions,
         funFact: form.funFact,
@@ -264,34 +264,45 @@ export default function ReviseRecipePage() {
       }
 
       if (result.success || result.message || result.id) {
-        // Also update localStorage if you're using it
-        const nextUsers = { ...users };
-        const list = nextUsers[ownerUsername].pending.map(p => {
-          if (String(p.id) !== String(id)) return p; // ✅ FIX: Use id
-          return {
-            ...p,
-            status: "Pending",
-            feedback: "",
-            fieldsWithIssues: [],
-            payload: revisedData,
-            resubmittedDate: new Date().toISOString(),
-          };
-        });
-        nextUsers[ownerUsername] = { ...nextUsers[ownerUsername], pending: list };
-        saveUsers(nextUsers);
-
-        alert("Recipe revised successfully! It will be reviewed again.");
-        navigate(-1);
-      } else {
-        throw new Error(result.error || "Update failed");
+      // Only update localStorage if user exists and has pending array
+      try {
+        const users = loadUsers();
+        const ownerUsername = "currentUser";
+        
+        if (users[ownerUsername] && Array.isArray(users[ownerUsername].pending)) {
+          const list = users[ownerUsername].pending.map(p => {
+            if (String(p.id) !== String(id)) return p;
+            return {
+              ...p,
+              status: "Pending",
+              feedback: "",
+              fieldsWithIssues: [],
+              payload: revisedData,
+              resubmittedDate: new Date().toISOString(),
+            };
+          });
+          nextUsers[ownerUsername] = { ...nextUsers[ownerUsername], pending: list };
+          saveUsers(nextUsers);
+          console.log('✅ localStorage updated successfully');
+        } else {
+          console.log('⚠️ User or pending array not found in localStorage, skipping update');
+        }
+      } catch (localStorageError) {
+        console.warn('⚠️ localStorage update failed:', localStorageError);
       }
-    } catch (error) {
-      console.error("❌ Update error:", error);
-      alert(error.message || "Failed to update recipe. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+
+      alert("Recipe revised successfully! It will be reviewed again.");
+      navigate(-1);
+    } else {
+      throw new Error(result.error || "Update failed");
     }
-  };
+  } catch (error) {
+    console.error("❌ Update error:", error);
+    alert(error.message || "Failed to update recipe. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const fieldLabels = {
     name: "Recipe Name",

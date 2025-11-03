@@ -122,9 +122,8 @@ const isCommunity = (c) => {
 };
 
 const isRecipe = (c) => {
-  const type = (c?.type || "").toLowerCase();
-  return ["recipe", "food", "dish"].includes(type);
-};
+    return c && c.foodName !== undefined;
+  };
 
 const byDateDesc = (a, b) => {
   const dateA = new Date(a?.submittedDate || a?.created_at || 0);
@@ -273,6 +272,11 @@ const savePrefs = async () => {
 
   const ContributionRow = ({ c }) => {
   const navigate = useNavigate(); 
+
+  console.log("🔍 ContributionRow data:", c);
+  console.log("🔍 Date fields - createdAt:", c.createdAt, "submittedDate:", c.submittedDate);
+  console.log("🔍 Image fields - images:", c.images, "image:", c.image);
+  console.log("🔍 All fields:", Object.keys(c));
   
   const handleRevise = () => {
     navigate(`/revise/${c.id}`, {
@@ -290,20 +294,30 @@ const savePrefs = async () => {
     return (
       <div className="upp-row-card" key={`${c.type}-${c.id}`}>
         <div className="upp-row-thumb">
-          {c.image ? <img src={c.image} alt={c.title} /> : <div className="upp-noimg" />}
-        </div>
-        <div className="upp-row-body">
-          <div className="upp-row-top">
-            <h4 className="upp-food-title upp-row-title">{c.title}</h4>
-            <span className={`upp-chip ${getStatusClass(c.status)}`}>
-              {fmtStatus(c.status)}
-            </span>
+          {c.images && c.images.length > 0 ? (
+              <img src={c.images[0]} alt={c.foodName} />
+            ) : c.image ? (
+              <img src={c.image} alt={c.foodName} />
+            ) : (
+              <div className="upp-noimg" />
+            )}
           </div>
+          <div className="upp-row-body">
+            <div className="upp-row-top">
+              <h4 className="upp-food-title upp-row-title">{c.foodName}</h4>
+              <span className={`upp-chip ${getStatusClass(c.status)}`}>
+                {fmtStatus(c.status)}
+              </span>
+            </div>
 
           <div className="upp-row-meta">
             <div className="upp-muted">
-              {(c.type || "Food")} • Submitted on {formatContributionDate(c.submittedDate)}
-            </div>
+              {c.culturalOrigin} • Submitted on{" "}
+                {/* Debug which date field exists */}
+                {c.createdAt ? formatContributionDate(c.createdAt) : 
+                c.submittedDate ? formatContributionDate(c.submittedDate) : 
+                'Date not available'}
+              </div>
 
             {(c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected") && (
               <button 
@@ -1001,7 +1015,11 @@ const savePrefs = async () => {
               <>
                 {(() => {
                   const recipeData = Array.isArray(recipeContributions) 
-                    ? recipeContributions.filter(isRecipe).sort(byDateDesc)  // ✅ Use state directly
+                    ? recipeContributions.filter(item => {
+                        const result = isRecipe(item);
+                        console.log("🔍 Filtering - ID:", item?.id, "foodName:", item?.foodName, "isRecipe:", result);
+                        return result;
+                      }).sort(byDateDesc)
                     : [];
 
                   const communityData = Array.isArray(communityPosts)
@@ -1015,15 +1033,19 @@ const savePrefs = async () => {
 
                   return (
                     <div className="upp-stack">
-                      {/* Recipes Section (REAL) */}
+                      {/* Recipes Section */}
                       <div className="upp-card">
                         <h3 className="upp-card-title">Recipes ({recipeData.length})</h3>
-                        {recipeContributions.length ? (
+                        {isLoadingRecipes ? (
+                          <div className="upp-muted">Loading recipes...</div>
+                        ) : recipeData.length ? (
                           <div className="upp-stack">
                             {recipeData.map((c) => <ContributionRow key={`recipe-${c.id}`} c={c} />)}
                           </div>
                         ) : (
-                          <div className="upp-muted">No recipe contributions yet</div>
+                          <div className="upp-muted">
+                            {recipeContributions?.length > 0 ? `${recipeContributions.length} recipes found but not displaying` : 'No recipe contributions yet'}
+                          </div>
                         )}
                       </div>
 
