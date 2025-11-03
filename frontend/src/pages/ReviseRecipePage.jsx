@@ -102,7 +102,7 @@ export default function ReviseRecipePage() {
     const fetchRecipeData = async () => {
       try {
         console.log("🔍 Fetching complete recipe data for ID:", id);
-        const response = await fetch(`/api/recipe/${id}`);
+        const response = await fetch(`/api/recipe/recipes/${id}`);
         
         // Check if response is HTML (error page) or JSON
         const contentType = response.headers.get('content-type');
