@@ -6,6 +6,8 @@ import { FaCamera, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa";
 import LS_KEY from "./UserProfilePage"; 
 import "../css/ReviseRecipePage.css"; // Import the CSS
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 // Helper to load users from localStorage (same shape as your profile page)
 function loadUsers() {
   try {
@@ -101,12 +103,22 @@ export default function ReviseRecipePage() {
     // Try to fetch from API first, fall back to state data
     const fetchRecipeData = async () => {
       try {
-        console.log("🔍 Fetching complete recipe data for ID:", id);
-        const response = await fetch(`/api/recipe/${id}`);
-        
+        console.log("🔍 Fetching complete recipe data");
+        console.log("📌 URL ID from params:", id);
+        console.log("📌 Contribution ID from state:", contribution?.id);
+        console.log("📌 Item ID from state:", item?.id);
+        const recipeId = id || contribution?.id || item?.id;
+        console.log("🎯 Using recipe ID:", recipeId);
+
+        const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${id}`);
+       
         // Check if response is HTML (error page) or JSON
         const contentType = response.headers.get('content-type');
+        console.log("📡 Content-Type:", contentType);
+
         if (!contentType || !contentType.includes('application/json')) {
+          const htmlText = await response.text();
+          console.error("❌ Server returned HTML instead of JSON. First 500 chars:", htmlText.substring(0, 500));
           throw new Error('Server returned HTML instead of JSON');
         }
         
@@ -222,7 +234,7 @@ export default function ReviseRecipePage() {
       const ownerUsername = "currentUser";
 
       // Use your update endpoint instead of create endpoint
-      const response = await fetch(`/api/recipe/update/recipes/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/recipe/update/recipes/${id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json" 
