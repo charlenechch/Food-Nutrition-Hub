@@ -271,8 +271,7 @@ router.get('/recipes/:id', async (req, res) => {
         r.steps AS instructions, 
         r.DidYouKnow AS funFact, 
         r.chefTips,
-        r.status,
-        r.submittedDate
+        r.status
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
       WHERE f.foodID = ? AND r.status = 'Approved'
@@ -309,8 +308,7 @@ router.get('/recipes/:id', async (req, res) => {
       instructions: row.instructions || '',
       funFact: row.funFact || '',
       chefTips: row.chefTips || '',
-      status: row.status || 'Unknown',
-      submittedDate: row.submittedDate || null
+      status: row.status || 'Unknown'
     };
     
     console.log('Sending transformed recipe:', { 
