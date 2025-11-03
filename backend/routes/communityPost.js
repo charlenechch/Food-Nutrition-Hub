@@ -886,13 +886,13 @@ router.put("/revise/:id", upload.single('image'), async (req, res) => {
 
     // Get updated post with formatted timestamp for response
     const [updatedPost] = await db.execute(
-      `SELECT *, DATE_FORMAT(CONVERT_TZ(updated_at, '+00:00', '+08:00'), '%Y-%m-%d %H:%i:%s') AS created_at 
+      `SELECT *, DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', '+08:00'), '%Y-%m-%d %H:%i:%s') AS created_at 
       FROM posts WHERE postID = ?`,
       [id]
     );
 
     
-    console.log('🕒 Updated timestamp:', updatedPost[0]?.updated_at);
+    console.log('🕒 Updated timestamp:', updatedPost[0]?.created_at);
    
     res.json({ 
       success: true, 
