@@ -2,21 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import {
-  FaArrowLeft,
-  FaUser,
-  FaCalendarAlt,
-  FaFileAlt,
-  FaCheck,
-  FaTimes,
-} from "react-icons/fa";
+import { FaArrowLeft, FaUser, FaCalendarAlt, FaFileAlt, FaCheck, FaTimes } from "react-icons/fa";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const ReviewContentPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
 
@@ -52,51 +44,9 @@ const ReviewContentPage = () => {
     if (id) fetchSubmission();
   }, [id]);
 
-  // ====== Handle Loading / Error States ======
   if (loading) return <p className="text-center mt-20">Loading content...</p>;
   if (error) return <p className="text-center mt-20">Error: {error}</p>;
   if (!submission) return <p className="text-center mt-20">Content not found.</p>;
-
-  // ====== Handle Approve/Reject Action ======
-  const handleStatusUpdate = async () => {
-    const newStatus =
-      modalType === "approve" ? "Approved" : modalType === "reject" ? "Rejected" : "Pending";
-    const feedback =
-      document.querySelector(".admin-feedback-input")?.value.trim() ||
-      "No feedback provided.";
-
-    try {
-      // ✅ Debug log before sending
-      console.log("📤 Sending update:", { id, status: newStatus, feedback });
-
-      const res = await fetch(`${API_URL}/api/recipe/updateStatus/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ status: newStatus, feedback }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error("❌ Backend returned error:", data);
-        throw new Error(data.message || data.error || "Failed to update status");
-      }
-
-      console.log("✅ Update successful:", data);
-      setShowModal(false);
-      alert(
-        `${
-          newStatus === "Approved" ? "✅ Approved" : "❌ Rejected"
-        }\n\nAdmin Feedback:\n${feedback}`
-      );
-
-      navigate(-1);
-    } catch (err) {
-      console.error("Failed to update status:", err);
-      alert(`Error: ${err.message}`);
-    }
-  };
 
   return (
     <div className="review-content-page">
@@ -167,11 +117,7 @@ const ReviewContentPage = () => {
               <p>
                 <FaCalendarAlt /> Submission Date
               </p>
-              <strong>
-                {submission.date
-                  ? new Date(submission.date).toLocaleDateString()
-                  : "Invalid Date"}
-              </strong>
+              <strong>{new Date(submission.date).toLocaleDateString()}</strong>
             </div>
 
             <div className="review-info">
@@ -255,8 +201,8 @@ const ReviewContentPage = () => {
             <h3>Warning</h3>
             <p>
               Are you sure you want to{" "}
-              <strong>{modalType === "approve" ? "approve" : "reject"}</strong> this
-              recipe submission?
+              <strong>{modalType === "approve" ? "approve" : "reject"}</strong> this recipe
+              submission?
               <br />
               This action cannot be undone.
             </p>
@@ -268,7 +214,37 @@ const ReviewContentPage = () => {
 
               <button
                 className={modalType === "approve" ? "approve-btn" : "delete-btn"}
-                onClick={handleStatusUpdate}
+                onClick={async () => {
+                  const newStatus = modalType === "approve" ? "Approved" : "Rejected";
+                  const feedback =
+                    document.querySelector(".admin-feedback-input")?.value.trim() ||
+                    "No feedback provided.";
+
+                  try {
+                    const res = await fetch(`${API_URL}/api/recipe/updateStatus/${id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      credentials: "include",
+                      body: JSON.stringify({ status: newStatus, feedback }),
+                    });
+
+                    if (!res.ok) {
+                      const errData = await res.json();
+                      throw new Error(errData.message || "Failed to update status");
+                    }
+
+                    setShowModal(false);
+                    alert(
+                      `${
+                        newStatus === "Approved" ? "✅ Approved" : "❌ Rejected"
+                      }\n\nAdmin Feedback:\n${feedback}`
+                    );
+                    navigate(-1);
+                  } catch (err) {
+                    console.error("Failed to update status:", err);
+                    alert(`Error: ${err.message}`);
+                  }
+                }}
               >
                 {modalType === "approve" ? "Approve" : "Reject"}
               </button>

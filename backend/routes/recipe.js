@@ -257,6 +257,89 @@ return {
 }
 
 // GET single recipe by ID 
+router.get('/recipes/:id', async (req, res) => {
+try {
+  const { id } = req.params;
+  console.log('Fetching recipe with ID:', id);
+  
+  const query = `
+    SELECT 
+      f.foodID AS id,
+      f.name, 
+      f.origin, 
+      f.difficulty, 
+      f.prepTime, 
+      f.image, 
+      f.description, 
+      f.foodType,
+      f.category,
+      f.dietaryTags,
+      r.cookTime, 
+      r.servings, 
+      r.ingredients, 
+      r.steps AS instructions, 
+      r.DidYouKnow AS funFact, 
+      r.chefTips,
+      r.status
+    FROM food f
+    LEFT JOIN recipe r ON f.foodID = r.foodID
+    WHERE f.foodID = ? 
+  `;
+  
+  console.log('🔍 SQL Query:', query);
+  console.log('🔍 Query parameter (id):', id);
+  
+  const [rows] = await db.query(query, [id]);
+  console.log('✅ SQL rows found:', rows.length);
+  
+  if (!rows || rows.length === 0) {
+    return res.status(404).json({ error: 'Recipe not found' });
+  }
+  
+  const row = rows[0];
+  console.log('✅ Raw row data received:', row);
+  
+  const recipe = {
+    id: row.id,
+    name: row.name || '',
+    origin: row.origin || '',
+    difficulty: row.difficulty || 'Easy',
+    prepTime: row.prepTime || 0,
+    cookTime: row.cookTime || 0,
+    servings: row.servings || 0,
+    image: row.image || '',
+    description: row.description || '',
+    foodType: row.foodType || row.category || 'Other',
+    dietaryTags: row.dietaryTags
+      ? (typeof row.dietaryTags === 'string'
+          ? row.dietaryTags.split(',').map(tag => tag.trim()).filter(tag => tag)
+          : [])
+      : [],
+    ingredients: row.ingredients || '',
+    instructions: row.instructions || '',
+    funFact: row.funFact || '',
+    chefTips: row.chefTips || '',
+    status: row.status || 'Unknown'
+  };
+  
+  console.log('Sending transformed recipe:', {
+    id: recipe.id, 
+    name: recipe.name,
+    origin: recipe.origin,
+    foodType: recipe.foodType,
+    status: recipe.status,
+    hasImage: !!recipe.image
+  });
+  
+  res.json(recipe);
+  
+} catch (error) {
+  console.error('Error fetching recipe:', error);
+  res.status(500).json({ error: error.message });
+}
+});
+
+// GET single recipe by ID 
 // router.get('/recipes/:id', async (req, res) => {
 //   try {
 //     const { id } = req.params;
@@ -975,67 +1058,32 @@ try {
 
 
 // ✅ ADMIN: Update recipe approval status (Approve / Reject)
-router.patch("/updateStatus/:id", async (req, res) => {
-  const recipeId = req.params.id;
-  const { status, feedback } = req.body; // ✅ Accept both status and feedback
+router.patch('/updateStatus/:id', async (req, res) => {
+const recipeId = req.params.id;
+const { status } = req.body; // Expected: "Approved", "Rejected", or "Pending"
 
-  // ✅ Normalize and validate status (case-insensitive)
-  const normalizedStatus =
-    typeof status === "string" ? status.trim().toLowerCase() : "";
-  const validStatuses = ["approved", "rejected", "pending"];
+const validStatuses = ["Approved", "Rejected", "Pending"];
+if (!validStatuses.includes(status)) {
+  return res.status(400).json({ success: false, message: "Invalid status value." });
+}
 
-  if (!validStatuses.includes(normalizedStatus)) {
-    return res.status(400).json({
-      success: false,
-      message: `Invalid status value: "${status}". Must be Approved, Rejected, or Pending.`,
-    });
+try {
+  const [result] = await db.query(
+    "UPDATE recipe SET status = ? WHERE foodID = ?",
+    [status, recipeId]
+  );
+
+  if (result.affectedRows === 0) {
+    return res.status(404).json({ success: false, message: "Recipe not found." });
   }
 
-  // Capitalize first letter for consistent DB format
-  const finalStatus =
-    normalizedStatus.charAt(0).toUpperCase() + normalizedStatus.slice(1);
+  console.log(`✅ Recipe ${recipeId} status updated to ${status}`);
+  res.json({ success: true, message: `Recipe marked as ${status}.` });
 
-  try {
-    console.log("📥 Incoming status update:", {
-      recipeId,
-      finalStatus,
-      feedback: feedback || "(none)",
-    });
-
-    // ✅ Ensure adminFeedback column exists in the recipe table
-    const sql = `
-      UPDATE recipe
-      SET status = ?, adminFeedback = ?
-      WHERE recipeID = ? OR foodID = ?;
-    `;
-
-    const [result] = await db.query(sql, [
-      finalStatus,
-      feedback || null,
-      recipeId,
-      recipeId,
-    ]);
-
-    if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Recipe not found." });
-    }
-
-    console.log(`✅ Recipe (${recipeId}) updated to ${finalStatus}`);
-    res.json({
-      success: true,
-      message: `Recipe marked as ${finalStatus}.`,
-    });
-  } catch (error) {
-    console.error("❌ Error updating recipe status:", error);
-    res.status(500).json({
-      success: false,
-      message: "Database update failed.",
-      error: error.message,
-    });
-  }
+} catch (error) {
+  console.error("❌ Error updating recipe status:", error);
+  res.status(500).json({ success: false, message: "Database update failed." });
+}
 });
-
 
 module.exports = router;
