@@ -58,7 +58,7 @@ router.post("/", async (req, res) => {
   try {
     // ✅ Step 3: Query user
     // FIXED: changed from db.query → db.pool.query to match your db.js exports
-    const [users] = await db.pool.query(
+    const [users] = await db.query(
       "SELECT * FROM user WHERE email = ? LIMIT 1",
       [email]
     );
