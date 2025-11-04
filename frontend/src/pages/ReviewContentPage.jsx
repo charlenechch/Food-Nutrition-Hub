@@ -11,10 +11,12 @@ const ReviewContentPage = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
+
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ✅ Fetch recipe submission
   useEffect(() => {
     const fetchSubmission = async () => {
       try {
@@ -96,6 +98,7 @@ const ReviewContentPage = () => {
 
       <div className="review-container">
         <div className="review-layout">
+          {/* ===== Left Sidebar ===== */}
           <div className="review-left-sidebar">
             <h3>
               <FaFileAlt /> Submission Details
@@ -123,6 +126,7 @@ const ReviewContentPage = () => {
             </div>
           </div>
 
+          {/* ===== Main Section ===== */}
           <div className="review-main">
             <div className="review-section uploaded-image-card">
               <h3>
@@ -190,14 +194,15 @@ const ReviewContentPage = () => {
         </div>
       </div>
 
+      {/* ===== Modal Confirmation ===== */}
       {showModal && (
         <div className="confirm-overlay">
           <div className="confirm-modal">
             <h3>Warning</h3>
             <p>
               Are you sure you want to{" "}
-              <strong>{modalType === "approve" ? "approve" : "reject"}</strong>{" "}
-              this recipe submission?
+              <strong>{modalType === "approve" ? "approve" : "reject"}</strong> this recipe
+              submission?
               <br />
               This action cannot be undone.
             </p>
@@ -209,17 +214,36 @@ const ReviewContentPage = () => {
 
               <button
                 className={modalType === "approve" ? "approve-btn" : "delete-btn"}
-                onClick={() => {
+                onClick={async () => {
+                  const newStatus = modalType === "approve" ? "Approved" : "Rejected";
                   const feedback =
                     document.querySelector(".admin-feedback-input")?.value.trim() ||
                     "No feedback provided.";
-                  setShowModal(false);
-                  alert(
-                    `${
-                      modalType === "approve" ? "✅ Approved" : "❌ Rejected"
-                    }\n\nAdmin Feedback:\n${feedback}`
-                  );
-                  navigate(-1);
+
+                  try {
+                    const res = await fetch(`${API_URL}/api/recipe/updateStatus/${id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      credentials: "include",
+                      body: JSON.stringify({ status: newStatus, feedback }),
+                    });
+
+                    if (!res.ok) {
+                      const errData = await res.json();
+                      throw new Error(errData.message || "Failed to update status");
+                    }
+
+                    setShowModal(false);
+                    alert(
+                      `${
+                        newStatus === "Approved" ? "✅ Approved" : "❌ Rejected"
+                      }\n\nAdmin Feedback:\n${feedback}`
+                    );
+                    navigate(-1);
+                  } catch (err) {
+                    console.error("Failed to update status:", err);
+                    alert(`Error: ${err.message}`);
+                  }
                 }}
               >
                 {modalType === "approve" ? "Approve" : "Reject"}
