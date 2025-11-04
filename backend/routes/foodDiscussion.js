@@ -889,11 +889,10 @@ router.get('/food/:foodId/like-status', async (req, res) => {
 
     // Get food like data from discussion table
     const [discussionResult] = await db.query(
-      `SELECT likes_count, liked_by 
+      `SELECT discussion_id, content, created_At, user_id 
        FROM discussion 
        WHERE foodID = ? 
-       ORDER BY created_At DESC 
-       LIMIT 1`,
+       ORDER BY created_At DESC`,
       [foodId]
     );
 
@@ -938,26 +937,68 @@ router.get('/food/:foodId/like-status', async (req, res) => {
 });
 
 // ✅ Toggle food like
-  router.get('/food/:foodId/like-status', async (req, res) => {
+router.get('/food/:foodId/like-status', async (req, res) => {
   try {
     const { foodId } = req.params;
 
+    // Get likes count from FOOD table
     const [foodResult] = await db.query(
-      `SELECT likes_count FROM food WHERE foodID = ?`,
+      `SELECT likes_count, liked_by FROM food WHERE foodID = ?`,
       [foodId]
     );
 
-    const likesCount = foodResult.length > 0 ? (foodResult[0].likes_count || 0) : 0;
+    let likesCount = 0;
+    let isLiked = false;
+
+    if (foodResult.length > 0) {
+      const food = foodResult[0];
+      likesCount = food.likes_count || 0;
+      
+      // Check if user is logged in
+      if (req.session && req.session.user) {
+        const userID = req.session.user.userID;
+        const [profileResult] = await db.query(
+          'SELECT userProfileID FROM userProfile WHERE userID = ?',
+          [userID]
+        );
+
+        if (profileResult.length > 0) {
+          const userProfileID = Number(profileResult[0].userProfileID);
+          
+          // Parse liked_by array
+          const likedBy = food.liked_by;
+          if (likedBy) {
+            try {
+              let likedByArray = [];
+              if (Array.isArray(likedBy)) {
+                likedByArray = likedBy;
+              } else if (typeof likedBy === 'string') {
+                likedByArray = JSON.parse(likedBy);
+              }
+              
+              // Convert to numbers and check if user exists
+              likedByArray = likedByArray.map(id => Number(id)).filter(id => !isNaN(id));
+              isLiked = likedByArray.includes(userProfileID);
+            } catch (error) {
+              console.error('Error parsing liked_by:', error);
+            }
+          }
+        }
+      }
+    }
 
     res.json({
       success: true,
-      data: { likesCount }
+      data: {
+        isLiked,
+        likesCount
+      }
     });
-    } catch (error) {
-      console.error('❌ like-status error:', error);
-      res.json({ success: true, data: { likesCount: 0 } });
-    }
-  });
+  } catch (error) {
+    console.error('❌ like-status error:', error);
+    res.json({ success: true, data: { isLiked: false, likesCount: 0 } });
+  }
+});
 
   // ✅ Toggle food like (POST route)
 router.post('/food/:foodId/toggle-like', async (req, res) => {
@@ -1063,6 +1104,39 @@ router.post('/food/:foodId/toggle-like', async (req, res) => {
   } catch (error) {
     console.error('❌ BACKEND toggle-like - Error:', error);
     res.status(500).json({ success: false, message: 'Failed to toggle like' });
+  }
+});
+
+// ✅ get user id
+router.get('/get-user-profile', async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    
+    // Same logic as your reply route
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User profile not found' 
+      });
+    }
+    
+    res.json({
+      success: true,
+      userProfileID: profileResult[0].userProfileID
+    });
+    
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

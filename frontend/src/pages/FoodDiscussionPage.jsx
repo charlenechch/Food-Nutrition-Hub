@@ -111,11 +111,7 @@ const Comment = React.memo(function Comment({
   
   // Enhanced user ID extraction 
   const commentUserId = item.userProfileID || item.userID || item.authorID || item.user_id;
-  
-  // Check if current user is the owner of this comment/reply
   const isOwner = currentUserId && commentUserId && currentUserId.toString() === commentUserId.toString();
-  
-  // Admin can delete any comment/reply
   const canDelete = isOwner || isAdmin;
 
   console.log('🟢 Comment data:', {
@@ -265,9 +261,29 @@ export default function FoodDiscussionPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const [userProfileID, setUserProfileID] = useState(null);
+
+  // to get userProfileID from userID
+  const getUserProfileID = async () => {
+    try {
+      const res = await fetch(`${API}/api/foodDiscussion/get-user-profile`, {
+        credentials: "include",
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          return data.userProfileID;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching userProfileID:', error);
+    }
+    return null;
+  };
 
   const isGuest = !user || user.role === "guest";
-  const userProfileID = isGuest ? null : user?.userProfileID || user?.userID || user?.id || user?.profileID;
+  const actualUserID = userProfileID;
   
   // Check if user is admin
   const isAdmin = user?.role === "admin";
@@ -289,6 +305,15 @@ export default function FoodDiscussionPage() {
     onConfirm: null,
     isAdminAction: false // Track if this is an admin action
   });
+
+  useEffect(() => {
+    if (user?.userID && !userProfileID) {
+      getUserProfileID().then(profileID => {
+        setUserProfileID(profileID);
+        console.log('🟢 Fetched userProfileID:', profileID);
+      });
+    }
+  }, [user?.userID, userProfileID]);
 
   // UPDATED: Delete confirmation function
   const showDeleteConfirmation = (type, commentId, replyId = null, isAdminAction = false) => {
@@ -1014,7 +1039,7 @@ const postReply = async (discussionId) => {
                     onDeleteReply={handleDeleteReply}
                     isGuest={isGuest}
                     setShowLoginPrompt={setShowLoginPrompt}
-                    currentUserId={userProfileID}
+                    currentUserId={actualUserID}
                     isAdmin={isAdmin} // ✅ PASS ADMIN PROP
                   />
                   {i < comments.length - 1 && <hr className="fd-divider" />}
