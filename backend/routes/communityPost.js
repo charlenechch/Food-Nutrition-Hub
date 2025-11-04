@@ -3,8 +3,8 @@ const router = express.Router();
 const db = require("../config/db");
 const multer = require('multer');
 // const path = require('path');
-// const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
+const fs = require('fs');
 
 // ✅ NEW: Validation and sanitization imports
 const Joi = require("joi");
@@ -44,11 +44,36 @@ cloudinary.config({
 
 // Use memory storage for multer
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: multer.memoryStorage(),  // Use memory storage
+  limits: {
+    fileSize: 10 * 1024 * 1024, 
+    files: 5  // Change to 5
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
 
 // ✅ Add database middleware to ensure req.db is available
 router.use((req, res, next) => {
   req.db = db;
+  next();
+});
+
+router.use((req, res, next) => {
+  console.log('🔐 Session Check:', {
+    hasSession: !!req.session,
+    hasUser: !!req.session?.user,
+    user: req.session?.user,
+    sessionID: req.sessionID,
+    path: req.path,
+    method: req.method
+  });
   next();
 });
 
@@ -211,53 +236,141 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// POST route to create a new comment
+// POST route to create a new comment 
 router.post('/comments', async (req, res) => {
-  try {
-    const { content, postId } = req.body;
+  console.log('=== COMMENT CREATION STARTED ===');
+  console.log('📦 Request body:', req.body);
+  console.log('🔐 Session user:', req.session?.user);
 
-    // ✅ Get userProfileID from session + database
-    if (!req.session || !req.session.user) {
-      return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    // ✅ Enhanced session validation
+    if (!req.session || !req.session.user || !req.session.user.userID) {
+      console.log('❌ No valid session user found');
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Not authenticated - please log in again' 
+      });
     }
     
     const userID = req.session.user.userID;
-    const [profileResult] = await db.execute(
-      'SELECT userProfileID FROM userProfile WHERE userID = ?',
-      [userID]
-    );
-    
-    if (profileResult.length === 0) {
-      return res.status(400).json({ error: 'User profile not found' });
+    const userRole = req.session.user.role;
+
+    console.log('✅ Processing comment for:', { userID, userRole });
+
+    // ✅ Get userProfileID
+    let userProfileID;
+    try {
+      const [profileResult] = await db.execute(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+      );
+      
+      console.log('🔍 Profile query result:', profileResult);
+      
+      if (profileResult.length === 0) {
+        console.log('🆕 Creating userProfile for user:', userID);
+        
+        // Create userProfile if it doesn't exist
+        const [createResult] = await db.execute(
+          `INSERT INTO userProfile 
+           (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
+           VALUES (?, '[]', '[]', true, true, true, 'en')`,
+          [userID]
+        );
+        
+        userProfileID = createResult.insertId;
+        console.log('✅ Created new userProfile with ID:', userProfileID);
+      } else {
+        userProfileID = profileResult[0].userProfileID;
+        console.log('✅ Found userProfileID:', userProfileID);
+      }
+    } catch (dbError) {
+      console.error('❌ Database error fetching userProfile:', dbError);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Server error accessing user profile' 
+      });
     }
-    
-    const userProfileID = profileResult[0].userProfileID;
 
-    // ✅ Validate and sanitize
-    const { error, value } = commentSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
-    if (error)
-      return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
-    const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
-    Object.assign(req.body, cleanData);
+    if (!userProfileID) {
+      return res.status(500).json({ 
+        success: false,
+        message: 'Failed to get user profile ID' 
+      });
+    }
 
-    console.log('📝 Creating new comment:', { content, postId, userProfileID });
+    const { content, postId } = req.body;
 
-    // Insert comment into database
+    // ✅ Enhanced validation
+    if (!content || !postId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: content and postId are required'
+      });
+    }
+
+    if (content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Comment content cannot be empty'
+      });
+    }
+
+    console.log('✅ Validated input:', { 
+      postId, 
+      userProfileID, 
+      contentLength: content.length,
+      userRole 
+    });
+
+    // ✅ Validate post exists
+    try {
+      const [postCheck] = await db.execute(
+        'SELECT postID FROM posts WHERE postID = ? AND status = "Approved"',
+        [postId]
+      );
+
+      if (postCheck.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Post not found or not approved'
+        });
+      }
+    } catch (postError) {
+      console.error('❌ Error checking post:', postError);
+      return res.status(500).json({
+        success: false,
+        message: 'Error validating post'
+      });
+    }
+
+    // ✅ Sanitize content (no Joi validation to avoid complexity)
+    const cleanContent = sanitizeInput(content.trim());
+
+    console.log('📝 Creating new comment:', { 
+      content: cleanContent, 
+      postId, 
+      userProfileID 
+    });
+
+    // ✅ Insert comment into database
     const insertQuery = `
       INSERT INTO comments (comment, postID, userProfileID, created_at) 
       VALUES (?, ?, ?, NOW())
     `;
     
-    const [result] = await db.execute(insertQuery, [content, postId, userProfileID]);
+    const [result] = await db.execute(insertQuery, [cleanContent, postId, userProfileID]);
     console.log('✅ Comment inserted with ID:', result.insertId);
 
+    // ✅ Retrieve the created comment with user info
     const commentQuery = `
       SELECT 
         c.commentID,
         c.comment AS text,
         c.created_at,
         up.userProfileID,
-        CONCAT(u.firstname, ' ', u.lastname) AS author
+        CONCAT(u.firstname, ' ', u.lastname) AS author,
+        u.role
       FROM comments c
       JOIN userProfile up ON c.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
@@ -265,29 +378,41 @@ router.post('/comments', async (req, res) => {
     `;
 
     const [comments] = await db.execute(commentQuery, [result.insertId]);
-    if (comments.length === 0) throw new Error('Failed to retrieve created comment');
+    
+    if (comments.length === 0) {
+      throw new Error('Failed to retrieve created comment');
+    }
 
     const newComment = comments[0];
+
     const formattedComment = {
       id: newComment.commentID,
       text: newComment.text,
       author: newComment.author,
       daysAgo: getTimeAgo(newComment.created_at),
-      userProfileID: newComment.userProfileID
+      userProfileID: newComment.userProfileID,
+      isAdmin: newComment.role === 'admin'
     };
+
+    console.log('✅ Comment created successfully:', {
+      commentId: formattedComment.id,
+      author: formattedComment.author
+    });
 
     res.status(201).json({
       success: true,
-      comment: formattedComment,
-      message: 'Comment posted successfully'
+      message: 'Comment posted successfully',
+      comment: formattedComment
     });
 
   } catch (error) {
     console.error('❌ Error posting comment:', error);
+    console.error('❌ Error stack:', error.stack);
+    
     res.status(500).json({
       success: false,
       message: 'Error posting comment',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 });
@@ -342,8 +467,11 @@ router.delete('/comments/:commentId', async (req, res) => {
     const { isAdmin } = req.body;
 
     // ✅ Get userProfileID from session + database
-    if (!req.session || !req.session.user) {
-      return res.status(401).json({ error: 'Not authenticated' });
+    if (!req.session || !req.session.user || !req.session.user.userID) {
+      return res.status(401).json({ 
+        success: false,
+        message: 'Not authenticated' 
+      });
     }
     
     const userID = req.session.user.userID;
@@ -428,36 +556,67 @@ router.delete('/comments/:commentId', async (req, res) => {
 router.post('/create', upload.array('images', 5), async (req, res) => {
   console.log('=== STARTING POST CREATION ===');
   console.log('📦 Request body:', req.body);
-  console.log('📁 Uploaded files:', req.files ? req.files.map(f => f.filename) : 'No files');
+  console.log('📁 Uploaded files:', req.files ? req.files.map(f => f.originalname) : 'No files');
+  console.log('🔐 Session user:', req.session?.user);
   
   try {
-    const { foodName, culturalOrigin, culturalStory, recipe} = req.body;
-
-    // ✅ Get userProfileID from session + database
-    if (!req.session || !req.session.user) {
-      return res.status(401).json({ error: 'Not authenticated' });
+    // ✅ Enhanced session validation
+    if (!req.session || !req.session.user || !req.session.user.userID) {
+      console.log('❌ No valid session or userID');
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Not authenticated. Please log in again.' 
+      });
     }
     
     const userID = req.session.user.userID;
-    const [profileResult] = await db.execute(
-      'SELECT userProfileID FROM userProfile WHERE userID = ?',
-      [userID]
-    );
-    
-    if (profileResult.length === 0) {
-      return res.status(400).json({ error: 'User profile not found' });
-    }
-    
-    const userProfileID = profileResult[0].userProfileID;
+    console.log('👤 User ID from session:', userID);
 
-    // ✅ Validate and sanitize
-    const { error, value } = postSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
-    if (error)
-      return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
-    const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
-    Object.assign(req.body, cleanData);
-    
-    console.log('✅ All required fields present');
+    // ✅ Get userProfileID with better error handling
+    let userProfileID;
+    try {
+      const [profileResult] = await db.execute(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+      );
+      
+      console.log('🔍 Profile query result:', profileResult);
+      
+      if (profileResult.length === 0) {
+        console.log('❌ User profile not found, creating one...');
+        
+        // Create userProfile if it doesn't exist
+        const [createResult] = await db.execute(
+          `INSERT INTO userProfile (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
+           VALUES (?, '[]', '[]', true, true, true, 'en')`,
+          [userID]
+        );
+        
+        userProfileID = createResult.insertId;
+        console.log('✅ Created new userProfile with ID:', userProfileID);
+      } else {
+        userProfileID = profileResult[0].userProfileID;
+        console.log('✅ Found userProfileID:', userProfileID);
+      }
+    } catch (dbError) {
+      console.error('❌ Database error fetching userProfile:', dbError);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Server error accessing user profile' 
+      });
+    }
+
+    const { foodName, culturalOrigin, culturalStory, recipe } = req.body;
+
+    // ✅ Enhanced validation
+    if (!foodName || !culturalOrigin || !culturalStory) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: foodName, culturalOrigin, and culturalStory are required'
+      });
+    }
+
+    console.log('✅ All required fields present:', { foodName, culturalOrigin });
 
     const imageUrls = [];
     if (req.files && req.files.length > 0) {
@@ -533,6 +692,220 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
       success: false,
       message: 'Failed to submit post',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// ✅ GET user's community posts for profile contributions
+router.get("/user/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log(`📥 Fetching community posts for user: ${userId}`);
+
+    // First get userProfileID from userID
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userId]
+    );
+
+    if (profileResult.length === 0) {
+      console.warn(`⚠️ No userProfile found for userID: ${userId}`);
+      return res.json([]); // Return empty array if no profile found
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+
+    const query = `
+      SELECT 
+        postID AS id,
+        foodName AS title,
+        photos AS image,
+        status,
+        created_at AS submittedDate,
+        'community' AS type,
+        origin AS culturalOrigin,
+        culturalStory AS content,
+        recipe
+      FROM posts 
+      WHERE userProfileID = ?
+      ORDER BY created_at DESC
+    `;
+    
+    const [posts] = await db.execute(query, [userProfileID]);
+    
+    console.log(`✅ Found ${posts.length} community posts for user ${userId}`);
+
+    // Format posts (take first image only if multiple)
+    const formattedPosts = posts.map(post => ({
+      id: post.id,
+      title: post.title,
+      image: post.image ? post.image.split(',')[0] : null,
+      status: post.status,
+      submittedDate: post.submittedDate,
+      type: post.type,
+      culturalOrigin: post.culturalOrigin,
+      content: post.content,
+      recipe: post.recipe
+    }));
+
+    res.json(formattedPosts);
+  } catch (error) {
+    console.error('❌ Error fetching user community posts:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch community posts',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// ✅ UPDATE community post
+router.put("/revise/:id", upload.array('images', 5), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: 'Request body is missing or invalid' });
+    }
+
+    const { title, culturalOrigin, content, recipe, status } = req.body;
+
+    console.log(`📝 Updating community post ${id}:`, { 
+      title, 
+      culturalOrigin, 
+      contentLength: content ? content.length : 0,
+      recipeLength: recipe ? recipe.length : 0,
+      status,
+      imageCount: req.files ? req.files.length : 0
+    });
+
+    // Check if post exists 
+    const [existingPost] = await db.execute('SELECT * FROM posts WHERE postID = ?', [id]);
+    
+    if (existingPost.length === 0) {
+      return res.status(404).json({ error: 'Community post not found' });
+    }
+
+    const current = existingPost[0];
+    console.log('📋 Current post data:', current);
+
+    let finalImages = current.photos; // Default to existing images
+
+    // 🖼️ Handle multiple image uploads to Cloudinary - UPDATED FOR MULTIPLE FILES
+    if (req.files && req.files.length > 0) {
+      try {
+        console.log(`☁️ Uploading ${req.files.length} images to Cloudinary...`);
+        
+        const imageUrls = [];
+        
+        for (const file of req.files) {
+          console.log('📁 Processing file:', {
+            originalname: file.originalname,
+            size: file.size,
+            mimetype: file.mimetype
+          });
+          
+          const cloudinaryResult = await cloudinary.uploader.upload(
+            `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+            {
+              folder: 'community-posts',
+              resource_type: 'image',
+              use_filename: true,
+              unique_filename: true,
+              overwrite: true,
+              transformation: [
+                { width: 1600, height: 1600, crop: 'limit' },
+                { quality: "auto" }
+              ]
+            }
+          );
+
+          console.log('✅ Image uploaded to Cloudinary:', cloudinaryResult.secure_url);
+          imageUrls.push(cloudinaryResult.secure_url);
+        }
+
+        // Join multiple image URLs with comma (same as your POST route)
+        finalImages = imageUrls.join(',');
+        
+      } catch (uploadError) {
+        console.error('❌ Cloudinary upload failed:', uploadError);
+        // If upload fails, keep existing images
+      }
+    } else if (req.body.images && req.body.images.trim() !== "") {
+      // If images come as base64 in body (fallback)
+      try {
+        console.log('☁️ Processing base64 images...');
+        // Handle base64 images if needed
+        finalImages = req.body.images; // Or process them similarly
+        console.log('✅ Using provided base64 images');
+      } catch (base64Error) {
+        console.error('❌ Base64 images processing failed:', base64Error);
+      }
+    }
+
+    console.log(finalImages === current.photos 
+      ? "🖼️ Keeping existing images" 
+      : `✅ Using ${req.files ? req.files.length : 'new'} images`);
+
+    const updateQuery = `
+      UPDATE posts 
+      SET 
+        foodName = ?, 
+        origin = ?, 
+        culturalStory = ?, 
+        recipe = ?, 
+        status = ?, 
+        photos = ?,
+        created_at = NOW()  
+      WHERE postID = ?
+    `;
+    
+    console.log('🚀 Executing update query...');
+    const [result] = await db.execute(updateQuery, [
+      title || current.foodName,
+      culturalOrigin || current.origin,
+      content || current.culturalStory,
+      recipe || current.recipe,
+      status || current.status || 'Pending',
+      finalImages || '', 
+      id
+    ]);
+
+    console.log(`✅ Community post ${id} updated successfully (affected rows: ${result.affectedRows})`);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'No changes made - post may not exist' });
+    }
+
+    // Get updated post with formatted timestamp for response
+    const [updatedPost] = await db.execute(
+      `SELECT *, DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', '+08:00'), '%Y-%m-%d %H:%i:%s') AS created_at 
+      FROM posts WHERE postID = ?`,
+      [id]
+    );
+
+    console.log('🕒 Updated timestamp:', updatedPost[0]?.created_at);
+   
+    res.json({ 
+      success: true, 
+      message: 'Community post updated successfully',
+      post: updatedPost[0]
+    });
+
+  } catch (error) {
+    console.error('❌ Error updating community post:', error);
+
+    let errorMessage = 'Failed to update community post';
+    if (error.code === 'ER_NO_SUCH_TABLE') {
+      errorMessage = 'Database table not found - check table name';
+    } else if (error.code === 'ER_BAD_FIELD_ERROR') {
+      errorMessage = 'Invalid column name in query';
+    } else if (error.errno === 1452) {
+      errorMessage = 'Foreign key constraint fails';
+    }
+
+    res.status(500).json({ 
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
