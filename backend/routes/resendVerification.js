@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/db");
+const { pool: db } = require("../config/db");
 
 // Store last resend times in memory (key: email, value: timestamp)
 // In production, use Redis or database for persistence across restarts

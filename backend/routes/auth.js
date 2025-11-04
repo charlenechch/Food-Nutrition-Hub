@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/db");
+const { pool: db } = require("../config/db");
 const bcrypt = require("bcrypt");
 
 /* ✅ 1. Session Check (Supports Guests)

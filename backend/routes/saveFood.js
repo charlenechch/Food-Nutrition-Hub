@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { pool: db } = require("../config/db");
 
 // Check if food/recipe is saved by user 
 router.get('/check/:id', async (req, res) => {

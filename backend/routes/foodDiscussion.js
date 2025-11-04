@@ -1,7 +1,7 @@
 // ✅ backend/routes/foodDiscussion.js (Fixed endpoints)
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
+const { pool: db } = require("../config/db");
 
 // Small helper: normalize MySQL2 result
 const firstRows = (result) => {

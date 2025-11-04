@@ -4,7 +4,7 @@ const sendEmail = require("../config/mailer");
 const { getVerificationEmailHTML, getVerificationEmailSubject } = require("../utils/emailTemplates");
 const { body, validationResult } = require("express-validator");
 const router = express.Router();
-const db = require("../config/db"); // shared promise pool
+const { pool: db } = require("../config/db"); // shared promise pool
 
 // ✅ NEW IMPORTS for validation and sanitization
 const Joi = require("joi");

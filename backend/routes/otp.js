@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const sendEmail = require("../config/mailer");
 const { getVerificationEmailHTML, getVerificationEmailSubject } = require("../utils/emailTemplates");
-const db = require("../config/db");
+const { pool: db } = require("../config/db");
 
 // Store OTPs temporarily
 const { otpStore } = require("./register");
