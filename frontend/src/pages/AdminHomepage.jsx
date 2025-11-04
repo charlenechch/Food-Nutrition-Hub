@@ -51,6 +51,9 @@ const AdminDashboard = () => {
   const [foodData, setFoodData] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userList, setUserList] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [errorUsers, setErrorUsers] = useState(null);
 
   // ========================================================
   // ✅ Fetch total food count directly from backend
@@ -110,6 +113,39 @@ const AdminDashboard = () => {
     fetchRecipes();
   }, []);
 
+  // ✅ Fetch user data
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoadingUsers(true);
+        const response = await fetch(`${API_URL}/api/admin/users`, {
+          credentials: "include",
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch users: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && Array.isArray(data.users)) {
+          setUserList(data.users);
+          setErrorUsers(null);
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } catch (err) {
+        console.error("❌ Error fetching users:", err);
+        setErrorUsers(err.message);
+        setUserList([]); // Fallback to empty array
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
   // ========================================================
   // ✅ Update summary dynamically
   // ========================================================
@@ -118,6 +154,7 @@ const AdminDashboard = () => {
       ...prev,
       // totalFoods is already live-fetched from backend count
       pendingApproval: recipes.filter((r) => r.status === "Pending").length,
+      totalUsers: userList.length,
     }));
   }, [recipes]);
 
@@ -198,7 +235,12 @@ const AdminDashboard = () => {
         );
 
       case "users":
-        return <UserManagement />;
+        return <UserManagement
+                users={userList}
+                loading={loadingUsers}
+                error={errorUsers}
+                setUsers={setUserList}
+              />;
 
       case "moderation":
         return (
