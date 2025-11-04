@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require('../config/db');
+const { pool: db } = require("../config/db");
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 

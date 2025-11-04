@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const router = express.Router();
-const db = require("../config/db");
+const { pool: db } = require("../config/db");
 
 // ✅ Validation & sanitization imports
 const Joi = require("joi");

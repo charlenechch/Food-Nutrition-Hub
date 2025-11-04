@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { requireAdmin } = require("../middleware/auth");
-const db = require("../config/db");
+const { pool: db } = require("../config/db");
 const userProfileRoutes = require("../routes/userProfile");
 const deleteUser = userProfileRoutes.deleteUser;
 
