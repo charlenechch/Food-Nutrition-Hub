@@ -221,7 +221,7 @@ app.use(
   loginRoutes
 );
 
-// ✅ Diagnostic Middleware to see what reaches before HPP
+// ✅ Diagnostic Middleware to confirm sequence
 app.use((req, res, next) => {
   if (req.originalUrl.includes("/api/recipe/all/recipes")) {
     console.log("🧭 Incoming request before HPP:", req.originalUrl);
@@ -230,6 +230,20 @@ app.use((req, res, next) => {
   next();
 });
 
+// ✅ MOVE RECIPE ROUTE UP HERE (before global HPP)
+app.use(
+  "/api/recipe",
+  hppProtect({
+    policy: "first",
+    allowlist: [
+      "includeAll", "status", "foodID", "name", "origin", "difficulty",
+      "prepTime", "cookTime", "servings", "image", "description",
+      "foodType", "dietaryTags", "ingredients", "instructions",
+      "funFact", "chefTips"
+    ],
+  }),
+  recipeRoutes
+);
 
 // ---------- 7) Global HPP protection for everything else ----------
 app.use(
@@ -237,13 +251,13 @@ app.use(
     policy: "first", // block duplicates globally
     allowlist: [
       "id", "page", "q", "sort", "email", "password", "userID", "token", "role",
-      "userProfileID", "firebase_uid", "bio", "location", "firstname", "lastname", "city", "suspendedOn",
-      "avatar", "allergies", "dietary", "emailNotifications", "prefs",
-      "pushNotifications", "profileVisibility", "language", "recipes",
+      "userProfileID", "firebase_uid", "bio", "location", "firstname", "lastname",
+      "city", "suspendedOn", "avatar", "allergies", "dietary", "emailNotifications",
+      "prefs", "pushNotifications", "profileVisibility", "language", "recipes",
       "status", "stats", "saveFoods", "likes", "type", "postId", "postID",
-      "content","title", "culturalOrigin", "recipe", "reply", "comment", "foodID", 
-      "likeID","name", "origin", "difficulty", "prepTime", "cookTime", 
-      "servings", "image", "description", "foodType", "dietaryTags", 
+      "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID",
+      "likeID", "name", "origin", "difficulty", "prepTime", "cookTime",
+      "servings", "image", "description", "foodType", "dietaryTags",
       "ingredients", "instructions", "funFact", "chefTips",
       "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll"
     ],
@@ -252,6 +266,7 @@ app.use(
     },
   })
 );
+
 
 // ---------- 8) Other Routes ----------
 app.use("/api/logout", logoutRoutes);
