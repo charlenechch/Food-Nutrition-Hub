@@ -97,8 +97,9 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/recipe/all/recipes`);
-        const data = await res.json();
+        const recipeRes = await fetch(`${API_URL}/api/recipe/all/recipes?includeAll=true`);
+
+        const data = await recipeRes.json();
         if (Array.isArray(data)) setRecipes(data);
       } catch (error) {
         console.error("❌ Error fetching recipes:", error);

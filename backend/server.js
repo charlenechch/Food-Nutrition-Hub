@@ -221,6 +221,16 @@ app.use(
   loginRoutes
 );
 
+// ✅ Diagnostic Middleware to see what reaches before HPP
+app.use((req, res, next) => {
+  if (req.originalUrl.includes("/api/recipe/all/recipes")) {
+    console.log("🧭 Incoming request before HPP:", req.originalUrl);
+    console.log("🔹 Query params detected:", req.query);
+  }
+  next();
+});
+
+
 // ---------- 7) Global HPP protection for everything else ----------
 app.use(
   hppProtect({
@@ -235,7 +245,7 @@ app.use(
       "likeID","name", "origin", "difficulty", "prepTime", "cookTime", 
       "servings", "image", "description", "foodType", "dietaryTags", 
       "ingredients", "instructions", "funFact", "chefTips",
-      "isAdmin", "isAdminAction", "adminRole", "adminId"
+      "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));
