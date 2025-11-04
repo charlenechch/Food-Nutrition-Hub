@@ -55,6 +55,10 @@ router.post("/", async (req, res) => {
   const { email, password, rememberDevice } = cleanData;
   console.log("🧼 Sanitized input:", cleanData);
 
+console.log("🧩 db object keys in Railway:", Object.keys(db));
+
+console.log("🧩 db object keys in Railway:", Object.keys(db));
+
   try {
     // ✅ Step 3: Query user
     const [users] = await db.query(
