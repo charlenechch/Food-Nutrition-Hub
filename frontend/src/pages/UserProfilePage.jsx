@@ -278,17 +278,37 @@ const savePrefs = async () => {
   console.log("🔍 Image fields - images:", c.images, "image:", c.image);
   console.log("🔍 All fields:", Object.keys(c));
   
+  const isRecipeItem = c?.foodName !== undefined;
+  const isCommunityItem = ["community", "post", "story", "community_post"].includes((c?.type || "").toLowerCase());
+  
   const handleRevise = () => {
-    navigate(`/revise/${c.id}`, {
-      state: {
-        owner: `${user.firstName} ${user.lastName}`,
-        id: c.id,
-        snapshot: JSON.parse(JSON.stringify(c)),
-        contribution: c,
-        adminFeedback: c.feedback,
-        fieldsWithIssues: c.fieldsWithIssues || [],
-      },
-    });
+    if (isRecipeItem) {
+      // Navigate to recipe revision
+      navigate(`/revise/${c.id}`, {
+        state: {
+          owner: `${user.firstName} ${user.lastName}`,
+          id: c.id,
+          snapshot: JSON.parse(JSON.stringify(c)),
+          contribution: c,
+          adminFeedback: c.feedback,
+          fieldsWithIssues: c.fieldsWithIssues || [],
+        },
+      });
+    } else if (isCommunityItem) {
+      // Navigate to community post revision
+      navigate(`/revisecommunitypostpage/${c.id}`, {
+        state: {
+          owner: `${user.firstName} ${user.lastName}`,
+          id: c.id,
+          snapshot: JSON.parse(JSON.stringify(c)),
+          contribution: c,
+          adminFeedback: c.feedback,
+          fieldsWithIssues: c.fieldsWithIssues || [],
+        },
+      });
+    } else {
+      throw new Error(`Unknown content type for item ${c.id}. Cannot determine revision path.`);
+    }
   };
 
     return (

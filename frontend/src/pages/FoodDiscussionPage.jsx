@@ -339,30 +339,32 @@ export default function FoodDiscussionPage() {
     if (foodId) fetchComments();
   }, [foodId]);
 
-  // Load likes from localStorage on component mount
-  const loadLikesFromStorage = () => {
-    try {
-      const storedLikes = localStorage.getItem(`foodLikes_${foodId}`);
-      if (storedLikes) {
-        return JSON.parse(storedLikes);
-      }
-    } catch (error) {
-      console.warn('Failed to load likes from localStorage:', error);
+  // ✅ Load likes from localStorage on component mount - USER-SPECIFIC
+const loadLikesFromStorage = () => {
+  try {
+    const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+    const storedLikes = localStorage.getItem(userSpecificKey);
+    if (storedLikes) {
+      return JSON.parse(storedLikes);
     }
-    return null;
+  } catch (error) {
+    console.warn('Failed to load likes from localStorage:', error);
+  }
+  return null;
+};
+
+// ✅ Update the initial state
+const [foodLike, setFoodLike] = useState(() => {
+  const storedLikes = loadLikesFromStorage();
+  return {
+    isLiked: storedLikes?.isLiked || false,
+    likesCount: storedLikes?.likesCount || 0, // Keep stored value as placeholder
+    loading: false,
+    initialized: false // Add flag to track if data is loaded from server
   };
+});
 
-  // Update the initial state
-  const [foodLike, setFoodLike] = useState(() => {
-    const storedLikes = loadLikesFromStorage();
-    return {
-      isLiked: storedLikes?.isLiked || false,
-      likesCount: storedLikes?.likesCount || 0,
-      loading: false
-    };
-  });
-
-  // ✅ NEW: Fetch food like status
+// Fetch food like status 
 const fetchFoodLikeStatus = async () => {
   try {
     const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/like-status`, {
@@ -386,9 +388,10 @@ const fetchFoodLikeStatus = async () => {
           ...serverLikeData
         }));
         
-        // ✅ Sync localStorage with server data
+        // ✅ Sync localStorage with server data - USER-SPECIFIC
         try {
-          localStorage.setItem(`foodLikes_${foodId}`, JSON.stringify({
+          const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+          localStorage.setItem(userSpecificKey, JSON.stringify({
             ...serverLikeData,
             lastUpdated: new Date().toISOString(),
             syncedWithServer: true
@@ -401,100 +404,82 @@ const fetchFoodLikeStatus = async () => {
       }
     } else {
       console.log('🔴 fetchFoodLikeStatus - API error:', res.status);
-      // If API fails, at least we have localStorage data
     }
   } catch (error) {
     console.error('❌ fetchFoodLikeStatus - Network error:', error);
-    // If network fails, we still have localStorage data
   }
 };
 
-  // Toggle food like
-  const toggleFoodLike = async () => {
-    if (isGuest) return setShowLoginPrompt(true);
-    
-    if (foodLike.loading) return;
+// ✅ Toggle food like - USER-SPECIFIC STORAGE
+const toggleFoodLike = async () => {
+  if (isGuest) return setShowLoginPrompt(true);
+  
+  if (foodLike.loading) return;
 
-    console.log('🟡 BEFORE toggle - isLiked:', foodLike.isLiked, 'likesCount:', foodLike.likesCount);
+  console.log('🟡 BEFORE toggle - isLiked:', foodLike.isLiked, 'likesCount:', foodLike.likesCount);
 
-    // Optimistic update
-    const previousState = { ...foodLike };
-    const newIsLiked = !foodLike.isLiked;
-    const newLikesCount = newIsLiked ? foodLike.likesCount + 1 : foodLike.likesCount - 1;
+  // Optimistic update
+  const previousState = { ...foodLike };
+  const newIsLiked = !foodLike.isLiked;
+  const newLikesCount = newIsLiked ? foodLike.likesCount + 1 : foodLike.likesCount - 1;
 
-    // ✅ IMMEDIATELY update state AND localStorage
-    setFoodLike(prev => ({
-      ...prev,
+  // ✅ IMMEDIATELY update state AND localStorage
+  setFoodLike(prev => ({
+    ...prev,
+    isLiked: newIsLiked,
+    likesCount: newLikesCount,
+    loading: true
+  }));
+
+  // ✅ Save to localStorage immediately 
+  try {
+    const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+    localStorage.setItem(userSpecificKey, JSON.stringify({
       isLiked: newIsLiked,
-      likesCount: newLikesCount,
-      loading: true
+      likesCount: newLikesCount, // This is just for this user's view
+      lastUpdated: new Date().toISOString()
     }));
+  } catch (storageError) {
+    console.warn('Failed to save likes to localStorage:', storageError);
+  }
 
-    // ✅ Save to localStorage immediately
-    try {
-      localStorage.setItem(`foodLikes_${foodId}`, JSON.stringify({
-        isLiked: newIsLiked,
-        likesCount: newLikesCount,
-        lastUpdated: new Date().toISOString()
+  try {
+    console.log('🟡 Calling toggle-like API for food:', foodId);
+    const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/toggle-like`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    console.log('🟡 API Response status:', res.status);
+    const data = await res.json();
+    console.log('🟡 API Response data:', data);
+
+    if (res.ok && data.success) {
+      console.log('🟢 API Success - isLiked:', data.data.isLiked, 'likesCount:', data.data.likesCount);
+      
+      // ✅ Update both state and localStorage with server response
+      setFoodLike(prev => ({
+        ...prev,
+        isLiked: data.data.isLiked,
+        likesCount: data.data.likesCount, // Use server's count
+        loading: false
       }));
-    } catch (storageError) {
-      console.warn('Failed to save likes to localStorage:', storageError);
-    }
 
-    try {
-      console.log('🟡 Calling toggle-like API for food:', foodId);
-      const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/toggle-like`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-
-      console.log('🟡 API Response status:', res.status);
-      const data = await res.json();
-      console.log('🟡 API Response data:', data);
-
-      if (res.ok && data.success) {
-        console.log('🟢 API Success - isLiked:', data.data.isLiked, 'likesCount:', data.data.likesCount);
-        
-        // ✅ Update both state and localStorage with server response
-        setFoodLike(prev => ({
-          ...prev,
+      // ✅ Sync localStorage with server data - USER-SPECIFIC
+      try {
+        const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+        localStorage.setItem(userSpecificKey, JSON.stringify({
           isLiked: data.data.isLiked,
           likesCount: data.data.likesCount,
-          loading: false
+          lastUpdated: new Date().toISOString(),
+          syncedWithServer: true
         }));
-
-        // ✅ Sync localStorage with server data
-        try {
-          localStorage.setItem(`foodLikes_${foodId}`, JSON.stringify({
-            isLiked: data.data.isLiked,
-            likesCount: data.data.likesCount,
-            lastUpdated: new Date().toISOString(),
-            syncedWithServer: true
-          }));
-        } catch (storageError) {
-          console.warn('Failed to sync likes with localStorage:', storageError);
-        }
-      } else {
-        console.log('🔴 API Error:', data.message);
-        // Revert on error
-        setFoodLike(prev => ({
-          ...prev,
-          ...previousState,
-          loading: false
-        }));
-        
-        // ✅ Also revert localStorage on error
-        try {
-          localStorage.setItem(`foodLikes_${foodId}`, JSON.stringify(previousState));
-        } catch (storageError) {
-          console.warn('Failed to revert likes in localStorage:', storageError);
-        }
-        
-        alert(data?.message || "Failed to update like");
+      } catch (storageError) {
+        console.warn('Failed to sync likes with localStorage:', storageError);
       }
-    } catch (err) {
-      console.error("❌ Network error:", err);
+    } else {
+      console.log('🔴 API Error:', data.message);
       // Revert on error
       setFoodLike(prev => ({
         ...prev,
@@ -502,16 +487,36 @@ const fetchFoodLikeStatus = async () => {
         loading: false
       }));
       
-      // ✅ Also revert localStorage on network error
+      // ✅ Also revert localStorage on error - USER-SPECIFIC
       try {
-        localStorage.setItem(`foodLikes_${foodId}`, JSON.stringify(previousState));
+        const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+        localStorage.setItem(userSpecificKey, JSON.stringify(previousState));
       } catch (storageError) {
         console.warn('Failed to revert likes in localStorage:', storageError);
       }
       
-      alert("Network error while updating like");
+      alert(data?.message || "Failed to update like");
     }
-  };
+  } catch (err) {
+    console.error("❌ Network error:", err);
+    // Revert on error
+    setFoodLike(prev => ({
+      ...prev,
+      ...previousState,
+      loading: false
+    }));
+    
+    // ✅ Also revert localStorage on network error - USER-SPECIFIC
+    try {
+      const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+      localStorage.setItem(userSpecificKey, JSON.stringify(previousState));
+    } catch (storageError) {
+      console.warn('Failed to revert likes in localStorage:', storageError);
+    }
+    
+    alert("Network error while updating like");
+  }
+};
 
     useEffect(() => {
       if (foodId) {
