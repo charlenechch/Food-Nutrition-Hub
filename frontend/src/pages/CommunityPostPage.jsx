@@ -17,34 +17,13 @@ function computeIsLoggedIn(user) {
     const hasAdminId = Boolean(user?.userProfileID || user?.userID || user?.id || user?.adminID);
     return Boolean(user && user.role === "admin" && hasAdminId);
   }
-
+  
   const hasId = Boolean(user?.userID || user?.id || user?.userProfileID);
   const notGuest = user?.role && user.role.toLowerCase() !== "guest";
   return Boolean(user && hasId && notGuest);
 }
 
 function getStableProfileId(user) {
-  // For admin users, we need to handle the case where userProfileID is null
-  if (user?.role === "admin") {
-    // Try to get userProfileID from multiple possible sources
-    const adminProfileId = user?.userProfileID || user?.userID || user?.id;
-    
-    console.log("🔍 Admin Profile ID Check:", {
-      userProfileID: user?.userProfileID,
-      userID: user?.userID,
-      id: user?.id,
-      finalProfileId: adminProfileId
-    });
-    
-    if (!adminProfileId) {
-      console.error("❌ Admin user missing profile ID - this will prevent posting");
-      return "admin-fallback"; 
-    }
-    
-    return adminProfileId;
-  }
-  
-  // For regular users
   return user?.userProfileID || user?.userID || user?.id || null;
 }
 
@@ -68,7 +47,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
         const response = await fetch(
-          `${API_BASE_URL}/api/likes/check?postId=${postId}`,
+          `${API_BASE_URL}/api/likes/check?postId=${postId}&userProfileID=${userProfileID}`,
           {
             credentials: "include",
           }
@@ -108,7 +87,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
         credentials: "include",
         body: JSON.stringify({
           postID: postId, 
-          //userProfileID: userProfileID,
+          userProfileID: userProfileID,
         }),
       });
 
@@ -131,7 +110,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
         credentials: "include",
         body: JSON.stringify({
           postID: postId, 
-          //userProfileID: userProfileID,
+          userProfileID: userProfileID,
         }),
       });
 
@@ -284,64 +263,46 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (isGuest) {
-    openLoginModal();
-    return;
-  }
-  if (!comment.trim()) return;
+    e.preventDefault();
+    if (isGuest) {
+      openLoginModal();
+      return;
+    }
+    if (!comment.trim()) return;
 
-  try {
-    setLoading(true);
-    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    try {
+      setLoading(true);
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-    console.log("📤 Sending comment:", { 
-      content: comment, 
-      postId 
-    });
+      const userProfileID = getStableProfileId(user);
 
-    const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        content: comment,
-        postId: postId,
-      }),
-    });
+      const response = await fetch(`${API_BASE_URL}/api/communityPost/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          content: comment,
+          postId,
+          userProfileID,
+        }),
+      });
 
-    console.log("📥 Response status:", response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ Server error response:", errorText);
-      
-      try {
-        const errorData = JSON.parse(errorText);
-        throw new Error(errorData.message || `Failed to post comment (${response.status})`);
-      } catch (e) {
-        throw new Error(`Server error ${response.status}: ${errorText}`);
+      const result = await response.json();
+      if (response.ok && result.success) {
+        onCommentAdded(result.comment);
+        setComment(""); 
+        alert("Comment posted successfully!");
+      } else {
+        // Leave silent for UX; console helps debugging
+        console.error("Comment failed:", result.message);
       }
+    } catch (err) {
+      console.error("Error posting comment:", err);
+    } finally {
+      setLoading(false);
     }
-
-    const result = await response.json();
-    console.log("✅ Comment result:", result);
-    
-    if (result.success && result.comment) {
-      onCommentAdded(result.comment);
-      setComment("");
-      // Optional: Show success message
-      alert("Comment posted successfully!");
-    } else {
-      throw new Error(result.message || "Failed to post comment");
-    }
-  } catch (err) {
-    console.error("Error posting comment:", err);
-    alert(err.message || "Failed to post comment. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="comment-section">

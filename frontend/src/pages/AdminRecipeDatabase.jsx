@@ -2,15 +2,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaRegFlag, FaPlus } from "react-icons/fa6";
 import { CiSearch, CiFilter } from "react-icons/ci";
-import { MdOutlineFileUpload } from "react-icons/md";
+import { MdOutlineFileUpload, MdOutlineRemoveRedEye } from "react-icons/md";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
+const RecipeDatabaseSection =({ recipes, categories, sectionType = "approved" }) => {
   const navigate = useNavigate();
-
-  const [recipes, setRecipes] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const [category, setCategory] = useState("All Categories");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -33,30 +28,6 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
     if (pageNum >= 1 && pageNum <= totalPages) setCurrentPage(pageNum);
   };
 
-  // ✅ FETCH RECIPES FROM BACKEND
-  useEffect(() => {
-    const fetchRecipes = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/recipe/all/recipes`);
-        const data = await res.json();
-
-        if (Array.isArray(data)) {
-          setRecipes(data);
-        } else if (data.success && Array.isArray(data.data)) {
-          setRecipes(data.data);
-        } else {
-          console.warn("Unexpected response:", data);
-        }
-      } catch (error) {
-        console.error("❌ Failed to fetch recipes:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecipes();
-  }, []);
-
   useEffect(() => {
     const closeDropdown = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -76,23 +47,18 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
       : "Recipe Management";
 
   // === Defensive check for empty list ===
-  if (loading) {
-    return (
-      <div className="recipe-database-section">
-        <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
-        <p style={{ textAlign: "center", marginTop: "20px" }}>Loading recipes...</p>
-      </div>
-    );
-  }
-
   if (!recipes || recipes.length === 0) {
     return (
       <div className="recipe-database-section">
-        <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
+        <h2>
+          <FaRegFlag style={{ marginRight: 8 }} />
+          {sectionTitle}
+        </h2>
         <p style={{ textAlign: "center", marginTop: "20px" }}>No recipes available.</p>
       </div>
     );
   }
+
 
   return (
     <div className="recipe-database-section">
@@ -102,7 +68,7 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
           <span className="recipe-icon"><FaRegFlag /></span> {sectionTitle}
         </h2>
 
-        {/* Only show Add/Import buttons for Approved view */}
+         {/* Only show Add/Import buttons for Approved view */}
         {sectionType === "approved" && (
           <div className="recipe-actions">
             <button
@@ -163,6 +129,90 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
         </button>
       </div>
 
+      {/* === Advanced Filters === */}
+      {showFilters && (
+        <div className="food-advanced-filters">
+          <h4><CiFilter /> Advanced Filters</h4>
+
+          <div className="filter-grid">
+            <div className="filter-item">
+              <label>Cultural Origin</label>
+              <select>
+                <option>All Origins</option>
+                <option>Iban</option>
+                <option>Melanau</option>
+                <option>Bidayuh</option>
+              </select>
+            </div>
+
+            <div className="filter-item">
+              <label>Food Type</label>
+              <select>
+                <option>All Categories</option>
+                {categories.slice(1).map((cat) => (
+                  <option key={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-item">
+              <label>Difficulty</label>
+              <select>
+                <option>All</option>
+                <option>Easy</option>
+                <option>Medium</option>
+                <option>Hard</option>
+              </select>
+            </div>
+
+            <div className="filter-item">
+              <label>Status</label>
+              <select>
+                <option>All</option>
+                <option>Approved</option>
+                <option>Pending</option>
+                <option>Flagged</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="food-database-calorie-range">
+            <label>
+              Calorie Range: {calorieMin} – {calorieMax} calories
+            </label>
+
+            <div
+              className="food-database-slider-container"
+              style={{
+                "--left": `${(calorieMin / 2000) * 100}%`,
+                "--right": `${100 - (calorieMax / 2000) * 100}%`
+              }}
+            >
+              <input
+                type="range"
+                min="0"
+                max="2000"
+                step="10"
+                value={calorieMin}
+                onChange={(e) =>
+                  setCalorieMin(Math.min(Number(e.target.value), calorieMax - 50))
+                }
+              />
+              <input
+                type="range"
+                min="0"
+                max="2000"
+                step="10"
+                value={calorieMax}
+                onChange={(e) =>
+                  setCalorieMax(Math.max(Number(e.target.value), calorieMin + 50))
+                }
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* === Recipe Table === */}
       <table className="content-table" style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
@@ -179,29 +229,28 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
           {currentRecipes.map((recipe, index) => (
             <tr key={index}>
               <td>
-                {recipe.name || "Unnamed Recipe"}
+                {recipe.name}
                 <br />
-                <small className="serving-info">
-                  {recipe.servings ? `${recipe.servings} servings` : ""}
-                </small>
+                <small className="serving-info">{recipe.servings}</small>
               </td>
               <td>
-                <span className="category-tag">
-                  {recipe.foodType || recipe.category || "N/A"}
-                </span>
+                <span className="category-tag">{recipe.food}</span>
               </td>
-              <td>{recipe.origin || "Unknown"}</td>
-              <td>{recipe.updated || "—"}</td>
+              <td>{recipe.author}</td>
+              <td>{recipe.updated}</td>
               <td>
-                <span className={`recipe-status-tag approved`}>
-                  Approved
+                <span className={`recipe-status-tag ${recipe.status.toLowerCase()}`}>
+                  {recipe.status}
                 </span>
               </td>
               <td className="admin-recipe-action-buttons">
                 <button
                   className="review-btn"
-                  onClick={() => navigate(`/admin/edit/recipe/${recipe.id || index}`)}
+                  onClick={() => navigate(`/admin/edit/recipe/${index}`)}
                 >
+                  <span className="recipe-review-btn">
+                    {/* <MdOutlineRemoveRedEye /> */}
+                  </span>{" "}
                   Review
                 </button>
               </td>
