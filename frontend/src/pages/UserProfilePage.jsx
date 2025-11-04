@@ -31,82 +31,62 @@ const DEFAULT_PREFS = {
   language: "en"
 };
 
-const uploadAvatar = async () => {
-  if (!avatarFile) {
-    alert('Please select an image first');
-    return;
-  }
-
-  try {
-    setIsUploadingAvatar(true);
-    
-    const formData = new FormData();
-    formData.append('avatar', avatarFile);
-
-    // ✅ DEBUG: Log the exact URL being called
-    const uploadUrl = `${API_BASE_URL}/api/userProfile/avatar`;
-    console.log('🔍 Uploading to URL:', uploadUrl);
-    console.log('🔍 Full API_BASE_URL:', API_BASE_URL);
-
-    const res = await fetch(uploadUrl, {
-      method: 'POST',
-      credentials: 'include',
-      body: formData,
-    });
-
-    console.log('🔍 Response status:', res.status);
-    console.log('🔍 Response headers:', res.headers);
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('❌ Server error response:', errorText);
-      throw new Error(`Failed to upload avatar (${res.status}): ${errorText}`);
-    }
-
-    const result = await res.json();
-    
-    if (result.success) {
-      // Update user state with new avatar
-      setUser(prev => ({ ...prev, avatar: result.avatarUrl }));
-      alert('Avatar updated successfully!');
-      closeAvatarModal();
-      
-      // Reload the profile to get updated data
-      const endpoint = userProfileID
-        ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
-        : `${API_BASE_URL}/api/userProfile`;
-      const r2 = await fetch(endpoint, { credentials: "include" });
-      if (r2.ok) {
-        const updatedUser = await r2.json();
-        setUser(updatedUser);
-      }
-    } else {
-      throw new Error(result.error || 'Upload failed');
-    }
-  } catch (error) {
-    console.error('Avatar upload error:', error);
-    alert(error.message || 'Failed to upload avatar');
-  } finally {
-    setIsUploadingAvatar(false);
-  }
-};
-
+// ✅ FIXED: Better normalization that ensures clean string arrays
 const normalizePrefs = (data = {}) => {
-  const dietaryRestrictions = Array.isArray(data.dietaryRestrictions) ? data.dietaryRestrictions : 
-                 (typeof data.dietaryRestrictions === 'string' ? JSON.parse(data.dietaryRestrictions || "[]") : []);
-  
-  const allergies = Array.isArray(data.allergies) ? data.allergies : 
-                   (typeof data.allergies === 'string' ? JSON.parse(data.allergies || "[]") : []);
+  const prefsData = data.prefs || data;
 
-  return {
-    ...DEFAULT_PREFS,
-    dietary: dietaryRestrictions, 
-    allergies: allergies,
-    emailNotifications: data.emailNotifications ?? true,
-    pushNotifications: data.pushNotifications ?? true,
-    profileVisibility: data.profileVisibility ?? true,
-    language: data.language || "en"
+  // Enhanced array normalizer
+  const ensureCleanArray = (value) => {
+    console.log("🔄 Raw value to normalize:", value);
+    
+    let resultArray = [];
+    
+    if (Array.isArray(value)) {
+      resultArray = value.map(item => 
+        typeof item === 'string' ? item.trim() : String(item).trim()
+      );
+    } else if (typeof value === 'string') {
+      try {
+        // Try to parse as JSON first
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          resultArray = parsed.map(item => 
+            typeof item === 'string' ? item.trim() : String(item).trim()
+          );
+        } else {
+          resultArray = [String(parsed).trim()];
+        }
+      } catch (e) {
+        // If not JSON, use as is
+        resultArray = value.trim() ? [value.trim()] : [];
+      }
+    } else if (value && typeof value === 'object') {
+      // Convert object to array (handle the case where it's object-like)
+      resultArray = Object.values(value)
+        .map(item => typeof item === 'string' ? item.trim() : String(item).trim())
+        .filter(item => item !== '' && item !== 'null' && item !== 'undefined');
+    }
+    
+    // Final cleanup - ensure all values are valid strings
+    const finalArray = resultArray
+      .filter(item => item && typeof item === 'string')
+      .map(item => item.substring(0, 60)); // Enforce max length like backend
+    
+    console.log("✅ Normalized array result:", finalArray);
+    return finalArray;
   };
+
+  const normalized = {
+    dietary: ensureCleanArray(prefsData.dietary),
+    allergies: ensureCleanArray(prefsData.allergies),
+    emailNotifications: Boolean(prefsData.emailNotifications ?? true),
+    pushNotifications: Boolean(prefsData.pushNotifications ?? true),
+    profileVisibility: Boolean(prefsData.profileVisibility ?? true),
+    language: prefsData.language || "en"
+  };
+
+  console.log("🎯 Final normalized prefs:", normalized);
+  return normalized;
 };
 
 const toggleInArray = (arr, value) =>
@@ -135,6 +115,35 @@ const formatContributionDate = (dateString) => {
     : d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 };
 
+const isCommunity = (c) => {
+  const type = (c?.type || "").toLowerCase();
+  console.log("🔍 Checking if community:", c?.title, "type:", type);
+  return ["community", "post", "story", "community_post"].includes(type);
+};
+
+const isRecipe = (c) => {
+    return c && c.foodName !== undefined;
+  };
+
+const byDateDesc = (a, b) => {
+  const dateA = new Date(a?.submittedDate || a?.created_at || 0);
+  const dateB = new Date(b?.submittedDate || b?.created_at || 0);
+  return dateB - dateA;
+};
+
+// Helper function for status classes
+const getStatusClass = (status) => {
+  const statusMap = {
+    "approved": "chip-blue",
+    "pending": "chip-yellow", 
+    "rejected": "chip-red",
+    "Approved": "chip-blue",
+    "Pending": "chip-yellow",
+    "Rejected": "chip-red"
+  };
+  return statusMap[status] || "chip-gray";
+};
+
 export default function UserProfilePage() {
   const { userProfileID } = useParams();
   const navigate = useNavigate();
@@ -161,104 +170,189 @@ export default function UserProfilePage() {
   const [currentSaved, setCurrentSaved] = useState([]);
   const [totalSavedPages, setTotalSavedPages] = useState(1);
 
-  // --- Hardcoded community contributions (frontend only) ---
-  const HARDCODED_COMMUNITY = [
-    {
-      id: "hc-1",
-      title: "Grandma’s Kuih Lapis Story",
-      image: "https://picsum.photos/seed/kuih-lapis/480/320", // or your asset
-      status: "Approved",
-      submittedDate: "2025-10-01T10:00:00.000Z",
-      type: "community",
-    },
-    {
-      id: "hc-2",
-      title: "Harvest Festival Food Memories",
-      image: "https://picsum.photos/seed/gawai/480/320",
-      status: "Pending",
-      submittedDate: "2025-10-15T09:12:00.000Z",
-      type: "community",
-    },
-    {
-      id: "hc-3",
-      title: "Sarawak Laksa Origins (Photo Essay)",
-      image: "https://picsum.photos/seed/laksa/480/320",
-      status: "Rejected",
-      submittedDate: "2025-09-26T08:30:00.000Z",
-      type: "community",
-    },
-  ];
+  //recipe contributions
+  const [recipeContributions, setRecipeContributions] = useState([]);
+  const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
+
+  // Community Posts State
+  const [communityPosts, setCommunityPosts] = useState([]);
+  const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
 
 
-  const isCommunity = (c) => ["community", "post", "story"].includes((c?.type || "").toLowerCase());
-  const isRecipe    = (c) => ["recipe", "food"].includes((c?.type || "").toLowerCase());
-  const byDateDesc  = (a, b) => new Date(b?.submittedDate || 0) - new Date(a?.submittedDate || 0);
+  // ===== Save: Personal Info =====
+const savePersonal = async () => {
+  try {
+    const updateData = { 
+      location: form.location, 
+      bio: bio,
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language,
+      dietary: prefs.dietary,
+      allergies: prefs.allergies
+    };
+    
+    console.log("📤 Saving personal info:", updateData);
+    
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(updateData),
+    });
+    
+    console.log("📥 Personal info response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Personal info update error:", errorText);
+      throw new Error(`Failed to update profile (${res.status}): ${errorText}`);
+    }
+    
+    const result = await res.json();
+    console.log("✅ Personal info update result:", result);
+    
+    if (result.success) {
+      alert("Profile updated successfully!");
+      setUser(prev => ({ ...prev, location: form.location, bio: bio }));
+    } else {
+      throw new Error(result.error || "Update failed");
+    }
+  } catch (e) {
+    console.error("Personal info update error:", e);
+    alert(e.message || "Failed to update profile");
+  }
+};
 
-  const ContributionRow = ({ c }) => (
-    <div className="upp-row-card" key={`${c.type}-${c.id}`}>
-      <div className="upp-row-thumb">
-        {c.image ? <img src={c.image} alt={c.title} /> : <div className="upp-noimg" />}
-      </div>
-      <div className="upp-row-body">
-        <div className="upp-row-top">
-          <h4 className="upp-food-title upp-row-title">{c.title}</h4>
-          <span
-            className={`upp-chip ${
-              c.status === "approved" || c.status === "Approved"
-                ? "chip-blue"
-                : c.status === "pending" || c.status === "Pending"
-                ? "chip-yellow"
-                : c.status === "rejected" || c.status === "Rejected"
-                ? "chip-red"
-                : "chip-gray"
-            }`}
-          >
-            {fmtStatus(c.status)}
-          </span>
-        </div>
+// ===== Save: Preferences =====
+const savePrefs = async () => {
+  try {
+    const preferencesPayload = {
+      dietary: prefs.dietary,
+      allergies: prefs.allergies,
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language,
+      location: user?.location || "",
+      bio: user?.bio || ""
+    };
+    
+    console.log("📤 Saving preferences:", preferencesPayload);
 
-        <div className="upp-row-meta">
-          <div className="upp-muted">
-            {(c.type || "Food")} • Submitted on {formatContributionDate(c.submittedDate)}
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(preferencesPayload),
+    });
+    
+    console.log("📥 Preferences response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Preferences update error:", errorText);
+      throw new Error(`Failed to update preferences (${res.status}): ${errorText}`);
+    }
+    
+    const result = await res.json();
+    console.log("✅ Preferences update result:", result);
+    
+    if (result.success) {
+      alert("Preferences updated successfully!");
+    } else {
+      throw new Error(result.error || "Update failed");
+    }
+  } catch (e) {
+    console.error("Preferences update error:", e);
+    alert(e.message || "Failed to update preferences");
+  }
+};
+
+  const ContributionRow = ({ c }) => {
+  const navigate = useNavigate(); 
+
+  console.log("🔍 ContributionRow data:", c);
+  console.log("🔍 Date fields - createdAt:", c.createdAt, "submittedDate:", c.submittedDate);
+  console.log("🔍 Image fields - images:", c.images, "image:", c.image);
+  console.log("🔍 All fields:", Object.keys(c));
+  
+  const isRecipeItem = c?.foodName !== undefined;
+  const isCommunityItem = ["community", "post", "story", "community_post"].includes((c?.type || "").toLowerCase());
+  
+  const handleRevise = () => {
+    if (isRecipeItem) {
+      // Navigate to recipe revision
+      navigate(`/revise/${c.id}`, {
+        state: {
+          owner: `${user.firstName} ${user.lastName}`,
+          id: c.id,
+          snapshot: JSON.parse(JSON.stringify(c)),
+          contribution: c,
+          adminFeedback: c.feedback,
+          fieldsWithIssues: c.fieldsWithIssues || [],
+        },
+      });
+    } else if (isCommunityItem) {
+      // Navigate to community post revision
+      navigate(`/revisecommunitypostpage/${c.id}`, {
+        state: {
+          owner: `${user.firstName} ${user.lastName}`,
+          id: c.id,
+          snapshot: JSON.parse(JSON.stringify(c)),
+          contribution: c,
+          adminFeedback: c.feedback,
+          fieldsWithIssues: c.fieldsWithIssues || [],
+        },
+      });
+    } else {
+      throw new Error(`Unknown content type for item ${c.id}. Cannot determine revision path.`);
+    }
+  };
+
+    return (
+      <div className="upp-row-card" key={`${c.type}-${c.id}`}>
+        <div className="upp-row-thumb">
+          {c.images && c.images.length > 0 ? (
+              <img src={c.images[0]} alt={c.foodName} />
+            ) : c.image ? (
+              <img src={c.image} alt={c.foodName} />
+            ) : (
+              <div className="upp-noimg" />
+            )}
           </div>
+          <div className="upp-row-body">
+            <div className="upp-row-top">
+              <h4 className="upp-food-title upp-row-title">{c.foodName}</h4>
+              <span className={`upp-chip ${getStatusClass(c.status)}`}>
+                {fmtStatus(c.status)}
+              </span>
+            </div>
 
-          {(c.status === "needs_revision" ||
-            c.status === "rejected" ||
-            c.status === "Rejected") && (
-            <button
-              className="lrp-btn lrp-btn-outline upp-revise-btn"
-              type="button"
-              onClick={() => {
-                if (isCommunity(c)) {
-                  navigate("/revisecommunitypostpage", {
-                    state: {
-                      contribution: c,
-                      user,
-                      id: c.id,
-                      snapshot: JSON.parse(JSON.stringify(c)),
-                    },
-                  });
-                } else {
-                  navigate(`/revise/${c.id}`, {
-                    state: {
-                      owner: `${user.firstName} ${user.lastName}`,
-                      id: c.id,
-                      snapshot: JSON.parse(JSON.stringify(c)),
-                      contributionData: c,
-                      adminFeedback: c.feedback,
-                      fieldsWithIssues: c.fieldsWithIssues || [],
-                    },
-                  });
-                }
-              }}
-            >
-              Revise
-            </button>
-          )}
+          <div className="upp-row-meta">
+            <div className="upp-muted">
+              {c.culturalOrigin} • Submitted on{" "}
+                {/* Debug which date field exists */}
+                {c.createdAt ? formatContributionDate(c.createdAt) : 
+                c.submittedDate ? formatContributionDate(c.submittedDate) : 
+                'Date not available'}
+              </div>
+
+            {(c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected") && (
+              <button 
+                className="lrp-btn lrp-btn-outline upp-revise-btn" 
+                onClick={handleRevise}
+                type="button"
+              >
+                Revise
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // ✅ Fetch Profile Data
   useEffect(() => {
@@ -322,6 +416,75 @@ export default function UserProfilePage() {
 
     loadProfile();
   }, [userProfileID]);
+
+  useEffect(() => {
+    const fetchRecipeContributions = async () => {
+      if (tab === 'status' && user) {
+        try {
+          setIsLoadingRecipes(true);
+          console.log("🔄 Fetching recipe contributions for user:", user.userID);
+          
+          const res = await fetch(`${API_BASE_URL}/api/recipe/user/${user.userID}`, {
+            credentials: "include"
+          });
+
+          console.log("📥 Recipe contributions response status:", res.status);
+          
+          if (res.ok) {
+            const data = await res.json();
+            console.log("✅ Recipe contributions data received:", data);
+            setRecipeContributions(data.data || []);
+          } else {
+            console.error("❌ Failed to fetch recipe contributions");
+            const errorText = await res.text();
+            console.error("❌ Error response:", errorText);
+          }
+        } catch (error) {
+          console.error('❌ Error fetching recipe contributions:', error);
+        } finally {
+          setIsLoadingRecipes(false);
+        }
+      }
+    };
+
+    fetchRecipeContributions();
+  }, [tab, user]);
+
+  // ✅ Fetch Community Posts separately
+  useEffect(() => {
+    const fetchCommunityPosts = async () => {
+      if (tab === 'status' && user) {
+        try {
+          setIsLoadingCommunity(true);
+          console.log("🔄 Fetching community posts for user:", user.userID);
+          const res = await fetch(`${API_BASE_URL}/api/communityPost/user/${user.userID}`, {
+            credentials: "include"
+          });
+
+        console.log("📥 Community posts response status:", res.status);
+        console.log("📥 Community posts response ok:", res.ok);
+        console.log("📥 Community posts response headers:", res.headers);
+          
+          if (res.ok) {
+            const data = await res.json();
+            console.log("✅ Community posts data received:", data);
+            setCommunityPosts(data);
+          }else {
+          console.error("❌ Failed to fetch community posts - response not ok");
+          const errorText = await res.text();
+          console.error("❌ Error response:", errorText);
+          }
+        } catch (error) {
+          console.error('Failed to fetch community posts:', error);
+          console.error('❌ Error fetching community posts:', error);
+        } finally {
+          setIsLoadingCommunity(false);
+        }
+      }
+    };
+
+    fetchCommunityPosts();
+  }, [tab, user]);
 
   // Delete account handler - Backend password verification
   const handleDeleteAccount = async () => {
@@ -528,83 +691,6 @@ export default function UserProfilePage() {
     const fileInput = document.getElementById('avatar-upload');
     if (fileInput) fileInput.value = '';
   };
-
-  // ===== Unified Update Function =====
-const updateProfile = async (updateData, type = 'profile') => {
-  try {
-    console.log(`📤 Updating ${type}:`, updateData);
-
-    // Use FormData for ALL updates to match avatar upload success
-    const formData = new FormData();
-    
-    // Add all update data as JSON string
-    formData.append('updateData', JSON.stringify(updateData));
-    formData.append('updateType', type);
-
-    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-      method: 'POST', // Use POST instead of PUT
-      credentials: 'include',
-      body: formData, // Use FormData like avatar upload
-    });
-
-    console.log(`📥 ${type} update response status:`, res.status);
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`❌ ${type} update error:`, errorText);
-      throw new Error(`Failed to update ${type} (${res.status}): ${errorText}`);
-    }
-
-    const result = await res.json();
-    console.log(`✅ ${type} update result:`, result);
-
-    if (result.success) {
-      return result;
-    } else {
-      throw new Error(result.error || `Update failed for ${type}`);
-    }
-  } catch (error) {
-    console.error(`${type} update error:`, error);
-    throw error;
-  }
-};
-
-// ===== Save: Personal Info =====
-const savePersonal = async () => {
-  try {
-    const updateData = {
-      location: form.location,
-      bio: bio
-    };
-
-    await updateProfile(updateData, 'personal info');
-    alert("Profile updated successfully!");
-
-    // Update local state immediately
-    setUser(prev => ({ ...prev, location: form.location, bio: bio }));
-  } catch (e) {
-    alert(e.message || "Failed to update profile");
-  }
-};
-
-// ===== Save: Preferences =====
-const savePrefs = async () => {
-  try {
-    const preferencesPayload = {
-      dietaryRestrictions: prefs.dietary || [],
-      allergies: prefs.allergies || [],
-      emailNotifications: prefs.emailNotifications,
-      pushNotifications: prefs.pushNotifications,
-      profileVisibility: prefs.profileVisibility,
-      language: prefs.language
-    };
-
-    await updateProfile(preferencesPayload, 'preferences');
-    alert("Preferences updated successfully!");
-  } catch (e) {
-    alert(e.message || "Failed to update preferences");
-  }
-};
 
   // ===== LOADING STATE =====
   if (isLoading) {
@@ -944,59 +1030,71 @@ const savePrefs = async () => {
               </>
             )}
 
-            {/* ===== Contributions (Status) ===== */}
+            {/*// ===== Contributions (Status) =====*/}
             {tab === "status" && (
               <>
-                {Array.isArray(user?.status) && user.status.length ? (() => {
-                  const all = user.status.slice(); // real data from backend (likely recipes only)
-                  const recipes = all.filter(isRecipe).sort(byDateDesc);
+                {(() => {
+                  const recipeData = Array.isArray(recipeContributions) 
+                    ? recipeContributions.filter(item => {
+                        const result = isRecipe(item);
+                        console.log("🔍 Filtering - ID:", item?.id, "foodName:", item?.foodName, "isRecipe:", result);
+                        return result;
+                      }).sort(byDateDesc)
+                    : [];
+
+                  const communityData = Array.isArray(communityPosts)
+                    ? communityPosts.filter(isCommunity).sort(byDateDesc)
+                    : [];
+
+                  console.log("📊 Recipe data:", recipeData);
+                  console.log("📊 Community data:", communityData);
                   
-                  const community = HARDCODED_COMMUNITY.slice().sort(byDateDesc);
+                  const hasAnyContributions = recipeData.length > 0 || communityData.length > 0;
 
                   return (
                     <div className="upp-stack">
-                      {/* Recipes Section (REAL) */}
+                      {/* Recipes Section */}
                       <div className="upp-card">
-                        <h3 className="upp-card-title">Recipes ({recipes.length})</h3>
-                        {recipes.length ? (
+                        <h3 className="upp-card-title">Recipes ({recipeData.length})</h3>
+                        {isLoadingRecipes ? (
+                          <div className="upp-muted">Loading recipes...</div>
+                        ) : recipeData.length ? (
                           <div className="upp-stack">
-                            {recipes.map((c) => <ContributionRow key={`r-${c.id}`} c={c} />)}
+                            {recipeData.map((c) => <ContributionRow key={`recipe-${c.id}`} c={c} />)}
                           </div>
                         ) : (
-                          <div className="upp-muted">No recipe contributions</div>
+                          <div className="upp-muted">
+                            {recipeContributions?.length > 0 ? `${recipeContributions.length} recipes found but not displaying` : 'No recipe contributions yet'}
+                          </div>
                         )}
                       </div>
 
-                      {/* Community Posts Section (HARDCODED) */}
+                      {/* Community Posts Section (REAL) */}
                       <div className="upp-card">
-                        <h3 className="upp-card-title">Community Posts ({community.length})</h3>
-                        {community.length ? (
+                        <h3 className="upp-card-title">Community Posts ({communityData.length})</h3>
+                        {communityData.length ? (
                           <div className="upp-stack">
-                            {community.map((c) => <ContributionRow key={`hc-${c.id}`} c={c} />)}
+                            {communityPosts.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
                           </div>
                         ) : (
-                          <div className="upp-muted">No community posts</div>
+                          <div className="upp-muted">{isLoadingCommunity ? 'Loading community posts...' : 'No community posts yet'}</div>
                         )}
                       </div>
+
+                      {!hasAnyContributions && !isLoadingCommunity && !isLoadingCommunity && (
+                        <div className="upp-center">
+                          <p className="upp-muted">You haven't made any contributions yet</p>
+                          <button 
+                            className="lrp-btn lrp-btn-primary"
+                            onClick={() => navigate('/addrecipe')}
+                          >
+                            Share Your First Recipe
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
-                })() : (
-                  // If backend returns no status at all, still show hardcoded community
-                  <div className="upp-stack">
-                    <div className="upp-card">
-                      <h3 className="upp-card-title">Recipes (0)</h3>
-                      <div className="upp-muted">No recipe contributions</div>
-                    </div>
-                    <div className="upp-card">
-                      <h3 className="upp-card-title">Community Posts ({HARDCODED_COMMUNITY.length})</h3>
-                      <div className="upp-stack">
-                        {HARDCODED_COMMUNITY.slice().sort(byDateDesc).map((c) => (
-                          <ContributionRow key={`hc-${c.id}`} c={c} />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                })()}
               </>
             )}
 

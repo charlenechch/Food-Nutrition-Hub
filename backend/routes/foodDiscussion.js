@@ -45,7 +45,20 @@ function formatToDate(timestamp) {
 router.get('/food/:foodId', async (req, res) => {
   try {
     const { foodId } = req.params;
-    const userProfileID = req.user?.userProfileID;
+    //const userProfileID = req.user?.userProfileID;
+
+    let userProfileID = null;
+    if (req.session && req.session.user) {
+      const userID = req.session.user.userID;
+      const [profileResult] = await db.query(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+      );
+
+      if (profileResult.length > 0) {
+        userProfileID = profileResult[0].userProfileID;
+      }
+    }
 
     console.log("🟢 GET COMMENTS - foodId:", foodId, "userProfileID:", userProfileID);
 
@@ -74,55 +87,39 @@ router.get('/food/:foodId', async (req, res) => {
 
     console.log("🟢 Raw comments from DB:", comments.length);
     
-    // ✅ MANUAL user_liked check with detailed debugging
+    // check user_liked 
     comments = comments.map(comment => {
-      console.log(`🟢 Processing comment ${comment.id}:`);
-      console.log(`   upvoted_by:`, comment.upvoted_by);
-      console.log(`   userProfileID to check:`, userProfileID);
-      
       let user_liked = false;
       
-      try {
-        if (comment.upvoted_by) {
-          // Handle different possible values
-          if (comment.upvoted_by === 'null' || comment.upvoted_by === '' || comment.upvoted_by === '[]' || comment.upvoted_by === '[null]') {
-            console.log(`   Empty upvoted_by, setting user_liked: false`);
-            user_liked = false;
+      if (userProfileID && comment.upvoted_by) {
+        try {
+          const upvotedData = comment.upvoted_by;
+          
+          // Handle JSON database type
+          let upvotedArray;
+          if (Array.isArray(upvotedData)) {
+            upvotedArray = upvotedData; // Already an array (JSON type)
+          } else if (typeof upvotedData === 'string') {
+            // String fallback
+            upvotedArray = JSON.parse(upvotedData);
           } else {
-            console.log(`   Parsing upvoted_by...`);
-            const upvotedArray = JSON.parse(comment.upvoted_by);
-            console.log(`   Parsed array:`, upvotedArray);
-            console.log(`   Array type:`, typeof upvotedArray, "Is array:", Array.isArray(upvotedArray));
-            
-            if (typeof upvotedArray === 'number') {
-              // If it's just a number, convert to array
-              upvotedArray = [upvotedArray];
-              console.log(`   Converted single number to array:`, upvotedArray);
-            }
-
-            if (Array.isArray(upvotedArray)) {
-              // Clean the array - remove any null/undefined values
-              const cleanArray = upvotedArray.filter(id => id !== null && id !== undefined);
-              console.log(`   Cleaned array:`, cleanArray);
-              
-              user_liked = cleanArray.includes(userProfileID);
-              console.log(`   user_liked result:`, user_liked, "(looking for", userProfileID, "in", cleanArray, ")");
-            } else {
-              console.log(`   ❌ upvoted_by is not an array!`);
-              user_liked = false;
-            }
+            upvotedArray = [];
           }
-        } else {
-          console.log(`   No upvoted_by field`);
+          
+          // Clean and convert to numbers
+          const cleanArray = upvotedArray
+            .filter(id => id !== null && id !== undefined)
+            .map(id => Number(id));
+          
+          user_liked = cleanArray.includes(Number(userProfileID));
+          
+        } catch (error) {
+          console.error(`❌ Error parsing upvoted_by for comment ${comment.id}:`, error.message);
           user_liked = false;
         }
-      } catch (error) {
-        console.error(`   ❌ Error parsing upvoted_by:`, error.message);
-        user_liked = false;
       }
 
-      console.log(`   Final user_liked for comment ${comment.id}:`, user_liked);
-      console.log(`   ---`);
+      console.log(`✅ Comment ${comment.id}: user_liked = ${user_liked} (userProfileID: ${userProfileID})`);
 
       return {
         ...comment,
@@ -180,16 +177,44 @@ router.post('/', async (req, res) => {
     }
     
     const userID = req.session.user.userID;
-    const [profileResult] = await db.query(
+    const userRole = req.session.user.role; // Get user role
+
+    console.log('👤 User attempting comment:', { userID, userRole });
+
+    //Handle both regular users and admins
+    let userProfileID;
+    let [profileResult] = await db.query(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
     );
     
     if (profileResult.length === 0) {
-      return res.status(400).json({ error: 'User profile not found' });
+      console.log('🆕 Creating userProfile for user:', { userID, userRole });
+      
+      // Create userProfile if it doesn't exist (works for both regular users and admins)
+      const [createResult] = await db.query(
+        `INSERT INTO userProfile 
+         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
+         VALUES (?, '[]', '[]', true, true, true, 'en')`,
+        [userID]
+      );
+      
+      // Get the newly created userProfileID
+      [profileResult] = await db.query(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+      );
+      
+      if (profileResult.length === 0) {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to create user profile' 
+        });
+      }
     }
     
-    const userProfileID = profileResult[0].userProfileID;
+    userProfileID = profileResult[0].userProfileID;
+    console.log('✅ Using userProfileID:', userProfileID, 'for role:', userRole);
 
     if (!foodID || !userProfileID || !content?.trim()) {
       return res.status(400).json({
@@ -230,26 +255,12 @@ router.post('/', async (req, res) => {
       WHERE d.discussionID = ? 
     `;
 
-    console.log("🟢 CREATE COMMENT - Executing SQL for new comment data...");
-    const newCommentResult = await db.query(newCommentSql, [newCommentId, userProfileID]);
+    const newCommentResult = await db.query(newCommentSql, [newCommentId]);
     const newCommentData = firstRows(newCommentResult)[0];
-
-    console.log("🟢 CREATE COMMENT - Raw SQL result:", newCommentResult);
-    console.log("🟢 CREATE COMMENT - Processed newCommentData:", newCommentData);
 
     if (!newCommentData) {
       return res.status(500).json({ success: false, message: 'Failed to retrieve created comment' });
     }
-
-    console.log("🔍 CREATE COMMENT - Field check:", {
-      id: newCommentData.id,
-      userProfileID: newCommentData.userProfileID,
-      username: newCommentData.username,
-      avatar: newCommentData.avatar,
-      userRole: newCommentData.userRole,
-      hasAvatar: !!newCommentData.avatar,
-      avatarLength: newCommentData.avatar?.length
-    });
 
     const responseData = {
       success: true,
@@ -263,7 +274,11 @@ router.post('/', async (req, res) => {
       },
     };
 
-    console.log("🟢 CREATE COMMENT - Final response data:", JSON.stringify(responseData, null, 2));
+    console.log("✅ Comment created by:", { 
+      user: newCommentData.username, 
+      role: newCommentData.userRole,
+      isAdmin: newCommentData.userRole === 'admin'
+    });
 
     res.json(responseData);
   } catch (error) {
@@ -272,7 +287,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✅ Add reply to a discussion
+// ✅ Add reply to a discussion 
 router.post('/:discussionId/replies', async (req, res) => {
   try {
     const { discussionId } = req.params;
@@ -283,16 +298,43 @@ router.post('/:discussionId/replies', async (req, res) => {
     }
     
     const userID = req.session.user.userID;
-    const [profileResult] = await db.query(
+    const userRole = req.session.user.role;
+
+    console.log('👤 User attempting reply:', { userID, userRole });
+
+    //Handle both regular users and admins
+    let userProfileID;
+    let [profileResult] = await db.query(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
     );
     
     if (profileResult.length === 0) {
-      return res.status(400).json({ error: 'User profile not found' });
+      console.log('🆕 Creating userProfile for user:', { userID, userRole });
+      
+      // Create userProfile if it doesn't exist
+      const [createResult] = await db.query(
+        `INSERT INTO userProfile 
+         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
+         VALUES (?, '[]', '[]', true, true, true, 'en')`,
+        [userID]
+      );
+      
+      [profileResult] = await db.query(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+      );
+      
+      if (profileResult.length === 0) {
+        return res.status(500).json({ 
+          success: false, 
+          message: 'Failed to create user profile' 
+        });
+      }
     }
     
-    const userProfileID = profileResult[0].userProfileID;
+    userProfileID = profileResult[0].userProfileID;
+    console.log('✅ Using userProfileID:', userProfileID, 'for role:', userRole);
 
     if (!discussionId || !userProfileID || !reply?.trim()) {
       return res.status(400).json({
@@ -332,22 +374,9 @@ router.post('/:discussionId/replies', async (req, res) => {
     const replyResult = await db.query(selectSql, [newReplyId]);
     const newReplyData = firstRows(replyResult)[0];
 
-    console.log("🟢 CREATE REPLY - Raw SQL result:", replyResult);
-    console.log("🟢 CREATE REPLY - Processed newReplyData:", newReplyData);
-
     if (!newReplyData) {
       return res.status(500).json({ success: false, message: 'Failed to retrieve created reply data' });
     }
-
-    console.log("🔍 CREATE REPLY - Field check:", {
-      replyID: newReplyData.replyID,
-      userProfileID: newReplyData.userProfileID,
-      username: newReplyData.username,
-      avatar: newReplyData.avatar,
-      userRole: newReplyData.userRole,
-      hasAvatar: !!newReplyData.avatar,
-      avatarLength: newReplyData.avatar?.length
-    });
 
     const responseData = {
       success: true,
@@ -359,7 +388,11 @@ router.post('/:discussionId/replies', async (req, res) => {
       },
     };
 
-    console.log("🟢 CREATE REPLY - Final response data:", JSON.stringify(responseData, null, 2));
+    console.log("✅ Reply created by:", { 
+      user: newReplyData.username, 
+      role: newReplyData.userRole,
+      isAdmin: newReplyData.userRole === 'admin'
+    });
 
     res.json(responseData);
   } catch (error) {
@@ -371,6 +404,8 @@ router.post('/:discussionId/replies', async (req, res) => {
 router.patch('/:commentId/vote', async (req, res) => {
   try {
     const { commentId } = req.params;
+    
+    console.log("🟡 VOTE REQUEST - commentId:", commentId);
     
     if (!req.session || !req.session.user) {
       return res.status(401).json({ error: 'Not authenticated' });
@@ -388,98 +423,109 @@ router.patch('/:commentId/vote', async (req, res) => {
     
     const userProfileID = profileResult[0].userProfileID;
 
-    if (!userProfileID || typeof userProfileID !== 'number') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid userProfileID' 
-      });
-    }
-    
-    // 1. Get current state
+    // 1. Get current upvoted_by data and upVotes
     const [existing] = await db.query(
       `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ?`,
       [commentId]
     );
 
-    console.log("🔵 Existing data:", existing[0]);
-
-    let upvotedBy = [];
-    try {
-      if (existing[0]?.upvoted_by) {
-        const upvotedData = existing[0].upvoted_by;
-        console.log("🔵 Raw upvoted_by:", upvotedData);
-        if (upvotedData && upvotedData !== 'null' && upvotedData !== '' && upvotedData !== '[]') {
-          upvotedBy = JSON.parse(upvotedData);
-        }
-      }
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      upvotedBy = [];
+    if (!existing.length) {
+      return res.status(404).json({ success: false, message: 'Comment not found' });
     }
 
-    console.log("🔵 Parsed upvotedBy:", upvotedBy);
+    let upvotedBy = [];
+    const currentUpvotedBy = existing[0].upvoted_by;
+    const currentUpVotes = existing[0].upVotes || 0;
     
-    // Ensure upvotedBy is always an array
+    console.log("🟡 RAW upvoted_by from DB:", currentUpvotedBy);
+    console.log("🟡 Type of upvoted_by:", typeof currentUpvotedBy);
+    
+    // Handle different data types for upvoted_by
+    if (currentUpvotedBy !== null && currentUpvotedBy !== undefined) {
+      try {
+        // If it's already a JavaScript array (JSON database type)
+        if (Array.isArray(currentUpvotedBy)) {
+          upvotedBy = currentUpvotedBy;
+        } 
+        // If it's a string that might be JSON
+        else if (typeof currentUpvotedBy === 'string') {
+          // Check if it's a valid JSON string
+          if (currentUpvotedBy.trim().startsWith('[') || currentUpvotedBy.trim().startsWith('{')) {
+            const parsed = JSON.parse(currentUpvotedBy);
+            // If it's an object, extract values; if array, use as-is
+            upvotedBy = Array.isArray(parsed) ? parsed : Object.values(parsed);
+          } else {
+            // If it's not JSON, treat as empty array
+            upvotedBy = [];
+          }
+        }
+        // If it's an object, convert to array
+        else if (typeof currentUpvotedBy === 'object' && currentUpvotedBy !== null) {
+          upvotedBy = Object.values(currentUpvotedBy);
+        }
+      } catch (e) {
+        console.error('❌ Parse error:', e.message);
+        upvotedBy = [];
+      }
+    }
+
+    // Ensure it's an array and clean it
     if (!Array.isArray(upvotedBy)) {
       upvotedBy = [];
     }
+
+    // Convert all IDs to numbers for consistent comparison
+    upvotedBy = upvotedBy.map(id => Number(id)).filter(id => !isNaN(id) && id !== null);
+    const userProfileIDNum = Number(userProfileID);
+
+    console.log("🟡 PARSED upvotedBy:", upvotedBy, "userProfileID:", userProfileIDNum);
+
+    let newUpvotedBy;
+    let newUpVotes;
+    let userLiked;
+
+    // Check if user already liked
+    const userIndex = upvotedBy.indexOf(userProfileIDNum);
     
-    // Filter out any invalid values
-    upvotedBy = upvotedBy.filter(id => id !== null && id !== undefined && typeof id === 'number');
-    
-    console.log("🔵 Cleaned upvotedBy:", upvotedBy);
-    console.log("🔵 User currently liked:", upvotedBy.includes(userProfileID));
-
-    let newUpvoted = [...upvotedBy];
-    let voteChange = 0;
-    let userCurrentlyLiked = upvotedBy.includes(userProfileID);
-
-    console.log("🔵 BEFORE - userCurrentlyLiked:", userCurrentlyLiked, "upvotedBy:", upvotedBy);
-
-    if (userCurrentlyLiked) {
+    if (userIndex > -1) {
       // User already liked - REMOVE like
-      newUpvoted = upvotedBy.filter(id => id !== userProfileID);
-      voteChange = -1;
-      userCurrentlyLiked = false;
-      console.log("🔵 REMOVING like");
+      newUpvotedBy = upvotedBy.filter(id => id !== userProfileIDNum);
+      newUpVotes = Math.max(0, currentUpVotes - 1);
+      userLiked = false;
+      console.log("🟡 ACTION: REMOVING like - user found at index:", userIndex);
     } else {
       // User hasn't liked - ADD like
-      newUpvoted.push(userProfileID);
-      voteChange = 1;
-      userCurrentlyLiked = true;
-      console.log("🔵 ADDING like");
+      newUpvotedBy = [...upvotedBy, userProfileIDNum];
+      newUpVotes = currentUpVotes + 1;
+      userLiked = true;
+      console.log("🟡 ACTION: ADDING like - user not found in array");
     }
 
-    console.log("🔵 AFTER - userCurrentlyLiked:", userCurrentlyLiked, "newUpvoted:", newUpvoted, "voteChange:", voteChange);
+    console.log("🟡 NEW upvotedBy to save:", newUpvotedBy);
+    console.log("🟡 NEW upVotes:", newUpVotes);
 
-    // Update database
-    await db.query(
+    const updateResult = await db.query(
       `UPDATE discussion SET 
-        upVotes = upVotes + ?, 
+        upVotes = ?, 
         upvoted_by = ?
        WHERE discussionID = ?`,
-      [voteChange, JSON.stringify(newUpvoted), commentId]
+      [newUpVotes, JSON.stringify(newUpvotedBy), commentId]
     );
 
-    // Get updated count
-    const [updated] = await db.query(
-      `SELECT upVotes as likes FROM discussion WHERE discussionID = ?`,
-      [commentId]
-    );
-
-    console.log("🔵 Final result - likes:", updated[0]?.likes, "userLiked:", userCurrentlyLiked);
+    console.log("🟡 UPDATE result - affected rows:", updateResult[0]?.affectedRows);
 
     res.json({ 
       success: true, 
-      message: userCurrentlyLiked ? 'Liked successfully' : 'Unliked successfully',
+      message: userLiked ? 'Liked successfully' : 'Unliked successfully',
       data: {
-        likes: updated[0]?.likes || 0,
-        userLiked: userCurrentlyLiked
+        likes: newUpVotes,
+        userLiked: userLiked
       }
     });
+
   } catch (error) {
-    console.error('Error updating like:', error);
-    res.status(500).json({ success: false, message: 'Failed to update like' });
+    console.error('❌ Error updating like:', error);
+    res.status(500).json({ success: false, message: 'Failed to update like: ' + error.message });
   }
 });
 
@@ -735,6 +781,288 @@ router.get('/food/:foodId/stats', async (req, res) => {
   } catch (error) {
     console.error('Error fetching comment stats:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch comment statistics' });
+  }
+});
+
+// DELETE like from the comment
+router.delete('/:commentId/like', async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
+
+    // Get current upvoted_by array
+    const [existing] = await db.query(
+      `SELECT upvoted_by, upVotes FROM discussion WHERE discussionID = ?`,
+      [commentId]
+    );
+
+    if (!existing.length) {
+      return res.status(404).json({ success: false, message: 'Comment not found' });
+    }
+
+    let upvotedBy = [];
+    try {
+      if (existing[0]?.upvoted_by && existing[0].upvoted_by !== 'null' && existing[0].upvoted_by !== '' && existing[0].upvoted_by !== '[]') {
+        upvotedBy = JSON.parse(existing[0].upvoted_by);
+      }
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      upvotedBy = [];
+    }
+
+    // Check if user actually liked this post
+    const userIndex = upvotedBy.indexOf(userProfileID);
+    if (userIndex === -1) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'You have not liked this comment' 
+      });
+    }
+
+    // Remove user from upvoted_by array
+    upvotedBy.splice(userIndex, 1);
+    
+    // Update database
+    await db.query(
+      `UPDATE discussion SET 
+        upVotes = upVotes - 1, 
+        upvoted_by = ?
+       WHERE discussionID = ?`,
+      [JSON.stringify(upvotedBy), commentId]
+    );
+
+    // Get updated count
+    const [updated] = await db.query(
+      `SELECT upVotes as likes FROM discussion WHERE discussionID = ?`,
+      [commentId]
+    );
+
+    res.json({ 
+      success: true, 
+      message: 'Like removed successfully',
+      data: {
+        likes: updated[0]?.likes || 0,
+        userLiked: false
+      }
+    });
+  } catch (error) {
+    console.error('Error removing like:', error);
+    res.status(500).json({ success: false, message: 'Failed to remove like' });
+  }
+});
+
+// ✅ Get food like status for current user
+router.get('/food/:foodId/like-status', async (req, res) => {
+  try {
+    const { foodId } = req.params;
+
+    if (!req.session || !req.session.user) {
+      return res.json({ success: true, data: { isLiked: false, likesCount: 0 } });
+    }
+
+    const userID = req.session.user.userID;
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (profileResult.length === 0) {
+      return res.json({ success: true, data: { isLiked: false, likesCount: 0 } });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+
+    // Get food like data from discussion table
+    const [discussionResult] = await db.query(
+      `SELECT likes_count, liked_by 
+       FROM discussion 
+       WHERE foodID = ? 
+       ORDER BY created_At DESC 
+       LIMIT 1`,
+      [foodId]
+    );
+
+    let isLiked = false;
+    let likesCount = 0;
+
+    if (discussionResult.length > 0) {
+      const discussion = discussionResult[0];
+      likesCount = discussion.likes_count || 0;
+      
+      // Check if user liked this food
+      const likedBy = discussion.liked_by;
+      if (likedBy) {
+        try {
+          let likedByArray = [];
+          if (Array.isArray(likedBy)) {
+            likedByArray = likedBy;
+          } else if (typeof likedBy === 'string') {
+            likedByArray = JSON.parse(likedBy);
+          }
+          
+          // Convert to numbers and check if user exists
+          likedByArray = likedByArray.map(id => Number(id)).filter(id => !isNaN(id));
+          isLiked = likedByArray.includes(Number(userProfileID));
+        } catch (error) {
+          console.error('Error parsing liked_by:', error);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        isLiked,
+        likesCount
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching food like status:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch like status' });
+  }
+});
+
+// ✅ Toggle food like
+  router.get('/food/:foodId/like-status', async (req, res) => {
+  try {
+    const { foodId } = req.params;
+
+    const [foodResult] = await db.query(
+      `SELECT likes_count FROM food WHERE foodID = ?`,
+      [foodId]
+    );
+
+    const likesCount = foodResult.length > 0 ? (foodResult[0].likes_count || 0) : 0;
+
+    res.json({
+      success: true,
+      data: { likesCount }
+    });
+    } catch (error) {
+      console.error('❌ like-status error:', error);
+      res.json({ success: true, data: { likesCount: 0 } });
+    }
+  });
+
+  // ✅ Toggle food like (POST route)
+router.post('/food/:foodId/toggle-like', async (req, res) => {
+  try {
+    const { foodId } = req.params;
+    console.log('🔵 BACKEND toggle-like - foodId:', foodId);
+
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+
+    const userID = req.session.user.userID;
+    console.log('🔵 BACKEND toggle-like - userID:', userID);
+    
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (profileResult.length === 0) {
+      return res.status(400).json({ success: false, message: 'User profile not found' });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+    console.log('🔵 BACKEND toggle-like - userProfileID:', userProfileID);
+
+    // Get current food like data from FOOD table
+    const [foodResult] = await db.query(
+      `SELECT likes_count, liked_by 
+       FROM food 
+       WHERE foodID = ?`,
+      [foodId]
+    );
+
+    if (foodResult.length === 0) {
+      return res.status(404).json({ success: false, message: 'Food not found' });
+    }
+
+    const food = foodResult[0];
+    let currentLikesCount = food.likes_count || 0;
+    let currentLikedBy = [];
+    
+    // Parse existing liked_by data
+    const likedBy = food.liked_by;
+    if (likedBy) {
+      try {
+        if (Array.isArray(likedBy)) {
+          currentLikedBy = likedBy;
+        } else if (typeof likedBy === 'string') {
+          currentLikedBy = JSON.parse(likedBy);
+        }
+      } catch (error) {
+        console.error('Error parsing existing liked_by:', error);
+        currentLikedBy = [];
+      }
+    }
+
+    // Clean the array
+    currentLikedBy = currentLikedBy.map(id => Number(id)).filter(id => !isNaN(id));
+    const userProfileIDNum = Number(userProfileID);
+
+    let newLikedBy;
+    let newLikesCount;
+    let isLiked;
+
+    // Check if user already liked
+    const userIndex = currentLikedBy.indexOf(userProfileIDNum);
+    
+    if (userIndex > -1) {
+      // Unlike: remove user from array
+      newLikedBy = currentLikedBy.filter(id => id !== userProfileIDNum);
+      newLikesCount = Math.max(0, currentLikesCount - 1);
+      isLiked = false;
+      console.log('🔵 BACKEND toggle-like - UNLIKING food');
+    } else {
+      // Like: add user to array
+      newLikedBy = [...currentLikedBy, userProfileIDNum];
+      newLikesCount = currentLikesCount + 1;
+      isLiked = true;
+      console.log('🔵 BACKEND toggle-like - LIKING food');
+    }
+
+    console.log('🔵 BACKEND toggle-like - newLikesCount:', newLikesCount);
+    console.log('🔵 BACKEND toggle-like - newLikedBy:', newLikedBy);
+
+    // Update the FOOD table
+    await db.query(
+      `UPDATE food 
+       SET likes_count = ?, liked_by = ?
+       WHERE foodID = ?`,
+      [newLikesCount, JSON.stringify(newLikedBy), foodId]
+    );
+
+    console.log('🟢 BACKEND toggle-like - Update successful');
+
+    res.json({
+      success: true,
+      data: {
+        isLiked,
+        likesCount: newLikesCount
+      }
+    });
+  } catch (error) {
+    console.error('❌ BACKEND toggle-like - Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to toggle like' });
   }
 });
 
