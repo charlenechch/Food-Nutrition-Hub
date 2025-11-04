@@ -1,8 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/AdminDashboard.css";
+
+// === Components ===
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import FoodDatabaseSection from "./AdminFoodDatabase.jsx";
+import RecipeDatabaseSection from "./AdminRecipeDatabase.jsx";
+import ContentModerationSection from "./AdminContentModeration.jsx";
+import UserManagement from "./AdminUserManagementTab";
+import Analytics from "./Analytics";
+import AdminSystemSettings from "./AdminSystemSettings.jsx";
 
 // === Icons ===
 import { FiDatabase } from "react-icons/fi";
@@ -12,19 +20,12 @@ import { FaRegFlag } from "react-icons/fa6";
 import { FaRegChartBar } from "react-icons/fa";
 import { CiSettings } from "react-icons/ci";
 
-// === Sections ===
-import FoodDatabaseSection from "./AdminFoodDatabase.jsx";
-import RecipeDatabaseSection from "./AdminRecipeDatabase.jsx";
-import ContentModerationSection from "./AdminContentModeration.jsx";
-import UserManagement from "./AdminUserManagementTab";
-import Analytics from "./Analytics"; 
-import AdminSystemSettings from "./AdminSystemSettings.jsx";
-
+// ✅ Backend API endpoint
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("food");
   const navigate = useNavigate();
-  const [category, setCategory] = useState("All Categories");
 
   const categories = [
     "All Categories",
@@ -38,7 +39,108 @@ const AdminDashboard = () => {
     "Soup",
     "Meat",
   ];
-  
+
+  // ✅ Live summary & data states
+  const [summary, setSummary] = useState({
+    totalFoods: 0,
+    totalUsers: 0,
+    pendingApproval: 0,
+    flaggedContent: 0,
+  });
+
+  const [foodData, setFoodData] = useState([]);
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // ========================================================
+  // ✅ Fetch total food count directly from backend
+  // ========================================================
+  useEffect(() => {
+    const fetchTotalFoods = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/foods/count`);
+        const data = await response.json();
+
+        if (data.success) {
+          setSummary((prev) => ({ ...prev, totalFoods: data.total }));
+          console.log("✅ Total food count fetched:", data.total);
+        } else {
+          console.error("❌ Failed to fetch total foods:", data.error);
+        }
+      } catch (err) {
+        console.error("❌ Error fetching total foods:", err.message);
+      }
+    };
+
+    fetchTotalFoods();
+  }, []);
+
+  // ========================================================
+  // ✅ Fetch full food data (for table / database display)
+  // ========================================================
+  useEffect(() => {
+    const fetchFoods = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/foods`);
+        const data = await res.json();
+        if (Array.isArray(data)) setFoodData(data);
+      } catch (error) {
+        console.error("❌ Error fetching food data:", error);
+      }
+    };
+    fetchFoods();
+  }, []);
+
+  // ========================================================
+  // ✅ Fetch recipe data
+  // ========================================================
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const recipeRes = await fetch(`${API_URL}/api/recipe/all/recipes?includeAll=true`);
+
+        const data = await recipeRes.json();
+        if (Array.isArray(data)) setRecipes(data);
+      } catch (error) {
+        console.error("❌ Error fetching recipes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecipes();
+  }, []);
+
+  // ========================================================
+  // ✅ Update summary dynamically
+  // ========================================================
+  useEffect(() => {
+    setSummary((prev) => ({
+      ...prev,
+      // totalFoods is already live-fetched from backend count
+      pendingApproval: recipes.filter((r) => r.status === "Pending").length,
+    }));
+  }, [recipes]);
+
+  // ========================================================
+  // ✅ Derived datasets
+  // ========================================================
+  const approvedRecipes = recipes.filter((r) => r.status === "Approved");
+  const pendingRecipes = recipes.filter(
+    (r) => r.status === "Pending" || r.status === "Rejected"
+  );
+
+  const [approvedContent, setApprovedContent] = useState([]);
+  const [pendingContent, setPendingContent] = useState([]);
+
+  useEffect(() => {
+    setApprovedContent(approvedRecipes);
+    setPendingContent(pendingRecipes);
+  }, [recipes]);
+
+  // ========================================================
+  // 💾 OLD HARDCODED DATA (COMMENTED OUT for reference only)
+  // ========================================================
+  /*
   const summary = {
     totalFoods: 347,
     totalUsers: 1247,
@@ -46,7 +148,6 @@ const AdminDashboard = () => {
     flaggedContent: 8,
   };
 
-  // food data 
   const foodData = [
     { name: "Manok Pansoh", category: "Poultry", origin: "Iban", updated: "2024-01-15" },
     { name: "Umai", category: "Seafood", origin: "Melanau", updated: "2024-01-14" },
@@ -56,42 +157,44 @@ const AdminDashboard = () => {
     { name: "Laksa Sarawak", category: "Soup", origin: "Sarawak", updated: "2024-01-09" },
   ];
 
-    // recipe data
-    const [recipes, setRecipes] = useState([
+  const [recipes, setRecipes] = useState([
     { name: "Traditional Manok Pansoh", servings: "4 servings", food: "Manok Pansoh", author: "Chef Ahmad", updated: "2024-01-15", status: "Approved" },
     { name: "Melanau Umai Recipe", servings: "2 servings", food: "Umai", author: "Sarah Lim", updated: "2024-01-14", status: "Pending" },
     { name: "Jungle Midin Stir-fry", servings: "3 servings", food: "Midin Belacan", author: "Local Chef", updated: "2024-01-13", status: "Approved" },
     { name: "Bidayuh Linut Dessert", servings: "6 servings", food: "Linut", author: "Heritage Keeper", updated: "2024-01-12", status: "Rejected" },
-    { name: "Terung Dayak Curry", servings: "5 servings", food: "Terung Dayak", author: "Chef Kamal", updated: "2024-01-11", status: "Pending" },
-    { name: "Kolo Mee Sarawak", servings: "3 servings", food: "Kolo Mee", author: "Tan Ming", updated: "2024-01-10", status: "Approved" },
   ]);
 
-  // content data
   const [contentPosts] = useState([
     { id: 1, name: "Manok Pansoh", submitter: "Joanna Lee", date: "2025-10-20", status: "Pending" },
     { id: 2, name: "Laksa Sarawak", submitter: "Brian Tan", date: "2025-10-22", status: "Pending" },
-    { id: 3, name: "Kuih Lapis Sarawak", submitter: "Lucy Goh", date: "2025-10-23", status: "Pending" },
-    { id: 4, name: "Midin Belacan", submitter: "Alyssa Young", date: "2025-10-25", status: "Rejected" },
     { id: 5, name: "Kek Lapis Modern", submitter: "Amira Binti Salleh", date: "2025-10-26", status: "Approved" },
   ]);
+  */
 
-  // Filterimg
-  const approvedRecipes = recipes.filter(r => r.status === "Approved");
-  const pendingRecipes = recipes.filter(r => r.status === "Pending" || r.status === "Rejected");
-
-  const approvedContent = contentPosts.filter(c => c.status === "Approved");
-  const pendingContent = contentPosts.filter(c => c.status === "Pending" || c.status === "Rejected");
-
-  // Function to render content based on active tab
+  // ========================================================
+  // ✅ Render content dynamically by activeTab
+  // ========================================================
   const renderContent = () => {
     switch (activeTab) {
       case "food":
         return (
           <>
-          <FoodDatabaseSection foodData={foodData} categories={categories} />
-          <RecipeDatabaseSection recipes={approvedRecipes} categories={categories}  sectionType="approved"/>
-          <ContentModerationSection pendingContent={approvedContent} onlyApproved />
-        </>
+            {/* === Food Database === */}
+            <FoodDatabaseSection foodData={foodData} categories={categories} />
+
+            {/* === Approved Recipes === */}
+            <RecipeDatabaseSection
+              recipes={approvedRecipes}
+              categories={categories}
+              sectionType="approved"
+            />
+
+            {/* === Approved Content === */}
+            <ContentModerationSection
+              pendingContent={approvedContent}
+              onlyApproved={true}
+            />
+          </>
         );
 
       case "users":
@@ -100,28 +203,36 @@ const AdminDashboard = () => {
       case "moderation":
         return (
           <>
-          <RecipeDatabaseSection recipes={pendingRecipes} categories={categories} sectionType="pending"/>
-          <ContentModerationSection pendingContent={pendingContent} />
+            {/* === Pending or Rejected Recipes === */}
+            <RecipeDatabaseSection
+              recipes={pendingRecipes}
+              categories={categories}
+              sectionType="pending"
+            />
+
+            {/* === Pending or Rejected Content === */}
+            <ContentModerationSection
+              pendingContent={pendingContent}
+              onlyApproved={false}
+            />
           </>
         );
 
       case "analytics":
-        return <Analytics />; // render Analytics component
+        return <Analytics />;
 
       case "settings":
         return <AdminSystemSettings onPageChange={setActiveTab} />;
 
       default:
-        return (
-          <div className="food-database-section">
-            {/* Default to food database */}
-          </div>
-        );
+        return <div className="food-database-section"></div>;
     }
   };
 
+  // ========================================================
+  // ✅ Main Render
+  // ========================================================
   return (
-    <div>
     <div className="admin-dashboard">
       <Header />
       <div className="dashboard-header">
@@ -198,13 +309,12 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      {/* === Main Content Area - THIS IS CRUCIAL === */}
+      {/* === Dashboard Content === */}
       <div className="dashboard-content">
-        {renderContent()}
+        {loading ? <p>Loading data...</p> : renderContent()}
       </div>
 
-    </div>
-    <Footer />
+      <Footer />
     </div>
   );
 };
