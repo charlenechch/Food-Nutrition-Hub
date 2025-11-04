@@ -11,6 +11,7 @@ const csrf = require("csurf");
 const mysql = require("mysql2");
 const path = require("path");
 const hppProtect = require("./middleware/hpp-protect");
+const xss = require("xss-clean");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 // ---------- Routes ----------
@@ -148,7 +149,11 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
-// ---------- 4) Rate limiting ----------
+// ---------- 4) XSS Sanitization ----------
+// Sanitizes req.body, req.query, and req.params to prevent XSS
+app.use(xss());
+
+// ---------- 5) Rate limiting ----------
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 300,
@@ -170,7 +175,7 @@ const authLimiter = rateLimit({
   },
 });
 
-// ---------- 5) Sessions ----------
+// ---------- 6) Sessions ----------
 const dbOptions = {
     host: process.env.MYSQLHOST,
     port: Number(process.env.MYSQLPORT) || 3306,
@@ -200,7 +205,7 @@ const dbOptions = {
     })
   );
 
-// ---------- 6) Routes that must come BEFORE global HPP ----------
+// ---------- 7) Routes that must come BEFORE global HPP ----------
 app.use(
   "/api/register",
   authLimiter,
@@ -245,7 +250,7 @@ app.use(
   recipeRoutes
 );
 
-// ---------- 7) Global HPP protection for everything else ----------
+// ---------- 8) Global HPP protection for everything else ----------
 app.use(
   hppProtect({
     policy: "first", // block duplicates globally
@@ -268,7 +273,7 @@ app.use(
 );
 
 
-// ---------- 8) Other Routes ----------
+// ---------- 9) Other Routes ----------
 app.use("/api/logout", logoutRoutes);
 app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
@@ -277,7 +282,6 @@ app.use("/api/otp", otpRoutes);
 app.use("/api/exploreFood", hppProtect({ policy: "first", allowlist: ["q", "page", "sort"] }), exploreFoodRoutes);
 app.use("/api/foodDetail", foodDetailRoutes);
 app.use("/api/foodDiscussion", foodDiscussionRoutes);
-app.use("/api/recipe", recipeRoutes);
 app.use("/api/saveFood", saveFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/foods", foodRoutes);
@@ -324,7 +328,7 @@ app.get("/", (req, res) => {
   res.send("🚀 Backend running with advanced security, MySQL & sessions!");
 });
 
-// ---------- 9) 404 + Error handler ----------
+// ---------- 10) 404 + Error handler ----------
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
 });
@@ -339,7 +343,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ---------- 10) Start server ----------
+// ---------- 11) Start server ----------
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT} (mode: ${process.env.NODE_ENV || "dev"})`);
 });
