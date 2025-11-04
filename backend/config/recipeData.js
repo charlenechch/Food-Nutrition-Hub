@@ -313,4 +313,4 @@ const recipeData = [
     console.error("❌ Error inserting data:", err.message);
     process.exit(1);
   }
-})(); 
+})();
