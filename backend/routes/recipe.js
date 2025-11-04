@@ -52,110 +52,119 @@ console.log("🔧 Cloudinary configured:", {
 
 
 // ✅✅ UPDATED ROUTE BELOW: supports ?includeAll=true for admin moderation
-// GET all recipes 
+// GET all recipes (for admin and public)
 router.get('/all/recipes', async (req, res) => {
-  try {
-    // NEW: detect query param
-    const includeAll = req.query.includeAll === 'true';
-    console.log(`Fetching ${includeAll ? 'ALL' : 'APPROVED'} recipes...`);
+  try {
+    // NEW: detect query param
+    const includeAll = req.query.includeAll === 'true';
+    console.log(`Fetching ${includeAll ? 'ALL' : 'APPROVED'} recipes...`);
 
-    const query = `
-      SELECT 
-        f.foodID AS id,
-        f.name, 
-        f.origin, 
-        f.difficulty, 
-        f.prepTime, 
-        f.image, 
-        f.description, 
-        f.foodType,
-        f.category,
-        f.dietaryTags,
-        r.cookTime, 
-        r.servings, 
-        r.ingredients, 
-        r.steps AS instructions, 
-        r.DidYouKnow AS funFact, 
-        r.chefTips,
-        r.status
-      FROM food f
-      LEFT JOIN recipe r ON f.foodID = r.foodID
-      ${includeAll ? "" : "WHERE r.status = 'Approved'"}
-    `;
+    // ✅ FIXED QUERY
+    // This query now starts FROM recipe (the submissions)
+    // and JOINS the food info and user info.
+    const query = `
+      SELECT 
+        f.foodID AS id,
+        f.name, 
+        f.origin, 
+        f.difficulty, 
+        f.prepTime, 
+        f.image, 
+        f.description, 
+        f.foodType,
+        f.category,
+        f.dietaryTags,
+        r.cookTime, 
+        r.servings, 
+        r.ingredients, 
+        r.steps AS instructions, 
+        r.DidYouKnow AS funFact, 
+        r.chefTips,
+        r.status,
+        r.createdAt AS date,
+        CONCAT(u.firstname, ' ', u.lastname) AS author
+      FROM recipe r
+      INNER JOIN food f ON r.foodID = f.foodID
+      LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
+      LEFT JOIN user u ON up.userID = u.userID
+      ${includeAll ? "" : "WHERE r.status = 'Approved'"}
+    `;
 
-    const [rows] = await db.query(query);
+    const [rows] = await db.query(query);
 
-    const allRecipes = rows.map(data => {
-      // Safe value getter
-      const getSafe = (obj, prop) => {
-        return obj && obj[prop] !== null && obj[prop] !== undefined ? obj[prop] : null;
-      };
+    const allRecipes = rows.map(data => {
+      // Safe value getter
+      const getSafe = (obj, prop) => {
+        return obj && obj[prop] !== null && obj[prop] !== undefined ? obj[prop] : null;
+      };
 
-      // Handle dietaryTags
-      let dietaryTags = [];
-      const dietaryTagsValue = getSafe(data, 'dietaryTags');
-      if (dietaryTagsValue) {
-        if (typeof dietaryTagsValue === 'string') {
-          dietaryTags = dietaryTagsValue.split(',').map(tag => tag.trim()).filter(Boolean);
-        } else if (Array.isArray(dietaryTagsValue)) {
-          dietaryTags = dietaryTagsValue;
-        }
-      }
+      // Handle dietaryTags
+      let dietaryTags = [];
+      const dietaryTagsValue = getSafe(data, 'dietaryTags');
+      if (dietaryTagsValue) {
+        if (typeof dietaryTagsValue === 'string') {
+          dietaryTags = dietaryTagsValue.split(',').map(tag => tag.trim()).filter(Boolean);
+        } else if (Array.isArray(dietaryTagsValue)) {
+          dietaryTags = dietaryTagsValue;
+        }
+      }
 
-      // Handle ingredients
-      let ingredients = [];
-      const ingredientsValue = getSafe(data, 'ingredients');
-      if (ingredientsValue) {
-        if (typeof ingredientsValue === 'string') {
-          ingredients = ingredientsValue.split('\n').map(line => line.trim()).filter(Boolean);
-        } else if (Array.isArray(ingredientsValue)) {
-          ingredients = ingredientsValue;
-        }
-      }
+      // Handle ingredients
+      let ingredients = [];
+      const ingredientsValue = getSafe(data, 'ingredients');
+      if (ingredientsValue) {
+        if (typeof ingredientsValue === 'string') {
+          ingredients = ingredientsValue.split('\n').map(line => line.trim()).filter(Boolean);
+        } else if (Array.isArray(ingredientsValue)) {
+          ingredients = ingredientsValue;
+        }
+      }
 
-      // Handle instructions
-      let instructions = [];
-      const instructionsValue = getSafe(data, 'instructions');
-      if (instructionsValue) {
-        if (typeof instructionsValue === 'string') {
-          instructions = instructionsValue.split('\n').map(line => line.trim()).filter(Boolean);
-        } else if (Array.isArray(instructionsValue)) {
-          instructions = instructionsValue;
-        }
-      }
+      // Handle instructions
+      let instructions = [];
+      const instructionsValue = getSafe(data, 'instructions');
+      if (instructionsValue) {
+        if (typeof instructionsValue === 'string') {
+          instructions = instructionsValue.split('\n').map(line => line.trim()).filter(Boolean);
+        } else if (Array.isArray(instructionsValue)) {
+          instructions = instructionsValue;
+        }
+      }
 
-      // Handle image properly - accept both URLs and base64
-      let imageUrl = '';
-      const imageValue = getSafe(data, 'image');
-      if (imageValue && typeof imageValue === 'string') {
-        if (imageValue.startsWith('http') || imageValue.startsWith('data:image')) {
-          imageUrl = imageValue;
-        }
-      }
+      // Handle image properly - accept both URLs and base64
+      let imageUrl = '';
+      const imageValue = getSafe(data, 'image');
+      if (imageValue && typeof imageValue === 'string') {
+        if (imageValue.startsWith('http') || imageValue.startsWith('data:image')) {
+          imageUrl = imageValue;
+        }
+      }
 
-      // If no image, use base64 placeholder
-      if (!imageUrl) {
-        imageUrl = 'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
-      }
+      // If no image, use base64 placeholder
+      if (!imageUrl) {
+        imageUrl = 'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
+      }
 
-      return {
-        id: getSafe(data, 'id') || 0,
-        name: getSafe(data, 'name') || 'Unknown Recipe',
-        origin: getSafe(data, 'origin') || 'Unknown',
-        difficulty: getSafe(data, 'difficulty') || 'Easy',
-        prepTime: Number(getSafe(data, 'prepTime')) || 0,
-        cookTime: Number(getSafe(data, 'cookTime')) || 0,
-        servings: Number(getSafe(data, 'servings')) || 0,
-        image: imageUrl,
-        description: getSafe(data, 'description') || '',
-        foodType: getSafe(data, 'foodType') || getSafe(data, 'category') || 'Other',
-        dietaryTags,
-        ingredients,
-        instructions,
-        funFact: getSafe(data, 'funFact') || '',
-        chefTips: getSafe(data, 'chefTips') || '',
-        status: getSafe(data, 'status') || 'Pending'
-      };
+       return {
+       id: getSafe(data, 'id') || 0,
+        name: getSafe(data, 'name') || 'Unknown Recipe',
+        author: getSafe(data, 'author') || 'Unknown Author', // ✅ FIXED
+        date: getSafe(data, 'date') ? new Date(data.date).toLocaleDateString() : '—', // ✅ ADDED
+        origin: getSafe(data, 'origin') || 'Unknown',
+        difficulty: getSafe(data, 'difficulty') || 'Easy',
+        prepTime: Number(getSafe(data, 'prepTime')) || 0,
+        cookTime: Number(getSafe(data, 'cookTime')) || 0,
+        servings: Number(getSafe(data, 'servings')) || 0,
+        image: imageUrl,
+        description: getSafe(data, 'description') || '',
+        foodType: getSafe(data, 'foodType') || getSafe(data, 'category') || 'Other',
+        dietaryTags,
+        ingredients,
+        instructions,
+        funFact: getSafe(data, 'funFact') || '',
+        chefTips: getSafe(data, 'chefTips') || '',
+        status: getSafe(data, 'status') || 'Pending' // This is now safe
+      };
     });
 
     console.log(`✅ Total recipes sent: ${allRecipes.length}`);
