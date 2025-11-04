@@ -315,6 +315,13 @@ export default function FoodDiscussionPage() {
     }
   }, [user?.userID, userProfileID]);
 
+  useEffect(() => {
+  if (foodId && userProfileID) { 
+    fetchComments();
+    fetchFoodLikeStatus(); 
+  }
+}, [foodId, userProfileID]); 
+
   // UPDATED: Delete confirmation function
   const showDeleteConfirmation = (type, commentId, replyId = null, isAdminAction = false) => {
     setDeleteModal({
@@ -364,8 +371,13 @@ export default function FoodDiscussionPage() {
     if (foodId) fetchComments();
   }, [foodId]);
 
-  // ✅ Load likes from localStorage on component mount - USER-SPECIFIC
+// ✅ Load likes from localStorage on component mount - USER-SPECIFIC
 const loadLikesFromStorage = () => {
+  if (!userProfileID) {
+    console.log('🟡 userProfileID not available yet');
+    return null;
+  }
+  
   try {
     const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
     const storedLikes = localStorage.getItem(userSpecificKey);
@@ -391,6 +403,7 @@ const [foodLike, setFoodLike] = useState(() => {
 
 // Fetch food like status 
 const fetchFoodLikeStatus = async () => {
+  console.log('🟡 fetchFoodLikeStatus called - userProfileID:', userProfileID);
   try {
     const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/like-status`, {
       credentials: "include",
@@ -410,17 +423,20 @@ const fetchFoodLikeStatus = async () => {
         
         setFoodLike(prev => ({
           ...prev,
-          ...serverLikeData
+          ...serverLikeData,
+          initialized: true
         }));
         
         // ✅ Sync localStorage with server data - USER-SPECIFIC
         try {
-          const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
-          localStorage.setItem(userSpecificKey, JSON.stringify({
-            ...serverLikeData,
-            lastUpdated: new Date().toISOString(),
-            syncedWithServer: true
-          }));
+          if (userProfileID) { // ✅ Check if userProfileID exists
+            const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+            localStorage.setItem(userSpecificKey, JSON.stringify({
+              ...serverLikeData,
+              lastUpdated: new Date().toISOString(),
+              syncedWithServer: true
+            }));
+          }
         } catch (storageError) {
           console.warn('Failed to sync server likes to localStorage:', storageError);
         }
@@ -428,7 +444,8 @@ const fetchFoodLikeStatus = async () => {
         console.log('🟢 fetchFoodLikeStatus - Updated state:', serverLikeData);
       }
     } else {
-      console.log('🔴 fetchFoodLikeStatus - API error:', res.status);
+      const errorText = await res.text();
+      console.log('🔴 fetchFoodLikeStatus - API error details:', errorText);
     }
   } catch (error) {
     console.error('❌ fetchFoodLikeStatus - Network error:', error);
