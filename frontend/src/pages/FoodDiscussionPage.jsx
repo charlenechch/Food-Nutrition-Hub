@@ -295,6 +295,12 @@ export default function FoodDiscussionPage() {
   const [replyTexts, setReplyTexts] = useState({});
   const [loading, setLoading] = useState(true);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  const [foodLike, setFoodLike] = useState({
+    isLiked: false,
+    likesCount: 0,
+    loading: false
+  });
   
   // Delete confirmation modal state
   const [deleteModal, setDeleteModal] = useState({
@@ -390,17 +396,6 @@ const loadLikesFromStorage = () => {
   return null;
 };
 
-// ✅ Update the initial state
-const [foodLike, setFoodLike] = useState(() => {
-  const storedLikes = loadLikesFromStorage();
-  return {
-    isLiked: storedLikes?.isLiked || false,
-    likesCount: storedLikes?.likesCount || 0, // Keep stored value as placeholder
-    loading: false,
-    initialized: false // Add flag to track if data is loaded from server
-  };
-});
-
 // Fetch food like status 
 const fetchFoodLikeStatus = async () => {
   console.log('🟡 fetchFoodLikeStatus called - userProfileID:', userProfileID);
@@ -418,7 +413,8 @@ const fetchFoodLikeStatus = async () => {
       if (data.success) {
         const serverLikeData = {
           isLiked: data.data.isLiked,
-          likesCount: data.data.likesCount
+          likesCount: data.data.likesCount,
+          loading: false
         };
         
         setFoodLike(prev => ({
@@ -468,8 +464,8 @@ const toggleFoodLike = async () => {
   // ✅ IMMEDIATELY update state AND localStorage
   setFoodLike(prev => ({
     ...prev,
-    isLiked: newIsLiked,
-    likesCount: newLikesCount,
+    isLiked: !prev.isLiked,
+    likesCount: prev.isLiked ? prev.likesCount - 1 : prev.likesCount + 1,
     loading: true
   }));
 
