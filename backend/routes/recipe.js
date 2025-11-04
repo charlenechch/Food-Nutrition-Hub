@@ -1059,31 +1059,48 @@ try {
 
 // ✅ ADMIN: Update recipe approval status (Approve / Reject)
 router.patch('/updateStatus/:id', async (req, res) => {
-const recipeId = req.params.id;
-const { status } = req.body; // Expected: "Approved", "Rejected", or "Pending"
+  const recipeId = req.params.id;
 
-const validStatuses = ["Approved", "Rejected", "Pending"];
-if (!validStatuses.includes(status)) {
-  return res.status(400).json({ success: false, message: "Invalid status value." });
-}
+  // --- MODIFICATION 1: Add logging ---
+  // Log the *entire* body to see what the frontend is sending.
+  // My guess is this will log: "Received body for updateStatus: {}" or "undefined"
+  console.log(`Attempting to update status for ID: ${recipeId}`);
+  console.log("Received body for updateStatus:", req.body);
+  // ------------------------------------
 
-try {
-  const [result] = await db.query(
-    "UPDATE recipe SET status = ? WHERE foodID = ?",
-    [status, recipeId]
-  );
+  const { status } = req.body; // This is 'undefined' if the body is wrong
 
-  if (result.affectedRows === 0) {
-    return res.status(404).json({ success: false, message: "Recipe not found." });
+  const validStatuses = ["Approved", "Rejected", "Pending"];
+
+  if (!validStatuses.includes(status)) {
+    
+    // --- MODIFICATION 2: Better error message ---
+    // This is more helpful for debugging.
+    console.log(`❌ Invalid status value received: '${status}'`);
+    return res.status(400).json({ 
+      success: false, 
+      message: `Invalid or missing status. Received: '${status}', but expected one of: ${validStatuses.join(', ')}.` 
+    });
+    // -------------------------------------------
   }
 
-  console.log(`✅ Recipe ${recipeId} status updated to ${status}`);
-  res.json({ success: true, message: `Recipe marked as ${status}.` });
+  try {
+    const [result] = await db.query(
+      "UPDATE recipe SET status = ? WHERE foodID = ?",
+      [status, recipeId]
+    );
 
-} catch (error) {
-  console.error("❌ Error updating recipe status:", error);
-  res.status(500).json({ success: false, message: "Database update failed." });
-}
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Recipe not found." });
+    }
+
+    console.log(`✅ Recipe ${recipeId} status updated to ${status}`);
+    res.json({ success: true, message: `Recipe marked as ${status}.` });
+
+  } catch (error) {
+    console.error("❌ Error updating recipe status:", error);
+    res.status(500).json({ success: false, message: "Database update failed." });
+  }
 });
 
 module.exports = router;

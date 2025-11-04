@@ -225,7 +225,7 @@ const ReviewContentPage = () => {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       credentials: "include",
-                      body: JSON.stringify({ status: newStatus, feedback }),
+                      body: JSON.stringify({ status: newStatus }),
                     });
 
                     if (!res.ok) {
