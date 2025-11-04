@@ -7,29 +7,54 @@ import { MdOutlineFileUpload } from "react-icons/md";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 
-const FoodDatabaseSection = ({ foodData, categories }) => {
+const API_URL = import.meta.env.VITE_API_URL;
+
+const AdminFoodDatabase = ({ categories = [] }) => {
   const navigate = useNavigate();
 
+  // --- ✅ Data States ---
+  const [foodData, setFoodData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // --- ✅ Filter States ---
   const [category, setCategory] = useState("All Categories");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
-
   const [showFilters, setShowFilters] = useState(false);
   const [calorieMin, setCalorieMin] = useState(0);
   const [calorieMax, setCalorieMax] = useState(2000);
 
+  // --- ✅ Delete Modal States ---
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedFood, setSelectedFood] = useState(null);
 
+  // --- ✅ Pagination ---
   const [currentPage, setCurrentPage] = useState(1);
   const foodsPerPage = 5;
 
-  // Pagination logic
-  const indexOfLast = currentPage * foodsPerPage;
-  const indexOfFirst = indexOfLast - foodsPerPage;
-  const currentFoods = foodData.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(foodData.length / foodsPerPage);
+  // --- ✅ Fetch Food Data from Backend ---
+  useEffect(() => {
+    const fetchFoods = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/foods`);
+        const data = await res.json();
 
+        if (data.success) {
+          setFoodData(data.data);
+        } else {
+          console.error("Failed to fetch foods:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching foods:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFoods();
+  }, []);
+
+  // --- ✅ Dropdown Close Handler ---
   useEffect(() => {
     const closeDropdown = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -40,24 +65,60 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
     return () => document.removeEventListener("click", closeDropdown);
   }, []);
 
+  // --- ✅ Delete Logic ---
   const handleDeleteClick = (food) => {
     setSelectedFood(food);
     setShowConfirm(true);
   };
 
-  const handleConfirmDelete = () => {
-    console.log("Deleting:", selectedFood);
-    setShowConfirm(false);
+  const handleConfirmDelete = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/foods/${selectedFood.foodID}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setFoodData((prev) =>
+          prev.filter((f) => f.foodID !== selectedFood.foodID)
+        );
+        console.log(`Deleted: ${selectedFood.name}`);
+      } else {
+        console.error("Failed to delete:", data.error);
+      }
+    } catch (error) {
+      console.error("Error deleting food:", error);
+    } finally {
+      setShowConfirm(false);
+    }
   };
+
+  // --- ✅ Pagination Logic ---
+  const indexOfLast = currentPage * foodsPerPage;
+  const indexOfFirst = indexOfLast - foodsPerPage;
+  const currentFoods = foodData.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(foodData.length / foodsPerPage);
+
+  if (loading) {
+    return <p style={{ textAlign: "center" }}>Loading food database...</p>;
+  }
 
   return (
     <div className="food-database-section">
+      {/* Header */}
       <div className="food-header">
         <h2>
-          <span className="food-icon"><FiDatabase /></span> Food Database
+          <span className="food-icon">
+            <FiDatabase />
+          </span>{" "}
+          Food Database
         </h2>
         <div className="food-actions">
-          <button className="admin-food-btn-add" onClick={() => navigate("/admin/addfood")}>
+          <button
+            className="admin-food-btn-add"
+            onClick={() => navigate("/admin/addfood")}
+          >
             <FaPlus /> Add New Food
           </button>
           <button className="admin-food-btn-import">
@@ -77,12 +138,15 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
           className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`}
           ref={dropdownRef}
         >
-          <button className="admin-beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
+          <button
+            className="admin-beige-trigger"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
             {category}
           </button>
           {dropdownOpen && (
             <ul className="admin-beige-list">
-              {categories.map((opt) => (
+              {["All Categories", ...categories].map((opt) => (
                 <li
                   key={opt}
                   className={opt === category ? "selected" : ""}
@@ -100,7 +164,10 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
           )}
         </div>
 
-        <button className="admin-food-btn-filter" onClick={() => setShowFilters(!showFilters)}>
+        <button
+          className="admin-food-btn-filter"
+          onClick={() => setShowFilters(!showFilters)}
+        >
           <CiFilter className="filter-icon" /> Filters
         </button>
       </div>
@@ -108,7 +175,9 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
       {/* Advanced Filters */}
       {showFilters && (
         <div className="advanced-filters">
-          <h4><CiFilter /> Advanced Filters</h4>
+          <h4>
+            <CiFilter /> Advanced Filters
+          </h4>
 
           <div className="filter-grid">
             <div className="filter-item">
@@ -125,7 +194,7 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
               <label>Food Type</label>
               <select>
                 <option>All Categories</option>
-                {categories.slice(1).map((cat) => (
+                {categories.map((cat) => (
                   <option key={cat}>{cat}</option>
                 ))}
               </select>
@@ -156,12 +225,11 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
             <label>
               Calorie Range: {calorieMin} – {calorieMax} calories
             </label>
-
             <div
               className="food-database-slider-container"
               style={{
                 "--left": `${(calorieMin / 2000) * 100}%`,
-                "--right": `${100 - (calorieMax / 2000) * 100}%`
+                "--right": `${100 - (calorieMax / 2000) * 100}%`,
               }}
             >
               <input
@@ -170,7 +238,11 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
                 max="2000"
                 step="10"
                 value={calorieMin}
-                onChange={(e) => setCalorieMin(Math.min(Number(e.target.value), calorieMax - 50))}
+                onChange={(e) =>
+                  setCalorieMin(
+                    Math.min(Number(e.target.value), calorieMax - 50)
+                  )
+                }
               />
               <input
                 type="range"
@@ -178,7 +250,11 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
                 max="2000"
                 step="10"
                 value={calorieMax}
-                onChange={(e) => setCalorieMax(Math.max(Number(e.target.value), calorieMin + 50))}
+                onChange={(e) =>
+                  setCalorieMax(
+                    Math.max(Number(e.target.value), calorieMin + 50)
+                  )
+                }
               />
             </div>
           </div>
@@ -197,17 +273,25 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
           </tr>
         </thead>
         <tbody>
-          {currentFoods.map((food, index) => (
-            <tr key={index}>
+          {currentFoods.map((food) => (
+            <tr key={food.foodID}>
               <td>{food.name}</td>
-              <td><span className="category-tag">{food.category}</span></td>
-              <td>{food.origin}</td>
-              <td>{food.updated}</td>
               <td>
-                <button className="food-database-btn-edit" onClick={() => navigate(`/admin/editfood/${index}`)}>
+                <span className="category-tag">{food.category}</span>
+              </td>
+              <td>{food.origin}</td>
+              <td>{food.updatedAt || "—"}</td>
+              <td>
+                <button
+                  className="food-database-btn-edit"
+                  onClick={() => navigate(`/admin/editfood/${food.foodID}`)}
+                >
                   <HiOutlinePencilAlt />
                 </button>
-                <button className="food-database-btn-delete" onClick={() => handleDeleteClick(food)}>
+                <button
+                  className="food-database-btn-delete"
+                  onClick={() => handleDeleteClick(food)}
+                >
                   <RiDeleteBin5Line />
                 </button>
               </td>
@@ -222,12 +306,23 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
           <div className="delete-modal">
             <h3>Warning</h3>
             <p>
-              Are you sure you want to delete <strong>{selectedFood?.name}</strong>? <br />
+              Are you sure you want to delete{" "}
+              <strong>{selectedFood?.name}</strong>?<br />
               This action cannot be undone.
             </p>
             <div className="modal-actions">
-              <button className="cancel-btn" onClick={() => setShowConfirm(false)}>Cancel</button>
-              <button className="confirm-delete-btn" onClick={handleConfirmDelete}>Delete</button>
+              <button
+                className="cancel-btn"
+                onClick={() => setShowConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="confirm-delete-btn"
+                onClick={handleConfirmDelete}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
@@ -236,7 +331,10 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="admin-pagination">
-          <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
+          <button
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
             ‹ Prev
           </button>
           {[...Array(totalPages)].map((_, i) => (
@@ -248,7 +346,10 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
               {i + 1}
             </button>
           ))}
-          <button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages}>
+          <button
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
             Next ›
           </button>
         </div>
@@ -257,4 +358,4 @@ const FoodDatabaseSection = ({ foodData, categories }) => {
   );
 };
 
-export default FoodDatabaseSection;
+export default AdminFoodDatabase;

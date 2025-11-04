@@ -167,6 +167,7 @@ export default function Community() {
       const response = await fetch(`${API_BASE_URL}/api/communityPost/create`, {
         method: "POST",
         body: submitData,
+        credentials: 'include'
       });
 
       const result = await response.json();

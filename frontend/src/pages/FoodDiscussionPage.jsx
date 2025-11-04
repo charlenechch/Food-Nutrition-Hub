@@ -195,8 +195,10 @@ const Comment = React.memo(function Comment({
 
         {!isReply && (
           <div className="fd-disc-actions">
-            <button className={`fd-link-btn ${userLiked ? 'liked' : ''}`} 
-               onClick={handleLike}>
+            <button 
+              className={`fd-link-btn ${userLiked ? 'liked' : ''}`} 
+              onClick={handleLike}
+            >
               {userLiked ? "♥" : "♡"} {likes}
             </button>
             <button className="fd-link-btn" onClick={handleToggleReply}>
@@ -337,104 +339,290 @@ export default function FoodDiscussionPage() {
     if (foodId) fetchComments();
   }, [foodId]);
 
-  // ✅ Post Comment
-  const postComment = async () => {
-    if (isGuest) return setShowLoginPrompt(true);
-    if (!newComment.trim()) return;
+  // ✅ Load likes from localStorage on component mount - USER-SPECIFIC
+const loadLikesFromStorage = () => {
+  try {
+    const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+    const storedLikes = localStorage.getItem(userSpecificKey);
+    if (storedLikes) {
+      return JSON.parse(storedLikes);
+    }
+  } catch (error) {
+    console.warn('Failed to load likes from localStorage:', error);
+  }
+  return null;
+};
 
-    const actualUserProfileID = user?.role === 'admin' 
-    ? (user?.userProfileID || user?.profileID || user?.id)
-    : userProfileID;
+// ✅ Update the initial state
+const [foodLike, setFoodLike] = useState(() => {
+  const storedLikes = loadLikesFromStorage();
+  return {
+    isLiked: storedLikes?.isLiked || false,
+    likesCount: storedLikes?.likesCount || 0, // Keep stored value as placeholder
+    loading: false,
+    initialized: false // Add flag to track if data is loaded from server
+  };
+});
 
-    const actualFoodID = foodId;
+// Fetch food like status 
+const fetchFoodLikeStatus = async () => {
+  try {
+    const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/like-status`, {
+      credentials: "include",
+    });
 
-    console.log("🚨 CRITICAL DEBUG - User data:", {
-    userID: user?.userID,
-    userProfileID: user?.userProfileID,
-    actualUserProfileID: actualUserProfileID,
-    role: user?.role,
-    fullUserObject: user
-  });
+    console.log('🟡 fetchFoodLikeStatus - Response status:', res.status);
     
-    if (!actualUserProfileID) {
-      alert("Admin account needs a userProfileID to post comments. Please contact support.");
-      return;
+    if (res.ok) {
+      const data = await res.json();
+      console.log('🟡 fetchFoodLikeStatus - Response data:', data);
+      
+      if (data.success) {
+        const serverLikeData = {
+          isLiked: data.data.isLiked,
+          likesCount: data.data.likesCount
+        };
+        
+        setFoodLike(prev => ({
+          ...prev,
+          ...serverLikeData
+        }));
+        
+        // ✅ Sync localStorage with server data - USER-SPECIFIC
+        try {
+          const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+          localStorage.setItem(userSpecificKey, JSON.stringify({
+            ...serverLikeData,
+            lastUpdated: new Date().toISOString(),
+            syncedWithServer: true
+          }));
+        } catch (storageError) {
+          console.warn('Failed to sync server likes to localStorage:', storageError);
+        }
+        
+        console.log('🟢 fetchFoodLikeStatus - Updated state:', serverLikeData);
+      }
+    } else {
+      console.log('🔴 fetchFoodLikeStatus - API error:', res.status);
     }
+  } catch (error) {
+    console.error('❌ fetchFoodLikeStatus - Network error:', error);
+  }
+};
 
-    if (!actualFoodID) {
-      alert("Food ID not found. Please go back and try again.");
-      return;
-    }
+// ✅ Toggle food like - USER-SPECIFIC STORAGE
+const toggleFoodLike = async () => {
+  if (isGuest) return setShowLoginPrompt(true);
+  
+  if (foodLike.loading) return;
 
-    try {
-    const tempComment = {
-      id: `temp-${Date.now()}`,
-      userProfileID: actualUserProfileID,
-      username: user?.username || user?.firstname || 'You',
-      content: newComment.trim(),
-      timestamp: new Date().toISOString(),
-      likes: 0,
-      user_liked: false,
-      replies: [],
-      timeAgo: 'now',
-      isTemp: true,
-      isAdmin: user?.role === "admin",
-      avatar: user?.avatar,
-      userRole: user?.role
-    };
+  console.log('🟡 BEFORE toggle - isLiked:', foodLike.isLiked, 'likesCount:', foodLike.likesCount);
 
-    setComments((prev) => [tempComment, ...prev]);
-    setNewComment(""); 
+  // Optimistic update
+  const previousState = { ...foodLike };
+  const newIsLiked = !foodLike.isLiked;
+  const newLikesCount = newIsLiked ? foodLike.likesCount + 1 : foodLike.likesCount - 1;
 
-    const res = await fetch(`${API}/api/foodDiscussion`, {
+  // ✅ IMMEDIATELY update state AND localStorage
+  setFoodLike(prev => ({
+    ...prev,
+    isLiked: newIsLiked,
+    likesCount: newLikesCount,
+    loading: true
+  }));
+
+  // ✅ Save to localStorage immediately 
+  try {
+    const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+    localStorage.setItem(userSpecificKey, JSON.stringify({
+      isLiked: newIsLiked,
+      likesCount: newLikesCount, // This is just for this user's view
+      lastUpdated: new Date().toISOString()
+    }));
+  } catch (storageError) {
+    console.warn('Failed to save likes to localStorage:', storageError);
+  }
+
+  try {
+    console.log('🟡 Calling toggle-like API for food:', foodId);
+    const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/toggle-like`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({
-        foodID: actualFoodID,
-        userProfileID: actualUserProfileID,
-        content: newComment.trim(),
-      }),
     });
 
-      const data = await res.json();
+    console.log('🟡 API Response status:', res.status);
+    const data = await res.json();
+    console.log('🟡 API Response data:', data);
 
-      if (res.ok && data.success) {
-        console.log("🟢 FRONTEND - Backend response data structure:", {
-        id: data.data.id,
-        username: data.data.username,
-        avatar: data.data.avatar,
-        userRole: data.data.userRole,
-        userProfileID: data.data.userProfileID
-      });
+    if (res.ok && data.success) {
+      console.log('🟢 API Success - isLiked:', data.data.isLiked, 'likesCount:', data.data.likesCount);
       
-      setComments((prev) => 
-        prev.map(comment => 
-          comment.id === tempComment.id && comment.isTemp
-            ? { 
-                ...data.data,
-                user_liked: false,
-                timeAgo: 'now',
-                replies: [],
-              }
-            : comment
-        )
-      );
-      alert("Comment posted successfully!");
+      // ✅ Update both state and localStorage with server response
+      setFoodLike(prev => ({
+        ...prev,
+        isLiked: data.data.isLiked,
+        likesCount: data.data.likesCount, // Use server's count
+        loading: false
+      }));
+
+      // ✅ Sync localStorage with server data - USER-SPECIFIC
+      try {
+        const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+        localStorage.setItem(userSpecificKey, JSON.stringify({
+          isLiked: data.data.isLiked,
+          likesCount: data.data.likesCount,
+          lastUpdated: new Date().toISOString(),
+          syncedWithServer: true
+        }));
+      } catch (storageError) {
+        console.warn('Failed to sync likes with localStorage:', storageError);
+      }
     } else {
+      console.log('🔴 API Error:', data.message);
+      // Revert on error
+      setFoodLike(prev => ({
+        ...prev,
+        ...previousState,
+        loading: false
+      }));
+      
+      // ✅ Also revert localStorage on error - USER-SPECIFIC
+      try {
+        const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+        localStorage.setItem(userSpecificKey, JSON.stringify(previousState));
+      } catch (storageError) {
+        console.warn('Failed to revert likes in localStorage:', storageError);
+      }
+      
+      alert(data?.message || "Failed to update like");
+    }
+  } catch (err) {
+    console.error("❌ Network error:", err);
+    // Revert on error
+    setFoodLike(prev => ({
+      ...prev,
+      ...previousState,
+      loading: false
+    }));
+    
+    // ✅ Also revert localStorage on network error - USER-SPECIFIC
+    try {
+      const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+      localStorage.setItem(userSpecificKey, JSON.stringify(previousState));
+    } catch (storageError) {
+      console.warn('Failed to revert likes in localStorage:', storageError);
+    }
+    
+    alert("Network error while updating like");
+  }
+};
+
+    useEffect(() => {
+      if (foodId) {
+        fetchComments();
+        fetchFoodLikeStatus(); 
+      }
+    }, [foodId]);
+
+    // ✅ Post Comment
+    const postComment = async () => {
+      if (isGuest) return setShowLoginPrompt(true);
+      if (!newComment.trim()) return;
+
+      const actualUserProfileID = user?.role === 'admin' 
+      ? (user?.userProfileID || user?.profileID || user?.id)
+      : userProfileID;
+
+      const actualFoodID = foodId;
+
+      console.log("🚨 CRITICAL DEBUG - User data:", {
+      userID: user?.userID,
+      userProfileID: user?.userProfileID,
+      actualUserProfileID: actualUserProfileID,
+      role: user?.role,
+      fullUserObject: user
+    });
+      
+      if (!actualUserProfileID) {
+        alert("Admin account needs a userProfileID to post comments. Please contact support.");
+        return;
+      }
+
+      if (!actualFoodID) {
+        alert("Food ID not found. Please go back and try again.");
+        return;
+      }
+
+      try {
+      const tempComment = {
+        id: `temp-${Date.now()}`,
+        userProfileID: actualUserProfileID,
+        username: user?.username || user?.firstname || 'You',
+        content: newComment.trim(),
+        timestamp: new Date().toISOString(),
+        likes: 0,
+        user_liked: false,
+        replies: [],
+        timeAgo: 'now',
+        isTemp: true,
+        isAdmin: user?.role === "admin",
+        avatar: user?.avatar,
+        userRole: user?.role
+      };
+
+      setComments((prev) => [tempComment, ...prev]);
+      setNewComment(""); 
+
+      const res = await fetch(`${API}/api/foodDiscussion`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          foodID: actualFoodID,
+          userProfileID: actualUserProfileID,
+          content: newComment.trim(),
+        }),
+      });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          console.log("🟢 FRONTEND - Backend response data structure:", {
+          id: data.data.id,
+          username: data.data.username,
+          avatar: data.data.avatar,
+          userRole: data.data.userRole,
+          userProfileID: data.data.userProfileID
+        });
+        
+        setComments((prev) => 
+          prev.map(comment => 
+            comment.id === tempComment.id && comment.isTemp
+              ? { 
+                  ...data.data,
+                  user_liked: false,
+                  timeAgo: 'now',
+                  replies: [],
+                }
+              : comment
+          )
+        );
+        alert("Comment posted successfully!");
+      } else {
+        setComments((prev) => prev.filter(comment => 
+          comment.id !== tempComment.id || !comment.isTemp
+        ));
+        alert(data?.message || "Unable to post comment");
+      }
+    } catch (err) {
       setComments((prev) => prev.filter(comment => 
         comment.id !== tempComment.id || !comment.isTemp
       ));
-      alert(data?.message || "Unable to post comment");
+      console.error("Error posting comment:", err);
+      alert("Server error while posting comment.");
     }
-  } catch (err) {
-    setComments((prev) => prev.filter(comment => 
-      comment.id !== tempComment.id || !comment.isTemp
-    ));
-    console.error("Error posting comment:", err);
-    alert("Server error while posting comment.");
-  }
-};
+  };
 
   // ✅ Post Reply
 const postReply = async (discussionId) => {
@@ -552,7 +740,7 @@ const postReply = async (discussionId) => {
   }
 };
 
-  // ✅ Toggle Like
+  // Toggle Like
   const toggleLike = async (targetId) => {
     if (isGuest) return setShowLoginPrompt(true);
 
@@ -560,6 +748,21 @@ const postReply = async (discussionId) => {
       console.error("No valid userProfileID found");
       return;
     }
+
+    // ✅ IMMEDIATELY update UI state
+    setComments(prev => prev.map(comment => {
+      if (comment.id === targetId || comment.discussionID === targetId) {
+        const currentlyLiked = comment.user_liked || false;
+        const currentLikes = comment.likes || 0;
+        
+        return {
+          ...comment,
+          user_liked: !currentlyLiked,
+          likes: currentlyLiked ? currentLikes - 1 : currentLikes + 1
+        };
+      }
+      return comment;
+    }));
 
     try {
       const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
@@ -570,15 +773,44 @@ const postReply = async (discussionId) => {
           userProfileID: userProfileID  
         }),
       });
+      
       const data = await res.json();
 
-      if (res.ok && data.success) {
-        fetchComments(); 
-      } else {
+      if (!res.ok || !data.success) {
         console.error("Like failed:", data.message);
+        // Revert the UI state on error
+        setComments(prev => prev.map(comment => {
+          if (comment.id === targetId || comment.discussionID === targetId) {
+            const currentlyLiked = comment.user_liked || false;
+            const currentLikes = comment.likes || 0;
+            
+            return {
+              ...comment,
+              user_liked: !currentlyLiked, // Revert the like state
+              likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1 // Revert the count
+            };
+          }
+          return comment;
+        }));
+        alert("Failed to update like: " + data.message);
       }
     } catch (err) {
       console.error("Error updating like:", err);
+      // Revert the UI state on network error
+      setComments(prev => prev.map(comment => {
+        if (comment.id === targetId || comment.discussionID === targetId) {
+          const currentlyLiked = comment.user_liked || false;
+          const currentLikes = comment.likes || 0;
+          
+          return {
+            ...comment,
+            user_liked: !currentlyLiked, // Revert the like state
+            likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1 // Revert the count
+          };
+        }
+        return comment;
+      }));
+      alert("Network error while updating like");
     }
   };
 
@@ -690,8 +922,8 @@ const postReply = async (discussionId) => {
 
   const handleBack = () => navigate(-1);
   const totalComments =
-    comments.length + comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0);
-  const totalLikes = comments.reduce((acc, c) => acc + (c.likes || 0), 0);
+  comments.length + comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0);
+  //const totalLikes = comments.reduce((acc, c) => acc + (c.likes || 0), 0);
 
   return (
     <div className="food-discussion-page">
@@ -722,7 +954,17 @@ const postReply = async (discussionId) => {
               <p className="fd-muted">{food?.description}</p>
               <div className="fd-sum-stats">
                 <span>💬 {totalComments} comments</span>
-                <span>♡ {totalLikes} likes</span>
+                <span 
+                  className={`fd-food-like-btn ${foodLike.isLiked ? 'liked' : ''}`}
+                  onClick={toggleFoodLike}
+                  style={{
+                    cursor: foodLike.loading ? 'not-allowed' : 'pointer',
+                    opacity: foodLike.loading ? 0.6 : 1
+                  }}
+                  title={foodLike.isLiked ? "Unlike this food" : "Like this food"}
+                >
+                  {foodLike.loading ? '⏳' : (foodLike.isLiked ? "♥" : "♡")} {foodLike.likesCount} likes
+                </span>
               </div>
             </div>
           </div>

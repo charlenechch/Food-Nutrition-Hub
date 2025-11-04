@@ -19,19 +19,83 @@ function sanitizeInput(value) {
   return value;
 }
 
-// ✅ Added Joi schemas (STRICT for /update and safe for params)
+// Update Joi schemas to handle stringified arrays
 const profileUpdateSchema = Joi.object({
   location: Joi.string().max(120).allow(null, ''),
   bio: Joi.string().max(2000).allow(null, ''),
-  dietary: Joi.array().items(Joi.string().max(60)).default([]),
-  allergies: Joi.array().items(Joi.string().max(60)).default([]),
+  dietary: Joi.alternatives().try(
+    Joi.array().items(Joi.string().max(60)),
+    Joi.string().max(1000)
+  ).custom((value, helpers) => {
+    console.log('🔄 Processing dietary input:', value, 'type:', typeof value);
+    
+    let processedArray = [];
+    
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        processedArray = Array.isArray(parsed) ? parsed : [parsed];
+      } catch (e) {
+        if (value.includes(',')) {
+          processedArray = value.split(',').map(item => item.trim()).filter(Boolean);
+        } else if (value.trim()) {
+          processedArray = [value.trim()];
+        }
+      }
+    } else if (Array.isArray(value)) {
+      processedArray = value;
+    } else if (value && typeof value === 'object') {
+      processedArray = Object.values(value).filter(item => typeof item === 'string');
+    }
+    
+    const cleanedArray = processedArray
+      .map(item => typeof item === 'string' ? item.trim().substring(0, 60) : null)
+      .filter(item => item !== null && item !== '');
+    
+    console.log('✅ Processed dietary array:', cleanedArray);
+    return cleanedArray;
+  }, 'Array processing').default([]),
+  
+  allergies: Joi.alternatives().try(
+    Joi.array().items(Joi.string().max(60)),
+    Joi.string().max(1000)
+  ).custom((value, helpers) => {
+    console.log('🔄 Processing allergies input:', value, 'type:', typeof value);
+    
+    let processedArray = [];
+    
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        processedArray = Array.isArray(parsed) ? parsed : [parsed];
+      } catch (e) {
+        if (value.includes(',')) {
+          processedArray = value.split(',').map(item => item.trim()).filter(Boolean);
+        } else if (value.trim()) {
+          processedArray = [value.trim()];
+        }
+      }
+    } else if (Array.isArray(value)) {
+      processedArray = value;
+    } else if (value && typeof value === 'object') {
+      processedArray = Object.values(value).filter(item => typeof item === 'string');
+    }
+    
+    const cleanedArray = processedArray
+      .map(item => typeof item === 'string' ? item.trim().substring(0, 60) : null)
+      .filter(item => item !== null && item !== '');
+    
+    console.log('✅ Processed allergies array:', cleanedArray);
+    return cleanedArray;
+  }, 'Array processing').default([]),
+  
   emailNotifications: Joi.boolean().required(),
   pushNotifications: Joi.boolean().required(),
   profileVisibility: Joi.boolean().required(),
   language: Joi.string().max(10).valid('en', 'ms', 'zh', 'id', 'ta', 'hi', 'ar', 'es', 'fr', 'de').default('en')
 })
 .required()
-.unknown(false); // STRICT: reject unknown keys
+.unknown(false);
 
 const identifierSchema = Joi.alternatives().try(
   Joi.number().integer().min(1),
@@ -516,49 +580,86 @@ router.get("/avatar", async (req, res) => {
   }
 });
 
-// Helper function to get user contributions with rejected/pending/approved status
+// Enhanced version that includes both recipes and posts
 const getUserContributions = async (userID) => {
   try {
     console.log(`📝 Fetching contributions for user: ${userID}`);
     
-    // Get contributions from recipe table JOINED with food table
-    console.log(`🍳 Checking recipe table for contributions...`);
-    const [contributions] = await db.execute(
-      `SELECT 
-        r.recipeID as id,
-        f.name as title,
-        f.image as image,
-        r.status,
-        r.createdAt as submittedDate,
-        'recipe' as type
-      FROM recipe r
-      JOIN food f ON r.foodID = f.foodID
-      WHERE r.userProfileID = ?
-      ORDER BY r.createdAt DESC`,
+    // First, get the userProfileID for this user
+    console.log(`🔍 Getting userProfileID for user: ${userID}`);
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
     );
 
-    console.log(`📊 Raw contributions query result:`, contributions);
-    console.log(`📊 Number of contributions found: ${contributions.length}`);
+    if (!profileResult.length) {
+      console.log('❌ No userProfile found for user:', userID);
+      return [];
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+    console.log(`✅ Found userProfileID: ${userProfileID} for user: ${userID}`);
+
+    let allContributions = [];
+
+    // 1. Get recipe contributions
+    console.log(`🍳 Checking recipe table for contributions...`);
+    try {
+      const [recipeContributions] = await db.execute(
+        `SELECT 
+          r.recipeID as id,
+          f.name as title,
+          f.image as image,
+          r.status,
+          r.createdAt as submittedDate,
+          'recipe' as type
+        FROM recipe r
+        JOIN food f ON r.foodID = f.foodID
+        WHERE r.userProfileID = ?
+        ORDER BY r.createdAt DESC`,
+        [userProfileID]
+      );
+      allContributions = [...allContributions, ...recipeContributions];
+      console.log(`✅ Found ${recipeContributions.length} recipe contributions`);
+    } catch (recipeError) {
+      console.error('❌ Error fetching recipe contributions:', recipeError.message);
+    }
+
+    // 2. Get post contributions
+    console.log(`📝 Checking posts table for contributions...`);
+    try {
+      const [postContributions] = await db.execute(
+        `SELECT 
+          postID as id,
+          title,
+          image,
+          status,
+          createdAt as submittedDate,
+          'post' as type
+        FROM posts 
+        WHERE userProfileID = ?
+        ORDER BY createdAt DESC`,
+        [userProfileID]
+      );
+      allContributions = [...allContributions, ...postContributions];
+      console.log(`✅ Found ${postContributions.length} post contributions`);
+    } catch (postError) {
+      console.error('❌ Error fetching post contributions:', postError.message);
+    }
+
+    console.log(`📊 Total contributions found: ${allContributions.length}`);
     
-    if (contributions.length > 0) {
-      console.log(`📊 Contribution details:`, contributions.map(c => ({ 
-        id: c.id, 
-        title: c.title,
-        type: c.type, 
-        status: c.status 
-      })));
-      
-      // Count by status
-      const statusCounts = contributions.reduce((acc, item) => {
-        acc[item.status] = (acc[item.status] || 0) + 1;
+    if (allContributions.length > 0) {
+      console.log(`📊 Contribution breakdown by type:`);
+      const typeCounts = allContributions.reduce((acc, item) => {
+        acc[item.type] = (acc[item.type] || 0) + 1;
         return acc;
       }, {});
-      console.log(`📊 Status counts:`, statusCounts);
+      console.log(`📊 Type counts:`, typeCounts);
     }
 
     // Format the contributions
-    const formattedContributions = contributions.map(item => ({
+    const formattedContributions = allContributions.map(item => ({
       id: item.id,
       title: item.title,
       image: item.image,
@@ -694,16 +795,26 @@ router.get("/", async (req, res) => {
     console.log(`📝 Fetching contributions for user: ${userID}`);
     const contributions = await getUserContributions(userID);
 
-    // BUILD RESPONSE WITH savedFoods INCLUDED
+    
     const response = {
-      ...profile,
-      savedFoods: savedFoodsData, // ✅ Make sure this is included
-      status: contributions, // ✅ Add contributions data
+      userID: profile.userID,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      email: profile.email,
+      role: profile.role,
+      userProfileID: profile.userProfileID,
+      location: profile.location,
+      bio: profile.bio,
+      avatar: profile.avatar,
+
+      savedFoods: savedFoodsData,
+      status: contributions,
       stats: {
         recipes: freshStats.recipes || 0,
         posts: freshStats.posts || 0,
         likes: freshStats.likes || 0,
       },
+    
       prefs: {
         dietary: profile.dietary ? JSON.parse(profile.dietary || "[]") : [],
         allergies: profile.allergies ? JSON.parse(profile.allergies || "[]") : [],
@@ -991,3 +1102,4 @@ router.delete("/delete", async (req, res) => {
 
 console.log("✅ UserProfile router loaded with debug logging");
 module.exports = router;
+module.exports.deleteUser = deleteUser;

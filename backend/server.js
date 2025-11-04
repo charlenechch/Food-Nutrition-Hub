@@ -31,6 +31,12 @@ const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
 
+// ✅ NEW: Admin route import (for Admin User Management)
+const adminRoutes = require("./routes/admin");
+
+// ❌ REMOVED: Content Moderation route import (no longer needed)
+// const contentRoutes = require("./routes/content");
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 const IS_PROD = process.env.NODE_ENV === "production";
@@ -143,26 +149,26 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
 // ---------- 4) Rate limiting ----------
-//const globalLimiter = rateLimit({
-//  windowMs: 15 * 60 * 1000,
-//  limit: 300,
-//  standardHeaders: true,
-//  legacyHeaders: false,
-//});
-//app.use(globalLimiter);
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(globalLimiter);
 
-//const authLimiter = rateLimit({
-//  windowMs: 10 * 60 * 1000,
-//  limit: 10,
-//  standardHeaders: true,
-//  legacyHeaders: false,
-//  message: { error: "Too many attempts, try again later." },
-// keyGenerator: (req, res) => {
-//    const ipKey = ipKeyGenerator(req, res);
-//    const emailKey = req.body?.email || "guest";
-//    return `${ipKey}-${emailKey}`;
-//  },
-//});
+const authLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many attempts, try again later." },
+  keyGenerator: (req, res) => {
+    const ipKey = ipKeyGenerator(req, res);
+    const emailKey = req.body?.email || "guest";
+    return `${ipKey}-${emailKey}`;
+  },
+});
 
 // ---------- 5) Sessions ----------
 const dbOptions = {
@@ -189,19 +195,54 @@ app.use(
       httpOnly: true,
       sameSite: IS_PROD ? "none" : "lax",
       secure: IS_PROD,
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
 
 // ---------- 6) Routes that must come BEFORE global HPP ----------
 app.use(
-  "/api/login",
-  //authLimiter,
+  "/api/register",
+  authLimiter,
   hppProtect({
     policy: "reject",
-    allowlist: ["email", "password", "rememberDevice"], // ✅ Remember Me allowed
+    allowlist: ["email", "password", "firstname", "lastname", "firebaseUID"],
+  }),
+  registerRoutes
+);
+
+app.use(
+  "/api/login",
+  authLimiter,
+  hppProtect({
+    policy: "reject",
+    allowlist: ["email", "password", "rememberDevice"], // Remember Me allowed
   }),
   loginRoutes
+);
+
+// ✅ Diagnostic Middleware to confirm sequence
+app.use((req, res, next) => {
+  if (req.originalUrl.includes("/api/recipe/all/recipes")) {
+    console.log("🧭 Incoming request before HPP:", req.originalUrl);
+    console.log("🔹 Query params detected:", req.query);
+  }
+  next();
+});
+
+// ✅ MOVE RECIPE ROUTE UP HERE (before global HPP)
+app.use(
+  "/api/recipe",
+  hppProtect({
+    policy: "first",
+    allowlist: [
+      "includeAll", "status", "foodID", "name", "origin", "difficulty",
+      "prepTime", "cookTime", "servings", "image", "description",
+      "foodType", "dietaryTags", "ingredients", "instructions",
+      "funFact", "chefTips"
+    ],
+  }),
+  recipeRoutes
 );
 
 // ---------- 7) Global HPP protection for everything else ----------
@@ -209,32 +250,16 @@ app.use(
   hppProtect({
     policy: "first", // block duplicates globally
     allowlist: [
-      "id",
-      "page",
-      "q",
-      "sort",
-      "email",
-      "password",
-      "userID",
-      "token",
-      "role",
-      "userProfileID",
-      "bio", "location", "firstname", "lastname",
-      "avatar", "allergies", "dietary", "emailNotifications", "prefs",
-      "pushNotifications", "profileVisibility", "language", "recipes",
-      "status", "stats", "saveFoods",
-      "likes",
-      "type",
-      "postId",
-      "content",
-      "reply",
-      "comment",
-      "foodID", 
-      "likeID",
-      "name", "origin", "difficulty", "prepTime", "cookTime", 
-      "servings", "image", "description", "foodType", "dietaryTags", 
+      "id", "page", "q", "sort", "email", "password", "userID", "token", "role",
+      "userProfileID", "firebase_uid", "bio", "location", "firstname", "lastname",
+      "city", "suspendedOn", "avatar", "allergies", "dietary", "emailNotifications",
+      "prefs", "pushNotifications", "profileVisibility", "language", "recipes",
+      "status", "stats", "saveFoods", "likes", "type", "postId", "postID",
+      "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID",
+      "likeID", "name", "origin", "difficulty", "prepTime", "cookTime",
+      "servings", "image", "description", "foodType", "dietaryTags",
       "ingredients", "instructions", "funFact", "chefTips",
-      "isAdmin", "isAdminAction", "adminRole", "adminId"
+      "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));
@@ -242,26 +267,14 @@ app.use(
   })
 );
 
+
 // ---------- 8) Other Routes ----------
 app.use("/api/logout", logoutRoutes);
-app.use(
-  "/api/register",
-  //authLimiter,
-  hppProtect({
-    policy: "reject",
-    allowlist: ["email", "password", "firstname", "lastname"],
-  }),
-  registerRoutes
-);
 app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes);
-app.use(
-  "/api/exploreFood",
-  hppProtect({ policy: "first", allowlist: ["q", "page", "sort"] }),
-  exploreFoodRoutes
-);
+app.use("/api/exploreFood", hppProtect({ policy: "first", allowlist: ["q", "page", "sort"] }), exploreFoodRoutes);
 app.use("/api/foodDetail", foodDetailRoutes);
 app.use("/api/foodDiscussion", foodDiscussionRoutes);
 app.use("/api/recipe", recipeRoutes);
@@ -270,6 +283,12 @@ app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/foods", foodRoutes);
 app.use("/api/userProfile", userProfileRoutes);
 app.use("/api/likes", likeRoutes);
+
+// ✅ NEW: Link Admin Management routes (for Admin User Management tab)
+app.use("/api/admin", adminRoutes);
+
+// ❌ REMOVED: Link Content Moderation route (no longer needed)
+// app.use("/api/content", contentRoutes);
 
 // ---------- Example Admin Guard ----------
 app.get("/api/admin/data", (req, res) => {
