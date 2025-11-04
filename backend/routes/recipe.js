@@ -50,15 +50,11 @@ console.log("🔧 Cloudinary configured:", {
   api_key: process.env.CLOUDINARY_API_KEY ? "✅ Set" : "❌ Missing"
 });
 
-
-// ✅✅ UPDATED ROUTE BELOW: supports ?includeAll=true for admin moderation
 // GET all recipes 
 router.get('/all/recipes', async (req, res) => {
   try {
-    // NEW: detect query param
-    const includeAll = req.query.includeAll === 'true';
-    console.log(`Fetching ${includeAll ? 'ALL' : 'APPROVED'} recipes...`);
-
+    console.log('Fetching all recipes...');
+    
     const query = `
       SELECT 
         f.foodID AS id,
@@ -76,96 +72,90 @@ router.get('/all/recipes', async (req, res) => {
         r.ingredients, 
         r.steps AS instructions, 
         r.DidYouKnow AS funFact, 
-        r.chefTips,
-        r.status
+        r.chefTips
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
-      ${includeAll ? "" : "WHERE r.status = 'Approved'"}
+      WHERE r.status = 'Approved'
     `;
-
-    const [rows] = await db.query(query);
-
-    const allRecipes = rows.map(data => {
-      // Safe value getter
-      const getSafe = (obj, prop) => {
-        return obj && obj[prop] !== null && obj[prop] !== undefined ? obj[prop] : null;
-      };
-
-      // Handle dietaryTags
-      let dietaryTags = [];
-      const dietaryTagsValue = getSafe(data, 'dietaryTags');
-      if (dietaryTagsValue) {
-        if (typeof dietaryTagsValue === 'string') {
-          dietaryTags = dietaryTagsValue.split(',').map(tag => tag.trim()).filter(Boolean);
-        } else if (Array.isArray(dietaryTagsValue)) {
-          dietaryTags = dietaryTagsValue;
+    
+    const result = await db.query(query);
+    console.log('Raw MySQL result length:', Array.isArray(result) ? result.length : 'N/A');
+    
+    let allRecipes = [];
+    
+    if (Array.isArray(result)) {
+      // Filter out schema objects
+      const validItems = result.filter(item => {
+        if (typeof item !== 'object' || item === null) return false;
+        
+        // Check if this is a schema definition
+        const values = Object.values(item);
+        const isSchema = values.some(value => 
+          typeof value === 'string' && 
+          (value.includes('INT NOT NULL') || value.includes('VARCHAR'))
+        );
+        
+        return !isSchema;
+      });
+      
+      console.log(`Valid items after filtering: ${validItems.length}`);
+      
+      // DEBUG
+      console.log('🔍 DEBUG - Detailed structure analysis:');
+      validItems.forEach((item, index) => {
+        console.log(`Item ${index}:`, {
+          keys: Object.keys(item),
+          hasNumericKeys: Object.keys(item).some(key => !isNaN(parseInt(key))),
+          numericKeys: Object.keys(item).filter(key => !isNaN(parseInt(key))),
+          firstFewValues: Object.values(item).slice(0, 3).map(val => 
+            val && typeof val === 'object' ? { type: 'object', hasId: !!val.id, hasName: !!val.name } : val
+          )
+        });
+      });
+      
+      // Extract ALL recipe objects from ALL numeric keys
+      validItems.forEach(item => {
+        Object.keys(item).forEach(key => {
+          const value = item[key];
+          
+          if (value && typeof value === 'object' && value.id !== undefined && value.name !== undefined) {
+            console.log(`📖 Found recipe at key ${key}: ${value.name} (ID: ${value.id})`);
+            const transformedRecipe = createRecipeFromFlatObject(value);
+            allRecipes.push(transformedRecipe);
+          }
+        });
+      });
+      
+      console.log(`Total recipes extracted: ${allRecipes.length}`);
+      
+      // Remove duplicates by ID
+      const uniqueRecipes = [];
+      const seenIds = new Set();
+      
+      allRecipes.forEach(recipe => {
+        if (!seenIds.has(recipe.id)) {
+          seenIds.add(recipe.id);
+          uniqueRecipes.push(recipe);
         }
-      }
-
-      // Handle ingredients
-      let ingredients = [];
-      const ingredientsValue = getSafe(data, 'ingredients');
-      if (ingredientsValue) {
-        if (typeof ingredientsValue === 'string') {
-          ingredients = ingredientsValue.split('\n').map(line => line.trim()).filter(Boolean);
-        } else if (Array.isArray(ingredientsValue)) {
-          ingredients = ingredientsValue;
-        }
-      }
-
-      // Handle instructions
-      let instructions = [];
-      const instructionsValue = getSafe(data, 'instructions');
-      if (instructionsValue) {
-        if (typeof instructionsValue === 'string') {
-          instructions = instructionsValue.split('\n').map(line => line.trim()).filter(Boolean);
-        } else if (Array.isArray(instructionsValue)) {
-          instructions = instructionsValue;
-        }
-      }
-
-      // Handle image properly - accept both URLs and base64
-      let imageUrl = '';
-      const imageValue = getSafe(data, 'image');
-      if (imageValue && typeof imageValue === 'string') {
-        if (imageValue.startsWith('http') || imageValue.startsWith('data:image')) {
-          imageUrl = imageValue;
-        }
-      }
-
-      // If no image, use base64 placeholder
-      if (!imageUrl) {
-        imageUrl = 'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
-      }
-
-      return {
-        id: getSafe(data, 'id') || 0,
-        name: getSafe(data, 'name') || 'Unknown Recipe',
-        origin: getSafe(data, 'origin') || 'Unknown',
-        difficulty: getSafe(data, 'difficulty') || 'Easy',
-        prepTime: Number(getSafe(data, 'prepTime')) || 0,
-        cookTime: Number(getSafe(data, 'cookTime')) || 0,
-        servings: Number(getSafe(data, 'servings')) || 0,
-        image: imageUrl,
-        description: getSafe(data, 'description') || '',
-        foodType: getSafe(data, 'foodType') || getSafe(data, 'category') || 'Other',
-        dietaryTags,
-        ingredients,
-        instructions,
-        funFact: getSafe(data, 'funFact') || '',
-        chefTips: getSafe(data, 'chefTips') || '',
-        status: getSafe(data, 'status') || 'Pending'
-      };
-    });
-
-    console.log(`✅ Total recipes sent: ${allRecipes.length}`);
+      });
+      
+      console.log(`Unique recipes after deduplication: ${uniqueRecipes.length}`);
+      allRecipes = uniqueRecipes;
+    }
+    
+    console.log(`Sending ${allRecipes.length} APPROVED recipes to frontend`);
+    
+    if (allRecipes.length > 0) {
+      console.log('✅ Recipes being sent:', allRecipes.map(r => ({ id: r.id, name: r.name })));
+    }
+    
     res.json(allRecipes);
+    
   } catch (error) {
     console.error('Error fetching recipes:', error);
     res.status(500).json({ error: error.message });
   }
 });
-
 
 // to create recipe from flat object 
 function createRecipeFromFlatObject(data) {
@@ -242,8 +232,7 @@ function createRecipeFromFlatObject(data) {
     ingredients: ingredients,
     instructions: instructions,
     funFact: getSafe(data, 'funFact') || '',
-    chefTips: getSafe(data, 'chefTips') || '',
-    status: getSafe(data, 'status'),
+    chefTips: getSafe(data, 'chefTips') || ''
   };
 }
 
@@ -271,55 +260,89 @@ router.get('/recipes/:id', async (req, res) => {
         r.steps AS instructions, 
         r.DidYouKnow AS funFact, 
         r.chefTips,
+        r.userProfileID,
         r.status
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
-      WHERE f.foodID = ? 
+      WHERE f.foodID = ? AND r.status = 'Approved'
     `;
     
-    console.log('🔍 SQL Query:', query);
-    console.log('🔍 Query parameter (id):', id);
+    const result = await db.query(query, [id]);
+    console.log('Raw result for single recipe:', result);
     
-    const [rows] = await db.query(query, [id]);
-    console.log('✅ SQL rows found:', rows.length);
+    const rows = Array.isArray(result) ? result : (result.rows || result);
     
-    if (!rows || rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ error: 'Recipe not found' });
     }
     
-    const row = rows[0];
-    console.log('✅ Raw row data received:', row);
+    let row = rows[0];
     
-    const recipe = {
-      id: row.id,
-      name: row.name || '',
-      origin: row.origin || '',
-      difficulty: row.difficulty || 'Easy',
-      prepTime: row.prepTime || 0,
-      cookTime: row.cookTime || 0,
-      servings: row.servings || 0,
-      image: row.image || '',
-      description: row.description || '',
-      foodType: row.foodType || row.category || 'Other',
-      dietaryTags: row.dietaryTags
-        ? (typeof row.dietaryTags === 'string'
-            ? row.dietaryTags.split(',').map(tag => tag.trim()).filter(tag => tag)
-            : [])
-        : [],
-      ingredients: row.ingredients || '',
-      instructions: row.instructions || '',
-      funFact: row.funFact || '',
-      chefTips: row.chefTips || '',
-      status: row.status || 'Unknown'
-    };
+    // DEBUG
+    console.log('Single recipe row structure:', {
+      keys: Object.keys(row),
+      hasNumericKeys: Object.keys(row).some(key => !isNaN(parseInt(key))),
+      hasNamedProps: row.id !== undefined || row.name !== undefined,
+      sampleValues: Object.values(row).slice(0, 3)
+    });
     
-    console.log('Sending transformed recipe:', {
+    // Extract the actual recipe data
+    let recipeData = row;
+    
+    // If row has numeric keys, look for the actual recipe object
+    if ((row.id === undefined || row.name === undefined) && Object.keys(row).some(key => !isNaN(key))) {
+      console.log('Looking for recipe in numeric keys...');
+      
+      // Check each numeric key for a recipe-like object
+      Object.keys(row).forEach(key => {
+        const value = row[key];
+        if (value && typeof value === 'object' && value.id !== undefined && value.name !== undefined) {
+          console.log(`Found recipe at key ${key}:`, { id: value.id, name: value.name });
+          recipeData = value;
+        }
+      });
+    }
+    
+    if (recipeData.id === undefined || recipeData.name === undefined) {
+      console.log('Using direct mapping for single recipe');
+      // Map numeric indices to field names based on SELECT order
+      const fieldMap = {
+        0: 'id', 1: 'name', 2: 'origin', 3: 'difficulty', 4: 'prepTime', 5: 'image',
+        6: 'description', 7: 'foodType', 8: 'category', 9: 'dietaryTags',
+        10: 'cookTime', 11: 'servings', 12: 'ingredients', 13: 'instructions',
+        14: 'funFact', 15: 'chefTips', 
+      };
+      
+      const mappedData = {};
+      Object.keys(recipeData).forEach(key => {
+        const numKey = parseInt(key);
+        if (!isNaN(numKey) && fieldMap[numKey] !== undefined) {
+          mappedData[fieldMap[numKey]] = recipeData[key];
+        } else if (isNaN(numKey) && key !== 'userProfileID' && key !== 'status') {
+          // Only include non-numeric keys that are NOT the internal fields
+          mappedData[key] = recipeData[key];
+        }
+      });
+      recipeData = mappedData;
+    } else {
+      // Remove internal fields if they exist as named properties
+      const { userProfileID, status, ...cleanData } = recipeData;
+      recipeData = cleanData;
+    }
+    
+    console.log('Final recipe data before transformation:', {
+      id: recipeData.id,
+      name: recipeData.name,
+      typeOfId: typeof recipeData.id,
+      typeOfName: typeof recipeData.name
+    });
+    
+    const recipe = createRecipeFromFlatObject(recipeData);
+    
+    console.log('Sending transformed recipe:', { 
       id: recipe.id, 
       name: recipe.name,
-      origin: recipe.origin,
-      foodType: recipe.foodType,
-      status: recipe.status,
-      hasImage: !!recipe.image
+      origin: recipe.origin 
     });
     
     res.json(recipe);
@@ -329,125 +352,6 @@ router.get('/recipes/:id', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-// GET single recipe by ID 
-// router.get('/recipes/:id', async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     console.log('Fetching recipe with ID:', id);
-    
-//     const query = `
-//       SELECT 
-//         f.foodID AS id,
-//         f.name, 
-//         f.origin, 
-//         f.difficulty, 
-//         f.prepTime, 
-//         f.image, 
-//         f.description, 
-//         f.foodType,
-//         f.category,
-//         f.dietaryTags,
-//         r.cookTime, 
-//         r.servings, 
-//         r.ingredients, 
-//         r.steps AS instructions, 
-//         r.DidYouKnow AS funFact, 
-//         r.chefTips,
-//         r.userProfileID,
-//         r.status
-//       FROM food f
-//       LEFT JOIN recipe r ON f.foodID = r.foodID
-//       WHERE f.foodID = ? 
-//     `;
-    
-//     const result = await db.query(query, [id]);
-//     console.log('Raw result for single recipe:', result);
-    
-//     const rows = Array.isArray(result) ? result : (result.rows || result);
-    
-//     if (rows.length === 0) {
-//       return res.status(404).json({ error: 'Recipe not found' });
-//     }
-    
-//     let row = rows[0];
-    
-//     // DEBUG
-//     console.log('Single recipe row structure:', {
-//       keys: Object.keys(row),
-//       hasNumericKeys: Object.keys(row).some(key => !isNaN(parseInt(key))),
-//       hasNamedProps: row.id !== undefined || row.name !== undefined,
-//       sampleValues: Object.values(row).slice(0, 3)
-//     });
-    
-//     // Extract the actual recipe data
-//     let recipeData = row;
-    
-//     // If row has numeric keys, look for the actual recipe object
-//     if ((row.id === undefined || row.name === undefined) && Object.keys(row).some(key => !isNaN(key))) {
-//       console.log('Looking for recipe in numeric keys...');
-      
-//       // Check each numeric key for a recipe-like object
-//       Object.keys(row).forEach(key => {
-//         const value = row[key];
-//         if (value && typeof value === 'object' && value.id !== undefined && value.name !== undefined) {
-//           console.log(`Found recipe at key ${key}:`, { id: value.id, name: value.name });
-//           recipeData = value;
-//         }
-//       });
-//     }
-    
-//     if (recipeData.id === undefined || recipeData.name === undefined) {
-//       console.log('Using direct mapping for single recipe');
-//       // Map numeric indices to field names based on SELECT order
-//       const fieldMap = {
-//         0: 'id', 1: 'name', 2: 'origin', 3: 'difficulty', 4: 'prepTime', 5: 'image',
-//         6: 'description', 7: 'foodType', 8: 'category', 9: 'dietaryTags',
-//         10: 'cookTime', 11: 'servings', 12: 'ingredients', 13: 'instructions',
-//         14: 'funFact', 15: 'chefTips', 
-//       };
-      
-//       const mappedData = {};
-//       Object.keys(recipeData).forEach(key => {
-//         const numKey = parseInt(key);
-//         if (!isNaN(numKey) && fieldMap[numKey] !== undefined) {
-//           mappedData[fieldMap[numKey]] = recipeData[key];
-//         } else if (isNaN(numKey) && key !== 'userProfileID' && key !== 'status') {
-//           // Only include non-numeric keys that are NOT the internal fields
-//           mappedData[key] = recipeData[key];
-//         }
-//       });
-//       recipeData = mappedData;
-//     } else {
-//       // Remove internal fields if they exist as named properties
-//       const { userProfileID, status, ...cleanData } = recipeData;
-//       recipeData = cleanData;
-//     }
-    
-//     console.log('Final recipe data before transformation:', {
-//       id: recipeData.id,
-//       name: recipeData.name,
-//       status: recipeData.status,
-//       typeOfId: typeof recipeData.id,
-//       typeOfName: typeof recipeData.name
-//     });
-    
-//     const recipe = createRecipeFromFlatObject(recipeData);
-    
-//     console.log('Sending transformed recipe:', { 
-//       id: recipe.id, 
-//       name: recipe.name,
-//       origin: recipe.origin,
-//       status: recipe.status, 
-//     });
-    
-//     res.json(recipe);
-    
-//   } catch (error) {
-//     console.error('Error fetching recipe:', error);
-//     res.status(500).json({ error: error.message });
-//   }
-// });
 
 // POST new recipe 
 router.post('/create/recipes', async (req, res) => {
@@ -638,253 +542,41 @@ router.post('/create/recipes', async (req, res) => {
   }
 });
 
-// ✅ GET recipes by user ID 
-router.get("/user/:userId", async (req, res) => {
-  console.log('=== STARTING USER RECIPES FETCH ===');
-  console.log('📝 Request params:', req.params);
-  console.log('🔍 Query params:', req.query);
+// Add this route to your backend
+router.put('/update/recipes/:id', async (req, res) => {
+  console.log('🔍 START: Recipe update endpoint called for ID:', req.params.id);
   
   try {
-    const { userId } = req.params;
-    
-    console.log(`📖 Fetching recipes for user ID: ${userId}`);
-
-    // ✅ Enhanced validation
-    if (!userId) {
-      console.log('❌ No user ID provided');
-      return res.status(400).json({
-        success: false,
-        error: 'User ID is required'
-      });
-    }
-
-    // Convert to number and validate
-    const numericUserId = parseInt(userId);
-    if (isNaN(numericUserId) || numericUserId <= 0) {
-      console.log('❌ Invalid user ID format:', userId);
-      return res.status(400).json({
-        success: false,
-        error: 'Valid numeric user ID is required'
-      });
-    }
-
-    console.log('🔢 Numeric user ID:', numericUserId);
-
-    // ✅ Check if user exists with better error handling
-    let userCheck;
-    try {
-      console.log('👤 Checking if user exists...');
-      [userCheck] = await db.execute(
-        'SELECT userID, firstname, lastname FROM user WHERE userID = ?',
-        [numericUserId]
-      );
-      console.log('✅ User check result:', userCheck);
-    } catch (dbError) {
-      console.error('❌ Database error checking user:', dbError);
-      return res.status(500).json({
-        success: false,
-        error: 'Database error while checking user',
-        details: process.env.NODE_ENV === 'development' ? dbError.message : undefined
-      });
-    }
-
-    if (userCheck.length === 0) {
-      console.log('❌ User not found with ID:', numericUserId);
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
-
-    // ✅ Get userProfileID
-    let profileResult;
-    try {
-      console.log('📋 Fetching user profile...');
-      [profileResult] = await db.execute(
-        'SELECT userProfileID FROM userProfile WHERE userID = ?',
-        [numericUserId]
-      );
-      console.log('✅ Profile result:', profileResult);
-    } catch (profileError) {
-      console.error('❌ Database error fetching profile:', profileError);
-      return res.status(500).json({
-        success: false,
-        error: 'Database error while fetching user profile',
-        details: process.env.NODE_ENV === 'development' ? profileError.message : undefined
-      });
-    }
-
-    if (profileResult.length === 0) {
-      console.log('No user profile found for user:', numericUserId);
-      return res.status(200).json({
-        success: true,
-        message: 'No recipes found',
-        data: [],
-        userInfo: {
-          userId: numericUserId,
-          username: `${userCheck[0].firstname} ${userCheck[0].lastname}`,
-          totalRecipes: 0
-        }
-      });
-    }
-
-    const userProfileID = profileResult[0].userProfileID;
-    console.log('✅ User profile ID:', userProfileID);
-
-    let recipes;
-    try {
-      console.log('🍳 Fetching recipes...');
-      const recipeQuery = `
-        SELECT 
-          f.foodID AS id,
-          f.name AS foodName,
-          f.origin AS culturalOrigin,
-          r.status,
-          f.description AS culturalStory,
-          f.image AS photos,
-          r.ingredients,
-          r.steps AS instructions,
-          r.createdAt AS created_at,
-          up.userProfileID,
-          CONCAT(u.firstname, ' ', u.lastname) AS author,
-          u.userID,
-          r.cookTime,
-          r.servings,
-          r.DidYouKnow AS funFact,
-          r.chefTips,
-          f.difficulty,
-          f.prepTime,
-          f.foodType
-        FROM recipe r
-        JOIN food f ON r.foodID = f.foodID
-        JOIN userProfile up ON r.userProfileID = up.userProfileID
-        JOIN user u ON up.userID = u.userID
-        WHERE up.userProfileID = ?
-        ORDER BY r.createdAt DESC
-      `;
-      
-      console.log('📊 Executing query:', recipeQuery);
-      console.log('📋 With parameter:', userProfileID);
-      
-      [recipes] = await db.execute(recipeQuery, [userProfileID]);
-      console.log(`✅ Found ${recipes.length} recipes`);
-      
-    } catch (recipeError) {
-      console.error('❌ Database error fetching recipes:', recipeError);
-      console.error('❌ Error details:', {
-        code: recipeError.code,
-        errno: recipeError.errno,
-        sqlMessage: recipeError.sqlMessage
-      });
-      
-      return res.status(500).json({
-        success: false,
-        error: 'Database error while fetching recipes',
-        details: process.env.NODE_ENV === 'development' ? {
-          message: recipeError.message,
-          code: recipeError.code,
-          sqlMessage: recipeError.sqlMessage
-        } : undefined
-      });
-    }
-
-    // ✅ Format the response data safely for RECIPES
-    const formattedRecipes = recipes.map(recipe => {
-      // Handle potential undefined values
-      let images = [];
-      try {
-        if (recipe.photos && typeof recipe.photos === 'string' && recipe.photos.trim() !== '') {
-          // For recipes, typically one main image, not comma-separated
-          images = [recipe.photos];
-        }
-      } catch (photoError) {
-        console.warn('⚠️ Error processing photos for recipe:', recipe.id, photoError);
-      }
-
-      // Handle ingredients and instructions 
-      let ingredients = [];
-      let instructions = [];
-      
-      if (recipe.ingredients && typeof recipe.ingredients === 'string') {
-        ingredients = recipe.ingredients.split('\n').filter(line => line.trim() !== '');
-      }
-      
-      if (recipe.instructions && typeof recipe.instructions === 'string') {
-        instructions = recipe.instructions.split('\n').filter(line => line.trim() !== '');
-      }
-
-      return {
-        id: recipe.id, 
-        foodName: recipe.foodName || 'Untitled Recipe',
-        culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
-        status: (recipe.status || 'pending').toLowerCase(),
-        culturalStory: recipe.culturalStory || '',
-        images: images,
-        ingredients: ingredients, // ✅ Include ingredients array
-        instructions: instructions, // ✅ Include instructions array
-        author: recipe.author || 'Unknown Author',
-        userId: recipe.userID,
-        userProfileID: recipe.userProfileID,
-        createdAt: recipe.created_at,
-        cookTime: recipe.cookTime || 0,
-        servings: recipe.servings || 1,
-        funFact: recipe.funFact || '',
-        chefTips: recipe.chefTips || '',
-        difficulty: recipe.difficulty || 'Easy',
-        prepTime: recipe.prepTime || 0,
-        foodType: recipe.foodType || 'Other'
-      };
-    });
-
-    console.log('✅ Successfully formatted recipes:', formattedRecipes.length);
-    console.log('📊 Sample recipe:', formattedRecipes.length > 0 ? {
-      id: formattedRecipes[0].id,
-      name: formattedRecipes[0].foodName,
-      status: formattedRecipes[0].status,
-      ingredientsCount: formattedRecipes[0].ingredients?.length,
-      instructionsCount: formattedRecipes[0].instructions?.length
-    } : 'No recipes found');
-
-    res.status(200).json({
-      success: true,
-      message: `Found ${formattedRecipes.length} recipes`,
-      data: formattedRecipes,
-      userInfo: {
-        userId: numericUserId,
-        username: `${userCheck[0].firstname} ${userCheck[0].lastname}`,
-        totalRecipes: formattedRecipes.length
-      }
-    });
-
-  } catch (error) {
-    console.error('❌ UNEXPECTED ERROR in user recipes route:', error);
-    console.error('❌ Error stack:', error.stack);
-    
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? {
-        message: error.message,
-        stack: error.stack
-      } : undefined
-    });
-  }
-});
-
-// PUT update recipe
-router.put('/revise/recipes/:id', async (req, res) => {
-  console.log('🔧 START: Recipe update endpoint called');
-  console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
-
-  try {
-    const { id } = req.params;
     const {
-      name, origin, difficulty, prepTime, image, description,
-      foodType, dietaryTags, cookTime, servings, ingredients,
-      instructions, funFact, chefTips, status
+      name, origin, difficulty, prepTime, image, description, 
+      foodType, dietaryTags, cookTime, servings, ingredients, 
+      instructions, funFact, chefTips
     } = req.body;
 
-    console.log('🆔 Updating recipe with ID:', id);
+    // ✅ NEW: Validate and sanitize (added here as well)
+    {
+      const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+      if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
+      const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+      Object.assign(req.body, cleanData);
+    }
+
+    const recipeId = req.params.id;
+
+    console.log('📊 Update request data analysis:', {
+      recipeId,
+      name, 
+      origin, 
+      foodType,
+      hasImage: !!image,
+      imageType: image ? (image.startsWith('data:image') ? 'base64' : 'url') : 'none'
+    });
+
+    // Validate required fields
+    if (!name || !origin) {
+      console.log('❌ Validation failed: missing name or origin');
+      return res.status(400).json({ error: 'Name and origin are required' });
+    }
 
     // Check authentication
     if (!req.session || !req.session.user) {
@@ -908,172 +600,114 @@ router.put('/revise/recipes/:id', async (req, res) => {
     const userProfileID = profileResult[0].userProfileID;
     console.log('✅ User authenticated - userID:', userID, 'userProfileID:', userProfileID);
 
-    // ✅ Validate and sanitize input
-    {
-      const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
-      if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
-      const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
-      Object.assign(req.body, cleanData);
+
+    // First, get the current foodID from the recipe
+    console.log('🔍 Getting current food ID for recipe:', recipeId);
+    const [currentRecipe] = await db.query(
+      'SELECT foodID FROM recipe WHERE recipeID = ? AND userProfileID = ?',
+      [recipeId, userProfileID]
+    );
+
+    if (currentRecipe.length === 0) {
+      console.log('❌ Recipe not found or user not authorized');
+      return res.status(404).json({ error: 'Recipe not found or access denied' });
     }
 
-    // ✅ Fetch existing data (to preserve image if not replaced)
-    const [existingRows] = await db.query('SELECT image FROM food WHERE foodID = ?', [id]);
-    const existingImage = existingRows.length > 0 ? existingRows[0].image : null;
+    const foodId = currentRecipe[0].foodID;
+    console.log('✅ Found food ID:', foodId);
 
-    let finalImage = existingImage;
-    if (image && image.trim() !== '' && image !== existingImage) {
-      if (image.startsWith('data:image')) {
+    let processedImage = null;
+
+    // CLOUDINARY UPLOAD LOGIC (only if new image provided)
+    if (image && image.startsWith('data:image')) {
+      try {
         console.log('📤 Uploading new image to Cloudinary...');
-        try {
-          const uploadResult = await cloudinary.uploader.upload(image, {
-            folder: 'food-recipes',
-            resource_type: 'image',
-            timeout: 30000
-          });
-          finalImage = uploadResult.secure_url;
-          console.log('✅ Image uploaded successfully:', finalImage);
-        } catch (uploadError) {
-          console.error('❌ Cloudinary upload failed:', uploadError.message);
-          finalImage = existingImage; // fallback to old image
-        }
-      } else if (image.startsWith('http')) {
-        finalImage = image;
-        console.log('✅ Using existing image URL directly');
+        const uploadResult = await cloudinary.uploader.upload(image, {
+          folder: 'food-recipes',
+          resource_type: 'image'
+        });
+        processedImage = uploadResult.secure_url;
+        console.log('✅ New image uploaded to Cloudinary:', processedImage);
+      } catch (uploadError) {
+        console.error('❌ Cloudinary upload failed:', uploadError);
+        // Don't update image if upload fails
       }
-    } else {
-      console.log('🖼️ Keeping existing image');
+    } else if (image && image.startsWith('http')) {
+      processedImage = image;
+      console.log('✅ Using provided image URL');
     }
 
-    // 🥦 Update food table
-    const updateFoodQuery = `
+    console.log('🚀 About to UPDATE food table');
+
+    // Update food table
+    const foodUpdateQuery = `
       UPDATE food 
-      SET 
-        name = ?, 
-        origin = ?, 
-        difficulty = ?, 
-        prepTime = ?, 
-        image = ?, 
-        description = ?, 
-        foodType = ?, 
-        category = ?, 
-        dietaryTags = ?
+      SET name = ?, origin = ?, difficulty = ?, prepTime = ?, 
+          description = ?, foodType = ?, category = ?, dietaryTags = ?
+          ${processedImage ? ', image = ?' : ''}
       WHERE foodID = ?
     `;
+    
     const foodParams = [
-      name,
-      origin,
-      difficulty || 'Easy',
-      prepTime || 0,
-      finalImage,
-      description || '',
+      name, 
+      origin, 
+      difficulty || 'Easy', 
+      prepTime || 0, 
+      description || '', 
       foodType || 'Other',
       foodType || 'Other',
-      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
-      id
+      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || '')
     ];
 
-    console.log('📝 Executing FOOD UPDATE with params:', foodParams);
-    await db.query(updateFoodQuery, foodParams);
+    // Add image parameter if new image was processed
+    if (processedImage) {
+      foodParams.push(processedImage);
+    }
+    
+    // Always add foodId at the end
+    foodParams.push(foodId);
+    
+    console.log('📝 Executing food update with params:', foodParams);
+    
+    const [foodResult] = await db.query(foodUpdateQuery, foodParams);
+    console.log('✅ Food update successful - affected rows:', foodResult.affectedRows);
 
-    // 🍳 Update recipe table
-    const updateRecipeQuery = `
+    console.log('🚀 About to UPDATE recipe table');
+
+    // Update recipe table
+    const recipeUpdateQuery = `
       UPDATE recipe 
-      SET 
-        ingredients = ?, 
-        steps = ?, 
-        cookTime = ?, 
-        servings = ?, 
-        DidYouKnow = ?, 
-        chefTips = ?, 
-        status = ?
-      WHERE foodID = ? AND userProfileID = ? 
+      SET ingredients = ?, steps = ?, cookTime = ?, servings = ?, 
+          DidYouKnow = ?, chefTips = ?, status = ?
+      WHERE foodID = ? AND userProfileID = ?
     `;
+    
     const recipeParams = [
       Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
       Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
-      cookTime || 0,
+      cookTime || 0, 
       servings || 1,
-      funFact || '',
+      funFact || '', 
       chefTips || '',
-      status || 'Pending',
-      id,
+      'Pending', // Reset status to Pending for re-review
+      foodId,
       userProfileID
     ];
-
-    console.log('📝 Executing RECIPE UPDATE with params:', recipeParams);
-    const [updateResult] = await db.query(updateRecipeQuery, recipeParams);
-
-    if (updateResult.affectedRows === 0) {
-    console.log('⚠️ No existing recipe found, inserting new recipe entry instead');
-    const insertRecipeQuery = `
-      INSERT INTO recipe (
-        foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    await db.query(insertRecipeQuery, [
-      id,
-      userProfileID, 
-      Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
-      Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
-      cookTime || 0,
-      servings || 1,
-      funFact || '',
-      chefTips || '',
-      status || 'Pending'
-    ]);
-    console.log('✅ Inserted new recipe entry for foodID:', id, 'by userProfileID:', userProfileID);
-  }
-
-    console.log('✅ Recipe updated successfully');
-    res.json({ message: 'Recipe updated successfully', id });
-
-  } catch (error) {
-    console.error('💥 CATCH BLOCK - FULL ERROR DETAILS:', {
-      message: error.message,
-      code: error.code,
-      errno: error.errno,
-      sql: error.sql,
-      sqlState: error.sqlState,
-      sqlMessage: error.sqlMessage,
-      stack: error.stack
+    
+    console.log('📝 Executing recipe update with foodID:', foodId);
+    const [recipeResult] = await db.query(recipeUpdateQuery, recipeParams);
+    
+    console.log('✅ Recipe updated successfully - affected rows:', recipeResult.affectedRows);
+    
+    res.status(200).json({ 
+      message: 'Recipe updated successfully', 
+      id: foodId,
+      status: 'Pending'
     });
-
-    res.status(500).json({
-      error: error.message,
-      sqlCommand: error.sql,
-      code: error.code,
-      details: 'Check backend logs for full error details'
-    });
-  }
-});
-
-
-// ✅ ADMIN: Update recipe approval status (Approve / Reject)
-router.patch('/updateStatus/:id', async (req, res) => {
-  const recipeId = req.params.id;
-  const { status } = req.body; // Expected: "Approved", "Rejected", or "Pending"
-
-  const validStatuses = ["Approved", "Rejected", "Pending"];
-  if (!validStatuses.includes(status)) {
-    return res.status(400).json({ success: false, message: "Invalid status value." });
-  }
-
-  try {
-    const [result] = await db.query(
-      "UPDATE recipe SET status = ? WHERE foodID = ?",
-      [status, recipeId]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ success: false, message: "Recipe not found." });
-    }
-
-    console.log(`✅ Recipe ${recipeId} status updated to ${status}`);
-    res.json({ success: true, message: `Recipe marked as ${status}.` });
-
+    
   } catch (error) {
-    console.error("❌ Error updating recipe status:", error);
-    res.status(500).json({ success: false, message: "Database update failed." });
+    console.error('❌ Error updating recipe:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

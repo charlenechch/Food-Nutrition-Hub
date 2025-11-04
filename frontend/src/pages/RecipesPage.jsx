@@ -27,7 +27,6 @@ export default function RecipesPage() {
   const [searchQuery, setSearchQuery] = useState(initialQ);
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Debug (kept)
   useEffect(() => {
@@ -206,8 +205,6 @@ export default function RecipesPage() {
       return;
     }
 
-    setIsSubmitting(true);
-
     const name = form.name.trim();
     const origin = form.origin.trim();
     if (!name || !origin) return alert("Please fill at least Name and Origin.");
@@ -299,8 +296,6 @@ export default function RecipesPage() {
     } catch (err) {
       console.error('Error creating recipe:', err);
       alert('Failed to create recipe. Please try again.');
-    }finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -612,20 +607,13 @@ export default function RecipesPage() {
             </div>
             
             <div className="rp-actions">
-              {/* ✅ UPDATED: Submit button with loading state */}
-              <button 
-                className="rp-btn rp-submit" 
-                type="submit" 
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Submitting..." : "Submit Recipe"}
-              </button>
+              <button className="rp-btn rp-submit" type="submit">Submit Recipe</button>
               <button
                 className="rp-btn rp-btn-muted"
                 type="button"
                 onClick={() => setForm({
                   name: "", origin: "", difficulty: "Easy", prepTime: "", cookTime: "", servings: "", imageData: "", description: "", ingredients: "", instructions: "", funFact: "", chefTips: "", dietaryTags: [], otherDietEnabled: false, otherDietText: "", foodType: "Poultry", otherFoodEnabled: false, otherFoodText: "", 
-                })}disabled={isSubmitting}
+                })}
               >
                 Clear
               </button>
