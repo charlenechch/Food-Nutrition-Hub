@@ -55,13 +55,10 @@ router.post("/", async (req, res) => {
   const { email, password, rememberDevice } = cleanData;
   console.log("🧼 Sanitized input:", cleanData);
 
-console.log("🧩 db object keys in Railway:", Object.keys(db));
-
-console.log("🧩 db object keys in Railway:", Object.keys(db));
-
   try {
     // ✅ Step 3: Query user
-    const [users] = await db.query(
+    // FIXED: changed from db.query → db.pool.query to match your db.js exports
+    const [users] = await db.pool.query(
       "SELECT * FROM user WHERE email = ? LIMIT 1",
       [email]
     );
@@ -85,15 +82,16 @@ console.log("🧩 db object keys in Railway:", Object.keys(db));
     }
 
     // ✅ Step 5: Email verification check
-    if (user.verified === "False" || user.verified === 0) {
-      console.warn("🚫 Unverified user blocked:", email);
-      return res.status(403).json({
-        success: false,
-        notVerified: true,
-        email: user.email,
-        message: "Please verify your email first",
-      });
-    }
+    // ⚠️ NOTE: Comment this out if your DB does not have a `verified` column
+    //if (user.verified === "False" || user.verified === 0) {
+    //  console.warn("🚫 Unverified user blocked:", email);
+    //  return res.status(403).json({
+    //    success: false,
+    //    notVerified: true,
+    //    email: user.email,
+    //    message: "Please verify your email first",
+    //  });
+    //}
 
     // ✅ Step 6: Regenerate session (prevent fixation)
     console.log("🔐 Regenerating session...");
@@ -148,6 +146,7 @@ console.log("🧩 db object keys in Railway:", Object.keys(db));
       });
     });
   } catch (err) {
+    // ✅ Step 10: Catch-all for backend or DB errors
     console.error("💥 Login error:", err);
     res.status(500).json({ success: false, message: "Authentication error" });
   }

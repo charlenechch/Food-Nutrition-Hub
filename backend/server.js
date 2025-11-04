@@ -172,33 +172,33 @@ const authLimiter = rateLimit({
 
 // ---------- 5) Sessions ----------
 const dbOptions = {
-  host: process.env.MYSQLHOST,
-  port: Number(process.env.MYSQLPORT) || 3306,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  clearExpired: true,
-  checkExpirationInterval: 15 * 60 * 1000,
-  expiration: 24 * 60 * 60 * 1000,
-};
-
-const sessionStore = new MySQLStore(dbOptions);
-
-app.use(
-  session({
-    name: "sid",
-    secret: process.env.SESSION_SECRET || "change-me",
-    store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      sameSite: IS_PROD ? "none" : "lax",
-      secure: IS_PROD,
-      maxAge: 24 * 60 * 60 * 1000,
-    },
-  })
-);
+    host: process.env.MYSQLHOST,
+    port: Number(process.env.MYSQLPORT) || 3306,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
+    clearExpired: true,
+    checkExpirationInterval: 15 * 60 * 1000,
+    expiration: 24 * 60 * 60 * 1000,
+  };
+  
+  const sessionStore = new MySQLStore(dbOptions);
+  
+  app.use(
+    session({
+      name: "sid",
+      secret: process.env.SESSION_SECRET || "change-me",
+      store: sessionStore,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        sameSite: "none", // <-- ALWAYS "none" for cross-origin
+        secure: true,     // <-- ALWAYS "true" because sameSite: "none" requires it
+        maxAge: 24 * 60 * 60 * 1000,
+      },
+    })
+  );
 
 // ---------- 6) Routes that must come BEFORE global HPP ----------
 app.use(
