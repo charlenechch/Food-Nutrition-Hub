@@ -152,11 +152,12 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
     const { name, email, city, role, status, suspendedOn } = req.body;
 
-    // Validation
-    if (!name || !email) {
+    // This catches the 'undefined' parameter error.
+    if (!name || !email || !role || !status) {
+      console.warn("❌ Admin update validation failed. Missing data:", { name, email, role, status });
       return res.status(400).json({ 
         success: false, 
-        message: "Name and email are required" 
+        message: "Validation failed. Name, email, role, and status are required." 
       });
     }
 

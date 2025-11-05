@@ -94,13 +94,41 @@ router.post("/", async (req, res) => {
 
     // ✅ Step 6: Check account status
     if (user.status === "Suspended") {
-      console.warn(`🚫 Blocked login for ${user.status} user:`, email);
       
-      return res.status(403).json({
-        success: false,
-        message: "Your account has been suspended.", 
-      });
+      // Check if a suspension date exists in the database
+      if (user.suspendedOn) {
+        const today = new Date();
+        const suspendedUntil = new Date(user.suspendedOn);
+
+        // Compare date strings (e.g., "2025-11-07") to avoid timezone issues.
+        // This checks if today is *on or before* the suspension date.
+        const todayString = today.toISOString().slice(0, 10);
+        const suspendedUntilString = suspendedUntil.toISOString().slice(0, 10);
+
+        if (todayString <= suspendedUntilString) {
+          // If today is 07-Nov and suspension is until 07-Nov, block login.
+          console.warn(`🚫 Blocked login for ${email}. Suspension active until: ${suspendedUntilString}`);
+          
+          return res.status(403).json({
+            success: false,
+            message: `Your account is suspended until ${suspendedUntilString}. Please try again after this date.`,
+          });
+        }
+        
+        // If we are here, the suspension date has passed.
+        // e.g., Today is 08-Nov, suspension ended on 07-Nov.
+        console.log(`✅ Suspension has ended for user: ${email}. Allowing login.`);
+        
+      } else {
+        // No suspension date was set, so treat it as an indefinite suspension.
+        console.warn(`🚫 Blocked login for ${email} (indefinite suspension)`);
+        return res.status(403).json({
+          success: false,
+          message: "Your account has been suspended. Please contact support.",
+        });
+      }
     }
+    
     // ✅ Step 7: Regenerate session (prevent fixation)
     console.log("🔐 Regenerating session...");
     req.session.regenerate(async (err) => {

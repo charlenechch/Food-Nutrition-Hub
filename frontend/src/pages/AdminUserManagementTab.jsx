@@ -840,7 +840,7 @@ export default function UserManagement() {
                     {/* SuspendedOn (only if Suspended) */}
                     {userForm.status === "Suspended" && (
                     <div className="umg-field">
-                        <label className="umg-label">Suspended On</label>
+                        <label className="umg-label">Suspended Until</label>
                         <input
                         className="umg-input"
                         type="date"
