@@ -227,116 +227,49 @@ const ensureUserProfileExists = async (userID) => {
 };
 
 // Helper function to update user stats in userProfile table
-// const updateUserStats = async (userID) => {
-//   try {
-//     console.log(`📈 Starting stats update for user: ${userID}`);
-    
-//     // First ensure profile exists
-//     await ensureUserProfileExists(userID);
-
-//     // Count recipes created by user (from recipe table)
-//     console.log(`🍳 Counting recipes for user: ${userID}`);
-//     const [recipeCount] = await db.execute(
-//       `SELECT COUNT(*) as count FROM recipe WHERE userProfileID = ? AND status = 'Approved'`,
-//       [userID]
-//     );
-
-//     // Count posts created by user (from posts table)
-//     console.log(`📝 Counting posts for user: ${userID}`);
-//     const [postCount] = await db.execute(
-//       `SELECT COUNT(*) as count FROM posts WHERE userProfileID = ? AND status = 'Approved'`, 
-//       [userID]
-//     );
-
-//     // Count likes received by user (from likes table)
-//     console.log(`❤️ Counting likes for user: ${userID}`);
-//     const [likeCount] = await db.execute(
-//       `SELECT COUNT(*) as count 
-//        FROM likes l
-//        INNER JOIN posts p ON l.postID = p.postID 
-//        WHERE p.userProfileID = ?`, 
-//       [userID]
-//     );
-
-//     const recipesCount = recipeCount[0]?.count || 0;
-//     const postsCount = postCount[0]?.count || 0;
-//     const likesCount = likeCount[0]?.count || 0;
-
-//     console.log(`📊 Stats calculated - Recipes: ${recipesCount}, Posts: ${postsCount}, Likes: ${likesCount}`);
-
-//     // Update userProfile table with the counts
-//     console.log(`💾 Updating userProfile stats in database`);
-//     const [updateResult] = await db.execute(
-//       `UPDATE userProfile 
-//        SET recipes = ?, posts = ?, likes = ?
-//        WHERE userID = ?`,
-//       [recipesCount, postsCount, likesCount, userID]
-//     );
-
-//     console.log(`✅ Stats update completed, rows affected: ${updateResult.affectedRows}`);
-
-//     return {
-//       recipes: recipesCount,
-//       posts: postsCount,
-//       likes: likesCount
-//     };
-//   } catch (error) {
-//     console.error('❌ Error updating user stats:', error);
-//     console.error('❌ Error stack:', error.stack);
-//     return { recipes: 0, posts: 0, likes: 0 };
-//   }
-// };
-
-// Enhanced helper function to update user stats OR fetch admin stats
-const updateUserStats = async (userID = null, options = {}) => {
+const updateUserStats = async (userID) => {
   try {
-    // If userID is null and admin flag is true, return platform stats
-    if (userID === null && options.isAdmin) {
-      console.log('📊 Fetching admin platform statistics');
-      
-      const [totalRecipes] = await db.execute(
-        `SELECT COUNT(*) as count FROM recipe WHERE status = 'Approved'`
-      );
-      
-      const [totalPosts] = await db.execute(
-        `SELECT COUNT(*) as count FROM posts WHERE status = 'Approved'`
-      );
-      
-      const [totalLikes] = await db.execute(
-        `SELECT COUNT(*) as count FROM likes`
-      );
-
-      const adminStats = {
-        recipes: totalRecipes[0]?.count || 0,
-        posts: totalPosts[0]?.count || 0,
-        likes: totalLikes[0]?.count || 0,
-      };
-
-      console.log(`📈 Admin stats - Recipes: ${adminStats.recipes}, Posts: ${adminStats.posts}, Likes: ${adminStats.likes}, Users: ${adminStats.totalUsers}`);
-
-      return adminStats;
-    }
-
-    // Original user-specific logic 
     console.log(`📈 Starting stats update for user: ${userID}`);
+    
+    // First ensure profile exists AND get the userProfileID
     await ensureUserProfileExists(userID);
+    
+    // ✅ ADD THIS: Get the userProfileID for this user
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      console.log(`❌ No userProfile found for user: ${userID}`);
+      return { recipes: 0, posts: 0, likes: 0 };
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
+    console.log(`✅ Using userProfileID: ${userProfileID} for userID: ${userID}`);
 
+    // Count recipes created by user (from recipe table)
+    console.log(`🍳 Counting recipes for userProfileID: ${userProfileID}`);
     const [recipeCount] = await db.execute(
       `SELECT COUNT(*) as count FROM recipe WHERE userProfileID = ? AND status = 'Approved'`,
-      [userID]
+      [userProfileID]  // ✅ FIXED: Use userProfileID instead of userID
     );
 
+    // Count posts created by user (from posts table)
+    console.log(`📝 Counting posts for userProfileID: ${userProfileID}`);
     const [postCount] = await db.execute(
       `SELECT COUNT(*) as count FROM posts WHERE userProfileID = ? AND status = 'Approved'`, 
-      [userID]
+      [userProfileID]  // ✅ FIXED: Use userProfileID instead of userID
     );
 
+    // Count likes received by user (from likes table)
+    console.log(`❤️ Counting likes for userProfileID: ${userProfileID}`);
     const [likeCount] = await db.execute(
       `SELECT COUNT(*) as count 
        FROM likes l
        INNER JOIN posts p ON l.postID = p.postID 
        WHERE p.userProfileID = ?`, 
-      [userID]
+      [userProfileID]  // ✅ FIXED: Use userProfileID instead of userID
     );
 
     const recipesCount = recipeCount[0]?.count || 0;
@@ -345,11 +278,12 @@ const updateUserStats = async (userID = null, options = {}) => {
 
     console.log(`📊 Stats calculated - Recipes: ${recipesCount}, Posts: ${postsCount}, Likes: ${likesCount}`);
 
-    console.log(`💾 Updating userProfile stats in database`);
+    // Update userProfile table with the counts
+    console.log(`💾 Updating userProfile stats in database for userID: ${userID}`);
     const [updateResult] = await db.execute(
       `UPDATE userProfile 
        SET recipes = ?, posts = ?, likes = ?
-       WHERE userID = ?`,
+       WHERE userID = ?`,  // ✅ This one uses userID (correct)
       [recipesCount, postsCount, likesCount, userID]
     );
 
@@ -363,7 +297,7 @@ const updateUserStats = async (userID = null, options = {}) => {
   } catch (error) {
     console.error('❌ Error updating user stats:', error);
     console.error('❌ Error stack:', error.stack);
-    return userID === null ? null : { recipes: 0, posts: 0, likes: 0 };
+    return { recipes: 0, posts: 0, likes: 0 };
   }
 };
 
@@ -786,7 +720,6 @@ router.get("/", async (req, res) => {
     }
 
     const userID = req.session.user.userID;
-    const isAdmin = req.session.user.role === 'admin';
     console.log(`🔍 Fetching profile for userID: ${userID}`);
      
     // Ensure userProfile exists first
@@ -795,14 +728,7 @@ router.get("/", async (req, res) => {
     
     // Update user stats
     console.log(`📈 Updating user stats...`);
-    console.log(`🔍 DEBUG - isAdmin: ${isAdmin}, query.stats: ${req.query.stats}, wants platform: ${req.query.stats === 'platform'}`);
-    //const freshStats = await updateUserStats(userID);
-    const freshStats = isAdmin && req.query.stats === 'platform' 
-    ? await updateUserStats(null, { isAdmin: true })  // Platform stats
-    : await updateUserStats(userID);
-
-    console.log(`✅ DEBUG - Stats type: ${isAdmin && req.query.stats === 'platform' ? 'PLATFORM' : 'USER'}`);
-    console.log(`✅ DEBUG - Fresh stats received:`, freshStats);
+    const freshStats = await updateUserStats(userID);
 
     console.log(`📊 Executing profile query for user: ${userID}`);
     const [rows] = await db.execute(

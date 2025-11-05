@@ -30,10 +30,11 @@ import ReviewContentPage from "./pages/ReviewContentPage";
 import ReviseRecipePage from "./pages/ReviseRecipePage";
 import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
 import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
-import AdminCommunityReviewDetail from "./pages/AdminCommunityReviewDetail";
+import EditCommunityPostPage from "./pages/EditCommunityPostPage";
 
 // === Auth & Verification ===
-import AuthActionRouter from "./pages/AuthActionRouter";
+// Assuming this path is correct, if it's in 'pages' change it back
+import AuthActionRouter from "./pages/AuthActionRouter"; 
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ForgetPassword from "./pages/ForgotPasswordPage";
 import ResetPassword from "./pages/ResetPasswordPage";
@@ -145,7 +146,8 @@ function App() {
         <Route path="/admin/addrecipe" element={<AddRecipe />} />
         <Route path="/admin/editfood/:id" element={<EditFoodPage />} />
         <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />
-        <Route path="/admin/reviewcontent/:id" element={<ReviewContentPage />} />
+        
+        <Route path="/admin/edit/community/:id" element={<EditCommunityPostPage />} />
 
         {/* ✅ Community Review Routes */}
         <Route
@@ -156,11 +158,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        
+        {/* --- THIS IS THE FIX --- */}
+        {/* This single dynamic route now handles recipes, community posts, and anything else */}
         <Route
-          path="/admin/review/community/:id"
+          path="/admin/review/:type/:id"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminCommunityReviewDetail />
+              <ReviewContentPage />
             </ProtectedRoute>
           }
         />
