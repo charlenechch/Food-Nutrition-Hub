@@ -112,7 +112,7 @@ router.post("/", async (req, res) => {
 
     // Insert user
     const [result] = await db.query(
-  "INSERT INTO user (firstname, lastname, email, password, role, firebase_uid, isVerified) VALUES (?, ?, ?, ?, ?, ?, 0)",
+  "INSERT INTO user (firstname, lastname, email, password, role, firebase_uid) VALUES (?, ?, ?, ?, ?, ?)",
   [firstname, lastname, email, hashedPassword, "member", firebaseUID || null]
 );
 

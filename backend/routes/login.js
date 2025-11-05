@@ -82,16 +82,15 @@ router.post("/", async (req, res) => {
     }
 
     // ✅ Step 5: Email verification check
-    // ⚠️ NOTE: Comment this out if your DB does not have a `verified` column
-    //if (user.verified === "False" || user.verified === 0) {
-    //  console.warn("🚫 Unverified user blocked:", email);
-    //  return res.status(403).json({
-    //    success: false,
-    //    notVerified: true,
-    //    email: user.email,
-    //    message: "Please verify your email first",
-    //  });
-    //}
+    if (user.verified === "False" || user.verified === 0) {
+      console.warn("🚫 Unverified user blocked:", email);
+      return res.status(403).json({
+        success: false,
+        notVerified: true,
+        email: user.email,
+        message: "Please verify your email first",
+      });
+    }
 
     // ✅ Step 6: Regenerate session (prevent fixation)
     console.log("🔐 Regenerating session...");
