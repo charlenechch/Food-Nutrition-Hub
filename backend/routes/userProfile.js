@@ -307,12 +307,12 @@ const updateUserStats = async (userID = null, options = {}) => {
       );
 
       const adminStats = {
-        totalRecipes: totalRecipes[0]?.count || 0,
-        totalPosts: totalPosts[0]?.count || 0,
-        totalLikes: totalLikes[0]?.count || 0
+        recipes: totalRecipes[0]?.count || 0,
+        posts: totalPosts[0]?.count || 0,
+        likes: totalLikes[0]?.count || 0
       };
 
-      console.log(`📈 Admin stats - Recipes: ${adminStats.totalRecipes}, Posts: ${adminStats.totalPosts}, Likes: ${adminStats.totalLikes}, Users: ${adminStats.totalUsers}`);
+      console.log(`📈 Admin stats - Recipes: ${adminStats.recipes}, Posts: ${adminStats.posts}, Likes: ${adminStats.likes}, Users: ${adminStats.totalUsers}`);
 
       return adminStats;
     }
@@ -893,20 +893,7 @@ router.get("/", async (req, res) => {
 
       savedFoods: savedFoodsData,
       status: contributions,
-      // stats: {
-      //   recipes: freshStats.recipes || 0,
-      //   posts: freshStats.posts || 0,
-      //   likes: freshStats.likes || 0,
-      // },
-      stats: isAdmin && req.query.stats === 'platform' 
-    ? {
-        // Map admin stats to expected frontend structure
-        recipes: freshStats.totalRecipes || 0,
-        posts: freshStats.totalPosts || 0,
-        likes: freshStats.totalLikes || 0
-      }
-    : {
-        // User stats
+      stats: {
         recipes: freshStats.recipes || 0,
         posts: freshStats.posts || 0,
         likes: freshStats.likes || 0,
@@ -928,6 +915,7 @@ router.get("/", async (req, res) => {
     console.log("📤 Response keys:", Object.keys(response));
     console.log("📤 savedFoods content:", response.savedFoods);
     console.log("📤 status content:", response.status);
+    console.log("📤 stats content:", response.stats);
     
     res.json(response);
 
