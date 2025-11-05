@@ -8,34 +8,48 @@ import {
   useSearchParams,
 } from "react-router-dom";
 
+// === User & Public Pages ===
 import LoginRegisterPage from "./pages/LoginRegisterPage";
-import AdminHomepage from "./pages/AdminHomepage";
 import UserHomepage from "./pages/UserHomepage";
 import ExploreFoodsPage from "./pages/ExploreFoodPage";
 import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
 import RecipesPage from "./pages/RecipesPage";
 import RecipeDetailPage from "./pages/RecipeDetailPage";
 import CommunityPage from "./pages/CommunityPage";
-import AuthActionRouter from './pages/AuthActionRouter';
-import EmailVerificationPage from './pages/EmailVerificationPage';
-import ForgetPassword from "./pages/ForgotPasswordPage";
-import ResetPassword from "./pages/ResetPasswordPage";
-import OTPVerification from "./pages/OTPVerificationPage";
-import FoodDetail from "./pages/FoodDetailPage";
-import FoodDiscussion from "./pages/FoodDiscussionPage";
-import ProtectedRoute from "./components/ProtectedRoute";
 import CommunityPost from "./pages/CommunityPostPage";
 import UserProfilePage from "./pages/UserProfilePage";
-import ReviseRecipePage from "./pages/ReviseRecipePage";
-import EditFoodPage from "./pages/EditFoodPage";
 import Analytics from "./pages/Analytics";
-import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
+
+// === Admin Pages ===
+import AdminHomepage from "./pages/AdminHomepage";
+import EditFoodPage from "./pages/EditFoodPage";
 import AddFoodPage from "./pages/AddFoodPage";
 import AddRecipe from "./pages/AddRecipePage";
 import EditRecipePage from "./pages/EditRecipePage";
-import ReviewContentPage from "./pages/ReviewContentPage"; 
+import ReviewContentPage from "./pages/ReviewContentPage";
+import ReviseRecipePage from "./pages/ReviseRecipePage";
+import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
+import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
+import AdminCommunityReviewDetail from "./pages/AdminCommunityReviewDetail";
 
-// ✅ Handles Food Detail with state OR URL params
+// === Auth & Verification ===
+import AuthActionRouter from "./pages/AuthActionRouter";
+import EmailVerificationPage from "./pages/EmailVerificationPage";
+import ForgetPassword from "./pages/ForgotPasswordPage";
+import ResetPassword from "./pages/ResetPasswordPage";
+import OTPVerification from "./pages/OTPVerificationPage";
+
+// === Food Detail & Discussion ===
+import FoodDetail from "./pages/FoodDetailPage";
+import FoodDiscussion from "./pages/FoodDiscussionPage";
+
+// === Shared Components ===
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// -------------------------------
+//  Helper Route Wrappers
+// -------------------------------
+
 function FoodDetailRoute() {
   const { state } = useLocation();
   const [params] = useSearchParams();
@@ -43,10 +57,15 @@ function FoodDetailRoute() {
 
   const fromState = state?.food;
   const id = params.get("id");
-  const fromQuery = id ? sarawakFoods.find(f => String(f.id) === String(id)) : null;
+  const fromQuery = null; // no local dataset, use backend fetch
 
   const food = fromState || fromQuery;
-  if (!food) return <Navigate to="/foods" replace />;
+
+  if (!food && !id) return <Navigate to="/foods" replace />;
+
+  if (!food && id) {
+    return <FoodDetail foodId={id} />;
+  }
 
   return (
     <FoodDetail
@@ -59,7 +78,6 @@ function FoodDetailRoute() {
   );
 }
 
-// ✅ Handles Food Discussion routing safely
 function FoodDiscussionRoute() {
   const { state } = useLocation();
   const [params] = useSearchParams();
@@ -67,28 +85,37 @@ function FoodDiscussionRoute() {
 
   const id = params.get("id");
   const fromState = state?.food;
-  const fromQuery = id ? sarawakFoods.find(f => String(f.id) === String(id)) : null;
+  const fromQuery = null;
 
   const food = fromState || fromQuery;
-  if (!food) return <Navigate to="/foods" replace />;
+
+  if (!food && !id) return <Navigate to="/foods" replace />;
+
+  if (!food && id) {
+    return <FoodDiscussion foodId={id} onBack={() => navigate(`/fooddetail?id=${id}`)} />;
+  }
 
   return <FoodDiscussion food={food} onBack={() => navigate(`/fooddetail?id=${food.id}`)} />;
 }
+
+// -------------------------------
+//  Main App Component
+// -------------------------------
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Default route */}
+        {/* === Default & Auth Routes === */}
         <Route path="/" element={<Navigate to="/loginregister" replace />} />
         <Route path="/loginregister" element={<LoginRegisterPage />} />
-
-        {/* Public Pages */}
         <Route path="/auth/action" element={<AuthActionRouter />} />
         <Route path="/verifyemail" element={<EmailVerificationPage />} />
         <Route path="/forgotpassword" element={<ForgetPassword />} />
         <Route path="/resetpassword" element={<ResetPassword />} />
         <Route path="/otpverification" element={<OTPVerification />} />
+
+        {/* === Public / User Pages === */}
         <Route path="/home" element={<UserHomepage />} />
         <Route path="/foods" element={<ExploreFoodsPage />} />
         <Route path="/fooddetail/:id" element={<FoodDetail />} />
@@ -97,18 +124,15 @@ function App() {
         <Route path="/recipes/:id" element={<RecipeDetailPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:id" element={<CommunityPost />} />
+        <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
+        <Route path="/analytics" element={<Analytics />} />
+
+        {/* === Member Pages === */}
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
         <Route path="/revise/:id" element={<ReviseRecipePage />} />
         <Route path="/revisecommunitypostpage/:id" element={<ReviseCommunityPostPage />} />
-        {/* <Route path="/admin" element={<AdminHomepage />} /> */}
-        <Route path="/admin/editfood/:id" element={<EditFoodPage />} />
-        <Route path="/admin/addfood" element={<AddFoodPage />} /> 
-        <Route path="/admin/addrecipe" element={<AddRecipe />} />
-        <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />
-        <Route path="/admin/reviewcontent/:id" element={<ReviewContentPage />} />
 
-
-        {/* ✅ PROTECTED ADMIN PAGE */}
+        {/* === Admin Pages === */}
         <Route
           path="/admin"
           element={
@@ -117,10 +141,29 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/admin/addfood" element={<AddFoodPage />} />
+        <Route path="/admin/addrecipe" element={<AddRecipe />} />
+        <Route path="/admin/editfood/:id" element={<EditFoodPage />} />
+        <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />
+        <Route path="/admin/reviewcontent/:id" element={<ReviewContentPage />} />
 
-        {/* Nutrition Analyzer is public but guest has limited actions */}
-        <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
-        <Route path="/analytics" element={<Analytics />} />
+        {/* ✅ Community Review Routes */}
+        <Route
+          path="/admin/community/database"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminCommunityPostDatabase />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/review/community/:id"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminCommunityReviewDetail />
+            </ProtectedRoute>
+          }
+        />
 
         {/* ✅ Protected Profile (member + admin only) */}
         <Route
@@ -131,6 +174,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* === Catch-all Fallback === */}
+        <Route path="*" element={<Navigate to="/loginregister" replace />} />
       </Routes>
     </Router>
   );
