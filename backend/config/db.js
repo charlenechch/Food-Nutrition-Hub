@@ -5,24 +5,24 @@ require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
 
 let dbConfig;
 
-// ✅ Priority loading: Railway → Custom DB → Local fallback
-if (process.env.MYSQLHOST) {
-  console.log("🌐 Using Railway DB config");
-  dbConfig = {
-    host: process.env.MYSQLHOST,
-    port: process.env.MYSQLPORT || 3306,
-    user: process.env.MYSQLUSER,
-    password: process.env.MYSQLPASSWORD,
-    database: process.env.MYSQLDATABASE,
-  };
-} else if (process.env.DB_HOST) {
-  console.log("💻 Using Local/Dev DB config");
+// ✅ Priority loading: DB_ (standard Railway/local) → MYSQL_ (fallback) → Error
+if (process.env.DB_HOST) {
+  console.log("🌐 Using Standard DB config (Railway/Prod)");
   dbConfig = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 3306,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
+  };
+} else if (process.env.MYSQLHOST) {
+  console.log("💻 Using Fallback Railway/Local DB config");
+  dbConfig = {
+    host: process.env.MYSQLHOST,
+    port: process.env.MYSQLPORT || 3306,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
   };
 } else {
   console.error("❌ No database configuration found!");
@@ -33,7 +33,7 @@ if (process.env.MYSQLHOST) {
   throw new Error("No database configuration available");
 }
 
-// ✅ Create a safe connection pool (auto-handles prepared statements)
+// ✅ Create a secure connection pool (handles concurrency + timeouts)
 const pool = mysql.createPool({
   ...dbConfig,
   waitForConnections: true,
@@ -42,36 +42,40 @@ const pool = mysql.createPool({
   connectTimeout: 60000,
   acquireTimeout: 60000,
   timeout: 60000,
-  multipleStatements: false, // 🚫 Prevent stacked queries (SQLi hardening)
+  multipleStatements: false, // 🚫 Prevent stacked queries (SQL injection hardening)
 });
 
-// ✅ Connection test
+// ✅ Connection test & live verification
 (async () => {
   try {
     const conn = await pool.getConnection();
     await conn.ping();
     conn.release();
     console.log("✅ MySQL connection test OK");
+
+    // 🧠 Log actual DB info
+    const [rows] = await pool.query("SELECT DATABASE() AS db, @@hostname AS host;");
+    console.log("🧠 Connected to DB:", rows[0]);
   } catch (err) {
     console.error("❌ MySQL connection test FAILED:", err.message);
   }
 })();
 
-//   🧱 SAFE QUERY HELPERS — Prevent SQL Injection
+// 🧱 SAFE QUERY HELPERS — prevent SQL injection and keep code DRY
 
-// ✅ Basic single-row query
+// ✅ Query that returns only one row
 async function one(sql, params = []) {
   const [rows] = await pool.execute(sql, params);
   return rows[0] || null;
 }
 
-// ✅ Multi-row query
+// ✅ Query that returns multiple rows
 async function many(sql, params = []) {
   const [rows] = await pool.execute(sql, params);
   return rows;
 }
 
-// ✅ Utility for dynamic IN (...) placeholders
+// ✅ Dynamic placeholders for IN (...)
 function placeholders(n) {
   if (!Number.isInteger(n) || n <= 0) throw new Error("Invalid placeholder count");
   return Array(n).fill("?").join(",");
