@@ -64,7 +64,7 @@ router.get("/users", requireAdmin, async (req, res) => {
         email: u.email,
         city: u.location || "N/A",
         role: u.role === 'admin' ? 'Admin' : 'User',
-        status: "Active", // Default to Active since column doesn't exist yet
+        status: u.status,
         suspendedOn: null, // Default to null
         submissions: totalSubmissions,
         approved: approvedCount,
@@ -205,7 +205,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     // Update user table
     const userRole = role === 'Admin' ? 'admin' : 'member';
     await db.execute(
-      'UPDATE user SET firstname = ?, lastname = ?, email = ?, role = ? WHERE userID = ?',
+      'UPDATE user SET firstname = ?, lastname = ?, email = ?, role = ?, status = ? WHERE userID = ?',
       [firstname, lastname, email, userRole, targetUserID]
     );
 
@@ -271,8 +271,8 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       email: user.email,
       city: user.location || "N/A",
       role: user.role === 'admin' ? 'Admin' : 'User',
-      status: status || "Active",
-      suspendedOn: status === "Suspended" ? (suspendedOn || null) : null,
+      status: user.status,
+      suspendedOn: user.status === "Suspended" ? (suspendedOn || new Date().toISOString().slice(0,10)) : null,
       submissions: approvedCount,
       approved: approvedCount,
       lastLogin: formattedLastLogin
