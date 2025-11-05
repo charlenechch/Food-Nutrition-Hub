@@ -16,18 +16,11 @@ router.get("/dashboard", requireAdmin, (req, res) => {
 // Admin fetch user list
 router.get("/users", requireAdmin, async (req, res) => {
   try {
-    // This is the new, more powerful query.
     // It joins 'user' and 'userProfile' to get all the data in one go.
     const sql = `
       SELECT 
-        u.userID, 
-        u.firstname, 
-        u.lastname, 
-        u.email, 
-        u.role,
-        up.location,
-        up.recipes,
-        up.posts
+        u.userID, u.firstname, u.lastname, u.email, u.role, u.status, u.lastLogin,
+        up.location, up.recipes, up.posts
       FROM user u
       LEFT JOIN userProfile up ON u.userID = up.userID
       ORDER BY u.userID ASC;
@@ -52,6 +45,7 @@ router.get("/users", requireAdmin, async (req, res) => {
       if (u.lastLogin) {
         try {
           formattedLastLogin = new Date(u.lastLogin).toLocaleString('en-GB', {
+             timeZone: "Asia/Kuala_Lumpur",
              day: '2-digit', 
              month: '2-digit', 
              year: 'numeric', 
@@ -74,7 +68,7 @@ router.get("/users", requireAdmin, async (req, res) => {
         suspendedOn: null, // Default to null
         submissions: totalSubmissions,
         approved: approvedCount,
-        lastLogin: "—" // Default to "—"
+        lastLogin: formattedLastLogin
       };
     });
 
@@ -242,7 +236,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     // Get updated user stats
     const [updatedUser] = await db.execute(
       `SELECT 
-        u.userID, u.firstname, u.lastname, u.email, u.role,
+        u.userID, u.firstname, u.lastname, u.email, u.role, u.lastLogin,
         up.location, up.recipes, up.posts
       FROM user u
       LEFT JOIN userProfile up ON u.userID = up.userID
@@ -252,6 +246,23 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
     const user = updatedUser[0];
     const approvedCount = (user.recipes || 0) + (user.posts || 0);
+
+    let formattedLastLogin = "—";
+    if (user.lastLogin) {
+      try {
+        formattedLastLogin = new Date(user.lastLogin).toLocaleString('en-GB', {
+            timeZone: "Asia/Kuala_Lumpur",
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+        }).replace(',', '');
+      } catch (e) {
+        console.warn(`Invalid date format for user ${user.userID}: ${user.lastLogin}`);
+      }
+    }
 
     // Return updated user in the format expected by frontend
     const updatedUserData = {
@@ -264,7 +275,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       suspendedOn: status === "Suspended" ? (suspendedOn || null) : null,
       submissions: approvedCount,
       approved: approvedCount,
-      lastLogin: "—"
+      lastLogin: formattedLastLogin
     };
 
     return res.json({
