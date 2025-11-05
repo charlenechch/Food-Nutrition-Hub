@@ -1052,4 +1052,63 @@ function formatToDate(timestamp) {
   return `${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
 }
 
+// 4️⃣ GET ANY POST BY ID (Admin Review Access)
+router.get("/admin/:id", checkIsAdmin, async (req, res) => {
+  const { id } = req.params;
+  console.log(`📥 [ADMIN] Fetching post ID: ${id}`);
+
+  const query = `
+    SELECT 
+      p.postID,
+      p.foodName,
+      p.origin AS culturalOrigin,
+      p.culturalStory,
+      p.recipe,
+      p.photos,
+      p.status,
+      p.created_at,
+      CONCAT(u.firstname, ' ', u.lastname) AS author
+    FROM posts p
+    JOIN userProfile up ON p.userProfileID = up.userProfileID
+    JOIN user u ON up.userID = u.userID
+    WHERE p.postID = ?;
+  `;
+
+  try {
+    const [rows] = await db.execute(query, [id]);
+
+    if (rows.length === 0) {
+      console.warn(`⚠️ [ADMIN] Post ${id} not found.`);
+      return res.status(404).json({
+        success: false,
+        message: "Post not found.",
+      });
+    }
+
+    const post = rows[0];
+    console.log(`✅ [ADMIN] Loaded post: ${post.foodName}`);
+
+    res.json({
+      success: true,
+      data: {
+        id: post.postID,
+        foodName: post.foodName,
+        culturalOrigin: post.culturalOrigin,
+        culturalStory: post.culturalStory,
+        recipe: post.recipe,
+        image: post.photos ? post.photos.split(",")[0] : null,
+        author: post.author,
+        status: post.status,
+        created_at: post.created_at,
+      },
+    });
+  } catch (err) {
+    console.error("❌ [ADMIN] Error fetching post:", err);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while fetching post.",
+    });
+  }
+});
+
 module.exports = router;
