@@ -73,7 +73,7 @@ const db = mysql.createPool(dbConfig);
 const promiseDb = db.promise();
 
 // ✅ Make the pool available to routes
-// app.set("dbPool", promiseDb);
+app.set("dbPool", promiseDb);
 
 // Test DB connection
 promiseDb
@@ -111,7 +111,7 @@ app.use(
         "'self'",
         "http://localhost:5173",
         "https://food-nutrition-hub.vercel.app",
-        // process.env.INFERENCE_URL?.replace(/(https?:\/\/[^/]+).*/, "$1"),
+        process.env.INFERENCE_URL?.replace(/(https?:\/\/[^/]+).*/, "$1"),
       ],
       "frame-ancestors": ["'none'"],
     },
@@ -227,11 +227,11 @@ app.use(
   loginRoutes
 );
 
-// app.use(
-//   "/api/ai",
-//   cors({ origin: allowedOrigins, credentials: true }),
-//   aiRoutes
-// );
+app.use(
+  "/api/ai",
+  cors({ origin: allowedOrigins, credentials: true }),
+  aiRoutes
+);
 
 // ✅ Diagnostic Middleware to confirm sequence
 app.use((req, res, next) => {
