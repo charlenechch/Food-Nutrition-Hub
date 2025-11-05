@@ -226,36 +226,50 @@ const ensureUserProfileExists = async (userID) => {
   }
 };
 
-//Helper function to update user stats in userProfile table
+// Helper function to update user stats in userProfile table
 const updateUserStats = async (userID) => {
   try {
     console.log(`📈 Starting stats update for user: ${userID}`);
     
-    // First ensure profile exists
+    // First ensure profile exists AND get the userProfileID
     await ensureUserProfileExists(userID);
+    
+    // ✅ ADD THIS: Get the userProfileID for this user
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length === 0) {
+      console.log(`❌ No userProfile found for user: ${userID}`);
+      return { recipes: 0, posts: 0, likes: 0 };
+    }
+    
+    const userProfileID = profileResult[0].userProfileID;
+    console.log(`✅ Using userProfileID: ${userProfileID} for userID: ${userID}`);
 
     // Count recipes created by user (from recipe table)
-    console.log(`🍳 Counting recipes for user: ${userID}`);
+    console.log(`🍳 Counting recipes for userProfileID: ${userProfileID}`);
     const [recipeCount] = await db.execute(
       `SELECT COUNT(*) as count FROM recipe WHERE userProfileID = ? AND status = 'Approved'`,
-      [userID]
+      [userProfileID]  // ✅ FIXED: Use userProfileID instead of userID
     );
 
     // Count posts created by user (from posts table)
-    console.log(`📝 Counting posts for user: ${userID}`);
+    console.log(`📝 Counting posts for userProfileID: ${userProfileID}`);
     const [postCount] = await db.execute(
       `SELECT COUNT(*) as count FROM posts WHERE userProfileID = ? AND status = 'Approved'`, 
-      [userID]
+      [userProfileID]  // ✅ FIXED: Use userProfileID instead of userID
     );
 
     // Count likes received by user (from likes table)
-    console.log(`❤️ Counting likes for user: ${userID}`);
+    console.log(`❤️ Counting likes for userProfileID: ${userProfileID}`);
     const [likeCount] = await db.execute(
       `SELECT COUNT(*) as count 
        FROM likes l
        INNER JOIN posts p ON l.postID = p.postID 
        WHERE p.userProfileID = ?`, 
-      [userID]
+      [userProfileID]  // ✅ FIXED: Use userProfileID instead of userID
     );
 
     const recipesCount = recipeCount[0]?.count || 0;
@@ -265,11 +279,11 @@ const updateUserStats = async (userID) => {
     console.log(`📊 Stats calculated - Recipes: ${recipesCount}, Posts: ${postsCount}, Likes: ${likesCount}`);
 
     // Update userProfile table with the counts
-    console.log(`💾 Updating userProfile stats in database`);
+    console.log(`💾 Updating userProfile stats in database for userID: ${userID}`);
     const [updateResult] = await db.execute(
       `UPDATE userProfile 
        SET recipes = ?, posts = ?, likes = ?
-       WHERE userID = ?`,
+       WHERE userID = ?`,  // ✅ This one uses userID (correct)
       [recipesCount, postsCount, likesCount, userID]
     );
 
