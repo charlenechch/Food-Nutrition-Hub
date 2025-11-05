@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { pool: db } = require("../config/db");
 const bcrypt = require("bcrypt");
+router.use(express.json());
 
 /* ✅ 1. Session Check (Supports Guests)
    - If user is logged in → return session user
@@ -134,36 +135,66 @@ router.post("/api/logout", (req, res) => {
   }
 });
 
-/* ➕ NEW: 4. Update password after Firebase reset (MySQL sync)
-   - Mounted by server as: POST /api/auth/updatePassword
+/* ✅ 4. Update password after Firebase reset (MySQL sync)
+   - Mounted as: POST /api/auth/updatePassword
    - Body: { email, newPassword }
    - Hashes the new password before storing
 */
 router.post("/updatePassword", async (req, res) => {
-  const { email, newPassword } = req.body;
-
-  if (!email || !newPassword) {
-    return res.status(400).json({ success: false, message: "Email and newPassword are required" });
-  }
-
   try {
+    console.log("📩 Incoming /updatePassword request body:", req.body);
+
+    // Handle missing or malformed body
+    if (!req.body || typeof req.body !== "object") {
+      console.warn("⚠️ No request body detected or invalid JSON.");
+      return res.status(400).json({ success: false, message: "Invalid or missing request body" });
+    }
+
+    let { email, newPassword } = req.body;
+
+    // Trim possible whitespace
+    email = email?.trim();
+    newPassword = newPassword?.trim();
+
+    if (!email || !newPassword) {
+      console.warn("⚠️ Missing fields in request body:", req.body);
+      return res
+        .status(400)
+        .json({ success: false, message: "Email and newPassword are required" });
+    }
+
+    console.log(`🔑 Attempting password update for: ${email}`);
+
+    // Hash new password
     const hashed = await bcrypt.hash(newPassword, 10);
+
+    // Update MySQL
     const [result] = await db.execute(
       `UPDATE user SET password = ? WHERE email = ?`,
       [hashed, email]
     );
 
+    console.log("🧾 MySQL update result:", result);
+
     if (result.affectedRows === 0) {
-      // Not an error; some accounts may be Firebase-only without a local row.
-      return res.json({ success: true, message: "No matching MySQL user; skipped update" });
+      console.warn(`⚠️ No matching user found in MySQL for email: ${email}`);
+      return res.json({
+        success: true,
+        message: "No matching MySQL user; skipped update",
+      });
     }
 
+    console.log(`✅ Password successfully updated for ${email}`);
     return res.json({ success: true, message: "Password updated in MySQL" });
+
   } catch (err) {
-    console.error("UpdatePassword error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    console.error("💥 UpdatePassword error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error during password update" });
   }
 });
+
 
 // Verify user's password for account deletion
 router.post("/verifyAccountDeletion", async (req, res) => {
