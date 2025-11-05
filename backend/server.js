@@ -192,11 +192,12 @@ const dbOptions = {
       resave: false,
       saveUninitialized: false,
       cookie: {
-        httpOnly: true,
-        sameSite: "none", // <-- ALWAYS "none" for cross-origin
-        secure: true,     // <-- ALWAYS "true" because sameSite: "none" requires it
-        maxAge: 24 * 60 * 60 * 1000,
-      },
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 24 * 60 * 60 * 1000,
+    }
+
     })
   );
 
@@ -239,7 +240,8 @@ app.use(
       "includeAll", "status", "foodID", "name", "origin", "difficulty",
       "prepTime", "cookTime", "servings", "image", "description",
       "foodType", "dietaryTags", "ingredients", "instructions",
-      "funFact", "chefTips"
+      "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory",
+      "recipe", "content", "image", "userProfileID", "status", "comment"
     ],
   }),
   recipeRoutes

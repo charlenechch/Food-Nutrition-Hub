@@ -7,7 +7,7 @@ import { FaArrowLeft, FaUser, FaCalendarAlt, FaFileAlt, FaCheck, FaTimes } from 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const ReviewContentPage = () => {
-  const { id } = useParams();
+  const { id, type } = useParams(); // ✅ Now supports dynamic "type" param (recipe / communityPost)
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
@@ -16,12 +16,19 @@ const ReviewContentPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Fetch recipe submission
+  // ✅ Fetch submission (dynamic: recipe or community post)
   useEffect(() => {
     const fetchSubmission = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/api/recipe/recipes/${id}`, {
+
+        // ✅ Detect endpoint based on type
+        const endpoint =
+          type === "communityPost"
+            ? `${API_URL}/api/communityPost/admin/${id}`
+            : `${API_URL}/api/recipe/recipes/${id}`;
+
+        const res = await fetch(endpoint, {
           credentials: "include",
         });
 
@@ -42,7 +49,7 @@ const ReviewContentPage = () => {
     };
 
     if (id) fetchSubmission();
-  }, [id]);
+  }, [id, type]);
 
   if (loading) return <p className="text-center mt-20">Loading content...</p>;
   if (error) return <p className="text-center mt-20">Error: {error}</p>;
@@ -64,7 +71,7 @@ const ReviewContentPage = () => {
 
         <div className="review-title">
           <h2>Review Submission</h2>
-          <p>{submission.name}</p>
+          <p>{submission.name || submission.foodName || submission.title}</p>
         </div>
 
         <div className="content-edit-review-actions">
@@ -109,7 +116,7 @@ const ReviewContentPage = () => {
                 <FaUser className="left-sidebar-icon" />
                 <span> Submitted by</span>
               </div>
-              <strong>{submission.author || "Unknown Author"}</strong>
+              <strong>{submission.author || submission.username || "Unknown Author"}</strong>
               <p className="email">{submission.email || "N/A"}</p>
             </div>
 
@@ -117,7 +124,11 @@ const ReviewContentPage = () => {
               <p>
                 <FaCalendarAlt /> Submission Date
               </p>
-              <strong>{new Date(submission.date).toLocaleDateString()}</strong>
+              <strong>
+                {submission.date
+                  ? new Date(submission.date).toLocaleDateString()
+                  : "Unknown"}
+              </strong>
             </div>
 
             <div className="review-info">
@@ -128,6 +139,7 @@ const ReviewContentPage = () => {
 
           {/* ===== Main Section ===== */}
           <div className="review-main">
+            {/* ===== Uploaded Image Section ===== */}
             <div className="review-section uploaded-image-card">
               <h3>
                 <FaFileAlt /> Uploaded Image
@@ -136,34 +148,41 @@ const ReviewContentPage = () => {
                 <img
                   src={
                     submission.image ||
+                    submission.imageUrl ||
                     "https://via.placeholder.com/400x250?text=No+Image+Available"
                   }
-                  alt={submission.name}
+                  alt={submission.name || submission.title}
                   className="uploaded-img"
                 />
               </div>
             </div>
 
+            {/* ===== Basic Information Section ===== */}
             <div className="rcp-review-section rcp-info-grid">
               <h3>Basic Information</h3>
               <div className="rcp-info-grid">
                 <div className="rcp-info-item">
-                  <h4>Food Name</h4>
-                  <p>{submission.name}</p>
+                  <h4>Food Name / Title</h4>
+                  <p>{submission.name || submission.foodName || submission.title}</p>
                 </div>
 
                 <div className="rcp-info-item">
-                  <h4>Origin</h4>
-                  <p>{submission.origin}</p>
+                  <h4>Origin / Cultural Background</h4>
+                  <p>{submission.origin || submission.culturalOrigin || "N/A"}</p>
                 </div>
 
                 <div className="rcp-info-item">
-                  <h4>Cultural Story</h4>
-                  <p>{submission.description}</p>
+                  <h4>Cultural Story / Description</h4>
+                  <p>
+                    {submission.description ||
+                      submission.culturalStory ||
+                      submission.content ||
+                      "No description provided."}
+                  </p>
                 </div>
 
                 <div className="rcp-info-item">
-                  <h4>Recipe (Optional)</h4>
+                  <h4>Recipe / Story Details</h4>
                   {Array.isArray(submission.instructions) &&
                   submission.instructions.length > 0 ? (
                     <ol>
@@ -172,12 +191,13 @@ const ReviewContentPage = () => {
                       ))}
                     </ol>
                   ) : (
-                    <p>{submission.instructions || "N/A"}</p>
+                    <p>{submission.recipe || "N/A"}</p>
                   )}
                 </div>
               </div>
             </div>
 
+            {/* ===== Admin Feedback Section ===== */}
             <div className="rcp-review-section rcp-basic-info-grid">
               <h3>Admin Feedback</h3>
               <div className="rcp-edit-info-grid">
@@ -201,8 +221,8 @@ const ReviewContentPage = () => {
             <h3>Warning</h3>
             <p>
               Are you sure you want to{" "}
-              <strong>{modalType === "approve" ? "approve" : "reject"}</strong> this recipe
-              submission?
+              <strong>{modalType === "approve" ? "approve" : "reject"}</strong> this{" "}
+              {type === "communityPost" ? "community post" : "recipe"} submission?
               <br />
               This action cannot be undone.
             </p>
@@ -221,11 +241,17 @@ const ReviewContentPage = () => {
                     "No feedback provided.";
 
                   try {
-                    const res = await fetch(`${API_URL}/api/recipe/updateStatus/${id}`, {
+                    // ✅ Dynamic update endpoint
+                    const updateUrl =
+                      type === "communityPost"
+                        ? `${API_URL}/api/communityPost/updateStatus/${id}`
+                        : `${API_URL}/api/recipe/updateStatus/${id}`;
+
+                    const res = await fetch(updateUrl, {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
                       credentials: "include",
-                      body: JSON.stringify({ status: newStatus }),
+                      body: JSON.stringify({ status: newStatus, feedback }),
                     });
 
                     if (!res.ok) {
