@@ -309,7 +309,7 @@ const updateUserStats = async (userID = null, options = {}) => {
       const adminStats = {
         recipes: totalRecipes[0]?.count || 0,
         posts: totalPosts[0]?.count || 0,
-        likes: totalLikes[0]?.count || 0
+        likes: totalLikes[0]?.count || 0,
       };
 
       console.log(`📈 Admin stats - Recipes: ${adminStats.recipes}, Posts: ${adminStats.posts}, Likes: ${adminStats.likes}, Users: ${adminStats.totalUsers}`);
@@ -795,10 +795,14 @@ router.get("/", async (req, res) => {
     
     // Update user stats
     console.log(`📈 Updating user stats...`);
+    console.log(`🔍 DEBUG - isAdmin: ${isAdmin}, query.stats: ${req.query.stats}, wants platform: ${req.query.stats === 'platform'}`);
     //const freshStats = await updateUserStats(userID);
     const freshStats = isAdmin && req.query.stats === 'platform' 
     ? await updateUserStats(null, { isAdmin: true })  // Platform stats
     : await updateUserStats(userID);
+
+    console.log(`✅ DEBUG - Stats type: ${isAdmin && req.query.stats === 'platform' ? 'PLATFORM' : 'USER'}`);
+    console.log(`✅ DEBUG - Fresh stats received:`, freshStats);
 
     console.log(`📊 Executing profile query for user: ${userID}`);
     const [rows] = await db.execute(
