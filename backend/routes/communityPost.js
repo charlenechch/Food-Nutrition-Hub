@@ -59,6 +59,20 @@ const upload = multer({
   }
 });
 
+// 🧠 DEBUG: Check session data for troubleshooting
+router.get("/session-debug", (req, res) => {
+  if (req.session) {
+    console.log("Session debug:", req.session);
+    return res.json({
+      success: true,
+      sessionUser: req.session.user || null,
+    });
+  } else {
+    return res.json({ success: false, message: "No session object" });
+  }
+});
+
+
 // ✅ Add database middleware to ensure req.db is available
 router.use((req, res, next) => {
   req.db = db;
