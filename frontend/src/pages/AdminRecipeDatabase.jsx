@@ -7,11 +7,8 @@ import { MdOutlineFileUpload } from "react-icons/md";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
+const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType = "approved" }) => {
   const navigate = useNavigate();
-
-  const [recipes, setRecipes] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const [category, setCategory] = useState("All Categories");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -23,43 +20,15 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 5;
 
-  const currentRecipes = recipes.slice(
+  const currentRecipes = recipesProp.slice(
     (currentPage - 1) * perPage,
     currentPage * perPage
   );
-  const totalPages = Math.ceil(recipes.length / perPage);
+  const totalPages = Math.ceil(recipesProp.length / perPage);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
-
-  // === Fetch recipes ===
-  useEffect(() => {
-    const controller = new AbortController();
-    const fetchRecipes = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${API_URL}/api/recipe/all/recipes?includeAll=true`,
-          { signal: controller.signal }
-        );
-        const data = await res.json();
-
-        if (Array.isArray(data)) setRecipes(data);
-        else if (data.success && Array.isArray(data.data)) setRecipes(data.data);
-        else setRecipes([]);
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("❌ Error fetching recipes:", err);
-          setRecipes([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRecipes();
-    return () => controller.abort();
-  }, []);
 
   useEffect(() => {
     const closeDropdown = (e) => {
@@ -75,16 +44,7 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
       ? "Approved Recipe Database"
       : "Pending / Rejected Recipes";
 
-  if (loading) {
-    return (
-      <div className="recipe-database-section">
-        <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
-        <p style={{ textAlign: "center", marginTop: 20 }}>Loading...</p>
-      </div>
-    );
-  }
-
-  if (!recipes || recipes.length === 0) {
+  if (!recipesProp || recipesProp.length === 0) {
     return (
       <div className="recipe-database-section">
         <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
