@@ -250,7 +250,7 @@ app.use(
   hppProtect({
     policy: "first", // block duplicates globally
     allowlist: [
-      "id", "page", "q", "sort", "email", "password", "userID", "token", "role",
+      "id", "page", "q", "sort", "email", "password", "newPassword", "userID", "token", "role",
       "userProfileID", "firebase_uid", "bio", "location", "firstname", "lastname",
       "city", "suspendedOn", "avatar", "allergies", "dietary", "emailNotifications",
       "prefs", "pushNotifications", "profileVisibility", "language", "recipes",
