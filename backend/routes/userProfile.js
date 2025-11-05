@@ -227,29 +227,110 @@ const ensureUserProfileExists = async (userID) => {
 };
 
 // Helper function to update user stats in userProfile table
-const updateUserStats = async (userID) => {
-  try {
-    console.log(`📈 Starting stats update for user: ${userID}`);
+// const updateUserStats = async (userID) => {
+//   try {
+//     console.log(`📈 Starting stats update for user: ${userID}`);
     
-    // First ensure profile exists
+//     // First ensure profile exists
+//     await ensureUserProfileExists(userID);
+
+//     // Count recipes created by user (from recipe table)
+//     console.log(`🍳 Counting recipes for user: ${userID}`);
+//     const [recipeCount] = await db.execute(
+//       `SELECT COUNT(*) as count FROM recipe WHERE userProfileID = ? AND status = 'Approved'`,
+//       [userID]
+//     );
+
+//     // Count posts created by user (from posts table)
+//     console.log(`📝 Counting posts for user: ${userID}`);
+//     const [postCount] = await db.execute(
+//       `SELECT COUNT(*) as count FROM posts WHERE userProfileID = ? AND status = 'Approved'`, 
+//       [userID]
+//     );
+
+//     // Count likes received by user (from likes table)
+//     console.log(`❤️ Counting likes for user: ${userID}`);
+//     const [likeCount] = await db.execute(
+//       `SELECT COUNT(*) as count 
+//        FROM likes l
+//        INNER JOIN posts p ON l.postID = p.postID 
+//        WHERE p.userProfileID = ?`, 
+//       [userID]
+//     );
+
+//     const recipesCount = recipeCount[0]?.count || 0;
+//     const postsCount = postCount[0]?.count || 0;
+//     const likesCount = likeCount[0]?.count || 0;
+
+//     console.log(`📊 Stats calculated - Recipes: ${recipesCount}, Posts: ${postsCount}, Likes: ${likesCount}`);
+
+//     // Update userProfile table with the counts
+//     console.log(`💾 Updating userProfile stats in database`);
+//     const [updateResult] = await db.execute(
+//       `UPDATE userProfile 
+//        SET recipes = ?, posts = ?, likes = ?
+//        WHERE userID = ?`,
+//       [recipesCount, postsCount, likesCount, userID]
+//     );
+
+//     console.log(`✅ Stats update completed, rows affected: ${updateResult.affectedRows}`);
+
+//     return {
+//       recipes: recipesCount,
+//       posts: postsCount,
+//       likes: likesCount
+//     };
+//   } catch (error) {
+//     console.error('❌ Error updating user stats:', error);
+//     console.error('❌ Error stack:', error.stack);
+//     return { recipes: 0, posts: 0, likes: 0 };
+//   }
+// };
+
+// Enhanced helper function to update user stats OR fetch admin stats
+const updateUserStats = async (userID = null, options = {}) => {
+  try {
+    // If userID is null and admin flag is true, return platform stats
+    if (userID === null && options.isAdmin) {
+      console.log('📊 Fetching admin platform statistics');
+      
+      const [totalRecipes] = await db.execute(
+        `SELECT COUNT(*) as count FROM recipe WHERE status = 'Approved'`
+      );
+      
+      const [totalPosts] = await db.execute(
+        `SELECT COUNT(*) as count FROM posts WHERE status = 'Approved'`
+      );
+      
+      const [totalLikes] = await db.execute(
+        `SELECT COUNT(*) as count FROM likes`
+      );
+
+      const adminStats = {
+        totalRecipes: totalRecipes[0]?.count || 0,
+        totalPosts: totalPosts[0]?.count || 0,
+        totalLikes: totalLikes[0]?.count || 0
+      };
+
+      console.log(`📈 Admin stats - Recipes: ${adminStats.totalRecipes}, Posts: ${adminStats.totalPosts}, Likes: ${adminStats.totalLikes}, Users: ${adminStats.totalUsers}`);
+
+      return adminStats;
+    }
+
+    // Original user-specific logic 
+    console.log(`📈 Starting stats update for user: ${userID}`);
     await ensureUserProfileExists(userID);
 
-    // Count recipes created by user (from recipe table)
-    console.log(`🍳 Counting recipes for user: ${userID}`);
     const [recipeCount] = await db.execute(
       `SELECT COUNT(*) as count FROM recipe WHERE userProfileID = ? AND status = 'Approved'`,
       [userID]
     );
 
-    // Count posts created by user (from posts table)
-    console.log(`📝 Counting posts for user: ${userID}`);
     const [postCount] = await db.execute(
       `SELECT COUNT(*) as count FROM posts WHERE userProfileID = ? AND status = 'Approved'`, 
       [userID]
     );
 
-    // Count likes received by user (from likes table)
-    console.log(`❤️ Counting likes for user: ${userID}`);
     const [likeCount] = await db.execute(
       `SELECT COUNT(*) as count 
        FROM likes l
@@ -264,7 +345,6 @@ const updateUserStats = async (userID) => {
 
     console.log(`📊 Stats calculated - Recipes: ${recipesCount}, Posts: ${postsCount}, Likes: ${likesCount}`);
 
-    // Update userProfile table with the counts
     console.log(`💾 Updating userProfile stats in database`);
     const [updateResult] = await db.execute(
       `UPDATE userProfile 
@@ -283,7 +363,7 @@ const updateUserStats = async (userID) => {
   } catch (error) {
     console.error('❌ Error updating user stats:', error);
     console.error('❌ Error stack:', error.stack);
-    return { recipes: 0, posts: 0, likes: 0 };
+    return userID === null ? null : { recipes: 0, posts: 0, likes: 0 };
   }
 };
 
@@ -706,15 +786,19 @@ router.get("/", async (req, res) => {
     }
 
     const userID = req.session.user.userID;
+    const isAdmin = req.session.user.role === 'admin';
     console.log(`🔍 Fetching profile for userID: ${userID}`);
-    
+     
     // Ensure userProfile exists first
     console.log(`🛠️ Ensuring userProfile exists...`);
     await ensureUserProfileExists(userID);
     
     // Update user stats
     console.log(`📈 Updating user stats...`);
-    const freshStats = await updateUserStats(userID);
+    //const freshStats = await updateUserStats(userID);
+    const freshStats = isAdmin && req.query.stats === 'platform' 
+    ? await updateUserStats(null, { isAdmin: true })  // Platform stats
+    : await updateUserStats(userID);
 
     console.log(`📊 Executing profile query for user: ${userID}`);
     const [rows] = await db.execute(
@@ -809,7 +893,20 @@ router.get("/", async (req, res) => {
 
       savedFoods: savedFoodsData,
       status: contributions,
-      stats: {
+      // stats: {
+      //   recipes: freshStats.recipes || 0,
+      //   posts: freshStats.posts || 0,
+      //   likes: freshStats.likes || 0,
+      // },
+      stats: isAdmin && req.query.stats === 'platform' 
+    ? {
+        // Map admin stats to expected frontend structure
+        recipes: freshStats.totalRecipes || 0,
+        posts: freshStats.totalPosts || 0,
+        likes: freshStats.totalLikes || 0
+      }
+    : {
+        // User stats
         recipes: freshStats.recipes || 0,
         posts: freshStats.posts || 0,
         likes: freshStats.likes || 0,
