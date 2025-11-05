@@ -19,11 +19,12 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Step 1: Verify the oobCode when page loads
+  // ✅ Step 1: Verify Firebase reset link and get the associated email
   useEffect(() => {
     if (oobCode) {
       verifyPasswordResetCode(auth, oobCode)
         .then((emailFromFirebase) => {
+          console.log("✅ Firebase verified email:", emailFromFirebase);
           setEmail(emailFromFirebase);
           setLoading(false);
         })
@@ -37,35 +38,55 @@ export default function ResetPasswordPage() {
     }
   }, [oobCode]);
 
+  // ✅ Step 2: Handle password reset submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (pwd.length < 8) return setError("Password must be at least 8 characters.");
-    if (pwd !== confirm) return setError("Passwords do not match.");
+    if (pwd.length < 8)
+      return setError("Password must be at least 8 characters long.");
+    if (pwd !== confirm)
+      return setError("Passwords do not match.");
 
     try {
+      // ✅ Reset password in Firebase first
       await confirmPasswordReset(auth, oobCode, pwd);
+      console.log("✅ Firebase password updated successfully.");
 
-      // ✅ Optional backend sync
-      if (email) {
-        await fetch(`${API_URL}/api/auth/updatePassword`, {
+      // ✅ Ensure email is available before backend sync
+      if (email && email.trim() !== "") {
+        console.log("🔍 Syncing password to backend:", { email, newPassword: pwd });
+
+        const res = await fetch(`${API_URL}/api/auth/updatePassword`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ email, newPassword: pwd }),
         });
+
+        const data = await res.json();
+        console.log("🔧 Backend updatePassword response:", data);
+
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to update password in backend.");
+        }
+
+        console.log("✅ Password synced successfully to MySQL backend.");
+      } else {
+        console.warn("⚠️ Skipped backend password sync — missing email from Firebase.");
       }
 
+      // ✅ Mark success and redirect
       setSuccess(true);
       setTimeout(() => navigate("/loginregister"), 2500);
+
     } catch (err) {
-      console.error(err);
+      console.error("❌ Password reset error:", err);
       setError("Something went wrong. Please try again or request a new link.");
     }
   };
 
-  // ✅ Loading spinner
+  // ✅ Loading UI
   if (loading) {
     return (
       <div className="rpp-container">
@@ -112,7 +133,7 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // ✅ Main UI form
+  // ✅ Main Reset Form
   return (
     <div className="rpp-container">
       <div className="rpp-card">
