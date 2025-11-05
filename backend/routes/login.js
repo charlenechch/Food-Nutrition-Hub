@@ -92,7 +92,16 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // ✅ Step 6: Regenerate session (prevent fixation)
+    // ✅ Step 6: Check account status
+    if (user.status === "Suspended") {
+      console.warn(`🚫 Blocked login for ${user.status} user:`, email);
+      
+      return res.status(403).json({
+        success: false,
+        message: "Your account has been suspended.", 
+      });
+    }
+    // ✅ Step 7: Regenerate session (prevent fixation)
     console.log("🔐 Regenerating session...");
     req.session.regenerate(async (err) => {
       if (err) {
@@ -102,7 +111,7 @@ router.post("/", async (req, res) => {
           .json({ success: false, message: "Session regeneration error" });
       }
 
-      // ✅ Step 7: Remember Me logic
+      // ✅ Step 8: Remember Me logic
       if (rememberDevice) {
         const sevenDays = 7 * 24 * 60 * 60 * 1000;
         req.session.cookie.maxAge = sevenDays;
@@ -116,7 +125,7 @@ router.post("/", async (req, res) => {
         console.log("🕒 Standard session (browser-close expiry)");
       }
 
-      // ✅ Step 8: Attach user to session
+      // ✅ Step 9: Attach user to session
       req.session.user = {
         userID: user.userID,
         email: user.email,
@@ -125,7 +134,7 @@ router.post("/", async (req, res) => {
         role: user.role,
       };
 
-      // ✅ Step 9: Save session
+      // ✅ Step 10: Save session
       await new Promise((resolve, reject) => {
         req.session.save((err) => {
           if (err) {

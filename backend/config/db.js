@@ -36,6 +36,7 @@ if (process.env.DB_HOST) {
 // ✅ Create a secure connection pool (handles concurrency + timeouts)
 const pool = mysql.createPool({
   ...dbConfig,
+  charset: "utf8mb4",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
