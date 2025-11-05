@@ -65,7 +65,7 @@ router.get("/users", requireAdmin, async (req, res) => {
         city: u.location || "N/A",
         role: u.role === 'admin' ? 'Admin' : 'User',
         status: u.status,
-        suspendedOn: null, // Default to null
+        suspendedOn: u.suspendedOn ? new Date(u.suspendedOn).toISOString().slice(0,10) : null,
         submissions: totalSubmissions,
         approved: approvedCount,
         lastLogin: formattedLastLogin
