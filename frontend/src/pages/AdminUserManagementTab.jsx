@@ -365,21 +365,6 @@ export default function UserManagement() {
             </div>
           )}
 
-          {/* Error State */}
-          {error && !loading && (
-            <div className="umg-error-container">
-              <div className="umg-error-icon">⚠️</div>
-              <h3 className="umg-error-title">Failed to Load Users</h3>
-              <p className="umg-error-message">{error}</p>
-              <button 
-                className="umg-error-retry-btn"
-                onClick={() => window.location.reload()}
-              >
-                Retry
-              </button>
-            </div>
-          )}
-
           {/* Wrap existing content - only show when loaded successfully */}
           {!loading && !error && (
             <>
