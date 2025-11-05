@@ -2,36 +2,40 @@ const express = require("express");
 const router = express.Router();
 const { pool: db } = require("../config/db");
 const bcrypt = require("bcrypt");
+
+// ✅ 1. PARSE JSON BODIES
+// This middleware *must* come before your routes to parse req.body
 router.use(express.json());
 
-/* ✅ 1. Session Check (Supports Guests)
-   - If user is logged in → return session user
-   - If user is not logged in (guest) → return 401 with { guest: true }
+/* ✅ 2. Session Check (Supports Guests)
+  - Path: GET /session
 */
 router.get("/session", async (req, res) => {
   if (req.session && req.session.user) {
     return res.status(200).json({
       authenticated: true,
-      user: req.session.user
+      user: req.session.user,
     });
   }
 
-  // ✅ Return guest instead of logging out or forcing null
   return res.status(401).json({
     authenticated: false,
     guest: true,
-    message: "Not logged in"
+    message: "Not logged in",
   });
 });
 
-/* ✅ 2. Login (Creates session + userProfile if missing)
-   ⚠ CHANGED: secure password verification with bcrypt, plus one-time migration
+/* ✅ 3. Login
+  - Path: POST /login
 */
-router.post("/api/login", async (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+     return res.status(400).json({ success: false, message: "Email and password are required" });
+  }
+
   try {
-    // 1) Look up by email ONLY (we need the stored hash/plaintext to verify)
     const [users] = await db.execute(
       `SELECT userID, firstname, lastname, email, role, password
        FROM user
@@ -46,21 +50,15 @@ router.post("/api/login", async (req, res) => {
     }
 
     const user = users[0];
-
-    // 2) Decide if stored password is bcrypt hash or legacy plaintext
     const stored = user.password || "";
     const looksHashed = stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$");
-
     let valid = false;
 
     if (looksHashed) {
-      // ✅ Normal path: compare against bcrypt hash
       valid = await bcrypt.compare(password, stored);
     } else {
-      // ⚠ Legacy path: DB still has plaintext; compare once…
       if (password === stored) {
         valid = true;
-        // …then immediately rehash + upgrade in DB (one-time migration)
         try {
           const hashed = await bcrypt.hash(password, 10);
           await db.execute(
@@ -70,7 +68,6 @@ router.post("/api/login", async (req, res) => {
           console.log(`🔐 Migrated plaintext password → bcrypt for userID=${user.userID}`);
         } catch (mErr) {
           console.error("Password migration error:", mErr);
-          // proceed with login; migration can retry next login if needed
         }
       } else {
         valid = false;
@@ -83,7 +80,6 @@ router.post("/api/login", async (req, res) => {
         .json({ success: false, message: "Invalid email or password" });
     }
 
-    // 3) Check if profile exists
     const [profiles] = await db.execute(
       `SELECT userProfileID FROM userProfile WHERE userID = ?`,
       [user.userID]
@@ -91,7 +87,6 @@ router.post("/api/login", async (req, res) => {
 
     let userProfileID;
     if (profiles.length === 0) {
-      // 4) If no profile → auto-create
       const [result] = await db.execute(
         `INSERT INTO userProfile (userID, firstname, lastname)
          VALUES (?, ?, ?)`,
@@ -102,19 +97,18 @@ router.post("/api/login", async (req, res) => {
       userProfileID = profiles[0].userProfileID;
     }
 
-    // 5) Save to session
     req.session.user = {
       userID: user.userID,
       userProfileID: userProfileID,
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
-      role: user.role
+      role: user.role,
     };
 
     return res.json({
       success: true,
-      user: req.session.user
+      user: req.session.user,
     });
 
   } catch (err) {
@@ -123,8 +117,10 @@ router.post("/api/login", async (req, res) => {
   }
 });
 
-/* ✅ 3. Logout (Clears session) */
-router.post("/api/logout", (req, res) => {
+/* ✅ 4. Logout
+  - Path: POST /logout
+*/
+router.post("/logout", (req, res) => {
   try {
     req.session.destroy(() => {
       return res.json({ success: true, message: "Logged out" });
@@ -135,68 +131,58 @@ router.post("/api/logout", (req, res) => {
   }
 });
 
-/* ✅ 4. Update password after Firebase reset (MySQL sync)
-   - Mounted as: POST /api/auth/updatePassword
-   - Body: { email, newPassword }
-   - Hashes the new password before storing
+/* ✅ 5. Update Password (from Firebase Reset)
+  - Path: POST /updatePassword
 */
 router.post("/updatePassword", async (req, res) => {
+  console.log("📩 /updatePassword route hit. Body:", req.body);
+
+  // Use string trimming for safety
+  const email = req.body.email?.trim();
+  const newPassword = req.body.newPassword?.trim();
+
+  // Robust check for undefined, null, or empty strings
+  if (!email || !newPassword) {
+    console.warn("⚠️ Validation failed. Email or newPassword missing.", { email, newPassword });
+    return res.status(400).json({
+      success: false,
+      message: "Email and newPassword are required",
+    });
+  }
+
   try {
-    console.log("📩 Incoming /updatePassword request body:", req.body);
-
-    // Handle missing or malformed body
-    if (!req.body || typeof req.body !== "object") {
-      console.warn("⚠️ No request body detected or invalid JSON.");
-      return res.status(400).json({ success: false, message: "Invalid or missing request body" });
-    }
-
-    let { email, newPassword } = req.body;
-
-    // Trim possible whitespace
-    email = email?.trim();
-    newPassword = newPassword?.trim();
-
-    if (!email || !newPassword) {
-      console.warn("⚠️ Missing fields in request body:", req.body);
-      return res
-        .status(400)
-        .json({ success: false, message: "Email and newPassword are required" });
-    }
-
-    console.log(`🔑 Attempting password update for: ${email}`);
-
-    // Hash new password
+    console.log(`🔑 Hashing password for: ${email}`);
     const hashed = await bcrypt.hash(newPassword, 10);
 
-    // Update MySQL
+    console.log(`💾 Updating password in MySQL for: ${email}`);
     const [result] = await db.execute(
       `UPDATE user SET password = ? WHERE email = ?`,
       [hashed, email]
     );
 
-    console.log("🧾 MySQL update result:", result);
-
     if (result.affectedRows === 0) {
-      console.warn(`⚠️ No matching user found in MySQL for email: ${email}`);
+      console.log(`ℹ️ No user found in MySQL for: ${email}. Skipping update.`);
+      // This is still a "success" because Firebase updated.
       return res.json({
         success: true,
         message: "No matching MySQL user; skipped update",
       });
     }
 
-    console.log(`✅ Password successfully updated for ${email}`);
+    console.log(`✅ Password successfully updated in MySQL for: ${email}`);
     return res.json({ success: true, message: "Password updated in MySQL" });
 
   } catch (err) {
-    console.error("💥 UpdatePassword error:", err);
+    console.error(`💥 /updatePassword error for ${email}:`, err);
     return res
       .status(500)
       .json({ success: false, message: "Server error during password update" });
   }
 });
 
-
-// Verify user's password for account deletion
+/* ✅ 6. Verify Password (for Account Deletion)
+  - Path: POST /verifyAccountDeletion
+*/
 router.post("/verifyAccountDeletion", async (req, res) => {
   if (!req.session?.user) {
     return res.status(401).json({ error: "Not authenticated" });
@@ -204,6 +190,10 @@ router.post("/verifyAccountDeletion", async (req, res) => {
 
   const { password } = req.body;
   const userEmail = req.session.user.email;
+
+  if (!password) {
+     return res.status(400).json({ error: "Password is required" });
+  }
 
   try {
     const [users] = await db.execute(
@@ -228,16 +218,17 @@ router.post("/verifyAccountDeletion", async (req, res) => {
   }
 });
 
-// Sync email verification status from Firebase to MySQL
+/* ✅ 7. Sync Email Verification
+  - Path: POST /syncEmailVerification
+*/
 router.post("/syncEmailVerification", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
   try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
-    }
-
-    // Update verified status in MySQL
     const [result] = await db.execute(
       "UPDATE user SET verified = 1 WHERE email = ?",
       [email]
@@ -260,9 +251,8 @@ router.post("/syncEmailVerification", async (req, res) => {
   }
 });
 
-/* ✅ NEW: 5. Role Toggle Route (Admin ⇄ Member)
-   - Safely switches session role between 'admin' and 'member'
-   - Reflects instantly in frontend via AuthContext.toggleRole()
+/* ✅ 8. Role Toggle
+  - Path: POST /toggle-role
 */
 router.post("/toggle-role", async (req, res) => {
   try {
@@ -273,10 +263,8 @@ router.post("/toggle-role", async (req, res) => {
     const currentRole = req.session.user.role;
     const newRole = currentRole === "admin" ? "member" : "admin";
 
-    // Update session
     req.session.user.role = newRole;
 
-    // Optionally update DB too (so it persists)
     await db.execute(
       "UPDATE user SET role = ? WHERE userID = ?",
       [newRole, req.session.user.userID]
@@ -291,3 +279,4 @@ router.post("/toggle-role", async (req, res) => {
 });
 
 module.exports = router;
+
