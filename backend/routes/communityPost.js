@@ -910,6 +910,128 @@ router.put("/revise/:id", upload.array('images', 5), async (req, res) => {
   }
 });
 
+// ✅ ADMIN-ONLY APPROVAL ROUTES (Cleaned Version)
+//-------------------------------------------------
+// 🧩 Middleware: Verify Admin Role
+const checkIsAdmin = (req, res, next) => {
+  if (req.session?.user?.role === "admin") {
+    next(); // ✅ Proceed if user is admin
+  } else {
+    console.warn("🚫 [ADMIN] Unauthorized access attempt detected.");
+    res.status(403).json({
+      success: false,
+      message: "Forbidden: You do not have permission to perform this action.",
+    });
+  }
+};
+
+// 1️⃣ GET ALL PENDING POSTS (For Admin Dashboard)
+router.get("/admin/pending", checkIsAdmin, async (req, res) => {
+  console.log("📥 [ADMIN] Fetching all pending community posts...");
+
+  const query = `
+    SELECT 
+      p.postID,
+      p.foodName,
+      p.status,
+      p.created_at,
+      CONCAT(u.firstname, ' ', u.lastname) AS author
+    FROM posts p
+    JOIN userProfile up ON p.userProfileID = up.userProfileID
+    JOIN user u ON up.userID = u.userID
+    WHERE p.status = 'Pending'
+    ORDER BY p.created_at ASC;
+  `;
+
+  try {
+    const [rows] = await db.execute(query);
+    console.log(`✅ [ADMIN] Found ${rows.length} pending post(s).`);
+
+    const formatted = rows.map((post) => ({
+      id: post.postID,
+      title: post.foodName,
+      author: post.author,
+      createdAt: post.created_at,
+      status: post.status,
+    }));
+
+    res.json({ success: true, data: formatted });
+  } catch (err) {
+    console.error("❌ [ADMIN] Error fetching pending posts:", err);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while fetching pending posts.",
+    });
+  }
+});
+
+
+// 2️⃣ APPROVE A POST (For Admin Review Page)
+router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
+  const { id } = req.params;
+  console.log(`📥 [ADMIN] Approving post ID: ${id}`);
+
+  const updateQuery = `
+    UPDATE posts 
+    SET status = 'Approved' 
+    WHERE postID = ? AND status = 'Pending';
+  `;
+
+  try {
+    const [result] = await db.execute(updateQuery, [id]);
+
+    if (result.affectedRows === 0) {
+      console.warn(`⚠️ [ADMIN] Post ${id} not found or not pending.`);
+      return res.status(404).json({
+        success: false,
+        message: "Post not found or already approved/rejected.",
+      });
+    }
+
+    console.log(`✅ [ADMIN] Post ${id} approved successfully.`);
+    res.json({ success: true, message: "Post approved successfully." });
+  } catch (err) {
+    console.error(`❌ [ADMIN] Error approving post ${id}:`, err);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while approving post.",
+    });
+  }
+});
+
+// 3️⃣ REJECT A POST (For Admin Review Page)
+router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
+  const { id } = req.params;
+  console.log(`📥 [ADMIN] Rejecting post ID: ${id}`);
+
+  const updateQuery = `
+    UPDATE posts 
+    SET status = 'Rejected' 
+    WHERE postID = ? AND status = 'Pending';
+  `;
+
+  try {
+    const [result] = await db.execute(updateQuery, [id]);
+
+    if (result.affectedRows === 0) {
+      console.warn(`⚠️ [ADMIN] Post ${id} not found or not pending.`);
+      return res.status(404).json({
+        success: false,
+        message: "Post not found or already actioned.",
+      });
+    }
+
+    console.log(`✅ [ADMIN] Post ${id} rejected successfully.`);
+    res.json({ success: true, message: "Post rejected successfully." });
+  } catch (err) {
+    console.error(`❌ [ADMIN] Error rejecting post ${id}:`, err);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while rejecting post.",
+    });
+  }
+});
+
 // Helper function to calculate time ago
 function getTimeAgo(timestamp) {
   const seconds = Math.floor((new Date() - new Date(timestamp)) / 1000);

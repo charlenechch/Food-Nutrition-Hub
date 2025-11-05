@@ -11,6 +11,7 @@ import ContentModerationSection from "./AdminContentModeration.jsx";
 import UserManagement from "./AdminUserManagementTab";
 import Analytics from "./Analytics";
 import AdminSystemSettings from "./AdminSystemSettings.jsx";
+import CommunityPostDatabaseSection from "./AdminCommunityPostDatabase.jsx";
 
 // === Icons ===
 import { FiDatabase } from "react-icons/fi";
@@ -146,6 +147,32 @@ const AdminDashboard = () => {
     fetchUsers();
   }, []);
 
+// ========================================================
+// ✅ Fetch community posts (pending ones for moderation)
+// ========================================================
+useEffect(() => {
+  const fetchCommunityPosts = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/communityPost/admin/pending`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.data)) {
+        console.log("✅ Pending community posts fetched:", data.data.length);
+        setPendingCommunityPosts(data.data); // reuse existing state
+      } else {
+        console.warn("⚠️ Unexpected response for community posts:", data);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching community posts:", error);
+    }
+  };
+
+  fetchCommunityPosts();
+}, []);
+
+
   // ========================================================
   // ✅ Update summary dynamically
   // ========================================================
@@ -168,6 +195,7 @@ const AdminDashboard = () => {
 
   const [approvedContent, setApprovedContent] = useState([]);
   const [pendingContent, setPendingContent] = useState([]);
+  const [pendingCommunityPosts, setPendingCommunityPosts] = useState([]);
 
   useEffect(() => {
     setApprovedContent(approvedRecipes);
@@ -243,22 +271,22 @@ const AdminDashboard = () => {
               />;
 
       case "moderation":
-        return (
-          <>
-            {/* === Pending or Rejected Recipes === */}
-            <RecipeDatabaseSection
-              recipes={pendingRecipes}
-              categories={categories}
-              sectionType="pending"
-            />
+  return (
+    <>
+      {/* === Pending / Rejected Community Posts === */}
+      <CommunityPostDatabaseSection
+            categories={categories}
+            posts={pendingCommunityPosts}/>
 
-            {/* === Pending or Rejected Content === */}
-            <ContentModerationSection
-              pendingContent={pendingContent}
-              onlyApproved={false}
-            />
-          </>
-        );
+      {/* === Pending / Rejected Recipes === */}
+      <RecipeDatabaseSection
+        recipes={pendingRecipes}
+        categories={categories}
+        sectionType="pending"
+      />
+    </>
+  );
+
 
       case "analytics":
         return <Analytics />;

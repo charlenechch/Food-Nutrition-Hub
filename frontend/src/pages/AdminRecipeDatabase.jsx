@@ -1,3 +1,4 @@
+// src/pages/AdminRecipeDatabase.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaRegFlag, FaPlus } from "react-icons/fa6";
@@ -17,70 +18,68 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
   const dropdownRef = useRef();
 
   const [showFilters, setShowFilters] = useState(false);
-  const [calorieMin, setCalorieMin] = useState(0);
-  const [calorieMax, setCalorieMax] = useState(2000);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const recipesPerPage = 5;
+  const perPage = 5;
 
-  const indexOfLastRecipe = currentPage * recipesPerPage;
-  const indexOfFirstRecipe = indexOfLastRecipe - recipesPerPage;
-  const currentRecipes = recipes.slice(indexOfFirstRecipe, indexOfLastRecipe);
-  const totalPages = Math.ceil(recipes.length / recipesPerPage);
+  const currentRecipes = recipes.slice(
+    (currentPage - 1) * perPage,
+    currentPage * perPage
+  );
+  const totalPages = Math.ceil(recipes.length / perPage);
 
-  const handlePageChange = (pageNum) => {
-    if (pageNum >= 1 && pageNum <= totalPages) setCurrentPage(pageNum);
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
-  // ✅ FETCH RECIPES FROM BACKEND
+  // === Fetch recipes ===
   useEffect(() => {
+    const controller = new AbortController();
     const fetchRecipes = async () => {
+      setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/api/recipe/all/recipes`);
+        const res = await fetch(
+          `${API_URL}/api/recipe/all/recipes?includeAll=true`,
+          { signal: controller.signal }
+        );
         const data = await res.json();
 
-        if (Array.isArray(data)) {
-          setRecipes(data);
-        } else if (data.success && Array.isArray(data.data)) {
-          setRecipes(data.data);
-        } else {
-          console.warn("Unexpected response:", data);
+        if (Array.isArray(data)) setRecipes(data);
+        else if (data.success && Array.isArray(data.data)) setRecipes(data.data);
+        else setRecipes([]);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("❌ Error fetching recipes:", err);
+          setRecipes([]);
         }
-      } catch (error) {
-        console.error("❌ Failed to fetch recipes:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchRecipes();
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
     const closeDropdown = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target))
         setDropdownOpen(false);
-      }
     };
     document.addEventListener("click", closeDropdown);
     return () => document.removeEventListener("click", closeDropdown);
   }, []);
 
-  // Dynamic heading based on sectionType
   const sectionTitle =
     sectionType === "approved"
-      ? "Recipe Database"
-      : sectionType === "pending"
-      ? "Pending Recipe Approval"
-      : "Recipe Management";
+      ? "Approved Recipe Database"
+      : "Pending / Rejected Recipes";
 
-  // === Defensive check for empty list ===
   if (loading) {
     return (
       <div className="recipe-database-section">
         <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
-        <p style={{ textAlign: "center", marginTop: "20px" }}>Loading recipes...</p>
+        <p style={{ textAlign: "center", marginTop: 20 }}>Loading...</p>
       </div>
     );
   }
@@ -89,20 +88,18 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
     return (
       <div className="recipe-database-section">
         <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
-        <p style={{ textAlign: "center", marginTop: "20px" }}>No recipes available.</p>
+        <p style={{ textAlign: "center", marginTop: 20, color: "#999" }}>
+          No recipes found.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="recipe-database-section">
-      {/* === Header Section === */}
       <div className="recipe-header">
-        <h2>
-          <span className="recipe-icon"><FaRegFlag /></span> {sectionTitle}
-        </h2>
+        <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
 
-        {/* Only show Add/Import buttons for Approved view */}
         {sectionType === "approved" && (
           <div className="recipe-actions">
             <button
@@ -118,13 +115,12 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
         )}
       </div>
 
-      {/* === Filters === */}
+      {/* Filters */}
       <div className="food-filters">
         <div className="search-box">
           <CiSearch className="search-icon" />
           <input type="text" placeholder="Search recipes..." />
         </div>
-
         <div
           className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`}
           ref={dropdownRef}
@@ -137,24 +133,20 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
           </button>
           {dropdownOpen && (
             <ul className="admin-beige-list">
-              {categories.map((opt) => (
+              {categories.map((opt, i) => (
                 <li
-                  key={opt}
-                  className={opt === category ? "selected" : ""}
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  key={i}
+                  onClick={() => {
                     setCategory(opt);
                     setDropdownOpen(false);
                   }}
                 >
                   {opt}
-                  {opt === category && <span className="tick">✓</span>}
                 </li>
               ))}
             </ul>
           )}
         </div>
-
         <button
           className="admin-recipe-btn-filter"
           onClick={() => setShowFilters(!showFilters)}
@@ -163,8 +155,8 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
         </button>
       </div>
 
-      {/* === Recipe Table === */}
-      <table className="content-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+      {/* Recipe Table */}
+      <table className="content-table" style={{ width: "100%" }}>
         <thead>
           <tr>
             <th>Recipe Name</th>
@@ -176,31 +168,39 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
           </tr>
         </thead>
         <tbody>
-          {currentRecipes.map((recipe, index) => (
-            <tr key={index}>
+          {currentRecipes.map((r, i) => (
+            <tr key={r.id || i}>
               <td>
-                {recipe.name || "Unnamed Recipe"}
+                {r.name || "Unnamed Recipe"}
                 <br />
-                <small className="serving-info">
-                  {recipe.servings ? `${recipe.servings} servings` : ""}
-                </small>
+                <small>{r.servings ? `${r.servings} servings` : ""}</small>
               </td>
               <td>
                 <span className="category-tag">
-                  {recipe.foodType || recipe.category || "N/A"}
+                  {r.foodType || r.category || "N/A"}
                 </span>
               </td>
-              <td>{recipe.origin || "Unknown"}</td>
-              <td>{recipe.updated || "—"}</td>
+              <td>{r.origin || "Unknown"}</td>
+              <td>{r.updated || "—"}</td>
               <td>
-                <span className={`recipe-status-tag approved`}>
-                  Approved
+                <span
+                  className={`recipe-status-tag ${
+                    r.status === "Pending"
+                      ? "pending"
+                      : r.status === "Rejected"
+                      ? "rejected"
+                      : "approved"
+                  }`}
+                >
+                  {r.status}
                 </span>
               </td>
               <td className="admin-recipe-action-buttons">
                 <button
                   className="review-btn"
-                  onClick={() => navigate(`/admin/edit/recipe/${recipe.id || index}`)}
+                  onClick={() =>
+                    navigate(`/admin/edit/recipe/${r.id || i}`)
+                  }
                 >
                   Review
                 </button>
@@ -210,16 +210,11 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
         </tbody>
       </table>
 
-      {/* ✅ Pagination Controls */}
       {totalPages > 1 && (
         <div className="admin-pagination">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
+          <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
             ‹ Prev
           </button>
-
           {[...Array(totalPages)].map((_, i) => (
             <button
               key={i}
@@ -229,7 +224,6 @@ const RecipeDatabaseSection = ({ categories, sectionType = "approved" }) => {
               {i + 1}
             </button>
           ))}
-
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
