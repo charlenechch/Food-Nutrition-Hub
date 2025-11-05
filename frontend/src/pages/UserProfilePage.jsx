@@ -117,8 +117,7 @@ const formatContributionDate = (dateString) => {
 
 const isCommunity = (c) => {
   const type = (c?.type || "").toLowerCase();
-  console.log("🔍 Checking if community:", c?.title, "type:", type);
-  return ["community", "post", "story", "community_post"].includes(type);
+  return type === "community";
 };
 
 const isRecipe = (c) => {
@@ -315,16 +314,16 @@ const savePrefs = async () => {
       <div className="upp-row-card" key={`${c.type}-${c.id}`}>
         <div className="upp-row-thumb">
           {c.images && c.images.length > 0 ? (
-              <img src={c.images[0]} alt={c.foodName} />
+              <img src={c.images[0]} alt={c.foodName || c.title} />
             ) : c.image ? (
-              <img src={c.image} alt={c.foodName} />
+              <img src={c.image} alt={c.foodName || c.title} />
             ) : (
               <div className="upp-noimg" />
             )}
           </div>
           <div className="upp-row-body">
             <div className="upp-row-top">
-              <h4 className="upp-food-title upp-row-title">{c.foodName}</h4>
+              <h4 className="upp-food-title upp-row-title">{c.foodName || c.title}</h4>
               <span className={`upp-chip ${getStatusClass(c.status)}`}>
                 {fmtStatus(c.status)}
               </span>
@@ -1072,12 +1071,16 @@ const savePrefs = async () => {
                       {/* Community Posts Section (REAL) */}
                       <div className="upp-card">
                         <h3 className="upp-card-title">Community Posts ({communityData.length})</h3>
-                        {communityData.length ? (
+                        {isLoadingCommunity ? (
+                          <div className="upp-muted">Loading community posts...</div>
+                        ) : communityData.length ? (
                           <div className="upp-stack">
-                            {communityPosts.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
+                            {communityData.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
                           </div>
                         ) : (
-                          <div className="upp-muted">{isLoadingCommunity ? 'Loading community posts...' : 'No community posts yet'}</div>
+                          <div className="upp-muted">
+                            {communityPosts?.length > 0 ? `${communityPosts.length} community posts found but not displaying` : 'No community posts yet'}
+                          </div>
                         )}
                       </div>
 
