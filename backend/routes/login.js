@@ -135,6 +135,15 @@ router.post("/", async (req, res) => {
         });
       });
 
+      // Update lastLogin timestamp
+      try {
+        await db.query("UPDATE user SET lastLogin = ? WHERE userID = ?", [new Date(), user.userID]);
+        console.log(`✅ Updated lastLogin for user: ${user.email}`);
+      } catch (updateError) {
+        console.error("❌ Failed to update lastLogin:", updateError);
+        // Don't stop the login, just log the error
+      }
+
       console.log("✅ Login success for:", email);
       console.log("🧾 Session ID:", req.sessionID);
 
