@@ -19,7 +19,7 @@ router.get("/users", requireAdmin, async (req, res) => {
     // It joins 'user' and 'userProfile' to get all the data in one go.
     const sql = `
       SELECT 
-        u.userID, u.firstname, u.lastname, u.email, u.role, u.status, u.lastLogin,
+        u.userID, u.firstname, u.lastname, u.email, u.role, u.status, u.lastLogin, u.suspendedOn,
         up.location, up.recipes, up.posts
       FROM user u
       LEFT JOIN userProfile up ON u.userID = up.userID
@@ -202,11 +202,16 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     const firstname = nameParts[0] || '';
     const lastname = nameParts.slice(1).join(' ') || '';
 
+    // Set suspendedOn date if status is 'Suspended', otherwise clear it.
+    const finalSuspendedOn = (status === 'Suspended')
+      ? (suspendedOn ? new Date(suspendedOn) : new Date())
+      : null;
+
     // Update user table
     const userRole = role === 'Admin' ? 'admin' : 'member';
     await db.execute(
-      'UPDATE user SET firstname = ?, lastname = ?, email = ?, role = ?, status = ? WHERE userID = ?',
-      [firstname, lastname, email, userRole, targetUserID]
+      'UPDATE user SET firstname = ?, lastname = ?, email = ?, role = ?, status = ?, suspendedOn = ? WHERE userID = ?',
+      [firstname, lastname, email, userRole, status, finalSuspendedOn, targetUserID]
     );
 
     // Update or create userProfile
@@ -236,7 +241,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     // Get updated user stats
     const [updatedUser] = await db.execute(
       `SELECT 
-        u.userID, u.firstname, u.lastname, u.email, u.role, u.lastLogin,
+        u.userID, u.firstname, u.lastname, u.email, u.role, u.lastLogin, u.suspendedOn,
         up.location, up.recipes, up.posts
       FROM user u
       LEFT JOIN userProfile up ON u.userID = up.userID
@@ -272,7 +277,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       city: user.location || "N/A",
       role: user.role === 'admin' ? 'Admin' : 'User',
       status: user.status,
-      suspendedOn: user.status === "Suspended" ? (suspendedOn || new Date().toISOString().slice(0,10)) : null,
+      suspendedOn: user.suspendedOn ? new Date(user.suspendedOn).toISOString().slice(0,10) : null,
       submissions: approvedCount,
       approved: approvedCount,
       lastLogin: formattedLastLogin
