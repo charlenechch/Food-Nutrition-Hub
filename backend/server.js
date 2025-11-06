@@ -30,6 +30,7 @@ const saveFoodRoutes = require("./routes/saveFood");
 const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
+const aiRoutes = require("./routes/ai");
 
 // ✅ NEW: Admin route import (for Admin User Management)
 const adminRoutes = require("./routes/admin");
@@ -71,6 +72,9 @@ console.log("🔧 Database Config:", {
 const db = mysql.createPool(dbConfig);
 const promiseDb = db.promise();
 
+// ✅ Make the pool available to routes
+app.set("dbPool", promiseDb);
+
 // Test DB connection
 promiseDb
   .execute("SELECT 1 as test")
@@ -107,6 +111,7 @@ app.use(
         "'self'",
         "http://localhost:5173",
         "https://food-nutrition-hub.vercel.app",
+        process.env.INFERENCE_URL?.replace(/(https?:\/\/[^/]+).*/, "$1"),
       ],
       "frame-ancestors": ["'none'"],
     },
@@ -220,6 +225,12 @@ app.use(
     allowlist: ["email", "password", "rememberDevice"], // Remember Me allowed
   }),
   loginRoutes
+);
+
+app.use(
+  "/api/ai",
+  cors({ origin: allowedOrigins, credentials: true }),
+  aiRoutes
 );
 
 // ✅ Diagnostic Middleware to confirm sequence
