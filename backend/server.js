@@ -31,6 +31,7 @@ const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
 const aiRoutes = require("./routes/ai");
+const foodSearchRoutes = require("./routes/foodSearch");
 
 // ✅ NEW: Admin route import (for Admin User Management)
 const adminRoutes = require("./routes/admin");
@@ -257,6 +258,9 @@ app.use(
   }),
   recipeRoutes
 );
+
+app.use("/api/food", foodSearchRoutes);
+
 
 // ---------- 7) Global HPP protection for everything else ----------
 app.use(
