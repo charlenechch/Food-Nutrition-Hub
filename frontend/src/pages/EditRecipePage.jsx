@@ -267,20 +267,50 @@ const EditRecipePage = () => {
                 Cancel
               </button>
               <button
-                className={modalType === "approve" ? "approve-btn" : "delete-btn"}
-                onClick={() => {
-                  const feedback =
-                    document.querySelector(".admin-feedback-input")?.value.trim() ||
-                    "No feedback provided.";
-                  setShowModal(false);
-                  alert(
-                    `${modalType === "approve" ? "✅ Approved" : "❌ Rejected"}\n\nAdmin Feedback:\n${feedback}`
-                  );
-                  navigate("/admin");
-                }}
-              >
-                {modalType === "approve" ? "Approve" : "Reject"}
-              </button>
+  className={modalType === "approve" ? "approve-btn" : "delete-btn"}
+  onClick={async () => {
+    const newStatus = modalType === "approve" ? "Approved" : "Rejected";
+    const feedback =
+      document.querySelector(".admin-feedback-input")?.value.trim() ||
+      "No feedback provided.";
+
+    try {
+      const updateUrl = `${API_URL}/api/recipe/updateStatus/${id}`;
+
+      const payload = { status: newStatus }; // feedback not needed for backend yet
+console.log("Sending PATCH payload:", payload);
+
+const res = await fetch(updateUrl, {
+  method: "PATCH",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  credentials: "include",
+  body: JSON.stringify(payload),
+});
+
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Failed to update status");
+      }
+
+      setShowModal(false);
+      alert(
+        `${
+          newStatus === "Approved" ? "✅ Approved" : "❌ Rejected"
+        }\n\nAdmin Feedback:\n${feedback}`
+      );
+      navigate("/admin");
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      alert(`Error: ${err.message}`);
+    }
+  }}
+>
+  {modalType === "approve" ? "Approve" : "Reject"}
+</button>
+
             </div>
           </div>
         </div>
