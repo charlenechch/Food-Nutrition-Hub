@@ -258,3 +258,17 @@
 .animate-fadeIn {
   animation: fadeIn 0.25s ease-out forwards;
 }
+
+
+.result-section { display: grid; gap: 16px; }
+.result-header { margin-bottom: 4px; }
+.result-title { font-size: 20px; font-weight: 700; margin: 0; }
+.accuracy-text { color: #6f6f6f; font-size: 13px; margin-top: 4px; }
+.portion-note { color: #7b7b7b; font-size: 12px; margin-top: 2px; }
+
+.result-block { background: #fff; border: 1px solid #eee1d5; border-radius: 10px; padding: 12px; }
+.block-title { margin: 0 0 8px 0; font-weight: 700; font-size: 14px; }
+
+.nutrition-table { width: 100%; border-collapse: collapse; }
+.nutrition-table td { padding: 8px 6px; border-bottom: 1px solid #f0e8de; }
+.nutrition-table tr:last-child td { border-bottom: none; }
