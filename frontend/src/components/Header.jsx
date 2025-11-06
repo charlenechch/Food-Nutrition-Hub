@@ -15,6 +15,13 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
+  // ⬇ Add this here
+  React.useEffect(() => {
+    if (user?.role === "admin" && location.pathname === "/home") {
+      navigate("/admin");
+    }
+  }, [user, location.pathname]);
+
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
 
@@ -58,10 +65,20 @@ export default function Header() {
     <>
       <nav className="navbar">
         {/* === Logo === */}
-        <div className="navbar-logo" onClick={() => navigate("/home")}>
+        <div
+          className="navbar-logo"
+          onClick={() => {
+            if (user?.role === "admin") {
+              navigate("/admin");
+            } else {
+              navigate("/home");
+            }
+          }}
+        >
           <span className="logo-icon">S</span>
           <span className="logo-text">SarawakEats</span>
         </div>
+        
 
         {/* === Hamburger Menu (Mobile) === */}
         <div
@@ -75,7 +92,14 @@ export default function Header() {
 
         {/* === Navigation Links === */}
         <ul className={`navbar-links ${menuOpen ? "active" : ""}`}>
-          <li><NavLink to="/home" onClick={closeMenu}>Home</NavLink></li>
+          <li>
+            <NavLink
+              to={user?.role === "admin" ? "/admin" : "/home"}
+              onClick={closeMenu}
+            >
+              Home
+            </NavLink>
+          </li>
           <li><NavLink to="/foods" onClick={closeMenu}>Explore Foods</NavLink></li>
           <li><NavLink to="/analyzer" onClick={closeMenu}>Nutrition Analyzer</NavLink></li>
           <li><NavLink to="/recipes" onClick={closeMenu}>Recipes</NavLink></li>
