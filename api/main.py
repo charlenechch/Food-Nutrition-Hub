@@ -1,172 +1,146 @@
-import io, os, json
-from pathlib import Path
-from urllib.parse import urlparse, unquote
+# api/main.py
+import os
+import io
 from typing import Optional, Dict, Any, List
 
-import numpy as np
-from PIL import Image
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
+from PIL import Image
+import numpy as np
 import tensorflow as tf
-from tensorflow.keras.preprocessing.image import img_to_array
-from tensorflow.keras.applications.efficientnet import preprocess_input as eff_pre
-import mysql.connector
 
-# ----------------- Config -----------------
-BASE = Path(__file__).parent
-MODEL_PATH = os.getenv("MODEL_PATH", str(BASE / "effb0_best.keras"))
-LABELS_PATH = os.getenv("LABELS_PATH", str(BASE / "labels.json"))
+from sqlalchemy import create_engine, text
+
+# ---------- ENV ----------
+AI_LABELS_PATH = os.environ.get("LABELS_PATH", "labels.json")
+AI_MODEL_PATH  = os.environ.get("MODEL_PATH",  "effb0_best.keras")
+
+# DB via Railway: support DB_* or MYSQL_* sets
+DB_HOST = os.environ.get("DB_HOST") or os.environ.get("MYSQLHOST")
+DB_PORT = os.environ.get("DB_PORT") or os.environ.get("MYSQLPORT") or "3306"
+DB_USER = os.environ.get("DB_USER") or os.environ.get("MYSQLUSER")
+DB_PASS = os.environ.get("DB_PASSWORD") or os.environ.get("MYSQLPASSWORD")
+DB_NAME = os.environ.get("DB_NAME") or os.environ.get("MYSQLDATABASE")
+
+db_engine = None
+if DB_HOST and DB_USER and DB_PASS and DB_NAME:
+  db_engine = create_engine(
+      f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}",
+      pool_pre_ping=True,
+      pool_recycle=280
+  )
+
+# ---------- MODEL ----------
+eff_model = tf.keras.models.load_model(AI_MODEL_PATH)
 IMG_SIZE = (224, 224)
 
-MYSQL_URL = os.getenv("MYSQL_URL")  # e.g. mysql://root:pass@host:port/railway
-if not MYSQL_URL:
-    raise RuntimeError("MYSQL_URL not set – add it in Railway (link to your MySQL service).")
+import json
+with open(AI_LABELS_PATH, "r") as f:
+    INDEX_TO_LABEL = json.load(f)  # {"0":"Laksa",...}
 
-# ----------------- Load labels & model -----------------
-with open(LABELS_PATH, "r") as f:
-    labels = json.load(f)
+def preprocess_pil(img: Image.Image) -> np.ndarray:
+    img = img.convert("RGB").resize(IMG_SIZE)
+    arr = tf.keras.preprocessing.image.img_to_array(img)
+    from tensorflow.keras.applications.efficientnet import preprocess_input as eff_pre
+    arr = eff_pre(arr)
+    return np.expand_dims(arr, 0)
 
-# supports list or {index: name}
-CLASS_NAMES = [labels[str(i)] for i in range(len(labels))] if isinstance(labels, dict) else labels
+def predict_image(img: Image.Image) -> Dict[str, Any]:
+    x = preprocess_pil(img)
+    preds = eff_model.predict(x, verbose=0)[0]
+    idx  = int(np.argmax(preds))
+    label = INDEX_TO_LABEL.get(str(idx), f"class_{idx}")
+    conf = float(preds[idx])
+    return {"pred_class": label, "confidence": conf}
 
-MODEL = tf.keras.models.load_model(
-    MODEL_PATH,
-    custom_objects={"eff_pre": eff_pre, "preprocess_input": eff_pre}
-)
+def fetch_food_row_by_name(name: str) -> Optional[Dict[str, Any]]:
+    if not db_engine: return None
+    with db_engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT * FROM food WHERE LOWER(name)=LOWER(:n) LIMIT 1"),
+            {"n": name}
+        ).mappings().first()
+        return dict(row) if row else None
 
-# ----------------- DB helpers -----------------
-def _parse_mysql_url(url: str) -> Dict[str, Any]:
-    u = urlparse(url)
-    return {
-        "host": u.hostname,
-        "port": u.port or 3306,
-        "user": unquote(u.username) if u.username else None,
-        "password": unquote(u.password) if u.password else None,
-        "database": u.path.lstrip("/") if u.path else None,
-    }
+app = FastAPI()
 
-DB_KW = _parse_mysql_url(MYSQL_URL)
-
-def db_connect():
-    # Railway MySQL works fine without SSL; add ssl_disabled=True if needed:
-    return mysql.connector.connect(**DB_KW)
-
-def fetch_food_by_name(name: str) -> Optional[Dict[str, Any]]:
-    conn = db_connect()
-    try:
-        cur = conn.cursor(dictionary=True)
-        cur.execute("""
-            SELECT foodID, name, origin, category, foodType, difficulty, dietaryTags,
-                   description, image, prepTime, culturalSignificance, traditionalPreparation,
-                   commonIngredients, alternative, altDescription, healthTips,
-                   Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg,
-                   likes_count, liked_by
-            FROM food
-            WHERE LOWER(name)=LOWER(%s)
-            LIMIT 1
-        """, (name,))
-        row = cur.fetchone()
-        return row
-    finally:
-        cur.close()
-        conn.close()
-
-# ----------------- FastAPI -----------------
-app = FastAPI(title="SarawakEats AI", version="1.0")
-
-# open to your domains; add your Vercel/localhost here
+# CORS: allow your frontends
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],             # tighten later if you like
+    allow_origins=[
+        "http://localhost:5173",
+        "https://food-nutrition-hub.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-def prepare(img: Image.Image):
-    img = img.convert("RGB").resize(IMG_SIZE)
-    x = img_to_array(img)
-    x = np.expand_dims(x, 0)  # eff_pre is INSIDE model; do not /255
-    return x
-
 @app.get("/health")
 def health():
-    return {"ok": True, "labels": len(CLASS_NAMES)}
+    return {"ok": True, "labels": len(INDEX_TO_LABEL)}
 
-@app.post("/predict")
-async def predict(file: UploadFile = File(...)):
-    if not file.content_type or "image" not in file.content_type:
-        raise HTTPException(400, "Please upload an image.")
-    try:
-        img_bytes = await file.read()
-        pil = Image.open(io.BytesIO(img_bytes))
-    except Exception:
-        raise HTTPException(400, "Unreadable image.")
+class AltItem(BaseModel):
+    name: str
+    calories: Optional[float] = None
+    note: Optional[str] = None
 
-    x = prepare(pil)
-    preds = MODEL.predict(x, verbose=0)[0]
-    probs = tf.nn.softmax(preds).numpy()
-    i = int(np.argmax(probs))
-    food = CLASS_NAMES[i]
-    confidence = float(probs[i])
+class PredictResponse(BaseModel):
+    food_name: Optional[str] = None
+    pred_class: Optional[str] = None
+    confidence: Optional[float] = None
+    nutrition: Optional[Dict[str, Any]] = None
+    tips: Optional[List[str]] = None
+    alternatives: Optional[List[AltItem]] = None
+    portion_note: Optional[str] = None
+    source: str = "ai"
 
-    # DB lookup (exact name match)
-    row = fetch_food_by_name(food)
+@app.post("/predict", response_model=PredictResponse)
+async def predict(
+    image: UploadFile = File(...),
+    food_name: Optional[str] = Form(None),
+    ingredients: Optional[str] = Form(None),
+):
+    # read image
+    raw = await image.read()
+    img = Image.open(io.BytesIO(raw))
+    pred = predict_image(img)
 
-    # build response for the wireframe
-    nutrition = None
-    if row:
-        nutrition = {
-            "calories": row.get("Energy_kcal"),
-            "protein_g": row.get("Protein_g"),
-            "fat_g": row.get("Fat_g"),
-            "carbs_g": row.get("Carbohydrates_g"),
-            "fiber_g": row.get("Fiber_g"),
-            "vitaminC_mg": row.get("VitaminC_mg"),
-            "portion_note": "Estimated portion: 1 medium serving (150 g)"
+    # try to enrich with DB
+    db_row = fetch_food_row_by_name(food_name or pred["pred_class"])
+    if db_row:
+        return {
+            "food_name": db_row["name"],
+            "pred_class": pred["pred_class"],
+            "confidence": pred["confidence"],
+            "nutrition": {
+                "Energy_kcal": db_row["Energy_kcal"],
+                "Protein_g": db_row["Protein_g"],
+                "Fat_g": db_row["Fat_g"],
+                "Carbohydrates_g": db_row["Carbohydrates_g"],
+                "Fiber_g": db_row["Fiber_g"],
+                "VitaminC_mg": db_row["VitaminC_mg"],
+            },
+            "tips": [db_row["healthTips"]] if db_row.get("healthTips") else [],
+            "alternatives": [
+                {"name": a.strip(), "note": db_row.get("altDescription")}
+                for a in (db_row.get("alternative") or "").split(",")
+                if a.strip()
+            ],
+            "portion_note": "Estimated portion: 1 medium serving (150 g)",
+            "source": "ai+db",
         }
 
-    # tips (string or JSON stored)
-    tips: List[str] = []
-    if row and row.get("healthTips"):
-        ht = str(row["healthTips"]).strip()
-        if ht.startswith("["):
-            try:
-                tips = json.loads(ht)
-            except Exception:
-                tips = [ht]
-        else:
-            tips = [ht]
-
-    # alternatives
-    alternatives = []
-    if row and (row.get("alternative") or row.get("altDescription")):
-        alternatives.append({
-            "name": row.get("alternative") or "Alternative",
-            "calories": None,
-            "note": row.get("altDescription") or ""
-        })
-
-    extra = None
-    if row:
-        extra = {
-            "origin": row.get("origin"),
-            "category": row.get("category"),
-            "image": row.get("image"),
-            "dietaryTags": row.get("dietaryTags"),
-            "description": row.get("description"),
-            "culturalSignificance": row.get("culturalSignificance"),
-            "traditionalPreparation": row.get("traditionalPreparation"),
-            "commonIngredients": row.get("commonIngredients"),
-            "likes_count": row.get("likes_count"),
-        }
-
+    # fallback: AI-only record
     return {
-        "food_name": food,
-        "confidence": confidence,
-        "nutrition": nutrition,
-        "alternatives": alternatives,
-        "tips": tips,
-        "extra": extra
+        "food_name": food_name,
+        "pred_class": pred["pred_class"],
+        "confidence": pred["confidence"],
+        "nutrition": None,
+        "tips": [],
+        "alternatives": [],
+        "portion_note": "Estimated portion: 1 medium serving (150 g)",
+        "source": "ai",
     }

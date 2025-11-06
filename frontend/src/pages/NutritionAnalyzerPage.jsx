@@ -1,92 +1,204 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "../css/NutritionAnalyzer.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { FaWandMagicSparkles, FaCamera } from "react-icons/fa6";
-import { LuSparkles } from "react-icons/lu";
 import { IoCameraOutline } from "react-icons/io5";
+import { LuSparkles } from "react-icons/lu";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
+const API_URL = import.meta.env.VITE_API_URL;        // ← Node backend (Railway)
+const AI_URL  = import.meta.env.VITE_AI_API_URL;     // ← FastAPI (Railway: ai-...up.railway.app)
+
 export default function NutritionAnalyzerPage() {
   const { user } = useAuth();
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [analysisResult, setAnalysisResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [foodName, setFoodName] = useState("");
-  const [ingredients, setIngredients] = useState("");
-  const [suggestions, setSuggestions] = useState(null);
-
   const isGuest = !user || user?.role === "guest";
 
-  const AI_URL = import.meta.env.VITE_AI_API_URL;
-  const API_URL = import.meta.env.VITE_API_URL;
+  const [foodName, setFoodName] = useState("");
+  const [ingredients, setIngredients] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
 
-  const requireLogin = () => setShowModal(true);
+  const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);     // ["Kolo Mee", ...]
+  const [result, setResult] = useState(null);             // object with nutrition, tips, alternatives
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
-  const handleFileChange = (e) => {
+  const requireLogin = (msg) => {
     if (isGuest) {
-      e.preventDefault();
-      requireLogin();
-      return;
+      console.log("Blocked:", msg);
+      setShowModal(true);
+      return true;
     }
-    const file = e.target.files[0];
-    if (file) setSelectedFile(file);
+    return false;
   };
 
-  const handleAnalyze = async (e) => {
-    e.preventDefault();
-    if (isGuest) {
-      requireLogin();
+  // ---- Debounced lookup to backend (DB) when typing food name ----
+  const debouncedName = useMemo(() => foodName.trim(), [foodName]);
+  useEffect(() => {
+    if (!debouncedName) {
+      setSuggestions([]);
       return;
     }
 
-    if (!selectedFile && !foodName.trim()) {
-      alert("Enter food name or upload an image");
-      return;
-    }
-
-    setLoading(true);
-    setSuggestions(null);
-    setAnalysisResult(null);
-
-    try {
-      if (selectedFile) {
-        const formData = new FormData();
-        formData.append("image", selectedFile);
-
-        const res = await fetch(`${AI_URL}/analyze-image`, {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await res.json();
-        setAnalysisResult(data);
-      } else {
-        const res = await fetch(
-          `${API_URL}/api/food/search?name=${encodeURIComponent(foodName.trim())}`
+    const t = setTimeout(async () => {
+      try {
+        setError("");
+        const r = await fetch(
+          `${API_URL}/api/ai/lookup?name=${encodeURIComponent(debouncedName)}`,
+          { credentials: "include" }
         );
-        const data = await res.json();
+        const data = await r.json();
 
-        if (!data.found && data.didYouMean) {
-          setSuggestions(data.didYouMean);
+        if (data.found && data.item) {
+          // auto-fill immediate preview on the right
+          setResult(shapeResultFromDB(data.item));
+          setSuggestions([]);
         } else {
-          setAnalysisResult(data);
+          setResult(null);
+          setSuggestions(Array.isArray(data.suggestions) ? data.suggestions : []);
         }
+      } catch (e) {
+        console.error(e);
+        setSuggestions([]);
       }
-    } catch {
-      alert("Something went wrong. Try again.");
+    }, 300);
+
+    return () => clearTimeout(t);
+  }, [debouncedName]);
+
+  // ---- Helpers ----
+  function shapeResultFromDB(row) {
+    return {
+      source: "db",
+      food_name: row.name,
+      nutrition: {
+        Energy_kcal: row.Energy_kcal,
+        Protein_g: row.Protein_g,
+        Fat_g: row.Fat_g,
+        Carbohydrates_g: row.Carbohydrates_g,
+        Fiber_g: row.Fiber_g,
+        VitaminC_mg: row.VitaminC_mg,
+      },
+      tips: row.healthTips ? [row.healthTips] : [],
+      alternatives: row.alternative
+        ? row.alternative.split(",").map((s) => s.trim()).filter(Boolean)
+        : [],
+      altDescription: row.altDescription || "",
+      meta: {
+        origin: row.origin,
+        category: row.category,
+        foodType: row.foodType,
+        difficulty: row.difficulty,
+        image: row.image,
+        commonIngredients: row.commonIngredients,
+        culturalSignificance: row.culturalSignificance,
+        traditionalPreparation: row.traditionalPreparation,
+        description: row.description,
+      },
+    };
+  }
+
+  const handleSuggestionClick = async (name) => {
+    setFoodName(name);
+    setSelectedFile(null);
+    setLoading(true);
+    setError("");
+    try {
+      const r = await fetch(`${API_URL}/api/ai/lookup?name=${encodeURIComponent(name)}`, {
+        credentials: "include",
+      });
+      const data = await r.json();
+      if (data.found && data.item) {
+        setResult(shapeResultFromDB(data.item));
+        setSuggestions([]);
+      }
+    } catch (e) {
+      setError("Failed to fetch item.");
     } finally {
       setLoading(false);
     }
   };
 
-  const chooseSuggestion = (item) => {
-    setFoodName(item);
-    setSuggestions(null);
+  const handleFileChange = (e) => {
+    if (requireLogin("upload image")) return;
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setResult(null); // clear any DB preview to avoid confusion
+    }
   };
 
+  // ---- Analyze button ----
+  const handleAnalyze = async (e) => {
+    e.preventDefault();
+    if (requireLogin("analyze")) return;
+
+    setError("");
+    setResult(null);
+    setLoading(true);
+
+    try {
+      // 1) If file provided -> call FastAPI /predict (image route)
+      if (selectedFile) {
+        const fd = new FormData();
+        fd.append("image", selectedFile);               // <-- agreed field name
+        if (foodName) fd.append("food_name", foodName);
+        if (ingredients) fd.append("ingredients", ingredients);
+
+        const r = await fetch(`${AI_URL}/predict`, {
+          method: "POST",
+          body: fd,
+        });
+        const data = await r.json();
+
+        // shape into UI model
+        const shaped = {
+          source: "ai",
+          food_name:
+            data.food_name
+            || data.pred_class
+            || foodName
+            || "Detected Food",
+          confidence: data.confidence,
+          nutrition: data.nutrition ?? null,
+          tips: data.tips ?? [],
+          alternatives: data.alternatives?.map?.(a => a.name ?? a) ?? [],
+          altDescription: data.alternatives?.[0]?.note ?? "",
+          meta: { portion: data.portion_note, imageUsed: true },
+        };
+        setResult(shaped);
+        return;
+      }
+
+      // 2) Else (no file) -> ask backend to return DB row or synthesize
+      const r2 = await fetch(`${API_URL}/api/ai/analyze`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          food_name: foodName || "",
+          ingredients: ingredients || "",
+        }),
+      });
+      const data2 = await r2.json();
+      if (data2.found && data2.item) {
+        setResult(shapeResultFromDB(data2.item));
+      } else if (data2.message) {
+        setError(data2.message);
+      } else {
+        setError("No result.");
+      }
+    } catch (e) {
+      console.error(e);
+      setError("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ---- UI ----
   return (
     <div className="nutrition-page">
       <Header />
@@ -95,50 +207,48 @@ export default function NutritionAnalyzerPage() {
       <p className="page-subtitle">Get instant nutrition analysis and healthier alternatives</p>
 
       <div className="analyzer-container">
+        {/* LEFT */}
         <div className="left-column">
           <form className="food-form" onSubmit={handleAnalyze}>
+            {/* Food Info */}
             <div className="food-input-card">
-              <h3 className="section-title">
-                <LuSparkles /> Enter Food Information
-              </h3>
+              <h3 className="section-title"><LuSparkles/> Enter Food Information</h3>
 
-              <label>Food Name</label>
+              <label htmlFor="food-name">Food Name</label>
               <input
+                id="food-name"
                 type="text"
                 placeholder="e.g., Laksa, Manok Pansoh, Umai..."
                 value={foodName}
-                onChange={(e) => !isGuest && setFoodName(e.target.value)}
-                onClick={() => isGuest && requireLogin()}
+                onChange={(e) => setFoodName(e.target.value)}
               />
 
-              <label>Ingredients</label>
+              <label htmlFor="ingredients">Ingredients</label>
               <textarea
-                placeholder="List ingredients (optional)"
+                id="ingredients"
+                placeholder="List ingredients (optional)…"
                 value={ingredients}
-                onChange={(e) => !isGuest && setIngredients(e.target.value)}
-                onClick={() => isGuest && requireLogin()}
-              ></textarea>
+                onChange={(e) => setIngredients(e.target.value)}
+              />
             </div>
 
+            {/* Upload */}
             <div className="upload-card">
-              <h3 className="section-title">
-                <IoCameraOutline /> Or Upload Food Photo
-              </h3>
+              <h3 className="section-title"><IoCameraOutline/> Or Upload Food Photo</h3>
               <p>Take a photo or upload an image for AI analysis</p>
 
               <div
                 className="upload-box"
-                onClick={(e) => {
-                  if (isGuest) {
-                    e.preventDefault();
-                    requireLogin();
-                    return;
-                  }
+                onClick={() => {
+                  if (requireLogin("open file picker")) return;
                   document.getElementById("fileInput").click();
                 }}
+                style={{ cursor: "pointer" }}
               >
                 <FaCamera size={28} />
-                <p>{selectedFile ? selectedFile.name : "Drag & drop or click to upload"}</p>
+                <p>
+                  {selectedFile ? selectedFile.name : "Drag & drop an image or click to upload"}
+                </p>
                 <input
                   id="fileInput"
                   type="file"
@@ -149,48 +259,108 @@ export default function NutritionAnalyzerPage() {
               </div>
             </div>
 
-            <button type="submit" className="analyze-btn">
-              {loading ? "Analyzing..." : <><FaWandMagicSparkles /> Analyze Nutrition</>}
+            {/* Analyze */}
+            <button
+              type="submit"
+              className="analyze-btn"
+              disabled={loading}
+              style={{
+                backgroundColor: "#b8926a",
+                color: "#fff",
+                border: "none",
+                borderRadius: "10px",
+                padding: "10px 18px",
+                fontWeight: "500",
+                cursor: loading ? "not-allowed" : "pointer",
+                marginTop: "10px",
+              }}
+            >
+              <FaWandMagicSparkles size={18} />
+              {loading ? " Analyzing…" : " Analyze Nutrition"}
             </button>
           </form>
         </div>
 
+        {/* RIGHT: Suggestions + Results */}
         <div className="result-card">
-          {!analysisResult && !suggestions && !loading && <p>Enter food or upload image to begin</p>}
-          {loading && <p>⏳ Analyzing...</p>}
+          {/* Suggestions (chips) */}
+          {suggestions.length > 0 && (
+            <>
+              <p style={{ marginBottom: 8 }}>Did you mean:</p>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+                {suggestions.map((name) => (
+                  <button
+                    type="button"
+                    key={name}
+                    onClick={() => handleSuggestionClick(name)}
+                    style={{
+                      border: "1px solid #d8c7b2",
+                      background: "#f9f6f2",
+                      padding: "6px 10px",
+                      borderRadius: 12,
+                      fontSize: 13,
+                    }}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
 
-          {suggestions && (
-            <div>
-              <p>Did you mean:</p>
-              {suggestions.map((s) => (
-                <button key={s} onClick={() => chooseSuggestion(s)} className="suggestion-btn">
-                  {s}
-                </button>
-              ))}
+          {/* Errors */}
+          {error && (
+            <div style={{ color: "#b04d4d", marginBottom: 10 }}>
+              {error}
             </div>
           )}
 
-          {analysisResult && (
-            <div>
-              <h2>{analysisResult.food_name}</h2>
+          {/* Result */}
+          {!result && !error && !loading && (
+            <p>Enter a food name or upload an image to get started.</p>
+          )}
 
-              {analysisResult.nutrition && (
-                <div className="nutrition-box">
-                  <p><b>Calories:</b> {analysisResult.nutrition.calories} kcal</p>
-                  <p><b>Protein:</b> {analysisResult.nutrition.protein_g} g</p>
-                  <p><b>Fat:</b> {analysisResult.nutrition.fat_g} g</p>
-                  <p><b>Carbs:</b> {analysisResult.nutrition.carbs_g} g</p>
-                  <p><b>Fiber:</b> {analysisResult.nutrition.fiber_g} g</p>
-                  <p><b>Vitamin C:</b> {analysisResult.nutrition.vitaminC_mg} mg</p>
+          {result && (
+            <div>
+              <h3 style={{ marginTop: 0 }}>{result.food_name}</h3>
+              {result.meta?.origin && (
+                <p style={{ opacity: 0.8, marginTop: -6 }}>
+                  {result.meta.origin} · {result.meta.foodType} · {result.meta.difficulty}
+                </p>
+              )}
+
+              {result.nutrition && (
+                <div style={{ marginTop: 10 }}>
+                  <strong>Nutrition (per portion)</strong>
+                  <ul style={{ margin: "6px 0 0 18px" }}>
+                    <li>Energy: {result.nutrition.Energy_kcal ?? "—"} kcal</li>
+                    <li>Protein: {result.nutrition.Protein_g ?? "—"} g</li>
+                    <li>Fat: {result.nutrition.Fat_g ?? "—"} g</li>
+                    <li>Carbs: {result.nutrition.Carbohydrates_g ?? "—"} g</li>
+                    <li>Fiber: {result.nutrition.Fiber_g ?? "—"} g</li>
+                    <li>Vitamin C: {result.nutrition.VitaminC_mg ?? "—"} mg</li>
+                  </ul>
                 </div>
               )}
 
-              {analysisResult.tips?.length > 0 && (
-                <div className="tips-box">
-                  <h3>Health Tips</h3>
-                  {analysisResult.tips.map((t, idx) => (
-                    <li key={idx}>{t}</li>
-                  ))}
+              {!!(result.alternatives?.length) && (
+                <div style={{ marginTop: 14 }}>
+                  <strong>Healthier alternatives</strong>
+                  <ul style={{ margin: "6px 0 0 18px" }}>
+                    {result.alternatives.map((a, i) => <li key={i}>{a}</li>)}
+                  </ul>
+                  {result.altDescription && (
+                    <p style={{ marginTop: 6, opacity: 0.9 }}>{result.altDescription}</p>
+                  )}
+                </div>
+              )}
+
+              {!!(result.tips?.length) && (
+                <div style={{ marginTop: 14 }}>
+                  <strong>Tips</strong>
+                  <ul style={{ margin: "6px 0 0 18px" }}>
+                    {result.tips.map((t, i) => <li key={i}>{t}</li>)}
+                  </ul>
                 </div>
               )}
             </div>

@@ -1,126 +1,101 @@
-// routes/ai.js
 const express = require("express");
-const multer = require("multer");
-const axios = require("axios");
-const FormData = require("form-data");
-
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
-const INFERENCE_URL = process.env.INFERENCE_URL || "http://localhost:8000/ai/predict";
-
-// session guard
-function requireLogin(req, res, next) {
-  if (!req.session || !req.session.user) return res.status(401).json({ error: "Login required" });
-  next();
-}
-
-// map DB row -> UI response (PER SERVING)
-function mapRowToResponse(row, extra = {}) {
-  const tips = (row.healthTips || "")
-    .split(/\r?\n|;/)
-    .map(t => t.trim())
-    .filter(Boolean);
-
+// maps DB row → JSON used by UI
+function mapRow(row) {
+  if (!row) return null;
   return {
-    // header card
-    foodName: row.name,
-    servingLabel: "Per serving",           // ← important label
-    image: row.image || null,
-    description: row.description || null,
-
-    // nutrition box (per serving)
-    nutrition: {
-      energy_kcal: row.Energy_kcal,
-      protein_g: row.Protein_g,
-      fat_g: row.Fat_g,
-      carbs_g: row.Carbohydrates_g,
-      fiber_g: row.Fiber_g,
-      vitaminC_mg: row.VitaminC_mg
-    },
-
-    // meta (right column)
-    origin: row.origin || null,
-    commonIngredients: row.commonIngredients || null,
-
-    // alternatives & tips
-    alternatives: row.alternative
-      ? [{ name: row.alternative, description: row.altDescription || "" }]
-      : [],
-    healthTips: tips,
-
-    // model extras (image flow)
-    predicted: extra.predicted || null,
-    confidence: typeof extra.confidence === "number" ? extra.confidence : null,
-    model: extra.model || null
+    foodID: row.foodID,
+    name: row.name,
+    origin: row.origin,
+    category: row.category,
+    foodType: row.foodType,
+    difficulty: row.difficulty,
+    dietaryTags: row.dietaryTags,
+    description: row.description,
+    image: row.image,
+    prepTime: row.prepTime,
+    culturalSignificance: row.culturalSignificance,
+    traditionalPreparation: row.traditionalPreparation,
+    commonIngredients: row.commonIngredients,
+    alternative: row.alternative,
+    altDescription: row.altDescription,
+    healthTips: row.healthTips,
+    Energy_kcal: row.Energy_kcal,
+    Protein_g: row.Protein_g,
+    Fat_g: row.Fat_g,
+    Carbohydrates_g: row.Carbohydrates_g,
+    Fiber_g: row.Fiber_g,
+    VitaminC_mg: row.VitaminC_mg,
+    likes_count: row.likes_count,
+    liked_by: row.liked_by,
   };
 }
 
-// exact (case-insensitive) match by name
-async function fetchFoodByName(pool, name) {
-  const sql = `
-    SELECT foodID, name, origin, category, foodType, difficulty, dietaryTags,
-           description, image, prepTime, culturalSignificance, traditionalPreparation,
-           commonIngredients, alternative, altDescription, healthTips,
-           Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg,
-           likes_count, liked_by
-    FROM food
-    WHERE LOWER(name) = LOWER(?)
-    LIMIT 1
-  `;
-  const [rows] = await pool.query(sql, [name]);
-  return rows?.[0] || null;
-}
-
-/**
- * POST /api/ai/analyze (SESSION REQUIRED)
- * - JSON { foodName }  -> DB lookup only (no AI)
- * - multipart/form-data { image } -> AI -> DB lookup by predicted label
- */
-router.post("/analyze", requireLogin, upload.single("image"), async (req, res) => {
-  const pool = req.app.get("dbPool");
-  if (!pool) return res.status(500).json({ error: "DB not available" });
+// GET /api/ai/lookup?name=Kolo%20Mee
+router.get("/lookup", async (req, res) => {
+  const name = (req.query.name || "").trim();
+  if (!name) return res.json({ found: false, suggestions: [] });
 
   try {
-    // TEXT mode (DB only)
-    if (req.body?.foodName && !req.file) {
-      const name = String(req.body.foodName || "").trim();
-      if (!name) return res.status(400).json({ error: "foodName is required" });
+    const db = req.app.get("dbPool");
 
-      const row = await fetchFoodByName(pool, name);
-      if (!row) return res.status(404).json({ error: "Food not found in database" });
-
-      return res.json(mapRowToResponse(row));
+    // exact match first
+    const [exact] = await db.execute(
+      "SELECT * FROM food WHERE LOWER(name)=LOWER(?) LIMIT 1",
+      [name]
+    );
+    if (exact.length) {
+      return res.json({ found: true, item: mapRow(exact[0]) });
     }
 
-    // IMAGE mode (AI -> DB)
-    if (!req.file) return res.status(400).json({ error: "Provide foodName or upload image" });
-
-    const fd = new FormData();
-    fd.append("image", req.file.buffer, { filename: req.file.originalname });
-    fd.append("model", req.body.model || "efficientnet"); // you chose EffB0 first
-
-    const infer = await axios.post(INFERENCE_URL, fd, {
-      headers: fd.getHeaders(),
-      maxBodyLength: Infinity,
-      timeout: 30_000
+    // else suggest
+    const [rows] = await db.execute(
+      "SELECT name FROM food WHERE name LIKE ? ORDER BY name LIMIT 8",
+      [`%${name}%`]
+    );
+    return res.json({
+      found: false,
+      suggestions: rows.map((r) => r.name),
     });
+  } catch (err) {
+    console.error("lookup error:", err);
+    return res.status(500).json({ found: false, suggestions: [] });
+  }
+});
 
-    const { foodName, confidence, model } = infer.data || {};
-    if (!foodName) return res.status(502).json({ error: "Inference service did not return a label" });
+// POST /api/ai/analyze  { food_name, ingredients }
+router.post("/analyze", async (req, res) => {
+  const foodName = (req.body.food_name || "").trim();
 
-    const row = await fetchFoodByName(pool, foodName);
-    if (!row) {
-      return res.status(404).json({
-        error: "Predicted food not found in database",
-        predicted: { foodName, confidence, model }
+  try {
+    const db = req.app.get("dbPool");
+
+    if (foodName) {
+      const [rows] = await db.execute(
+        "SELECT * FROM food WHERE LOWER(name)=LOWER(?) LIMIT 1",
+        [foodName]
+      );
+      if (rows.length) {
+        return res.json({ found: true, item: mapRow(rows[0]) });
+      }
+
+      // no exact match → give suggestions
+      const [sug] = await db.execute(
+        "SELECT name FROM food WHERE name LIKE ? ORDER BY name LIMIT 8",
+        [`%${foodName}%`]
+      );
+      return res.json({
+        found: false,
+        suggestions: sug.map((r) => r.name),
+        message: "No exact match. Pick a suggestion.",
       });
     }
 
-    return res.json(mapRowToResponse(row, { predicted: foodName, confidence, model }));
+    return res.json({ found: false, suggestions: [], message: "Please enter a food name or upload an image." });
   } catch (err) {
-    console.error("AI analyze error:", err?.response?.data || err);
-    return res.status(500).json({ error: "Analyze failed", detail: String(err.message || err) });
+    console.error("analyze error:", err);
+    return res.status(500).json({ found: false, message: "Server error" });
   }
 });
 
