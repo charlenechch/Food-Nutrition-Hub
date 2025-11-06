@@ -30,6 +30,8 @@ const saveFoodRoutes = require("./routes/saveFood");
 const otpRoutes = require("./routes/otp");
 const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
+const aiRoutes = require("./routes/ai");
+const foodSearchRoutes = require("./routes/foodSearch");
 
 // ✅ NEW: Admin route import (for Admin User Management)
 const adminRoutes = require("./routes/admin");
@@ -71,6 +73,9 @@ console.log("🔧 Database Config:", {
 const db = mysql.createPool(dbConfig);
 const promiseDb = db.promise();
 
+// ✅ Make the pool available to routes
+app.set("dbPool", promiseDb);
+
 // Test DB connection
 promiseDb
   .execute("SELECT 1 as test")
@@ -107,6 +112,7 @@ app.use(
         "'self'",
         "http://localhost:5173",
         "https://food-nutrition-hub.vercel.app",
+        process.env.INFERENCE_URL?.replace(/(https?:\/\/[^/]+).*/, "$1"),
       ],
       "frame-ancestors": ["'none'"],
     },
@@ -222,6 +228,12 @@ app.use(
   loginRoutes
 );
 
+app.use(
+  "/api/ai",
+  cors({ origin: allowedOrigins, credentials: true }),
+  aiRoutes
+);
+
 // ✅ Diagnostic Middleware to confirm sequence
 app.use((req, res, next) => {
   if (req.originalUrl.includes("/api/recipe/all/recipes")) {
@@ -246,6 +258,9 @@ app.use(
   }),
   recipeRoutes
 );
+
+app.use("/api/food", foodSearchRoutes);
+
 
 // ---------- 7) Global HPP protection for everything else ----------
 app.use(

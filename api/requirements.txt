@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+tensorflow==2.19.*
+numpy
+pillow
+python-multipart
+sqlalchemy
+pymysql
+python-dotenv
+mysql-connector-python
+

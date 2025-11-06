@@ -303,8 +303,9 @@ useEffect(() => {
   // ✅ Main Render
   // ========================================================
   return (
+    <div>
+    <Header />
     <div className="admin-dashboard">
-      <Header />
       <div className="dashboard-header">
         <h1>Admin Dashboard</h1>
         <p>Sarawakian Food Heritage Management System</p>
@@ -384,7 +385,8 @@ useEffect(() => {
         {loading ? <p>Loading data...</p> : renderContent()}
       </div>
 
-      <Footer />
+    </div>
+    <Footer />
     </div>
   );
 };

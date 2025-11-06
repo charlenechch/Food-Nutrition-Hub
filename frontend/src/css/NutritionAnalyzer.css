@@ -168,7 +168,7 @@
 /* ===============================
    RESULT CARD (RIGHT COLUMN)
 =============================== */
-.result-card {
+/* .result-card {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -183,7 +183,65 @@
   color: #916848;
   font-size: clamp(1.5rem, 3vw, 2rem);
   margin-bottom: 1rem;
+} */
+
+/* Result Card Layout */
+.result-card {
+  background: #fff;
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 15px;
 }
+
+/* Suggestions List (Did you mean...) */
+.suggestion-btn {
+  background: #f3e8dc;
+  border: 1px solid #d8c7b2;
+  padding: 6px 12px;
+  margin: 5px 5px 0 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+.suggestion-btn:hover {
+  background: #e9dccb;
+}
+
+/* Nutrition Box */
+.nutrition-box {
+  background: #fff7ec;
+  border: 1px solid #e8d3b6;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+  margin-top: 10px;
+}
+
+/* Health Tips Box */
+.tips-box {
+  margin-top: 16px;
+  background: #eef9f1;
+  border-left: 4px solid #4caf50;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+.tips-box h3 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+}
+.tips-box li {
+  font-size: 14px;
+  margin-left: 18px;
+  margin-bottom: 4px;
+}
+
 
 /* ===============================
    RESPONSIVE BEHAVIOUR
@@ -258,3 +316,17 @@
 .animate-fadeIn {
   animation: fadeIn 0.25s ease-out forwards;
 }
+
+
+.result-section { display: grid; gap: 16px; }
+.result-header { margin-bottom: 4px; }
+.result-title { font-size: 20px; font-weight: 700; margin: 0; }
+.accuracy-text { color: #6f6f6f; font-size: 13px; margin-top: 4px; }
+.portion-note { color: #7b7b7b; font-size: 12px; margin-top: 2px; }
+
+.result-block { background: #fff; border: 1px solid #eee1d5; border-radius: 10px; padding: 12px; }
+.block-title { margin: 0 0 8px 0; font-weight: 700; font-size: 14px; }
+
+.nutrition-table { width: 100%; border-collapse: collapse; }
+.nutrition-table td { padding: 8px 6px; border-bottom: 1px solid #f0e8de; }
+.nutrition-table tr:last-child td { border-bottom: none; }

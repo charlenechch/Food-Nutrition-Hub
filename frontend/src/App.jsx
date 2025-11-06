@@ -33,8 +33,7 @@ import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
 import EditCommunityPostPage from "./pages/EditCommunityPostPage";
 
 // === Auth & Verification ===
-// Assuming this path is correct, if it's in 'pages' change it back
-import AuthActionRouter from "./pages/AuthActionRouter"; 
+import AuthActionRouter from "./pages/AuthActionRouter";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ForgetPassword from "./pages/ForgotPasswordPage";
 import ResetPassword from "./pages/ResetPasswordPage";
@@ -146,8 +145,7 @@ function App() {
         <Route path="/admin/addrecipe" element={<AddRecipe />} />
         <Route path="/admin/editfood/:id" element={<EditFoodPage />} />
         <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />
-        
-        <Route path="/admin/edit/community/:id" element={<EditCommunityPostPage />} />
+        <Route path="/admin/reviewcontent/:id" element={<ReviewContentPage />} />
 
         {/* ✅ Community Review Routes */}
         <Route
@@ -155,6 +153,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <AdminCommunityPostDatabase />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/review/:type/:id"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <ReviewContentPage />
             </ProtectedRoute>
           }
         />
