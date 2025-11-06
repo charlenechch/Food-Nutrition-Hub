@@ -180,7 +180,7 @@
   align-items: center;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 0.3rem 0 1rem 0;
+  padding: 1rem 0;
   transform: translateY(0);
   opacity: 1;
   pointer-events: auto;
@@ -259,8 +259,4 @@
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.navbar-actions {
-  display: none !important;
 }
