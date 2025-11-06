@@ -160,7 +160,7 @@ const postData = [
       posts.photos,
       posts.recipe,
     ];
-    await db.query(sql, values);
+    await db.pool.query(sql, values);
     }
 
     console.log("✅ All data inserted successfully!");

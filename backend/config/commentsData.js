@@ -160,7 +160,7 @@ const db = require("./db");
         comment.userProfileID,
         comment.comment,
       ];
-      await db.query(sql, values);
+      await db.pool.query(sql, values);
     }
 
     console.log("✅ All comments inserted successfully!");

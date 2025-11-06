@@ -178,7 +178,7 @@ const discussions = [
         discussion.downVotes
       ];
 
-      await db.query(sql, values);
+      await db.pool.query(sql, values);
     }
 
     console.log("✅ All data inserted successfully!");
