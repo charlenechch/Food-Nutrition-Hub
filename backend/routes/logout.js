@@ -4,7 +4,6 @@ const router = express.Router();
 // Logout route
 router.post("/", (req, res) => {
   if (req.session) {
-    const sessionID = req.sessionID;
 
     req.session.destroy((err) => {
       if (err) {
