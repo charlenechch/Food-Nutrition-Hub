@@ -15,12 +15,6 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  React.useEffect(() => {
-    if (user?.role === "admin" && location.pathname === "/home") {
-      navigate("/admin");
-    }
-  }, [user, location.pathname]);
-
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
 
@@ -46,24 +40,28 @@ export default function Header() {
     }
   };
 
+  // ✅ Smart toggle logic
+  const handleSmartToggle = () => {
+    if (location.pathname.startsWith("/admin")) {
+      navigate("/home"); // admin → user
+    } else {
+      navigate("/admin"); // user → admin
+    }
+  };
+
+  // ✅ Determine label + icon
+  const isAdminView = location.pathname.startsWith("/admin");
+  const toggleLabel = isAdminView ? "User View" : "Admin View";
+  const toggleIcon = isAdminView ? <FaUser size={14} /> : <FaCrown size={14} />;
+
   return (
     <>
       <nav className="navbar">
         {/* === Logo === */}
-        <div
-          className="navbar-logo"
-          onClick={() => {
-            if (user?.role === "admin") {
-              navigate("/admin");
-            } else {
-              navigate("/home");
-            }
-          }}
-        >
+        <div className="navbar-logo" onClick={() => navigate("/home")}>
           <span className="logo-icon">S</span>
           <span className="logo-text">SarawakEats</span>
         </div>
-        
 
         {/* === Hamburger Menu (Mobile) === */}
         <div
@@ -77,34 +75,25 @@ export default function Header() {
 
         {/* === Navigation Links === */}
         <ul className={`navbar-links ${menuOpen ? "active" : ""}`}>
-          <li>
-            <NavLink
-              to={user?.role === "admin" ? "/admin" : "/home"}
-              onClick={closeMenu}
-            >
-              Home
-            </NavLink>
-          </li>
+          <li><NavLink to="/home" onClick={closeMenu}>Home</NavLink></li>
           <li><NavLink to="/foods" onClick={closeMenu}>Explore Foods</NavLink></li>
           <li><NavLink to="/analyzer" onClick={closeMenu}>Nutrition Analyzer</NavLink></li>
           <li><NavLink to="/recipes" onClick={closeMenu}>Recipes</NavLink></li>
           <li><NavLink to="/community" onClick={closeMenu}>Community</NavLink></li>
 
           <hr className="menu-divider" />
-
-          {/* 👤 Profile */}
-          <li className="mobile-action" onClick={() => { handleProfileClick(); closeMenu(); }}>
+          <li className="mobile-action" onClick={handleProfileClick}>
             Profile
           </li>
 
-          {/* 🌐 Language */}
-          <li className="mobile-action" onClick={() => { navigate("/language"); closeMenu(); }}>
-            Language: EN
-          </li>
+          {user?.role === "admin" && (
+            <li className="mobile-action" onClick={handleSmartToggle}>
+              {toggleLabel}
+            </li>
+          )}
 
-          {/* 🚪 Login / Logout */}
           {user && user.role !== 'guest' ? (
-            <li className="mobile-action logout" onClick={() => { handleLogout(); closeMenu(); }}>
+            <li className="mobile-action logout" onClick={handleLogout}>
               Logout
             </li>
           ) : (
@@ -115,15 +104,32 @@ export default function Header() {
         </ul>
 
         {/* === Desktop Actions === */}
-        {/* <div className="navbar-actions">
+        <div className="navbar-actions">
+          {/* 🌐 Language */}
           <button className="lang-btn" onClick={() => navigate("/language")}>
             <FaGlobe /> EN
           </button>
 
+          {/* 🟤 Capsule Toggle */}
+          {user?.role === "admin" && (
+            <button
+              className={`role-toggle-capsule ${
+                isAdminView ? "admin-mode" : "user-mode"
+              }`}
+              onClick={handleSmartToggle}
+              title={`Switch to ${isAdminView ? "User" : "Admin"} view`}
+            >
+              {toggleIcon}
+              <span>{toggleLabel}</span>
+            </button>
+          )}
+
+          {/* 👤 Profile */}
           <button onClick={handleProfileClick}>
             <User size={20} /> Profile
           </button>
 
+          {/* 🚪 Logout / Login */}
           {user && user.role !== 'guest' ? (
             <button className="logout-btn" onClick={handleLogout}>
               <FaSignOutAlt /> Logout
@@ -133,7 +139,7 @@ export default function Header() {
               <FaUser size={16} /> Login
             </button>
           )}
-        </div> */}
+        </div>
       </nav>
 
       {/* ✅ Login Modal */}
