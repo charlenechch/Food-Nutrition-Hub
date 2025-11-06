@@ -3,12 +3,12 @@ const bcrypt = require("bcrypt");
 const router = express.Router();
 const { pool: db } = require("../config/db");
 
-// ✅ Validation & sanitization imports
+// Validation & sanitization imports
 const Joi = require("joi");
 const validator = require("validator");
 const sanitizeHtml = require("sanitize-html");
 
-// ✅ Joi schema for login
+// Joi schema for login
 const loginSchema = Joi.object({
   email: Joi.string().email().required().messages({
     "string.email": "Please enter a valid email address.",
@@ -21,7 +21,7 @@ const loginSchema = Joi.object({
   rememberDevice: Joi.boolean().optional().default(false),
 });
 
-// ✅ Sanitize helper
+// Sanitize helper
 function sanitizeInput(value) {
   if (typeof value === "string") {
     value = sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} });
@@ -33,7 +33,7 @@ function sanitizeInput(value) {
 router.post("/", async (req, res) => {
   console.log("🔹 Incoming login payload:", req.body); // ✅ helps confirm HPP behavior
 
-  // ✅ Step 1: Validate input
+  // Validate input
   const { error, value } = loginSchema.validate(req.body, {
     abortEarly: false,
     stripUnknown: true,
@@ -47,7 +47,7 @@ router.post("/", async (req, res) => {
     });
   }
 
-  // ✅ Step 2: Sanitize fields
+  // Sanitize fields
   const cleanData = Object.fromEntries(
     Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)])
   );
@@ -56,8 +56,7 @@ router.post("/", async (req, res) => {
   console.log("🧼 Sanitized input:", cleanData);
 
   try {
-    // ✅ Step 3: Query user
-    // FIXED: changed from db.query → db.pool.query to match your db.js exports
+    // Query user
     const [users] = await db.query(
       "SELECT * FROM user WHERE email = ? LIMIT 1",
       [email]
@@ -72,7 +71,7 @@ router.post("/", async (req, res) => {
 
     const user = users[0];
 
-    // ✅ Step 4: Verify password
+    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       console.warn("❌ Incorrect password for:", email);
@@ -81,7 +80,7 @@ router.post("/", async (req, res) => {
         .json({ success: false, message: "Invalid email or password" });
     }
 
-    // ✅ Step 5: Email verification check
+    // Email verification check
     if (user.verified === "False" || user.verified === 0) {
       console.warn("🚫 Unverified user blocked:", email);
       return res.status(403).json({
@@ -92,44 +91,46 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // ✅ Step 6: Check account status
+    // Check account status
     if (user.status === "Suspended") {
-      
-      // Check if a suspension date exists in the database
-      if (user.suspendedOn) {
-        const today = new Date();
-        const suspendedUntil = new Date(user.suspendedOn);
+        
+        // Check if a suspension date exists in the database
+        if (user.suspendedUntil) { 
+            
+            const suspendedUntilDate = new Date(user.suspendedUntil);
+            
+            // Set the suspension date to the end of the day (23:59:59) for accurate comparison
+            suspendedUntilDate.setHours(23, 59, 59, 999); 
+            
+            const now = new Date();
 
-        // Compare date strings (e.g., "2025-11-07") to avoid timezone issues.
-        // This checks if today is *on or before* the suspension date.
-        const todayString = today.toISOString().slice(0, 10);
-        const suspendedUntilString = suspendedUntil.toISOString().slice(0, 10);
-
-        if (todayString <= suspendedUntilString) {
-          // If today is 07-Nov and suspension is until 07-Nov, block login.
-          console.warn(`🚫 Blocked login for ${email}. Suspension active until: ${suspendedUntilString}`);
-          
-          return res.status(403).json({
-            success: false,
-            message: `Your account is suspended until ${suspendedUntilString}. Please try again after this date.`,
-          });
+            // 1. Check if the suspension period has EXPIRED
+            if (now <= suspendedUntilDate) {
+                // 🚫 Suspension is still active: Block login and show the date
+                const untilString = suspendedUntilDate.toISOString().slice(0, 10);
+                console.warn(`🚫 Blocked login for Suspended user: ${email}. Active until: ${untilString}`);
+                
+                return res.status(403).json({
+                    success: false,
+                    message: `Your account is suspended until ${untilString}. Please try again after this date.`,
+                });
+            }
+            
+            // 2. Suspension has expired, but the database status is not updated yet.
+            // We allow login (and the background cleanup will set status to Active/Inactive later).
+            console.log(`✅ Suspension has expired for user: ${email}. Allowing login.`);
+            
+        } else {
+            // No suspension date was set (permanent/indefinite suspension).
+            console.warn(`🚫 Blocked login for ${email} (indefinite suspension)`);
+            return res.status(403).json({
+                success: false,
+                message: "Your account has been suspended. Please contact support.",
+            });
         }
-        
-        // If we are here, the suspension date has passed.
-        // e.g., Today is 08-Nov, suspension ended on 07-Nov.
-        console.log(`✅ Suspension has ended for user: ${email}. Allowing login.`);
-        
-      } else {
-        // No suspension date was set, so treat it as an indefinite suspension.
-        console.warn(`🚫 Blocked login for ${email} (indefinite suspension)`);
-        return res.status(403).json({
-          success: false,
-          message: "Your account has been suspended. Please contact support.",
-        });
-      }
     }
     
-    // ✅ Step 7: Regenerate session (prevent fixation)
+    // Regenerate session (prevent fixation)
     console.log("🔐 Regenerating session...");
     req.session.regenerate(async (err) => {
       if (err) {
@@ -139,7 +140,7 @@ router.post("/", async (req, res) => {
           .json({ success: false, message: "Session regeneration error" });
       }
 
-      // ✅ Step 8: Remember Me logic
+      // Remember Me logic
       if (rememberDevice) {
         const sevenDays = 7 * 24 * 60 * 60 * 1000;
         req.session.cookie.maxAge = sevenDays;
@@ -153,7 +154,7 @@ router.post("/", async (req, res) => {
         console.log("🕒 Standard session (browser-close expiry)");
       }
 
-      // ✅ Step 9: Attach user to session
+      // Attach user to session
       req.session.user = {
         userID: user.userID,
         email: user.email,
@@ -162,7 +163,7 @@ router.post("/", async (req, res) => {
         role: user.role,
       };
 
-      // ✅ Step 10: Save session
+      // Save session
       await new Promise((resolve, reject) => {
         req.session.save((err) => {
           if (err) {
@@ -191,7 +192,7 @@ router.post("/", async (req, res) => {
       });
     });
   } catch (err) {
-    // ✅ Step 10: Catch-all for backend or DB errors
+    // Catch-all for backend or DB errors
     console.error("💥 Login error:", err);
     res.status(500).json({ success: false, message: "Authentication error" });
   }
