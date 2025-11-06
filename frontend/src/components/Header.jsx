@@ -92,47 +92,38 @@ export default function Header() {
 
           <hr className="menu-divider" />
 
-          {/* ✅ Mobile - Profile */}
-          <li className="mobile-action" onClick={handleProfileClick}>
+          {/* 👤 Profile */}
+          <li className="mobile-action" onClick={() => { handleProfileClick(); closeMenu(); }}>
             Profile
           </li>
 
-          {/* ✅ Mobile - Language */}
-          <li
-            className="mobile-action"
-            onClick={() => { navigate("/language"); closeMenu(); }}
-          >
+          {/* 🌐 Language */}
+          <li className="mobile-action" onClick={() => { navigate("/language"); closeMenu(); }}>
             Language: EN
           </li>
 
-          {/* ✅ Mobile - Login or Logout */}
-          {user && user.role !== "guest" ? (
-            <li className="mobile-action logout" onClick={handleLogout}>
+          {/* 🚪 Login / Logout */}
+          {user && user.role !== 'guest' ? (
+            <li className="mobile-action logout" onClick={() => { handleLogout(); closeMenu(); }}>
               Logout
             </li>
           ) : (
-            <li
-              className="mobile-action"
-              onClick={() => { navigate("/loginregister"); closeMenu(); }}
-            >
+            <li className="mobile-action" onClick={() => { navigate("/loginregister"); closeMenu(); }}>
               Login / Register
             </li>
           )}
         </ul>
 
         {/* === Desktop Actions === */}
-        <div className="navbar-actions">
-          {/* 🌐 Language */}
+        {/* <div className="navbar-actions">
           <button className="lang-btn" onClick={() => navigate("/language")}>
             <FaGlobe /> EN
           </button>
 
-          {/* 👤 Profile */}
           <button onClick={handleProfileClick}>
             <User size={20} /> Profile
           </button>
 
-          {/* 🚪 Logout / Login */}
           {user && user.role !== 'guest' ? (
             <button className="logout-btn" onClick={handleLogout}>
               <FaSignOutAlt /> Logout
@@ -142,7 +133,7 @@ export default function Header() {
               <FaUser size={16} /> Login
             </button>
           )}
-        </div>
+        </div> */}
       </nav>
 
       {/* ✅ Login Modal */}
