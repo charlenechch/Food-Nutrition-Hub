@@ -93,13 +93,66 @@
   color: white;
 }
 
-/* =============================
-   NAV ACTIONS (Right Side)
-============================= */
+.navbar-links.active {
+  display: flex;
+  position: absolute;
+  top: 70px;
+  left: 0;
+  right: 0;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0.3rem 0 1rem 0;
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  transition: all 0.4s ease;
+}
+
+.navbar-links a.active,
+.navbar-links li.active {
+  background-color: #8b5e3c !important;
+  color: white !important;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.navbar-links li,
+.navbar-links .mobile-action {
+  width: 100%;
+  text-align: center;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: clamp(0.9rem, 1vw, 1rem);
+  padding: 10px 0;
+  color: #5a4636;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navbar-links li {
+  margin: 10px 0;
+}
+
+/* Hide mobile items on desktop */
+.navbar-links .mobile-action,
+.navbar-links .menu-divider {
+  display: none;
+}
+
+.navbar-links li:hover,
+.navbar-links .mobile-action:hover {
+  background-color: #f1e5d0;
+  color: #6b3e26;
+}
+
+/* NAV ACTIONS (Right Side)*/
 .navbar-actions {
   display: flex;
   align-items: center;
   gap: clamp(0.8rem, 2vw, 1.5rem);
+  display: none !important;
 }
 
 .navbar-actions button {
@@ -119,6 +172,7 @@
 .navbar-actions button:hover {
   color: #8b5e3c;
 }
+
 
 /* =============================
    HAMBURGER MENU (Hidden by Default)
@@ -155,48 +209,9 @@
   transform: translateY(-8px) rotate(-45deg);
 }
 
-/* =============================
-   RESPONSIVE (TABLET & MOBILE)
-============================= */
 
-/* Adjusted breakpoint — triggers hamburger earlier */
-@media (max-width: 1024px) {
-  .navbar-links {
-    display: none; /* hide main nav earlier */
-  }
-  .hamburger {
-    display: flex; /* show hamburger earlier */
-  }
-}
 
-/* Hamburger active state */
-.navbar-links.active {
-  display: flex;
-  position: absolute;
-  top: 70px;
-  left: 0;
-  right: 0;
-  flex-direction: column;
-  align-items: center;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 1rem 0;
-  transform: translateY(0);
-  opacity: 1;
-  pointer-events: auto;
-  transition: all 0.4s ease;
-}
 
-.navbar-links li {
-  margin: 10px 0;
-}
-
-/* Keep EN / Logout hidden on small screens */
-@media (max-width: 1024px) {
-  .navbar-actions {
-    display: none;
-  }
-}
 .linklike-btn {
   background: none;
   border: none;
@@ -207,60 +222,18 @@
 }
 .linklike-btn:hover { text-decoration: underline; }
 
-/* =============================
-   FIX DUPLICATE PROFILE / LOGOUT
-   (Show inside hamburger only)
-============================= */
+/* Responsive */
 
-/* Hide mobile items on desktop */
-.navbar-links .mobile-action,
-.navbar-links .menu-divider {
-  display: none;
-}
-
-/* Show only when hamburger is active on smaller screens */
 @media (max-width: 1024px) {
   .navbar-links .mobile-action,
   .navbar-links .menu-divider {
     display: block;
   }
-}
 
-/* === Smart Toggle Button (Switch View) === */
-.switch-view-btn {
-  background-color: #704f2b; /* your SarawakEats accent */
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  padding: 6px 16px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  margin: 0 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  white-space: nowrap;
-}
-
-.switch-view-btn:hover {
-  background-color: #8a5f33;
-  transform: translateY(-1px);
-}
-
-.switch-view-btn:active {
-  transform: translateY(0);
-}
-
-/* Keep all buttons aligned properly */
-.navbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.navbar-actions {
-  display: none !important;
+  .menu-divider {
+    width: 80%;
+    border: none;
+    border-top: 1px solid #e5d3bd;
+    margin: 6px 0 4px 0;
+  }
 }
