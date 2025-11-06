@@ -15,7 +15,6 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  // ⬇ Add this here
   React.useEffect(() => {
     if (user?.role === "admin" && location.pathname === "/home") {
       navigate("/admin");
@@ -46,11 +45,6 @@ export default function Header() {
       navigate("/profile");
     }
   };
-
-  // ✅ Determine label + icon
-  const isAdminView = location.pathname.startsWith("/admin");
-  const toggleLabel = isAdminView ? "User View" : "Admin View";
-  const toggleIcon = isAdminView ? <FaUser size={14} /> : <FaCrown size={14} />;
 
   return (
     <>
@@ -97,16 +91,30 @@ export default function Header() {
           <li><NavLink to="/community" onClick={closeMenu}>Community</NavLink></li>
 
           <hr className="menu-divider" />
+
+          {/* ✅ Mobile - Profile */}
           <li className="mobile-action" onClick={handleProfileClick}>
             Profile
           </li>
 
-          {user && user.role !== 'guest' ? (
+          {/* ✅ Mobile - Language */}
+          <li
+            className="mobile-action"
+            onClick={() => { navigate("/language"); closeMenu(); }}
+          >
+            Language: EN
+          </li>
+
+          {/* ✅ Mobile - Login or Logout */}
+          {user && user.role !== "guest" ? (
             <li className="mobile-action logout" onClick={handleLogout}>
               Logout
             </li>
           ) : (
-            <li className="mobile-action" onClick={() => { navigate("/loginregister"); closeMenu(); }}>
+            <li
+              className="mobile-action"
+              onClick={() => { navigate("/loginregister"); closeMenu(); }}
+            >
               Login / Register
             </li>
           )}
