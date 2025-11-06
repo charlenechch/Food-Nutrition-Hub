@@ -19,7 +19,7 @@ router.get("/users", requireAdmin, async (req, res) => {
     // It joins 'user' and 'userProfile' to get all the data in one go.
     const sql = `
       SELECT 
-        u.userID, u.firstname, u.lastname, u.email, u.role, u.status, u.lastLogin, u.suspendedOn,
+        u.userID, u.firstname, u.lastname, u.email, u.role, u.status, u.lastLogin, u.suspendedUntil,
         up.location, up.recipes, up.posts
       FROM user u
       LEFT JOIN userProfile up ON u.userID = up.userID
@@ -65,7 +65,7 @@ router.get("/users", requireAdmin, async (req, res) => {
         city: u.location || "N/A",
         role: u.role === 'admin' ? 'Admin' : 'User',
         status: u.status,
-        suspendedOn: u.suspendedOn ? new Date(u.suspendedOn).toISOString().slice(0,10) : null,
+        suspendedUntil: u.suspendedUntil ? new Date(u.suspendedUntil).toISOString().slice(0,10) : null,
         submissions: totalSubmissions,
         approved: approvedCount,
         lastLogin: formattedLastLogin
@@ -150,7 +150,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       });
     }
 
-    const { name, email, city, role, status, suspendedOn } = req.body;
+    const { name, email, city, role, status, suspendedUntil } = req.body;
 
     // This catches the 'undefined' parameter error.
     if (!name || !email || !role || !status) {
@@ -203,16 +203,16 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     const firstname = nameParts[0] || '';
     const lastname = nameParts.slice(1).join(' ') || '';
 
-    // Set suspendedOn date if status is 'Suspended', otherwise clear it.
-    const finalSuspendedOn = (status === 'Suspended')
-      ? (suspendedOn ? new Date(suspendedOn) : new Date())
+    // Set suspendedUntil date if status is 'Suspended', otherwise clear it.
+    const finalsuspendedUntil = (status === 'Suspended')
+      ? (suspendedUntil ? new Date(suspendedUntil) : new Date())
       : null;
 
     // Update user table
     const userRole = role === 'Admin' ? 'admin' : 'member';
     await db.execute(
-      'UPDATE user SET firstname = ?, lastname = ?, email = ?, role = ?, status = ?, suspendedOn = ? WHERE userID = ?',
-      [firstname, lastname, email, userRole, status, finalSuspendedOn, targetUserID]
+      'UPDATE user SET firstname = ?, lastname = ?, email = ?, role = ?, status = ?, suspendedUntil = ? WHERE userID = ?',
+      [firstname, lastname, email, userRole, status, finalsuspendedUntil, targetUserID]
     );
 
     // Update or create userProfile
@@ -242,7 +242,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     // Get updated user stats
     const [updatedUser] = await db.execute(
       `SELECT 
-        u.userID, u.firstname, u.lastname, u.email, u.role, u.lastLogin, u.suspendedOn,
+        u.userID, u.firstname, u.lastname, u.email, u.role, u.lastLogin, u.status, u.suspendedUntil,
         up.location, up.recipes, up.posts
       FROM user u
       LEFT JOIN userProfile up ON u.userID = up.userID
@@ -278,7 +278,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       city: user.location || "N/A",
       role: user.role === 'admin' ? 'Admin' : 'User',
       status: user.status,
-      suspendedOn: user.suspendedOn ? new Date(user.suspendedOn).toISOString().slice(0,10) : null,
+      suspendedUntil: user.suspendedUntil ? new Date(user.suspendedUntil).toISOString().slice(0,10) : null,
       submissions: approvedCount,
       approved: approvedCount,
       lastLogin: formattedLastLogin

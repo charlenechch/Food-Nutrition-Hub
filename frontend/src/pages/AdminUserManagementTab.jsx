@@ -208,7 +208,7 @@ export default function UserManagement() {
     city: "",
     role: "User",           // "User" | "Admin"
     status: "Active",       // "Active" | "Inactive" | "Suspended"
-    suspendedOn: null,
+    suspendedUntil: null,
     submissions: 0,
     approved: 0,
     lastLogin: "—",
@@ -248,8 +248,8 @@ export default function UserManagement() {
             city: userForm.city,
             role: userForm.role,
             status: userForm.status,
-            suspendedOn: userForm.status === "Suspended" 
-              ? (userForm.suspendedOn || new Date().toISOString().slice(0,10))
+            suspendedUntil: userForm.status === "Suspended" 
+              ? (userForm.suspendedUntil || new Date().toISOString().slice(0,10))
               : null,
           }),
         });
@@ -278,8 +278,8 @@ export default function UserManagement() {
             city: userForm.city,
             role: userForm.role,
             status: userForm.status,
-            suspendedOn: userForm.status === "Suspended"
-              ? (userForm.suspendedOn || new Date().toISOString().slice(0,10))
+            suspendedUntil: userForm.status === "Suspended"
+              ? (userForm.suspendedUntil || new Date().toISOString().slice(0,10))
               : null,
           }),
         });
@@ -497,8 +497,8 @@ export default function UserManagement() {
                         {u.status === "Suspended" && (
                           <div className="umg-status-stack">
                             <span className="umg-pill umg-pill-suspended">Suspended</span>
-                            {u.suspendedOn && (
-                              <div className="umg-status-note">Suspended: {u.suspendedOn}</div>
+                            {u.suspendedUntil && (
+                              <div className="umg-status-note">Suspended: {u.suspendedUntil}</div>
                             )}
                           </div>
                         )}
@@ -837,15 +837,15 @@ export default function UserManagement() {
                     </div>
                     </div>
 
-                    {/* SuspendedOn (only if Suspended) */}
+                    {/* SuspendedUntil (only if Suspended) */}
                     {userForm.status === "Suspended" && (
                     <div className="umg-field">
                         <label className="umg-label">Suspended Until</label>
                         <input
                         className="umg-input"
                         type="date"
-                        value={userForm.suspendedOn || ""}
-                        onChange={(e) => setUserForm(prev => ({ ...prev, suspendedOn: e.target.value }))}
+                        value={userForm.suspendedUntil || ""}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, suspendedUntil: e.target.value }))}
                         />
                     </div>
                     )}
