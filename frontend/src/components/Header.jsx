@@ -100,12 +100,6 @@ export default function Header() {
             Profile
           </li>
 
-          {user?.role === "admin" && (
-            <li className="mobile-action" onClick={handleSmartToggle}>
-              {toggleLabel}
-            </li>
-          )}
-
           {user && user.role !== 'guest' ? (
             <li className="mobile-action logout" onClick={handleLogout}>
               Logout
@@ -124,20 +118,7 @@ export default function Header() {
             <FaGlobe /> EN
           </button>
 
-          {/* 🟤 Capsule Toggle */}
-          {user?.role === "admin" && (
-            <button
-              className={`role-toggle-capsule ${
-                isAdminView ? "admin-mode" : "user-mode"
-              }`}
-              onClick={handleSmartToggle}
-              title={`Switch to ${isAdminView ? "User" : "Admin"} view`}
-            >
-              {toggleIcon}
-              <span>{toggleLabel}</span>
-            </button>
-          )}
-
+          
           {/* 👤 Profile */}
           <button onClick={handleProfileClick}>
             <User size={20} /> Profile
