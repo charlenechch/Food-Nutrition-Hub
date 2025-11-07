@@ -25,7 +25,7 @@ const ReviewContentPage = () => {
         setLoading(true);
         setError(null);
 
-        // --- FIX: Check for 'community' (from URL) or 'communityPost' ---
+        // --- Check for community post URL ---
         const isCommunityPost = type === "communityPost" || type === "community";
         
         // ✅ Detect endpoint based on type
@@ -60,8 +60,6 @@ const ReviewContentPage = () => {
 
   // Handle Approve/Reject action
   const handleConfirmAction = async (newStatus) => {
-    // NOTE: Using querySelector to get textarea value is generally discouraged in React,
-    // but retained for compatibility with existing implementation.
     const feedback =
       document.querySelector(".admin-feedback-input")?.value.trim() ||
       "No feedback provided.";
