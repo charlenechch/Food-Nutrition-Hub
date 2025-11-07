@@ -35,7 +35,7 @@ const foodSearchRoutes = require("./routes/foodSearch");
 
 // ✅ NEW: Admin route import (for Admin User Management)
 const adminRoutes = require("./routes/admin");
-const analyticsRoutes = require("./routes/admin/analytics");
+const analyticsRoutes = require("./routes/analytics");
 
 // ❌ REMOVED: Content Moderation route import (no longer needed)
 // const contentRoutes = require("./routes/content");
