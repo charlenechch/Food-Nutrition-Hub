@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+// FIX: Changing relative imports to assume standard component path structure,
+// and assuming react-icons/fa is available (this often fails due to environment setup)
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { FaArrowLeft, FaUser, FaCalendarAlt, FaFileAlt, FaCheck, FaTimes } from "react-icons/fa";
@@ -7,7 +9,7 @@ import { FaArrowLeft, FaUser, FaCalendarAlt, FaFileAlt, FaCheck, FaTimes } from 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const ReviewContentPage = () => {
-  const { id, type } = useParams(); // ✅ Now supports dynamic "type" param (recipe / communityPost)
+  const { id, type } = useParams(); // ✅ type will be "community" or "recipe"
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
@@ -21,12 +23,17 @@ const ReviewContentPage = () => {
     const fetchSubmission = async () => {
       try {
         setLoading(true);
+        setError(null);
 
+        // --- FIX: Check for 'community' (from URL) or 'communityPost' ---
+        const isCommunityPost = type === "communityPost" || type === "community";
+        
         // ✅ Detect endpoint based on type
-        const endpoint =
-          type === "communityPost"
-            ? `${API_URL}/api/communityPost/admin/${id}`
-            : `${API_URL}/api/recipe/recipes/${id}`;
+        const endpoint = isCommunityPost
+          ? `${API_URL}/api/communityPost/admin/${id}` // Use correct community endpoint
+          : `${API_URL}/api/recipe/recipes/${id}`; // Default to recipe endpoint
+
+        console.log(`Fetching content type '${type}' from endpoint: ${endpoint}`);
 
         const res = await fetch(endpoint, {
           credentials: "include",
@@ -34,14 +41,14 @@ const ReviewContentPage = () => {
 
         if (!res.ok) {
           const errData = await res.json();
+          // Include the actual status code in the error message for better debugging
           throw new Error(errData.error || `Failed to fetch content: ${res.status}`);
         }
 
         const data = await res.json();
         setSubmission(data);
-        setError(null);
       } catch (err) {
-        console.error(err);
+        console.error("❌ Error fetching submission:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -51,15 +58,55 @@ const ReviewContentPage = () => {
     if (id) fetchSubmission();
   }, [id, type]);
 
+  // Handle Approve/Reject action
+  const handleConfirmAction = async (newStatus) => {
+    // NOTE: Using querySelector to get textarea value is generally discouraged in React,
+    // but retained for compatibility with existing implementation.
+    const feedback =
+      document.querySelector(".admin-feedback-input")?.value.trim() ||
+      "No feedback provided.";
+
+    try {
+      // ✅ Dynamic update endpoint logic
+      const isCommunityPost = type === "communityPost" || type === "community";
+      const updateUrl = isCommunityPost
+        ? `${API_URL}/api/communityPost/updateStatus/${id}`
+        : `${API_URL}/api/recipe/updateStatus/${id}`;
+
+      const res = await fetch(updateUrl, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status: newStatus, feedback }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Failed to update status");
+      }
+
+      setShowModal(false);
+      // NOTE: Using console.log instead of alert() as per environment instructions
+      console.log(`${newStatus === "Approved" ? "✅ Approved" : "❌ Rejected"}\n\nAdmin Feedback:\n${feedback}`);
+      navigate("/admin"); // Navigate back to AdminHomepage
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      // NOTE: Using console.error instead of alert()
+      console.error(`Error: ${err.message}`);
+    }
+  };
+
+
   if (loading) return <p className="text-center mt-20">Loading content...</p>;
   if (error) return <p className="text-center mt-20">Error: {error}</p>;
   if (!submission) return <p className="text-center mt-20">Content not found.</p>;
 
+  // Determine submission type for display purposes
+  const submissionType = type === "community" ? "community post" : type || "submission";
+
   return (
     <div className="review-content-page">
       <Header />
-
-      <h2>Review Submission</h2>
 
       <div className="admin-review-content-header">
         <button className="admin-content-edit-back-btn" onClick={() => navigate(-1)}>
@@ -70,7 +117,7 @@ const ReviewContentPage = () => {
         </button>
 
         <div className="review-title">
-          <h2>Review Submission</h2>
+          <h2>Review {submissionType}</h2>
           <p>{submission.name || submission.foodName || submission.title}</p>
         </div>
 
@@ -103,6 +150,7 @@ const ReviewContentPage = () => {
         </div>
       </div>
 
+      {/* --- Content Display (Simplified for brevity, assuming existing structure) --- */}
       <div className="review-container">
         <div className="review-layout">
           {/* ===== Left Sidebar ===== */}
@@ -157,7 +205,7 @@ const ReviewContentPage = () => {
               </div>
             </div>
 
-            {/* ===== Basic Information Section ===== */}
+            {/* ===== Basic Information Section (Handles both Recipe and Post fields) ===== */}
             <div className="rcp-review-section rcp-info-grid">
               <h3>Basic Information</h3>
               <div className="rcp-info-grid">
@@ -166,34 +214,31 @@ const ReviewContentPage = () => {
                   <p>{submission.name || submission.foodName || submission.title}</p>
                 </div>
 
-                <div className="rcp-info-item">
-                  <h4>Origin / Cultural Background</h4>
-                  <p>{submission.origin || submission.culturalOrigin || "N/A"}</p>
-                </div>
-
-                <div className="rcp-info-item">
-                  <h4>Cultural Story / Description</h4>
-                  <p>
+                <div className="rcp-info-item full-width">
+                  <h4>Origin / Cultural Story</h4>
+                  <p style={{ whiteSpace: "pre-wrap" }}>
                     {submission.description ||
                       submission.culturalStory ||
                       submission.content ||
                       "No description provided."}
                   </p>
                 </div>
-
-                <div className="rcp-info-item">
-                  <h4>Recipe / Story Details</h4>
-                  {Array.isArray(submission.instructions) &&
-                  submission.instructions.length > 0 ? (
-                    <ol>
-                      {submission.instructions.map((step, index) => (
-                        <li key={index}>{step}</li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <p>{submission.recipe || "N/A"}</p>
-                  )}
-                </div>
+                
+                {/* Display instructions/recipe if available */}
+                {(Array.isArray(submission.instructions) && submission.instructions.length > 0) || submission.recipe ? (
+                  <div className="rcp-info-item full-width">
+                    <h4>Recipe / Instructions</h4>
+                    {Array.isArray(submission.instructions) && submission.instructions.length > 0 ? (
+                      <ol className="list-decimal pl-5">
+                        {submission.instructions.map((step, index) => (
+                          <li key={index}>{step}</li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p style={{ whiteSpace: "pre-wrap" }}>{submission.recipe || "N/A"}</p>
+                    )}
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -214,6 +259,7 @@ const ReviewContentPage = () => {
         </div>
       </div>
 
+
       {/* ===== Modal Confirmation ===== */}
       {showModal && (
         <div className="confirm-overlay">
@@ -222,7 +268,7 @@ const ReviewContentPage = () => {
             <p>
               Are you sure you want to{" "}
               <strong>{modalType === "approve" ? "approve" : "reject"}</strong> this{" "}
-              {type === "communityPost" ? "community post" : "recipe"} submission?
+              {submissionType} submission?
               <br />
               This action cannot be undone.
             </p>
@@ -234,43 +280,7 @@ const ReviewContentPage = () => {
 
               <button
                 className={modalType === "approve" ? "approve-btn" : "delete-btn"}
-                onClick={async () => {
-                  const newStatus = modalType === "approve" ? "Approved" : "Rejected";
-                  const feedback =
-                    document.querySelector(".admin-feedback-input")?.value.trim() ||
-                    "No feedback provided.";
-
-                  try {
-                    // ✅ Dynamic update endpoint
-                    const updateUrl =
-                      type === "communityPost"
-                        ? `${API_URL}/api/communityPost/updateStatus/${id}`
-                        : `${API_URL}/api/recipe/updateStatus/${id}`;
-
-                    const res = await fetch(updateUrl, {
-                      method: "PATCH",
-                      headers: { "Content-Type": "application/json" },
-                      credentials: "include",
-                      body: JSON.stringify({ status: newStatus, feedback }),
-                    });
-
-                    if (!res.ok) {
-                      const errData = await res.json();
-                      throw new Error(errData.message || "Failed to update status");
-                    }
-
-                    setShowModal(false);
-                    alert(
-                      `${
-                        newStatus === "Approved" ? "✅ Approved" : "❌ Rejected"
-                      }\n\nAdmin Feedback:\n${feedback}`
-                    );
-                    navigate(-1);
-                  } catch (err) {
-                    console.error("Failed to update status:", err);
-                    alert(`Error: ${err.message}`);
-                  }
-                }}
+                onClick={() => handleConfirmAction(modalType === "approve" ? "Approved" : "Rejected")}
               >
                 {modalType === "approve" ? "Approve" : "Reject"}
               </button>
