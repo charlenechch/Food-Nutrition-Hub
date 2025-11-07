@@ -64,20 +64,20 @@ const recipeData = [
                   Sliced chilies to garnish
                   `,
     steps:`Fried the shallot and garlic:
-          1.	Coarsely chop some garlic and thinly slice the shallots
-          2.	Fry the shallots in vegetable oil over low heat. Stir continuously. When the shallot falls slightly short of golden, pour the shallot and oil through a wire mesh strainer. 
-          3.	Return the strained shallot oil to the pan. Then add the garlic and repeat the same process as the shallot until the garlic turns golden and crispy. Strain again to remove the fried garlic.
+          1.Coarsely chop some garlic and thinly slice the shallots
+          2.Fry the shallots in vegetable oil over low heat. Stir continuously. When the shallot falls slightly short of golden, pour the shallot and oil through a wire mesh strainer. 
+          3.Return the strained shallot oil to the pan. Then add the garlic and repeat the same process as the shallot until the garlic turns golden and crispy. Strain again to remove the fried garlic.
           Cook the minced meat
-          4.	Heat the vegetable oil to medium-high heat. Add the minced meat. 
-          5.	Add the remaining ingredients A and stir-fry until browned. Set aside the cooked minced meat for later use.
-          Cook the noodles
-          6.	Cook the egg noodles in boiling according to the package instructions. When the noodles have loosened and are nearly cooked, remove and place them in a pot of cold water to cool.
-          7.	Return the cooled noodles to the boiling water until fully cooked.
-          8.	Drained and place the noodles in the serving boil.
-          To serve
-          9.	Combine the cooked egg noodles with the sauce for the noodles in the serving bowl.
-          10.	Add the minced meat sauce, sliced char siu, fish balls, and choy sum.
-          11.	Sprinkle the spring onions and fried shallots on top of the noodles.
+          4.Heat the vegetable oil to medium-high heat. Add the minced meat. 
+          5.Add the remaining ingredients A and stir-fry until browned. Set aside the cooked minced meat for later use.
+          Cook the noodles:
+          6.Cook the egg noodles in boiling according to the package instructions. When the noodles have loosened and are nearly cooked, remove and place them in a pot of cold water to cool.
+          7.Return the cooled noodles to the boiling water until fully cooked.
+          8.Drained and place the noodles in the serving boil.
+          To serve:
+          9.Combine the cooked egg noodles with the sauce for the noodles in the serving bowl.
+          10.Add the minced meat sauce, sliced char siu, fish balls, and choy sum.
+          11.Sprinkle the spring onions and fried shallots on top of the noodles.
           `,
     cookTime: 20,
     servings: 1,

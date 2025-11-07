@@ -12,6 +12,71 @@ import { Info, NotebookText, Share2, ShoppingBasket } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
+// Format text function that handles section headers and numbered steps
+const formatTextForDisplay = (text, type = 'instructions') => {
+  if (!text) return '';
+  
+  // First clean the text
+  let cleanedText = text
+    .replace(/\\t/g, ' ')          // Replace literal \t with space
+    .replace(/\t/g, ' ')           // Replace actual tabs with space
+    .replace(/\\n/g, '\n')         // Replace literal \n with actual newline
+    .replace(/\n\s*\n/g, '\n\n')   // Preserve paragraph breaks
+    .trim();
+
+  if (type === 'ingredients') {
+    // For ingredients: convert to proper list with bullets
+    const lines = cleanedText.split('\n').filter(line => line.trim());
+    return lines.map(line => {
+      const cleanedLine = line.trim();
+      return `<div class="rdp-ingredient-item">${cleanedLine}</div>`;
+    }).join('');
+  } else {
+    // For instructions: handle section headers and numbered steps
+    const lines = cleanedText.split('\n').filter(line => line.trim());
+    let html = '';
+    
+    lines.forEach(line => {
+      const trimmedLine = line.trim();
+      
+      // Check for section headers (lines that are bolded or have ** **)
+      const boldMatch = trimmedLine.match(/\*\*(.*?)\*\*/);
+      if (boldMatch) {
+        const headerText = boldMatch[1];
+        html += `<div class="rdp-section-header">${headerText}</div>`;
+        return;
+      }
+      
+      // Check for numbered steps (like "1.", "2.", etc.)
+      const numberedMatch = trimmedLine.match(/^(\d+)\.\s*(.*)/);
+      if (numberedMatch) {
+        const [, number, content] = numberedMatch;
+        html += `<div class="rdp-step">
+                  <span class="rdp-step-number">${number}.</span>
+                  <span class="rdp-step-text">${content}</span>
+                </div>`;
+        return;
+      }
+      
+      // Check for regular section headers (lines ending with colon)
+      if (trimmedLine.endsWith(':') && !trimmedLine.match(/^\d/)) {
+        html += `<div class="rdp-section-header">${trimmedLine}</div>`;
+        return;
+      }
+      
+      // Regular text line
+      if (trimmedLine) {
+        html += `<div class="rdp-step">
+                  <span class="rdp-step-number"></span>
+                  <span class="rdp-step-text">${trimmedLine}</span>
+                </div>`;
+      }
+    });
+    
+    return html;
+  }
+};
+
 // prefer label fields if present, else pretty-print minutes
 const fmtTime = (n, label) => {
   if (label) return label;
@@ -311,24 +376,26 @@ export default function RecipeDetailPage() {
               <h3 className="rdp-sec-title">
                 <ShoppingBasket className="rdp-sec-icon" color="#6a4a2f" /> Ingredients
               </h3>
-              <ul className="rdp-list">
-                {ingredients.map((it, i) => (
-                  <li key={i}>{it}</li>
-                ))}
-              </ul>
-            </div>
+              {/* ✅ UPDATED: Use formatTextForDisplay for ingredients */}
+              <div 
+                  className="rdp-ingredients-formatted"
+                  dangerouslySetInnerHTML={{ 
+                    __html: formatTextForDisplay(recipe.ingredients, 'ingredients')
+                  }}
+                />
+              </div>
 
             <div className="rdp-card3">
               <h3 className="rdp-sec-title">
                 <NotebookText className="rdp-sec-icon" color="#6a4a2f" /> Instructions
               </h3>
-              <ol className="rdp-steps">
-                {instructions.map((step, i) => (
-                  <div className="rdp-step" key={i}>
-                    <span className="rdp-step-text">{step}</span>
-                  </div>
-                ))}
-              </ol>
+              {/* ✅ UPDATED: Use formatTextForDisplay for instructions */}
+              <div 
+                className="rdp-instructions-formatted"
+                dangerouslySetInnerHTML={{ 
+                  __html: formatTextForDisplay(recipe.instructions || recipe.steps, 'instructions')
+                }}
+              />
             </div>
           </div>
 

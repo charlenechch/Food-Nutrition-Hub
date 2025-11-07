@@ -347,3 +347,54 @@
 .share-btn:focus {
   outline: none;
 }
+
+/* Add to RecipeDetailPage.css */
+.rdp-ingredients-formatted {
+  line-height: 1.6;
+}
+
+.rdp-ingredient-item {
+  margin-bottom: 8px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.rdp-ingredient-item:before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #6a4a2f;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.rdp-instructions-formatted {
+  line-height: 1.6;
+}
+
+.rdp-step {
+  display: flex;
+  margin-bottom: 16px;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.rdp-step-number {
+  font-weight: bold;
+  color: #6a4a2f;
+  min-width: 24px;
+  text-align: right;
+}
+
+.rdp-step-text {
+  flex: 1;
+}
+
+.rdp-section-header {
+  font-weight: bold;
+  color: #8b4513;
+  margin: 20px 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e8d5c4;
+  font-size: 1.1em;
+}
