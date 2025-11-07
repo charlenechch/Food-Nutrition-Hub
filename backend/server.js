@@ -304,7 +304,7 @@ app.use("/api/likes", likeRoutes);
 
 // ✅ NEW: Link Admin Management routes (for Admin User Management tab)
 app.use("/api/admin", adminRoutes);
-app.use("/api/admin/analytics", analyticsRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // ❌ REMOVED: Link Content Moderation route (no longer needed)
 // app.use("/api/content", contentRoutes);
