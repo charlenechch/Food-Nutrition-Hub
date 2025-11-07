@@ -15,6 +15,12 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
+  React.useEffect(() => {
+    if (user?.role === "admin" && location.pathname === "/home") {
+      navigate("/admin");
+    }
+  }, [user, location.pathname]);
+
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
 
@@ -40,25 +46,25 @@ export default function Header() {
     }
   };
 
-  // ✅ Smart toggle logic
-  const handleSmartToggle = () => {
-    if (location.pathname.startsWith("/admin")) {
-      navigate("/home"); // admin → user
-    } else {
-      navigate("/admin"); // user → admin
-    }
-  };
 
   // ✅ Determine label + icon
   const isAdminView = location.pathname.startsWith("/admin");
   const toggleLabel = isAdminView ? "User View" : "Admin View";
-  const toggleIcon = isAdminView ? <FaUser size={14} /> : <FaCrown size={14} />;
 
   return (
     <>
       <nav className="navbar">
         {/* === Logo === */}
-        <div className="navbar-logo" onClick={() => navigate("/home")}>
+        <div
+          className="navbar-logo"
+          onClick={() => {
+            if (user?.role === "admin") {
+              navigate("/admin");
+            } else {
+              navigate("/home");
+            }
+          }}
+        >
           <span className="logo-icon">S</span>
           <span className="logo-text">SarawakEats</span>
         </div>
@@ -75,7 +81,14 @@ export default function Header() {
 
         {/* === Navigation Links === */}
         <ul className={`navbar-links ${menuOpen ? "active" : ""}`}>
-          <li><NavLink to="/home" onClick={closeMenu}>Home</NavLink></li>
+          <li>
+            <NavLink
+              to={user?.role === "admin" ? "/admin" : "/home"}
+              onClick={closeMenu}
+            >
+              Home
+            </NavLink>
+          </li>
           <li><NavLink to="/foods" onClick={closeMenu}>Explore Foods</NavLink></li>
           <li><NavLink to="/analyzer" onClick={closeMenu}>Nutrition Analyzer</NavLink></li>
           <li><NavLink to="/recipes" onClick={closeMenu}>Recipes</NavLink></li>
@@ -109,20 +122,6 @@ export default function Header() {
           <button className="lang-btn" onClick={() => navigate("/language")}>
             <FaGlobe /> EN
           </button>
-
-          {/* 🟤 Capsule Toggle */}
-          {user?.role === "admin" && (
-            <button
-              className={`role-toggle-capsule ${
-                isAdminView ? "admin-mode" : "user-mode"
-              }`}
-              onClick={handleSmartToggle}
-              title={`Switch to ${isAdminView ? "User" : "Admin"} view`}
-            >
-              {toggleIcon}
-              <span>{toggleLabel}</span>
-            </button>
-          )}
 
           {/* 👤 Profile */}
           <button onClick={handleProfileClick}>
