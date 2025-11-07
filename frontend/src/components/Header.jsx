@@ -15,7 +15,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  React.useEffect(() => {
+    React.useEffect(() => {
     if (user?.role === "admin" && location.pathname === "/home") {
       navigate("/admin");
     }
@@ -50,6 +50,7 @@ export default function Header() {
   // ✅ Determine label + icon
   const isAdminView = location.pathname.startsWith("/admin");
   const toggleLabel = isAdminView ? "User View" : "Admin View";
+  const toggleIcon = isAdminView ? <FaUser size={14} /> : <FaCrown size={14} />;
 
   return (
     <>
@@ -122,6 +123,20 @@ export default function Header() {
           <button className="lang-btn" onClick={() => navigate("/language")}>
             <FaGlobe /> EN
           </button>
+
+          {/* 🟤 Capsule Toggle */}
+          {user?.role === "admin" && (
+            <button
+              className={`role-toggle-capsule ${
+                isAdminView ? "admin-mode" : "user-mode"
+              }`}
+              onClick={handleSmartToggle}
+              title={`Switch to ${isAdminView ? "User" : "Admin"} view`}
+            >
+              {toggleIcon}
+              <span>{toggleLabel}</span>
+            </button>
+          )}
 
           {/* 👤 Profile */}
           <button onClick={handleProfileClick}>
