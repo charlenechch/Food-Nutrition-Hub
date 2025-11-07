@@ -1083,18 +1083,6 @@ const savePrefs = async () => {
                           </div>
                         )}
                       </div>
-
-                      {!hasAnyContributions && !isLoadingCommunity && !isLoadingCommunity && (
-                        <div className="upp-center">
-                          <p className="upp-muted">You haven't made any contributions yet</p>
-                          <button 
-                            className="lrp-btn lrp-btn-primary"
-                            onClick={() => navigate('/addrecipe')}
-                          >
-                            Share Your First Recipe
-                          </button>
-                        </div>
-                      )}
                     </div>
                   );
                 })()}
