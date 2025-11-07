@@ -8,57 +8,6 @@ const BarChart = ({ width = 700, height = 350 }) => {
   useEffect(() => {
     d3.select(svgRef.current).selectAll('*').remove();
 
-    // Define color scale
-    const colorScale = d3.scaleOrdinal()
-      .domain(['Recipes', 'Stories'])
-      .range(['#a67c5a', '#7c8471']);
-
-    // Sample data 
-    const data = [
-      { 
-        month: 'Jul', 
-        categories: [
-          { name: 'Recipes', value: 65},
-          { name: 'Stories', value: 22}
-        ]
-      },
-      { 
-        month: 'Aug', 
-        categories: [
-          { name: 'Recipes', value: 74},
-          { name: 'Stories', value: 28}
-        ]
-      },
-      { 
-        month: 'Sep', 
-        categories: [
-          { name: 'Recipes', value: 68},
-          { name: 'Stories', value: 25}
-        ]
-      },
-      { 
-        month: 'Oct', 
-        categories: [
-          { name: 'Recipes', value: 82},
-          { name: 'Stories', value: 32}
-        ]
-      },
-      { 
-        month: 'Nov', 
-        categories: [
-          { name: 'Recipes', value: 95},
-          { name: 'Stories', value: 38}
-        ]
-      },
-      { 
-        month: 'Dec', 
-        categories: [
-          { name: 'Recipes', value: 110},
-          { name: 'Stories', value: 45}
-        ]
-      }
-    ];
-
     // Set up dimensions - increased bottom margin to make space for legend
     const margin = { top: 20, right: 30, bottom: 90, left: 60 }; // Increased bottom from 70 to 90
     const innerWidth = width - margin.left - margin.right;

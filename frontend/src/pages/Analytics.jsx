@@ -1,38 +1,130 @@
 // src/pages/Analytics.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import PieChart from "./charts/piechart";
 import BarChart from "./charts/barchart";
 import "../css/Analytics.css";
 import { FaUtensils, FaBook, FaUsers, FaExclamationTriangle, FaStar, FaFlag, FaChartLine } from "react-icons/fa";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"
+
+export const analyticsApi = {
+  // Get metrics data for cards
+  getMetrics: async () => {
+    try {
+      const response = await fetch(`${API_URL}/admin/analytics/metrics`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching metrics data:', error);
+      throw error;
+    }
+  },
+
+  // Get posts and recipes by month for bar chart
+  getPostsRecipesByMonth: async () => {
+    try {
+      const response =  await fetch(`${API_URL}/admin/analytics/posts-recipes-by-month`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching posts and recipes data:', error);
+      throw error;
+    }
+  },
+
+  // Get cultural origin data for pie chart
+  getCulturalOrigin: async () => {
+    try {
+      const response =  await fetch(`${API_URL}/admin/analytics/cultural-origin`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching cultural origin data:', error);
+      throw error;
+    }
+  },
+
+  // Get popular categories data
+  getPopularCategories: async () => {
+    try {
+      const response = await fetch(`${API_URL}/admin/analytics/popular-categories`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching popular categories data:', error);
+      throw error;
+    }
+  },
+
+  // Get top contributors data
+  getTopContributors: async () => {
+    try {
+      const response = await fetch(`${API_URL}/admin/analytics/top-contributors`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching top contributors data:', error);
+      throw error;
+    }
+  }
+};
+
 const Analytics = () => {
-  const culturalOriginData = [
-    { name: 'Iban', value: 35 },
-    { name: 'Dayak', value: 28 },
-    { name: 'Bidayuh', value: 15 },
-    { name: 'Malanau', value: 22 }
-  ];
+  const [barChartData, setBarChartData] = useState([]);
+  const [totals, setTotals] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState({});
+  const [culturalOriginData, setCulturalOriginData] = useState([]);
+  const [popularCategories, setPopularCategories] = useState([]);
+  const [topContributors, setTopContributors] = useState([]);
+  const [error, setError] = useState(null);
 
-  const popularCategories = [
-    { name: 'Traditional Dishes', submissions: 324 },
-    { name: 'Snacks & Appetizers', submissions: 287 },
-    { name: 'Beverages', submissions: 198 },
-    { name: 'Desserts', submissions: 156 },
-    { name: 'Ingredients', submissions: 134 },
-    { name: 'Preserved Foods', submissions: 148 }
-  ];
+  useEffect(() => {
+    const fetchAnalyticsData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch all data in parallel for better performance
+        const [
+          metricsResponse,
+          barChartResponse,
+          culturalOriginResponse,
+          popularCategoriesResponse,
+          topContributorsResponse
+        ] = await Promise.all([
+          analyticsApi.getMetrics(),
+          analyticsApi.getPostsRecipesByMonth(),
+          analyticsApi.getCulturalOrigin(),
+          analyticsApi.getPopularCategories(),
+          analyticsApi.getTopContributors()
+        ]);
 
-  const topContributors = [
-    { name: 'Sarah Lim', submissions: 47, recipes: 23 },
-    { name: 'Ahmad Rahman', submissions: 39, recipes: 18 },
-    { name: 'Maria Anak', submissions: 35, recipes: 21 },
-    { name: 'Chen Wei Ming', submissions: 32, recipes: 15 },
-    { name: 'Siti Aminah', submissions: 28, recipes: 19 }
-  ];
+        if (metricsResponse.success) setMetrics(metricsResponse.data);
+        if (barChartResponse.success) {
+          setBarChartData(barChartResponse.data);
+          setTotals(barChartResponse.totals);
+        }
+        if (culturalOriginResponse.success) setCulturalOriginData(culturalOriginResponse.data);
+        if (popularCategoriesResponse.success) setPopularCategories(popularCategoriesResponse.data);
+        if (topContributorsResponse.success) setTopContributors(topContributorsResponse.data);
+        
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+        setError('Error loading analytics data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalyticsData();
+  }, []);
 
   // Calculate max submissions for percentage bars
   const maxSubmissions = Math.max(...popularCategories.map(cat => cat.submissions));
 
+  if (loading) {
+    return (
+      <div className="analytics">
+        <div className="loading">Loading analytics data...</div>
+      </div>
+    );
+  }
+  
   return (
     <div className="analytics">
       <header className="analytics-header">
@@ -47,25 +139,25 @@ const Analytics = () => {
         {/* Metrics Grid */}
         <div className="metrics-grid">
           <div className="metric-card">
-            <h3 className="metric-title">Total Food Submissions <FaUtensils className="icon-utensils" /></h3>
+            <h3 className="metric-title">Total Recipes Shared <FaUtensils className="icon-utensils" /></h3>
             <div className="metric-value">1,247</div>
             <div className="metric-change positive">+12% This Month</div>
           </div>
 
           <div className="metric-card">
-            <h3 className="metric-title">Recipes Shared <FaBook className="icon-book" /></h3>     
+            <h3 className="metric-title">Total Stories Shared <FaBook className="icon-book" /></h3>     
             <div className="metric-value">892</div>
             <div className="metric-change positive">+8% This Month</div>
           </div>
 
           <div className="metric-card">
-            <h3 className="metric-title">Active Contributors<FaUsers className="icon-users" /></h3>
+            <h3 className="metric-title">Recipe Pending Reviews<FaUsers className="icon-users" /></h3>
             <div className="metric-value">156</div>
-            <div className="metric-change positive">+15% This Month</div>
+            <div className="metric-change positive">Requires attention</div>
           </div>
 
           <div className="metric-card">
-            <h3 className="metric-title">Pending Reviews <FaExclamationTriangle className="icon-alert" /></h3>
+            <h3 className="metric-title">Stories Pending Reviews <FaExclamationTriangle className="icon-alert" /></h3>
             <div className="metric-value">23</div>
             <div className="metric-change attention">Requires attention</div>
           </div>

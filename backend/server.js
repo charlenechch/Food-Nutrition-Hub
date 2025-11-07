@@ -35,6 +35,7 @@ const foodSearchRoutes = require("./routes/foodSearch");
 
 // ✅ NEW: Admin route import (for Admin User Management)
 const adminRoutes = require("./routes/admin");
+const analyticsRoutes = require("./routes/admin/analytics");
 
 // ❌ REMOVED: Content Moderation route import (no longer needed)
 // const contentRoutes = require("./routes/content");
@@ -303,6 +304,7 @@ app.use("/api/likes", likeRoutes);
 
 // ✅ NEW: Link Admin Management routes (for Admin User Management tab)
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin/analytics", analyticsRoutes);
 
 // ❌ REMOVED: Link Content Moderation route (no longer needed)
 // app.use("/api/content", contentRoutes);
