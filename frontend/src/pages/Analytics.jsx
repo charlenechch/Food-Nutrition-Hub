@@ -328,7 +328,7 @@ const Analytics = () => {
                     <div key={index} className="contributor-item">
                       <div className="contributor-rank">{index + 1}</div>
                       <div className="contributor-info">
-                        <span className="contributor-name">{contributor.name}</span>
+                        <span className="contributor-name">{contributor.name || contributor.username || `${contributor.firstname} ${contributor.lastname}` || 'Unknown User'}</span>
                       </div>
                       <div className="contributor-posts">
                         <span className="posts-count">

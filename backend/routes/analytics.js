@@ -178,71 +178,86 @@ router.get('/posts-recipes-by-month', async (req, res) => {
     const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
     
     const query = `
+      -- Get posts with all statuses
       SELECT 
         'Posts' as type,
+        status,
         MONTH(created_at) as month,
         COUNT(*) as count
       FROM posts 
-      WHERE status = 'Approved' 
-        AND YEAR(created_at) = ?
-      GROUP BY MONTH(created_at)
+      WHERE YEAR(created_at) = ?
+      GROUP BY MONTH(created_at), status
       
       UNION ALL
       
+      -- Get recipes with all statuses
       SELECT 
         'Recipes' as type,
+        status,
         MONTH(createdAt) as month,
         COUNT(*) as count
       FROM recipe 
-      WHERE status = 'Approved' 
-        AND YEAR(createdAt) = ?
-      GROUP BY MONTH(createdAt)
+      WHERE YEAR(createdAt) = ?
+      GROUP BY MONTH(createdAt), status
       
-      ORDER BY month, type
+      ORDER BY month, type, status
     `;
     
     const [results] = await db.execute(query, [year, year]);
     
     const monthlyData = {};
     
-    results.forEach(item => {
-      const monthName = getMonthName(item.month);  
-      
-      if (!monthlyData[monthName]) {
-        monthlyData[monthName] = {
-          month: monthName,
-          posts: 0,
-          recipes: 0,
-          total: 0
-        };
-      }
-      
-      if (item.type === 'Posts') {
-        monthlyData[monthName].posts = item.count;
-      } else if (item.type === 'Recipes') {
-        monthlyData[monthName].recipes = item.count;
-      }
-      
-      monthlyData[monthName].total = monthlyData[monthName].posts + monthlyData[monthName].recipes;
-    });
-    
+    // Initialize all months with all statuses set to 0
     const allMonths = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
     ];
     
-    const data = allMonths.map(monthName => {
-      return monthlyData[monthName] || {
+    allMonths.forEach(monthName => {
+      monthlyData[monthName] = {
         month: monthName,
-        posts: 0,
-        recipes: 0,
+        posts: { approved: 0, pending: 0, rejected: 0, total: 0 },
+        recipes: { approved: 0, pending: 0, rejected: 0, total: 0 },
         total: 0
       };
     });
     
-    const totalPosts = data.reduce((sum, month) => sum + month.posts, 0);
-    const totalRecipes = data.reduce((sum, month) => sum + month.recipes, 0);
+    // Process the results and populate the data
+    results.forEach(item => {
+      const monthName = getMonthName(item.month);  
+      const status = item.status.toLowerCase();
+      
+      if (item.type === 'Posts') {
+        if (['approved', 'pending', 'rejected'].includes(status)) {
+          monthlyData[monthName].posts[status] = item.count;
+        }
+        monthlyData[monthName].posts.total += item.count;
+      } else if (item.type === 'Recipes') {
+        if (['approved', 'pending', 'rejected'].includes(status)) {
+          monthlyData[monthName].recipes[status] = item.count;
+        }
+        monthlyData[monthName].recipes.total += item.count;
+      }
+      
+      // Update total for the month
+      monthlyData[monthName].total = monthlyData[monthName].posts.total + monthlyData[monthName].recipes.total;
+    });
+    
+    const data = allMonths.map(monthName => monthlyData[monthName]);
+    
+    // Calculate totals
+    const totalPosts = data.reduce((sum, month) => sum + month.posts.total, 0);
+    const totalRecipes = data.reduce((sum, month) => sum + month.recipes.total, 0);
     const totalCount = totalPosts + totalRecipes;
+    
+    // Calculate status totals
+    const postsApproved = data.reduce((sum, month) => sum + month.posts.approved, 0);
+    const postsPending = data.reduce((sum, month) => sum + month.posts.pending, 0);
+    const postsRejected = data.reduce((sum, month) => sum + month.posts.rejected, 0);
+    
+    const recipesApproved = data.reduce((sum, month) => sum + month.recipes.approved, 0);
+    const recipesPending = data.reduce((sum, month) => sum + month.recipes.pending, 0);
+    const recipesRejected = data.reduce((sum, month) => sum + month.recipes.rejected, 0);
     
     res.json({ 
       success: true, 
@@ -250,7 +265,11 @@ router.get('/posts-recipes-by-month', async (req, res) => {
       totals: {
         posts: totalPosts,
         recipes: totalRecipes,
-        total: totalCount
+        total: totalCount,
+        statusBreakdown: {
+          posts: { approved: postsApproved, pending: postsPending, rejected: postsRejected },
+          recipes: { approved: recipesApproved, pending: recipesPending, rejected: recipesRejected }
+        }
       },
       year: year
     });
@@ -304,52 +323,72 @@ router.get('/popular-categories', async (req, res) => {
 // get top contributors
 router.get('/top-contributors', async (req, res) => {
   try {
-    console.log('🔍 Fetching top contributors...');
+    const { view = 'recipes' } = req.query; // Default to 'recipes'
     
-    // Get top contributors with both recipe and story counts including userProfileID
-    const query = `
-      SELECT 
+    console.log(`🔍 Fetching top contributors for view: ${view}`);
+    
+    let query = '';
+
+    if (view === 'recipes') {
+      query = `
+        SELECT 
           u.firstname,
           u.lastname,
           up.userProfileID,
           COUNT(DISTINCT r.recipeID) as recipes,
           COUNT(DISTINCT p.postID) as stories
-      FROM user u
-      INNER JOIN userProfile up ON u.userID = up.userID
-      LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
-      LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
-      GROUP BY u.firstname, u.lastname, up.userProfileID
-      HAVING recipes > 0 OR stories > 0
-      ORDER BY recipes DESC, stories DESC
-      LIMIT 5;
-    `;
+        FROM user u
+        INNER JOIN userProfile up ON u.userID = up.userID
+        LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
+        LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
+        GROUP BY u.firstname, u.lastname, up.userProfileID
+        HAVING recipes > 0
+        ORDER BY recipes DESC
+        LIMIT 5;
+      `;
+    } else if (view === 'stories') {
+      query = `
+        SELECT 
+          u.firstname,
+          u.lastname,
+          up.userProfileID,
+          COUNT(DISTINCT r.recipeID) as recipes,
+          COUNT(DISTINCT p.postID) as stories
+        FROM user u
+        INNER JOIN userProfile up ON u.userID = up.userID
+        LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
+        LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
+        GROUP BY u.firstname, u.lastname, up.userProfileID
+        HAVING stories > 0
+        ORDER BY stories DESC
+        LIMIT 5;
+      `;
+    } else {
+      // Fallback to recipes if invalid view parameter
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid view parameter. Use "recipes" or "stories"'
+      });
+    }
     
     console.log('📊 Executing query:', query);
     
     const [results] = await db.execute(query);
     
-    console.log(`✅ Found ${results.length} top contributors:`, results);
+    console.log(`✅ Found ${results.length} top contributors for ${view}:`, results);
     
     res.json({
       success: true,
-      data: results
+      data: results,
+      view: view
     });
     
   } catch (error) {
     console.error('❌ Error fetching top contributors:', error);
-    console.error('📋 Error details:', {
-      message: error.message,
-      sqlMessage: error.sqlMessage,
-      code: error.code,
-      errno: error.errno,
-      sqlState: error.sqlState
-    });
-    
     res.status(500).json({
       success: false,
       error: 'Failed to fetch top contributors',
-      message: error.message,
-      sqlMessage: error.sqlMessage
+      message: error.message
     });
   }
 });

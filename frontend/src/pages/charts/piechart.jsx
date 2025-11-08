@@ -132,7 +132,7 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
 
     // Calculate legend layout - 2 columns
     const itemsPerColumn = Math.ceil(data.length / 2);
-    const legendItemHeight = 18;
+    const legendItemHeight = 20;
     const columnWidth = width / 2;
 
     const legendItems = legend.selectAll('.legend-item')
@@ -163,7 +163,7 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
       .style('font-size', '12px')
       .style('fill', '#4a5568')
       .style('font-weight', '500')
-      .text(d => `${d.name} (${d.count})`);
+      .text(d => `${d.name}: ${d.count}`);
 
   }, [data, width, height]);
 
