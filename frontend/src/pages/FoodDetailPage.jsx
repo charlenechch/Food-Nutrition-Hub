@@ -33,6 +33,7 @@ export default function FoodDetailPage() {
   const [foodComments, setFoodComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [savedLoading, setSavedLoading] = useState(false);
+  const [healthAlerts, setHealthAlerts] = useState([]);
 
   useEffect(() => {
     const fetchFood = async () => {
@@ -276,8 +277,6 @@ export default function FoodDetailPage() {
   }
 
   const ingredients = food.commonIngredients || [];
-
-  const [healthAlerts, setHealthAlerts] = useState([]);
 
   const num = (v) => (v == null ? 0 : Number(v));
 
