@@ -308,8 +308,8 @@ router.get('/top-contributors', async (req, res) => {
     // Get top contributors with both recipe and story counts including userProfileID
     const query = `
       SELECT 
-        u.userID,
-        u.username as name,
+        u.firstname,
+        u.lastname,
         up.userProfileID,
         COUNT(DISTINCT r.recipeID) as recipes,
         COUNT(DISTINCT p.postID) as stories
@@ -317,7 +317,7 @@ router.get('/top-contributors', async (req, res) => {
       LEFT JOIN userProfile up ON u.userID = up.userID
       LEFT JOIN recipe r ON u.userID = r.userID AND r.status = 'Approved'
       LEFT JOIN posts p ON u.userID = p.user_id AND p.status = 'Approved'
-      GROUP BY u.userID, u.username, up.userProfileID
+      GROUP BY u.firstname, u.lastname, up.userProfileID
       HAVING recipes > 0 OR stories > 0
       ORDER BY recipes DESC, stories DESC
       LIMIT 5;

@@ -50,7 +50,7 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
       .attr('d', arc)
       .attr('fill', d => color(d.data.name))
       .attr('stroke', '#fff')
-      .attr('stroke-width', 2)
+      .attr('stroke-width', 0.5)
       .style('cursor', 'pointer')
       .style('opacity', 0.9)
       .on('mouseover', function(event, d) {
@@ -58,7 +58,7 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
           .transition()
           .duration(200)
           .style('opacity', 1)
-          .attr('stroke-width', 3);
+          .attr('stroke-width', 0.5);
 
         const tooltip = d3.select('body')
           .append('div')
@@ -91,7 +91,7 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
           .transition()
           .duration(200)
           .style('opacity', 0.9)
-          .attr('stroke-width', 2);
+          .attr('stroke-width', 0.5);
         d3.select('.pie-tooltip').remove();
       });
 
@@ -100,7 +100,7 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
       .attr('transform', d => `translate(${arc.centroid(d)})`)
       .attr('text-anchor', 'middle')
       .attr('dy', '0.35em')
-      .style('font-size', '10px')
+      .style('font-size', '12px')
       .style('font-weight', 'bold')
       .style('fill', '#ffffff')
       .style('pointer-events', 'none')
@@ -118,7 +118,7 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
       .attr('transform', d => `translate(${arc.centroid(d)})`)
       .attr('text-anchor', 'middle')
       .attr('dy', '0.35em')
-      .style('font-size', '9px')
+      .style('font-size', '12px')
       .style('font-weight', 'bold')
       .style('fill', '#ffffff')
       .style('pointer-events', 'none')
@@ -160,7 +160,7 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
     legendItems.append('text')
       .attr('x', 22)
       .attr('y', 12)
-      .style('font-size', '10px')
+      .style('font-size', '12px')
       .style('fill', '#4a5568')
       .style('font-weight', '500')
       .text(d => `${d.name} (${d.count})`);

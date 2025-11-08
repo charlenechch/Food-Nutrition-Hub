@@ -269,7 +269,7 @@ const Analytics = () => {
             {/* Bar Chart Card */}
             <div className="chart-card">
               <h3 className="chart-title">Monthly Community Contribution Trends</h3>
-              <BarChart data={barChartData} width={650} height={350} />
+              <BarChart data={barChartData} width={550} height={350} />
             </div>
           </div>
 

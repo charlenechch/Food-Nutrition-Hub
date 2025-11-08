@@ -300,7 +300,7 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
       .attr('transform', `translate(${innerWidth / 2}, ${innerHeight + 40})`)
       .style('text-anchor', 'middle')
       .style('fill', '#2d3748')
-      .style('font-size', '12px')
+      .style('font-size', '14px')
       .style('font-weight', '600')
       .text('Month');
 
@@ -318,7 +318,7 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
       .style('fill', '#2d3748')
-      .style('font-size', '12px')
+      .style('font-size', '14px')
       .style('font-weight', '600')
       .text('Number of Contributions');
 
@@ -331,20 +331,20 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
     const recipeLegend = legend.append('g')
       .attr('transform', 'translate(0, 0)');
 
-    recipeLegend.append('text')
-      .attr('x', 0)
-      .attr('y', -5)
-      .style('font-size', '10px')
-      .style('fill', '#4a5568')
-      .style('font-weight', '600')
-      .text('Recipes:');
+    // recipeLegend.append('text')
+    //   .attr('x', 0)
+    //   .attr('y', -5)
+    //   .style('font-size', '10px')
+    //   .style('fill', '#4a5568')
+    //   .style('font-weight', '600')
+      //.text('Recipes:');
 
     const recipeLegendItems = recipeLegend.selectAll('.recipe-legend-item')
       .data(['Approved', 'Pending', 'Rejected'])
       .enter()
       .append('g')
       .attr('class', 'recipe-legend-item')
-      .attr('transform', (d, i) => `translate(${i * 70}, 10)`);
+      .attr('transform', (d, i) => `translate(${i * 90}, 10)`);
 
     recipeLegendItems.append('rect')
       .attr('x', 0)
@@ -365,13 +365,13 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
     const storyLegend = legend.append('g')
       .attr('transform', `translate(0, 25)`);
 
-    storyLegend.append('text')
-      .attr('x', 0)
-      .attr('y', -5)
-      .style('font-size', '10px')
-      .style('fill', '#4a5568')
-      .style('font-weight', '600')
-      .text('Stories:');
+    // storyLegend.append('text')
+    //   .attr('x', 0)
+    //   .attr('y', -5)
+    //   .style('font-size', '10px')
+    //   .style('fill', '#4a5568')
+    //   .style('font-weight', '600')
+      //.text('Stories:');
 
     const storyLegendItems = storyLegend.selectAll('.story-legend-item')
       .data(['Approved', 'Pending', 'Rejected'])
