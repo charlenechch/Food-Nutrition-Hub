@@ -272,9 +272,19 @@ const updateUserStats = async (userID) => {
       [userProfileID]  // ✅ FIXED: Use userProfileID instead of userID
     );
 
+    const [totalRecipeCount] = await db.execute(
+      `SELECT COUNT(*) as count FROM recipe WHERE userProfileID = ?`,
+      [userProfileID] 
+    );
+    const [totalPostCount] = await db.execute(
+      `SELECT COUNT(*) as count FROM posts WHERE userProfileID = ?`, 
+      [userProfileID]
+    );
+
     const recipesCount = recipeCount[0]?.count || 0;
     const postsCount = postCount[0]?.count || 0;
     const likesCount = likeCount[0]?.count || 0;
+    const totalSubmissionsCount = (totalPostCount[0]?.count || 0) + (totalRecipeCount[0]?.count || 0);
 
     console.log(`📊 Stats calculated - Recipes: ${recipesCount}, Posts: ${postsCount}, Likes: ${likesCount}`);
 
@@ -282,9 +292,9 @@ const updateUserStats = async (userID) => {
     console.log(`💾 Updating userProfile stats in database for userID: ${userID}`);
     const [updateResult] = await db.execute(
       `UPDATE userProfile 
-       SET recipes = ?, posts = ?, likes = ?
+       SET recipes = ?, posts = ?, likes = ?, totalSubmissions = ?
        WHERE userID = ?`,  // ✅ This one uses userID (correct)
-      [recipesCount, postsCount, likesCount, userID]
+      [recipesCount, postsCount, likesCount, totalSubmissionsCount, userID]
     );
 
     console.log(`✅ Stats update completed, rows affected: ${updateResult.affectedRows}`);
@@ -292,7 +302,8 @@ const updateUserStats = async (userID) => {
     return {
       recipes: recipesCount,
       posts: postsCount,
-      likes: likesCount
+      likes: likesCount,
+      totalSubmissions: totalSubmissionsCount,
     };
   } catch (error) {
     console.error('❌ Error updating user stats:', error);
