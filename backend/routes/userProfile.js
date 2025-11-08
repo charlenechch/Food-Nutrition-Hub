@@ -369,6 +369,10 @@ async function deleteUser(userID, firebaseUID) {
     console.log("Deleting user's likes...");
     await connection.query('DELETE FROM likes WHERE userProfileID = ?', [userID]);
     console.log("Deleted likes");
+    
+    console.log("Deleting user's comments...");
+    await connection.query('DELETE FROM comments WHERE userProfileID = ?', [userID]);
+    console.log("Deleted comments");
 
     console.log("Deleting user's posts...");
     await connection.query('DELETE FROM posts WHERE userProfileID = ?', [userID]);
