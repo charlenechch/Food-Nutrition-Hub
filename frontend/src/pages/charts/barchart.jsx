@@ -5,10 +5,14 @@ import * as d3 from 'd3';
 const BarChart = ({ data = [], width = 700, height = 350 }) => {
   const svgRef = useRef();
 
-  // Color scale for the bars
-  const colorScale = d3.scaleOrdinal()
-    .domain(['Recipes', 'Stories'])
-    .range(['#4f46e5', '#ec4899']);
+  // Color scales for different statuses
+  const recipeColorScale = d3.scaleOrdinal()
+    .domain(['Approved', 'Pending', 'Rejected'])
+    .range(['#10b981', '#f59e0b', '#ef4444']);
+
+  const storyColorScale = d3.scaleOrdinal()
+    .domain(['Approved', 'Pending', 'Rejected'])
+    .range(['#8b5cf6', '#f97316', '#dc2626']);
 
   useEffect(() => {
     // Early return if no data
@@ -40,38 +44,57 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
       .attr('class', 'tooltip')
       .style('position', 'absolute')
       .style('background', 'white')
-      .style('padding', '8px 12px')
+      .style('padding', '12px')
       .style('border', '1px solid #ccc')
-      .style('border-radius', '4px')
-      .style('box-shadow', '0 2px 4px rgba(0,0,0,0.1)')
+      .style('border-radius', '6px')
+      .style('box-shadow', '0 4px 6px rgba(0,0,0,0.1)')
       .style('pointer-events', 'none')
       .style('opacity', 0)
       .style('font-size', '12px')
-      .style('z-index', 1000);
+      .style('z-index', 1000)
+      .style('min-width', '180px');
 
-    // Transform data for grouped bar chart with validation
+    // Transform data for stacked bar chart
     const transformedData = data.map(item => ({
       month: item.month || 'Unknown',
-      categories: [
-        { name: 'Recipes', value: item.recipes || 0 },
-        { name: 'Stories', value: item.posts || 0 }
-      ]
+      recipes: {
+        approved: item.recipes_approved || 0,
+        pending: item.recipes_pending || 0,
+        rejected: item.recipes_rejected || 0,
+        total: (item.recipes_approved || 0) + (item.recipes_pending || 0) + (item.recipes_rejected || 0)
+      },
+      stories: {
+        approved: item.stories_approved || 0,
+        pending: item.stories_pending || 0,
+        rejected: item.stories_rejected || 0,
+        total: (item.stories_approved || 0) + (item.stories_pending || 0) + (item.stories_rejected || 0)
+      }
     }));
 
+    // Create stack generators
+    const recipeStack = d3.stack()
+      .keys(['approved', 'pending', 'rejected'])
+      .order(d3.stackOrderNone)
+      .offset(d3.stackOffsetNone);
+
+    const storyStack = d3.stack()
+      .keys(['approved', 'pending', 'rejected'])
+      .order(d3.stackOrderNone)
+      .offset(d3.stackOffsetNone);
+
+    // Stack the data
+    const recipeStackData = recipeStack(transformedData.map(d => d.recipes));
+    const storyStackData = storyStack(transformedData.map(d => d.stories));
+
     // Create scales
-    const xScale0 = d3.scaleBand()
+    const xScale = d3.scaleBand()
       .domain(transformedData.map(d => d.month))
       .range([0, innerWidth])
-      .padding(0.3);
+      .padding(0.4);
 
-    const xScale1 = d3.scaleBand()
-      .domain(['Recipes', 'Stories'])
-      .range([0, xScale0.bandwidth()])
-      .padding(0.1);
-
-    const maxValue = d3.max(transformedData, d => 
-      d3.max(d.categories, c => c.value)
-    ) || 1; // Fallback to 1 if no data
+    const maxRecipeValue = d3.max(transformedData, d => d.recipes.total);
+    const maxStoryValue = d3.max(transformedData, d => d.stories.total);
+    const maxValue = Math.max(maxRecipeValue, maxStoryValue) || 1;
 
     const yScale = d3.scaleLinear()
       .domain([0, maxValue * 1.1])
@@ -88,74 +111,187 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
       .style('color', '#e2e8f0')
       .style('stroke-dasharray', '2,2');
 
-    // Create groups for each month
-    const monthGroups = svg.selectAll('.month-group')
-      .data(transformedData)
+    // Create recipe bars (left side)
+    const recipeGroup = svg.append('g')
+      .attr('class', 'recipe-bars');
+
+    recipeGroup.selectAll('.recipe-month')
+      .data(recipeStackData)
       .enter()
       .append('g')
-      .attr('class', 'month-group')
-      .attr('transform', d => `translate(${xScale0(d.month)}, 0)`);
-
-    // Create bars with FIXED tooltip
-    monthGroups.selectAll('.bar')
-      .data(d => d.categories)
+      .attr('class', 'recipe-month')
+      .attr('fill', (d, i) => {
+        const status = ['approved', 'pending', 'rejected'][i];
+        return recipeColorScale(status);
+      })
+      .selectAll('rect')
+      .data(d => d)
       .enter()
       .append('rect')
-      .attr('class', 'bar')
-      .attr('x', d => xScale1(d.name))
-      .attr('y', d => yScale(d.value))
-      .attr('width', xScale1.bandwidth())
-      .attr('height', d => innerHeight - yScale(d.value))
-      .attr('fill', d => colorScale(d.name))
+      .attr('class', 'recipe-bar')
+      .attr('x', (d, i) => xScale(transformedData[i].month) - xScale.bandwidth() * 0.25)
+      .attr('y', d => yScale(d[1]))
+      .attr('height', d => yScale(d[0]) - yScale(d[1]))
+      .attr('width', xScale.bandwidth() * 0.4)
       .attr('rx', 2)
       .attr('ry', 2)
       .style('cursor', 'pointer')
-      .on('mouseover', function(event, barData) {
-        // Get the parent month data - FIXED
-        const monthData = d3.select(this.parentNode).datum();
+      .on('mouseover', function(event, d) {
+        const monthIndex = d.index;
+        const monthData = transformedData[monthIndex];
+        const layerIndex = d3.select(this.parentNode).datum().index;
+        const status = ['approved', 'pending', 'rejected'][layerIndex];
         
-        // Highlight both bars in this month
-        d3.select(this.parentNode)
-          .selectAll('.bar')
-          .transition()
-          .duration(200)
-          .attr('opacity', 0.8);
-
-        // Show tooltip with correct data - FIXED
+        // Highlight all recipe segments for this month
+        d3.selectAll(`.recipe-bar`).attr('opacity', 0.6);
+        d3.select(this.parentNode).selectAll('rect').attr('opacity', 1);
+        
         tooltip
           .style('opacity', 1)
           .html(`
-            <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${monthData.month}</div>
-            <div style="display: flex; align-items: center; color:#4f46e5; margin: 2px 0;">
-              <span>Recipes: <strong>${monthData.categories[0].value}</strong></span>
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+              ${monthData.month} - Recipes
             </div>
-            <div style="display: flex; align-items: center; color:#ec4899; margin: 2px 0;">
-              <span>Stories: <strong>${monthData.categories[1].value}</strong></span>
+            <div style="display: flex; align-items: center; margin: 4px 0;">
+              <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; margin-right: 8px;"></div>
+              <span>Approved: <strong>${monthData.recipes.approved}</strong></span>
             </div>
-            <div style="margin-top: 4px; font-weight: 600;">
-              Total: <strong>${monthData.categories[0].value + monthData.categories[1].value}</strong>
+            <div style="display: flex; align-items: center; margin: 4px 0;">
+              <div style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%; margin-right: 8px;"></div>
+              <span>Pending: <strong>${monthData.recipes.pending}</strong></span>
+            </div>
+            <div style="display: flex; align-items: center; margin: 4px 0;">
+              <div style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-right: 8px;"></div>
+              <span>Rejected: <strong>${monthData.recipes.rejected}</strong></span>
+            </div>
+            <div style="margin-top: 6px; padding-top: 4px; border-top: 1px solid #e2e8f0; font-weight: 600;">
+              Total Recipes: <strong>${monthData.recipes.total}</strong>
             </div>
           `);
       })
       .on('mousemove', function(event) {
         tooltip
-          .style('left', (event.pageX + 10) + 'px')
+          .style('left', (event.pageX + 15) + 'px')
           .style('top', (event.pageY - 10) + 'px');
       })
       .on('mouseout', function() {
-        // Reset opacity
-        d3.select(this.parentNode)
-          .selectAll('.bar')
-          .transition()
-          .duration(200)
-          .attr('opacity', 1);
+        d3.selectAll('.recipe-bar').attr('opacity', 1);
+        tooltip.style('opacity', 0);
+      });
+
+    // Create story bars (right side)
+    const storyGroup = svg.append('g')
+      .attr('class', 'story-bars');
+
+    storyGroup.selectAll('.story-month')
+      .data(storyStackData)
+      .enter()
+      .append('g')
+      .attr('class', 'story-month')
+      .attr('fill', (d, i) => {
+        const status = ['approved', 'pending', 'rejected'][i];
+        return storyColorScale(status);
+      })
+      .selectAll('rect')
+      .data(d => d)
+      .enter()
+      .append('rect')
+      .attr('class', 'story-bar')
+      .attr('x', (d, i) => xScale(transformedData[i].month) + xScale.bandwidth() * 0.25)
+      .attr('y', d => yScale(d[1]))
+      .attr('height', d => yScale(d[0]) - yScale(d[1]))
+      .attr('width', xScale.bandwidth() * 0.4)
+      .attr('rx', 2)
+      .attr('ry', 2)
+      .style('cursor', 'pointer')
+      .on('mouseover', function(event, d) {
+        const monthIndex = d.index;
+        const monthData = transformedData[monthIndex];
+        const layerIndex = d3.select(this.parentNode).datum().index;
+        const status = ['approved', 'pending', 'rejected'][layerIndex];
+        
+        // Highlight all story segments for this month
+        d3.selectAll('.story-bar').attr('opacity', 0.6);
+        d3.select(this.parentNode).selectAll('rect').attr('opacity', 1);
+        
+        tooltip
+          .style('opacity', 1)
+          .html(`
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+              ${monthData.month} - Stories
+            </div>
+            <div style="display: flex; align-items: center; margin: 4px 0;">
+              <div style="width: 8px; height: 8px; background: #8b5cf6; border-radius: 50%; margin-right: 8px;"></div>
+              <span>Approved: <strong>${monthData.stories.approved}</strong></span>
+            </div>
+            <div style="display: flex; align-items: center; margin: 4px 0;">
+              <div style="width: 8px; height: 8px; background: #f97316; border-radius: 50%; margin-right: 8px;"></div>
+              <span>Pending: <strong>${monthData.stories.pending}</strong></span>
+            </div>
+            <div style="display: flex; align-items: center; margin: 4px 0;">
+              <div style="width: 8px; height: 8px; background: #dc2626; border-radius: 50%; margin-right: 8px;"></div>
+              <span>Rejected: <strong>${monthData.stories.rejected}</strong></span>
+            </div>
+            <div style="margin-top: 6px; padding-top: 4px; border-top: 1px solid #e2e8f0; font-weight: 600;">
+              Total Stories: <strong>${monthData.stories.total}</strong>
+            </div>
+          `);
+      })
+      .on('mousemove', function(event) {
+        tooltip
+          .style('left', (event.pageX + 15) + 'px')
+          .style('top', (event.pageY - 10) + 'px');
+      })
+      .on('mouseout', function() {
+        d3.selectAll('.story-bar').attr('opacity', 1);
+        tooltip.style('opacity', 0);
+      });
+
+    // Add month background for overall hover (total submissions)
+    svg.selectAll('.month-background')
+      .data(transformedData)
+      .enter()
+      .append('rect')
+      .attr('class', 'month-background')
+      .attr('x', d => xScale(d.month) - xScale.bandwidth() * 0.3)
+      .attr('y', 0)
+      .attr('width', xScale.bandwidth() * 1.6)
+      .attr('height', innerHeight)
+      .attr('fill', 'transparent')
+      .style('cursor', 'pointer')
+      .on('mouseover', function(event, monthData) {
+        const totalSubmissions = monthData.recipes.total + monthData.stories.total;
+        
+        tooltip
+          .style('opacity', 1)
+          .html(`
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+              ${monthData.month} - Overview
+            </div>
+            <div style="margin: 4px 0;">
+              <span>Total Recipes: <strong>${monthData.recipes.total}</strong></span>
+            </div>
+            <div style="margin: 4px 0;">
+              <span>Total Stories: <strong>${monthData.stories.total}</strong></span>
+            </div>
+            <div style="margin-top: 6px; padding-top: 4px; border-top: 1px solid #e2e8f0; font-weight: 600;">
+              Total Submissions: <strong>${totalSubmissions}</strong>
+            </div>
+          `);
+      })
+      .on('mousemove', function(event) {
+        tooltip
+          .style('left', (event.pageX + 15) + 'px')
+          .style('top', (event.pageY - 10) + 'px');
+      })
+      .on('mouseout', function() {
         tooltip.style('opacity', 0);
       });
 
     // Add X axis
     svg.append('g')
       .attr('transform', `translate(0,${innerHeight})`)
-      .call(d3.axisBottom(xScale0))
+      .call(d3.axisBottom(xScale))
       .style('color', '#4a5568')
       .style('font-size', '11px');
 
@@ -189,28 +325,74 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
     // Add legend 
     const legend = svg.append('g')
       .attr('class', 'legend')
-      .attr('transform', `translate(${innerWidth / 2 - 60}, ${innerHeight + 60})`);
+      .attr('transform', `translate(${innerWidth / 2 - 120}, ${innerHeight + 60})`);
 
-    const legendItems = legend.selectAll('.legend-item')
-      .data(['Recipes', 'Stories'])
+    // Recipe legend
+    const recipeLegend = legend.append('g')
+      .attr('transform', 'translate(0, 0)');
+
+    recipeLegend.append('text')
+      .attr('x', 0)
+      .attr('y', -5)
+      .style('font-size', '10px')
+      .style('fill', '#4a5568')
+      .style('font-weight', '600')
+      .text('Recipes:');
+
+    const recipeLegendItems = recipeLegend.selectAll('.recipe-legend-item')
+      .data(['Approved', 'Pending', 'Rejected'])
       .enter()
       .append('g')
-      .attr('class', 'legend-item')
-      .attr('transform', (d, i) => `translate(${i * 80}, 0)`)
-      .style('cursor', 'pointer');
+      .attr('class', 'recipe-legend-item')
+      .attr('transform', (d, i) => `translate(${i * 70}, 10)`);
 
-    legendItems.append('circle')
-      .attr('cx', 6)
-      .attr('cy', 6)
-      .attr('r', 6)
-      .attr('fill', d => colorScale(d));
+    recipeLegendItems.append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', 10)
+      .attr('height', 10)
+      .attr('fill', d => recipeColorScale(d))
+      .attr('rx', 1);
 
-    legendItems.append('text')
+    recipeLegendItems.append('text')
       .attr('x', 15)
       .attr('y', 9)
-      .style('font-size', '12px')
-      .style('fill', '#2d3748')
+      .style('font-size', '10px')
+      .style('fill', '#4a5568')
+      .text(d => d);
+
+    // Story legend
+    const storyLegend = legend.append('g')
+      .attr('transform', `translate(0, 25)`);
+
+    storyLegend.append('text')
+      .attr('x', 0)
+      .attr('y', -5)
+      .style('font-size', '10px')
+      .style('fill', '#4a5568')
       .style('font-weight', '600')
+      .text('Stories:');
+
+    const storyLegendItems = storyLegend.selectAll('.story-legend-item')
+      .data(['Approved', 'Pending', 'Rejected'])
+      .enter()
+      .append('g')
+      .attr('class', 'story-legend-item')
+      .attr('transform', (d, i) => `translate(${i * 70}, 10)`);
+
+    storyLegendItems.append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', 10)
+      .attr('height', 10)
+      .attr('fill', d => storyColorScale(d))
+      .attr('rx', 1);
+
+    storyLegendItems.append('text')
+      .attr('x', 15)
+      .attr('y', 9)
+      .style('font-size', '10px')
+      .style('fill', '#4a5568')
       .text(d => d);
 
     // Cleanup function
