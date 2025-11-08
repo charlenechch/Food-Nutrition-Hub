@@ -91,7 +91,7 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // Check account status
+    // Check account status for SUSPENDED users
     if (user.status === "Suspended") {
         
         // Check if a suspension date exists in the database
@@ -144,6 +144,26 @@ router.post("/", async (req, res) => {
                 message: "Your account has been suspended. Please contact support.",
             });
         }
+    }
+
+    // Check account status for INACTIVE users
+    if (user.status === "Inactive") {
+      console.log(`✅ Inactive user ${email} is logging in. Auto-activating...`);
+      
+      try {
+        // Update database: set status = "Active"
+        await db.query(
+            "UPDATE user SET status = 'Active' WHERE userID = ?",
+            [user.userID]
+        );
+        // Update local object used for session data
+        user.status = "Active"; 
+        console.log(`✅ Status updated to Active for user: ${user.email}`);
+
+      } catch (updateError) {
+        console.error("❌ Failed to auto-activate INACTIVE user:", updateError);
+        // Log the error but continue login
+      }
     }
     
     // Regenerate session (prevent fixation)
