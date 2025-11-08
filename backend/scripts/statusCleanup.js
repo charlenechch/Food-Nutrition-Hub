@@ -10,7 +10,7 @@ async function updateStaleAndExpiredUsers() {
         
         // Calculate the cutoff date (7 days ago)
         const sevenDaysAgo = new Date();
-        sevenDaysAgo.setMinutes(sevenDaysAgo.getMinutes() - 2); //TEST 2 MINUTES
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         const cutoffDate = sevenDaysAgo.toISOString().slice(0, 19).replace("T", " "); // 7 days ago timestamp
         
         // Find users whose status is "Suspended" but whose suspendedUntil date is in the past.
