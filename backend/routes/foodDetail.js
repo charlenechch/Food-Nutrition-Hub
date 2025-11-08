@@ -3,16 +3,6 @@ const router = express.Router();
 const { pool: db } = require("../config/db");
 
 const num = (v) => (v == null ? 0 : Number(v));
-const toSlug = (s) => String(s ?? "").trim().toLowerCase().replace(/[_\s]+/g, "-");
-const parseDietaryTags = (raw) => {
-  if (Array.isArray(raw)) return raw;
-  if (raw == null) return [];
-  const str = String(raw).trim();
-  if (str.startsWith("[")) {
-    try { const arr = JSON.parse(str); return Array.isArray(arr) ? arr : []; } catch { return []; }
-  }
-  return str.split(",").map(s => s.trim()).filter(Boolean);
-};
 
 router.get('/:id', async (req, res) => {
   try {
@@ -31,7 +21,6 @@ router.get('/:id', async (req, res) => {
         f.commonIngredients,
         f.image,
         f.healthTips,
-        -- totals stored on 'food'
         f.Energy_kcal,
         f.Protein_g,
         f.Fat_g,
