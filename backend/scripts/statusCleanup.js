@@ -93,20 +93,12 @@ async function updateStaleAndExpiredUsers() {
 
 // Run the script and exit
 updateStaleAndExpiredUsers()
-    .then(async () => {
-        // Close the database connection pool gracefully.
-        // This forces all pending queries to execute before the script ends.
-        try {
-            await db.end(); 
-            console.log("✅ Database connection pool closed, script exiting.");
-            process.exit(0);
-        } catch (err) {
-            // If closing the pool fails, log the error but still exit.
-            console.error("❌ Error closing DB pool (forcing exit):", err);
-            process.exit(1);
-        }
+    .then(() => {
+        // Log success and exit immediately.
+        console.log("✅ Script finished execution.");
+        process.exit(0); 
     })
     .catch((err) => {
-        console.error("❌ Top-level script execution failed:", err);
+        console.error("❌ Top-level script failed and crashed:", err);
         process.exit(1);
     });
