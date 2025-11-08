@@ -730,21 +730,21 @@ const parseDietaryTags = (raw) => {
 
                   <div className="efp-meta">
                     <span className="muted">Origin: {food.origin}</span>
-                    <span className="efp-cal">{Math.round(food.Energy_kcal_ps)} kcal / serving</span>
+                    <span className="efp-cal">{Math.round(food.Energy_kcal_ps)} calories</span>
                   </div>
 
                   <div className="efp-nutri">
                     <div className="efp-nutri-item">
                       <div>{food.Protein_g_ps.toFixed(1)}g</div>
-                      <div className="muted">Protein / serving</div>
+                      <div className="muted">Protein</div>
                     </div>
                     <div className="efp-nutri-item">
                       <div>{food.Carbohydrates_g_ps.toFixed(1)}g</div>
-                      <div className="muted">Carbs / serving</div>
+                      <div className="muted">Carbs</div>
                     </div>
                     <div className="efp-nutri-item">
                       <div>{food.Fat_g_ps.toFixed(1)}g</div>
-                      <div className="muted">Fat / serving</div>
+                      <div className="muted">Fat</div>
                     </div>
                   </div>
 
