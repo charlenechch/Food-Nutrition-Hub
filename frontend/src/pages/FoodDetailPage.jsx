@@ -35,6 +35,59 @@ export default function FoodDetailPage() {
   const [savedLoading, setSavedLoading] = useState(false);
   const [healthAlerts, setHealthAlerts] = useState([]);
 
+  const num = (v) => (v == null ? 0 : Number(v));
+
+  const getPerServing = (food, keyPs, keyTotal) =>
+    num(food?.[keyPs]) || num(food?.[keyTotal]);
+
+  const buildHealthAlerts = (food) => {
+    const alerts = [];
+
+    const kcal = getPerServing(food, "Energy_kcal_ps", "Energy_kcal");
+    const protein = getPerServing(food, "Protein_g_ps", "Protein_g");
+    const fat = getPerServing(food, "Fat_g_ps", "Fat_g");
+    const carbs = getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g");
+    const fiber = getPerServing(food, "Fiber_g_ps", "Fiber_g");
+    const vitC = getPerServing(food, "VitaminC_mg_ps", "VitaminC_mg");
+
+    if (kcal >= 600) {
+      alerts.push({ type: "warning", message: "High-calorie dish — consume in moderation." });
+    } else if (kcal >= 300) {
+      alerts.push({ type: "info", message: "Moderate calories per serving." });
+    } else if (kcal > 0) {
+      alerts.push({ type: "info", message: "Low-calorie serving." });
+    }
+
+    if (protein >= 25) {
+      alerts.push({ type: "info", message: "Excellent source of protein." });
+    } else if (protein >= 12) {
+      alerts.push({ type: "info", message: "Good protein content." });
+    }
+
+    if (fat >= 20) {
+      alerts.push({ type: "warning", message: "High total fat per serving." });
+    } else if (fat > 0 && fat <= 10) {
+      alerts.push({ type: "info", message: "Low-fat serving." });
+    }
+
+    if (carbs >= 60) {
+      alerts.push({ type: "warning", message: "High in carbohydrates." });
+    }
+    if (fiber >= 5) {
+      alerts.push({ type: "info", message: "High in dietary fiber." });
+    }
+
+    if (vitC >= 30) {
+      alerts.push({ type: "info", message: "Rich in Vitamin C." });
+    }
+
+    const tags = Array.isArray(food?.dietaryTags) ? food.dietaryTags : [];
+    if (tags.includes("spicy")) alerts.push({ type: "info", message: "Spicy dish." });
+    if (tags.includes("vegetarian")) alerts.push({ type: "info", message: "Vegetarian-friendly." });
+
+    return alerts;
+  };
+
   useEffect(() => {
     const fetchFood = async () => {
       try { 
@@ -278,59 +331,6 @@ export default function FoodDetailPage() {
 
   const ingredients = food.commonIngredients || [];
 
-  const num = (v) => (v == null ? 0 : Number(v));
-
-  const getPerServing = (food, keyPs, keyTotal) =>
-    num(food?.[keyPs]) || num(food?.[keyTotal]);
-
-  const buildHealthAlerts = (food) => {
-    const alerts = [];
-
-    const kcal = getPerServing(food, "Energy_kcal_ps", "Energy_kcal");
-    const protein = getPerServing(food, "Protein_g_ps", "Protein_g");
-    const fat = getPerServing(food, "Fat_g_ps", "Fat_g");
-    const carbs = getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g");
-    const fiber = getPerServing(food, "Fiber_g_ps", "Fiber_g");
-    const vitC = getPerServing(food, "VitaminC_mg_ps", "VitaminC_mg");
-
-    if (kcal >= 600) {
-      alerts.push({ type: "warning", message: "High-calorie dish — consume in moderation." });
-    } else if (kcal >= 300) {
-      alerts.push({ type: "info", message: "Moderate calories per serving." });
-    } else if (kcal > 0) {
-      alerts.push({ type: "info", message: "Low-calorie serving." });
-    }
-
-    if (protein >= 25) {
-      alerts.push({ type: "info", message: "Excellent source of protein." });
-    } else if (protein >= 12) {
-      alerts.push({ type: "info", message: "Good protein content." });
-    }
-
-    if (fat >= 20) {
-      alerts.push({ type: "warning", message: "High total fat per serving." });
-    } else if (fat > 0 && fat <= 10) {
-      alerts.push({ type: "info", message: "Low-fat serving." });
-    }
-
-    if (carbs >= 60) {
-      alerts.push({ type: "warning", message: "High in carbohydrates." });
-    }
-    if (fiber >= 5) {
-      alerts.push({ type: "info", message: "High in dietary fiber." });
-    }
-
-    if (vitC >= 30) {
-      alerts.push({ type: "info", message: "Rich in Vitamin C." });
-    }
-
-    const tags = Array.isArray(food?.dietaryTags) ? food.dietaryTags : [];
-    if (tags.includes("spicy")) alerts.push({ type: "info", message: "Spicy dish." });
-    if (tags.includes("vegetarian")) alerts.push({ type: "info", message: "Vegetarian-friendly." });
-
-    return alerts;
-  };
-
   useEffect(() => {
     if (food) setHealthAlerts(buildHealthAlerts(food));
   }, [food]);
@@ -524,7 +524,7 @@ export default function FoodDetailPage() {
 
       <Footer />
 
-      {/* ✅ Login Prompt Modal – only shows if guest tries to save */}
+      {/* Login Prompt Modal – only shows if guest tries to save */}
       {showLoginPrompt && (
         <LoginPromptModal
           message="Please login or register to save this food."
