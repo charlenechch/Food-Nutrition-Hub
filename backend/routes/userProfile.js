@@ -369,7 +369,7 @@ async function deleteUser(userID, firebaseUID) {
     console.log("Deleting user's likes...");
     await connection.query('DELETE FROM likes WHERE userProfileID = ?', [userID]);
     console.log("Deleted likes");
-    
+
     console.log("Deleting user's comments...");
     await connection.query('DELETE FROM comments WHERE userProfileID = ?', [userID]);
     console.log("Deleted comments");
@@ -389,6 +389,16 @@ async function deleteUser(userID, firebaseUID) {
     console.log("Deleting user account...");
     await connection.query('DELETE FROM user WHERE userID = ?', [userID]);
     console.log("Deleted user account");
+
+    // Force immediate session destruction
+    console.log("Forcing user session destruction...");
+    // Deletes sessions where the 'data' JSON contains a matching userID
+    await connection.query(
+        `DELETE FROM sessions 
+         WHERE JSON_EXTRACT(data, '$.user.userID') = ?`,
+        [userID]
+    );
+    console.log("User sessions invalidated.");
 
     await connection.commit();
     console.log("Transaction committed successfully");
