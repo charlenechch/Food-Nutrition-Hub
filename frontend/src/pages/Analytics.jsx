@@ -329,12 +329,6 @@ const Analytics = () => {
                       <div className="contributor-rank">{index + 1}</div>
                       <div className="contributor-info">
                         <span className="contributor-name">{contributor.name}</span>
-                        <span className="contributor-stats">
-                          {/*viewMode === 'recipes' 
-                            ? `${contributor.recipes} recipes • ${contributor.totalSubmissions} total posts`
-                            : `${contributor.stories} stories • ${contributor.totalSubmissions} total posts`
-                          */}
-                        </span>
                       </div>
                       <div className="contributor-posts">
                         <span className="posts-count">

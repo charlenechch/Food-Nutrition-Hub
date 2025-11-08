@@ -49,9 +49,9 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
       .style('font-size', '12px')
       .style('z-index', 1000);
 
-    // Transform data for grouped bar chart
+    // Transform data for grouped bar chart with validation
     const transformedData = data.map(item => ({
-      month: item.month,
+      month: item.month || 'Unknown',
       categories: [
         { name: 'Recipes', value: item.recipes || 0 },
         { name: 'Stories', value: item.posts || 0 }
@@ -71,7 +71,8 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
 
     const maxValue = d3.max(transformedData, d => 
       d3.max(d.categories, c => c.value)
-    );
+    ) || 1; // Fallback to 1 if no data
+
     const yScale = d3.scaleLinear()
       .domain([0, maxValue * 1.1])
       .range([innerHeight, 0])
@@ -95,7 +96,7 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
       .attr('class', 'month-group')
       .attr('transform', d => `translate(${xScale0(d.month)}, 0)`);
 
-    // Create bars
+    // Create bars with FIXED tooltip
     monthGroups.selectAll('.bar')
       .data(d => d.categories)
       .enter()
@@ -109,7 +110,10 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
       .attr('rx', 2)
       .attr('ry', 2)
       .style('cursor', 'pointer')
-      .on('mouseover', function(event, d) {
+      .on('mouseover', function(event, barData) {
+        // Get the parent month data - FIXED
+        const monthData = d3.select(this.parentNode).datum();
+        
         // Highlight both bars in this month
         d3.select(this.parentNode)
           .selectAll('.bar')
@@ -117,19 +121,19 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
           .duration(200)
           .attr('opacity', 0.8);
 
-        // Show tooltip
+        // Show tooltip with correct data - FIXED
         tooltip
           .style('opacity', 1)
           .html(`
-            <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${d.month}</div>
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${monthData.month}</div>
             <div style="display: flex; align-items: center; color:#4f46e5; margin: 2px 0;">
-              <span>Recipes: <strong>${d.categories[0].value}</strong></span>
+              <span>Recipes: <strong>${monthData.categories[0].value}</strong></span>
             </div>
             <div style="display: flex; align-items: center; color:#ec4899; margin: 2px 0;">
-              <span>Stories: <strong>${d.categories[1].value}</strong></span>
+              <span>Stories: <strong>${monthData.categories[1].value}</strong></span>
             </div>
             <div style="margin-top: 4px; font-weight: 600;">
-              Total: <strong>${d.categories[0].value + d.categories[1].value}</strong>
+              Total: <strong>${monthData.categories[0].value + monthData.categories[1].value}</strong>
             </div>
           `);
       })

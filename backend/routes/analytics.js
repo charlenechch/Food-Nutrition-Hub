@@ -226,8 +226,8 @@ router.get('/posts-recipes-by-month', async (req, res) => {
     });
     
     const allMonths = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
     ];
     
     const data = allMonths.map(monthName => {
@@ -309,15 +309,14 @@ router.get('/top-contributors', async (req, res) => {
         u.userID,
         u.username as name,
         COUNT(DISTINCT r.recipeID) as recipes,
-        COUNT(DISTINCT p.postID) as stories,
-        (COUNT(DISTINCT r.recipeID) + COUNT(DISTINCT p.postID)) as totalSubmissions
+        COUNT(DISTINCT p.postID) as stories
       FROM user u
       LEFT JOIN recipe r ON u.userID = r.userID AND r.status = 'Approved'
       LEFT JOIN posts p ON u.userID = p.user_id AND p.status = 'Approved'
       GROUP BY u.userID, u.username
-      HAVING totalSubmissions > 0
-      ORDER BY totalSubmissions DESC
-      LIMIT 10
+      HAVING recipes > 0 OR stories > 0
+      ORDER BY recipes DESC, stories DESC
+      LIMIT 5;
     `;
     
     const [results] = await db.execute(query);
