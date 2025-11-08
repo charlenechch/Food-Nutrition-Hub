@@ -1,6 +1,3 @@
-// ✅ FULL FoodDetailPage.jsx — Part 1/3
-// 🚀 Everything preserved, only guest save logic + modal added
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header";
@@ -16,7 +13,6 @@ import {
   ScrollText 
 } from "lucide-react";
 
-// ✅ Added for guest login popup
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
@@ -26,10 +22,8 @@ export default function FoodDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // ✅ Access auth state (user, guest, etc.)
   const { user } = useAuth();
 
-  // ✅ Modal visibility for guest save
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const [food, setFood] = useState(null);
@@ -39,8 +33,61 @@ export default function FoodDetailPage() {
   const [foodComments, setFoodComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [savedLoading, setSavedLoading] = useState(false);
+  const [healthAlerts, setHealthAlerts] = useState([]);
 
-  // ✅ Fetch food details
+  const num = (v) => (v == null ? 0 : Number(v));
+
+  const getPerServing = (food, keyPs, keyTotal) =>
+    num(food?.[keyPs]) || num(food?.[keyTotal]);
+
+  const buildHealthAlerts = (food) => {
+    const alerts = [];
+
+    const kcal = getPerServing(food, "Energy_kcal_ps", "Energy_kcal");
+    const protein = getPerServing(food, "Protein_g_ps", "Protein_g");
+    const fat = getPerServing(food, "Fat_g_ps", "Fat_g");
+    const carbs = getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g");
+    const fiber = getPerServing(food, "Fiber_g_ps", "Fiber_g");
+    const vitC = getPerServing(food, "VitaminC_mg_ps", "VitaminC_mg");
+
+    if (kcal >= 600) {
+      alerts.push({ type: "warning", message: "High-calorie dish — consume in moderation." });
+    } else if (kcal >= 300) {
+      alerts.push({ type: "info", message: "Moderate calories per serving." });
+    } else if (kcal > 0) {
+      alerts.push({ type: "info", message: "Low-calorie serving." });
+    }
+
+    if (protein >= 25) {
+      alerts.push({ type: "info", message: "Excellent source of protein." });
+    } else if (protein >= 12) {
+      alerts.push({ type: "info", message: "Good protein content." });
+    }
+
+    if (fat >= 20) {
+      alerts.push({ type: "warning", message: "High total fat per serving." });
+    } else if (fat > 0 && fat <= 10) {
+      alerts.push({ type: "info", message: "Low-fat serving." });
+    }
+
+    if (carbs >= 60) {
+      alerts.push({ type: "warning", message: "High in carbohydrates." });
+    }
+    if (fiber >= 5) {
+      alerts.push({ type: "info", message: "High in dietary fiber." });
+    }
+
+    if (vitC >= 30) {
+      alerts.push({ type: "info", message: "Rich in Vitamin C." });
+    }
+
+    const tags = Array.isArray(food?.dietaryTags) ? food.dietaryTags : [];
+    if (tags.includes("spicy")) alerts.push({ type: "info", message: "Spicy dish." });
+    if (tags.includes("vegetarian")) alerts.push({ type: "info", message: "Vegetarian-friendly." });
+
+    return alerts;
+  };
+
   useEffect(() => {
     const fetchFood = async () => {
       try { 
@@ -54,6 +101,7 @@ export default function FoodDetailPage() {
         
         if (result.success) {
           setFood(result.data);
+          setHealthAlerts(buildHealthAlerts(result.data));
           // Fetch comments after food data is loaded
           fetchFoodComments(result.data.id || id);
         } else {
@@ -72,7 +120,10 @@ export default function FoodDetailPage() {
     }
   }, [id]);
 
-  // ✅ Fetch comments
+  useEffect(() => {
+    if (food) setHealthAlerts(buildHealthAlerts(food));
+  }, [food]);
+
   const fetchFoodComments = async (foodId) => {
     try {
       setCommentsLoading(true);
@@ -91,7 +142,6 @@ export default function FoodDetailPage() {
       setCommentsLoading(false);
     }
   };
-  // Check if user is logged in 
   const isLoggedIn = () => {
   const loggedIn = user && user.role !== "guest";
   console.log('🔐 isLoggedIn check:', {
@@ -104,13 +154,12 @@ export default function FoodDetailPage() {
 };
   
   const getUserInitials = (comment) => {
-  console.log('Available fields:', Object.keys(comment)); // DEBUG
+  console.log('Available fields:', Object.keys(comment)); 
   const username = comment.username || comment.user || comment.author || 'User';
-  console.log('Found username:', username); // DEBUG
+  console.log('Found username:', username); 
   return username.substring(0, 2).toUpperCase();
   };
 
- // Check if food is already saved on mount
   useEffect(() => {
     if (id && isLoggedIn()) {
       checkSavedStatus();
@@ -123,8 +172,6 @@ export default function FoodDetailPage() {
     console.log('🔍 Checking saved status for food:', id);
     console.log('👤 Current user ID:', user?.userID);
 
-    // ADD userProfileID to the URL as query parameter
-    //const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${user?.userID}`;
     const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${user?.userID}&type=food`;
     
     console.log('📤 Making request to:', url);
@@ -167,7 +214,6 @@ export default function FoodDetailPage() {
   if (!userProfileID) {
     console.error("❌ User data incomplete - cannot save food");
     console.log("Current user object:", user);
-    // Try to refresh user data
     setShowLoginPrompt(true); 
     return;
   }
@@ -175,13 +221,6 @@ export default function FoodDetailPage() {
   setSavedLoading(true);
   try {
     const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-     // ✅ Include both foodID and recipeID when saving
-    // const saveData = {
-    //   userProfileID: userProfileID,
-    //   foodID: id, // Current food ID
-    //   recipeID: food?.recipeId || null // Include recipe ID if available
-    // };
     
     const response = await fetch(
       `${API_BASE_URL}/api/saveFood/${id}`, 
@@ -215,12 +254,10 @@ export default function FoodDetailPage() {
   }
 };
 
-  // ✅ Existing function (unchanged)
   const handleViewDiscussion = () => {
     navigate(`/fooddiscussion/${id}`, { state: { food } });
   };
 
-  // ✅ Go to recipe logic stays unchanged
   const goToRecipe = () => {
     if (!food) return;
 
@@ -264,7 +301,6 @@ export default function FoodDetailPage() {
     alert("Link copied to clipboard");
   };
 
-  // ✅ LOADING UI (as original)
   if (loading) {
     return (
       <div className="food-detail-page">
@@ -277,7 +313,6 @@ export default function FoodDetailPage() {
     );
   }
 
-  // ✅ ERROR UI (as original)
   if (error || !food) {
     return (
       <div className="food-detail-page">
@@ -299,6 +334,7 @@ export default function FoodDetailPage() {
   }
 
   const ingredients = food.commonIngredients || [];
+
   return (
     <div className="food-detail-page">
       <Header />
@@ -391,23 +427,42 @@ export default function FoodDetailPage() {
               <p className="fdp-muted">Per serving</p>
               <div className="fdp-nutri-grid">
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{food.calories ?? "-"}</div>
+                  <div className="fdp-nutri-value">{Math.round(getPerServing(food, "Energy_kcal_ps", "Energy_kcal")) || "-"}</div>
                   <div className="fdp-nutri-label">Calories</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{food.protein ?? "-"}g</div>
+                  <div className="fdp-nutri-value">{getPerServing(food, "Protein_g_ps", "Protein_g")?.toFixed?.(1) ?? "-"}g</div>
                   <div className="fdp-nutri-label">Protein</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{food.carbs ?? "-"}g</div>
+                  <div className="fdp-nutri-value">{getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g")?.toFixed?.(1) ?? "-"}g</div>
                   <div className="fdp-nutri-label">Carbohydrates</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{food.fat ?? "-"}g</div>
+                  <div className="fdp-nutri-value">{getPerServing(food, "Fat_g_ps", "Fat_g")?.toFixed?.(1) ?? "-"}g</div>
                   <div className="fdp-nutri-label">Fat</div>
                 </div>
               </div>
             </div>
+
+            {/* Health alerts */}
+            {healthAlerts.length > 0 && (
+              <div className="fdp-card">
+                <h3 className="rdp-sec-title">
+                  <TriangleAlert size={18} color={"#6a4a2f"} /> Health Information
+                </h3>
+                <div className="fdp-alerts">
+                  {healthAlerts.map((a, idx) => (
+                    <div
+                      key={idx}
+                      className={`fdp-alert ${a.type === "warning" ? "fdp-alert-warn" : "fdp-alert-info"}`}
+                    >
+                      {a.message}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Discussion preview */}
             <div className="fdp-card">
@@ -469,7 +524,7 @@ export default function FoodDetailPage() {
 
       <Footer />
 
-      {/* ✅ Login Prompt Modal – only shows if guest tries to save */}
+      {/* Login Prompt Modal – only shows if guest tries to save */}
       {showLoginPrompt && (
         <LoginPromptModal
           message="Please login or register to save this food."

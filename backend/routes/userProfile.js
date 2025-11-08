@@ -272,9 +272,19 @@ const updateUserStats = async (userID) => {
       [userProfileID]  // ✅ FIXED: Use userProfileID instead of userID
     );
 
+    const [totalRecipeCount] = await db.execute(
+      `SELECT COUNT(*) as count FROM recipe WHERE userProfileID = ?`,
+      [userProfileID] 
+    );
+    const [totalPostCount] = await db.execute(
+      `SELECT COUNT(*) as count FROM posts WHERE userProfileID = ?`, 
+      [userProfileID]
+    );
+
     const recipesCount = recipeCount[0]?.count || 0;
     const postsCount = postCount[0]?.count || 0;
     const likesCount = likeCount[0]?.count || 0;
+    const totalSubmissionsCount = (totalPostCount[0]?.count || 0) + (totalRecipeCount[0]?.count || 0);
 
     console.log(`📊 Stats calculated - Recipes: ${recipesCount}, Posts: ${postsCount}, Likes: ${likesCount}`);
 
@@ -282,9 +292,9 @@ const updateUserStats = async (userID) => {
     console.log(`💾 Updating userProfile stats in database for userID: ${userID}`);
     const [updateResult] = await db.execute(
       `UPDATE userProfile 
-       SET recipes = ?, posts = ?, likes = ?
+       SET recipes = ?, posts = ?, likes = ?, totalSubmissions = ?
        WHERE userID = ?`,  // ✅ This one uses userID (correct)
-      [recipesCount, postsCount, likesCount, userID]
+      [recipesCount, postsCount, likesCount, totalSubmissionsCount, userID]
     );
 
     console.log(`✅ Stats update completed, rows affected: ${updateResult.affectedRows}`);
@@ -292,7 +302,8 @@ const updateUserStats = async (userID) => {
     return {
       recipes: recipesCount,
       posts: postsCount,
-      likes: likesCount
+      likes: likesCount,
+      totalSubmissions: totalSubmissionsCount,
     };
   } catch (error) {
     console.error('❌ Error updating user stats:', error);
@@ -359,6 +370,10 @@ async function deleteUser(userID, firebaseUID) {
     await connection.query('DELETE FROM likes WHERE userProfileID = ?', [userID]);
     console.log("Deleted likes");
 
+    console.log("Deleting user's comments...");
+    await connection.query('DELETE FROM comments WHERE userProfileID = ?', [userID]);
+    console.log("Deleted comments");
+
     console.log("Deleting user's posts...");
     await connection.query('DELETE FROM posts WHERE userProfileID = ?', [userID]);
     console.log("Deleted posts");
@@ -374,6 +389,16 @@ async function deleteUser(userID, firebaseUID) {
     console.log("Deleting user account...");
     await connection.query('DELETE FROM user WHERE userID = ?', [userID]);
     console.log("Deleted user account");
+
+    // Force immediate session destruction
+    console.log("Forcing user session destruction...");
+    // Deletes sessions where the 'data' JSON contains a matching userID
+    await connection.query(
+        `DELETE FROM sessions 
+         WHERE JSON_EXTRACT(data, '$.user.userID') = ?`,
+        [userID]
+    );
+    console.log("User sessions invalidated.");
 
     await connection.commit();
     console.log("Transaction committed successfully");
@@ -1118,3 +1143,4 @@ router.delete("/delete", async (req, res) => {
 console.log("✅ UserProfile router loaded with debug logging");
 module.exports = router;
 module.exports.deleteUser = deleteUser;
+module.exports.updateUserStats = updateUserStats;

@@ -117,8 +117,24 @@ router.post("/", async (req, res) => {
             }
             
             // 2. Suspension has expired, but the database status is not updated yet.
-            // We allow login (and the background cleanup will set status to Active/Inactive later).
+            // Update database status and local session status
             console.log(`✅ Suspension has expired for user: ${email}. Allowing login.`);
+
+            try {
+                // Update database: set status = 'Active', clear suspension date
+                await db.query(
+                    "UPDATE user SET status = 'Active', suspendedUntil = NULL WHERE userID = ?",
+                    [user.userID]
+                );
+                // Update local object used for session data
+                user.status = 'Active'; 
+                user.suspendedUntil = null;
+                console.log(`✅ Status updated to Active for user: ${user.email}`);
+
+            } catch (updateError) {
+                console.error("❌ Failed to auto-activate user after suspension:", updateError);
+                // Continue login, but log the DB error
+            }
             
         } else {
             // No suspension date was set (permanent/indefinite suspension).

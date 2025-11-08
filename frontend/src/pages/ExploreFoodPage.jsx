@@ -20,18 +20,51 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         console.log("Raw fetched foods:", data);
         console.log("Number of foods:", data.length);
 
-        const transformedData = data.map(food => ({
-        ...food,
-        // Convert all nutritional values to numbers
-        Energy_kcal: parseFloat(food.Energy_kcal) || 0,
-        Protein_g: parseFloat(food.Protein_g) || 0,
-        Fat_g: parseFloat(food.Fat_g) || 0,
-        Carbohydrates_g: parseFloat(food.Carbohydrates_g) || 0,
-        Fiber_g: parseFloat(food.Fiber_g) || 0,
-        VitaminC_mg: parseFloat(food.VitaminC_mg) || 0,
-        category: food.category || '',
-        dietaryTags: Array.isArray(food.dietaryTags) ? food.dietaryTags : []
-      }));
+        const transformedData = data.map(food => {
+          const normalizedTags = parseDietaryTags(food.dietaryTags ?? food.dietary_tags).map(toSlug);
+
+          const servings = Math.max(1, Number(food.servings || 1)); // backend may add this; default 1
+          const num = (v) => (v == null ? 0 : Number(v));
+
+          // totals
+          const Energy_kcal = num(food.Energy_kcal);
+          const Protein_g = num(food.Protein_g);
+          const Fat_g = num(food.Fat_g);
+          const Carbohydrates_g = num(food.Carbohydrates_g);
+          const Fiber_g = num(food.Fiber_g);
+          const VitaminC_mg = num(food.VitaminC_mg);
+
+          // prefer server-calculated per-serving, else compute here
+          const Energy_kcal_ps = num(food.Energy_kcal_ps) || +(Energy_kcal / servings).toFixed(2);
+          const Protein_g_ps = num(food.Protein_g_ps) || +(Protein_g / servings).toFixed(2);
+          const Fat_g_ps = num(food.Fat_g_ps) || +(Fat_g / servings).toFixed(2);
+          const Carbohydrates_g_ps = num(food.Carbohydrates_g_ps) || +(Carbohydrates_g / servings).toFixed(2);
+          const Fiber_g_ps = num(food.Fiber_g_ps) || +(Fiber_g / servings).toFixed(2);
+          const VitaminC_mg_ps = num(food.VitaminC_mg_ps) || +(VitaminC_mg / servings).toFixed(2);
+
+          return {
+            ...food,
+            category: food.category || "",
+            dietaryTags: normalizedTags,
+
+            // keep numeric totals
+            Energy_kcal,
+            Protein_g,
+            Fat_g,
+            Carbohydrates_g,
+            Fiber_g,
+            VitaminC_mg,
+
+            // serving + per serving
+            servings,
+            Energy_kcal_ps,
+            Protein_g_ps,
+            Fat_g_ps,
+            Carbohydrates_g_ps,
+            Fiber_g_ps,
+            VitaminC_mg_ps,
+          };
+        });
         
         setFoods(transformedData);
       } catch (err) { 
@@ -308,6 +341,33 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
       cancelAnimationFrame(raf);
     };
   }, [updateProgress]);
+
+const toSlug = (s) =>
+  String(s ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s]+/g, "-");
+
+const humanize = (slug) =>
+  String(slug ?? "")
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
+const parseDietaryTags = (raw) => {
+  if (Array.isArray(raw)) return raw;
+  if (raw == null) return [];
+  const str = String(raw).trim();
+  // JSON array stored in VARCHAR/TEXT: '["halal","vegan"]'
+  if (str.startsWith("[")) {
+    try { 
+      const arr = JSON.parse(str);
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  }
+  // CSV fallback: "halal, vegan , gluten-free"
+  return str.split(",").map(s => s.trim()).filter(Boolean);
+};
+
 
   return (
     <div className="explore-foods-page">
@@ -670,20 +730,20 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
                   <div className="efp-meta">
                     <span className="muted">Origin: {food.origin}</span>
-                    <span className="efp-cal">{food.Energy_kcal} calories</span>
+                    <span className="efp-cal">{Math.round(food.Energy_kcal_ps)} calories</span>
                   </div>
 
                   <div className="efp-nutri">
                     <div className="efp-nutri-item">
-                      <div>{food.Protein_g}g</div>
+                      <div>{food.Protein_g_ps.toFixed(1)}g</div>
                       <div className="muted">Protein</div>
                     </div>
                     <div className="efp-nutri-item">
-                      <div>{food.Carbohydrates_g}g</div>
+                      <div>{food.Carbohydrates_g_ps.toFixed(1)}g</div>
                       <div className="muted">Carbs</div>
                     </div>
                     <div className="efp-nutri-item">
-                      <div>{food.Fat_g}g</div>
+                      <div>{food.Fat_g_ps.toFixed(1)}g</div>
                       <div className="muted">Fat</div>
                     </div>
                   </div>
@@ -691,7 +751,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   {/* Dietary tags row */}
                   {food.dietaryTags?.length > 0 && (
                     <div className="efp-tags" aria-label={`${food.name} dietary tags`}>
-                      {food.dietaryTags.map((tag) => (
+                      {Array.from(new Set(food.dietaryTags)).map((tag) => (
                         <button
                           key={tag}
                           type="button"
@@ -700,9 +760,9 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                             e.stopPropagation(); // don’t trigger card click
                             setSelectedDietaryTags((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
                           }}
-                          title={`Filter by ${tag}`}
+                          title={`Filter by ${humanize(tag)}`}
                         >
-                          {tag.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                          {humanize(tag)}
                         </button>
                       ))}
                     </div>
