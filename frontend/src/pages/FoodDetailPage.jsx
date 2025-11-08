@@ -120,6 +120,10 @@ export default function FoodDetailPage() {
     }
   }, [id]);
 
+  useEffect(() => {
+    if (food) setHealthAlerts(buildHealthAlerts(food));
+  }, [food]);
+
   const fetchFoodComments = async (foodId) => {
     try {
       setCommentsLoading(true);
@@ -331,10 +335,6 @@ export default function FoodDetailPage() {
 
   const ingredients = food.commonIngredients || [];
 
-  useEffect(() => {
-    if (food) setHealthAlerts(buildHealthAlerts(food));
-  }, [food]);
-
   return (
     <div className="food-detail-page">
       <Header />
@@ -448,7 +448,7 @@ export default function FoodDetailPage() {
             {/* Health alerts */}
             {healthAlerts.length > 0 && (
               <div className="fdp-card">
-                <h3 className="fdp-section-title">
+                <h3 className="rdp-sec-title">
                   <TriangleAlert size={18} color={"#6a4a2f"} /> Health Information
                 </h3>
                 <div className="fdp-alerts">
