@@ -38,7 +38,6 @@ router.get('/:id', async (req, res) => {
         f.Carbohydrates_g,
         f.Fiber_g,
         f.VitaminC_mg,
-        -- join 1 approved recipe (lowest recipeID) for servings
         r.servings
       FROM food f
       LEFT JOIN (
