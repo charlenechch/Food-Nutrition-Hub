@@ -20,7 +20,7 @@ router.get("/users", requireAdmin, async (req, res) => {
     const sql = `
       SELECT 
         u.userID, u.firstname, u.lastname, u.email, u.role, u.status, u.lastLogin, u.suspendedUntil,
-        up.location, up.recipes, up.posts
+        up.location, up.recipes, up.posts, up.totalSubmissions
       FROM user u
       LEFT JOIN userProfile up ON u.userID = up.userID
       ORDER BY u.userID ASC;
@@ -34,12 +34,7 @@ router.get("/users", requireAdmin, async (req, res) => {
     const users = rows.map(u => {
       // Your userProfile.js logic stores approved counts in 'recipes' and 'posts'
       const approvedCount = (u.recipes || 0) + (u.posts || 0);
-      
-      // ⚠️ IMPORTANT: 'submissions' (total) is not tracked in your userProfile.js logic.
-      // For now, we are setting total submissions to be the same as the approved count.
-      // To show a *true* total, you would need to update your 'userProfile' table 
-      // and 'updateUserStats' function to also count and store non-approved posts.
-      const totalSubmissions = (u.totalSubmissions || 0); // Placeholder: Using approved count as total
+      const totalSubmissions = (u.totalSubmissions || 0);
 
       let formattedLastLogin = "—";
       if (u.lastLogin) {
@@ -279,7 +274,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       role: user.role === 'admin' ? 'Admin' : 'User',
       status: user.status,
       suspendedUntil: user.suspendedUntil ? new Date(user.suspendedUntil).toISOString().slice(0,10) : null,
-      submissions: approvedCount,
+      submissions: user.totalSubmissions,
       approved: approvedCount,
       lastLogin: formattedLastLogin
     };
