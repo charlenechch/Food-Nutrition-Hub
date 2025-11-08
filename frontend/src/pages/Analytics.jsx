@@ -209,11 +209,7 @@ const Analytics = () => {
         </div>
 
         {/* Pending Recipes Card */}
-        <div 
-          className="metric-card clickable"
-          onClick={() => navigate('/admin/pending-recipes')}
-          style={{cursor: 'pointer'}}
-        >
+        <div className="metric-card">
           <h3 className="metric-title">Recipe Pending Reviews<FaExclamationTriangle className="icon-alert" /></h3>
           <div className="metric-value">{metrics.pendingRecipes?.toLocaleString() || '0'}</div>
           <div className="metric-change">
@@ -232,11 +228,7 @@ const Analytics = () => {
         </div>
 
         {/* Pending Stories Card */}
-        <div 
-          className="metric-card clickable"
-          onClick={() => navigate('/admin/pending-stories')}
-          style={{cursor: 'pointer'}}
-        >
+        <div className="metric-card">
           <h3 className="metric-title">Stories Pending Reviews <FaExclamationTriangle className="icon-alert" /></h3>
           <div className="metric-value">{metrics.pendingStories?.toLocaleString() || '0'}</div>
           <div className="metric-change">

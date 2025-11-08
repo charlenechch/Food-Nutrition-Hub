@@ -124,7 +124,7 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
       .attr('y', d => yScale(d[1]))
       .attr('height', d => yScale(d[0]) - yScale(d[1]))
       .attr('width', xScale.bandwidth() * 0.4)
-      .attr('rx', 2)
+      //.attr('rx', 2)
       .style('cursor', 'pointer')
       .on('mouseover', function(event, d) {
         const monthIndex = d.index;
@@ -184,7 +184,7 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
       .attr('y', d => yScale(d[1]))
       .attr('height', d => yScale(d[0]) - yScale(d[1]))
       .attr('width', xScale.bandwidth() * 0.4)
-      .attr('rx', 2)
+      //.attr('rx', 2)
       .style('cursor', 'pointer')
       .on('mouseover', function(event, d) {
         const monthIndex = d.index;
@@ -332,8 +332,8 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
       .attr('y', 0)
       .attr('width', 10)
       .attr('height', 10)
-      .attr('fill', d => statusColorScale(d))
-      .attr('rx', 1);
+      .attr('fill', d => statusColorScale(d));
+      //.attr('rx', 1);
 
     statusLegendItems.append('text')
       .attr('x', 15)
