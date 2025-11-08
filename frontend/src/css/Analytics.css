@@ -104,6 +104,7 @@ h2 {
 .icon-utensils {
   font-size: 20px;
   color: #916848; 
+  margin-left: 35px;
 }
 
 .icon-users {
@@ -344,7 +345,7 @@ h2 {
 }
 
 .contributor-name {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #2d3748;
   white-space: nowrap;
@@ -426,6 +427,149 @@ h2 {
   flex-direction: column;
   gap: 8px;
   flex-shrink: 0; 
+}
+
+/* Metric Value */
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+/* Positive/Negative Changes */
+.metric-change.positive {
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.metric-change.negative {
+  color: #f59e0b;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Attention Tag - Red Frame Style */
+.attention-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 2px solid #fecaca;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  animation: pulse 2s infinite;
+}
+
+.attention-tag .tag-icon {
+  font-size: 0.7rem;
+}
+
+/* All Caught Up Tag - Green Frame Style */
+.all-caught-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 2px solid #bbf7d0;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.all-caught-tag .tag-icon {
+  font-size: 0.7rem;
+}
+
+/* Pulsing animation for attention tags */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(220, 38, 38, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+}
+
+.attention-tag {
+  animation: pulse 2s infinite;
+}
+
+/* Change Indicators */
+.change-indicator {
+  font-size: 0.8rem;
+  margin-left: 2px;
+}
+
+/* Hover effects for tags */
+.attention-tag:hover {
+  background: #fecaca;
+  border-color: #f87171;
+  transform: scale(1.05);
+}
+
+.all-caught-tag:hover {
+  background: #bbf7d0;
+  border-color: #4ade80;
+  transform: scale(1.05);
+}
+
+/* Card Header with Toggle */
+.card-header-with-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.additional-card-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  color: #2d3748;
+}
+
+/* View Toggle Styles */
+.view-toggle {
+  display: flex;
+  background: #e8dccf;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.toggle-btn {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #5f5040;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background: #e8dccf;
+  color: #5f5040;
+}
+
+.toggle-btn.active {
+  background: #916848;
+  color: #e9e2da;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive adjustments */

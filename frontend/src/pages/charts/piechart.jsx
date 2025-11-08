@@ -6,11 +6,16 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
   const svgRef = useRef();
 
   useEffect(() => {
-    if (!data || data.length === 0) return;
+    if (!data || data.length === 0) {
+      console.log('No data provided to PieChart');
+      return;
+    }
+
+    console.log('PieChart received data:', data);
 
     d3.select(svgRef.current).selectAll('*').remove();
 
-    const chartHeight = height - 80; // Space for legend
+    const chartHeight = height - 100; // More space for legend
     const radius = Math.min(width, chartHeight) / 2;
     
     const svg = d3.select(svgRef.current)
@@ -20,22 +25,27 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
     const chartGroup = svg.append('g')
       .attr('transform', `translate(${width / 2}, ${chartHeight / 2})`);
 
-    // FIXED: Correct color scale setup
+    // Use Tableau10 color scheme
     const color = d3.scaleOrdinal()
       .domain(data.map(d => d.name))
-      .range(['#4c51bf', '#38a169', '#d69e2e', '#e53e3e']);
+      .range(d3.schemeTableau10);
 
-    const pie = d3.pie().value(d => d.value);
-    const arc = d3.arc().innerRadius(0).outerRadius(radius - 10);
+    const pie = d3.pie()
+      .value(d => d.value)
+      .sort(null);
 
-    // FIXED: Append arcs to chartGroup, not svg
-    const arcs = chartGroup.selectAll('arc')
+    const arc = d3.arc()
+      .innerRadius(0)
+      .outerRadius(radius - 10);
+
+    // Create arcs
+    const arcs = chartGroup.selectAll('.arc')
       .data(pie(data))
       .enter()
       .append('g')
       .attr('class', 'arc');
 
-    // Draw arcs with the exact design from image
+    // Draw arcs
     arcs.append('path')
       .attr('d', arc)
       .attr('fill', d => color(d.data.name))
@@ -47,10 +57,9 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
         d3.select(this)
           .transition()
           .duration(200)
-          .attr('opacity', 1)
+          .style('opacity', 1)
           .attr('stroke-width', 3);
 
-        // Show tooltip
         const tooltip = d3.select('body')
           .append('div')
           .attr('class', 'pie-tooltip')
@@ -68,7 +77,8 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
 
         tooltip.html(`
           <div style="font-weight: bold; margin-bottom: 4px; color: #2d3748;">${d.data.name}</div>
-          <div style="color: #4a5568;">Value: ${d.data.value}</div>
+          <div style="color: #4a5568;">Percentage: ${d.data.value}%</div>
+          <div style="color: #718096;">Recipes: ${d.data.count}</div>
         `);
       })
       .on('mousemove', function(event) {
@@ -80,27 +90,50 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
         d3.select(this)
           .transition()
           .duration(200)
-          .attr('opacity', 0.9)
+          .style('opacity', 0.9)
           .attr('stroke-width', 2);
         d3.select('.pie-tooltip').remove();
       });
 
-    // Add percentage labels inside slices
+    // Add labels with both percentage and count
     arcs.append('text')
       .attr('transform', d => `translate(${arc.centroid(d)})`)
       .attr('text-anchor', 'middle')
       .attr('dy', '0.35em')
-      .style('font-size', '12px')
+      .style('font-size', '10px')
       .style('font-weight', 'bold')
       .style('fill', '#ffffff')
       .style('pointer-events', 'none')
       .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.5)')
-      .text(d => `${d.data.value}%`);
+      .text(d => {
+        const angle = (d.endAngle - d.startAngle) * (180 / Math.PI);
+        return angle > 15 ? `${d.data.value}%` : '';
+      });
+
+    // Add count labels for smaller slices
+    arcs.filter(d => {
+      const angle = (d.endAngle - d.startAngle) * (180 / Math.PI);
+      return angle <= 15 && angle > 8;
+    }).append('text')
+      .attr('transform', d => `translate(${arc.centroid(d)})`)
+      .attr('text-anchor', 'middle')
+      .attr('dy', '0.35em')
+      .style('font-size', '9px')
+      .style('font-weight', 'bold')
+      .style('fill', '#ffffff')
+      .style('pointer-events', 'none')
+      .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.5)')
+      .text(d => `${d.data.count}`);
 
     // Add legend at the bottom
     const legend = svg.append('g')
       .attr('class', 'legend')
-      .attr('transform', `translate(0, ${chartHeight + 30})`);
+      .attr('transform', `translate(0, ${chartHeight + 20})`);
+
+    // Calculate legend layout - 2 columns
+    const itemsPerColumn = Math.ceil(data.length / 2);
+    const legendItemHeight = 18;
+    const columnWidth = width / 2;
 
     const legendItems = legend.selectAll('.legend-item')
       .data(data)
@@ -108,26 +141,29 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
       .append('g')
       .attr('class', 'legend-item')
       .attr('transform', (d, i) => {
-        const itemWidth = 80;
-        const totalWidth = data.length * itemWidth;
-        const startX = (width - totalWidth) / 2;
-        return `translate(${startX + i * itemWidth}, 0)`;
+        const column = i < itemsPerColumn ? 0 : 1;
+        const row = i < itemsPerColumn ? i : i - itemsPerColumn;
+        const x = column * columnWidth;
+        const y = row * legendItemHeight;
+        return `translate(${x}, ${y})`;
       })
-      .style('cursor', 'pointer'); 
+      .style('cursor', 'pointer');
 
-    legendItems.append('circle')
-      .attr('cx', 8)
-      .attr('cy', 8)
-      .attr('r', 6)
-      .attr('fill', d => color(d.name));
+    legendItems.append('rect')
+      .attr('x', 5)
+      .attr('y', 3)
+      .attr('width', 12)
+      .attr('height', 12)
+      .attr('fill', d => color(d.name))
+      .attr('rx', 2);
 
     legendItems.append('text')
-      .attr('x', 20)
+      .attr('x', 22)
       .attr('y', 12)
-      .style('font-size', '12px')
-      .style('fill', '#2d3748')
-      .style('font-weight', '600')
-      .text(d => d.name);
+      .style('font-size', '10px')
+      .style('fill', '#4a5568')
+      .style('font-weight', '500')
+      .text(d => `${d.name} (${d.count})`);
 
   }, [data, width, height]);
 

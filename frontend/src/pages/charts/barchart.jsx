@@ -2,14 +2,26 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-const BarChart = ({ width = 700, height = 350 }) => {
+const BarChart = ({ data = [], width = 700, height = 350 }) => {
   const svgRef = useRef();
 
+  // Color scale for the bars
+  const colorScale = d3.scaleOrdinal()
+    .domain(['Recipes', 'Stories'])
+    .range(['#4f46e5', '#ec4899']);
+
   useEffect(() => {
+    // Early return if no data
+    if (!data || data.length === 0) {
+      console.log('📊 No data provided to BarChart');
+      return;
+    }
+    
+    // Clear previous SVG
     d3.select(svgRef.current).selectAll('*').remove();
 
-    // Set up dimensions - increased bottom margin to make space for legend
-    const margin = { top: 20, right: 30, bottom: 90, left: 60 }; // Increased bottom from 70 to 90
+    // Set up dimensions
+    const margin = { top: 20, right: 30, bottom: 90, left: 60 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -37,18 +49,29 @@ const BarChart = ({ width = 700, height = 350 }) => {
       .style('font-size', '12px')
       .style('z-index', 1000);
 
+    // Transform data for grouped bar chart
+    const transformedData = data.map(item => ({
+      month: item.month,
+      categories: [
+        { name: 'Recipes', value: item.recipes || 0 },
+        { name: 'Stories', value: item.posts || 0 }
+      ]
+    }));
+
     // Create scales
     const xScale0 = d3.scaleBand()
-      .domain(data.map(d => d.month))
+      .domain(transformedData.map(d => d.month))
       .range([0, innerWidth])
       .padding(0.3);
 
     const xScale1 = d3.scaleBand()
-      .domain(data[0].categories.map(d => d.name))
+      .domain(['Recipes', 'Stories'])
       .range([0, xScale0.bandwidth()])
       .padding(0.1);
 
-    const maxValue = d3.max(data, d => d3.max(d.categories, c => c.value));
+    const maxValue = d3.max(transformedData, d => 
+      d3.max(d.categories, c => c.value)
+    );
     const yScale = d3.scaleLinear()
       .domain([0, maxValue * 1.1])
       .range([innerHeight, 0])
@@ -66,7 +89,7 @@ const BarChart = ({ width = 700, height = 350 }) => {
 
     // Create groups for each month
     const monthGroups = svg.selectAll('.month-group')
-      .data(data)
+      .data(transformedData)
       .enter()
       .append('g')
       .attr('class', 'month-group')
@@ -87,11 +110,6 @@ const BarChart = ({ width = 700, height = 350 }) => {
       .attr('ry', 2)
       .style('cursor', 'pointer')
       .on('mouseover', function(event, d) {
-        // Find the parent month data
-        const monthData = data.find(item => 
-          item.categories.some(cat => cat.name === d.name && cat.value === d.value)
-        );
-        
         // Highlight both bars in this month
         d3.select(this.parentNode)
           .selectAll('.bar')
@@ -99,19 +117,19 @@ const BarChart = ({ width = 700, height = 350 }) => {
           .duration(200)
           .attr('opacity', 0.8);
 
-        // Show tooltip with both categories data
+        // Show tooltip
         tooltip
           .style('opacity', 1)
           .html(`
-            <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${monthData.month}</div>
-            <div style="display: flex; align-items: center; color:${colorScale('Recipes')}; margin: 2px 0;">
-              <span>Recipes: <strong>${monthData.categories[0].value}</strong></span>
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${d.month}</div>
+            <div style="display: flex; align-items: center; color:#4f46e5; margin: 2px 0;">
+              <span>Recipes: <strong>${d.categories[0].value}</strong></span>
             </div>
-            <div style="display: flex; align-items: center; color:${colorScale('Stories')}; margin: 2px 0;">
-              <span>Stories: <strong>${monthData.categories[1].value}</strong></span>
+            <div style="display: flex; align-items: center; color:#ec4899; margin: 2px 0;">
+              <span>Stories: <strong>${d.categories[1].value}</strong></span>
             </div>
             <div style="margin-top: 4px; font-weight: 600;">
-              Total: <strong>${monthData.categories[0].value + monthData.categories[1].value}</strong>
+              Total: <strong>${d.categories[0].value + d.categories[1].value}</strong>
             </div>
           `);
       })
@@ -121,13 +139,12 @@ const BarChart = ({ width = 700, height = 350 }) => {
           .style('top', (event.pageY - 10) + 'px');
       })
       .on('mouseout', function() {
-        // Reset opacity for all bars in this month
+        // Reset opacity
         d3.select(this.parentNode)
           .selectAll('.bar')
           .transition()
           .duration(200)
           .attr('opacity', 1);
-
         tooltip.style('opacity', 0);
       });
 
@@ -171,18 +188,18 @@ const BarChart = ({ width = 700, height = 350 }) => {
       .attr('transform', `translate(${innerWidth / 2 - 60}, ${innerHeight + 60})`);
 
     const legendItems = legend.selectAll('.legend-item')
-    .data(data[0].categories)
-    .enter()
-    .append('g')
-    .attr('class', 'legend-item')
-    .attr('transform', (d, i) => `translate(${i * 80}, 0)`)
-    .style('cursor', 'pointer');
+      .data(['Recipes', 'Stories'])
+      .enter()
+      .append('g')
+      .attr('class', 'legend-item')
+      .attr('transform', (d, i) => `translate(${i * 80}, 0)`)
+      .style('cursor', 'pointer');
 
     legendItems.append('circle')
-      .attr('cx', 6) 
-      .attr('cy', 6) 
-      .attr('r', 6) 
-      .attr('fill', d => colorScale(d.name));
+      .attr('cx', 6)
+      .attr('cy', 6)
+      .attr('r', 6)
+      .attr('fill', d => colorScale(d));
 
     legendItems.append('text')
       .attr('x', 15)
@@ -190,13 +207,13 @@ const BarChart = ({ width = 700, height = 350 }) => {
       .style('font-size', '12px')
       .style('fill', '#2d3748')
       .style('font-weight', '600')
-      .text(d => d.name);
+      .text(d => d);
 
     // Cleanup function
     return () => {
       tooltip.remove();
     };
-  }, [width, height]);
+  }, [data, width, height]);
 
   return <svg ref={svgRef}></svg>;
 };

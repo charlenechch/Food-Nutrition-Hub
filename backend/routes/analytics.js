@@ -5,8 +5,8 @@ const { pool: db } = require("../config/db");
 // Helper function to get month name
 function getMonthName(monthNumber) {  
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
   ];
   return months[monthNumber - 1];
 }
@@ -135,24 +135,32 @@ router.get('/cultural-origin', async (req, res) => {
         origin as name,
         COUNT(foodID) as count
       FROM food
-      WHERE origin IS NOT NULL
+      WHERE origin IS NOT NULL AND origin != ''
       GROUP BY origin
       ORDER BY count DESC
     `;
     
     const [results] = await db.execute(query);
     
-    // Convert to percentage
+    console.log('Cultural Origin Raw Results:', results);
+    
+    // Get the actual total count (should be 10)
     const total = results.reduce((sum, item) => sum + parseInt(item.count), 0);
+    
+    console.log('Total Recipes in Database:', total);
+    
+    // Calculate percentages based on actual counts
     const data = results.map(item => ({
       name: item.name,
-      value: total > 0 ? Math.round((item.count / total) * 100) : 0
+      value: Math.round((item.count / total) * 100),
+      count: item.count // Include actual count
     }));
     
     res.json({ 
       success: true, 
       data,
-      totalCount: total
+      totalCount: total,
+      rawData: results
     });
   } catch (error) {
     console.error('Error fetching cultural origin data:', error);
@@ -292,45 +300,38 @@ router.get('/popular-categories', async (req, res) => {
   }
 });
 
-// Get top contributors
+// get top contributors
 router.get('/top-contributors', async (req, res) => {
   try {
+    // Get top contributors with both recipe and story counts
     const query = `
       SELECT 
-        u.firstname,
-        u.lastname,
-        up.userProfileID,
-        COUNT(r.recipeID) as submissions,
-        COUNT(DISTINCT r.foodID) as recipes
+        u.userID,
+        u.username as name,
+        COUNT(DISTINCT r.recipeID) as recipes,
+        COUNT(DISTINCT p.postID) as stories,
+        (COUNT(DISTINCT r.recipeID) + COUNT(DISTINCT p.postID)) as totalSubmissions
       FROM user u
-      INNER JOIN userProfile up ON u.userID = up.userID
-      INNER JOIN recipe r ON up.userProfileID = r.userProfileID
-      WHERE r.status = 'Approved'
-      GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
-      ORDER BY submissions DESC
-      LIMIT 5
+      LEFT JOIN recipe r ON u.userID = r.userID AND r.status = 'Approved'
+      LEFT JOIN posts p ON u.userID = p.user_id AND p.status = 'Approved'
+      GROUP BY u.userID, u.username
+      HAVING totalSubmissions > 0
+      ORDER BY totalSubmissions DESC
+      LIMIT 10
     `;
     
     const [results] = await db.execute(query);
     
-    // Format the data for frontend
-    const data = results.map(item => ({
-      name: `${item.firstname} ${item.lastname}`,
-      submissions: parseInt(item.submissions),
-      recipes: parseInt(item.recipes)
-    }));
-    
-    res.json({ 
-      success: true, 
-      data,
-      totalContributors: results.length
+    res.json({
+      success: true,
+      data: results
     });
   } catch (error) {
-    console.error('Error fetching top contributors data:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch top contributors data',
-      message: error.message 
+    console.error('Error fetching top contributors:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch top contributors',
+      message: error.message
     });
   }
 });
