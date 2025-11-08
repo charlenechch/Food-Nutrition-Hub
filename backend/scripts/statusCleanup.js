@@ -94,11 +94,7 @@ async function updateStaleAndExpiredUsers() {
 // Run the script and exit
 updateStaleAndExpiredUsers()
     .then(() => {
-        // Log success and exit immediately.
-        console.log("✅ Script finished execution.");
-        process.exit(0); 
+        // Use a small delay to ensure all console output is flushed before exiting the Node process
+        setTimeout(() => process.exit(0), 100); 
     })
-    .catch((err) => {
-        console.error("❌ Top-level script failed and crashed:", err);
-        process.exit(1);
-    });
+    .catch(() => process.exit(1));
