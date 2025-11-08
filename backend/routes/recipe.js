@@ -501,6 +501,10 @@ try {
   
   console.log('✅ Recipe insert successful');
   console.log('🎉 Recipe created successfully with ID:', foodId);
+
+  // Force the stats to recount immediately after submission
+  await updateUserStats(userID); 
+  console.log(`✅ User stats recounted on recipe submission for userID: ${userID}`);
   
   res.status(201).json({ 
     message: 'Recipe created successfully', 
