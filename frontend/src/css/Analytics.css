@@ -228,11 +228,6 @@ h2 {
   gap: 8px;
 }
 
-.category-main {
-  padding-bottom: 12px;
-  border-bottom: 2px solid #e2e8f0;
-}
-
 .category-info {
   display: flex;
   justify-content: space-between;

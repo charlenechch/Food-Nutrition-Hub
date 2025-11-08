@@ -174,7 +174,8 @@ router.get('/cultural-origin', async (req, res) => {
 
 router.get('/posts-recipes-by-month', async (req, res) => {
   try {
-    const currentYear = new Date().getFullYear();
+    // Allow year parameter or use current year
+    const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
     
     const query = `
       SELECT 
@@ -200,7 +201,7 @@ router.get('/posts-recipes-by-month', async (req, res) => {
       ORDER BY month, type
     `;
     
-    const [results] = await db.execute(query, [currentYear, currentYear]);
+    const [results] = await db.execute(query, [year, year]);
     
     const monthlyData = {};
     
@@ -251,7 +252,7 @@ router.get('/posts-recipes-by-month', async (req, res) => {
         recipes: totalRecipes,
         total: totalCount
       },
-      year: currentYear
+      year: year
     });
   } catch (error) {
     console.error('Error fetching posts and recipes data:', error);
@@ -308,15 +309,15 @@ router.get('/top-contributors', async (req, res) => {
     // Get top contributors with both recipe and story counts including userProfileID
     const query = `
       SELECT 
-        u.firstname,
-        u.lastname,
-        up.userProfileID,
-        COUNT(DISTINCT r.recipeID) as recipes,
-        COUNT(DISTINCT p.postID) as stories
+          u.firstname,
+          u.lastname,
+          up.userProfileID,
+          COUNT(DISTINCT r.recipeID) as recipes,
+          COUNT(DISTINCT p.postID) as stories
       FROM user u
-      LEFT JOIN userProfile up ON u.userID = up.userID
-      LEFT JOIN recipe r ON u.userID = r.userID AND r.status = 'Approved'
-      LEFT JOIN posts p ON u.userID = p.user_id AND p.status = 'Approved'
+      INNER JOIN userProfile up ON u.userID = up.userID
+      LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
+      LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
       GROUP BY u.firstname, u.lastname, up.userProfileID
       HAVING recipes > 0 OR stories > 0
       ORDER BY recipes DESC, stories DESC
