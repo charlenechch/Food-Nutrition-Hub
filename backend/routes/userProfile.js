@@ -1118,3 +1118,4 @@ router.delete("/delete", async (req, res) => {
 console.log("✅ UserProfile router loaded with debug logging");
 module.exports = router;
 module.exports.deleteUser = deleteUser;
+module.exports.updateUserStats = updateUserStats;

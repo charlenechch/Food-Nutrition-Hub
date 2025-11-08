@@ -3,6 +3,7 @@ const router = express.Router();
 const { pool: db } = require("../config/db");
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
+const { updateUserStats } = require('./userProfile');
 
 // ✅ NEW: Validation + sanitization setup (added without removing anything)
 const Joi = require("joi");
@@ -973,6 +974,16 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Recipe not found." });
+    }
+
+    // Force the stats to recount
+    const [userResult] = await db.query("SELECT userProfileID FROM recipe WHERE foodID = ?", [recipeId]);
+    if (userResult.length > 0) {
+        const userProfileID = userResult[0].userProfileID;
+        const [userRow] = await db.query("SELECT userID FROM userProfile WHERE userProfileID = ?", [userProfileID]);
+        const userID = userRow[0].userID;
+        await updateUserStats(userID);
+        console.log(`✅ User stats recounted for userProfileID: ${userProfileID}`);
     }
 
     console.log(`✅ Recipe ${recipeId} status updated to ${status}`);
