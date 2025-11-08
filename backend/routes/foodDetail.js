@@ -2,29 +2,44 @@ const express = require("express");
 const router = express.Router();
 const { pool: db } = require("../config/db");
 
+const num = (v) => (v == null ? 0 : Number(v));
+
 router.get('/:id', async (req, res) => {
   try {
     const foodId = req.params.id;
-    console.log(`📥 Fetching data for food ID: ${foodId}`);
+    console.log(`Fetching data for food ID: ${foodId}`);
 
     const foodDetailQuery = `
       SELECT 
-        foodID,
-        name,
-        origin,
-        category,
-        description,
-        culturalSignificance,
-        traditionalPreparation,
-        commonIngredients,
-        Energy_kcal,
-        Protein_g,
-        Fat_g,
-        Carbohydrates_g,
-        image,
-        healthTips
-      FROM food 
-      WHERE foodID = ?
+        f.foodID,
+        f.name,
+        f.origin,
+        f.category,
+        f.description,
+        f.culturalSignificance,
+        f.traditionalPreparation,
+        f.commonIngredients,
+        f.image,
+        f.healthTips,
+        f.Energy_kcal,
+        f.Protein_g,
+        f.Fat_g,
+        f.Carbohydrates_g,
+        f.Fiber_g,
+        f.VitaminC_mg,
+        r.servings
+      FROM food f
+      LEFT JOIN (
+        SELECT r1.*
+        FROM recipe r1
+        INNER JOIN (
+          SELECT foodID, MIN(recipeID) AS rid
+          FROM recipe
+          WHERE status = 'Approved'
+          GROUP BY foodID
+        ) x ON x.rid = r1.recipeID
+      ) r ON r.foodID = f.foodID
+      WHERE f.foodID = ?
     `;
 
     console.log('Executing query with ID:', foodId);
@@ -60,6 +75,24 @@ router.get('/:id', async (req, res) => {
       console.log('No commonIngredients found');
     }
 
+    const servings = Math.max(1, num(food.servings) || 1);
+    const k = 1 / servings;
+
+    const Energy_kcal = num(food.Energy_kcal);
+    const Protein_g = num(food.Protein_g);
+    const Fat_g = num(food.Fat_g);
+    const Carbohydrates_g = num(food.Carbohydrates_g);
+    const Fiber_g = num(food.Fiber_g);
+    const VitaminC_mg = num(food.VitaminC_mg);
+
+    const Energy_kcal_ps = +(Energy_kcal * k).toFixed(2);
+    const Protein_g_ps = +(Protein_g * k).toFixed(2);
+    const Fat_g_ps = +(Fat_g * k).toFixed(2);
+    const Carbohydrates_g_ps = +(Carbohydrates_g * k).toFixed(2);
+    const Fiber_g_ps = +(Fiber_g * k).toFixed(2);
+    const VitaminC_mg_ps = +(VitaminC_mg * k).toFixed(2);
+
+
     // Map to frontend field names
     const formattedFood = {
       id: food.foodID,
@@ -70,12 +103,25 @@ router.get('/:id', async (req, res) => {
       culturalSignificance: food.culturalSignificance,
       traditionalPreparation: food.traditionalPreparation,
       commonIngredients: ingredients, // this will be an array
-      calories: food.Energy_kcal,
-      protein: food.Protein_g,
-      fat: food.Fat_g,
-      carbs: food.Carbohydrates_g,
+      calories: Energy_kcal,
+      protein: Protein_g,
+      fat: Fat_g,
+      carbs: Carbohydrates_g,
       image: food.image,
-      healthTips: food.healthTips
+      healthTips: food.healthTips,
+      Fiber_g,
+      VitaminC_mg,
+      servings,
+      Energy_kcal_ps,
+      Protein_g_ps,
+      Fat_g_ps,
+      Carbohydrates_g_ps,
+      Fiber_g_ps,
+      VitaminC_mg_ps,
+      calories_ps: Energy_kcal_ps,
+      protein_ps: Protein_g_ps,
+      fat_ps: Fat_g_ps,
+      carbs_ps: Carbohydrates_g_ps,
     };
 
     console.log(`✅ Successfully formatted food: ${formattedFood.name}`);
