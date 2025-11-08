@@ -120,6 +120,10 @@ export default function FoodDetailPage() {
     }
   }, [id]);
 
+  useEffect(() => {
+    if (food) setHealthAlerts(buildHealthAlerts(food));
+  }, [food]);
+
   const fetchFoodComments = async (foodId) => {
     try {
       setCommentsLoading(true);
@@ -330,10 +334,6 @@ export default function FoodDetailPage() {
   }
 
   const ingredients = food.commonIngredients || [];
-
-  useEffect(() => {
-    if (food) setHealthAlerts(buildHealthAlerts(food));
-  }, [food]);
 
   return (
     <div className="food-detail-page">
