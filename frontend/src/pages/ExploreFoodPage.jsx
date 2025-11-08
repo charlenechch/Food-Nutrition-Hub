@@ -21,19 +21,48 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         console.log("Number of foods:", data.length);
 
         const transformedData = data.map(food => {
-          const normalizedTags = parseDietaryTags(food.dietaryTags ?? food.dietary_tags)
-            .map(toSlug);
+          const normalizedTags = parseDietaryTags(food.dietaryTags ?? food.dietary_tags).map(toSlug);
+
+          const servings = Math.max(1, Number(food.servings || 1)); // backend may add this; default 1
+          const num = (v) => (v == null ? 0 : Number(v));
+
+          // totals
+          const Energy_kcal = num(food.Energy_kcal);
+          const Protein_g = num(food.Protein_g);
+          const Fat_g = num(food.Fat_g);
+          const Carbohydrates_g = num(food.Carbohydrates_g);
+          const Fiber_g = num(food.Fiber_g);
+          const VitaminC_mg = num(food.VitaminC_mg);
+
+          // prefer server-calculated per-serving, else compute here
+          const Energy_kcal_ps = num(food.Energy_kcal_ps) || +(Energy_kcal / servings).toFixed(2);
+          const Protein_g_ps = num(food.Protein_g_ps) || +(Protein_g / servings).toFixed(2);
+          const Fat_g_ps = num(food.Fat_g_ps) || +(Fat_g / servings).toFixed(2);
+          const Carbohydrates_g_ps = num(food.Carbohydrates_g_ps) || +(Carbohydrates_g / servings).toFixed(2);
+          const Fiber_g_ps = num(food.Fiber_g_ps) || +(Fiber_g / servings).toFixed(2);
+          const VitaminC_mg_ps = num(food.VitaminC_mg_ps) || +(VitaminC_mg / servings).toFixed(2);
 
           return {
             ...food,
-            Energy_kcal: parseFloat(food.Energy_kcal) || 0,
-            Protein_g: parseFloat(food.Protein_g) || 0,
-            Fat_g: parseFloat(food.Fat_g) || 0,
-            Carbohydrates_g: parseFloat(food.Carbohydrates_g) || 0,
-            Fiber_g: parseFloat(food.Fiber_g) || 0,
-            VitaminC_mg: parseFloat(food.VitaminC_mg) || 0,
             category: food.category || "",
-            dietaryTags: normalizedTags, 
+            dietaryTags: normalizedTags,
+
+            // keep numeric totals
+            Energy_kcal,
+            Protein_g,
+            Fat_g,
+            Carbohydrates_g,
+            Fiber_g,
+            VitaminC_mg,
+
+            // serving + per serving
+            servings,
+            Energy_kcal_ps,
+            Protein_g_ps,
+            Fat_g_ps,
+            Carbohydrates_g_ps,
+            Fiber_g_ps,
+            VitaminC_mg_ps,
           };
         });
         
@@ -701,21 +730,21 @@ const parseDietaryTags = (raw) => {
 
                   <div className="efp-meta">
                     <span className="muted">Origin: {food.origin}</span>
-                    <span className="efp-cal">{food.Energy_kcal} calories</span>
+                    <span className="efp-cal">{Math.round(food.Energy_kcal_ps)} kcal / serving</span>
                   </div>
 
                   <div className="efp-nutri">
                     <div className="efp-nutri-item">
-                      <div>{food.Protein_g}g</div>
-                      <div className="muted">Protein</div>
+                      <div>{food.Protein_g_ps.toFixed(1)}g</div>
+                      <div className="muted">Protein / serving</div>
                     </div>
                     <div className="efp-nutri-item">
-                      <div>{food.Carbohydrates_g}g</div>
-                      <div className="muted">Carbs</div>
+                      <div>{food.Carbohydrates_g_ps.toFixed(1)}g</div>
+                      <div className="muted">Carbs / serving</div>
                     </div>
                     <div className="efp-nutri-item">
-                      <div>{food.Fat_g}g</div>
-                      <div className="muted">Fat</div>
+                      <div>{food.Fat_g_ps.toFixed(1)}g</div>
+                      <div className="muted">Fat / serving</div>
                     </div>
                   </div>
 
