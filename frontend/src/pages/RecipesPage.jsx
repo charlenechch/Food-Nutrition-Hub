@@ -29,6 +29,9 @@ export default function RecipesPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const norm = (s) => String(s ?? "").toLowerCase().trim();
+  const tokenize = (s) => norm(s).split(/\s+/).filter(Boolean);
+
   // Debug (kept)
   useEffect(() => {
     console.log('Recipes data:', recipes);
@@ -126,25 +129,49 @@ export default function RecipesPage() {
 
   // Filtered list (kept)
   const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return recipes.filter(r => {
-      const name = (r.name || "").toLowerCase();
-      const origin = (r.origin || "").toLowerCase();
-      const desc = (r.description || "").toLowerCase();
+    const terms = tokenize(searchQuery);
 
-      const matchSearch = !q || name.includes(q) || origin.includes(q) || desc.includes(q);
-      const matchOrigin = selectedOrigin === "all" || r.origin === selectedOrigin;
-      const matchDifficulty = selectedDifficulty === "all" || r.difficulty === selectedDifficulty;
+    return recipes.filter((r) => {
+      const haystack = [
+        r.name,
+        r.origin,
+        r.foodType,            
+        r.description,
+        r.ingredients,         // include ingredients
+        r.instructions,        // include instructions (optional but useful)
+        Array.isArray(r.dietaryTags) ? r.dietaryTags.join(" ") : r.dietaryTags,
+        r.difficulty
+      ].map(norm).join(" ");
+
+      // multi-term AND match (every term must appear)
+      const matchSearch = terms.length === 0 || terms.every(t => haystack.includes(t));
+
+      // make non-text filters case-insensitive & resilient
+      const originNorm     = norm(r.origin);
+      const diffNorm       = norm(r.difficulty);
+      const foodTypeNorm   = norm(r.foodType);
+
+      const matchOrigin     = selectedOrigin === "all" || originNorm === norm(selectedOrigin);
+      const matchDifficulty = selectedDifficulty === "all" || diffNorm === norm(selectedDifficulty);
+      const matchFoodType   = selectedType === "all" || foodTypeNorm === norm(selectedType);
 
       const pt = Number(r.prepTime) || 0;
       const ct = Number(r.cookTime) || 0;
+
+      const inBucket = (minutes, bucket) => {
+        const m = Number(minutes) || 0;
+        if (bucket === "all") return true;
+        if (bucket === "under30")  return m <= 30;
+        if (bucket === "under120") return m <= 120;
+        if (bucket === "over120")  return m > 120;
+        return true;
+      };
+
       const matchPrepBucket = inBucket(pt, selectedPrepTime);
       const matchCookBucket = inBucket(ct, selectedCookTime);
-      
-      const matchFoodType = selectedType === "all" || r.foodType === selectedType;
-      
-      const tags = Array.isArray(r.dietaryTags) ? r.dietaryTags : [];
-      const matchDiet = dietFilters.length === 0 || dietFilters.every(t => tags.includes(t));
+
+      const tags = Array.isArray(r.dietaryTags) ? r.dietaryTags.map(norm) : [];
+      const matchDiet = dietFilters.length === 0 || dietFilters.every(t => tags.includes(norm(t)));
 
       return (
         matchSearch &&
@@ -156,7 +183,16 @@ export default function RecipesPage() {
         matchDiet
       );
     });
-  }, [recipes, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedType, dietFilters]);
+  }, [
+    recipes,
+    searchQuery,
+    selectedOrigin,
+    selectedDifficulty,
+    selectedPrepTime,
+    selectedCookTime,
+    selectedType,
+    dietFilters
+  ]);
 
   // Reset page if filters or data change (kept)
   useEffect(() => {
