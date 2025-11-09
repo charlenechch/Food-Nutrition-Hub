@@ -53,7 +53,7 @@ export default function FoodDetailPage() {
     if (kcal >= 600) {
       alerts.push({ type: "warning", message: "High-calorie dish — consume in moderation." });
     } else if (kcal > 0 && kcal <= 300) {
-      alerts.push({ type: "info", message: "Low-calorie serving." });
+      alerts.push({ type: "info", message: "Low-calorie dish." });
     }
 
     if (protein >= 25) {
@@ -65,7 +65,7 @@ export default function FoodDetailPage() {
     if (fat >= 20) {
       alerts.push({ type: "warning", message: "High total fat per serving." });
     } else if (fat > 0 && fat <= 10) {
-      alerts.push({ type: "info", message: "Low-fat serving." });
+      alerts.push({ type: "info", message: "Low-fat dish." });
     }
 
     if (carbs >= 60) {
