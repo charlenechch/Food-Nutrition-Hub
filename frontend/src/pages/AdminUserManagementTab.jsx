@@ -215,6 +215,7 @@ export default function UserManagement() {
     };
     const [userForm, setUserForm] = useState(emptyUser);
     const [suspensionDate, setSuspensionDate] = useState(null);
+    const [showDateInput, setShowDateInput] = useState(false);
 
     // Open Create
     const openCreateUser = () => {
@@ -229,7 +230,8 @@ export default function UserManagement() {
         const dateString = u.suspendedUntil ? u.suspendedUntil.split('T')[0] : '';
 
         setUserForm({ ...u });
-        setSuspensionDate(dateString); // Initialize the toggle based on the current user status
+        setSuspensionDate(dateString);
+        setShowDateInput(u.status === "Suspended");
         setShowUserModal(true);
     };
 
