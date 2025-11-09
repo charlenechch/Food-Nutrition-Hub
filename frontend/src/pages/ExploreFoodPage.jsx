@@ -126,16 +126,34 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     }
   }, [foods, calMax]);
 
+  const norm = (s) => String(s ?? "").toLowerCase().trim();
+
   const filteredFoods = useMemo(() => {
     console.log("=== FILTERING DEBUG ===");
     console.log("Total foods:", foods.length);
     console.log("First food item:", foods[0]);
+
+    const terms = norm(searchQuery).split(/\s+/).filter(Boolean);
     
     const result = foods.filter((food) => {
 
-      const matchesSearch =
-        food.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        food.origin?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = terms.length === 0 || terms.every(term => {
+        const haystack = [
+          food.name,
+          food.origin,
+          food.category,
+          food.description,
+          Array.isArray(food.commonIngredients) 
+            ? food.commonIngredients.join(" ")
+            : food.commonIngredients,
+          Array.isArray(food.dietaryTags) 
+            ? food.dietaryTags.join(" ")
+            : food.dietaryTags
+        ].map(norm).join(" ");
+
+        return haystack.includes(term);
+      });
+      
       const matchesCategory =
         selectedCategory === "all" || food.category === selectedCategory;
 
