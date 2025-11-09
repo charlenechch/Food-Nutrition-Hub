@@ -173,7 +173,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         nutritionFocus === "all" ||
         (nutritionFocus === "high-protein" && (parseFloat(food.Protein_g_ps) || 0) >= 20) ||
         (nutritionFocus === "low-fat" && (parseFloat(food.Fat_g_ps) || 0) <= 10) ||
-        (nutritionFocus === "high-fiber" && (parseFloat(food.Fiber_g_ps) || 0) >= 5);
+        (nutritionFocus === "high-fiber" && (parseFloat(food.Fiber_g_ps) || 0) >= 5) ||
         (nutritionFocus === "low-carbs" && (parseFloat(food.Carbohydrates_g_ps) || 0) <= 25);
 
       const matchesFoodType =
