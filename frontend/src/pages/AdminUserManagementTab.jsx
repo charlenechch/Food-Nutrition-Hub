@@ -838,83 +838,82 @@ export default function UserManagement() {
                     />
                     </div>
 
-                    {/* Role + Status row */}
+                    {/* Role + Status + suspendedUntil row */}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div className="umg-field">
-                        <label className="umg-label">Role</label>
-                        <select
-                            className="umg-input"
-                            value={userForm.role}
-                            onChange={(e) => setUserForm(prev => ({ ...prev, role: e.target.value }))}
-                        >
-                            <option>User</option>
-                            <option>Admin</option>
-                        </select>
-                    </div>
+                      <label className="umg-label">Role</label>
+                      <select
+                          className="umg-input"
+                          value={userForm.role}
+                          onChange={(e) => setUserForm(prev => ({ ...prev, role: e.target.value }))}
+                      >
+                          <option>User</option>
+                          <option>Admin</option>
+                      </select>
+                  </div>
 
                     {/* Right Side: Clean Status Display & Conditional Date Input */}
                     <div className="umg-field">
-                        <label className="umg-label">Status</label>
-                        
-                        {/* Simple Status Display */}
-                        <div className="umg-action-row umg-status-action-row">
-                            <span className={`umg-pill ${userForm.status === "Suspended" ? "umg-pill-suspended" : (userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive")}`}>
-                                {userForm.status}
-                            </span>
+                      <label className="umg-label">Status</label>
+                      
+                      {/* Simple Status Display */}
+                      <div className="umg-action-row umg-status-action-row">
+                          <span className={`umg-pill ${userForm.status === "Suspended" ? "umg-pill-suspended" : (userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive")}`}>
+                              {userForm.status}
+                          </span>
 
-                            {userForm.status !== "Suspended" && !showDateInput && (
-                            <button
-                                type="button"
-                                className="umg-status-btn-ml" 
-                                onClick={() => setShowDateInput(true)} 
-                            >
-                                Suspend User
-                            </button>
-                            )}
+                          {userForm.status !== "Suspended" && !showDateInput && (
+                          <button
+                              type="button"
+                              className="umg-status-btn-ml umg-btn umg-btn-danger" 
+                              onClick={() => setShowDateInput(true)} 
+                          >
+                              Suspend User
+                          </button>
+                          )}
 
-                            {/* 2. Unsuspend Button (Visible ONLY if currently suspended) */}
-                            {userForm.status === "Suspended" && (
-                                <button
-                                    type="button"
-                                    className="umg-status-btn-ml" 
-                                    onClick={() => {
-                                        setSuspensionDate(null); 
-                                        setShowDateInput(false); 
-                                    }}
-                                >
-                                    Clear Suspension
-                                </button>
-                            )}
-                        </div>
+                          {/* 2. Unsuspend Button (Visible ONLY if currently suspended) */}
+                          {userForm.status === "Suspended" && (
+                              <button
+                                  type="button"
+                                  className="umg-status-btn-ml umg-btn umg-btn-warning" 
+                                  onClick={() => {
+                                      setSuspensionDate(null); 
+                                      setShowDateInput(false); 
+                                  }}
+                              >
+                                  Clear Suspension
+                              </button>
+                          )}
+                      </div>
 
                         {/* Suspended Until Date (Only appears AFTER clicking "Suspend User" OR if user is already suspended) */}
                         {userMode === "edit" && (showDateInput || userForm.status === "Suspended") && (
-                            <div className="umg-modal-mt-md umg-full-width-field">
-                                <label className="umg-label">Suspended Until</label>
-                                
-                                {/* Date Input Field - Now full width because it uses .umg-input directly */}
-                                <input
-                                    className="umg-input"
-                                    type="date"
-                                    min={new Date().toISOString().slice(0, 10)} 
-                                    value={suspensionDate || ""}
-                                    onChange={(e) => setSuspensionDate(e.target.value)}
-                                />
-                                
-                                {/* Display a cancel button (moved outside the input for full width) */}
-                                {showDateInput && userForm.status !== "Suspended" && (
-                                    <div className="umg-date-cancel-row">
-                                        <button
-                                            type="button"
-                                            className="umg-btn umg-btn-secondary" 
-                                            onClick={() => setShowDateInput(false)}
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                          <div className="umg-field umg-full-width-field"> {/* Removed umg-modal-mt-md as it's now aligned with other fields */}
+                              <label className="umg-label">Suspended Until</label>
+                              
+                              <input
+                                  className="umg-input"
+                                  type="date"
+                                  min={new Date().toISOString().slice(0, 10)} 
+                                  value={suspensionDate || ""}
+                                  onChange={(e) => setSuspensionDate(e.target.value)}
+                              />
+                              
+                              {/* Display a cancel button */}
+                              {showDateInput && userForm.status !== "Suspended" && (
+                                  <div className="umg-date-cancel-row">
+                                      <button
+                                          type="button"
+                                          className="umg-btn umg-btn-secondary" 
+                                          onClick={() => setShowDateInput(false)}
+                                      >
+                                          Cancel
+                                      </button>
+                                  </div>
+                              )}
+                          </div>
+                      )}
                     </div>
                 </div>
 
