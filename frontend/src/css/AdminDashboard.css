@@ -1876,12 +1876,13 @@
   margin-top: 10px;
 }
 
-.umg-hint-mt {
-  margin-top: 5px;
-}
-
 .umg-date-cancel-row {
   display: flex;
   justify-content: flex-end;
   margin-top: 8px;
+}
+
+.umg-full-width-field .umg-input, 
+.umg-full-width-field .umg-select {
+  width: 100%;
 }

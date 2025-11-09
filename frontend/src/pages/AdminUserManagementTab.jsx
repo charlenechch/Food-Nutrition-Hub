@@ -889,7 +889,7 @@ export default function UserManagement() {
 
                         {/* Suspended Until Date (Only appears AFTER clicking "Suspend User" OR if user is already suspended) */}
                         {userMode === "edit" && (showDateInput || userForm.status === "Suspended") && (
-                            <div className="umg-modal-mt-md">
+                            <div className="umg-modal-mt-md umg-full-width-field">
                                 <label className="umg-label">Suspended Until</label>
                                 
                                 {/* Date Input Field - Now full width because it uses .umg-input directly */}
@@ -913,10 +913,6 @@ export default function UserManagement() {
                                         </button>
                                     </div>
                                 )}
-                                
-                                <div className="umg-hint-mt">
-                                    Select a date and click "Save Changes" below to apply suspension.
-                                </div>
                             </div>
                         )}
                     </div>
