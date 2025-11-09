@@ -857,30 +857,29 @@ export default function UserManagement() {
                         <label className="umg-label">Status</label>
                         
                         {/* Simple Status Display */}
-                        <div className="umg-action-row" style={{marginBottom: '15px', alignItems: 'center'}}>
+                        <div className="umg-action-row umg-status-action-row">
                             <span className={`umg-pill ${userForm.status === "Suspended" ? "umg-pill-suspended" : (userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive")}`}>
                                 {userForm.status}
                             </span>
 
-                            {/* Suspend Button (Visible only if NOT currently suspended AND date input is NOT showing) */}
                             {userForm.status !== "Suspended" && !showDateInput && (
-                                <button
-                                    type="button"
-                                    className="umg-btn umg-btn-danger" 
-                                    onClick={() => setShowDateInput(true)} // Shows the date picker
-                                >
-                                    Suspend User
-                                </button>
+                            <button
+                                type="button"
+                                className="umg-status-btn-ml" 
+                                onClick={() => setShowDateInput(true)} 
+                            >
+                                Suspend User
+                            </button>
                             )}
 
-                            {/* Unsuspend Button (Visible ONLY if currently suspended) */}
+                            {/* 2. Unsuspend Button (Visible ONLY if currently suspended) */}
                             {userForm.status === "Suspended" && (
                                 <button
                                     type="button"
-                                    className="umg-btn umg-btn-warning" 
+                                    className="umg-status-btn-ml" 
                                     onClick={() => {
-                                        setSuspensionDate(null); // Clear the date
-                                        setShowDateInput(false); // Hide the picker
+                                        setSuspensionDate(null); 
+                                        setShowDateInput(false); 
                                     }}
                                 >
                                     Clear Suspension
@@ -889,9 +888,11 @@ export default function UserManagement() {
                         </div>
 
                         {/* Suspended Until Date (Only appears AFTER clicking "Suspend User" OR if user is already suspended) */}
-                        {(showDateInput || userForm.status === "Suspended") && (
-                            <div className="umg-field" style={{ marginTop: '10px' }}>
+                        {userMode === "edit" && (showDateInput || userForm.status === "Suspended") && (
+                            <div className="umg-modal-mt-md">
                                 <label className="umg-label">Suspended Until</label>
+                                
+                                {/* Date Input Field - Now full width because it uses .umg-input directly */}
                                 <input
                                     className="umg-input"
                                     type="date"
@@ -899,8 +900,22 @@ export default function UserManagement() {
                                     value={suspensionDate || ""}
                                     onChange={(e) => setSuspensionDate(e.target.value)}
                                 />
-                                <div className="umg-hint" style={{ marginTop: '5px' }}>
-                                    Select a date and click "Save Changes" to apply suspension.
+                                
+                                {/* Display a cancel button (moved outside the input for full width) */}
+                                {showDateInput && userForm.status !== "Suspended" && (
+                                    <div className="umg-date-cancel-row">
+                                        <button
+                                            type="button"
+                                            className="umg-btn umg-btn-secondary" 
+                                            onClick={() => setShowDateInput(false)}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                )}
+                                
+                                <div className="umg-hint-mt">
+                                    Select a date and click "Save Changes" below to apply suspension.
                                 </div>
                             </div>
                         )}

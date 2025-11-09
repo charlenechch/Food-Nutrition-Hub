@@ -1862,3 +1862,26 @@
 .umg-error-retry-btn:active {
   transform: translateY(0);
 }
+
+.umg-status-action-row {
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.umg-status-btn-ml {
+  margin-left: 20px;
+}
+
+.umg-modal-mt-md {
+  margin-top: 10px;
+}
+
+.umg-hint-mt {
+  margin-top: 5px;
+}
+
+.umg-date-cancel-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
