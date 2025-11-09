@@ -139,6 +139,27 @@ export default function RecipesPage() {
     return ["all", ...Array.from(set)];
   }, [recipes]);
 
+  // Build once whenever recipes change
+  const searchIndex = useMemo(() => {
+    return recipes.map((r) => {
+      const norm = (x) => normalize(x || "");
+
+      const name         = norm(r.name);
+      const desc         = norm(r.description);
+      const ingredients  = norm(Array.isArray(r.ingredients) ? r.ingredients.join(" ") : r.ingredients);
+      const instructions = norm(Array.isArray(r.instructions) ? r.instructions.join(" ") : r.instructions);
+      const tagsJoined   = (Array.isArray(r.dietaryTags) ? r.dietaryTags : []).map(norm).join(" ");
+
+      const origin = norm(r.origin);
+      const type   = norm(r.foodType || r.category || "");
+      const diff   = norm(r.difficulty || "");
+
+      const haystack = [name, desc, ingredients, instructions, tagsJoined, origin, type, diff].join(" ");
+
+      return { r, name, haystack, origin, type, diff };
+    });
+  }, [recipes]);
+
   const q = normalize(searchQuery.trim());
   const tokens = parseQuery(q).filter(Boolean);
   // Filtered list (kept)
@@ -176,27 +197,6 @@ export default function RecipesPage() {
     selectedType,
     dietFilters
   ]);
-
-  // Build once whenever recipes change
-  const searchIndex = useMemo(() => {
-    return recipes.map((r) => {
-      const norm = (x) => normalize(x || "");
-
-      const name         = norm(r.name);
-      const desc         = norm(r.description);
-      const ingredients  = norm(Array.isArray(r.ingredients) ? r.ingredients.join(" ") : r.ingredients);
-      const instructions = norm(Array.isArray(r.instructions) ? r.instructions.join(" ") : r.instructions);
-      const tagsJoined   = (Array.isArray(r.dietaryTags) ? r.dietaryTags : []).map(norm).join(" ");
-
-      const origin = norm(r.origin);
-      const type   = norm(r.foodType || r.category || "");
-      const diff   = norm(r.difficulty || "");
-
-      const haystack = [name, desc, ingredients, instructions, tagsJoined, origin, type, diff].join(" ");
-
-      return { r, name, haystack, origin, type, diff };
-    });
-  }, [recipes]);
 
   // Reset page if filters or data change (kept)
   useEffect(() => {
