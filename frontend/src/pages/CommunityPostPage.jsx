@@ -453,7 +453,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
             <div key={c.id} className="comment-item">
                 <div className="comment-header">
                   <span className="comment-author">
-                    {c.username}
+                    {c.username || c.author || 'Unknown User'}
                     {isAdmin && !isOwner && (
                       <span style={{color: '#8B4513', marginLeft: '5px', fontSize: '0.8em'}}>
                       </span>
