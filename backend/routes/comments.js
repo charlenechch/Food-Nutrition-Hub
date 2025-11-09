@@ -29,7 +29,10 @@ router.get("/post/:postId", async (req, res) => {
     const { postId } = req.params;
     
     const [comments] = await db.execute(`
-      SELECT c.*, up.userProfileID, u.username
+      SELECT 
+        c.*, 
+        up.userProfileID, 
+        COALESCE(u.username, 'Unknown User') AS username
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
@@ -58,7 +61,10 @@ router.get("/:commentId", async (req, res) => {
     const { commentId } = req.params;
     
     const [comments] = await db.execute(`
-      SELECT c.*, up.userProfileID, u.username 
+      SELECT 
+        c.*, 
+        up.userProfileID, 
+        COALESCE(u.username, 'Unknown User') AS username 
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
@@ -158,7 +164,10 @@ router.post("/", async (req, res) => {
 
     // Get the newly created comment with user info
     const [newComment] = await db.execute(`
-      SELECT c.*, up.userProfileID, u.username
+      SELECT 
+        c.*, 
+        up.userProfileID, 
+        COALESCE(u.username, 'Unknown User') AS username
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
@@ -222,7 +231,7 @@ router.put("/:commentId", async (req, res) => {
 
     // Get updated comment
     const [updatedComment] = await db.execute(`
-      SELECT c.*, up.userProfileID, u.username 
+      SELECT c.*, up.userProfileID, COALESCE(u.username, 'Unknown User') AS username
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
