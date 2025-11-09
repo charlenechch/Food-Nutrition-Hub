@@ -719,6 +719,8 @@ const parseDietaryTags = (raw) => {
                   />
                   <div className="efp-badges">
                     <span className={calorieClass}>{calorieLabel} Calorie</span>
+                  </div>
+                  <div className="efp-badges">
                     {diff && <span className={diffClass} title={`Difficulty: ${diffLabel}`}>{diffLabel}</span>}
                   </div>
                   {food.dietaryTags.includes("vegetarian") && (
