@@ -139,11 +139,12 @@ export default function RecipesPage() {
     return ["all", ...Array.from(set)];
   }, [recipes]);
 
-  // Build once whenever recipes change
-  const searchIndex = useMemo(() => {
-    return recipes.map((r) => {
-      const norm = (x) => normalize(x || "");
-
+  const q = normalize(searchQuery.trim());
+  const tokens = parseQuery(q).filter(Boolean);
+  // Filtered list (kept)
+  const filtered = useMemo(() => {
+    const norm = (x) => normalize(x || "");
+    const indexed = recipes.map((r) => {
       const name         = norm(r.name);
       const desc         = norm(r.description);
       const ingredients  = norm(Array.isArray(r.ingredients) ? r.ingredients.join(" ") : r.ingredients);
@@ -158,13 +159,7 @@ export default function RecipesPage() {
 
       return { r, name, haystack, origin, type, diff };
     });
-  }, [recipes]);
-
-  const q = normalize(searchQuery.trim());
-  const tokens = parseQuery(q).filter(Boolean);
-  // Filtered list (kept)
-  const filtered = useMemo(() => {
-    return searchIndex
+    return indexed
       .filter(({ r, haystack }) => {
         const textOK = tokens.length === 0 || tokens.some(tok => haystack.includes(tok));
         if (!textOK) return false;
@@ -187,7 +182,7 @@ export default function RecipesPage() {
         );
       })
   }, [
-    searchIndex,
+    recipes,
     q,
     tokens.join("|"),
     selectedOrigin,
