@@ -52,9 +52,7 @@ export default function FoodDetailPage() {
 
     if (kcal >= 600) {
       alerts.push({ type: "warning", message: "High-calorie dish — consume in moderation." });
-    } else if (kcal >= 300) {
-      alerts.push({ type: "info", message: "Moderate calories per serving." });
-    } else if (kcal > 0) {
+    } else if (kcal > 0 && fat <= 300) {
       alerts.push({ type: "info", message: "Low-calorie serving." });
     }
 
