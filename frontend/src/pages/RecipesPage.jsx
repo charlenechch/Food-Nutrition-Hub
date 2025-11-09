@@ -137,8 +137,8 @@ export default function RecipesPage() {
         r.origin,
         r.foodType,            
         r.description,
-        r.ingredients,         // include ingredients
-        r.instructions,        // include instructions (optional but useful)
+        r.ingredients,         
+        r.instructions,        
         Array.isArray(r.dietaryTags) ? r.dietaryTags.join(" ") : r.dietaryTags,
         r.difficulty
       ].map(norm).join(" ");
