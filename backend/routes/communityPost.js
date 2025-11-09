@@ -204,10 +204,10 @@ router.get("/:id", async (req, res) => {
             c.comment AS text,
             c.created_at,
             up.userProfileID,
-            CONCAT(u.firstname, ' ', u.lastname) AS author
+            COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS author
         FROM comments c
-        JOIN userProfile up ON c.userProfileID = up.userProfileID
-        JOIN user u ON up.userID = u.userID
+        LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
+        LEFT JOIN user u ON up.userID = u.userID
         WHERE c.postID = ?
         ORDER BY c.created_at ASC
     `;
@@ -444,7 +444,7 @@ router.get('/comments/:postId', async (req, res) => {
         c.comment AS text,
         c.created_at,
         up.userProfileID,
-        CONCAT(u.firstname, ' ', u.lastname) AS author
+        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS author
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
