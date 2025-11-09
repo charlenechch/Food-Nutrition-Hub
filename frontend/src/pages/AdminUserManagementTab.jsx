@@ -274,7 +274,7 @@ export default function UserManagement() {
             email: userForm.email,
             city: userForm.city,
             role: userForm.role,
-            status: userForm.status,
+            status: finalStatus,
             suspendedUntil: userForm.status === "Suspended" 
               ? (userForm.suspendedUntil || new Date().toISOString().slice(0,10))
               : null,
@@ -850,52 +850,42 @@ export default function UserManagement() {
                         </select>
                     </div>
 
-                    {/* Right Side: Suspension Toggle & Date Field (The new UI) */}
+                    {/* Right Side: Clean Suspension Date Input + Button (CRASH FIX) */}
                     <div className="umg-field">
-                        <label className="umg-label">Suspension</label>
+                        <label className="umg-label">Suspension End Date</label>
                         
-                        <div className="umg-action-row" style={{marginBottom: '10px', alignItems: 'center'}}>
-                            {/* Display current derived status */}
-                            <span className={`umg-pill ${isSuspensionActive ? "umg-pill-suspended" : (userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive")}`}>
-                                {isSuspensionActive ? "Suspended" : userForm.status}
-                            </span>
-
-                            {/* Toggle Switch */}
-                            <button
-                                type="button"
-                                className={`admset-switch ${isSuspensionActive ? 'is-on' : ''}`}
-                                onClick={() => {
-                                    setIsSuspensionActive(prev => !prev);
-                                    // Clear the date if toggled off
-                                    if (isSuspensionActive) {
-                                        setSuspensionDate(null);
-                                    }
-                                }}
-                            >
-                                <div className="knob"></div>
-                            </button>
-                        </div>
-
-                        {/* Suspended Until Date (Only visible if Suspension is Active) */}
-                        <div className="umg-field" style={{ display: isSuspensionActive ? 'block' : 'none', marginTop: '10px' }}>
-                            <label className="umg-label">Suspended Until</label>
+                        <div className="umg-action-row" style={{marginBottom: '10px', alignItems: 'center', justifyContent: 'space-between'}}>
+                            {/* Date Input Field (Primary mechanism for suspension) */}
                             <input
                                 className="umg-input"
+                                style={{flexGrow: 1, minWidth: '150px'}}
                                 type="date"
                                 min={new Date().toISOString().slice(0, 10)} 
                                 value={suspensionDate || ""}
                                 onChange={(e) => setSuspensionDate(e.target.value)}
-                                required={isSuspensionActive} 
                             />
+
+                            {/* Unsuspend Button (Only visible if currently suspended) */}
+                            {userForm.status === "Suspended" && (
+                                <button
+                                    type="button"
+                                    className="umg-btn umg-btn-warning" 
+                                    style={{flexShrink: 0, padding: '8px 12px'}}
+                                    onClick={() => setSuspensionDate(null)} // Clearing the date signals unsuspension
+                                >
+                                    Unsuspend
+                                </button>
+                            )}
                         </div>
-                        
-                        {!isSuspensionActive && (
-                            <div className="umg-hint" style={{marginTop: '10px'}}>
-                                Status is currently **{userForm.status}** (System Controlled). Toggle the switch to apply suspension.
-                            </div>
-                        )}
+
+                        <div className="umg-hint" style={{marginTop: '5px'}}>
+                            {userForm.status === "Suspended" 
+                                ? `Currently **Suspended** until date above.`
+                                : `Status is currently **${userForm.status}** (System Controlled). Select a future date to suspend.`
+                            }
+                        </div>
                     </div>
-                  </div>
+                </div>
 
                     <div className="umg-metrics-row">
                         {/* Submissions / Approved */}
