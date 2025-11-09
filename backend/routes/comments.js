@@ -231,7 +231,7 @@ router.put("/:commentId", async (req, res) => {
 
     // Get updated comment
     const [updatedComment] = await db.execute(`
-      SELECT c.*, up.userProfileID, COALESCE(u.username, 'Unknown User') AS username
+      SELECT c.*, up.userProfileID, COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID

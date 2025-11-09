@@ -322,6 +322,19 @@ async function deleteUser(userID, firebaseUID) {
     await connection.beginTransaction();
     console.log("Transaction started");
 
+    // Fetch userProfileID immediately
+    const [profileResult] = await connection.query(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+    );
+    const userProfileID = profileResult[0]?.userProfileID;
+
+    if (!userProfileID) {
+        console.warn(`⚠️ UserProfileID not found for userID: ${userID}. Proceeding with minimal cleanup.`);
+    } else {
+        console.log(`✅ Found userProfileID: ${userProfileID}`);
+    }
+
     // Delete avatar from Cloudinary if exists
     console.log("Checking for avatar to delete from Cloudinary...");
     const [avatarCheck] = await connection.query(
@@ -367,23 +380,23 @@ async function deleteUser(userID, firebaseUID) {
 
     // Delete from related tables
     console.log("Deleting user's likes...");
-    await connection.query('DELETE FROM likes WHERE userProfileID = ?', [userID]);
+    await connection.query('DELETE FROM likes WHERE userProfileID = ?', [userProfileID]);
     console.log("Deleted likes");
 
     // Anonymize Comments
     console.log("Anonymizing user's comments...");
     await connection.query(
         'UPDATE comments SET userProfileID = NULL, comment = CONCAT(\'[User Deleted] \', comment) WHERE userProfileID = ?',
-        [userID]
+        [userProfileID]
     );
     console.log("Comments anonymized");
 
     console.log("Deleting user's posts...");
-    await connection.query('DELETE FROM posts WHERE userProfileID = ?', [userID]);
+    await connection.query('DELETE FROM posts WHERE userProfileID = ?', [userProfileID]);
     console.log("Deleted posts");
 
     console.log("Deleting user's recipes...");
-    await connection.query('DELETE FROM recipe WHERE userProfileID = ?', [userID]);
+    await connection.query('DELETE FROM recipe WHERE userProfileID = ?', [userProfileID]);
     console.log("Deleted recipes");
 
     console.log("Deleting user profile...");
