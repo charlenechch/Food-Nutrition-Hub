@@ -532,6 +532,10 @@
   border: 1px solid #c5e6cc;
 }
 
+.efp-badges-calorie {
+  margin-top: 15px;
+}
+
 /* card body */
 .efp-food-body {
   padding: 1rem;
