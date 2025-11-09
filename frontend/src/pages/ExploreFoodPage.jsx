@@ -244,7 +244,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
   const getCalorieRangeLabel = (cal) => {
     if (cal < 150) return "Low";
-    if (cal < 300) return "Medium";
+    if (cal < 300) return "Moderate";
     return "High";
   };
 
