@@ -29,7 +29,10 @@ router.get("/post/:postId", async (req, res) => {
     const { postId } = req.params;
     
     const [comments] = await db.execute(`
-      SELECT c.*, up.userProfileID, u.username
+      SELECT 
+        c.*, 
+        up.userProfileID, 
+        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
@@ -58,7 +61,10 @@ router.get("/:commentId", async (req, res) => {
     const { commentId } = req.params;
     
     const [comments] = await db.execute(`
-      SELECT c.*, up.userProfileID, u.username 
+      SELECT 
+        c.*, 
+        up.userProfileID, 
+        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username 
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
@@ -94,8 +100,8 @@ router.get("/user/:userProfileID", async (req, res) => {
     const [comments] = await db.execute(`
       SELECT c.*, p.postID, f.name as postTitle
       FROM comments c
-      JOIN posts p ON c.postID = p.postID
-      JOIN food f ON p.foodID = f.foodID
+      LEFT JOIN posts p ON c.postID = p.postID
+      LEFT JOIN food f ON p.foodID = f.foodID
       WHERE c.userProfileID = ?
       ORDER BY c.created_at DESC
     `, [userProfileID]);
@@ -158,7 +164,10 @@ router.post("/", async (req, res) => {
 
     // Get the newly created comment with user info
     const [newComment] = await db.execute(`
-      SELECT c.*, up.userProfileID, u.username
+      SELECT 
+        c.*, 
+        up.userProfileID, 
+        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
@@ -222,10 +231,10 @@ router.put("/:commentId", async (req, res) => {
 
     // Get updated comment
     const [updatedComment] = await db.execute(`
-      SELECT c.*, up.userProfileID, u.username 
+      SELECT c.*, up.userProfileID, COALESCE(u.username, 'Unknown User') AS username
       FROM comments c
-      JOIN userProfile up ON c.userProfileID = up.userProfileID
-      JOIN user u ON up.userID = u.userID
+      LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
+      LEFT JOIN user u ON up.userID = u.userID
       WHERE c.commentID = ?
     `, [commentId]);
 
