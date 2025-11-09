@@ -169,7 +169,7 @@ const AdminDashboard = () => {
   useEffect(() => {
       const fetchApprovedCommunityPosts = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/communityPost/admin/approved`, {
+      const response = await fetch(`${API_URL}/api/communityPost/counts`, {
         credentials: "include",
       });
       const result = await response.json();
