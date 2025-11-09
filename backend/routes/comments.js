@@ -31,8 +31,8 @@ router.get("/post/:postId", async (req, res) => {
     const [comments] = await db.execute(`
       SELECT c.*, up.userProfileID, u.username
       FROM comments c
-      JOIN userProfile up ON c.userProfileID = up.userProfileID
-      JOIN user u ON up.userID = u.userID
+      LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
+      LEFT JOIN user u ON up.userID = u.userID
       WHERE c.postID = ?
       ORDER BY c.created_at ASC
     `, [postId]);
@@ -60,8 +60,8 @@ router.get("/:commentId", async (req, res) => {
     const [comments] = await db.execute(`
       SELECT c.*, up.userProfileID, u.username 
       FROM comments c
-      JOIN userProfile up ON c.userProfileID = up.userProfileID
-      JOIN user u ON up.userID = u.userID
+      LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
+      LEFT JOIN user u ON up.userID = u.userID
       WHERE c.commentID = ?
     `, [commentId]);
 
@@ -160,8 +160,8 @@ router.post("/", async (req, res) => {
     const [newComment] = await db.execute(`
       SELECT c.*, up.userProfileID, u.username
       FROM comments c
-      JOIN userProfile up ON c.userProfileID = up.userProfileID
-      JOIN user u ON up.userID = u.userID
+      LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
+      LEFT JOIN user u ON up.userID = u.userID
       WHERE c.commentID = ?
     `, [result.insertId]);
 
