@@ -386,9 +386,9 @@ async function deleteUser(userID, firebaseUID) {
     // Anonymize Comments
     console.log("Anonymizing user's comments...");
     await connection.query(
-        'UPDATE comments SET userProfileID = NULL, comment = CONCAT(\'[User Deleted] \', comment) WHERE userProfileID = ?',
-        [userProfileID]
-    );
+            'UPDATE comments SET comment = comment WHERE userProfileID = ?',
+            [userProfileID]
+        );
     console.log("Comments anonymized");
 
     console.log("Deleting user's posts...");
