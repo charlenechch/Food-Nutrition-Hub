@@ -696,6 +696,14 @@ const parseDietaryTags = (raw) => {
                 ? "efp-badge efp-badge--warn"
                 : "efp-badge efp-badge--high";
 
+            const diff = (food.difficulty || food.difficultyNorm || "").toLowerCase();
+            const diffLabel = diff ? diff[0].toUpperCase() + diff.slice(1) : "";
+            const diffClass =
+              diff === "easy"   ? "efp-badge efp-badge--ok"   :
+              diff === "medium" ? "efp-badge efp-badge--warn" :
+              diff === "hard"   ? "efp-badge efp-badge--high" :
+              "efp-badge";
+
             return (
               <div
                 key={food.foodID}
@@ -710,7 +718,8 @@ const parseDietaryTags = (raw) => {
                     loading="lazy"
                   />
                   <div className="efp-badges">
-                    <span className={calorieClass}>{calorieLabel}</span>
+                    <span className={calorieClass}>{calorieLabel} Calorie</span>
+                    {diff && <span className={diffClass} title={`Difficulty: ${diffLabel}`}>{diffLabel}</span>}
                   </div>
                   {food.dietaryTags.includes("vegetarian") && (
                     <span className="efp-badge-topright">V</span>
