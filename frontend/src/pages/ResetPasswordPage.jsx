@@ -9,7 +9,6 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-
   const oobCode = params.get("oobCode");
 
   const [email, setEmail] = useState("");
@@ -18,13 +17,25 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pwdStatus, setPwdStatus] = useState([]);
 
-  // ✅ Step 1: Verify Firebase reset link and get the associated email
+  // 🔹 Password rules
+  const passwordRules = [
+    { regex: /.{8,}/, label: "At least 8 characters" },
+    { regex: /[A-Z]/, label: "At least one uppercase letter" },
+    { regex: /[a-z]/, label: "At least one lowercase letter" },
+    { regex: /[0-9]/, label: "At least one number" },
+    { regex: /[!@#$%^&*(),.?":{}|<>]/, label: "At least one special symbol (!@#$%)" },
+  ];
+
+  const getPasswordStatus = (password) =>
+    passwordRules.map((rule) => ({ label: rule.label, passed: rule.regex.test(password) }));
+
+  // ✅ Step 1: Verify Firebase reset link
   useEffect(() => {
     if (oobCode) {
       verifyPasswordResetCode(auth, oobCode)
         .then((emailFromFirebase) => {
-          console.log("✅ Firebase verified email:", emailFromFirebase);
           setEmail(emailFromFirebase);
           setLoading(false);
         })
@@ -38,25 +49,35 @@ export default function ResetPasswordPage() {
     }
   }, [oobCode]);
 
+  // 🔹 Update live password status
+  useEffect(() => {
+    setPwdStatus(getPasswordStatus(pwd));
+  }, [pwd]);
+
   // ✅ Step 2: Handle password reset submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (pwd.length < 8)
-      return setError("Password must be at least 8 characters long.");
-    if (pwd !== confirm)
-      return setError("Passwords do not match.");
+    // 🔹 Check password rules
+    for (let rule of passwordRules) {
+      if (!rule.regex.test(pwd)) {
+        setError(`Password requirement not met: ${rule.label}`);
+        return;
+      }
+    }
+
+    if (pwd !== confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
 
     try {
-      // ✅ Reset password in Firebase first
+      // 🔹 Reset password in Firebase
       await confirmPasswordReset(auth, oobCode, pwd);
-      console.log("✅ Firebase password updated successfully.");
 
-      // ✅ Ensure email is available before backend sync
-      if (email && email.trim() !== "") {
-        console.log("🔍 Syncing password to backend:", { email, newPassword: pwd });
-
+      // 🔹 Sync password with backend if email exists
+      if (email) {
         const res = await fetch(`${API_URL}/api/auth/updatePassword`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -65,28 +86,19 @@ export default function ResetPasswordPage() {
         });
 
         const data = await res.json();
-        console.log("🔧 Backend updatePassword response:", data);
-
-        if (!res.ok) {
-          throw new Error(data.message || "Failed to update password in backend.");
-        }
-
-        console.log("✅ Password synced successfully to MySQL backend.");
-      } else {
-        console.warn("⚠️ Skipped backend password sync — missing email from Firebase.");
+        if (!res.ok) throw new Error(data.message || "Failed to update backend password");
       }
 
-      // ✅ Mark success and redirect
+      // 🔹 Mark success and redirect
       setSuccess(true);
       setTimeout(() => navigate("/loginregister"), 2500);
-
     } catch (err) {
-      console.error("❌ Password reset error:", err);
+      console.error(err);
       setError("Something went wrong. Please try again or request a new link.");
     }
   };
 
-  // ✅ Loading UI
+  // ✅ Loading state
   if (loading) {
     return (
       <div className="rpp-container">
@@ -97,7 +109,7 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // ✅ Success message
+  // ✅ Success state
   if (success) {
     return (
       <div className="rpp-container">
@@ -115,7 +127,7 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // ✅ Error message
+  // ✅ Invalid link
   if (error && !email) {
     return (
       <div className="rpp-container">
@@ -146,10 +158,24 @@ export default function ResetPasswordPage() {
           <label>New Password</label>
           <input
             type="password"
-            placeholder="Enter a new password (min 8 characters)"
+            placeholder="Enter a new password"
             value={pwd}
             onChange={(e) => setPwd(e.target.value)}
           />
+
+          {/* 🔹 Live password strength feedback */}
+          <div className="password-strength">
+            <ul>
+              {pwdStatus.map((rule, idx) => (
+                <li
+                  key={idx}
+                  style={{ color: rule.passed ? "green" : "red" }}
+                >
+                  {rule.passed ? "✔" : "✖"} {rule.label}
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <label>Confirm New Password</label>
           <input
