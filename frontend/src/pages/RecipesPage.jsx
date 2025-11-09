@@ -29,6 +29,21 @@ export default function RecipesPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const normalize = (s) =>
+    String(s ?? "")
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .toLowerCase();
+
+  // split by spaces but keep quoted phrases
+  const parseQuery = (q) => {
+    const tokens = [];
+    q.replace(/"([^"]+)"|(\S+)/g, (_, phrase, word) => {
+      tokens.push(phrase || word);
+    });
+    return tokens;
+  };
+
   // Debug (kept)
   useEffect(() => {
     console.log('Recipes data:', recipes);
@@ -124,39 +139,64 @@ export default function RecipesPage() {
     return ["all", ...Array.from(set)];
   }, [recipes]);
 
+  const q = normalize(searchQuery.trim());
+  const tokens = parseQuery(q).filter(Boolean);
   // Filtered list (kept)
   const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return recipes.filter(r => {
-      const name = (r.name || "").toLowerCase();
-      const origin = (r.origin || "").toLowerCase();
-      const desc = (r.description || "").toLowerCase();
+    return searchIndex
+      .filter(({ r, haystack }) => {
+        const textOK = tokens.length === 0 || tokens.some(tok => haystack.includes(tok));
+        if (!textOK) return false;
 
-      const matchSearch = !q || name.includes(q) || origin.includes(q) || desc.includes(q);
-      const matchOrigin = selectedOrigin === "all" || r.origin === selectedOrigin;
-      const matchDifficulty = selectedDifficulty === "all" || r.difficulty === selectedDifficulty;
+        const matchOrigin     = selectedOrigin === "all" || r.origin === selectedOrigin;
+        const matchDifficulty = selectedDifficulty === "all" || r.difficulty === selectedDifficulty;
+        const matchPrepBucket = inBucket(Number(r.prepTime) || 0, selectedPrepTime);
+        const matchCookBucket = inBucket(Number(r.cookTime) || 0, selectedCookTime);
+        const matchFoodType   = selectedType === "all" || (r.foodType || "Other") === selectedType;
+        const tagsArr         = Array.isArray(r.dietaryTags) ? r.dietaryTags : [];
+        const matchDiet       = dietFilters.length === 0 || dietFilters.every(t => tagsArr.includes(t));
 
-      const pt = Number(r.prepTime) || 0;
-      const ct = Number(r.cookTime) || 0;
-      const matchPrepBucket = inBucket(pt, selectedPrepTime);
-      const matchCookBucket = inBucket(ct, selectedCookTime);
-      
-      const matchFoodType = selectedType === "all" || r.foodType === selectedType;
-      
-      const tags = Array.isArray(r.dietaryTags) ? r.dietaryTags : [];
-      const matchDiet = dietFilters.length === 0 || dietFilters.every(t => tags.includes(t));
+        return (
+          matchOrigin &&
+          matchDifficulty &&
+          matchPrepBucket &&
+          matchCookBucket &&
+          matchFoodType &&
+          matchDiet
+        );
+      })
+  }, [
+    searchIndex,
+    q,
+    tokens.join("|"),
+    selectedOrigin,
+    selectedDifficulty,
+    selectedPrepTime,
+    selectedCookTime,
+    selectedType,
+    dietFilters
+  ]);
 
-      return (
-        matchSearch &&
-        matchOrigin &&
-        matchDifficulty &&
-        matchPrepBucket &&
-        matchCookBucket &&
-        matchFoodType &&
-        matchDiet
-      );
+  // Build once whenever recipes change
+  const searchIndex = useMemo(() => {
+    return recipes.map((r) => {
+      const norm = (x) => normalize(x || "");
+
+      const name         = norm(r.name);
+      const desc         = norm(r.description);
+      const ingredients  = norm(Array.isArray(r.ingredients) ? r.ingredients.join(" ") : r.ingredients);
+      const instructions = norm(Array.isArray(r.instructions) ? r.instructions.join(" ") : r.instructions);
+      const tagsJoined   = (Array.isArray(r.dietaryTags) ? r.dietaryTags : []).map(norm).join(" ");
+
+      const origin = norm(r.origin);
+      const type   = norm(r.foodType || r.category || "");
+      const diff   = norm(r.difficulty || "");
+
+      const haystack = [name, desc, ingredients, instructions, tagsJoined, origin, type, diff].join(" ");
+
+      return { r, name, haystack, origin, type, diff };
     });
-  }, [recipes, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedType, dietFilters]);
+  }, [recipes]);
 
   // Reset page if filters or data change (kept)
   useEffect(() => {
