@@ -26,15 +26,12 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
           const servings = Math.max(1, Number(food.servings || 1)); // backend may add this; default 1
           const num = (v) => (v == null ? 0 : Number(v));
 
-          // totals
           const Energy_kcal = num(food.Energy_kcal);
           const Protein_g = num(food.Protein_g);
           const Fat_g = num(food.Fat_g);
           const Carbohydrates_g = num(food.Carbohydrates_g);
           const Fiber_g = num(food.Fiber_g);
           const VitaminC_mg = num(food.VitaminC_mg);
-
-          // prefer server-calculated per-serving, else compute here
           const Energy_kcal_ps = num(food.Energy_kcal_ps) || +(Energy_kcal / servings).toFixed(2);
           const Protein_g_ps = num(food.Protein_g_ps) || +(Protein_g / servings).toFixed(2);
           const Fat_g_ps = num(food.Fat_g_ps) || +(Fat_g / servings).toFixed(2);
@@ -639,9 +636,9 @@ const parseDietaryTags = (raw) => {
                     className="efp-select"
                   >
                     <option value="all">All Categories</option>
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
                   </select>
                 </div>
 
