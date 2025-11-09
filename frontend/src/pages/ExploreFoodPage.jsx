@@ -75,7 +75,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
   // Dynamically derive the max calories from the dataset
   const rawCalMax = useMemo(
-  () => foods.reduce((m, f) => Math.max(m, parseFloat(f.Energy_kcal) || 0), 0),
+  () => foods.reduce((m, f) => Math.max(m, parseFloat(f.Energy_kcal_ps) || 0), 0),
   [foods]
 );
 
@@ -142,11 +142,11 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
       const matchesOrigin =
         selectedOrigin === "all" || food.origin === selectedOrigin;
 
-        const foodCalories = parseFloat(food.Energy_kcal) || 0;
+      const foodCalories = parseFloat(food.Energy_kcal_ps) || 0;
       const matchesCalories = foodCalories >= calorieRange[0] && foodCalories <= calorieRange[1];
         console.log(`Food: ${food.name}, Calories: ${foodCalories}, Range: [${calorieRange[0]}, ${calorieRange[1]}], In range: ${matchesCalories}`);
 
-        console.log(`Food: ${food.name}, Calories: ${food.Energy_kcal}, In range: ${matchesCalories}`);
+        console.log(`Food: ${food.name}, Calories: ${food.Energy_kcal_ps}, In range: ${matchesCalories}`);
 
       const matchesDifficulty =
         selectedDifficulty === "all" || food.difficulty === selectedDifficulty;
@@ -688,7 +688,7 @@ const parseDietaryTags = (raw) => {
 
         <div className="efp-grid">
           {currentFoods.map((food) => {
-            const calorieLabel = getCalorieRangeLabel(food.Energy_kcal);
+            const calorieLabel = getCalorieRangeLabel(food.Energy_kcal_ps);
             const calorieClass =
               calorieLabel === "Low"
                 ? "efp-badge efp-badge--ok"
