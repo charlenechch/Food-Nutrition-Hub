@@ -143,23 +143,7 @@ export default function RecipesPage() {
   const tokens = parseQuery(q).filter(Boolean);
   // Filtered list (kept)
   const filtered = useMemo(() => {
-    const norm = (x) => normalize(x || "");
-    const indexed = recipes.map((r) => {
-      const name         = norm(r.name);
-      const desc         = norm(r.description);
-      const ingredients  = norm(Array.isArray(r.ingredients) ? r.ingredients.join(" ") : r.ingredients);
-      const instructions = norm(Array.isArray(r.instructions) ? r.instructions.join(" ") : r.instructions);
-      const tagsJoined   = (Array.isArray(r.dietaryTags) ? r.dietaryTags : []).map(norm).join(" ");
-
-      const origin = norm(r.origin);
-      const type   = norm(r.foodType || r.category || "");
-      const diff   = norm(r.difficulty || "");
-
-      const haystack = [name, desc, ingredients, instructions, tagsJoined, origin, type, diff].join(" ");
-
-      return { r, name, haystack, origin, type, diff };
-    });
-    return indexed
+    return searchIndex
       .filter(({ r, haystack }) => {
         const textOK = tokens.length === 0 || tokens.some(tok => haystack.includes(tok));
         if (!textOK) return false;
@@ -182,7 +166,7 @@ export default function RecipesPage() {
         );
       })
   }, [
-    recipes,
+    searchIndex,
     q,
     tokens.join("|"),
     selectedOrigin,
@@ -192,6 +176,27 @@ export default function RecipesPage() {
     selectedType,
     dietFilters
   ]);
+
+  // Build once whenever recipes change
+  const searchIndex = useMemo(() => {
+    return recipes.map((r) => {
+      const norm = (x) => normalize(x || "");
+
+      const name         = norm(r.name);
+      const desc         = norm(r.description);
+      const ingredients  = norm(Array.isArray(r.ingredients) ? r.ingredients.join(" ") : r.ingredients);
+      const instructions = norm(Array.isArray(r.instructions) ? r.instructions.join(" ") : r.instructions);
+      const tagsJoined   = (Array.isArray(r.dietaryTags) ? r.dietaryTags : []).map(norm).join(" ");
+
+      const origin = norm(r.origin);
+      const type   = norm(r.foodType || r.category || "");
+      const diff   = norm(r.difficulty || "");
+
+      const haystack = [name, desc, ingredients, instructions, tagsJoined, origin, type, diff].join(" ");
+
+      return { r, name, haystack, origin, type, diff };
+    });
+  }, [recipes]);
 
   // Reset page if filters or data change (kept)
   useEffect(() => {
@@ -400,17 +405,6 @@ export default function RecipesPage() {
   }
 
   if (loading) return <div className="loading">Loading recipes...</div>;
-  const FALLBACK_SVG =
-    'data:image/svg+xml;utf8,' +
-    encodeURIComponent(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200">
-         <rect width="100%" height="100%" fill="#ddd"/>
-         <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
-               font-family="Arial, sans-serif" font-size="16" fill="#999">
-           No Image
-         </text>
-       </svg>`
-    );
 
   return (
     <div>
@@ -866,10 +860,7 @@ export default function RecipesPage() {
 
           const recipeId = r.id || r.foodID || index;
           const recipeName = r.name || 'Unknown Recipe';
-          const recipeImage =
-            (typeof r.image === 'string' && r.image.trim() !== '')
-              ? r.image
-              : FALLBACK_SVG;
+          const recipeImage = r.image || 'https://via.placeholder.com/300x200?text=No+Image';
           const recipeDescription = r.description || 'No description available';
           const recipeDifficulty = r.difficulty || 'Easy';
           const recipeDietaryTags = Array.isArray(r.dietaryTags) ? r.dietaryTags : [];
@@ -892,10 +883,7 @@ export default function RecipesPage() {
                   className="efp-image"
                   loading="lazy"
                   onError={(e) => {
-                    // Avoid infinite loop if fallback also errors
-                    if (e.currentTarget.dataset.fallbackApplied) return;
-                    e.currentTarget.dataset.fallbackApplied = '1';
-                    e.currentTarget.src = FALLBACK_SVG;                  
+                    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
                   }}
                 />
                 <div className="efp-badges">
