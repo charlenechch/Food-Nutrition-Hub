@@ -215,7 +215,6 @@ export default function UserManagement() {
     };
     const [userForm, setUserForm] = useState(emptyUser);
     const [suspensionDate, setSuspensionDate] = useState(null);
-    const [isSuspensionActive, setIsSuspensionActive] = useState(false);
 
     // Open Create
     const openCreateUser = () => {
@@ -231,7 +230,6 @@ export default function UserManagement() {
 
         setUserForm({ ...u });
         setSuspensionDate(dateString); // Initialize the toggle based on the current user status
-        setIsSuspensionActive(u.status === "Suspended"); // Initialize toggle
         setShowUserModal(true);
     };
 
@@ -250,22 +248,16 @@ export default function UserManagement() {
             finalStatus = userForm.status;
             finalSuspendedUntil = userForm.suspendedUntil;
         } else {
-            // Edit mode uses the new simplified suspension logic:
-            if (isSuspensionActive) {
-                // If the switch is ON (admin wants to suspend)
+            // Edit mode: Determine final status based on the presence of suspensionDate
+            if (suspensionDate) {
+                // If the admin set a date, force status to Suspended
                 finalStatus = "Suspended";
-                
-                // If suspension is active, a date must be set
-                if (!suspensionDate) {
-                    return console.warn("Suspended user must have a 'Suspended Until' date.");
-                }
                 finalSuspendedUntil = suspensionDate;
 
             } else {
-                // If the switch is OFF (admin wants to clear suspension)
-                // Rely on the backend to apply Active/Inactive logic (based on lastLogin)
-                // For a PUT request, sending null will signal unsuspension, and the backend logic will handle status.
-                finalStatus = userForm.status === "Suspended" ? (userForm.lastLogin === '—' ? "Inactive" : "Active") : userForm.status;
+                // If the date is cleared (e.g., by clicking "Unsuspend"), clear suspension
+                // We revert status based on lastLogin (Active if recently logged in, Inactive otherwise)
+                finalStatus = userForm.lastLogin === '—' ? "Inactive" : "Active";
                 finalSuspendedUntil = null;
             }
         }
