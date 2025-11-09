@@ -370,6 +370,14 @@ async function deleteUser(userID, firebaseUID) {
     await connection.query('DELETE FROM likes WHERE userProfileID = ?', [userID]);
     console.log("Deleted likes");
 
+    // Anonymize Comments
+    console.log("Anonymizing user's comments...");
+    await connection.query(
+        'UPDATE comments SET userProfileID = NULL, comment = CONCAT(\'[User Deleted] \', comment) WHERE userProfileID = ?',
+        [userID]
+    );
+    console.log("Comments anonymized");
+
     console.log("Deleting user's posts...");
     await connection.query('DELETE FROM posts WHERE userProfileID = ?', [userID]);
     console.log("Deleted posts");
