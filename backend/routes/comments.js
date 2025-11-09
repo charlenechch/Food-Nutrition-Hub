@@ -32,7 +32,7 @@ router.get("/post/:postId", async (req, res) => {
       SELECT 
         c.*, 
         up.userProfileID, 
-        COALESCE(u.username, 'Unknown User') AS username
+        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
@@ -64,7 +64,7 @@ router.get("/:commentId", async (req, res) => {
       SELECT 
         c.*, 
         up.userProfileID, 
-        COALESCE(u.username, 'Unknown User') AS username 
+        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username 
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
@@ -167,7 +167,7 @@ router.post("/", async (req, res) => {
       SELECT 
         c.*, 
         up.userProfileID, 
-        COALESCE(u.username, 'Unknown User') AS username
+        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
