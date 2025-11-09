@@ -167,7 +167,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
     // Check if user exists
     const [existingUser] = await db.execute(
-      'SELECT userID, email FROM user WHERE userID = ?',
+      'SELECT userID, email, status FROM user WHERE userID = ?',
       [targetUserID]
     );
 
@@ -177,6 +177,29 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
         message: "User not found" 
       });
     }
+
+    const currentStatus = existingUser[0].status;
+    let finalStatus = currentStatus; // Default to current status in DB
+
+    // Rule: Admin can only change status IF the action involves suspension (set or clear).
+    const isSuspensionAction = (status === 'Suspended') || (suspendedUntil === null);
+
+    if (isSuspensionAction) {
+        // Allow the status change calculated by the frontend (Suspending or Unsuspecting)
+        finalStatus = status; 
+    } else {
+        // If the admin tried to manually set 'Active' or 'Inactive', block the change.
+        if (status && status !== currentStatus) {
+            console.warn(`⚠️ Admin attempted to manually change status from ${currentStatus} to ${status}. Change blocked, status retained.`);
+        }
+        finalStatus = currentStatus; 
+    }
+    
+    // Calculate final suspendedUntil date based on the *finalStatus*.
+    // Only set a date if the final calculated status is 'Suspended'.
+    const finalsuspendedUntil = (finalStatus === 'Suspended')
+      ? (suspendedUntil ? new Date(suspendedUntil) : null) 
+      : null; 
 
     // Check if email is being changed to one that already exists
     if (email !== existingUser[0].email) {
@@ -197,12 +220,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     const nameParts = name.trim().split(' ');
     const firstname = nameParts[0] || '';
     const lastname = nameParts.slice(1).join(' ') || '';
-
-    // Set suspendedUntil date if status is 'Suspended', otherwise clear it.
-    const finalsuspendedUntil = (status === 'Suspended')
-      ? (suspendedUntil ? new Date(suspendedUntil) : new Date())
-      : null;
-
+    
     // Update user table
     const userRole = role === 'Admin' ? 'admin' : 'member';
     await db.execute(

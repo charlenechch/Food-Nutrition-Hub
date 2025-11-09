@@ -214,6 +214,8 @@ export default function UserManagement() {
     lastLogin: "—",
     };
     const [userForm, setUserForm] = useState(emptyUser);
+    const [suspensionDate, setSuspensionDate] = useState(null);
+    const [isSuspensionActive, setIsSuspensionActive] = useState(false);
 
     // Open Create
     const openCreateUser = () => {
@@ -224,9 +226,13 @@ export default function UserManagement() {
 
     // Open Edit
     const openEditUser = (u) => {
-    setUserMode("edit");
-    setUserForm({ ...u });
-    setShowUserModal(true);
+        setUserMode("edit");
+        const dateString = u.suspendedUntil ? u.suspendedUntil.split('T')[0] : '';
+
+        setUserForm({ ...u });
+        setSuspensionDate(dateString); // Initialize the toggle based on the current user status
+        setIsSuspensionActive(u.status === "Suspended"); // Initialize toggle
+        setShowUserModal(true);
     };
 
     // Save (Create or Update)
@@ -234,6 +240,35 @@ export default function UserManagement() {
     // basic validation
     if (!userForm.name.trim()) return alert("Name is required.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email)) return alert("Valid email is required.");
+
+    // Prepare status and date based on the UI states
+        let finalStatus = userForm.status; // Default to existing status for Edit mode
+        let finalSuspendedUntil = null;
+        
+        if (userMode === "create") {
+            // Creation mode uses status/suspendedUntil directly from userForm
+            finalStatus = userForm.status;
+            finalSuspendedUntil = userForm.suspendedUntil;
+        } else {
+            // Edit mode uses the new simplified suspension logic:
+            if (isSuspensionActive) {
+                // If the switch is ON (admin wants to suspend)
+                finalStatus = "Suspended";
+                
+                // If suspension is active, a date must be set
+                if (!suspensionDate) {
+                    return console.warn("Suspended user must have a 'Suspended Until' date.");
+                }
+                finalSuspendedUntil = suspensionDate;
+
+            } else {
+                // If the switch is OFF (admin wants to clear suspension)
+                // Rely on the backend to apply Active/Inactive logic (based on lastLogin)
+                // For a PUT request, sending null will signal unsuspension, and the backend logic will handle status.
+                finalStatus = userForm.status === "Suspended" ? (userForm.lastLogin === '—' ? "Inactive" : "Active") : userForm.status;
+                finalSuspendedUntil = null;
+            }
+        }
 
     try {
       if (userMode === "create") {
@@ -277,7 +312,7 @@ export default function UserManagement() {
             email: userForm.email,
             city: userForm.city,
             role: userForm.role,
-            status: userForm.status,
+            status: finalStatus,
             suspendedUntil: userForm.status === "Suspended"
               ? (userForm.suspendedUntil || new Date().toISOString().slice(0,10))
               : null,
@@ -814,41 +849,61 @@ export default function UserManagement() {
                     <div className="umg-field">
                         <label className="umg-label">Role</label>
                         <select
-                        className="umg-input"
-                        value={userForm.role}
-                        onChange={(e) => setUserForm(prev => ({ ...prev, role: e.target.value }))}
+                            className="umg-input"
+                            value={userForm.role}
+                            onChange={(e) => setUserForm(prev => ({ ...prev, role: e.target.value }))}
                         >
-                        <option>User</option>
-                        <option>Admin</option>
+                            <option>User</option>
+                            <option>Admin</option>
                         </select>
                     </div>
 
+                    {/* Right Side: Suspension Toggle & Date Field (The new UI) */}
                     <div className="umg-field">
-                        <label className="umg-label">Status</label>
-                        <select
-                        className="umg-input"
-                        value={userForm.status}
-                        onChange={(e) => setUserForm(prev => ({ ...prev, status: e.target.value }))}
-                        >
-                        <option>Active</option>
-                        <option>Inactive</option>
-                        <option>Suspended</option>
-                        </select>
-                    </div>
-                    </div>
+                        <label className="umg-label">Suspension</label>
+                        
+                        <div className="umg-action-row" style={{marginBottom: '10px', alignItems: 'center'}}>
+                            {/* Display current derived status */}
+                            <span className={`umg-pill ${isSuspensionActive ? "umg-pill-suspended" : (userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive")}`}>
+                                {isSuspensionActive ? "Suspended" : userForm.status}
+                            </span>
 
-                    {/* SuspendedUntil (only if Suspended) */}
-                    {userForm.status === "Suspended" && (
-                    <div className="umg-field">
-                        <label className="umg-label">Suspended Until</label>
-                        <input
-                        className="umg-input"
-                        type="date"
-                        value={userForm.suspendedUntil || ""}
-                        onChange={(e) => setUserForm(prev => ({ ...prev, suspendedUntil: e.target.value }))}
-                        />
+                            {/* Toggle Switch */}
+                            <button
+                                type="button"
+                                className={`admset-switch ${isSuspensionActive ? 'is-on' : ''}`}
+                                onClick={() => {
+                                    setIsSuspensionActive(prev => !prev);
+                                    // Clear the date if toggled off
+                                    if (isSuspensionActive) {
+                                        setSuspensionDate(null);
+                                    }
+                                }}
+                            >
+                                <div className="knob"></div>
+                            </button>
+                        </div>
+
+                        {/* Suspended Until Date (Only visible if Suspension is Active) */}
+                        <div className="umg-field" style={{ display: isSuspensionActive ? 'block' : 'none', marginTop: '10px' }}>
+                            <label className="umg-label">Suspended Until</label>
+                            <input
+                                className="umg-input"
+                                type="date"
+                                min={new Date().toISOString().slice(0, 10)} 
+                                value={suspensionDate || ""}
+                                onChange={(e) => setSuspensionDate(e.target.value)}
+                                required={isSuspensionActive} 
+                            />
+                        </div>
+                        
+                        {!isSuspensionActive && (
+                            <div className="umg-hint" style={{marginTop: '10px'}}>
+                                Status is currently **{userForm.status}** (System Controlled). Toggle the switch to apply suspension.
+                            </div>
+                        )}
                     </div>
-                    )}
+                  </div>
 
                     <div className="umg-metrics-row">
                         {/* Submissions / Approved */}
