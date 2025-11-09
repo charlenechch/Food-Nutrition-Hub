@@ -153,7 +153,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
         return haystack.includes(term);
       });
-      
+
       const matchesCategory =
         selectedCategory === "all" || food.category === selectedCategory;
 
@@ -171,10 +171,11 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
       const matchesNutrition =
         nutritionFocus === "all" ||
-        (nutritionFocus === "high-protein" && (parseFloat(food.Protein_g) || 0) >= 20) ||
-        (nutritionFocus === "low-fat" && (parseFloat(food.Fat_g) || 0) <= 10) ||
-        (nutritionFocus === "high-fiber" && (parseFloat(food.Fiber_g) || 0) >= 5);
-      
+        (nutritionFocus === "high-protein" && (parseFloat(food.Protein_g_ps) || 0) >= 20) ||
+        (nutritionFocus === "low-fat" && (parseFloat(food.Fat_g_ps) || 0) <= 10) ||
+        (nutritionFocus === "high-fiber" && (parseFloat(food.Fiber_g_ps) || 0) >= 5);
+        (nutritionFocus === "low-carbs" && (parseFloat(food.Carbohydrates_g_ps) || 0) <= 25);
+
       const matchesFoodType =
         selectedFoodType === "all" || food.foodType === selectedFoodType;
 
@@ -519,6 +520,7 @@ const parseDietaryTags = (raw) => {
                     <option value="high-protein">High Protein</option>
                     <option value="low-fat">Low Fat</option>
                     <option value="high-fiber">High Fiber</option>
+                    <option value="low-carbs">Low Carbs</option>
                   </select>
                 </div>
               </div>
