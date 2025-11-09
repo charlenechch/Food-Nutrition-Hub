@@ -41,7 +41,7 @@ const AdminDashboard = () => {
     "Meat",
   ];
 
-  // ✅ Live summary & data states
+  // ✅ State definitions
   const [summary, setSummary] = useState({
     totalFoods: 0,
     totalUsers: 0,
@@ -56,31 +56,29 @@ const AdminDashboard = () => {
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [errorUsers, setErrorUsers] = useState(null);
 
+  const [pendingCommunityPosts, setPendingCommunityPosts] = useState([]);
+  const [approvedCommunityPosts, setApprovedCommunityPosts] = useState([]);
+
   // ========================================================
-  // ✅ Fetch total food count directly from backend
+  // ✅ Fetch total food count
   // ========================================================
   useEffect(() => {
     const fetchTotalFoods = async () => {
       try {
         const response = await fetch(`${API_URL}/api/foods/count`);
         const data = await response.json();
-
         if (data.success) {
           setSummary((prev) => ({ ...prev, totalFoods: data.total }));
-          console.log("✅ Total food count fetched:", data.total);
-        } else {
-          console.error("❌ Failed to fetch total foods:", data.error);
         }
       } catch (err) {
         console.error("❌ Error fetching total foods:", err.message);
       }
     };
-
     fetchTotalFoods();
   }, []);
 
   // ========================================================
-  // ✅ Fetch full food data (for table / database display)
+  // ✅ Fetch all food data
   // ========================================================
   useEffect(() => {
     const fetchFoods = async () => {
@@ -101,8 +99,9 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
-        const recipeRes = await fetch(`${API_URL}/api/recipe/all/recipes?includeAll=true`);
-
+        const recipeRes = await fetch(
+          `${API_URL}/api/recipe/all/recipes?includeAll=true`
+        );
         const data = await recipeRes.json();
         if (Array.isArray(data)) setRecipes(data);
       } catch (error) {
@@ -114,7 +113,9 @@ const AdminDashboard = () => {
     fetchRecipes();
   }, []);
 
+  // ========================================================
   // ✅ Fetch user data
+  // ========================================================
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -122,68 +123,80 @@ const AdminDashboard = () => {
         const response = await fetch(`${API_URL}/api/admin/users`, {
           credentials: "include",
         });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch users: ${response.status}`);
-        }
-        
+        if (!response.ok) throw new Error(`Failed to fetch users: ${response.status}`);
         const data = await response.json();
-        
         if (data.success && Array.isArray(data.users)) {
           setUserList(data.users);
           setErrorUsers(null);
-        } else {
-          throw new Error("Invalid response format");
-        }
+        } else throw new Error("Invalid response format");
       } catch (err) {
         console.error("❌ Error fetching users:", err);
         setErrorUsers(err.message);
-        setUserList([]); // Fallback to empty array
+        setUserList([]);
       } finally {
         setLoadingUsers(false);
       }
     };
-
     fetchUsers();
   }, []);
 
-// ========================================================
-// ✅ Fetch community posts (pending ones for moderation)
-// ========================================================
-useEffect(() => {
-  const fetchCommunityPosts = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/communityPost/admin/pending`, {
-        credentials: "include",
-      });
-      const data = await res.json();
-
-      if (data.success && Array.isArray(data.data)) {
-        console.log("✅ Pending community posts fetched:", data.data.length);
-        setPendingCommunityPosts(data.data); // reuse existing state
-      } else {
-        console.warn("⚠️ Unexpected response for community posts:", data);
+  // ========================================================
+  // ✅ Fetch pending community posts
+  // ========================================================
+  useEffect(() => {
+    const fetchPendingCommunityPosts = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/communityPost/admin/pending`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          console.log("✅ Pending community posts fetched:", data.data.length);
+          setPendingCommunityPosts(data.data);
+        } else {
+          console.warn("⚠️ Unexpected response for pending posts:", data);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching pending community posts:", error);
       }
-    } catch (error) {
-      console.error("❌ Error fetching community posts:", error);
-    }
-  };
-
-  fetchCommunityPosts();
-}, []);
-
+    };
+    fetchPendingCommunityPosts();
+  }, []);
 
   // ========================================================
-  // ✅ Update summary dynamically
+  // ✅ Fetch approved community posts
+  // ========================================================
+  useEffect(() => {
+      const fetchApprovedCommunityPosts = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/communityPost/admin/approved`, {
+        credentials: "include",
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        setApprovedCommunityPosts(result.data);
+        console.log(`✅ Loaded ${result.data.length} approved community posts`);
+      } else {
+        console.error("❌ Failed to load approved posts:", result.message);
+      }
+    } catch (error) {
+      console.error("⚠️ Error fetching approved community posts:", error);
+    }
+  };
+  fetchApprovedCommunityPosts();
+}, []);
+
+  // ========================================================
+  // ✅ Summary calculation
   // ========================================================
   useEffect(() => {
     setSummary((prev) => ({
       ...prev,
-      // totalFoods is already live-fetched from backend count
       pendingApproval: recipes.filter((r) => r.status === "Pending").length,
       totalUsers: userList.length,
     }));
-  }, [recipes]);
+  }, [recipes, userList]);
 
   // ========================================================
   // ✅ Derived datasets
@@ -192,15 +205,6 @@ useEffect(() => {
   const pendingRecipes = recipes.filter(
     (r) => r.status === "Pending" || r.status === "Rejected"
   );
-
-  const [approvedContent, setApprovedContent] = useState([]);
-  const [pendingContent, setPendingContent] = useState([]);
-  const [pendingCommunityPosts, setPendingCommunityPosts] = useState([]);
-
-  useEffect(() => {
-    setApprovedContent(approvedRecipes);
-    setPendingContent(pendingRecipes);
-  }, [recipes]);
 
   // ========================================================
   // 💾 OLD HARDCODED DATA (COMMENTED OUT for reference only)
@@ -237,7 +241,7 @@ useEffect(() => {
   */
 
   // ========================================================
-  // ✅ Render content dynamically by activeTab
+  // ✅ Render content
   // ========================================================
   const renderContent = () => {
     switch (activeTab) {
@@ -254,39 +258,43 @@ useEffect(() => {
               sectionType="approved"
             />
 
-            {/* === Approved Content === */}
-            <ContentModerationSection
-              pendingContent={approvedContent}
-              onlyApproved={true}
+            {/* === Approved Community Posts === */}
+            <CommunityPostDatabaseSection
+              categories={categories}
+              posts={approvedCommunityPosts}
+              sectionType="approved"
             />
           </>
         );
 
       case "users":
-        return <UserManagement
-                users={userList}
-                loading={loadingUsers}
-                error={errorUsers}
-                setUsers={setUserList}
-              />;
+        return (
+          <UserManagement
+            users={userList}
+            loading={loadingUsers}
+            error={errorUsers}
+            setUsers={setUserList}
+          />
+        );
 
       case "moderation":
-  return (
-    <>
-      {/* === Pending / Rejected Community Posts === */}
-      <CommunityPostDatabaseSection
-            categories={categories}
-            posts={pendingCommunityPosts}/>
+        return (
+          <>
+            {/* === Pending Community Posts === */}
+            <CommunityPostDatabaseSection
+              categories={categories}
+              posts={pendingCommunityPosts}
+              sectionType="pending"
+            />
 
-      {/* === Pending / Rejected Recipes === */}
-      <RecipeDatabaseSection
-        recipes={pendingRecipes}
-        categories={categories}
-        sectionType="pending"
-      />
-    </>
-  );
-
+            {/* === Pending / Rejected Recipes === */}
+            <RecipeDatabaseSection
+              recipes={pendingRecipes}
+              categories={categories}
+              sectionType="pending"
+            />
+          </>
+        );
 
       case "analytics":
         return <Analytics />;
@@ -300,93 +308,92 @@ useEffect(() => {
   };
 
   // ========================================================
-  // ✅ Main Render
+  // ✅ Render Main UI
   // ========================================================
   return (
     <div>
-    <Header />
-    <div className="admin-dashboard">
-      <div className="dashboard-header">
-        <h1>Admin Dashboard</h1>
-        <p>Sarawakian Food Heritage Management System</p>
-      </div>
-
-      {/* === Summary Cards === */}
-      <div className="summary-cards">
-        <div className="summary-card">
-          <div>
-            <h3>Total Food Database</h3>
-            <p>{summary.totalFoods}</p>
-          </div>
-          <div className="summary-icon"><FiDatabase /></div>
+      <Header />
+      <div className="admin-dashboard">
+        <div className="dashboard-header">
+          <h1>Admin Dashboard</h1>
+          <p>Sarawakian Food Heritage Management System</p>
         </div>
 
-        <div className="summary-card">
-          <div>
-            <h3>Total User Management</h3>
-            <p>{summary.totalUsers}</p>
+        {/* === Summary Cards === */}
+        <div className="summary-cards">
+          <div className="summary-card">
+            <div>
+              <h3>Total Food Database</h3>
+              <p>{summary.totalFoods}</p>
+            </div>
+            <div className="summary-icon"><FiDatabase /></div>
           </div>
-          <div className="summary-icon"><GoPeople /></div>
+
+          <div className="summary-card">
+            <div>
+              <h3>Total User Management</h3>
+              <p>{summary.totalUsers}</p>
+            </div>
+            <div className="summary-icon"><GoPeople /></div>
+          </div>
+
+          <div className="summary-card">
+            <div>
+              <h3>Pending Approval</h3>
+              <p>{summary.pendingApproval}</p>
+            </div>
+            <div className="summary-icon"><LuFileCheck /></div>
+          </div>
+
+          <div className="summary-card">
+            <div>
+              <h3>Flagged Content</h3>
+              <p>{summary.flaggedContent}</p>
+            </div>
+            <div className="summary-icon"><FaRegFlag /></div>
+          </div>
         </div>
 
-        <div className="summary-card">
-          <div>
-            <h3>Pending Approval</h3>
-            <p>{summary.pendingApproval}</p>
-          </div>
-          <div className="summary-icon"><LuFileCheck /></div>
+        {/* === Tab Navigation === */}
+        <div className="dashboard-tabs">
+          <button
+            className={activeTab === "food" ? "active" : ""}
+            onClick={() => setActiveTab("food")}
+          >
+            <FiDatabase /> Database
+          </button>
+          <button
+            className={activeTab === "users" ? "active" : ""}
+            onClick={() => setActiveTab("users")}
+          >
+            <GoPeople /> User Management
+          </button>
+          <button
+            className={activeTab === "moderation" ? "active" : ""}
+            onClick={() => setActiveTab("moderation")}
+          >
+            <LuFileCheck /> Content Moderation
+          </button>
+          <button
+            className={activeTab === "analytics" ? "active" : ""}
+            onClick={() => setActiveTab("analytics")}
+          >
+            <FaRegChartBar /> Analytics
+          </button>
+          <button
+            className={activeTab === "settings" ? "active" : ""}
+            onClick={() => setActiveTab("settings")}
+          >
+            <CiSettings /> System Settings
+          </button>
         </div>
 
-        <div className="summary-card">
-          <div>
-            <h3>Flagged Content</h3>
-            <p>{summary.flaggedContent}</p>
-          </div>
-          <div className="summary-icon"><FaRegFlag /></div>
+        {/* === Dashboard Content === */}
+        <div className="dashboard-content">
+          {loading ? <p>Loading data...</p> : renderContent()}
         </div>
       </div>
-
-      {/* === Tab Navigation === */}
-      <div className="dashboard-tabs">
-        <button
-          className={activeTab === "food" ? "active" : ""}
-          onClick={() => setActiveTab("food")}
-        >
-          <FiDatabase /> Database
-        </button>
-        <button
-          className={activeTab === "users" ? "active" : ""}
-          onClick={() => setActiveTab("users")}
-        >
-          <GoPeople /> User Management
-        </button>
-        <button
-          className={activeTab === "moderation" ? "active" : ""}
-          onClick={() => setActiveTab("moderation")}
-        >
-          <LuFileCheck /> Content Moderation
-        </button>
-        <button
-          className={activeTab === "analytics" ? "active" : ""}
-          onClick={() => setActiveTab("analytics")}
-        >
-          <FaRegChartBar /> Analytics
-        </button>
-        <button
-          className={activeTab === "settings" ? "active" : ""}
-          onClick={() => setActiveTab("settings")}
-        >
-          <CiSettings /> System Settings
-        </button>
-      </div>
-
-      {/* === Dashboard Content === */}
-      <div className="dashboard-content">
-        {loading ? <p>Loading data...</p> : renderContent()}
-      </div>
-
-    </div>
-    <Footer />
+      <Footer />
     </div>
   );
 };
