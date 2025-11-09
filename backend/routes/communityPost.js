@@ -129,6 +129,7 @@ router.get("/counts", async (req, res) => {
       foodName: post.foodName,
       author: post.author,
       daysAgo: getTimeAgo(post.created_at),
+      status: post.status,
       culturalOrigin: post.culturalOrigin,
       images: post.photos ? post.photos.split(',').map(photo => photo.trim()) : [],
       culturalStory: post.culturalStory,
@@ -383,11 +384,11 @@ router.post('/comments', async (req, res) => {
         c.comment AS text,
         c.created_at,
         up.userProfileID,
-        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS author,
+        CONCAT(u.firstname, ' ', u.lastname) AS author,
         u.role
       FROM comments c
-      LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
-      LEFT JOIN user u ON up.userID = u.userID
+      JOIN userProfile up ON c.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
       WHERE c.commentID = ?
     `;
 

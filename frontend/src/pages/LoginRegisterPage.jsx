@@ -48,6 +48,15 @@ export default function LoginRegisterPage() {
   });
   const [remainingTime, setRemainingTime] = useState(0);
 
+  // ✅Password strength criteria for live feedback
+  const [regPasswordCriteria, setRegPasswordCriteria] = useState({
+    length: false,
+    upper: false,
+    lower: false,
+    number: false,
+    special: false,
+  });
+
   const navigate = useNavigate();
   const { user, setUser, loginAsGuest } = useAuth(); // ✅ use setUser instead of login(email)
   
@@ -152,6 +161,17 @@ export default function LoginRegisterPage() {
       .padStart(2, "0");
     const s = (sec % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
+  };
+
+  // ✅ Update live password criteria
+  const updatePasswordCriteria = (password) => {
+    setRegPasswordCriteria({
+      length: password.length >= 8,
+      upper: /[A-Z]/.test(password),
+      lower: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    });
   };
 
   // ✅ Handle resend verification email
@@ -642,7 +662,9 @@ export default function LoginRegisterPage() {
                     type={showRegPassword ? "text" : "password"}
                     value={regPassword}
                     placeholder="e.g. John123!"
-                    onChange={(e) => setRegPassword(e.target.value)}
+                    onChange={(e) => {
+                      setRegPassword(e.target.value);
+                      updatePasswordCriteria(e.target.value);}}
                   />
                   <span
                     onClick={() => setShowRegPassword(!showRegPassword)}
@@ -657,6 +679,24 @@ export default function LoginRegisterPage() {
                   >
                     {showRegPassword ? <FaEyeSlash /> : <FaEye />}
                   </span>
+                </div>
+                 {/* ✅Password strength checklist */}
+                <div className="password-checklist">
+                  <p className={regPasswordCriteria.length ? "valid" : "invalid"}>
+                    {regPasswordCriteria.length ? "✅" : "❌"} Minimum 8 characters
+                  </p>
+                  <p className={regPasswordCriteria.upper ? "✅" : "❌"}>
+                    {regPasswordCriteria.upper ? "✅" : "❌"} Uppercase letter
+                  </p>
+                  <p className={regPasswordCriteria.lower ? "✅" : "❌"}>
+                    {regPasswordCriteria.lower ? "✅" : "❌"} Lowercase letter
+                  </p>
+                  <p className={regPasswordCriteria.number ? "✅" : "❌"}>
+                    {regPasswordCriteria.number ? "✅" : "❌"} Number
+                  </p>
+                  <p className={regPasswordCriteria.special ? "✅" : "❌"}>
+                    {regPasswordCriteria.special ? "✅" : "❌"} Special character
+                  </p>
                 </div>
               </div>
 
