@@ -29,21 +29,6 @@ export default function RecipesPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const normalize = (s) =>
-    String(s ?? "")
-      .normalize("NFD")
-      .replace(/\p{Diacritic}/gu, "")
-      .toLowerCase();
-
-  // split by spaces but keep quoted phrases
-  const parseQuery = (q) => {
-    const tokens = [];
-    q.replace(/"([^"]+)"|(\S+)/g, (_, phrase, word) => {
-      tokens.push(phrase || word);
-    });
-    return tokens;
-  };
-
   // Debug (kept)
   useEffect(() => {
     console.log('Recipes data:', recipes);
@@ -139,64 +124,39 @@ export default function RecipesPage() {
     return ["all", ...Array.from(set)];
   }, [recipes]);
 
-  // Build once whenever recipes change
-  const searchIndex = useMemo(() => {
-    return recipes.map((r) => {
-      const norm = (x) => normalize(x || "");
-
-      const name         = norm(r.name);
-      const desc         = norm(r.description);
-      const ingredients  = norm(Array.isArray(r.ingredients) ? r.ingredients.join(" ") : r.ingredients);
-      const instructions = norm(Array.isArray(r.instructions) ? r.instructions.join(" ") : r.instructions);
-      const tagsJoined   = (Array.isArray(r.dietaryTags) ? r.dietaryTags : []).map(norm).join(" ");
-
-      const origin = norm(r.origin);
-      const type   = norm(r.foodType || r.category || "");
-      const diff   = norm(r.difficulty || "");
-
-      const haystack = [name, desc, ingredients, instructions, tagsJoined, origin, type, diff].join(" ");
-
-      return { r, name, haystack, origin, type, diff };
-    });
-  }, [recipes]);
-
-  const q = normalize(searchQuery.trim());
-  const tokens = parseQuery(q).filter(Boolean);
   // Filtered list (kept)
   const filtered = useMemo(() => {
-    return searchIndex
-      .filter(({ r, haystack }) => {
-        const textOK = tokens.length === 0 || tokens.some(tok => haystack.includes(tok));
-        if (!textOK) return false;
+    const q = searchQuery.trim().toLowerCase();
+    return recipes.filter(r => {
+      const name = (r.name || "").toLowerCase();
+      const origin = (r.origin || "").toLowerCase();
+      const desc = (r.description || "").toLowerCase();
 
-        const matchOrigin     = selectedOrigin === "all" || r.origin === selectedOrigin;
-        const matchDifficulty = selectedDifficulty === "all" || r.difficulty === selectedDifficulty;
-        const matchPrepBucket = inBucket(Number(r.prepTime) || 0, selectedPrepTime);
-        const matchCookBucket = inBucket(Number(r.cookTime) || 0, selectedCookTime);
-        const matchFoodType   = selectedType === "all" || (r.foodType || "Other") === selectedType;
-        const tagsArr         = Array.isArray(r.dietaryTags) ? r.dietaryTags : [];
-        const matchDiet       = dietFilters.length === 0 || dietFilters.every(t => tagsArr.includes(t));
+      const matchSearch = !q || name.includes(q) || origin.includes(q) || desc.includes(q);
+      const matchOrigin = selectedOrigin === "all" || r.origin === selectedOrigin;
+      const matchDifficulty = selectedDifficulty === "all" || r.difficulty === selectedDifficulty;
 
-        return (
-          matchOrigin &&
-          matchDifficulty &&
-          matchPrepBucket &&
-          matchCookBucket &&
-          matchFoodType &&
-          matchDiet
-        );
-      })
-  }, [
-    searchIndex,
-    q,
-    tokens.join("|"),
-    selectedOrigin,
-    selectedDifficulty,
-    selectedPrepTime,
-    selectedCookTime,
-    selectedType,
-    dietFilters
-  ]);
+      const pt = Number(r.prepTime) || 0;
+      const ct = Number(r.cookTime) || 0;
+      const matchPrepBucket = inBucket(pt, selectedPrepTime);
+      const matchCookBucket = inBucket(ct, selectedCookTime);
+      
+      const matchFoodType = selectedType === "all" || r.foodType === selectedType;
+      
+      const tags = Array.isArray(r.dietaryTags) ? r.dietaryTags : [];
+      const matchDiet = dietFilters.length === 0 || dietFilters.every(t => tags.includes(t));
+
+      return (
+        matchSearch &&
+        matchOrigin &&
+        matchDifficulty &&
+        matchPrepBucket &&
+        matchCookBucket &&
+        matchFoodType &&
+        matchDiet
+      );
+    });
+  }, [recipes, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedType, dietFilters]);
 
   // Reset page if filters or data change (kept)
   useEffect(() => {
@@ -871,15 +831,6 @@ export default function RecipesPage() {
             : diff === "medium" ? "efp-badge efp-badge--warn"
             : "efp-badge efp-badge--high";
 
-          const FALLBACK_SVG =
-          'data:image/svg+xml;utf8,' + encodeURIComponent(
-            `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200">
-              <rect width="100%" height="100%" fill="#ddd"/>
-              <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
-                    font-family="Arial, sans-serif" font-size="16" fill="#999">No Image</text>
-            </svg>`
-          );
-
           return (
             <div
               key={`recipe-${recipeId}-${index}`}
@@ -891,7 +842,9 @@ export default function RecipesPage() {
                   alt={recipeName}
                   className="efp-image"
                   loading="lazy"
-                  onError={(e) => { e.currentTarget.src = FALLBACK_SVG; }}
+                  onError={(e) => {
+                    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+                  }}
                 />
                 <div className="efp-badges">
                   <span className={diffClass}>{recipeDifficulty}</span>
