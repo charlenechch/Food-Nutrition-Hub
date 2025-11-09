@@ -1,95 +1,126 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaRegFlag } from "react-icons/fa6";
+import { FaRegFlag, FaPlus } from "react-icons/fa6";
 import { CiSearch, CiFilter } from "react-icons/ci";
+import { MdOutlineFileUpload } from "react-icons/md";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const CommunityPostDatabaseSection = ({ categories }) => {
+const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved" }) => {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const [category, setCategory] = useState("All Categories");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
 
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 5;
-  const totalPages = Math.ceil(posts.length / perPage);
-  const currentPosts = posts.slice((currentPage - 1) * perPage, currentPage * perPage);
 
-  const handlePageChange = (p) => {
-    if (p >= 1 && p <= totalPages) setCurrentPage(p);
+  const currentPosts = postsProp.slice(
+    (currentPage - 1) * perPage,
+    currentPage * perPage
+  );
+  const totalPages = Math.ceil(postsProp.length / perPage);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
   useEffect(() => {
-    const controller = new AbortController();
-    const fetchPendingPosts = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`${API_URL}/api/communityPost/admin/pending`, {
-          credentials: "include",
-          signal: controller.signal,
-        });
-        const data = await res.json();
-        if (data.success && Array.isArray(data.data)) setPosts(data.data);
-        else setPosts([]);
-      } catch (err) {
-        if (err.name !== "AbortError") console.error("❌ Error:", err);
-        setPosts([]);
-      } finally {
-        setLoading(false);
-      }
+    const closeDropdown = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+        setDropdownOpen(false);
     };
-    fetchPendingPosts();
-    return () => controller.abort();
+    document.addEventListener("click", closeDropdown);
+    return () => document.removeEventListener("click", closeDropdown);
   }, []);
 
-  const sectionTitle = "Pending / Rejected Community Posts";
+  const sectionTitle =
+    sectionType === "approved"
+      ? "Approved Community Posts"
+      : "Pending / Rejected Community Posts";
 
-  if (loading) return (
-    <div className="recipe-database-section">
-      <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
-      <p style={{ textAlign: "center", marginTop: 20 }}>Loading...</p>
-    </div>
-  );
-
-  if (posts.length === 0)
+  if (!postsProp || postsProp.length === 0) {
     return (
       <div className="recipe-database-section">
         <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
         <p style={{ textAlign: "center", marginTop: 20, color: "#999" }}>
-          No pending community posts found.
+          No community posts found.
         </p>
       </div>
     );
+  }
 
   return (
     <div className="recipe-database-section">
       <div className="recipe-header">
         <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
+
+        {sectionType === "approved" && (
+          <div className="recipe-actions">
+            <button
+              className="admin-recipe-btn-add"
+              onClick={() => navigate("/admin/addcommunitypost")}
+            >
+              <FaPlus /> Add New Post
+            </button>
+            <button className="admin-recipe-btn-import">
+              <MdOutlineFileUpload /> Bulk Import
+            </button>
+          </div>
+        )}
       </div>
 
+      {/* Filters */}
       <div className="food-filters">
         <div className="search-box">
           <CiSearch className="search-icon" />
           <input type="text" placeholder="Search community posts..." />
         </div>
+        <div
+          className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`}
+          ref={dropdownRef}
+        >
+          <button
+            className="admin-beige-trigger"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
+            {category}
+          </button>
+          {dropdownOpen && (
+            <ul className="admin-beige-list">
+              {["All Categories", "Food", "Culture", "Events"].map((opt, i) => (
+                <li
+                  key={i}
+                  onClick={() => {
+                    setCategory(opt);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  {opt}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <button
           className="admin-recipe-btn-filter"
-          onClick={() => {}}
+          onClick={() => setShowFilters(!showFilters)}
         >
           <CiFilter className="filter-icon" /> Filters
         </button>
       </div>
 
+      {/* Posts Table */}
       <table className="content-table" style={{ width: "100%" }}>
         <thead>
           <tr>
-            <th>Post Title</th>
+            <th>Title</th>
             <th>Author</th>
-            <th>Date Submitted</th>
+            <th>Date Posted</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -97,18 +128,26 @@ const CommunityPostDatabaseSection = ({ categories }) => {
         <tbody>
           {currentPosts.map((p, i) => (
             <tr key={p.id || i}>
-              <td>{p.title || "Untitled Post"}</td>
-              <td>{p.author || "Unknown"}</td>
-              <td>{new Date(p.createdAt).toLocaleDateString("en-MY")}</td>
+              <td>{p.title || "Untitled"}</td>
+              <td>{p.author || "Anonymous"}</td>
+              <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "—"}</td>
               <td>
-                <span className="recipe-status-tag pending">
-                  {p.status || "Pending"}
+                <span
+                  className={`recipe-status-tag ${
+                    p.status === "Pending"
+                      ? "pending"
+                      : p.status === "Rejected"
+                      ? "rejected"
+                      : "approved"
+                  }`}
+                >
+                  {p.status}
                 </span>
               </td>
               <td className="admin-recipe-action-buttons">
                 <button
                   className="review-btn"
-                  onClick={() => navigate(`/admin/review/community/${p.id}`)}
+                  onClick={() => navigate(`/admin/review/communitypost/${p.id || i}`)}
                 >
                   Review
                 </button>
@@ -144,4 +183,4 @@ const CommunityPostDatabaseSection = ({ categories }) => {
   );
 };
 
-export default CommunityPostDatabaseSection;
+export default AdminCommunityPostDatabase;
