@@ -1887,9 +1887,9 @@
   width: 100%;
 }
 
-umg-role-status-grid {
+.umg-role-status-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr; 
+  grid-template-columns: 2fr 1fr 2fr; 
   gap: 12px;
 }
 
