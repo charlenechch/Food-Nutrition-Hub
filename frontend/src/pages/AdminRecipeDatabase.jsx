@@ -141,7 +141,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
                 </span>
               </td>
               <td>{r.origin || "Unknown"}</td>
-              <td>{r.updated || "—"}</td>
+              <td>{r.date || "—"}</td>
               <td>
                 <span
                   className={`recipe-status-tag ${

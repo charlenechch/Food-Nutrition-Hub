@@ -82,7 +82,7 @@ const ReviewContentPage = () => {
 
       // 3. Set up the request options
       const fetchOptions = {
-        method: "PUT", // <-- Use PUT (to match your backend)
+        method: "PUT", // Use PUT (to match your backend)
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       };

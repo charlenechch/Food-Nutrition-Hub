@@ -191,12 +191,26 @@ const AdminDashboard = () => {
   // ✅ Summary calculation
   // ========================================================
   useEffect(() => {
+    // 1. Count pending recipes
+    const pendingRecipeCount = recipes.filter(
+      (r) => r.status === "Pending"
+    ).length;
+
+    // 2. Count pending community posts
+    // (We filter this array since it contains both 'Pending' and 'Rejected')
+    const pendingPostCount = pendingCommunityPosts.filter(
+      (p) => p.status === "Pending"
+    ).length;
+
     setSummary((prev) => ({
       ...prev,
-      pendingApproval: recipes.filter((r) => r.status === "Pending").length,
+      // 3. Add them together
+      pendingApproval: pendingRecipeCount + pendingPostCount,
       totalUsers: userList.length,
     }));
-  }, [recipes, userList]);
+
+    // 4. Add 'pendingCommunityPosts' to the dependency array
+  }, [recipes, userList, pendingCommunityPosts]);
 
   // ========================================================
   // ✅ Derived datasets

@@ -280,7 +280,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
                 <span className="category-tag">{food.category}</span>
               </td>
               <td>{food.origin}</td>
-              <td>{food.updatedAt || "—"}</td>
+              <td>{food.updated_at ? new Date(food.updated_at).toLocaleDateString() : "—"}</td>
               <td>
                 <button
                   className="food-database-btn-edit"
