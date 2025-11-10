@@ -856,84 +856,85 @@ export default function UserManagement() {
                     <div className="umg-field">
                       <label className="umg-label">Status</label>
                       
-                      {/* Simple Status Display */}
-                      <div className="umg-action-row umg-status-action-row">
-                          <span className={`umg-pill ${userForm.status === "Suspended" ? "umg-pill-suspended" : (userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive")}`}>
-                              {userForm.status}
-                          </span>
+                      {/* Wrap this entire block in a check for "Edit User" mode */}
+                      {userMode === "edit" ? (
+                          <>
+                          {/* Simple Status Display */}
+                          <div className="umg-action-row umg-status-action-row">
+                              <span className={`umg-pill ${userForm.status === "Suspended" ? "umg-pill-suspended" : (userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive")}`}>
+                                  {userForm.status}
+                              </span>
 
-                          {userForm.status !== "Suspended" && !showDateInput && (
-                          <button
-                              type="button"
-                              className="umg-status-btn-ml umg-btn umg-btn-danger" 
-                              onClick={() => setShowDateInput(true)} 
-                          >
-                              Suspend User
-                          </button>
-                          )}
-
-                          {/* 2. Unsuspend Button (Visible ONLY if currently suspended) */}
-                          {userForm.status === "Suspended" && (
+                              {userForm.status !== "Suspended" && !showDateInput && (
                               <button
                                   type="button"
-                                  className="umg-status-btn-ml umg-btn umg-btn-warning" 
-                                  onClick={() => {
-                                      setSuspensionDate(null); 
-                                      setShowDateInput(false); 
-                                  }}
+                                  className="umg-status-btn-ml umg-btn umg-btn-danger" 
+                                  onClick={() => setShowDateInput(true)} 
                               >
-                                  Clear Suspension
+                                  Suspend User
                               </button>
-                          )}
-                      </div>
-
-                        {/* Suspended Until Date (Only appears AFTER clicking "Suspend User" OR if user is already suspended) */}
-                        {userMode === "edit" && (showDateInput || userForm.status === "Suspended") && (
-                          <div className="umg-field umg-full-width-field"> {/* Removed umg-modal-mt-md as it's now aligned with other fields */}
-                              <label className="umg-label">Suspended Until</label>
-                              
-                              <input
-                                  className="umg-input"
-                                  type="date"
-                                  min={new Date().toISOString().slice(0, 10)} 
-                                  value={suspensionDate || ""}
-                                  onChange={(e) => setSuspensionDate(e.target.value)}
-                              />
-                              
-                              {/* Display a cancel button */}
-                              {showDateInput && userForm.status !== "Suspended" && (
-                                  <div className="umg-date-cancel-row">
-                                      <button
-                                          type="button"
-                                          className="umg-btn umg-btn-secondary" 
-                                          onClick={() => setShowDateInput(false)}
-                                      >
-                                          Cancel
-                                      </button>
-                                  </div>
                               )}
+
+                              {/* 2. Unsuspend Button (Visible ONLY if currently suspended) */}
+                              {userForm.status === "Suspended" && (
+                                  <button
+                                      type="button"
+                                      className="umg-status-btn-ml umg-btn umg-btn-warning" 
+                                      onClick={() => {
+                                          setSuspensionDate(null); 
+                                          setShowDateInput(false); 
+                                      }}
+                                  >
+                                      Clear Suspension
+                                  </button>
+                              )}
+                          </div>
+
+                            {/* Suspended Until Date (Only appears AFTER clicking "Suspend User" OR if user is already suspended) */}
+                            {(showDateInput || userForm.status === "Suspended") && (
+                              <div className="umg-field umg-full-width-field">
+                                  {/* ... (Date input field and Cancel button) ... */}
+                              </div>
+                          )}
+                          </>
+                      ) : (
+                          // Display default Active FOR CREATE MODE ONLY
+                          <div className="umg-action-row umg-status-action-row">
+                              <span className="umg-pill umg-pill-active">Active</span>
                           </div>
                       )}
                     </div>
                 </div>
-
+                
+                {/* Hide submissions / Approved / Last login for "Create User" */}
+                {userMode === "edit" && (
                     <div className="umg-metrics-row">
                         {/* Submissions / Approved */}
-                          <div className="umg-field">
-                            <label className="umg-label">Submissions / Approved</label>
-                            <div className="umg-value">
-                            <span className="umg-pill">{userForm.submissions} submissions</span>
-                            <span className="umg-subline">{userForm.approved} approved</span>
-                            </div>
+                        <div className="umg-field">
+                            {/* ... (Existing Submissions/Approved fields) ... */}
                         </div>
 
                         <div className="umg-field">
-                            <label className="umg-label">Last Login</label>
-                            <div className="umg-value">
-                            <span className="umg-subline">{userForm.lastLogin || "—"}</span>
-                            </div>
+                            {/* ... (Existing Last Login fields) ... */}
                         </div>
                     </div>
+                )}
+
+                    {userMode === "edit" && (
+                    <div className="umg-metrics-row">
+                        {/* Submissions / Approved (Existing code) */}
+                        <div className="umg-field">
+                            <label className="umg-label">Submissions / Approved</label>
+                            {/* ... */}
+                        </div>
+
+                        {/* Last Login (Existing code) */}
+                        <div className="umg-field">
+                            <label className="umg-label">Last Login</label>
+                            {/* ... */}
+                        </div>
+                    </div>
+                )}
                 </div>
 
                 <div className="umg-modal-footer">
