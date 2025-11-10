@@ -130,7 +130,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
             <tr key={p.id || i}>
               <td>{p.foodName || p.title || "Untitled"}</td>
               <td>{p.author || "Anonymous"}</td>
-              <td>{p.created_at ? new Date(p.created_at).toLocaleDateString() : "—"}</td>
+              <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "—"}</td>
               <td>
                 <span
                   className={`recipe-status-tag ${

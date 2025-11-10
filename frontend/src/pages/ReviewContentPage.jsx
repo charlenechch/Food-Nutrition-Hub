@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-// FIX: Changing relative imports to assume standard component path structure,
-// and assuming react-icons/fa is available (this often fails due to environment setup)
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { FaArrowLeft, FaUser, FaCalendarAlt, FaFileAlt, FaCheck, FaTimes } from "react-icons/fa";
@@ -65,18 +63,38 @@ const ReviewContentPage = () => {
       "No feedback provided.";
 
     try {
-      // ✅ Dynamic update endpoint logic
+      // 1. Determine if it's a community post
       const isCommunityPost = type === "communitypost" || type === "community";
-      const updateUrl = isCommunityPost
-        ? `${API_URL}/api/communityPost/updateStatus/${id}`
-        : `${API_URL}/api/recipe/updateStatus/${id}`;
 
-      const res = await fetch(updateUrl, {
-        method: "PATCH",
+      let updateUrl;
+
+      if (isCommunityPost) {
+        // Check the newStatus and build the URL the backend expects
+        if (newStatus === "Approved") {
+          updateUrl = `${API_URL}/api/communitypost/admin/approve/${id}`;
+        } else {
+          updateUrl = `${API_URL}/api/communitypost/admin/reject/${id}`;
+        }
+      } else {
+        // This is for your recipes (it uses updateStatus)
+        updateUrl = `${API_URL}/api/recipe/updateStatus/${id}`;
+      }
+
+      // 3. Set up the request options
+      const fetchOptions = {
+        method: "PUT", // <-- Use PUT (to match your backend)
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ status: newStatus, feedback }),
-      });
+      };
+
+      // 4. Only add a body if it's a recipe
+      // (Your community post routes don't need a body, but the recipe one does)
+      if (!isCommunityPost) {
+        fetchOptions.body = JSON.stringify({ status: newStatus, feedback });
+      }
+      
+      // 5. Make the request
+      const res = await fetch(updateUrl, fetchOptions);
 
       if (!res.ok) {
         const errData = await res.json();

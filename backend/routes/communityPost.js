@@ -954,7 +954,7 @@ router.get("/admin/pending", checkIsAdmin, async (req, res) => {
     FROM posts p
     JOIN userProfile up ON p.userProfileID = up.userProfileID
     JOIN user u ON up.userID = u.userID
-    WHERE p.status = 'Pending'
+    WHERE p.status = 'Pending' OR p.status = 'Rejected'
     ORDER BY p.created_at ASC;
   `;
 
@@ -989,7 +989,7 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
   const updateQuery = `
     UPDATE posts 
     SET status = 'Approved' 
-    WHERE postID = ? AND status = 'Pending';
+    WHERE postID = ?;
   `;
 
   try {
@@ -1022,7 +1022,7 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
   const updateQuery = `
     UPDATE posts 
     SET status = 'Rejected' 
-    WHERE postID = ? AND status = 'Pending';
+    WHERE postID = ?;
   `;
 
   try {
