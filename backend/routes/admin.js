@@ -4,6 +4,7 @@ const { requireAdmin } = require("../middleware/auth");
 const { pool: db } = require("../config/db");
 const userProfileRoutes = require("../routes/userProfile");
 const deleteUser = userProfileRoutes.deleteUser;
+const { updateFirebaseEmail } = userProfileRoutes;
 
 // ✅ Example Admin API – only admins can access
 router.get("/dashboard", requireAdmin, (req, res) => {
@@ -167,7 +168,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
     // Check if user exists
     const [existingUser] = await db.execute(
-      'SELECT userID, email, status FROM user WHERE userID = ?',
+      'SELECT userID, email, status, firebase_uid FROM user WHERE userID = ?',
       [targetUserID]
     );
 
@@ -179,6 +180,9 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     }
 
     const currentStatus = existingUser[0].status;
+    const currentEmail = existingUser[0].email;
+    const firebaseUID = existingUser[0].firebase_uid;
+
     let finalStatus = currentStatus; // Default to current status in DB
 
     // Rule: Admin can only change status IF the action involves suspension (set or clear).
@@ -201,12 +205,14 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       ? (suspendedUntil ? new Date(suspendedUntil) : null) 
       : null; 
 
-    // Check if email is being changed to one that already exists
-    if (email !== existingUser[0].email) {
+    // Synchronize Email with Firebase Auth
+    if (email !== currentEmail) {
+      // Check if email is being changed to one that already exists
       const [emailCheck] = await db.execute(
         'SELECT userID FROM user WHERE email = ? AND userID != ?',
         [email, targetUserID]
       );
+    }
 
       if (emailCheck.length > 0) {
         return res.status(400).json({ 
@@ -214,7 +220,20 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
           message: "Email already exists for another user" 
         });
       }
-    }
+
+      // Update Firebase Auth first
+      if (firebaseUID) {
+          try {
+              await updateFirebaseEmail(firebaseUID, email);
+          } catch (firebaseError) {
+              // If Firebase update fails, stop the MySQL update too
+              console.error("❌ Failed to update email in Firebase Auth:", firebaseError.message);
+              return res.status(500).json({ 
+                  success: false, 
+                  message: "Failed to update user email (Authentication sync failed)." 
+              });
+          }
+      }
 
     // Split name into firstname and lastname
     const nameParts = name.trim().split(' ');
