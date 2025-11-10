@@ -350,8 +350,7 @@ router.get('/popular-categories', async (req, res) => {
     });
   }
 });
-
-// TEMPORARY FIX: Create separate endpoints to avoid HPP 'view' parameter issue
+ issue
 router.get('/top-contributors-recipes', async (req, res) => {
   try {
     console.log('🔍 Fetching top recipe contributors');
@@ -360,11 +359,12 @@ router.get('/top-contributors-recipes', async (req, res) => {
       SELECT 
         u.firstname,
         u.lastname,
-        u.userID,
+        up.userProfileID,
         COUNT(r.recipeID) as recipes
       FROM user u
-      LEFT JOIN recipe r ON u.userID = r.userID AND r.status = 'Approved'
-      GROUP BY u.userID, u.firstname, u.lastname
+      INNER JOIN userProfile up ON u.userID = up.userID
+      LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
+      GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
       HAVING COUNT(r.recipeID) > 0
       ORDER BY recipes DESC
       LIMIT 5
@@ -380,7 +380,7 @@ router.get('/top-contributors-recipes', async (req, res) => {
     const formattedResults = results.map(item => ({
       firstname: item.firstname,
       lastname: item.lastname,
-      userProfileID: item.userID,
+      userProfileID: item.userProfileID,
       recipes: item.recipes || 0,
       stories: 0
     }));
@@ -408,11 +408,12 @@ router.get('/top-contributors-stories', async (req, res) => {
       SELECT 
         u.firstname,
         u.lastname,
-        u.userID,
+        up.userProfileID,
         COUNT(p.postID) as stories
       FROM user u
-      LEFT JOIN posts p ON u.userID = p.userID AND p.status = 'Approved'
-      GROUP BY u.userID, u.firstname, u.lastname
+      INNER JOIN userProfile up ON u.userID = up.userID
+      LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
+      GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
       HAVING COUNT(p.postID) > 0
       ORDER BY stories DESC
       LIMIT 5
@@ -428,7 +429,7 @@ router.get('/top-contributors-stories', async (req, res) => {
     const formattedResults = results.map(item => ({
       firstname: item.firstname,
       lastname: item.lastname,
-      userProfileID: item.userID,
+      userProfileID: item.userProfileID,
       recipes: 0,
       stories: item.stories || 0
     }));
@@ -448,7 +449,6 @@ router.get('/top-contributors-stories', async (req, res) => {
   }
 });
 
-// Keep the original endpoint but use it only for default case
 router.get('/top-contributors', async (req, res) => {
   try {
     console.log('🔍 Fetching default top contributors (recipes)');
@@ -457,11 +457,12 @@ router.get('/top-contributors', async (req, res) => {
       SELECT 
         u.firstname,
         u.lastname,
-        u.userID,
+        up.userProfileID,
         COUNT(r.recipeID) as recipes
       FROM user u
-      LEFT JOIN recipe r ON u.userID = r.userID AND r.status = 'Approved'
-      GROUP BY u.userID, u.firstname, u.lastname
+      INNER JOIN userProfile up ON u.userID = up.userID
+      LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
+      GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
       HAVING COUNT(r.recipeID) > 0
       ORDER BY recipes DESC
       LIMIT 5
@@ -472,7 +473,7 @@ router.get('/top-contributors', async (req, res) => {
     const formattedResults = results.map(item => ({
       firstname: item.firstname,
       lastname: item.lastname,
-      userProfileID: item.userID,
+      userProfileID: item.userProfileID,
       recipes: item.recipes || 0,
       stories: 0
     }));
