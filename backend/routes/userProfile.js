@@ -1157,6 +1157,40 @@ router.delete("/delete", async (req, res) => {
   }
 });
 
+// Firebase User Creation
+async function createFirebaseUser(email, name, role) {
+    if (!isInitialized) {
+        console.warn("❌ Firebase Admin not initialized. Skipping user creation.");
+        throw new Error("app/no-app: Firebase Admin SDK is not available.");
+    }
+    
+    // Generate a secure temporary password. Admin will instruct user to use "Forgot Password".
+    const tempPassword = Math.random().toString(36).slice(-10) + '!A1'; 
+
+    try {
+        const user = await admin.auth().createUser({
+            email: email,
+            displayName: name,
+            password: tempPassword,
+            emailVerified: false, // New users start as unverified
+            disabled: false, 
+        });
+
+        console.log(`✅ Firebase user created for ${email}. UID: ${user.uid}`);
+        
+        // Set custom role claim for Admin users
+        if (role === 'Admin') {
+            await admin.auth().setCustomUserClaims(user.uid, { role: 'admin' });
+            console.log(`✅ Custom role claim 'admin' set for ${user.uid}`);
+        }
+
+        return { uid: user.uid, tempPassword }; // Return UID and temp password
+    } catch (error) {
+        console.error("❌ Firebase user creation failed:", error.message);
+        throw error; 
+    }
+}
+
 // Firebase Email Update
 async function updateFirebaseEmail(firebaseUID, newEmail) {
     if (!isInitialized) {
@@ -1185,4 +1219,5 @@ console.log("✅ UserProfile router loaded with debug logging");
 module.exports = router;
 module.exports.deleteUser = deleteUser;
 module.exports.updateUserStats = updateUserStats;
+module.exports.createFirebaseUser = createFirebaseUser;
 module.exports.updateFirebaseEmail = updateFirebaseEmail;

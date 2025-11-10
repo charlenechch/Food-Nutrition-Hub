@@ -4,7 +4,7 @@ const { requireAdmin } = require("../middleware/auth");
 const { pool: db } = require("../config/db");
 const userProfileRoutes = require("../routes/userProfile");
 const deleteUser = userProfileRoutes.deleteUser;
-const { updateFirebaseEmail } = userProfileRoutes;
+const { updateFirebaseEmail, createFirebaseUser } = userProfileRoutes;
 
 // ✅ Example Admin API – only admins can access
 router.get("/dashboard", requireAdmin, (req, res) => {
@@ -348,6 +348,108 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       error: error.message 
     });
   }
+});
+
+// Admin create new user
+router.post("/users", requireAdmin, async (req, res) => {
+    console.log("Admin user creation request received");
+    const connection = await db.getConnection();
+
+    try {
+        const { name, email, city, role, status, suspendedUntil } = req.body;
+        
+        // Validation and Data Prep
+        if (!name || !email || !role || !status) {
+            return res.status(400).json({ success: false, message: "Validation failed. Name, email, role, and status are required." });
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ success: false, message: "Invalid email format" });
+        }
+        
+        // Conflict Check in MySQL
+        const [emailCheck] = await connection.execute('SELECT userID FROM user WHERE email = ?', [email]);
+        if (emailCheck.length > 0) {
+            connection.release();
+            return res.status(400).json({ success: false, message: "Email already exists in the database." });
+        }
+
+        // Start Transaction and Create Firebase User
+        await connection.beginTransaction();
+        
+        let firebaseUID;
+        let tempPassword; // Used for logging feedback, not sent to user
+        try {
+            const result = await createFirebaseUser(email, name, role); 
+            firebaseUID = result.uid;
+            tempPassword = result.tempPassword;
+        } catch (firebaseError) {
+            console.error("❌ Fatal Firebase Auth creation error:", firebaseError.message);
+            await connection.rollback();
+            connection.release();
+            return res.status(500).json({ success: false, message: "Failed to create authentication account." });
+        }
+        
+        // Prepare MySQL Data
+        const nameParts = name.trim().split(' ');
+        const firstname = nameParts[0] || '';
+        const lastname = nameParts.slice(1).join(' ') || '';
+        const userRole = role === 'Admin' ? 'admin' : 'member';
+        
+        let finalsuspendedUntil = null;
+        if (status === 'Suspended' && suspendedUntil) {
+            finalsuspendedUntil = new Date(suspendedUntil).toISOString().slice(0, 10);
+        }
+
+        // Insert into MySQL 'user' table
+        // Password field is empty/placeholder because Firebase handles authentication.
+        // Verified is 'False' and lastLogin is NULL for a new user.
+        const [userResult] = await connection.execute(
+            `INSERT INTO user 
+             (firstname, lastname, email, password, verified, role, status, suspendedUntil, firebase_uid, lastLogin)
+             VALUES (?, ?, ?, '', 'False', ?, ?, ?, ?, NULL)`, 
+            [firstname, lastname, email, userRole, status, finalsuspendedUntil, firebaseUID]
+        );
+
+        const newUserID = userResult.insertId;
+
+        // Insert into MySQL 'userProfile' table
+        await connection.execute(
+            `INSERT INTO userProfile (userID, location, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
+             VALUES (?, ?, '[]', '[]', true, true, true, 'en')`,
+            [newUserID, city || null]
+        );
+
+        await connection.commit();
+        console.log(`✅ User ${email} created successfully with ID: ${newUserID}. Temp password: ${tempPassword}`);
+
+        // Format and Return New User Data
+        const newUserData = {
+            id: newUserID,
+            name: `${firstname} ${lastname}`.trim(),
+            email: email,
+            city: city || "N/A",
+            role: role,
+            status: status,
+            suspendedUntil: finalsuspendedUntil,
+            submissions: 0,
+            approved: 0,
+            lastLogin: "—"
+        };
+
+        return res.status(201).json({
+            success: true,
+            message: "User created successfully. User must use 'Forgot Password' to set initial password.",
+            user: newUserData,
+        });
+
+    } catch (error) {
+        console.error("❌ Admin user creation error:", error);
+        await connection.rollback();
+        return res.status(500).json({ success: false, message: "Failed to create user (Database error)", error: error.message });
+    } finally {
+        connection.release();
+    }
 });
 
 module.exports = router;
