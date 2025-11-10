@@ -90,7 +90,6 @@ const EditFoodPage = () => {
       Carbohydrates_g: food.carbs,
       Fat_g: food.fat,
       Fiber_g: food.fiber,
-      Sodium_mg: food.sodium,
       VitaminC_mg: 0, // API requires this, but it's not in the form
       // Add any other fields if the API needs
     };
@@ -297,7 +296,7 @@ const EditFoodPage = () => {
               <input
                 className="edit-food-input"
                 name="calories"
-                value={food.calories ?? ''}
+                value={food.calories}
                 onChange={handleChange}
               />
             </div>
@@ -306,7 +305,7 @@ const EditFoodPage = () => {
               <input
                 className="edit-food-input"
                 name="protein"
-                value={food.protein ?? ''}
+                value={food.protein}
                 onChange={handleChange}
               />
             </div>
@@ -315,7 +314,7 @@ const EditFoodPage = () => {
               <input
                 className="edit-food-input"
                 name="carbs"
-                value={food.carbs ?? ''}
+                value={food.carbs}
                 onChange={handleChange}
               />
             </div>
@@ -324,7 +323,7 @@ const EditFoodPage = () => {
               <input
                 className="edit-food-input"
                 name="fat"
-                value={food.fat ?? ''}
+                value={food.fat}
                 onChange={handleChange}
               />
             </div>
@@ -333,7 +332,7 @@ const EditFoodPage = () => {
               <input
                 className="edit-food-input"
                 name="fiber"
-                value={food.fiber ?? ''}
+                value={food.fiber}
                 onChange={handleChange}
               />
             </div>
@@ -342,7 +341,7 @@ const EditFoodPage = () => {
               <input
                 className="edit-food-input"
                 name="sodium"
-                value={food.sodium ?? ''}
+                value={food.sodium}
                 onChange={handleChange}
               />
             </div>

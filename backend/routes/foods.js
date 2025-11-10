@@ -57,7 +57,6 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     Carbohydrates_g,
     Fiber_g,
     VitaminC_mg,
-    Sodium_mg,
   } = req.body;
 
   if (!name || !origin) {
@@ -69,7 +68,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
   try {
     const sql = `
       INSERT INTO food 
-      (name, origin, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, Sodium_mg)
+      (name, origin, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const values = [
@@ -81,7 +80,6 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       Carbohydrates_g,
       Fiber_g,
       VitaminC_mg,
-      Sodium_mg,
     ];
 
     const [result] = await db.query(sql, values);
@@ -107,7 +105,6 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     Carbohydrates_g,
     Fiber_g,
     VitaminC_mg,
-    Sodium_mg,
   } = req.body;
 
   try {
@@ -123,7 +120,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
 
     const sql = `
       UPDATE food 
-      SET name=?, origin=?, Energy_kcal=?, Protein_g=?, Fat_g=?, Carbohydrates_g=?, Fiber_g=?, VitaminC_mg=?, Sodium_mg=?
+      SET name=?, origin=?, Energy_kcal=?, Protein_g=?, Fat_g=?, Carbohydrates_g=?, Fiber_g=?, VitaminC_mg=?
       WHERE foodID=?`;
     const values = [
       name,
@@ -134,7 +131,6 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
       Carbohydrates_g,
       Fiber_g,
       VitaminC_mg,
-      Sodium_mg,
       req.params.id,
     ];
 
