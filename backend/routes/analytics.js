@@ -359,6 +359,7 @@ router.get('/top-contributors', async (req, res) => {
     console.log(`🔍 Fetching top contributors for view: ${view}`);
     
     let query = '';
+    let params = [];
 
     if (view === 'recipes') {
       query = `
@@ -369,10 +370,11 @@ router.get('/top-contributors', async (req, res) => {
           COUNT(DISTINCT r.recipeID) as recipes
         FROM user u
         INNER JOIN userProfile up ON u.userID = up.userID
-        INNER JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
-        GROUP BY u.firstname, u.lastname, up.userProfileID
+        INNER JOIN recipe r ON up.userProfileID = r.userProfileID 
+        WHERE r.status = 'Approved'
+        GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
         ORDER BY recipes DESC
-        LIMIT 5;
+        LIMIT 5
       `;
     } else if (view === 'stories') {
       query = `
@@ -383,10 +385,11 @@ router.get('/top-contributors', async (req, res) => {
           COUNT(DISTINCT p.postID) as stories
         FROM user u
         INNER JOIN userProfile up ON u.userID = up.userID
-        INNER JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
-        GROUP BY u.firstname, u.lastname, up.userProfileID
+        INNER JOIN posts p ON up.userProfileID = p.userProfileID 
+        WHERE p.status = 'Approved'
+        GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
         ORDER BY stories DESC
-        LIMIT 5;
+        LIMIT 5
       `;
     } else {
       return res.status(400).json({
@@ -397,13 +400,22 @@ router.get('/top-contributors', async (req, res) => {
     
     console.log('📊 Executing query:', query);
     
-    const [results] = await db.execute(query);
+    const [results] = await db.execute(query, params);
     
     console.log(`✅ Found ${results.length} top contributors for ${view}:`, results);
     
+    // Format the response to ensure consistent field names
+    const formattedResults = results.map(item => ({
+      firstname: item.firstname,
+      lastname: item.lastname,
+      userProfileID: item.userProfileID,
+      recipes: item.recipes || 0,
+      stories: item.stories || 0
+    }));
+    
     res.json({
       success: true,
-      data: results,
+      data: formattedResults,
       view: view
     });
     
@@ -412,7 +424,8 @@ router.get('/top-contributors', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch top contributors',
-      message: error.message
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
