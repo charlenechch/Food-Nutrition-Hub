@@ -221,14 +221,6 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
           message: "Email already exists for another user"
         });
       }
-    }
-
-      if (emailCheck.length > 0) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Email already exists for another user" 
-        });
-      }
 
       // Update Firebase Auth first
       if (firebaseUID) {
@@ -244,6 +236,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
               });
           }
       }
+    }
 
     // Split name into firstname and lastname
     const nameParts = name.trim().split(' ');
