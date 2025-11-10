@@ -96,58 +96,50 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
 
 // ✅ Update food (ADMIN ONLY)
 router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
-  const {
-    name,
-    origin,
-    Energy_kcal,
-    Protein_g,
-    Fat_g,
-    Carbohydrates_g,
-    Fiber_g,
-    VitaminC_mg,
-    // 🌟 ADDED: Sodium_mg and image 🌟
-    Sodium_mg, 
-    image, 
-  } = req.body;
+  const {
+    name,
+    origin,
+    Energy_kcal,
+    Protein_g,
+    Fat_g,
+    Carbohydrates_g,
+    Fiber_g,
+    VitaminC_mg,
+  } = req.body;
 
-  try {
-    const [existing] = await db.query("SELECT * FROM food WHERE foodID = ?", [
-      req.params.id,
-    ]);
+  try {
+    const [existing] = await db.query("SELECT * FROM food WHERE foodID = ?", [
+      req.params.id,
+    ]);
 
-    if (existing.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Food not found" });
-    }
+    if (existing.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Food not found" });
+    }
 
-    const sql = `
-      UPDATE food 
-      SET name=?, origin=?, Energy_kcal=?, Protein_g=?, Fat_g=?, Carbohydrates_g=?, Fiber_g=?, VitaminC_mg=?, 
-    // 🌟 ADDED: Sodium_mg and image columns 🌟
-        Sodium_mg=?, image=?
-      WHERE foodID=?`;
-    const values = [
-      name,
-      origin,
-      Energy_kcal,
-      Protein_g,
-      Fat_g,
-      Carbohydrates_g,
-      Fiber_g,
-      VitaminC_mg,
-    // ADDED: Sodium_mg and image values
-    Sodium_mg,
-    image,
-      req.params.id,
-    ];
+    const sql = `
+      UPDATE food 
+      SET name=?, origin=?, Energy_kcal=?, Protein_g=?, Fat_g=?, Carbohydrates_g=?, Fiber_g=?, VitaminC_mg=?
+      WHERE foodID=?`;
+    const values = [
+      name,
+      origin,
+      Energy_kcal,
+      Protein_g,
+      Fat_g,
+      Carbohydrates_g,
+      Fiber_g,
+      VitaminC_mg,
+      req.params.id,
+    ];
 
-    await db.query(sql, values);
-    res.json({ success: true, message: "Food updated successfully" });
-  } catch (err) {
-    console.error("❌ Update food error:", err.message);
-    res.status(500).json({ success: false, error: "Failed to update food" });
-  }
+    await db.query(sql, values);
+    res.json({ success: true, message: "Food updated successfully" });
+  } catch (err) {
+    console.error("❌ Update food error:", err.message);
+    res.status(500).json({ success: false, error: "Failed to update food" });
+  }
 });
 
 // ✅ Delete food (ADMIN ONLY)
