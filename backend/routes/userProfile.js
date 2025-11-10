@@ -3,7 +3,7 @@ const router = express.Router();
 const { pool: db } = require("../config/db");
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const { deleteFirebaseUser, isInitialized } = require('../config/firebaseAdmin');
+const { deleteFirebaseUser, isInitialized, admin } = require('../config/firebaseAdmin');
 
 // ✅ NEW: Validation and sanitization imports
 const Joi = require("joi");
@@ -1157,7 +1157,32 @@ router.delete("/delete", async (req, res) => {
   }
 });
 
+// Firebase Email Update
+async function updateFirebaseEmail(firebaseUID, newEmail) {
+    if (!isInitialized()) {
+        console.warn("❌ Firebase Admin not initialized. Skipping email update.");
+        throw new Error("app/no-app: Firebase Admin SDK is not initialized.");
+    }
+    
+    if (!firebaseUID) {
+        // This can happen for legacy accounts, but an admin is forcing an update.
+        console.warn("⚠️ Cannot update Firebase: No Firebase UID provided for update.");
+        return; 
+    }
+    
+    try {
+        await admin.auth().updateUser(firebaseUID, { 
+            email: newEmail 
+        }); 
+        console.log(`✅ Firebase Auth email updated for UID ${firebaseUID} to ${newEmail}`);
+    } catch (error) {
+        console.error("❌ Firebase update user email failed:", error.message);
+        throw error; // Re-throw to be caught in the admin.js route
+    }
+}
+
 console.log("✅ UserProfile router loaded with debug logging");
 module.exports = router;
 module.exports.deleteUser = deleteUser;
 module.exports.updateUserStats = updateUserStats;
+module.exports.updateFirebaseEmail = updateFirebaseEmail;
