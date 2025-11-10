@@ -97,33 +97,48 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
 
     // Add labels with both percentage and count
     arcs.append('text')
-      .attr('transform', d => `translate(${arc.centroid(d)})`)
+      .attr('transform', d => {
+        const [x, y] = arc.centroid(d);
+        const angle = (d.endAngle - d.startAngle) * (180 / Math.PI);
+        
+        // Dynamic scaling based on slice size
+        let scale;
+        if (angle <= 8) {
+          scale = 1.8; // Very small slices 
+        } else if (angle <= 15) {
+          scale = 1.5; // Small slices
+        } else if (angle <= 30) {
+          scale = 1.3; // Medium slices
+        } else {
+          scale = 1.3; // Large slices
+        }
+        
+        return `translate(${x * scale}, ${y * scale})`;
+      })
       .attr('text-anchor', 'middle')
       .attr('dy', '0.35em')
-      .style('font-size', '12px')
+      .style('font-size', d => {
+        const angle = (d.endAngle - d.startAngle) * (180 / Math.PI);
+        if (angle <= 8) return '9px';
+        if (angle <= 15) return '10px';
+        if (angle <= 30) return '11px';
+        return '12px';
+      })
       .style('font-weight', 'bold')
-      .style('fill', '#ffffff')
+      .style('fill', d => {
+        const angle = (d.endAngle - d.startAngle) * (180 / Math.PI);
+        // Use white for slices that are still inside, dark for those outside
+        return angle > 20 ? '#ffffff' : '#ffffff';
+      })
       .style('pointer-events', 'none')
-      .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.5)')
+      .style('text-shadow', d => {
+        const angle = (d.endAngle - d.startAngle) * (180 / Math.PI);
+        return angle > 20 ? '1px 1px 2px rgba(0,0,0,0.5)' : '1px 1px 2px rgba(0,0,0,0.5)';
+      })
       .text(d => {
         const angle = (d.endAngle - d.startAngle) * (180 / Math.PI);
-        return angle > 15 ? `${d.data.value}%` : '';
+        return angle >= 5 ? `${d.data.value}%` : ''; // Only show labels for slices 5° or larger
       });
-
-    // Add count labels for smaller slices
-    arcs.filter(d => {
-      const angle = (d.endAngle - d.startAngle) * (180 / Math.PI);
-      return angle <= 15 && angle > 8;
-    }).append('text')
-      .attr('transform', d => `translate(${arc.centroid(d)})`)
-      .attr('text-anchor', 'middle')
-      .attr('dy', '0.35em')
-      .style('font-size', '12px')
-      .style('font-weight', 'bold')
-      .style('fill', '#ffffff')
-      .style('pointer-events', 'none')
-      .style('text-shadow', '1px 1px 2px rgba(0,0,0,0.5)')
-      .text(d => `${d.data.count}`);
 
     // Add legend at the bottom
     const legend = svg.append('g')

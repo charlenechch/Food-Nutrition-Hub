@@ -25,7 +25,6 @@ export const analyticsApi = {
     }
   },
 
-  // Get posts and recipes by month for bar chart - UPDATED to accept year parameter
   getPostsRecipesByMonth: async (year = new Date().getFullYear()) => {
     try {
       const response = await fetch(`${API_URL}/api/analytics/posts-recipes-by-month?year=${year}`);
@@ -136,16 +135,26 @@ const Analytics = () => {
     }
   };
 
-  // ADD MISSING FUNCTION: Fetch bar chart data with year
   const fetchBarChartData = async (year) => {
     try {
+      console.log(`🔄 Fetching bar chart data for year: ${year}`);
       const result = await analyticsApi.getPostsRecipesByMonth(year);
+      console.log(`📊 API Response for ${year}:`, result);
+      
       if (result.success) {
+        console.log(`✅ Bar chart data loaded for ${year}:`, result.data);
+        console.log(`📈 Totals for ${year}:`, result.totals);
         setBarChartData(result.data);
         setTotals(result.totals || {});
+      } else {
+        console.error(`❌ Error in bar chart data for ${year}:`, result.error);
+        setBarChartData([]);
+        setTotals({});
       }
     } catch (error) {
-      console.error('Error fetching chart data:', error);
+      console.error(`❌ Error fetching chart data for ${year}:`, error);
+      setBarChartData([]);
+      setTotals({});
     }
   };
 
@@ -371,13 +380,6 @@ const Analytics = () => {
                 </div>
               </div>
               <BarChart data={barChartData} width={550} height={350} />
-              {totals && (
-                <div className="chart-totals">
-                  <small>
-                    Total: {totals.total} (Posts: {totals.posts}, Recipes: {totals.recipes})
-                  </small>
-                </div>
-              )}
             </div>
           </div>
 

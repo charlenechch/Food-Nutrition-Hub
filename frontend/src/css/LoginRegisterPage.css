@@ -547,7 +547,7 @@ body, html, #root {
   animation: lrp-fadeInUp 0.35s ease;
 }
 .lrp-modal.lrp-modal--compact { 
-  padding: 18px 18px 16px; 
+  padding: 32px; 
 }
 
 .lrp-modal-close {
@@ -562,7 +562,9 @@ body, html, #root {
   border-radius: 8px;
   line-height: 0;
 }
-.lrp-modal-close:hover { background: #f3f4f6; }
+.lrp-modal-close:hover { 
+  background: #f3f4f6; 
+}
 .lrp-modal-close:focus-visible {
   outline: 2px solid #8b5e34;
   outline-offset: 2px;
@@ -571,8 +573,10 @@ body, html, #root {
 .lrp-modal-header {
   display: flex;
   align-items: center;
+  justify-content: center; 
   gap: 10px;
   margin: 4px 4px 6px;
+  width: 100%;
 }
 .lrp-modal-icon {
   display: grid;
@@ -584,8 +588,12 @@ body, html, #root {
 .lrp-modal-title {
   font-size: 18px;
   font-weight: 700;
-  color: #2b2b2b;
+  color: #916848;
   margin: 0;
+}
+.lrp-modal-icon svg {
+  display: block;           
+  line-height: 1;
 }
 
 .lrp-modal-body {
@@ -612,14 +620,22 @@ body, html, #root {
   cursor: pointer;
   transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
 }
-.lrp-btn-lg { padding: 12px 20px; font-size: 14.5px; }
+.lrp-btn-lg { 
+  padding: 12px 20px; 
+  font-size: 14.5px; 
+  width: auto;
+}
 
 .lrp-btn-primary {
   background: #8b5e34;
   color: #fff;
 }
-.lrp-btn-primary:hover { background: #7d522c; }
-.lrp-btn-primary:active { transform: translateY(1px); }
+.lrp-btn-primary:hover { 
+  background: #7d522c; 
+}
+.lrp-btn-primary:active { 
+  transform: translateY(1px); 
+}
 .lrp-btn-primary:focus-visible {
   outline: 2px solid #7d522c;
   outline-offset: 2px;
@@ -642,11 +658,21 @@ body, html, #root {
 }
 
 @keyframes lrp-fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { 
+    opacity: 0; 
+    transform: translateY(12px); 
+  }
+  to   { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lrp-modal { animation: none; }
-  .lrp-btn { transition: none; }
+  .lrp-modal { 
+    animation: none; 
+  }
+  .lrp-btn { 
+    transition: none; 
+  }
 }
