@@ -630,8 +630,12 @@ body, html, #root {
   color: #2b2b2b;
   border-color: #e9e9ec;
 }
-.lrp-btn-outline:hover { background: #f7f7f9; }
-.lrp-btn-outline:active { transform: translateY(1px); }
+.lrp-btn-outline:hover { 
+  background: #f7f7f9; 
+}
+.lrp-btn-outline:active { 
+  transform: translateY(1px); 
+}
 .lrp-btn-outline:focus-visible {
   outline: 2px solid #8b5e34;
   outline-offset: 2px;
