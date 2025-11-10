@@ -48,7 +48,7 @@ router.get('/metrics', async (req, res) => {
       WHERE status = 'Pending'
     `);
 
-    // Query for current month approved recipes (for percentage calculation)
+    // Query for current month approved recipes - FIXED: Use createdAt for recipe
     const [currentMonthRecipesResult] = await db.execute(`
       SELECT COUNT(*) as count 
       FROM recipe 
@@ -57,7 +57,7 @@ router.get('/metrics', async (req, res) => {
         AND YEAR(createdAt) = ?
     `, [currentMonth, currentYear]);
 
-    // Query for previous month approved recipes
+    // Query for previous month approved recipes - FIXED: Use createdAt for recipe
     const [previousMonthRecipesResult] = await db.execute(`
       SELECT COUNT(*) as count 
       FROM recipe 
@@ -66,7 +66,7 @@ router.get('/metrics', async (req, res) => {
         AND YEAR(createdAt) = ?
     `, [previousMonth, previousYear]);
 
-    // Query for current month approved stories
+    // Query for current month approved stories - FIXED: Use created_at for posts
     const [currentMonthStoriesResult] = await db.execute(`
       SELECT COUNT(*) as count 
       FROM posts 
@@ -75,7 +75,7 @@ router.get('/metrics', async (req, res) => {
         AND YEAR(created_at) = ?
     `, [currentMonth, currentYear]);
 
-    // Query for previous month approved stories
+    // Query for previous month approved stories - FIXED: Use created_at for posts
     const [previousMonthStoriesResult] = await db.execute(`
       SELECT COUNT(*) as count 
       FROM posts 
@@ -172,7 +172,7 @@ router.get('/cultural-origin', async (req, res) => {
   }
 });
 
-// Get available years from database
+// Get available years from database - FIXED: Use correct column names for each table
 router.get('/available-years', async (req, res) => {
   try {
     const query = `
@@ -180,7 +180,7 @@ router.get('/available-years', async (req, res) => {
       FROM (
         SELECT createdAt FROM recipe WHERE status = 'Approved'
         UNION ALL
-        SELECT createdAt FROM posts WHERE status = 'Approved'
+        SELECT created_at as createdAt FROM posts WHERE status = 'Approved'
       ) AS contributions
       ORDER BY year DESC
     `;
@@ -210,7 +210,7 @@ router.get('/posts-recipes-by-month', async (req, res) => {
     const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
     
     const query = `
-      -- Get posts with all statuses
+      -- Get posts with all statuses - FIXED: Use created_at for posts
       SELECT 
         'Posts' as type,
         status,
@@ -222,7 +222,7 @@ router.get('/posts-recipes-by-month', async (req, res) => {
       
       UNION ALL
       
-      -- Get recipes with all statuses
+      -- Get recipes with all statuses - FIXED: Use createdAt for recipe
       SELECT 
         'Recipes' as type,
         status,
@@ -351,81 +351,142 @@ router.get('/popular-categories', async (req, res) => {
   }
 });
 
-// get top contributors
-router.get('/top-contributors', async (req, res) => {
+// TEMPORARY FIX: Create separate endpoints to avoid HPP 'view' parameter issue
+router.get('/top-contributors-recipes', async (req, res) => {
   try {
-    const { view = 'recipes' } = req.query;
+    console.log('🔍 Fetching top recipe contributors');
     
-    console.log(`🔍 Fetching top contributors for view: ${view}`);
-    
-    let query = '';
-    let params = [];
-
-    if (view === 'recipes') {
-      query = `
-        SELECT 
-          u.firstname,
-          u.lastname,
-          up.userProfileID,
-          COUNT(DISTINCT r.recipeID) as recipes
-        FROM user u
-        INNER JOIN userProfile up ON u.userID = up.userID
-        INNER JOIN recipe r ON up.userProfileID = r.userProfileID 
-        WHERE r.status = 'Approved'
-        GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
-        ORDER BY recipes DESC
-        LIMIT 5
-      `;
-    } else if (view === 'stories') {
-      query = `
-        SELECT 
-          u.firstname,
-          u.lastname,
-          up.userProfileID,
-          COUNT(DISTINCT p.postID) as stories
-        FROM user u
-        INNER JOIN userProfile up ON u.userID = up.userID
-        INNER JOIN posts p ON up.userProfileID = p.userProfileID 
-        WHERE p.status = 'Approved'
-        GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
-        ORDER BY stories DESC
-        LIMIT 5
-      `;
-    } else {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid view parameter. Use "recipes" or "stories"'
-      });
-    }
+    const query = `
+      SELECT 
+        u.firstname,
+        u.lastname,
+        u.userID,
+        COUNT(r.recipeID) as recipes
+      FROM user u
+      LEFT JOIN recipe r ON u.userID = r.userID AND r.status = 'Approved'
+      GROUP BY u.userID, u.firstname, u.lastname
+      HAVING COUNT(r.recipeID) > 0
+      ORDER BY recipes DESC
+      LIMIT 5
+    `;
     
     console.log('📊 Executing query:', query);
     
-    const [results] = await db.execute(query, params);
+    const [results] = await db.execute(query);
     
-    console.log(`✅ Found ${results.length} top contributors for ${view}:`, results);
+    console.log(`✅ Found ${results.length} top recipe contributors:`, results);
     
-    // Format the response to ensure consistent field names
+    // Format the response
     const formattedResults = results.map(item => ({
       firstname: item.firstname,
       lastname: item.lastname,
-      userProfileID: item.userProfileID,
+      userProfileID: item.userID,
       recipes: item.recipes || 0,
+      stories: 0
+    }));
+    
+    res.json({
+      success: true,
+      data: formattedResults
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching recipe contributors:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch recipe contributors',
+      message: error.message
+    });
+  }
+});
+
+router.get('/top-contributors-stories', async (req, res) => {
+  try {
+    console.log('🔍 Fetching top story contributors');
+    
+    const query = `
+      SELECT 
+        u.firstname,
+        u.lastname,
+        u.userID,
+        COUNT(p.postID) as stories
+      FROM user u
+      LEFT JOIN posts p ON u.userID = p.userID AND p.status = 'Approved'
+      GROUP BY u.userID, u.firstname, u.lastname
+      HAVING COUNT(p.postID) > 0
+      ORDER BY stories DESC
+      LIMIT 5
+    `;
+    
+    console.log('📊 Executing query:', query);
+    
+    const [results] = await db.execute(query);
+    
+    console.log(`✅ Found ${results.length} top story contributors:`, results);
+    
+    // Format the response
+    const formattedResults = results.map(item => ({
+      firstname: item.firstname,
+      lastname: item.lastname,
+      userProfileID: item.userID,
+      recipes: 0,
       stories: item.stories || 0
     }));
     
     res.json({
       success: true,
-      data: formattedResults,
-      view: view
+      data: formattedResults
     });
     
   } catch (error) {
-    console.error('❌ Error fetching top contributors:', error);
+    console.error('❌ Error fetching story contributors:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch top contributors',
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: 'Failed to fetch story contributors',
+      message: error.message
+    });
+  }
+});
+
+// Keep the original endpoint but use it only for default case
+router.get('/top-contributors', async (req, res) => {
+  try {
+    console.log('🔍 Fetching default top contributors (recipes)');
+    
+    const query = `
+      SELECT 
+        u.firstname,
+        u.lastname,
+        u.userID,
+        COUNT(r.recipeID) as recipes
+      FROM user u
+      LEFT JOIN recipe r ON u.userID = r.userID AND r.status = 'Approved'
+      GROUP BY u.userID, u.firstname, u.lastname
+      HAVING COUNT(r.recipeID) > 0
+      ORDER BY recipes DESC
+      LIMIT 5
+    `;
+    
+    const [results] = await db.execute(query);
+    
+    const formattedResults = results.map(item => ({
+      firstname: item.firstname,
+      lastname: item.lastname,
+      userProfileID: item.userID,
+      recipes: item.recipes || 0,
+      stories: 0
+    }));
+    
+    res.json({
+      success: true,
+      data: formattedResults
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching default contributors:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch contributors'
     });
   }
 });
