@@ -203,9 +203,18 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     
     // Calculate final suspendedUntil date based on the *finalStatus*.
     // Only set a date if the final calculated status is 'Suspended'.
-    const finalsuspendedUntil = (finalStatus === 'Suspended')
-      ? (suspendedUntil ? new Date(suspendedUntil) : null) 
-      : null; 
+    let finalsuspendedUntil = null; // Initialize as null (NEW)
+
+    if (finalStatus === 'Suspended' && suspendedUntil) { // Check status AND if date is provided (MODIFIED)
+        try {
+            // Convert to YYYY-MM-DD string format (required for MySQL DATE type)
+            // This is safer than passing a raw Date object to the connector.
+            finalsuspendedUntil = new Date(suspendedUntil).toISOString().slice(0, 10); // (NEW LOGIC)
+        } catch (e) {
+            // Fallback if the date string is malformed
+            console.error("⚠️ Error formatting suspendedUntil date, using null:", e);
+        }
+    }
 
     // Synchronize Email with Firebase Auth
     if (email !== currentEmail) {
