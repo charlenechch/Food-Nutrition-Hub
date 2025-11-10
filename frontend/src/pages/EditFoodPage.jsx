@@ -33,19 +33,16 @@ const EditFoodPage = () => {
 
         if (data.success) {
           // Set the state with data from the API
-          // Note: Your form had fields like 'name_en', but your API only has 'name'.
-          // We are mapping the API data to the form fields.
           setFood({
             name: data.data.name || "",
             origin: data.data.origin || "",
-            // Your API uses 'Energy_kcal', 'Protein_g', etc.
+            // API uses 'Energy_kcal', 'Protein_g', etc.
             calories: data.data.Energy_kcal || "",
             protein: data.data.Protein_g || "",
             carbs: data.data.Carbohydrates_g || "",
             fat: data.data.Fat_g || "",
             fiber: data.data.Fiber_g || "",
-            sodium: data.data.Sodium_mg || "", // Assuming you add this to your DB
-            // These fields were in your form but not your API
+            // These fields are in the form but not in API
             name_ms: data.data.name_ms || "", 
             category: data.data.category || "",
             description: data.data.description || "",
@@ -264,6 +261,7 @@ const EditFoodPage = () => {
             name="description"
             value={food.description}
             onChange={handleChange}
+            rows={5}
           />
 
           <label className="basic-info-label">Cultural Significance</label>
@@ -273,6 +271,7 @@ const EditFoodPage = () => {
             value={food.cultural_significance}
             onChange={handleChange}
             placeholder="Describe the cultural background behind this dish"
+            rows={5}
           />
 
           <label className="basic-info-label">Traditional Preparation</label>
@@ -282,6 +281,7 @@ const EditFoodPage = () => {
             value={food.traditional_preparation}
             onChange={handleChange}
             placeholder="Describe how this dish is traditionally prepared"
+            rows={5}
           />
         </div>
 
