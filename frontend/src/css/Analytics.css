@@ -35,7 +35,7 @@ h2 {
     color: #5f5040;
 }
 
-/* Metrics Grid - Keep natural size */
+/* Metrics Grid */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -49,7 +49,8 @@ h2 {
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  /* No fixed height - let content determine size */
+  position: relative;
+  overflow: hidden;
 }
 
 .metric-card:hover {
@@ -65,17 +66,65 @@ h2 {
 }
 
 .metric-value {
-  font-size: 28px;
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 8px;
-  line-height: 1.2;
+  font-size: 3rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 16px;
+  line-height: 1;
+  text-align: center;
+  background: linear-gradient(135deg, #1e293b, #475569);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+/* Metric Change/Status */
 .metric-change {
-  font-size: 12px;
-  font-weight: 500;
+  margin-top: 16px;
 }
+
+/* Percentage Styles */
+.positive {
+  color: #059669;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  padding: 6px 12px;
+  border-radius: 24px;
+  border: 1.5px solid #a7f3d0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  box-shadow: 
+    0 2px 8px rgba(5, 150, 105, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+.positive::before {
+  content: "↑";
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.negative {
+  color: #dc2626;
+  background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  padding: 10px 18px;
+  border-radius: 24px;
+  border: 1.5px solid #fecaca;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  box-shadow: 
+    0 2px 8px rgba(220, 38, 38, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+}
+
 
 .metric-change.positive {
   color: #38a169;
@@ -86,37 +135,32 @@ h2 {
 }
 
 .metric-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
-  gap: 100px; 
-  margin: 0;
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
+  gap: 8px;
+  letter-spacing: 0.5px;
 }
 
 .icon-book {
   font-size: 18px;
   color: #916848; 
-  margin-left: 55px;
+  margin-left: 100px;
 }
 
 .icon-utensils {
   font-size: 20px;
   color: #916848; 
-  margin-left: 35px;
-}
-
-.icon-users {
-  font-size: 22px;
-  color: #916848; 
-  margin-left: 20px;
+  margin-left: 90px;
 }
 
 .icon-alert {
   font-size: 20px;
   color: #916848; 
-  margin-left: 40px;
+  margin-left: 70px;
 }
 
 .icon-star,
@@ -188,27 +232,74 @@ h2 {
   font-weight: 600;
 }
 
-.year-selector {
+/* Year Filter Styles */
+.year-filter {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
 }
 
-.year-dropdown {
-  padding: 6px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background: white;
-  color: #4a5568;
-  border-color: #916848;
+.filter-label {
   font-size: 14px;
-  cursor: pointer;
+  font-weight: 600;
+  color: #4a5568;
+  white-space: nowrap;
 }
 
-.year-dropdown:focus {
+.year-select {
+  padding: 8px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #2d3748;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  min-width: 80px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234a5568'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 32px;
+}
+
+.year-select:hover {
+  border-color: #cbd5e0;
+  background-color: #f7fafc;
+}
+
+.year-select:focus {
   outline: none;
-  border-color: #916848;
-  box-shadow: 0 0 0 2px rgba(145, 104, 72, 0.1);
+  border-color: #5f5040;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.year-select option {
+  padding: 8px;
+  background: white;
+  color: #2d3748;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .year-filter {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+  
+  .year-select {
+    min-width: 70px;
+    font-size: 13px;
+    padding: 6px 10px;
+    padding-right: 28px;
+  }
+  
+  .filter-label {
+    font-size: 13px;
+  }
 }
 
 .pie-chart-container {
@@ -490,19 +581,50 @@ h2 {
   color: #2c3e50;
   margin-bottom: 8px;
   line-height: 1;
+  text-align: left;
 }
 
 /* Positive/Negative Changes */
-.metric-change.positive {
-  color: #10b981;
-  font-weight: 600;
-  font-size: 0.85rem;
+.metric-change .positive {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 2px solid #bbf7d0;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);
+  transition: all 0.3s ease;
 }
 
-.metric-change.negative {
-  color: #f59e0b;
-  font-weight: 600;
-  font-size: 0.85rem;
+.metric-change .negative {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 2px solid #fecaca;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+  transition: all 0.3s ease;
+  animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  }
 }
 
 /* Attention Tag - Red Frame Style */
@@ -517,7 +639,7 @@ h2 {
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
-  animation: pulse 2s infinite;
+  animation: pulse 3s infinite;
 }
 
 .attention-tag .tag-icon {
@@ -556,7 +678,7 @@ h2 {
 }
 
 .attention-tag {
-  animation: pulse 2s infinite;
+  animation: pulse 3s infinite;
 }
 
 /* Change Indicators */

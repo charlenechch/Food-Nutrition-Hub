@@ -380,13 +380,6 @@ const Analytics = () => {
                 </div>
               </div>
               <BarChart data={barChartData} width={550} height={350} />
-              {totals && (
-                <div className="chart-totals">
-                  <small>
-                    Total: {totals.total} (Posts: {totals.posts}, Recipes: {totals.recipes})
-                  </small>
-                </div>
-              )}
             </div>
           </div>
 
