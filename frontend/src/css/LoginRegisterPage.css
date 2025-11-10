@@ -573,8 +573,10 @@ body, html, #root {
 .lrp-modal-header {
   display: flex;
   align-items: center;
+  justify-content: center; 
   gap: 10px;
   margin: 4px 4px 6px;
+  width: 100%;
 }
 .lrp-modal-icon {
   display: grid;
@@ -588,6 +590,10 @@ body, html, #root {
   font-weight: 700;
   color: #916848;
   margin: 0;
+}
+.lrp-modal-icon svg {
+  display: block;           
+  line-height: 1;
 }
 
 .lrp-modal-body {
@@ -617,6 +623,7 @@ body, html, #root {
 .lrp-btn-lg { 
   padding: 12px 20px; 
   font-size: 14.5px; 
+  width: auto;
 }
 
 .lrp-btn-primary {
