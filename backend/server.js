@@ -277,14 +277,14 @@ app.use(
       "likeID", "name", "origin", "difficulty", "prepTime", "cookTime",
       "servings", "image", "description", "foodType", "dietaryTags",
       "ingredients", "instructions", "funFact", "chefTips",
-      "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll"
+      "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll", "Energy_kcal",
+      "Protein_g", "Fat_g", "Carbohydrates_g", "Fiber_g", "VitaminC_mg"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));
     },
   })
 );
-
 
 // ---------- 8) Other Routes ----------
 app.use("/api/logout", logoutRoutes);
