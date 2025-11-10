@@ -27,8 +27,7 @@ export const analyticsApi = {
 
   getPostsRecipesByMonth: async (year = new Date().getFullYear()) => {
     try {
-      // Use path parameter instead of query parameter to avoid HPP
-      const response = await fetch(`${API_URL}/api/analytics/posts-recipes-by-month/${year}`);
+      const response = await fetch(`${API_URL}/api/analytics/posts-recipes-by-month?year=${year}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
