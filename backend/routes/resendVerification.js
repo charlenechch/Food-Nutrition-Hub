@@ -34,9 +34,11 @@ router.post("/", async (req, res) => {
     }
 
     if (users[0].verified === 'True') {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Email is already verified" 
+      return res.json({ 
+        success: true, 
+        message: "Email is already verified. You can now log in.",
+        isVerified: true,
+        cooldownSeconds: 0
       });
     }
 
@@ -70,7 +72,7 @@ router.post("/", async (req, res) => {
     // Return success - Frontend will trigger Firebase resend
     return res.json({ 
       success: true, 
-      message: "Ready to resend verification email",
+      message: "Resend approved. Please check your inbox for the new link.",
       cooldownSeconds: 120
     });
 
