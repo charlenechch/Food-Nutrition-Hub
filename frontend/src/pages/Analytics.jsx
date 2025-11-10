@@ -96,6 +96,36 @@ const Analytics = () => {
   const [topContributors, setTopContributors] = useState([]);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('recipes');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [availableYears, setAvailableYears] = useState([]);
+
+  useEffect(() => {
+    const fetchAvailableYears = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/analytics/available-years`);
+        const result = await response.json();
+        
+        if (result.success) {
+          setAvailableYears(result.data);
+          // Set default to latest year
+          if (result.data.length > 0) {
+            setSelectedYear(result.data[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching years:', error);
+      }
+    };
+
+    fetchAvailableYears();
+  }, []);
+
+  // Update barChartData based on selectedYear
+  useEffect(() => {
+    if (selectedYear) {
+      fetchBarChartData(selectedYear);
+    }
+  }, [selectedYear]);
 
   useEffect(() => {
   const fetchAnalyticsData = async () => {
@@ -260,7 +290,21 @@ const Analytics = () => {
 
             {/* Bar Chart Card */}
             <div className="chart-card">
-              <h3 className="chart-title">Monthly Community Contribution Trends</h3>
+              <div className="chart-header">
+                <h3 className="chart-title">Monthly Community Contribution Trends</h3>
+                <div className="year-filter">
+                  <span className="filter-label">Year:</span>
+                  <select 
+                    value={selectedYear} 
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="year-select"
+                  >
+                    {availableYears.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <BarChart data={barChartData} width={550} height={350} />
             </div>
           </div>
