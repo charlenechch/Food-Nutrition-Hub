@@ -176,11 +176,11 @@ router.get('/cultural-origin', async (req, res) => {
 router.get('/available-years', async (req, res) => {
   try {
     const query = `
-      SELECT DISTINCT YEAR(created_at) as year 
+      SELECT DISTINCT YEAR(createdAt) as year 
       FROM (
-        SELECT created_at FROM recipe WHERE status = 'Approved'
+        SELECT createdAt FROM recipe WHERE status = 'Approved'
         UNION ALL
-        SELECT created_at FROM posts WHERE status = 'Approved'
+        SELECT createdAt FROM posts WHERE status = 'Approved'
       ) AS contributions
       ORDER BY year DESC
     `;

@@ -70,10 +70,10 @@ export const analyticsApi = {
     }
   },
 
-  // Get top contributors data
-  getTopContributors: async () => {
+  // Get top contributors data - FIXED: Add view parameter
+  getTopContributors: async (view = 'recipes') => {
     try {
-      const response = await fetch(`${API_URL}/api/analytics/top-contributors`);
+      const response = await fetch(`${API_URL}/api/analytics/top-contributors?view=${view}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -81,6 +81,35 @@ export const analyticsApi = {
       return data;
     } catch (error) {
       console.error('Error fetching top contributors data:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Add these new functions for year filtering
+  getAvailableYears: async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/analytics/available-years`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching available years:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  getBarChartData: async (year) => {
+    try {
+      const response = await fetch(`${API_URL}/api/analytics/bar-chart-data?year=${year}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching bar chart data:', error);
       return { success: false, error: error.message };
     }
   }
@@ -99,11 +128,39 @@ const Analytics = () => {
   const [selectedYear, setSelectedYear] = useState('');
   const [availableYears, setAvailableYears] = useState([]);
 
+  // ADD THIS FUNCTION: Fetch top contributors
+  const fetchTopContributors = async (view = 'recipes') => {
+    try {
+      const result = await analyticsApi.getTopContributors(view);
+      
+      if (result.success) {
+        setTopContributors(result.data);
+      } else {
+        console.error('Error fetching top contributors:', result.error);
+        setTopContributors([]);
+      }
+    } catch (error) {
+      console.error('Error fetching top contributors:', error);
+      setTopContributors([]);
+    }
+  };
+
+  // ADD THIS FUNCTION: Fetch bar chart data
+  const fetchBarChartData = async (year) => {
+    try {
+      const result = await analyticsApi.getBarChartData(year);
+      if (result.success) {
+        setBarChartData(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchAvailableYears = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/analytics/available-years`);
-        const result = await response.json();
+        const result = await analyticsApi.getAvailableYears();
         
         if (result.success) {
           setAvailableYears(result.data);
@@ -128,60 +185,60 @@ const Analytics = () => {
   }, [selectedYear]);
 
   useEffect(() => {
-  const fetchAnalyticsData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const [
-        metricsResponse,
-        barChartResponse,
-        culturalOriginResponse,
-        popularCategoriesResponse,
-        topContributorsResponse
-      ] = await Promise.all([
-        analyticsApi.getMetrics(),
-        analyticsApi.getPostsRecipesByMonth(),
-        analyticsApi.getCulturalOrigin(),
-        analyticsApi.getPopularCategories(),
-        analyticsApi.getTopContributors()
-      ]);
+    const fetchAnalyticsData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const [
+          metricsResponse,
+          barChartResponse,
+          culturalOriginResponse,
+          popularCategoriesResponse,
+          topContributorsResponse
+        ] = await Promise.all([
+          analyticsApi.getMetrics(),
+          analyticsApi.getPostsRecipesByMonth(), // This might need updating for year filter
+          analyticsApi.getCulturalOrigin(),
+          analyticsApi.getPopularCategories(),
+          analyticsApi.getTopContributors('recipes') // Set initial view to recipes
+        ]);
 
-      console.log('📊 Analytics Responses:', {
-        metrics: metricsResponse,
-        barChart: barChartResponse,
-        culturalOrigin: culturalOriginResponse,
-        popularCategories: popularCategoriesResponse,
-        topContributors: topContributorsResponse
-      });
+        console.log('📊 Analytics Responses:', {
+          metrics: metricsResponse,
+          barChart: barChartResponse,
+          culturalOrigin: culturalOriginResponse,
+          popularCategories: popularCategoriesResponse,
+          topContributors: topContributorsResponse
+        });
 
-      // ✅ Safe checking with default values
-      if (metricsResponse?.success) setMetrics(metricsResponse.data || {});
-      if (barChartResponse?.success) setBarChartData(barChartResponse.data || []);
-      if (culturalOriginResponse?.success) setCulturalOriginData(culturalOriginResponse.data || []);
-      if (popularCategoriesResponse?.success) setPopularCategories(popularCategoriesResponse.data || []);
-      if (topContributorsResponse?.success) setTopContributors(topContributorsResponse.data || []);
-      
-      // Check if any API call failed
-      const failedRequests = [
-        metricsResponse, barChartResponse, culturalOriginResponse, 
-        popularCategoriesResponse, topContributorsResponse
-      ].filter(response => !response?.success);
-      
-      if (failedRequests.length > 0) {
-        setError(`Some data failed to load: ${failedRequests.length} endpoints failed`);
+        // ✅ Safe checking with default values
+        if (metricsResponse?.success) setMetrics(metricsResponse.data || {});
+        if (barChartResponse?.success) setBarChartData(barChartResponse.data || []);
+        if (culturalOriginResponse?.success) setCulturalOriginData(culturalOriginResponse.data || []);
+        if (popularCategoriesResponse?.success) setPopularCategories(popularCategoriesResponse.data || []);
+        if (topContributorsResponse?.success) setTopContributors(topContributorsResponse.data || []);
+        
+        // Check if any API call failed
+        const failedRequests = [
+          metricsResponse, barChartResponse, culturalOriginResponse, 
+          popularCategoriesResponse, topContributorsResponse
+        ].filter(response => !response?.success);
+        
+        if (failedRequests.length > 0) {
+          setError(`Some data failed to load: ${failedRequests.length} endpoints failed`);
+        }
+        
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+        setError('Error loading analytics data. Please try again later.');
+      } finally {
+        setLoading(false);
       }
-      
-    } catch (error) {
-      console.error('Error fetching analytics data:', error);
-      setError('Error loading analytics data. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchAnalyticsData();
-}, []);
+    fetchAnalyticsData();
+  }, []);
 
   // Calculate max submissions for percentage bars
   const maxSubmissions = Math.max(...popularCategories.map(cat => cat.submissions));
@@ -206,76 +263,76 @@ const Analytics = () => {
 
       <div className="analytics-dashboard">
         <div className="metrics-grid">
-        {/* Total Recipes Card */}
-        <div className="metric-card">
-          <h3 className="metric-title">Total Recipes Shared <FaUtensils className="icon-utensils" /></h3>
-          <div className="metric-value">{metrics.totalRecipes?.toLocaleString() || '0'}</div>
-          <div className={`metric-change ${metrics.recentRecipes >= 0 ? 'positive' : 'negative'}`}>
-            {metrics.recentRecipes !== undefined ? (
-              <>
-                {metrics.recentRecipes >= 0 ? '+' : ''}{metrics.recentRecipes} This Month
-                {metrics.recentRecipes < 0 && <span className="change-indicator">↓</span>}
-              </>
-            ) : (
-              'Loading...'
-            )}
+          {/* Total Recipes Card */}
+          <div className="metric-card">
+            <h3 className="metric-title">Total Recipes Shared <FaUtensils className="icon-utensils" /></h3>
+            <div className="metric-value">{metrics.totalRecipes?.toLocaleString() || '0'}</div>
+            <div className={`metric-change ${metrics.recentRecipes >= 0 ? 'positive' : 'negative'}`}>
+              {metrics.recentRecipes !== undefined ? (
+                <>
+                  {metrics.recentRecipes >= 0 ? '+' : ''}{metrics.recentRecipes} This Month
+                  {metrics.recentRecipes < 0 && <span className="change-indicator">↓</span>}
+                </>
+              ) : (
+                'Loading...'
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Total Stories Card */}
-        <div className="metric-card">
-          <h3 className="metric-title">Total Stories Shared <FaBook className="icon-book" /></h3>     
-          <div className="metric-value">{metrics.totalStories?.toLocaleString() || '0'}</div>
-          <div className={`metric-change ${metrics.recentPosts >= 0 ? 'positive' : 'negative'}`}>
-            {metrics.recentPosts !== undefined ? (
-              <>
-                {metrics.recentPosts >= 0 ? '+' : ''}{metrics.recentPosts} This Month
-                {metrics.recentPosts < 0 && <span className="change-indicator">↓</span>}
-              </>
-            ) : (
-              'Loading...'
-            )}
+          {/* Total Stories Card */}
+          <div className="metric-card">
+            <h3 className="metric-title">Total Stories Shared <FaBook className="icon-book" /></h3>     
+            <div className="metric-value">{metrics.totalStories?.toLocaleString() || '0'}</div>
+            <div className={`metric-change ${metrics.recentPosts >= 0 ? 'positive' : 'negative'}`}>
+              {metrics.recentPosts !== undefined ? (
+                <>
+                  {metrics.recentPosts >= 0 ? '+' : ''}{metrics.recentPosts} This Month
+                  {metrics.recentPosts < 0 && <span className="change-indicator">↓</span>}
+                </>
+              ) : (
+                'Loading...'
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Pending Recipes Card */}
-        <div className="metric-card">
-          <h3 className="metric-title">Recipe Pending Reviews<FaExclamationTriangle className="icon-alert" /></h3>
-          <div className="metric-value">{metrics.pendingRecipes?.toLocaleString() || '0'}</div>
-          <div className="metric-change">
-            {metrics.pendingRecipes > 0 ? (
-              <span className="attention-tag">
-                <FaExclamationTriangle className="tag-icon" />
-                Requires attention
-              </span>
-            ) : (
-              <span className="all-caught-tag">
-                <BsCheckCircle className="tag-icon" />
-                All caught up!
-              </span>
-            )}
+          {/* Pending Recipes Card */}
+          <div className="metric-card">
+            <h3 className="metric-title">Recipe Pending Reviews<FaExclamationTriangle className="icon-alert" /></h3>
+            <div className="metric-value">{metrics.pendingRecipes?.toLocaleString() || '0'}</div>
+            <div className="metric-change">
+              {metrics.pendingRecipes > 0 ? (
+                <span className="attention-tag">
+                  <FaExclamationTriangle className="tag-icon" />
+                  Requires attention
+                </span>
+              ) : (
+                <span className="all-caught-tag">
+                  <BsCheckCircle className="tag-icon" />
+                  All caught up!
+                </span>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Pending Stories Card */}
-        <div className="metric-card">
-          <h3 className="metric-title">Stories Pending Reviews <FaExclamationTriangle className="icon-alert" /></h3>
-          <div className="metric-value">{metrics.pendingStories?.toLocaleString() || '0'}</div>
-          <div className="metric-change">
-            {metrics.pendingStories > 0 ? (
-              <span className="attention-tag">
-                <FaExclamationTriangle className="tag-icon" />
-                Requires attention
-              </span>
-            ) : (
-              <span className="all-caught-tag">
-                <BsCheckCircle className="tag-icon" />
-                All caught up!
-              </span>
-            )}
+          {/* Pending Stories Card */}
+          <div className="metric-card">
+            <h3 className="metric-title">Stories Pending Reviews <FaExclamationTriangle className="icon-alert" /></h3>
+            <div className="metric-value">{metrics.pendingStories?.toLocaleString() || '0'}</div>
+            <div className="metric-change">
+              {metrics.pendingStories > 0 ? (
+                <span className="attention-tag">
+                  <FaExclamationTriangle className="tag-icon" />
+                  Requires attention
+                </span>
+              ) : (
+                <span className="all-caught-tag">
+                  <BsCheckCircle className="tag-icon" />
+                  All caught up!
+                </span>
+              )}
+            </div>
           </div>
         </div>
-      </div>
         
 
         <div className="charts-section">
@@ -343,13 +400,19 @@ const Analytics = () => {
                 <div className="view-toggle">
                   <button 
                     className={`toggle-btn ${viewMode === 'recipes' ? 'active' : ''}`}
-                    onClick={() => setViewMode('recipes')}
+                    onClick={() => {
+                      setViewMode('recipes');
+                      fetchTopContributors('recipes');
+                    }}
                   >
                     Recipes
                   </button>
                   <button 
                     className={`toggle-btn ${viewMode === 'stories' ? 'active' : ''}`}
-                    onClick={() => setViewMode('stories')}
+                    onClick={() => {
+                      setViewMode('stories');
+                      fetchTopContributors('stories');
+                    }}
                   >
                     Stories
                   </button>
@@ -358,26 +421,27 @@ const Analytics = () => {
               
               <div className="contributors-list">
                 {topContributors
-                  .filter(contributor => viewMode === 'recipes' ? contributor.recipes > 0 : contributor.stories > 0)
-                  .slice(0, 5)
+                  .slice(0, 5) // Remove the filter since backend already returns correct data
                   .map((contributor, index) => (
-                    <div key={index} className="contributor-item">
+                    <div key={contributor.userProfileID || index} className="contributor-item">
                       <div className="contributor-rank">{index + 1}</div>
                       <div className="contributor-info">
-                        <span className="contributor-name">{contributor.name || contributor.username || `${contributor.firstname} ${contributor.lastname}` || 'Unknown User'}</span>
+                        <span className="contributor-name">
+                          {`${contributor.firstname} ${contributor.lastname}`}
+                        </span>
                       </div>
                       <div className="contributor-posts">
                         <span className="posts-count">
                           {viewMode === 'recipes' ? contributor.recipes : contributor.stories}
                         </span>
                         <span className="posts-label">
-                          {viewMode === 'recipes' ? 'recipes' : 'stories'}
+                          {viewMode === 'recipes' ? 'RECIPES' : 'STORIES'}
                         </span>
                       </div>
                     </div>
                   ))
                 }
-                {topContributors.filter(contributor => viewMode === 'recipes' ? contributor.recipes > 0 : contributor.stories > 0).length === 0 && (
+                {topContributors.length === 0 && (
                   <div className="no-contributors">
                     No {viewMode} contributors found
                   </div>
