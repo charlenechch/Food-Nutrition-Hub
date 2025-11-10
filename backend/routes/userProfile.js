@@ -1159,7 +1159,7 @@ router.delete("/delete", async (req, res) => {
 
 // Firebase Email Update
 async function updateFirebaseEmail(firebaseUID, newEmail) {
-    if (!isInitialized()) {
+    if (!isInitialized) {
         console.warn("❌ Firebase Admin not initialized. Skipping email update.");
         throw new Error("app/no-app: Firebase Admin SDK is not initialized.");
     }
