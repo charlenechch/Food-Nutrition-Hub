@@ -257,6 +257,27 @@
   outline: none;
 }
 
+/* Custom Dropdown Arrow Styles */
+
+/* 1. Wrapper to contain the select box and the arrow */
+.custom-select-wrapper {
+    position: relative; /* Essential for positioning the arrow */
+    width: 100%;
+}
+
+/* 2. Arrow Pseudo-element */
+.custom-select-wrapper::after {
+    content: '▼'; /* The downward arrow character */
+    position: absolute;
+    top: 50%; /* Center vertically */
+    right: 15px; /* Adjust position from the right edge */
+    transform: translateY(-50%);
+    pointer-events: none; /* Allows clicks to pass through to the select element */
+    color: #60482e; /* Using a dark brown color from your theme */
+    font-size: 0.7rem;
+}
+.edit-food-select {
+
 .edit-cultural-context-card {
     margin-bottom: 40px;
 }
@@ -409,9 +430,40 @@
     font-size: 13px;
     padding: 9px;
   }
+}}
+
+/* Add this to EditFoodPage.css */
+
+/* Reuse modal-overlay (which you already have) */
+
+.notification-modal {
+    background: #fffdfb;
+    border-radius: 14px;
+    padding: 30px 40px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    transition: all 0.3s ease-in-out;
 }
 
+.notification-modal h3 {
+    margin-top: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
 
+.notification-modal p {
+    font-size: 15px;
+    color: #3d2b1f;
+    margin-bottom: 20px;
+}
 
+/* Color codes based on type */
+.notification-modal.success {
+    border: 2px solid #73b381; /* Green border */
+}
 
-
+.notification-modal.error {
+    border: 2px solid #d47e7e; /* Red border */
+}
