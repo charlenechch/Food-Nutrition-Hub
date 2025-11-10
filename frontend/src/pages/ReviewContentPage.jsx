@@ -26,11 +26,11 @@ const ReviewContentPage = () => {
         setError(null);
 
         // --- Check for community post URL ---
-        const isCommunityPost = type === "communityPost" || type === "community";
+        const isCommunityPost = type === "communitypost" || type === "community";
         
         // ✅ Detect endpoint based on type
         const endpoint = isCommunityPost
-          ? `${API_URL}/api/communityPost/admin/${id}` // Use correct community endpoint
+          ? `${API_URL}/api/communitypost/admin/${id}` // Use correct community endpoint
           : `${API_URL}/api/recipe/recipes/${id}`; // Default to recipe endpoint
 
         console.log(`Fetching content type '${type}' from endpoint: ${endpoint}`);
@@ -46,7 +46,7 @@ const ReviewContentPage = () => {
         }
 
         const data = await res.json();
-        setSubmission(data);
+        setSubmission(data.data);
       } catch (err) {
         console.error("❌ Error fetching submission:", err);
         setError(err.message);
@@ -66,7 +66,7 @@ const ReviewContentPage = () => {
 
     try {
       // ✅ Dynamic update endpoint logic
-      const isCommunityPost = type === "communityPost" || type === "community";
+      const isCommunityPost = type === "communitypost" || type === "community";
       const updateUrl = isCommunityPost
         ? `${API_URL}/api/communityPost/updateStatus/${id}`
         : `${API_URL}/api/recipe/updateStatus/${id}`;

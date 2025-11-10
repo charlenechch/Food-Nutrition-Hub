@@ -128,9 +128,9 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
         <tbody>
           {currentPosts.map((p, i) => (
             <tr key={p.id || i}>
-              <td>{p.foodName || "Untitled"}</td>
+              <td>{p.foodName || p.title || "Untitled"}</td>
               <td>{p.author || "Anonymous"}</td>
-              <td>{p.daysAgo || "—"}</td>
+              <td>{p.created_at ? new Date(p.created_at).toLocaleDateString() : "—"}</td>
               <td>
                 <span
                   className={`recipe-status-tag ${
