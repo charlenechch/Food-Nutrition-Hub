@@ -185,6 +185,8 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
     let finalStatus = currentStatus; // Default to current status in DB
 
+    let shouldResetVerification = false;
+
     // Rule: Admin can only change status IF the action involves suspension (set or clear).
     const isSuspensionAction = (status === 'Suspended') || (suspendedUntil === null);
 
@@ -212,6 +214,13 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
         'SELECT userID FROM user WHERE email = ? AND userID != ?',
         [email, targetUserID]
       );
+
+          if (emailCheck.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already exists for another user"
+        });
+      }
     }
 
       if (emailCheck.length > 0) {
@@ -225,6 +234,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       if (firebaseUID) {
           try {
               await updateFirebaseEmail(firebaseUID, email);
+              shouldResetVerification = true;
           } catch (firebaseError) {
               // If Firebase update fails, stop the MySQL update too
               console.error("❌ Failed to update email in Firebase Auth:", firebaseError.message);
@@ -239,12 +249,14 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     const nameParts = name.trim().split(' ');
     const firstname = nameParts[0] || '';
     const lastname = nameParts.slice(1).join(' ') || '';
+
+    const newVerificationStatus = shouldResetVerification ? 'False' : 'True';
     
     // Update user table
     const userRole = role === 'Admin' ? 'admin' : 'member';
     await db.execute(
-      'UPDATE user SET firstname = ?, lastname = ?, email = ?, role = ?, status = ?, suspendedUntil = ? WHERE userID = ?',
-      [firstname, lastname, email, userRole, status, finalsuspendedUntil, targetUserID]
+      'UPDATE user SET firstname = ?, lastname = ?, email = ?, verified = ?, role = ?, status = ?, suspendedUntil = ? WHERE userID = ?',
+      [firstname, lastname, email, userRole, status, finalsuspendedUntil, newVerificationStatus, targetUserID]
     );
 
     // Update or create userProfile
