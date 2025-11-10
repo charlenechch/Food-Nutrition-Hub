@@ -34,6 +34,7 @@ export default function FoodDetailPage() {
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [savedLoading, setSavedLoading] = useState(false);
   const [healthAlerts, setHealthAlerts] = useState([]);
+  const [jumping, setJumping] = useState(false);
 
   const num = (v) => (v == null ? 0 : Number(v));
 
@@ -256,30 +257,68 @@ export default function FoodDetailPage() {
     navigate(`/fooddiscussion/${id}`, { state: { food } });
   };
 
-  const goToRecipe = () => {
+  const goToRecipe = async () => {
     if (!food) return;
-
-    if (food.recipeId) {
-      navigate(`/recipes/${food.recipeId}`);
-      return;
-    }
-
-    let recipes = [];
+    setJumping(true);
     try {
-      const raw = localStorage.getItem(LS_RECIPES);
-      recipes = raw ? JSON.parse(raw) : [];
-    } catch {}
+      if (food.recipeId) {
+        navigate(`/recipes/${food.recipeId}`);
+        return;
+      }
 
-    const match = recipes.find(
-      (r) => r.name?.trim().toLowerCase() === food.name?.trim().toLowerCase()
-    );
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-    if (match?.id) {
-      navigate(`/recipes/${match.id}`);
-    } else {
+      try {
+        const byFood = await fetch(`${API_BASE_URL}/api/recipe/byFood/${food.id}`, {
+          credentials: "include",
+        });
+        if (byFood.ok) {
+          const json = await byFood.json();
+          const recipeId = json?.data?.id || json?.data?.recipeId;
+          if (recipeId) {
+            navigate(`/recipes/${recipeId}`);
+            return;
+          }
+        }
+      } catch {}
+
+      try {
+        const byName = await fetch(
+          `${API_BASE_URL}/api/recipe/find?name=${encodeURIComponent(food.name || "")}`,
+          { credentials: "include" }
+        );
+        if (byName.ok) {
+          const json = await byName.json();
+          const hit = Array.isArray(json?.data) ? json.data[0] : json?.data;
+          const recipeId = hit?.id || hit?.recipeId;
+          if (recipeId) {
+            navigate(`/recipes/${recipeId}`);
+            return;
+          }
+        }
+      } catch {}
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/recipe/all/recipes`, { credentials: "include" });
+        if (res.ok) {
+          const all = await res.json();
+          const norm = (s) => String(s ?? "").trim().toLowerCase();
+          const byExact = all.find(r => norm(r.name) === norm(food.name));
+          const byLoose = byExact || all.find(r => norm(r.name).includes(norm(food.name)));
+          const recipeId = byLoose?.id || byLoose?.foodID;
+          if (recipeId) {
+            navigate(`/recipes/${recipeId}`);
+            return;
+          }
+        }
+      } catch {}
+
       navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`);
+    } finally {
+      setJumping(false);
     }
   };
+
 
   const handleBack = () => navigate(-1);
 
@@ -318,7 +357,7 @@ export default function FoodDetailPage() {
         <div className="fdp-container">
           <div className="fdp-topbar">
             <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
-              ← Back to Foods
+              ← Back
             </button>
           </div>
           <div className="fdp-center">
@@ -340,7 +379,7 @@ export default function FoodDetailPage() {
         {/* Top bar */}
         <div className="fdp-topbar">
           <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
-            ← Back to Foods
+            ← Back
           </button>
         </div>
 
@@ -412,8 +451,8 @@ export default function FoodDetailPage() {
               </button>
             </div>
             <div className="fdp-actions">
-              <button type="button" className="lrp-btn lrp-btn-outline" onClick={goToRecipe}>
-                <ScrollText className="rdp-sec-icon"  /> Go to Recipe
+              <button type="button" className="lrp-btn lrp-btn-outline" onClick={goToRecipe} disabled={jumping}>
+                <ScrollText className="rdp-sec-icon"  /> {jumping ? "Finding recipe..." : "Go to Recipe"}
               </button>
             </div>
 

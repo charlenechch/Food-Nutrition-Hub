@@ -27,6 +27,7 @@ router.get('/:id', async (req, res) => {
         f.Carbohydrates_g,
         f.Fiber_g,
         f.VitaminC_mg,
+        r.recipeID AS recipeId,
         r.servings
       FROM food f
       LEFT JOIN (
@@ -109,6 +110,7 @@ router.get('/:id', async (req, res) => {
       carbs: Carbohydrates_g,
       image: food.image,
       healthTips: food.healthTips,
+      recipeId: food.recipeId || null,
       Fiber_g,
       VitaminC_mg,
       servings,
