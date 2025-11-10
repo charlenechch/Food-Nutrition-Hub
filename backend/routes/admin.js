@@ -203,9 +203,22 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     
     // Calculate final suspendedUntil date based on the *finalStatus*.
     // Only set a date if the final calculated status is 'Suspended'.
-    const finalsuspendedUntil = (finalStatus === 'Suspended')
-      ? (suspendedUntil ? new Date(suspendedUntil) : null) 
-      : null; 
+    let finalsuspendedUntil = null;
+    const dateString = String(suspendedUntil || '').trim();
+
+    if (finalStatus === 'Suspended' && dateString && typeof dateString === 'string') {
+        const dateObj = new Date(dateString);
+        
+        // 1. Check if the date object is valid (i.e., not "Invalid Date")
+        // 2. We use getTime() because it returns NaN for Invalid Date
+        if (!isNaN(dateObj) && dateObj.getTime()) {
+            // Convert to YYYY-MM-DD string format (required for MySQL DATE type)
+            finalsuspendedUntil = dateObj.toISOString().slice(0, 10); 
+        } else {
+            // This happens if the input was an empty string "" or malformed.
+            console.warn(`⚠️ Invalid date value received for suspendedUntil: ${dateString}`);
+        }
+    }
 
     // Synchronize Email with Firebase Auth
     if (email !== currentEmail) {
@@ -249,7 +262,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     const userRole = role === 'Admin' ? 'admin' : 'member';
     await db.execute(
       'UPDATE user SET firstname = ?, lastname = ?, email = ?, verified = ?, role = ?, status = ?, suspendedUntil = ? WHERE userID = ?',
-      [firstname, lastname, email, newVerificationStatus, userRole, status, finalsuspendedUntil, newVerificationStatus, targetUserID]
+      [firstname, lastname, email, newVerificationStatus, userRole, finalStatus, finalsuspendedUntil, newVerificationStatus, targetUserID]
     );
 
     // Update or create userProfile
