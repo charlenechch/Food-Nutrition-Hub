@@ -182,6 +182,7 @@ export default function LoginRegisterPage() {
     if (resendCooldown > 0 || isResending) return;
     
     setIsResending(true);
+    setLoginError(""); // Clear previous errors
 
     if (!storedPassword) {
       setLoginError("Session expired. Please try logging in again.");
@@ -191,7 +192,7 @@ export default function LoginRegisterPage() {
     }
     
     try {
-      // Check backend rate limiting
+      // 1. Check backend rate limiting and get approval
       const checkRes = await fetch(`${API_URL}/api/resendVerification`, {
         method: "POST",
         credentials: "include",
@@ -201,11 +202,13 @@ export default function LoginRegisterPage() {
       
       const checkData = await checkRes.json();
       
+      // Failed (Rate-limited or other server error)
       if (!checkRes.ok) {
         if (checkRes.status === 429 && checkData.remainingSeconds) {
           setResendCooldown(checkData.remainingSeconds);
           setLoginError(`Please wait ${checkData.remainingSeconds} seconds before requesting another email.`);
         } else {
+          // Displays general errors from the backend (e.g., "User not found")
           setLoginError(checkData.error || "Failed to resend verification email");
         }
         setIsResending(false);
@@ -219,22 +222,26 @@ export default function LoginRegisterPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, storedPassword);
       const user = userCredential.user;
       
+      // Send verification email ONLY if the user is not verified in Firebase
       if (!user.emailVerified) {
         await sendEmailVerification(user, {
           url: window.location.origin + "/loginregister",
         });
         
-        setLoginError("Verification email sent! Please check your inbox or spam folder.");
-        setShowResendButton(true);
-        setStoredPassword("");
-        console.log("Verification email resent successfully");
+        // Set Success Message from Backend
+        setLoginError(checkData.message); 
+        console.log("✅ Verification email resent successfully to new email.");
       } else {
-        setLoginError("Your email is already verified. Please try logging in.");
-        setStoredPassword("");
+        // This only happens if Firebase is verified but MySQL is not (data mismatch)
+        setLoginError("Your email is already verified in our system. Please try logging in.");
       }
+
+      setShowResendButton(true);
+      setStoredPassword(""); // Clear password after use
       
     } catch (err) {
       console.error("Resend verification error:", err);
+      // Handle session/password errors
       if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
         setLoginError("Session expired. Please try logging in again.");
         setShowResendButton(false);
