@@ -575,6 +575,7 @@ body, html, #root {
   align-items: center;
   gap: 10px;
   margin: 4px 4px 6px;
+  width: 100%;
 }
 .lrp-modal-icon {
   display: grid;
