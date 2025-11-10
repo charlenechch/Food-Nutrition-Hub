@@ -222,19 +222,17 @@ export default function LoginRegisterPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, storedPassword);
       const user = userCredential.user;
       
-      // Send verification email ONLY if the user is not verified in Firebase
-      if (!user.emailVerified) {
-        await sendEmailVerification(user, {
-          url: window.location.origin + "/loginregister",
-        });
-        
-        // Set Success Message from Backend
-        setLoginError(checkData.message); 
-        console.log("✅ Verification email resent successfully to new email.");
-      } else {
-        // This only happens if Firebase is verified but MySQL is not (data mismatch)
-        setLoginError("Your email is already verified in our system. Please try logging in.");
-      }
+      // Force the email to be sent since the server approved it
+      await sendEmailVerification(user, {
+        url: window.location.origin + "/loginregister",
+      });
+      
+      // Set the clear instructional message from the backend
+      setLoginError(checkData.message); 
+      console.log("✅ Verification email resent successfully to new email (Forced after admin change).");
+      
+      setShowResendButton(true);
+      setStoredPassword(""); // Clear password after use
 
       setShowResendButton(true);
       setStoredPassword(""); // Clear password after use
