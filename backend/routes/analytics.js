@@ -350,7 +350,8 @@ router.get('/popular-categories', async (req, res) => {
     });
   }
 });
- issue
+
+// TEMPORARY FIX: Create separate endpoints to avoid HPP 'view' parameter issue
 router.get('/top-contributors-recipes', async (req, res) => {
   try {
     console.log('🔍 Fetching top recipe contributors');
@@ -449,6 +450,7 @@ router.get('/top-contributors-stories', async (req, res) => {
   }
 });
 
+// Keep the original endpoint but use it only for default case
 router.get('/top-contributors', async (req, res) => {
   try {
     console.log('🔍 Fetching default top contributors (recipes)');
