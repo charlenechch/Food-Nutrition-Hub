@@ -70,13 +70,19 @@ export const analyticsApi = {
     }
   },
 
-  // Get top contributors data - FIXED: added view parameter
+  // Get top contributors data - UPDATED to use separate endpoints
   getTopContributors: async (view = 'recipes') => {
     try {
-      const response = await fetch(`${API_URL}/api/analytics/top-contributors?view=${view}`);
+      console.log(`🔄 Fetching top contributors for: ${view}`);
+      
+      // Use separate endpoints to avoid HPP 'view' parameter issue
+      const endpoint = view === 'recipes' ? 'top-contributors-recipes' : 'top-contributors-stories';
+      const response = await fetch(`${API_URL}/api/analytics/${endpoint}`);
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -114,7 +120,7 @@ const Analytics = () => {
   const [selectedYear, setSelectedYear] = useState('');
   const [availableYears, setAvailableYears] = useState([]);
 
-  // ADD THIS FUNCTION: Fetch top contributors
+  // ADD MISSING FUNCTION: Fetch top contributors
   const fetchTopContributors = async (view = 'recipes') => {
     try {
       const result = await analyticsApi.getTopContributors(view);
@@ -130,7 +136,7 @@ const Analytics = () => {
     }
   };
 
-  // ADD THIS FUNCTION: Fetch bar chart data with year
+  // ADD MISSING FUNCTION: Fetch bar chart data with year
   const fetchBarChartData = async (year) => {
     try {
       const result = await analyticsApi.getPostsRecipesByMonth(year);
