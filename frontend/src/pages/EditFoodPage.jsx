@@ -16,6 +16,7 @@ const EditFoodPage = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [existingImageUrl, setExistingImageUrl] = useState('');
 
   // Initialize state as null, we will fetch the data
   const [food, setFood] = useState(null);
@@ -50,7 +51,10 @@ const EditFoodPage = () => {
             description: data.data.description || "",
             cultural_significance: data.data.cultural_significance || "",
             traditional_preparation: data.data.traditional_preparation || "",
+            image: data.data.image || '',
           });
+          setExistingImageUrl(data.data.image || '');
+          
         } else {
           console.error("Failed to fetch food:", data.error);
         }
@@ -165,10 +169,12 @@ const EditFoodPage = () => {
           <div className="edit-food-image-upload-section">
             <h3>Food Image</h3>
             <div className="image-preview">
-              {selectedImage ? (
-                <img src={URL.createObjectURL(selectedImage)} alt="Preview" />
-              ) : (
-                <p>No Image</p>
+             {selectedImage ? (
+               <img src={URL.createObjectURL(selectedImage)} alt="New Image Preview" />
+             ) : existingImageUrl ? ( // ✅ FIX: If there is an existing URL, use it
+               <img src={existingImageUrl} alt={food.name} />
+             ) : (
+              <p>No Image</p>
               )}
             </div>
             <input
