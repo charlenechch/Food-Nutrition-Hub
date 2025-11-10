@@ -57,6 +57,8 @@ export default function LoginRegisterPage() {
     special: false,
   });
 
+  const [showRegSuccess, setShowRegSuccess] = useState(false);
+
   const navigate = useNavigate();
   const { user, setUser, loginAsGuest } = useAuth(); // ✅ use setUser instead of login(email)
   
@@ -433,7 +435,7 @@ export default function LoginRegisterPage() {
         return;
       }
 
-      alert("Registration successful! Please verify your email to continue.");
+      setShowRegSuccess(true);
       setFirstName("");
       setLastName("");
       setRegEmail("");
@@ -712,6 +714,47 @@ export default function LoginRegisterPage() {
           )}
         </div>
       </div>
+      {showRegSuccess && (
+        <div
+          className="lrp-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reg-success-title"
+          onClick={() => setShowRegSuccess(false)} // click outside to close
+        >
+          <div
+            className="lrp-modal"
+            onClick={(e) => e.stopPropagation()} // prevent backdrop close when clicking the modal
+          >
+            <h4 id="reg-success-title" className="lrp-modal-title">
+              Registration successful!
+            </h4>
+            <p className="lrp-modal-body">
+              Please verify your email to continue. We’ve sent a verification link to your inbox.
+            </p>
+            <div className="lrp-modal-actions">
+              <button
+                className="lrp-btn lrp-btn-outline"
+                onClick={() => {
+                  setShowRegSuccess(false);
+                }}
+              >
+                Close
+              </button>
+              <button
+                className="lrp-btn lrp-btn-primary"
+                onClick={() => {
+                  setShowRegSuccess(false);
+                  setActiveTab("login");          // go to Login tab
+                  navigate("/loginregister");     // ensure URL stays on the login page
+                }}
+              >
+                Go to Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
