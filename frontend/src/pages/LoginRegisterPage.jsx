@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
+import { FaTimes, FaEnvelopeOpenText } from "react-icons/fa";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Firebase imports
@@ -720,36 +721,49 @@ export default function LoginRegisterPage() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="reg-success-title"
-          onClick={() => setShowRegSuccess(false)} // click outside to close
+          onClick={() => setShowRegSuccess(false)}
         >
           <div
-            className="lrp-modal"
-            onClick={(e) => e.stopPropagation()} // prevent backdrop close when clicking the modal
+            className="lrp-modal lrp-modal--compact"
+            onClick={(e) => e.stopPropagation()}
           >
-            <h4 id="reg-success-title" className="lrp-modal-title">
-              Registration successful!
-            </h4>
+            <button
+              className="lrp-modal-close"
+              aria-label="Close"
+              onClick={() => setShowRegSuccess(false)}
+            >
+              <FaTimes />
+            </button>
+
+            <div className="lrp-modal-header">
+              <div className="lrp-modal-icon">
+                <FaEnvelopeOpenText />
+              </div>
+              <h4 id="reg-success-title" className="lrp-modal-title">
+                Registration Successful
+              </h4>
+            </div>
+
             <p className="lrp-modal-body">
               Please verify your email to continue. We’ve sent a verification link to your inbox.
             </p>
-            <div className="lrp-modal-actions">
+
+            <div className="lrp-modal-actions lrp-modal-actions--center">
               <button
-                className="lrp-btn lrp-btn-outline"
+                className="lrp-btn lrp-btn-primary lrp-btn-lg"
                 onClick={() => {
                   setShowRegSuccess(false);
-                }}
-              >
-                Close
-              </button>
-              <button
-                className="lrp-btn lrp-btn-primary"
-                onClick={() => {
-                  setShowRegSuccess(false);
-                  setActiveTab("login");          // go to Login tab
-                  navigate("/loginregister");     // ensure URL stays on the login page
+                  setActiveTab("login");       // switch to Login tab
+                  navigate("/loginregister");  // keep URL/page
                 }}
               >
                 Go to Login
+              </button>
+              <button
+                className="lrp-btn lrp-btn-outline lrp-btn-lg"
+                onClick={() => setShowRegSuccess(false)}
+              >
+                Close
               </button>
             </div>
           </div>
