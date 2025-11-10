@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
-import { FaEnvelopeOpenText } from "react-icons/fa";
+import { FaTimes, FaEnvelopeOpenText } from "react-icons/fa";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Firebase imports
@@ -732,7 +732,7 @@ export default function LoginRegisterPage() {
               aria-label="Close"
               onClick={() => setShowRegSuccess(false)}
             >
-              ✕
+              <FaTimes />
             </button>
 
             <div className="lrp-modal-header">
@@ -751,16 +751,6 @@ export default function LoginRegisterPage() {
             <div className="lrp-modal-actions lrp-modal-actions--center">
               <button
                 className="lrp-btn lrp-btn-primary lrp-btn-lg"
-                onClick={() => {
-                  setShowRegSuccess(false);
-                  setActiveTab("login");       // switch to Login tab
-                  navigate("/loginregister");  // keep URL/page
-                }}
-              >
-                Go to Login
-              </button>
-              <button
-                className="lrp-btn lrp-btn-outline lrp-btn-lg"
                 onClick={() => setShowRegSuccess(false)}
               >
                 Close
