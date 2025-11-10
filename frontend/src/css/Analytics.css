@@ -165,6 +165,7 @@ h2 {
   flex-direction: column;
   width: 100%;
   box-sizing: border-box;
+  margin-bottom: 20px;
 }
 
 .chart-card:hover, .additional-card:hover {
@@ -194,12 +195,12 @@ h2 {
 .additional-cards-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 20px;
   align-items: stretch;
 }
 
 .additional-card-title {
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   color: #916848;
   font-size: 18px;
   font-weight: 600;
@@ -215,17 +216,33 @@ h2 {
   flex-direction: column;
   justify-content: flex-start;
   height: 100%;
+  min-height: 0;
 }
 
 /* Categories List Styles */
 .categories-list {
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: none; 
+  overflow-y: auto;
+  flex: 1;
+  padding-top: 4px;
 }
 
 .category-item {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 6px 0;
+}
+
+.category-item:first-child {
+  padding-top: 0; /* No extra padding for first item */
+}
+
+.category-item:last-child {
+  padding-bottom: 0; /* No extra padding for last item */
 }
 
 .category-info {
@@ -278,7 +295,7 @@ h2 {
 
 .category-main .category-bar {
   background: linear-gradient(90deg, #916848, #916848);
-  height: 10px;
+  height: 8px;
 }
 
 /* Contributors List Styles */

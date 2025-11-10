@@ -322,7 +322,7 @@ router.get('/popular-categories', async (req, res) => {
 // get top contributors
 router.get('/top-contributors', async (req, res) => {
   try {
-    const { view = 'recipes' } = req.query; // Default to 'recipes'
+    const { view = 'recipes' } = req.query;
     
     console.log(`🔍 Fetching top contributors for view: ${view}`);
     
@@ -338,10 +338,9 @@ router.get('/top-contributors', async (req, res) => {
           COUNT(DISTINCT p.postID) as stories
         FROM user u
         INNER JOIN userProfile up ON u.userID = up.userID
-        LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
+        INNER JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
         LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
         GROUP BY u.firstname, u.lastname, up.userProfileID
-        HAVING recipes > 0
         ORDER BY recipes DESC
         LIMIT 5;
       `;
@@ -356,14 +355,12 @@ router.get('/top-contributors', async (req, res) => {
         FROM user u
         INNER JOIN userProfile up ON u.userID = up.userID
         LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
-        LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
+        INNER JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
         GROUP BY u.firstname, u.lastname, up.userProfileID
-        HAVING stories > 0
         ORDER BY stories DESC
         LIMIT 5;
       `;
     } else {
-      // Fallback to recipes if invalid view parameter
       return res.status(400).json({
         success: false,
         error: 'Invalid view parameter. Use "recipes" or "stories"'
