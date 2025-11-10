@@ -591,6 +591,10 @@ body, html, #root {
   color: #916848;
   margin: 0;
 }
+.lrp-modal-icon svg {
+  display: block;           
+  line-height: 1;
+}
 
 .lrp-modal-body {
   margin: 2px 4px 14px;
