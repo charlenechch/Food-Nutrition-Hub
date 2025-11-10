@@ -247,7 +247,7 @@ export default function RecipeDetailPage() {
         <Header />
         <div className="rdp-wrap">
           <button className="lrp-btn lrp-btn-outline fdp-back rdp-back" onClick={() => navigate(-1)}>
-            ← Back to Recipes
+            ← Back
           </button>
         </div>
         <Footer />
@@ -261,7 +261,7 @@ export default function RecipeDetailPage() {
         <Header />
         <div className="rdp-wrap">
           <button className="lrp-btn lrp-btn-outline fdp-back rdp-back" onClick={() => navigate(-1)}>
-            ← Back to Recipes
+            ← Back
           </button>
           <h2 style={{ marginTop: 12 }}>Recipe not found</h2>
           <p>{error || "The recipe you're looking for doesn't exist."}</p>
@@ -316,7 +316,7 @@ export default function RecipeDetailPage() {
           className="lrp-btn lrp-btn-outline fdp-back rdp-back"
           onClick={() => navigate(-1)}
         >
-          ← Back to Recipes
+          ← Back
         </button>
 
         <div className="rdp-grid">
