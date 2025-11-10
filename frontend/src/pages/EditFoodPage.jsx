@@ -16,6 +16,7 @@ const EditFoodPage = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [existingImageUrl, setExistingImageUrl] = useState('');
 
   // Initialize state as null, we will fetch the data
   const [food, setFood] = useState(null);
@@ -32,25 +33,25 @@ const EditFoodPage = () => {
 
         if (data.success) {
           // Set the state with data from the API
-          // Note: Your form had fields like 'name_en', but your API only has 'name'.
-          // We are mapping the API data to the form fields.
           setFood({
             name: data.data.name || "",
             origin: data.data.origin || "",
-            // Your API uses 'Energy_kcal', 'Protein_g', etc.
+            // API uses 'Energy_kcal', 'Protein_g', etc.
             calories: data.data.Energy_kcal || "",
             protein: data.data.Protein_g || "",
             carbs: data.data.Carbohydrates_g || "",
             fat: data.data.Fat_g || "",
             fiber: data.data.Fiber_g || "",
-            sodium: data.data.Sodium_mg || "", // Assuming you add this to your DB
-            // These fields were in your form but not your API
+            // These fields are in the form but not in API
             name_ms: data.data.name_ms || "", 
             category: data.data.category || "",
             description: data.data.description || "",
             cultural_significance: data.data.cultural_significance || "",
             traditional_preparation: data.data.traditional_preparation || "",
+            image: data.data.image || '',
           });
+          setExistingImageUrl(data.data.image || '');
+          
         } else {
           console.error("Failed to fetch food:", data.error);
         }
@@ -165,10 +166,12 @@ const EditFoodPage = () => {
           <div className="edit-food-image-upload-section">
             <h3>Food Image</h3>
             <div className="image-preview">
-              {selectedImage ? (
-                <img src={URL.createObjectURL(selectedImage)} alt="Preview" />
-              ) : (
-                <p>No Image</p>
+             {selectedImage ? (
+               <img src={URL.createObjectURL(selectedImage)} alt="New Image Preview" />
+             ) : existingImageUrl ? ( // ✅ FIX: If there is an existing URL, use it
+               <img src={existingImageUrl} alt={food.name} />
+             ) : (
+              <p>No Image</p>
               )}
             </div>
             <input
@@ -258,6 +261,7 @@ const EditFoodPage = () => {
             name="description"
             value={food.description}
             onChange={handleChange}
+            rows={5}
           />
 
           <label className="basic-info-label">Cultural Significance</label>
@@ -267,6 +271,7 @@ const EditFoodPage = () => {
             value={food.cultural_significance}
             onChange={handleChange}
             placeholder="Describe the cultural background behind this dish"
+            rows={5}
           />
 
           <label className="basic-info-label">Traditional Preparation</label>
@@ -276,6 +281,7 @@ const EditFoodPage = () => {
             value={food.traditional_preparation}
             onChange={handleChange}
             placeholder="Describe how this dish is traditionally prepared"
+            rows={5}
           />
         </div>
 

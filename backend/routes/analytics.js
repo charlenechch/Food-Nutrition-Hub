@@ -172,6 +172,38 @@ router.get('/cultural-origin', async (req, res) => {
   }
 });
 
+// Get available years from database
+router.get('/available-years', async (req, res) => {
+  try {
+    const query = `
+      SELECT DISTINCT YEAR(createdAt) as year 
+      FROM (
+        SELECT createdAt FROM recipe WHERE status = 'Approved'
+        UNION ALL
+        SELECT createdAt FROM posts WHERE status = 'Approved'
+      ) AS contributions
+      ORDER BY year DESC
+    `;
+    
+    const [results] = await db.execute(query);
+    const years = results.map(row => row.year);
+    
+    console.log('📅 Available years from database:', years);
+    
+    res.json({
+      success: true,
+      data: years
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching available years:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch available years'
+    });
+  }
+});
+
 router.get('/posts-recipes-by-month', async (req, res) => {
   try {
     // Allow year parameter or use current year
@@ -294,7 +326,6 @@ router.get('/popular-categories', async (req, res) => {
       WHERE category IS NOT NULL AND category != ''
       GROUP BY category
       ORDER BY submissions DESC
-      LIMIT 6
     `;
     
     const [results] = await db.execute(query);
@@ -323,11 +354,12 @@ router.get('/popular-categories', async (req, res) => {
 // get top contributors
 router.get('/top-contributors', async (req, res) => {
   try {
-    const { view = 'recipes' } = req.query; // Default to 'recipes'
+    const { view = 'recipes' } = req.query;
     
     console.log(`🔍 Fetching top contributors for view: ${view}`);
     
     let query = '';
+    let params = [];
 
     if (view === 'recipes') {
       query = `
@@ -335,16 +367,14 @@ router.get('/top-contributors', async (req, res) => {
           u.firstname,
           u.lastname,
           up.userProfileID,
-          COUNT(DISTINCT r.recipeID) as recipes,
-          COUNT(DISTINCT p.postID) as stories
+          COUNT(DISTINCT r.recipeID) as recipes
         FROM user u
         INNER JOIN userProfile up ON u.userID = up.userID
-        LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
-        LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
-        GROUP BY u.firstname, u.lastname, up.userProfileID
-        HAVING recipes > 0
+        INNER JOIN recipe r ON up.userProfileID = r.userProfileID 
+        WHERE r.status = 'Approved'
+        GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
         ORDER BY recipes DESC
-        LIMIT 5;
+        LIMIT 5
       `;
     } else if (view === 'stories') {
       query = `
@@ -352,19 +382,16 @@ router.get('/top-contributors', async (req, res) => {
           u.firstname,
           u.lastname,
           up.userProfileID,
-          COUNT(DISTINCT r.recipeID) as recipes,
           COUNT(DISTINCT p.postID) as stories
         FROM user u
         INNER JOIN userProfile up ON u.userID = up.userID
-        LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
-        LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
-        GROUP BY u.firstname, u.lastname, up.userProfileID
-        HAVING stories > 0
+        INNER JOIN posts p ON up.userProfileID = p.userProfileID 
+        WHERE p.status = 'Approved'
+        GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
         ORDER BY stories DESC
-        LIMIT 5;
+        LIMIT 5
       `;
     } else {
-      // Fallback to recipes if invalid view parameter
       return res.status(400).json({
         success: false,
         error: 'Invalid view parameter. Use "recipes" or "stories"'
@@ -373,13 +400,22 @@ router.get('/top-contributors', async (req, res) => {
     
     console.log('📊 Executing query:', query);
     
-    const [results] = await db.execute(query);
+    const [results] = await db.execute(query, params);
     
     console.log(`✅ Found ${results.length} top contributors for ${view}:`, results);
     
+    // Format the response to ensure consistent field names
+    const formattedResults = results.map(item => ({
+      firstname: item.firstname,
+      lastname: item.lastname,
+      userProfileID: item.userProfileID,
+      recipes: item.recipes || 0,
+      stories: item.stories || 0
+    }));
+    
     res.json({
       success: true,
-      data: results,
+      data: formattedResults,
       view: view
     });
     
@@ -388,7 +424,8 @@ router.get('/top-contributors', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch top contributors',
-      message: error.message
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });

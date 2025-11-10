@@ -220,7 +220,10 @@ export default function NutritionAnalyzerPage() {
                 type="text"
                 placeholder="e.g., Laksa, Manok Pansoh, Umai..."
                 value={foodName}
-                onChange={(e) => setFoodName(e.target.value)}
+                onChange={(e) => {
+                  if (requireLogin("typing in food name")) return;
+                  setFoodName(e.target.value);
+                }}
               />
 
               <label htmlFor="ingredients">Ingredients</label>
@@ -228,7 +231,10 @@ export default function NutritionAnalyzerPage() {
                 id="ingredients"
                 placeholder="List ingredients (optional)…"
                 value={ingredients}
-                onChange={(e) => setIngredients(e.target.value)}
+                onChange={(e) => {
+                  if (requireLogin("typing in ingredients")) return;
+                  setFoodName(e.target.value);
+                }}
               />
             </div>
 

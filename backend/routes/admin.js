@@ -4,6 +4,7 @@ const { requireAdmin } = require("../middleware/auth");
 const { pool: db } = require("../config/db");
 const userProfileRoutes = require("../routes/userProfile");
 const deleteUser = userProfileRoutes.deleteUser;
+const { updateFirebaseEmail } = userProfileRoutes;
 
 // ✅ Example Admin API – only admins can access
 router.get("/dashboard", requireAdmin, (req, res) => {
@@ -167,7 +168,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
     // Check if user exists
     const [existingUser] = await db.execute(
-      'SELECT userID, email, status FROM user WHERE userID = ?',
+      'SELECT userID, email, status, firebase_uid FROM user WHERE userID = ?',
       [targetUserID]
     );
 
@@ -179,7 +180,12 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     }
 
     const currentStatus = existingUser[0].status;
+    const currentEmail = existingUser[0].email;
+    const firebaseUID = existingUser[0].firebase_uid;
+
     let finalStatus = currentStatus; // Default to current status in DB
+
+    let shouldResetVerification = false;
 
     // Rule: Admin can only change status IF the action involves suspension (set or clear).
     const isSuspensionAction = (status === 'Suspended') || (suspendedUntil === null);
@@ -197,22 +203,51 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     
     // Calculate final suspendedUntil date based on the *finalStatus*.
     // Only set a date if the final calculated status is 'Suspended'.
-    const finalsuspendedUntil = (finalStatus === 'Suspended')
-      ? (suspendedUntil ? new Date(suspendedUntil) : null) 
-      : null; 
+    let finalsuspendedUntil = null;
+    const dateString = String(suspendedUntil || '').trim();
 
-    // Check if email is being changed to one that already exists
-    if (email !== existingUser[0].email) {
+    if (finalStatus === 'Suspended' && dateString && typeof dateString === 'string') {
+        const dateObj = new Date(dateString);
+        
+        // 1. Check if the date object is valid (i.e., not "Invalid Date")
+        // 2. We use getTime() because it returns NaN for Invalid Date
+        if (!isNaN(dateObj) && dateObj.getTime()) {
+            // Convert to YYYY-MM-DD string format (required for MySQL DATE type)
+            finalsuspendedUntil = dateObj.toISOString().slice(0, 10); 
+        } else {
+            // This happens if the input was an empty string "" or malformed.
+            console.warn(`⚠️ Invalid date value received for suspendedUntil: ${dateString}`);
+        }
+    }
+
+    // Synchronize Email with Firebase Auth
+    if (email !== currentEmail) {
+      // Check if email is being changed to one that already exists
       const [emailCheck] = await db.execute(
         'SELECT userID FROM user WHERE email = ? AND userID != ?',
         [email, targetUserID]
       );
 
-      if (emailCheck.length > 0) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Email already exists for another user" 
+          if (emailCheck.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already exists for another user"
         });
+      }
+
+      // Update Firebase Auth first
+      if (firebaseUID) {
+          try {
+              await updateFirebaseEmail(firebaseUID, email);
+              shouldResetVerification = true;
+          } catch (firebaseError) {
+              // If Firebase update fails, stop the MySQL update too
+              console.error("❌ Failed to update email in Firebase Auth:", firebaseError.message);
+              return res.status(500).json({ 
+                  success: false, 
+                  message: "Failed to update user email (Authentication sync failed)." 
+              });
+          }
       }
     }
 
@@ -220,12 +255,14 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     const nameParts = name.trim().split(' ');
     const firstname = nameParts[0] || '';
     const lastname = nameParts.slice(1).join(' ') || '';
+
+    const newVerificationStatus = shouldResetVerification ? 'False' : 'True';
     
     // Update user table
     const userRole = role === 'Admin' ? 'admin' : 'member';
     await db.execute(
-      'UPDATE user SET firstname = ?, lastname = ?, email = ?, role = ?, status = ?, suspendedUntil = ? WHERE userID = ?',
-      [firstname, lastname, email, userRole, status, finalsuspendedUntil, targetUserID]
+      'UPDATE user SET firstname = ?, lastname = ?, email = ?, verified = ?, role = ?, status = ?, suspendedUntil = ? WHERE userID = ?',
+      [firstname, lastname, email, newVerificationStatus, userRole, finalStatus, finalsuspendedUntil, newVerificationStatus, targetUserID]
     );
 
     // Update or create userProfile
