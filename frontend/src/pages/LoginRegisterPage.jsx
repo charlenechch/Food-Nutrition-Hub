@@ -741,16 +741,6 @@ export default function LoginRegisterPage() {
               >
                 Close
               </button>
-              <button
-                className="lrp-btn lrp-btn-primary"
-                onClick={() => {
-                  setShowRegSuccess(false);
-                  setActiveTab("login");          // go to Login tab
-                  navigate("/loginregister");     // ensure URL stays on the login page
-                }}
-              >
-                Go to Login
-              </button>
             </div>
           </div>
         </div>
