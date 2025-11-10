@@ -294,7 +294,6 @@ router.get('/popular-categories', async (req, res) => {
       WHERE category IS NOT NULL AND category != ''
       GROUP BY category
       ORDER BY submissions DESC
-      LIMIT 6
     `;
     
     const [results] = await db.execute(query);
