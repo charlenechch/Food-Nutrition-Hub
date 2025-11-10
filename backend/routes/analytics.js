@@ -48,7 +48,7 @@ router.get('/metrics', async (req, res) => {
       WHERE status = 'Pending'
     `);
 
-    // Query for current month approved recipes - FIXED: Use createdAt for recipe
+    // Query for current month approved recipes
     const [currentMonthRecipesResult] = await db.execute(`
       SELECT COUNT(*) as count 
       FROM recipe 
@@ -57,7 +57,7 @@ router.get('/metrics', async (req, res) => {
         AND YEAR(createdAt) = ?
     `, [currentMonth, currentYear]);
 
-    // Query for previous month approved recipes - FIXED: Use createdAt for recipe
+    // Query for previous month approved recipes
     const [previousMonthRecipesResult] = await db.execute(`
       SELECT COUNT(*) as count 
       FROM recipe 
@@ -66,7 +66,7 @@ router.get('/metrics', async (req, res) => {
         AND YEAR(createdAt) = ?
     `, [previousMonth, previousYear]);
 
-    // Query for current month approved stories - FIXED: Use created_at for posts
+    // Query for current month approved stories
     const [currentMonthStoriesResult] = await db.execute(`
       SELECT COUNT(*) as count 
       FROM posts 
@@ -75,7 +75,7 @@ router.get('/metrics', async (req, res) => {
         AND YEAR(created_at) = ?
     `, [currentMonth, currentYear]);
 
-    // Query for previous month approved stories - FIXED: Use created_at for posts
+    // Query for previous month approved stories
     const [previousMonthStoriesResult] = await db.execute(`
       SELECT COUNT(*) as count 
       FROM posts 
@@ -97,8 +97,8 @@ router.get('/metrics', async (req, res) => {
       ? Math.round(((currentMonthStories - previousMonthStories) / previousMonthStories) * 100)
       : currentMonthStories > 0 ? 100 : 0;
 
-    // Calculate pending percentages (you can modify this logic as needed)
-    const pendingRecipesPercentage = 15; // Static for now, can be calculated similarly
+    // Calculate pending percentages
+    const pendingRecipesPercentage = 15;
 
     res.json({
       success: true,
@@ -142,25 +142,18 @@ router.get('/cultural-origin', async (req, res) => {
     
     const [results] = await db.execute(query);
     
-    console.log('Cultural Origin Raw Results:', results);
-    
-    // Get the actual total count (should be 10)
     const total = results.reduce((sum, item) => sum + parseInt(item.count), 0);
     
-    console.log('Total Recipes in Database:', total);
-    
-    // Calculate percentages based on actual counts
     const data = results.map(item => ({
       name: item.name,
       value: Math.round((item.count / total) * 100),
-      count: item.count // Include actual count
+      count: item.count
     }));
     
     res.json({ 
       success: true, 
       data,
-      totalCount: total,
-      rawData: results
+      totalCount: total
     });
   } catch (error) {
     console.error('Error fetching cultural origin data:', error);
@@ -172,7 +165,7 @@ router.get('/cultural-origin', async (req, res) => {
   }
 });
 
-// Get available years from database - FIXED: Use correct column names for each table
+// Get available years from database
 router.get('/available-years', async (req, res) => {
   try {
     const query = `
@@ -188,8 +181,6 @@ router.get('/available-years', async (req, res) => {
     const [results] = await db.execute(query);
     const years = results.map(row => row.year);
     
-    console.log('📅 Available years from database:', years);
-    
     res.json({
       success: true,
       data: years
@@ -204,13 +195,12 @@ router.get('/available-years', async (req, res) => {
   }
 });
 
+// Default posts-recipes data (current year)
 router.get('/posts-recipes-by-month', async (req, res) => {
   try {
-    // Allow year parameter or use current year
-    const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
+    const year = new Date().getFullYear();
     
     const query = `
-      -- Get posts with all statuses - FIXED: Use created_at for posts
       SELECT 
         'Posts' as type,
         status,
@@ -222,7 +212,6 @@ router.get('/posts-recipes-by-month', async (req, res) => {
       
       UNION ALL
       
-      -- Get recipes with all statuses - FIXED: Use createdAt for recipe
       SELECT 
         'Recipes' as type,
         status,
@@ -239,7 +228,6 @@ router.get('/posts-recipes-by-month', async (req, res) => {
     
     const monthlyData = {};
     
-    // Initialize all months with all statuses set to 0
     const allMonths = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
@@ -254,7 +242,6 @@ router.get('/posts-recipes-by-month', async (req, res) => {
       };
     });
     
-    // Process the results and populate the data
     results.forEach(item => {
       const monthName = getMonthName(item.month);  
       const status = item.status.toLowerCase();
@@ -271,18 +258,15 @@ router.get('/posts-recipes-by-month', async (req, res) => {
         monthlyData[monthName].recipes.total += item.count;
       }
       
-      // Update total for the month
       monthlyData[monthName].total = monthlyData[monthName].posts.total + monthlyData[monthName].recipes.total;
     });
     
     const data = allMonths.map(monthName => monthlyData[monthName]);
     
-    // Calculate totals
     const totalPosts = data.reduce((sum, month) => sum + month.posts.total, 0);
     const totalRecipes = data.reduce((sum, month) => sum + month.recipes.total, 0);
     const totalCount = totalPosts + totalRecipes;
     
-    // Calculate status totals
     const postsApproved = data.reduce((sum, month) => sum + month.posts.approved, 0);
     const postsPending = data.reduce((sum, month) => sum + month.posts.pending, 0);
     const postsRejected = data.reduce((sum, month) => sum + month.posts.rejected, 0);
@@ -330,7 +314,6 @@ router.get('/popular-categories', async (req, res) => {
     
     const [results] = await db.execute(query);
     
-    // Format the data for frontend
     const data = results.map(item => ({
       name: item.name,
       submissions: parseInt(item.submissions)
@@ -351,11 +334,9 @@ router.get('/popular-categories', async (req, res) => {
   }
 });
 
-// TEMPORARY FIX: Create separate endpoints to avoid HPP 'view' parameter issue
+// Top contributors endpoints (already fixed from previous)
 router.get('/top-contributors-recipes', async (req, res) => {
   try {
-    console.log('🔍 Fetching top recipe contributors');
-    
     const query = `
       SELECT 
         u.firstname,
@@ -371,13 +352,8 @@ router.get('/top-contributors-recipes', async (req, res) => {
       LIMIT 5
     `;
     
-    console.log('📊 Executing query:', query);
-    
     const [results] = await db.execute(query);
     
-    console.log(`✅ Found ${results.length} top recipe contributors:`, results);
-    
-    // Format the response
     const formattedResults = results.map(item => ({
       firstname: item.firstname,
       lastname: item.lastname,
@@ -403,8 +379,6 @@ router.get('/top-contributors-recipes', async (req, res) => {
 
 router.get('/top-contributors-stories', async (req, res) => {
   try {
-    console.log('🔍 Fetching top story contributors');
-    
     const query = `
       SELECT 
         u.firstname,
@@ -420,13 +394,8 @@ router.get('/top-contributors-stories', async (req, res) => {
       LIMIT 5
     `;
     
-    console.log('📊 Executing query:', query);
-    
     const [results] = await db.execute(query);
     
-    console.log(`✅ Found ${results.length} top story contributors:`, results);
-    
-    // Format the response
     const formattedResults = results.map(item => ({
       firstname: item.firstname,
       lastname: item.lastname,
@@ -450,11 +419,9 @@ router.get('/top-contributors-stories', async (req, res) => {
   }
 });
 
-// Keep the original endpoint but use it only for default case
+// Default top contributors
 router.get('/top-contributors', async (req, res) => {
   try {
-    console.log('🔍 Fetching default top contributors (recipes)');
-    
     const query = `
       SELECT 
         u.firstname,

@@ -25,10 +25,10 @@ export const analyticsApi = {
     }
   },
 
-  // Get posts and recipes by month for bar chart - UPDATED to accept year parameter
   getPostsRecipesByMonth: async (year = new Date().getFullYear()) => {
     try {
-      const response = await fetch(`${API_URL}/api/analytics/posts-recipes-by-month?year=${year}`);
+      // Use path parameter instead of query parameter to avoid HPP
+      const response = await fetch(`${API_URL}/api/analytics/posts-recipes-by-month/${year}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -136,7 +136,6 @@ const Analytics = () => {
     }
   };
 
-  // ADD MISSING FUNCTION: Fetch bar chart data with year
   const fetchBarChartData = async (year) => {
     try {
       const result = await analyticsApi.getPostsRecipesByMonth(year);
