@@ -172,6 +172,38 @@ router.get('/cultural-origin', async (req, res) => {
   }
 });
 
+// Get available years from database
+router.get('/available-years', async (req, res) => {
+  try {
+    const query = `
+      SELECT DISTINCT YEAR(created_at) as year 
+      FROM (
+        SELECT created_at FROM recipe WHERE status = 'Approved'
+        UNION ALL
+        SELECT created_at FROM posts WHERE status = 'Approved'
+      ) AS contributions
+      ORDER BY year DESC
+    `;
+    
+    const [results] = await db.execute(query);
+    const years = results.map(row => row.year);
+    
+    console.log('📅 Available years from database:', years);
+    
+    res.json({
+      success: true,
+      data: years
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching available years:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch available years'
+    });
+  }
+});
+
 router.get('/posts-recipes-by-month', async (req, res) => {
   try {
     // Allow year parameter or use current year
@@ -334,12 +366,10 @@ router.get('/top-contributors', async (req, res) => {
           u.firstname,
           u.lastname,
           up.userProfileID,
-          COUNT(DISTINCT r.recipeID) as recipes,
-          COUNT(DISTINCT p.postID) as stories
+          COUNT(DISTINCT r.recipeID) as recipes
         FROM user u
         INNER JOIN userProfile up ON u.userID = up.userID
         INNER JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
-        LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
         GROUP BY u.firstname, u.lastname, up.userProfileID
         ORDER BY recipes DESC
         LIMIT 5;
@@ -350,11 +380,9 @@ router.get('/top-contributors', async (req, res) => {
           u.firstname,
           u.lastname,
           up.userProfileID,
-          COUNT(DISTINCT r.recipeID) as recipes,
           COUNT(DISTINCT p.postID) as stories
         FROM user u
         INNER JOIN userProfile up ON u.userID = up.userID
-        LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
         INNER JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
         GROUP BY u.firstname, u.lastname, up.userProfileID
         ORDER BY stories DESC
