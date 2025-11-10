@@ -195,10 +195,12 @@ router.get('/available-years', async (req, res) => {
   }
 });
 
-// Default posts-recipes data (current year)
 router.get('/posts-recipes-by-month', async (req, res) => {
   try {
-    const year = new Date().getFullYear();
+    // Use the year from query parameter, fallback to current year
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+    
+    console.log(`📊 Fetching data for year: ${year}`);
     
     const query = `
       SELECT 
@@ -287,7 +289,7 @@ router.get('/posts-recipes-by-month', async (req, res) => {
           recipes: { approved: recipesApproved, pending: recipesPending, rejected: recipesRejected }
         }
       },
-      year: year
+      year: year // Return the actual year used
     });
   } catch (error) {
     console.error('Error fetching posts and recipes data:', error);

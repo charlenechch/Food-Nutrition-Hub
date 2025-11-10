@@ -137,13 +137,24 @@ const Analytics = () => {
 
   const fetchBarChartData = async (year) => {
     try {
+      console.log(`🔄 Fetching bar chart data for year: ${year}`);
       const result = await analyticsApi.getPostsRecipesByMonth(year);
+      console.log(`📊 API Response for ${year}:`, result);
+      
       if (result.success) {
+        console.log(`✅ Bar chart data loaded for ${year}:`, result.data);
+        console.log(`📈 Totals for ${year}:`, result.totals);
         setBarChartData(result.data);
         setTotals(result.totals || {});
+      } else {
+        console.error(`❌ Error in bar chart data for ${year}:`, result.error);
+        setBarChartData([]);
+        setTotals({});
       }
     } catch (error) {
-      console.error('Error fetching chart data:', error);
+      console.error(`❌ Error fetching chart data for ${year}:`, error);
+      setBarChartData([]);
+      setTotals({});
     }
   };
 
