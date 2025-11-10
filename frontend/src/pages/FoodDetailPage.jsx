@@ -357,7 +357,7 @@ export default function FoodDetailPage() {
         <div className="fdp-container">
           <div className="fdp-topbar">
             <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
-              ← Back to Foods
+              ← Back
             </button>
           </div>
           <div className="fdp-center">
@@ -379,7 +379,7 @@ export default function FoodDetailPage() {
         {/* Top bar */}
         <div className="fdp-topbar">
           <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
-            ← Back to Foods
+            ← Back
           </button>
         </div>
 
