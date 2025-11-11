@@ -744,9 +744,9 @@ export default function LoginRegisterPage() {
               <div className="lrp-modal-icon">
                 <FaEnvelopeOpenText />
               </div>
-              <h4 id="reg-success-title" className="lrp-modal-title">
+              <h2 id="reg-success-title" className="lrp-modal-title">
                 Registration Successful
-              </h4>
+              </h2>
             </div>
 
             <p className="lrp-modal-body">
