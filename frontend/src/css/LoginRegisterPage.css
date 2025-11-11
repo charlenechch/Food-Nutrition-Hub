@@ -562,6 +562,7 @@ body, html, #root {
   border-radius: 8px;
   line-height: 0;
   font-size: 1.25rem;
+  inset-inline-start: auto;
 }
 .lrp-modal-close:hover { 
   background: #f3f4f6; 
@@ -581,14 +582,18 @@ body, html, #root {
   width: 100%;
   font-size: 1.25rem;
 }
+.lrp-modal-header > * {
+  flex: 0 0 auto;            
+}
 .lrp-modal-icon {
+  display: grid;
+  place-items: center;
   font-size: 1.5rem;
   display: grid;
   place-items: center;
   color: #916848;
 }
 .lrp-modal-title {
-  display: inline-block;
   font-weight: 600;
   color: #916848;
   margin: 0;
