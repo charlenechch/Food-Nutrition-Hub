@@ -728,7 +728,7 @@ export default function LoginRegisterPage() {
         icon={<FaEnvelopeOpenText />}
         primaryText="Close"
         onClose={() => setShowRegSuccess(false)}
-        onPrimary={() => setShowRegSuccess(false)}   // optional; defaults to onClose
+        onPrimary={() => setShowRegSuccess(false)}  
         centerActions
       >
         Please verify your email to continue. We've sent a verification link to your inbox.
