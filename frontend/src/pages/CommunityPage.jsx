@@ -198,9 +198,9 @@ export default function Community() {
 
       setModal({
         open: true,
-        title: "Recipe Created Successfully!",
+        title: "Story Submitted Successfully!",
         message:
-          "Your recipe has been submitted for review. It will be visible to others after admin approval.",
+          "Your story has been submitted for review. Please wait for admin approval before it appears publicly.",
         icon: <PiChefHat />,
         primaryText: "OK",
         onPrimary: () => {
