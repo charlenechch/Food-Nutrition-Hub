@@ -205,11 +205,13 @@ export default function ResetPasswordPage() {
               onChange={(e) => setConfirm(e.target.value)}
             />
             <span
-              className="password-eye-icon"
-              onClick={() => setShowConfirm((prev) => !prev)}
-            >
-              {showConfirm ? "👁️‍🗨️" : "👁️"}
-            </span>
+                              onClick={() => setShowRegPassword(!showRegPassword)}
+                              className="password-eye-icon"
+                              role="button"
+                              aria-label={showRegPassword ? "Hide password" : "Show password"}
+                            >
+                              {showRegPassword ? <FaEyeSlash /> : <FaEye />}
+                            </span>
           </div>
 
           {error && <p className="rpp-error">{error}</p>}
