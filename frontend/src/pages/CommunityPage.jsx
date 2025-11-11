@@ -2,9 +2,12 @@ import React, { useEffect, useState, useMemo  } from "react";
 import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { FaCamera } from "react-icons/fa";
+import { FaCamera, FaTimes } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Modal from "../components/Modal";
+import { GrDocumentMissing } from "react-icons/gr";
+import { PiChefHat } from "react-icons/pi";
 import LoginPromptModal from "../components/LoginPromptModal"; 
 
 export default function Community() {
@@ -35,7 +38,17 @@ export default function Community() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 9;
+  const [modal, setModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+    onPrimary: null,
+  });
 
+  const closeModal = () =>
+    setModal((m) => ({ ...m, open: false, onPrimary: null }));
   
   useEffect(() => {
     fetchPosts();
@@ -142,7 +155,14 @@ export default function Community() {
     }
 
     if (!formData.foodName || !formData.culturalOrigin || !formData.culturalStory) {
-      alert("Food Name, Cultural Origin and Cultural Story are required.");
+      setModal({
+        open: true,
+        title: "Missing Required Fields",
+        message: "Food Name, Cultural Origin, and Cultural Story are required.",
+        icon: <GrDocumentMissing />,
+        primaryText: "OK",
+        onPrimary: closeModal,
+      });
       return;
     }
 
@@ -176,8 +196,15 @@ export default function Community() {
         throw new Error(result.message || "Failed to submit post");
       }
 
-      alert("✅ Story Submitted Successfully!\n\nYour story has been submitted for review. Please wait for admin approval before it appears publicly.");
-
+      setModal({
+        open: true,
+        title: "Story Submitted Successfully!",
+        message:
+          "Your story has been submitted for review. Please wait for admin approval before it appears publicly.",
+        icon: <PiChefHat />,
+        primaryText: "OK",
+        onPrimary: () => {
+          closeModal();
       setFormData({
         foodName: "",
         culturalOrigin: "",
@@ -188,8 +215,17 @@ export default function Community() {
       setSelectedFile(null);
       setExpanded(false);
       fetchPosts();
+      },
+    });
     } catch (err) {
-      alert("❌ " + err.message);
+      setModal({
+        open: true,
+        title: "Submission Failed.",
+        message: err.message || "Something went wrong. Please try again.",
+        icon: <FaTimes />,
+        primaryText: "OK",
+        onPrimary: closeModal,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -209,17 +245,15 @@ export default function Community() {
 
   return (
     <div>
+    <Header />
+    {showLoginModal && (
+      <LoginPromptModal
+        message="You must be logged in to share your cultural story."
+        onClose={() => setShowLoginModal(false)}
+        onConfirm={() => navigate("/loginregister")}
+      />
+    )}
     <div className="community-page">
-      <Header />
-
-      {/* ✅ Login Modal Trigger for Guests */}
-      {showLoginModal && (
-        <LoginPromptModal
-          message="You must be logged in to share your cultural story."
-          onClose={() => setShowLoginModal(false)}
-          onConfirm={() => navigate("/loginregister")}
-        />
-      )}
 
       <h1 className="page-title">Community Contributions</h1>
       <p className="page-subtitle">
@@ -438,6 +472,16 @@ export default function Community() {
             )}
       </section>
     </div>
+    <Modal
+      open={modal.open}
+      title={modal.title}
+      icon={modal.icon}
+      primaryText={modal.primaryText}
+      onClose={closeModal}
+      onPrimary={modal.onPrimary}
+    >
+      {modal.message}
+    </Modal>
     <Footer />
     </div>
   );
