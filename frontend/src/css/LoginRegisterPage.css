@@ -553,12 +553,12 @@ body, html, #root {
 .lrp-modal-close {
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 14px;
   border: 0;
   background: transparent;
   color: #9aa1a9;
   cursor: pointer;
-  padding: 6px;
+  padding: 20px;
   border-radius: 8px;
   line-height: 0;
   font-size: 1.25rem;
