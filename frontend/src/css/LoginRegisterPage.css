@@ -553,14 +553,15 @@ body, html, #root {
 .lrp-modal-close {
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 14px;
   border: 0;
   background: transparent;
   color: #9aa1a9;
   cursor: pointer;
-  padding: 6px;
+  padding: 15px;
   border-radius: 8px;
   line-height: 0;
+  font-size: 1.25rem;
 }
 .lrp-modal-close:hover { 
   background: #f3f4f6; 
@@ -574,31 +575,28 @@ body, html, #root {
   display: flex;
   align-items: center;
   justify-content: center; 
+  text-align: center;
   gap: 10px;
   margin: 4px 4px 6px;
   width: 100%;
+  font-size: 1.25rem;
 }
 .lrp-modal-icon {
+  font-size: 1.5rem;
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
-  color: #8b5e34;
+  color: #916848;
 }
 .lrp-modal-title {
-  font-size: 18px;
-  font-weight: 700;
+  display: inline-block;
+  font-weight: 600;
   color: #916848;
   margin: 0;
-}
-.lrp-modal-icon svg {
-  display: block;           
-  line-height: 1;
 }
 
 .lrp-modal-body {
   margin: 2px 4px 14px;
-  color: #68707a;
+  color: #444;
   line-height: 1.5;
   font-size: 14.5px;
   text-align: center;

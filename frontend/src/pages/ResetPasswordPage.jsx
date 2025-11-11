@@ -115,13 +115,7 @@ export default function ResetPasswordPage() {
       <div className="rpp-container">
         <div className="rpp-card">
           <h2 className="rpp-head2">Password Updated Successfully!</h2>
-          <p>You can now log in with your new password.</p>
-          <button
-            className="lrp-btn lrp-btn-primary"
-            onClick={() => navigate("/loginregister")}
-          >
-            Go to Login
-          </button>
+          <p>Please wait while we navigate you to our Login page.</p>
         </div>
       </div>
     );
