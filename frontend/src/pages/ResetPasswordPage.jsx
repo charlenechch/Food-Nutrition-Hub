@@ -19,17 +19,25 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(true);
   const [pwdStatus, setPwdStatus] = useState([]);
 
+  // 🔹 UI control states
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+
   // 🔹 Password rules
   const passwordRules = [
     { regex: /.{8,}/, label: "At least 8 characters" },
     { regex: /[A-Z]/, label: "At least one uppercase letter" },
     { regex: /[a-z]/, label: "At least one lowercase letter" },
     { regex: /[0-9]/, label: "At least one number" },
-    { regex: /[!@#$%^&*(),.?":{}|<>]/, label: "At least one special symbol (!@#$%)" },
+    { regex: /[!@#$%^&*(),.?\":{}|<>]/, label: "At least one special symbol (!@#$%)" },
   ];
 
   const getPasswordStatus = (password) =>
-    passwordRules.map((rule) => ({ label: rule.label, passed: rule.regex.test(password) }));
+    passwordRules.map((rule) => ({
+      label: rule.label,
+      passed: rule.regex.test(password),
+    }));
 
   // ✅ Step 1: Verify Firebase reset link
   useEffect(() => {
@@ -149,35 +157,60 @@ export default function ResetPasswordPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="rpp-form" noValidate>
+          {/* 🔹 New Password */}
           <label>New Password</label>
-          <input
-            type="password"
-            placeholder="Enter a new password"
-            value={pwd}
-            onChange={(e) => setPwd(e.target.value)}
-          />
+          <div className="password-input-wrap">
+            <input
+              type={showPwd ? "text" : "password"}
+              placeholder="Enter a new password"
+              value={pwd}
+              onChange={(e) => setPwd(e.target.value)}
+              onFocus={() => setShowHint(true)}
+              onBlur={() => setShowHint(false)}
+            />
+            <span
+              className="password-eye-icon"
+              onClick={() => setShowPwd((prev) => !prev)}
+            >
+              {showPwd ? "👁️‍🗨️" : "👁️"}
+            </span>
 
-          {/* 🔹 Live password strength feedback */}
-          <div className="password-strength">
-            <ul>
-              {pwdStatus.map((rule, idx) => (
-                <li
-                  key={idx}
-                  style={{ color: rule.passed ? "green" : "red" }}
-                >
-                  {rule.passed ? "✔" : "✖"} {rule.label}
-                </li>
-              ))}
-            </ul>
+            {showHint && (
+              <div className="password-hint-box">
+                <div className="password-hints">
+                  {pwdStatus.map((rule, idx) => (
+                    <div
+                      key={idx}
+                      className={
+                        rule.passed
+                          ? "password-hint-row password-hint-valid"
+                          : "password-hint-row password-hint-invalid"
+                      }
+                    >
+                      {rule.passed ? "✔" : "✖"} {rule.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
+          {/* 🔹 Confirm Password */}
           <label>Confirm New Password</label>
-          <input
-            type="password"
-            placeholder="Re-enter your new password"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-          />
+          <div className="password-input-wrap">
+            <input
+              type={showConfirm ? "text" : "password"}
+              placeholder="Re-enter your new password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+            />
+            <span
+              className="password-eye-icon"
+              onClick={() => setShowConfirm((prev) => !prev)}
+            >
+              {showConfirm ? "👁️‍🗨️" : "👁️"}
+            </span>
+          </div>
 
           {error && <p className="rpp-error">{error}</p>}
 
