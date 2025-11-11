@@ -381,15 +381,15 @@ export default function RecipesPage() {
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 
   // Check file size
-  if (file.size > maxSize) {
-    showInfo({
-      title: "Image Too Large!",
-      body: "Please choose an image smaller than 2 MB.",
-      icon: <FaCamera />,
-    });
-    e.target.value = ''; 
-    return;
-  }
+  // if (file.size > maxSize) {
+  //   showInfo({
+  //     title: "Image Too Large!",
+  //     body: "Please choose an image smaller than 2 MB.",
+  //     icon: <FaCamera />,
+  //   });
+  //   e.target.value = ''; 
+  //   return;
+  // }
 
   // Check file type
   if (!allowedTypes.includes(file.type)) {
