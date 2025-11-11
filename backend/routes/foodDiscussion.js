@@ -67,7 +67,7 @@ router.get('/food/:foodId', async (req, res) => {
       SELECT 
         d.discussionID as id,
         d.userProfileID,
-        CONCAT(u.firstname, ' ', u.lastname) AS username,
+        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username,
         up.avatar as avatar,
         u.role as userRole, 
         d.content,
@@ -76,8 +76,8 @@ router.get('/food/:foodId', async (req, res) => {
         d.downVotes as dislikes,
         d.upvoted_by
       FROM discussion d 
-      JOIN userProfile up ON d.userProfileID = up.userProfileID 
-      JOIN user u ON up.userID = u.userID
+      LEFT JOIN userProfile up ON d.userProfileID = up.userProfileID 
+      LEFT JOIN user u ON up.userID = u.userID
       WHERE d.foodID = ? 
       ORDER BY d.created_At DESC
     `;
@@ -135,14 +135,14 @@ router.get('/food/:foodId', async (req, res) => {
           SELECT 
             r.replyID,
             r.userProfileID,
-            CONCAT(u.firstname, ' ', u.lastname) AS username,
+            COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username,
             up.avatar as avatar,
             u.role as userRole,
             r.reply as content,
             r.createdAt as timestamp
           FROM reply r
-          JOIN userProfile up ON r.userProfileID = up.userProfileID 
-          JOIN user u ON up.userID = u.userID
+          LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID 
+          LEFT JOIN user u ON up.userID = u.userID
           WHERE r.discussionID = ?
           ORDER BY r.createdAt ASC
         `;
@@ -241,7 +241,7 @@ router.post('/', async (req, res) => {
       SELECT 
         d.discussionID as id,
         d.userProfileID,
-        CONCAT(u.firstname, ' ', u.lastname) AS username,
+        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username,
         up.avatar as avatar,
         u.role as userRole,
         d.content,
@@ -250,8 +250,8 @@ router.post('/', async (req, res) => {
         d.downVotes as dislikes,
         d.upvoted_by
       FROM discussion d 
-      JOIN userProfile up ON d.userProfileID = up.userProfileID 
-      JOIN user u ON up.userID = u.userID
+      LEFT JOIN userProfile up ON d.userProfileID = up.userProfileID 
+      LEFT JOIN user u ON up.userID = u.userID
       WHERE d.discussionID = ? 
     `;
 
@@ -361,14 +361,14 @@ router.post('/:discussionId/replies', async (req, res) => {
       SELECT 
         r.replyID, 
         r.userProfileID,
-        CONCAT(u.firstname, ' ', u.lastname) AS username,
+        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username,
         up.avatar as avatar,
         u.role as userRole,
         r.reply as content,
         r.createdAt as timestamp
       FROM reply r
-      JOIN userProfile up ON r.userProfileID = up.userProfileID 
-      JOIN user u ON up.userID = u.userID
+      LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID 
+      LEFT JOIN user u ON up.userID = u.userID
       WHERE r.replyID = ?
     `;
     const replyResult = await db.query(selectSql, [newReplyId]);

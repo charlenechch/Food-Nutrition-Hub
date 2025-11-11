@@ -100,7 +100,7 @@ const Comment = React.memo(function Comment({
   isAdmin = false, 
 }) {
   const itemId = isReply ? (item.replyID || item.id) : (item.id || item.discussionID);
-  const username = item.username || "User";
+  const username = item.username || item.user || item.author || 'Unknown User';
   const avatar = item.avatar;
   const content = item.content || item.reply || "No content";
   const timestamp = item.timestamp || item.createdAt;
