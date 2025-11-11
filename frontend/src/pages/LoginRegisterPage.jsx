@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
+import Modal from "../components/Modal";
 import { FaEnvelopeOpenText } from "react-icons/fa";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -720,50 +721,18 @@ export default function LoginRegisterPage() {
           )}
         </div>
       </div>
-      {showRegSuccess && (
-        <div
-          className="lrp-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="reg-success-title"
-          onClick={() => setShowRegSuccess(false)}
-        >
-          <div
-            className="lrp-modal lrp-modal--compact"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="lrp-modal-close"
-              aria-label="Close"
-              onClick={() => setShowRegSuccess(false)}
-            >
-              ✕
-            </button>
-
-            <div className="lrp-modal-header">
-              <div className="lrp-modal-icon">
-                <FaEnvelopeOpenText />
-              </div>
-              <h2 id="reg-success-title" className="lrp-modal-title">
-                Registration Successful
-              </h2>
-            </div>
-
-            <p className="lrp-modal-body">
-              Please verify your email to continue. We’ve sent a verification link to your inbox.
-            </p>
-
-            <div className="lrp-modal-actions lrp-modal-actions--center">
-              <button
-                className="lrp-btn lrp-btn-primary lrp-btn-lg"
-                onClick={() => setShowRegSuccess(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={showRegSuccess}
+        title="Registration Successful"
+        titleId="reg-success-title"
+        icon={<FaEnvelopeOpenText />}
+        primaryText="Close"
+        onClose={() => setShowRegSuccess(false)}
+        onPrimary={() => setShowRegSuccess(false)}   // optional; defaults to onClose
+        centerActions
+      >
+        Please verify your email to continue. We've sent a verification link to your inbox.
+      </Modal>
     </div>
   );
 }
