@@ -679,3 +679,77 @@ body, html, #root {
     transition: none; 
   }
 }
+
+/* ✅ Position wrapper for password input */
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ Eye icon inside input (aligned right) */
+.password-eye-icon {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  cursor: pointer;
+  color: #8B4513; /* your brown theme */
+  font-size: 18px;
+  transition: color 0.2s ease;
+}
+
+.password-eye-icon:hover {
+  color: #A0522D;
+}
+
+/* ✅ Hint box (now matches theme, placed below input) */
+.password-hint-box {
+  position: absolute;
+  top: 100%; /* below input */
+  left: 0;
+  width: 100%;
+  margin-top: 6px;
+  background-color: #fff8f0; /* soft cream background */
+  border: 1px solid #d4b48c; /* subtle brown border */
+  color: #4e3b1c; /* dark warm text */
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(139, 69, 19, 0.2);
+  padding: 10px 12px;
+  font-size: 13px;
+  z-index: 20;
+}
+
+/* ✅ Styling for each hint row */
+.password-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.password-hint-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ✅ Tick/valid colors */
+.password-hint-valid {
+  color: #2e7d32; /* green */
+  font-weight: 500;
+}
+
+/* ❌ Invalid colors */
+.password-hint-invalid {
+  color: #b71c1c; /* red */
+  font-weight: 400;
+}
+
+/* Optional: smooth fade in */
+.password-hint-box {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
