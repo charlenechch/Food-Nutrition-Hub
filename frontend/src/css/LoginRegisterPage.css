@@ -575,6 +575,7 @@ body, html, #root {
   display: flex;
   align-items: center;
   justify-content: center; 
+  text-align: center;
   gap: 10px;
   margin: 4px 4px 6px;
   width: 100%;
@@ -587,13 +588,10 @@ body, html, #root {
   color: #916848;
 }
 .lrp-modal-title {
+  display: inline-block;
   font-weight: 600;
   color: #916848;
   margin: 0;
-}
-.lrp-modal-icon svg {
-  display: block;           
-  line-height: 1;
 }
 
 .lrp-modal-body {
