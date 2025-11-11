@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
-import { FaTimes, FaEnvelopeOpenText } from "react-icons/fa";
+import { FaEnvelopeOpenText } from "react-icons/fa";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Firebase imports
@@ -737,7 +737,7 @@ export default function LoginRegisterPage() {
               aria-label="Close"
               onClick={() => setShowRegSuccess(false)}
             >
-              <FaTimes />
+              ✕
             </button>
 
             <div className="lrp-modal-header">
