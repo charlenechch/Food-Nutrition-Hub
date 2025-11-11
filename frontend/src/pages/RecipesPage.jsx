@@ -5,7 +5,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/RecipesPage.css";
+import Modal from "../components/Modal";
 import { FaCamera } from "react-icons/fa";
+import { GrDocumentMissing } from "react-icons/gr";
+import { PiChefHat } from "react-icons/pi";
 import { Filter, Sliders, X } from "lucide-react";
 
 // ✅ Added: guest detection + modal
@@ -210,6 +213,20 @@ export default function RecipesPage() {
     setDietFilters([]);
   };
 
+  const [info, setInfo] = useState({
+    open: false,
+    title: "",
+    body: "",
+    icon: null,
+    confirmText: "OK",
+  });
+
+  const showInfo = (opts) =>
+    setInfo({ open: true, title: "", body: "", confirmText: "OK", icon: null, ...opts });
+
+  const closeInfo = () => setInfo((s) => ({ ...s, open: false }));
+
+
   // Pagination (kept)
   const [page, setPage] = useState(1);
 
@@ -246,7 +263,14 @@ export default function RecipesPage() {
 
     const name = form.name.trim();
     const origin = form.origin.trim();
-    if (!name || !origin) return alert("Please fill at least Name and Origin.");
+    if (!name || !origin) {
+      showInfo({
+        title: "Missing Required Fields",
+        body: "Please fill at least Name and Origin to continue.",
+        icon: <GrDocumentMissing />,
+      });
+      return;
+    }
 
     const toLines = (s) =>
       s.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
@@ -329,9 +353,13 @@ export default function RecipesPage() {
         otherFoodText: "",
       });
       setExpanded(false);
-      
-      alert("👨‍🍳 Recipe Created Successfully!\n\nYour recipe has been submitted for review. It will be visible to others after admin approval.");
-      
+            
+      showInfo({
+        title: "Recipe Created Successfully!",
+        body: "Your recipe has been submitted for review. It will be visible to others after admin approval.",
+        icon: <PiChefHat />,
+      });
+
     } catch (err) {
       console.error('Error creating recipe:', err);
       alert('Failed to create recipe. Please try again.');
@@ -415,6 +443,17 @@ export default function RecipesPage() {
           onLogin={() => navigate("/loginregister")}
         />
       )}
+      <Modal
+        open={info.open}
+        title={info.title}
+        titleId="recipes-info-title"
+        icon={info.icon}               
+        primaryText={info.confirmText}
+        onClose={closeInfo}
+        onPrimary={closeInfo}
+      >
+        {info.body}
+      </Modal>
 
       <div className="rp-header">
         <h1 className="rp-title">Traditional Recipes</h1>
