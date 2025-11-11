@@ -577,17 +577,16 @@ body, html, #root {
   gap: 10px;
   margin: 4px 4px 6px;
   width: 100%;
+  font-size: 1.25rem;
 }
 .lrp-modal-icon {
+  font-size: 1.5rem;
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
-  color: #8b5e34;
+  color: #916848;
 }
 .lrp-modal-title {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #916848;
   margin: 0;
 }
