@@ -6,7 +6,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/RecipesPage.css";
 import Modal from "../components/Modal";
-import { FaCamera } from "react-icons/fa";
+import { FaCamera, FaTimes } from "react-icons/fa";
 import { GrDocumentMissing } from "react-icons/gr";
 import { PiChefHat } from "react-icons/pi";
 import { Filter, Sliders, X } from "lucide-react";
@@ -362,7 +362,11 @@ export default function RecipesPage() {
 
     } catch (err) {
       console.error('Error creating recipe:', err);
-      alert('Failed to create recipe. Please try again.');
+      showInfo({
+        title: "Failed to create recipe.",
+        body: "Please try again.",
+        icon: <FaTimes />,
+      });
     }finally {
       setIsSubmitting(false);
     }
@@ -378,14 +382,22 @@ export default function RecipesPage() {
 
   // Check file size
   if (file.size > maxSize) {
-    alert('❌ Image too large! Please choose an image smaller than 2MB.');
+    showInfo({
+      title: "Image Too Large!",
+      body: "Please choose an image smaller than 2 MB.",
+      icon: <FaCamera />,
+    });
     e.target.value = ''; 
     return;
   }
 
   // Check file type
   if (!allowedTypes.includes(file.type)) {
-    alert('❌ Please select a valid image (JPEG, JPG, PNG, or WebP).');
+    showInfo({
+      title: "Invalid image type!",
+      body: "Please select a valid image (JPEG, JPG, PNG, or WebP).",
+      icon: <FaCamera />,
+    });
     e.target.value = ''; 
     return;
   }
