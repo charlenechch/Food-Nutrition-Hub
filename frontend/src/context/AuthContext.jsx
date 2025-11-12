@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AuthContext = createContext();
@@ -33,7 +34,7 @@ export function AuthProvider({ children }) {
     
     // Check if we're already on the login page to avoid a redirect loop
     if (window.location.pathname !== "/loginregister") {
-      window.location.href = "/loginregister";
+      navigate("/loginregister");
     }
   };
 
@@ -105,22 +106,17 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    try {
-      // Wait for the backend to destroy the session
-      await fetch(`${API_URL}/api/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      
-      // Only after the backend is done, set user to null
-      setUser(null);
-
-    } catch (error) {
-      console.error("Logout API call failed:", error);
-      // If the API fails, force the logout on the client anyway
-      setUser(null);
-    }
-  };
+  try {
+    await fetch(`${API_URL}/api/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (error) {
+    console.error("Logout API call failed:", error);
+  } finally {
+    forceLogout();
+  }
+};
 
   const loginAsGuest = () => setUser({ role: "guest", viewMode: "guest" });
 
