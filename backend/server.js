@@ -10,8 +10,26 @@ const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 const csrf = require("csurf");
 const mysql = require("mysql2");
 const path = require("path");
+const fs = require("fs");
 const hppProtect = require("./middleware/hpp-protect");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
+
+
+// ❌ REMOVED: Content Moderation route import (no longer needed)
+// const contentRoutes = require("./routes/content");
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+const IS_PROD = process.env.NODE_ENV === "production";
+
+// Ensure uploads folder exists
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
+
+// Serve uploads folder publicly
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ---------- Routes ----------
 const loginRoutes = require("./routes/login");
@@ -36,13 +54,6 @@ const foodSearchRoutes = require("./routes/foodSearch");
 // ✅ NEW: Admin route import (for Admin User Management)
 const adminRoutes = require("./routes/admin");
 const analyticsRoutes = require("./routes/analytics");
-
-// ❌ REMOVED: Content Moderation route import (no longer needed)
-// const contentRoutes = require("./routes/content");
-
-const app = express();
-const PORT = process.env.PORT || 5000;
-const IS_PROD = process.env.NODE_ENV === "production";
 
 // ---------- Environment Validation ----------
 const requiredEnvVars = ["MYSQLHOST", "MYSQLUSER", "MYSQLPASSWORD", "MYSQLDATABASE"];
