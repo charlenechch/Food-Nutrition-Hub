@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AuthContext = createContext();
@@ -7,8 +6,6 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     checkSession();
@@ -32,20 +29,15 @@ export function AuthProvider({ children }) {
 
   // This is now the ONLY way to log a user out on the frontend
   const forceLogout = () => {
-    setUser(null);
+    setUser(null); // Set user to null
     
-    // Check if already on the login page to avoid a redirect loop
+    // Check if we're already on the login page to avoid a redirect loop
     if (window.location.pathname !== "/loginregister") {
       window.location.href = "/loginregister";
     }
   };
 
   const checkSession = async () => {
-    if (isLoggingOut) {
-      setLoading(false);
-      return;
-    }
-
     // Define the public pages that don't need a redirect
     const publicAuthPaths = [
       '/loginregister',
@@ -113,19 +105,15 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    setIsLoggingOut(true); // Set the flag to stop checkSession
     try {
       await fetch(`${API_URL}/api/logout`, {
         method: "POST",
         credentials: "include",
       });
-    } catch (error) {
-      console.error("Logout API call failed:", error);
     } finally {
-      // Call the original forceLogout
       forceLogout();
     }
-  }
+  };
 
   const loginAsGuest = () => setUser({ role: "guest", viewMode: "guest" });
 
@@ -140,6 +128,7 @@ export function AuthProvider({ children }) {
         loginAsGuest,
         checkSession,
         toggleRole,
+        forceLogout,
       }}
     >
       {!loading && children}
