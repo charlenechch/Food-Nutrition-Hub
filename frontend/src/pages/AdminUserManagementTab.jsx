@@ -673,7 +673,12 @@ export default function UserManagement() {
                             <>
                               <span className="umg-pill umg-pill-suspended">Suspended</span>
                               <div className="umg-status-note">
-                                {u.suspensionReason ? `Reason: ${u.suspensionReason}` : `Until: ${u.suspendedUntil.split('T')[0]}`}
+                                {u.suspensionReason && (
+                                  <div>Reason: {u.suspensionReason}</div>
+                                )}
+                                {u.suspendedUntil && (
+                                  <div>Until: {u.suspendedUntil.split('T')[0]}</div>
+                                )}
                               </div>
                             </>
                           )}
