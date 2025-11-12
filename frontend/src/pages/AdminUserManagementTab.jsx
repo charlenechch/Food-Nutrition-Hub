@@ -296,7 +296,7 @@ export default function UserManagement() {
       email: "",
       city: "",
       role: "User",           // "User" | "Admin"
-      status: "Active",       // "Active" | "Inactive" | "Suspended"
+      status: "Inactive",       // "Active" | "Inactive" | "Suspended"
       suspendedUntil: null,
       suspensionReason: "",
       submissions: 0,
