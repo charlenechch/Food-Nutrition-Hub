@@ -149,11 +149,11 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     const { name, email, city, role, suspendedUntil, suspensionReason } = req.body;
 
     // This catches the 'undefined' parameter error.
-    if (!name || !email || !role) {
+    if ((name !== undefined || email !== undefined || role !== undefined) && (!name || !email || !role)) {
       console.warn("❌ Admin update validation failed. Missing data:", { name, email, role });
       return res.status(400).json({ 
         success: false, 
-        message: "Validation failed. Name, email, and role are required." 
+        message: "Validation failed. When updating info, Name, email, and role are required." 
       });
     }
 
@@ -168,7 +168,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
     // Check if user exists
     const [existingUser] = await db.execute(
-      'SELECT userID, email, status, firebase_uid FROM user WHERE userID = ?',
+      'SELECT * FROM user WHERE userID = ?',
       [targetUserID]
     );
 
@@ -179,22 +179,25 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       });
     }
 
+    const currentUser = existingUser[0];
     const currentEmail = existingUser[0].email;
     const firebaseUID = existingUser[0].firebase_uid;
     let shouldResetVerification = false;
 
     // Calculate final suspendedUntil date.
     // The frontend will send a date-string or null.
-    let finalsuspendedUntil = null;
-    if (suspendedUntil) {
+    let finalsuspendedUntil = currentUser.suspendedUntil;
+    if (suspendedUntil !== undefined) { // Check if 'suspendedUntil' was in the request (even if null)
         const dateObj = new Date(suspendedUntil);
-        if (!isNaN(dateObj) && dateObj.getTime()) {
+        if (suspendedUntil === null) {
+            finalsuspendedUntil = null;
+        } else if (!isNaN(dateObj) && dateObj.getTime()) {
             finalsuspendedUntil = dateObj.toISOString().slice(0, 10);
         }
     }
 
     // Synchronize Email with Firebase Auth
-    if (email !== currentEmail) {
+    if (email && email !== currentEmail) {
       // Check if email is being changed to one that already exists
       const [emailCheck] = await db.execute(
         'SELECT userID FROM user WHERE email = ? AND userID != ?',
@@ -225,14 +228,15 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     }
 
     // Split name into firstname and lastname
-    const nameParts = name.trim().split(' ');
+    const nameToSplit = name || `${currentUser.firstname || ''} ${currentUser.lastname || ''}`;
+    const nameParts = nameToSplit.trim().split(' ');
     const firstname = nameParts[0] || '';
     const lastname = nameParts.slice(1).join(' ') || '';
 
-    const newVerificationStatus = shouldResetVerification ? 'False' : 'True';
+    const newVerificationStatus = shouldResetVerification ? 'False' : currentUser.verified;
     
     // Update user table
-    const userRole = role === 'Admin' ? 'admin' : 'member';
+    const userRole = role ? (role === 'Admin' ? 'admin' : 'member') : currentUser.role;
     await db.execute(
       'UPDATE user SET firstname = ?, lastname = ?, email = ?, verified = ?, role = ?, suspendedUntil = ? WHERE userID = ?',
       [firstname, lastname, email, newVerificationStatus, userRole, finalsuspendedUntil, targetUserID]
@@ -254,10 +258,12 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       );
     } else {
       // Update existing profile
-      await db.execute(
-        'UPDATE userProfile SET location = ? WHERE userID = ?',
-        [city || null, targetUserID]
-      );
+      if (city !== undefined) {
+        await db.execute(
+          'UPDATE userProfile SET location = ? WHERE userID = ?',
+          [city || null, targetUserID]
+        );
+      }
     }
 
     console.log(`✅ Admin updated user: ${email} (ID: ${targetUserID})`);
