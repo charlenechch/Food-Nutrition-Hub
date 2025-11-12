@@ -483,7 +483,7 @@ export default function LoginRegisterPage() {
                       Try again in {formatTime(remainingTime)} ({getLockLabel(lockouts[email].lockStage)})
                     </p>
                   )}
-                  {shouldSuggestReset(email) && (
+                  {lockouts[email]?.showReset && (
                     <p className="lrp-reset-hint">
                       Too many attempts.{" "}
                       <span
