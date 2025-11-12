@@ -2,6 +2,69 @@ const express = require("express");
 const router = express.Router();
 const { pool: db } = require("../config/db");
 const { requireAuth, requireAdmin } = require("../middleware/auth");
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
+
+// ============================
+// 📂 IMAGE UPLOAD SETUP
+// ============================
+
+// Create upload folder if not exists
+const uploadDir = path.join(__dirname, "../uploads/food-images");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log("✅ Created upload directory:", uploadDir);
+}
+
+// Multer storage configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
+});
+
+// File upload filter (only images)
+const upload = multer({
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error("Only JPG, PNG, or WEBP images are allowed"));
+    }
+    cb(null, true);
+  },
+});
+
+// ============================
+// 🖼️ IMAGE UPLOAD ENDPOINT
+// ============================
+// URL: POST /api/foods/upload/food-image
+router.post(
+  "/upload/food-image",
+  requireAuth,
+  requireAdmin,
+  upload.single("foodImage"),
+  (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ success: false, error: "No image uploaded" });
+      }
+
+      const imageUrl = `/uploads/food-images/${req.file.filename}`;
+      console.log("✅ Image uploaded:", imageUrl);
+
+      res.status(200).json({ success: true, imageUrl });
+    } catch (err) {
+      console.error("❌ Image upload failed:", err.message);
+      res.status(500).json({ success: false, error: "Image upload failed" });
+    }
+  }
+);
+
+// ============================
+// 🧾 EXISTING FOOD ROUTES
+// ============================
 
 // ✅ Get total food count (for Admin Dashboard)
 router.get("/count", async (req, res) => {
@@ -14,7 +77,7 @@ router.get("/count", async (req, res) => {
   }
 });
 
-// ✅ Get all foods (PUBLIC - anyone can view)
+// ✅ Get all foods (PUBLIC)
 router.get("/", async (req, res) => {
   try {
     const [foods] = await db.query("SELECT * FROM food");
@@ -34,9 +97,7 @@ router.get("/:id", async (req, res) => {
     );
 
     if (foods.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Food not found" });
+      return res.status(404).json({ success: false, error: "Food not found" });
     }
 
     res.json({ success: true, data: foods[0] });
@@ -113,9 +174,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     ]);
 
     if (existing.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Food not found" });
+      return res.status(404).json({ success: false, error: "Food not found" });
     }
 
     const sql = `
@@ -150,9 +209,7 @@ router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
     ]);
 
     if (existing.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, error: "Food not found" });
+      return res.status(404).json({ success: false, error: "Food not found" });
     }
 
     await db.query("DELETE FROM food WHERE foodID = ?", [req.params.id]);
