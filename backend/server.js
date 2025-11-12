@@ -278,13 +278,21 @@ app.use(
       "servings", "image", "description", "foodType", "dietaryTags",
       "ingredients", "instructions", "funFact", "chefTips",
       "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll", "Energy_kcal",
-      "Protein_g", "Fat_g", "Carbohydrates_g", "Fiber_g", "VitaminC_mg", "Sodium_mg", "view", "year"
+      "Protein_g", "Fat_g", "Carbohydrates_g", "Fiber_g", "VitaminC_mg", "view", "year"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));
     },
   })
 );
+
+// ---------- Static File Serving ----------
+// ⭐ REQUIRED FIX: Configure Express to serve files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// -----------------------------------------
+
+// ---------- 8) Other Routes ----------
+app.use("/api/logout", logoutRoutes);
 
 // ---------- 8) Other Routes ----------
 app.use("/api/logout", logoutRoutes);

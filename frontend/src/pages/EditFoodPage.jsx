@@ -108,7 +108,7 @@ const EditFoodPage = () => {
     formData.append("foodImage", file);
 
     try {
-      const uploadRes = await fetch(`${API_URL}/api/upload/food-image`, {
+      const uploadRes = await fetch(`${API_URL}/api/foods/upload/food-image`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -158,7 +158,7 @@ const EditFoodPage = () => {
       Carbohydrates_g: food.carbs,
       Fat_g: food.fat,
       Fiber_g: food.fiber,
-      VitaminC_mg: 0,
+      VitaminC_mg: food.vitaminc,
       image: finalImageUrl,
     };
 
@@ -457,6 +457,15 @@ const EditFoodPage = () => {
                 className="edit-food-input"
                 name="fiber"
                 value={food.fiber}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label className="basic-info-label">Vitamin C (g)</label>
+              <input
+                className="edit-food-input"
+                name="vitamin"
+                value={food.vitaminc}
                 onChange={handleChange}
               />
             </div>
