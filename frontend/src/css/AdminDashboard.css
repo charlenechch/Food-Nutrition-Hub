@@ -863,7 +863,7 @@
 .umg-table th, .umg-table td {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: normal;
+  white-space: nowrap;
 }
 @media (max-width: 820px) {
   .umg-table th, .umg-table td {
@@ -947,7 +947,6 @@
 }
 
 .umg-status-stack { 
-  display: flex;
   flex-direction: column; 
   gap: 4px; 
 }
