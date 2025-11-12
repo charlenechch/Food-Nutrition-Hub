@@ -324,6 +324,32 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
   } catch (error) {
     console.error("Admin user update error:", error);
+
+    // Check if we attempted a Firebase email change that needs to be reverted
+    // 'shouldResetVerification' is the flag that Firebase was successfully changed
+    
+    if (shouldResetVerification === true && firebaseUID && currentEmail) {
+        
+        console.warn(`MySQL update failed. Attempting to roll back Firebase email change for UID: ${firebaseUID}`);
+        
+        try {
+            // Revert Firebase email to the original
+            await updateFirebaseEmail(firebaseUID, currentEmail);
+            
+            console.warn(`✅ Firebase email successfully rolled back to: ${currentEmail}`);
+        
+        } catch (rollbackError) {
+            console.error(`❌ CRITICAL: Firebase rollback FAILED for UID: ${firebaseUID}.`, rollbackError);
+            
+            // This is the worst-case scenario: data is now inconsistent
+            return res.status(500).json({ 
+                success: false, 
+                message: "Failed to update user in database AND Firebase rollback failed. Data is inconsistent.",
+                error: error.message 
+            });
+        }
+    }
+
     return res.status(500).json({ 
       success: false, 
       message: "Failed to update user",
