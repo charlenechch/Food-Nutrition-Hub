@@ -996,9 +996,9 @@
 
 .umg-table th:last-child,
 .umg-table td:last-child {
-  width: 84px;         
-  min-width: 84px;
-  max-width: 84px;
+  width: 126px;         
+  min-width: 126px;
+  max-width: 126px;
   padding-right: 0;
   text-align: right;
   white-space: nowrap; 
@@ -1863,38 +1863,41 @@
   transform: translateY(0);
 }
 
-.umg-status-action-row {
-  margin-bottom: 15px;
-  align-items: center;
+/* New smaller modal for suspension */
+.umg-suspend-modal {
+    width: 480px;
+    max-width: 90vw;
+    max-height: 400px;
+    height: auto;
 }
 
-.umg-status-btn-ml {
-  margin-left: 20px;
+/* New, smaller textarea for the reason input */
+.umg-textarea-small {
+    min-height: 80px;
+    resize: vertical;
 }
 
-.umg-modal-mt-md {
-  margin-top: 10px;
+/* Ensures icon is aligned with text in modal header */
+.umg-modal-header h3 {
+    display: flex; 
+    align-items: center;
+    gap: 8px;
 }
 
-.umg-date-cancel-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
+/* New Suspend/Unsuspend Button Styling (within the table) */
+.umg-suspend-btn {
+    color: #d94141; /* Red for suspend action */
+    border-color: #f3b4b4;
 }
-
-.umg-full-width-field .umg-input, 
-.umg-full-width-field .umg-select {
-  width: 100%;
+.umg-suspend-btn:hover {
+    background: #ffe5e5;
+    color: #a33;
 }
-
-.umg-role-status-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 2fr; 
-  gap: 12px;
+.umg-unsuspend-btn {
+    color: #166534; /* Green for unsuspend action */
+    border-color: #b5e4c1;
 }
-
-@media (max-width: 680px) {
-  .umg-role-status-grid {
-    grid-template-columns: 1fr;
-  }
+.umg-unsuspend-btn:hover {
+    background: #eaf8ee;
+    color: #0c4d1f;
 }

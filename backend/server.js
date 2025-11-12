@@ -270,7 +270,7 @@ app.use(
     allowlist: [
       "id", "page", "q", "sort", "email", "password", "newPassword", "userID", "token", "role",
       "userProfileID", "firebase_uid", "bio", "location", "firstname", "lastname",
-      "city", "suspendedUntil", "avatar", "allergies", "dietary", "emailNotifications",
+      "city", "suspendedUntil", "suspensionReason", "avatar", "allergies", "dietary", "emailNotifications",
       "prefs", "pushNotifications", "profileVisibility", "language", "recipes",
       "status", "stats", "saveFoods", "likes", "type", "postId", "postID",
       "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID",

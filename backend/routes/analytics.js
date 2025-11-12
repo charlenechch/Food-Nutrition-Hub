@@ -97,9 +97,6 @@ router.get('/metrics', async (req, res) => {
       ? Math.round(Math.min(((currentMonthStories - previousMonthStories) / previousMonthStories) * 100, 100))
       : currentMonthStories > 0 ? 100 : 0;
 
-    // Calculate pending percentages
-    const pendingRecipesPercentage = 15;
-
     res.json({
       success: true,
       data: {
@@ -109,8 +106,7 @@ router.get('/metrics', async (req, res) => {
         pendingStories: pendingStoriesResult[0].count,
         percentages: {
           recipes: recipesPercentage,
-          stories: storiesPercentage,
-          pendingRecipes: pendingRecipesPercentage
+          stories: storiesPercentage
         },
         currentMonth: {
           recipes: currentMonthRecipes,

@@ -363,13 +363,13 @@ try {
   // image size validation
   if (image && image.startsWith('data:image')) {
     const base64Size = (image.length * 3) / 4; // Base64 size estimate in bytes
-    const maxSize = 3 * 1024 * 1024; // 3MB limit
+    const maxSize = 6 * 1024 * 1024; // 6MB limit
     
     console.log(`📏 Image size check: ${Math.round(base64Size / 1024)} KB`);
     
     if (base64Size > maxSize) {
       return res.status(400).json({ 
-        error: 'Image too large. Please use an image smaller than 2MB.' 
+        error: 'Image too large. Please use an image smaller than 6MB.' 
       });
     }
   }

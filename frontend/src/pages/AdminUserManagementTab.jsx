@@ -1,10 +1,88 @@
 import React, { useState, useEffect } from "react";
 import { CiSearch } from "react-icons/ci";
-import { Mail, Shield, Users, Activity, CircleCheckBig, CircleX, X, Bell, Send } from 'lucide-react';
+import { Mail, Shield, Users, Activity, CircleCheckBig, CircleX, CircleOff, X, Bell, Send } from 'lucide-react';
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+// Suspend User Modal Component
+    const SuspendUserModal = ({ user, onClose, onSave }) => {
+    // State for the suspension details
+    const [suspensionDate, setSuspensionDate] = useState(
+        // Default to today or load existing suspension date
+        user?.suspendedUntil ? user.suspendedUntil.split('T')[0] : new Date().toISOString().slice(0, 10)
+    );
+    const [reason, setReason] = useState(user?.suspensionReason || "");
+
+    const handleSave = () => {
+        if (!suspensionDate) return alert("Suspension date is required.");
+        if (!reason.trim()) return alert("Suspension reason is required.");
+
+        // Call the parent handler with the collected data
+        onSave(user.id, suspensionDate, reason.trim());
+    };
+
+    return (
+        <div
+            className="umg-modal-backdrop"
+            role="dialog"
+            aria-modal="true"
+            onClick={onClose}
+        >
+            {/* umg-suspend-modal is a new CSS class for size/styling */}
+            <div className="umg-modal umg-suspend-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="umg-modal-header">
+                    <h3><CircleOff size={18} /> Suspend User: {user.name}</h3>
+                    <button className="umg-modal-close" onClick={onClose} aria-label="Close">×</button>
+                </div>
+
+                <div className="umg-modal-body">
+                    {/* Suspended Until Date */}
+                    <div className="umg-field">
+                        <label className="umg-label">Suspended Until</label>
+                        <input
+                            className="umg-input"
+                            type="date"
+                            min={new Date().toISOString().slice(0, 10)}
+                            value={suspensionDate}
+                            onChange={(e) => setSuspensionDate(e.target.value)}
+                        />
+                        <div className="umg-hint">The user will be automatically unsuspended after this date.</div>
+                    </div>
+
+                    {/* Reason */}
+                    <div className="umg-field">
+                        <label className="umg-label">Suspension Reason</label>
+                        <textarea
+                            className="umg-input umg-textarea-small" // umg-textarea-small is a new CSS class
+                            placeholder="State the rule violation or reason for suspension (e.g., 'Violated ToS: Spamming content')."
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <div className="umg-modal-footer">
+                    <button
+                        type="button"
+                        className="umg-btn umg-btn-secondary"
+                        onClick={onClose}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        className="umg-btn umg-btn-danger"
+                        onClick={handleSave}
+                    >
+                        Confirm Suspension
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -201,21 +279,23 @@ export default function UserManagement() {
 
     const [showUserModal, setShowUserModal] = useState(false);
     const [userMode, setUserMode] = useState("create"); // "create" | "edit"
+    const [showSuspendModal, setShowSuspendModal] = useState(false);
+    const [userToSuspend, setUserToSuspend] = useState(null);
+
     const emptyUser = {
-    id: null,
-    name: "",
-    email: "",
-    city: "",
-    role: "User",           // "User" | "Admin"
-    status: "Active",       // "Active" | "Inactive" | "Suspended"
-    suspendedUntil: null,
-    submissions: 0,
-    approved: 0,
-    lastLogin: "—",
+      id: null,
+      name: "",
+      email: "",
+      city: "",
+      role: "User",           // "User" | "Admin"
+      status: "Active",       // "Active" | "Inactive" | "Suspended"
+      suspendedUntil: null,
+      suspensionReason: "",
+      submissions: 0,
+      approved: 0,
+      lastLogin: "—",
     };
     const [userForm, setUserForm] = useState(emptyUser);
-    const [suspensionDate, setSuspensionDate] = useState(null);
-    const [showDateInput, setShowDateInput] = useState(false);
 
     // Open Create
     const openCreateUser = () => {
@@ -227,12 +307,90 @@ export default function UserManagement() {
     // Open Edit
     const openEditUser = (u) => {
         setUserMode("edit");
-        const dateString = u.suspendedUntil ? u.suspendedUntil.split('T')[0] : '';
-
         setUserForm({ ...u });
-        setSuspensionDate(dateString);
-        setShowDateInput(u.status === "Suspended");
         setShowUserModal(true);
+    };
+
+    // Handle Suspension
+    const openSuspendUser = (u) => {
+        setUserToSuspend(u);
+        setShowSuspendModal(true);
+    };
+
+    const handleSuspendSave = async (userId, suspensionDate, reason) => {
+        setShowSuspendModal(false);
+        try {
+            // This is the API call to update the user's status to Suspended
+            const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    status: "Suspended",
+                    suspendedUntil: suspensionDate,
+                    suspensionReason: reason,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Failed to suspend user");
+            }
+
+            const data = await response.json();
+            
+            if (data.success && data.user) {
+                // Update local state to reflect new status
+                setUsers(prev =>
+                    prev.map(u => u.id === userId ? { ...u, ...data.user, status: "Suspended", suspendedUntil: suspensionDate, suspensionReason: reason } : u)
+                );
+                alert(`User ${data.user.name} suspended until ${suspensionDate}.`);
+            }
+
+        } catch (err) {
+            console.error("Error suspending user:", err);
+            alert(`Error: ${err.message}`);
+        }
+    };
+
+    // handle Unsuspension
+    const handleUnsuspend = async (userId, userName) => {
+        // NOTE: Using alert() as a placeholder for a custom UI confirmation dialog
+        if (!alert(`Are you sure you want to unsuspend user "${userName}"?`)) {
+            return;
+        }
+
+        try {
+            // This is the API call to clear the suspension
+            const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    status: "Active", 
+                    suspendedUntil: null, // Clear suspension date
+                    suspensionReason: "", // Clear reason
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Failed to unsuspend user");
+            }
+
+            const data = await response.json();
+            
+            if (data.success && data.user) {
+                setUsers(prev =>
+                    prev.map(u => u.id === userId ? { ...u, ...data.user, status: "Active", suspendedUntil: null, suspensionReason: "" } : u)
+                );
+                alert(`User ${data.user.name} has been unsuspended.`);
+            }
+
+        } catch (err) {
+            console.error("Error unsuspending user:", err);
+            alert(`Error: ${err.message}`);
+        }
     };
 
     // Save (Create or Update)
@@ -240,29 +398,6 @@ export default function UserManagement() {
     // basic validation
     if (!userForm.name.trim()) return alert("Name is required.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email)) return alert("Valid email is required.");
-
-    // Prepare status and date based on the UI states
-        let finalStatus = userForm.status; // Default to existing status for Edit mode
-        let finalSuspendedUntil = null;
-        
-        if (userMode === "create") {
-            // Creation mode uses status/suspendedUntil directly from userForm
-            finalStatus = userForm.status;
-            finalSuspendedUntil = userForm.suspendedUntil;
-        } else {
-            // Edit mode: Determine final status based on the presence of suspensionDate
-            if (suspensionDate) {
-                // If the admin set a date, force status to Suspended
-                finalStatus = "Suspended";
-                finalSuspendedUntil = suspensionDate;
-
-            } else {
-                // If the date is cleared (e.g., by clicking "Unsuspend"), clear suspension
-                // We revert status based on lastLogin (Active if recently logged in, Inactive otherwise)
-                finalStatus = userForm.lastLogin === '—' ? "Inactive" : "Active";
-                finalSuspendedUntil = null;
-            }
-        }
 
     try {
       if (userMode === "create") {
@@ -276,10 +411,7 @@ export default function UserManagement() {
             email: userForm.email,
             city: userForm.city,
             role: userForm.role,
-            status: finalStatus,
-            suspendedUntil: userForm.status === "Suspended" 
-              ? (userForm.suspendedUntil || new Date().toISOString().slice(0,10))
-              : null,
+            status: "Inactive",
           }),
         });
 
@@ -306,10 +438,6 @@ export default function UserManagement() {
             email: userForm.email,
             city: userForm.city,
             role: userForm.role,
-            status: finalStatus,
-            suspendedUntil: userForm.status === "Suspended"
-              ? (userForm.suspendedUntil || new Date().toISOString().slice(0,10))
-              : null,
           }),
         });
 
@@ -525,12 +653,14 @@ export default function UserManagement() {
                         )}
                         {u.status === "Suspended" && (
                           <div className="umg-status-stack">
-                            <span className="umg-pill umg-pill-suspended">Suspended</span>
-                            {u.suspendedUntil && (
-                              <div className="umg-status-note">Suspended: {u.suspendedUntil}</div>
-                            )}
+                              <span className="umg-pill umg-pill-suspended">Suspended</span>
+                              {(u.suspendedUntil || u.suspensionReason) && (
+                                  <div className="umg-status-note">
+                                      {u.suspensionReason ? `Reason: ${u.suspensionReason}` : `Until: ${u.suspendedUntil.split('T')[0]}`}
+                                  </div>
+                              )}
                           </div>
-                        )}
+                      )}
                       </td>
 
                       <td>
@@ -543,6 +673,24 @@ export default function UserManagement() {
                       <td>{u.lastLogin}</td>
 
                       <td className="umg-ellipsis-td">
+                          {u.status === "Suspended" ? (
+                              <button
+                                  className="umg-ellipsis umg-unsuspend-btn"
+                                  title="Unsuspend user"
+                                  onClick={() => handleUnsuspend(u.id, u.name)}
+                              >
+                                  <CircleCheckBig size={18} /> {/* Green check for reactivation */}
+                              </button>
+                          ) : (
+                              <button
+                                  className="umg-ellipsis umg-suspend-btn"
+                                  title="Suspend user"
+                                  onClick={() => openSuspendUser(u)}
+                              >
+                                  <CircleOff size={18} /> {/* Red circle-off for suspension */}
+                              </button>
+                          )}
+
                         <button
                             className="umg-ellipsis"
                             title="Edit user"
@@ -838,87 +986,45 @@ export default function UserManagement() {
                     />
                     </div>
 
-                    {/* Role + Status + suspendedUntil row */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <div className="umg-field">
-                      <label className="umg-label">Role</label>
-                      <select
-                          className="umg-input"
-                          value={userForm.role}
-                          onChange={(e) => setUserForm(prev => ({ ...prev, role: e.target.value }))}
-                      >
-                          <option>User</option>
-                          <option>Admin</option>
-                      </select>
-                  </div>
-
-                    {/* Right Side: Clean Status Display & Conditional Date Input */}
-                    <div className="umg-field">
-                      <label className="umg-label">Status</label>
-                      
-                      {/* Wrap this entire block in a check for "Edit User" mode */}
-                      {userMode === "edit" ? (
-                          <>
-                          {/* Simple Status Display */}
-                          <div className="umg-action-row umg-status-action-row">
-                              <span className={`umg-pill ${userForm.status === "Suspended" ? "umg-pill-suspended" : (userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive")}`}>
-                                  {userForm.status}
-                              </span>
-
-                              {userForm.status !== "Suspended" && !showDateInput && (
-                              <button
-                                  type="button"
-                                  className="umg-status-btn-ml umg-btn umg-btn-danger" 
-                                  onClick={() => setShowDateInput(true)} 
-                              >
-                                  Suspend User
-                              </button>
-                              )}
-
-                              {/* 2. Unsuspend Button (Visible ONLY if currently suspended) */}
-                              {userForm.status === "Suspended" && (
-                                  <button
-                                      type="button"
-                                      className="umg-status-btn-ml umg-btn umg-btn-warning" 
-                                      onClick={() => {
-                                          setSuspensionDate(null); 
-                                          setShowDateInput(false); 
-                                      }}
-                                  >
-                                      Clear Suspension
-                                  </button>
-                              )}
-                          </div>
-
-                            {/* Suspended Until Date (Only appears AFTER clicking "Suspend User" OR if user is already suspended) */}
-                            {(showDateInput || userForm.status === "Suspended") && (
-                              <div className="umg-field umg-full-width-field">
-                                  {/* ... (Date input field and Cancel button) ... */}
-                              </div>
-                          )}
-                          </>
-                      ) : (
-                          // Display default Active FOR CREATE MODE ONLY
-                          <div className="umg-action-row umg-status-action-row">
-                              <span className="umg-pill umg-pill-active">Active</span>
-                          </div>
-                      )}
-                    </div>
-                </div>
-                
-                {/* Hide submissions / Approved / Last login for "Create User" */}
-                {userMode === "edit" && (
-                    <div className="umg-metrics-row">
-                        {/* Submissions / Approved */}
+                    {/* Role + Status row - Cleaned up to retain Role edit and show read-only Status */}
+                    <div className="umg-metrics-row"> 
+                        
+                        {/* 1. Role Field (RETAINS EDITABLE SELECT) */}
                         <div className="umg-field">
-                            {/* ... (Existing Submissions/Approved fields) ... */}
+                          <label className="umg-label">Role</label>
+                          <select
+                              className="umg-input"
+                              value={userForm.role}
+                              onChange={(e) => setUserForm(prev => ({ ...prev, role: e.target.value }))}
+                          >
+                              <option>User</option>
+                              <option>Admin</option>
+                          </select>
                         </div>
-
+                        
+                        {/* 2. Status Field (READ-ONLY DISPLAY) */}
                         <div className="umg-field">
-                            {/* ... (Existing Last Login fields) ... */}
+                            <label className="umg-label">Current Status</label>
+                            
+                            {/* This div just displays the value, it's not an input */}
+                            <div className="umg-value">
+                                <span className={`umg-pill ${userForm.status === "Suspended" ? "umg-pill-suspended" : (userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive")}`}>
+                                    {userForm.status}
+                                </span>
+                            </div>
+                            
+                            {/* Display suspension details if user IS suspended */}
+                            {userForm.status === "Suspended" && (
+                                <div className="umg-hint">
+                                    User is **Suspended**. Use the table's "Unsuspend" button.
+                                    {/* Show reason if it exists */}
+                                    {userForm.suspensionReason && 
+                                        <span> Reason: {userForm.suspensionReason}</span>
+                                    }
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
 
                     {userMode === "edit" && (
                     <div className="umg-metrics-row">
@@ -991,6 +1097,13 @@ export default function UserManagement() {
                     </div>
                 </div>
             </div>
+            )}
+            {showSuspendModal && userToSuspend && (
+                <SuspendUserModal
+                    user={userToSuspend}
+                    onClose={() => setShowSuspendModal(false)}
+                    onSave={handleSuspendSave}
+                />
             )}
             </>
           )}
