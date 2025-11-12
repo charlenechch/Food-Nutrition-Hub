@@ -7,6 +7,8 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     checkSession();
@@ -39,6 +41,8 @@ export function AuthProvider({ children }) {
   };
 
   const checkSession = async () => {
+    if (isLoggingOut) return;
+
     // Define the public pages that don't need a redirect
     const publicAuthPaths = [
       '/loginregister',
@@ -106,16 +110,24 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+  
+    setIsLoggingOut(true);
+
   try {
-    await fetch(`${API_URL}/api/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
-  } catch (error) {
-    console.error("Logout API call failed:", error);
-  } finally {
-    forceLogout();
-  }
+      await fetch(`${API_URL}/api/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout API call failed:", error);
+    } finally {
+      // Clear the user and redirect
+      setUser(null); 
+      if (window.location.pathname !== "/loginregister") {
+        navigate("/loginregister");
+      }
+      setIsLoggingOut(false); // Reset the flag
+    }
 };
 
   const loginAsGuest = () => setUser({ role: "guest", viewMode: "guest" });
@@ -131,7 +143,6 @@ export function AuthProvider({ children }) {
         loginAsGuest,
         checkSession,
         toggleRole,
-        forceLogout,
       }}
     >
       {!loading && children}
