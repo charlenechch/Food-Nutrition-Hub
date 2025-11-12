@@ -110,8 +110,11 @@ export function AuthProvider({ children }) {
         method: "POST",
         credentials: "include",
       });
+    } catch (error) {
+      console.error("Logout API call failed:", error);
+      // Still proceed with client-sde logout even if API fails
     } finally {
-      forceLogout();
+      setUser(null);
     }
   };
 
