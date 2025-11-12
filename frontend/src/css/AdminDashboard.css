@@ -1901,3 +1901,15 @@
     background: #eaf8ee;
     color: #0c4d1f;
 }
+
+/* New styles for suspension details in modal */
+.umg-suspension-details {
+  margin-top: 6px;
+  padding-left: 2px;
+}
+
+.umg-suspension-details .umg-hint {
+  font-size: 13px;
+  color: #7b6148;
+  line-height: 1.5;
+}

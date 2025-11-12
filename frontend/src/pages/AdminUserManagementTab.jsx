@@ -1044,8 +1044,11 @@ export default function UserManagement() {
                             
                             {/* Display suspension details if user IS suspended */}
                             {(userForm.suspendedUntil && new Date(userForm.suspendedUntil) > new Date()) && (
-                                <div className="umg-hint">
-                                    Suspended {userForm.suspensionReason ? `for: ${userForm.suspensionReason}` : `until: ${userForm.suspendedUntil.split('T')[0]}`}
+                                <div className="umg-suspension-details">
+                                    {userForm.suspensionReason && (
+                                        <div className="umg-hint">Reason: {userForm.suspensionReason}</div>
+                                    )}
+                                    <div className="umg-hint">Suspended until: {userForm.suspendedUntil.split('T')[0]}</div>
                                 </div>
                             )}
                         </div>
