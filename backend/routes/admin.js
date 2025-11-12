@@ -239,9 +239,10 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     
     // Update user table
     const userRole = role ? (role === 'Admin' ? 'admin' : 'member') : currentUser.role;
+    const finalEmail = email || currentUser.email;
     await db.execute(
       'UPDATE user SET firstname = ?, lastname = ?, email = ?, verified = ?, role = ?, suspendedUntil = ? WHERE userID = ?',
-      [firstname, lastname, email, newVerificationStatus, userRole, finalsuspendedUntil, targetUserID]
+      [firstname, lastname, finalEmail, newVerificationStatus, userRole, finalsuspendedUntil, targetUserID]
     );
 
     // Update or create userProfile
