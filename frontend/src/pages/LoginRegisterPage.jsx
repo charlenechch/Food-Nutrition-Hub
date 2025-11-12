@@ -409,18 +409,22 @@ export default function LoginRegisterPage() {
       setRegPasswordCriteria({
         length: false, upper: false, lower: false, number: false, special: false
       });
-    } catch (err) {
-      console.error("Register error:", err);
-      if (err.code === 'auth/email-already-in-use') {
-        setRegisterError("This email is already registered. Please use a different email or try logging in.");
-      } else if (err.code === 'auth/invalid-email') {
-        setRegisterError("Invalid email format. Please check your email address.");
-      } else if (err.code === 'auth/network-request-failed') {
-        setRegisterError("Network error. Please check your internet connection and try again.");
-      } else {
-        setRegisterError("Registration failed. Please try again or contact support.");
+    } catch (error) {
+        setStatus("error");
+        
+        // This is the most common error, caused by Outlook or the link being used once.
+        if (error.code === "auth/invalid-action-code") {
+            setMessage("This link is invalid or has already been used. This can be caused by email security (like Outlook) scanning the link. Please go back to the login page, try to login and request a new link.");
+        
+        // This is a separate error for time-based expiration.
+        } else if (error.code === "auth/expired-action-code") {
+            setMessage("This verification link has expired. Please go back to the login page, try to login and request a new link.");
+        
+        // This is a catch-all for any other errors (e.g., network issues).
+        } else {
+            setMessage("An unexpected error occurred. Please try again or contact support.");
+        }
       }
-    }
   };
 
   const handleGuest = () => {
@@ -725,6 +729,15 @@ export default function LoginRegisterPage() {
         centerActions
       >
         Please verify your email to continue. We've sent a verification link to your inbox.
+
+        <strong style={{ display: 'block', marginTop: '15px' }}>
+          Using Outlook, Hotmail, or a work email?
+        </strong>
+        <p style={{ fontSize: '14px', lineHeight: '1.5', margin: '5px 0 0' }}>
+          If the link fails, please go to the login page, try to log in, and click the 
+          <strong> "Resend Verification Email" </strong> 
+          button to get a new one.
+        </p>
       </Modal>
     </div>
   );
