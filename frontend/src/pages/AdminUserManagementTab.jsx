@@ -677,7 +677,6 @@ export default function UserManagement() {
                               </div>
                             </>
                           )}
-                          
                         </div>
                       </td>
 
