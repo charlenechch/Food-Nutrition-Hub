@@ -106,14 +106,18 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
+      // Wait for the backend to destroy the session
       await fetch(`${API_URL}/api/logout`, {
         method: "POST",
         credentials: "include",
       });
+      
+      // Only after the backend is done, set user to null
+      setUser(null);
+
     } catch (error) {
       console.error("Logout API call failed:", error);
-      // Still proceed with client-sde logout even if API fails
-    } finally {
+      // If the API fails, force the logout on the client anyway
       setUser(null);
     }
   };
