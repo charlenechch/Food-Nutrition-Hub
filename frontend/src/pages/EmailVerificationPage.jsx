@@ -55,12 +55,18 @@ export default function EmailVerificationPage() {
         
         } catch (error) {
         setStatus("error");
+        
+        // This is the most common error, caused by Outlook or the link being used once.
         if (error.code === "auth/invalid-action-code") {
-            setMessage("This verification link is invalid or has already been used.");
+            setMessage("This link is invalid or has already been used. This could be caused by email security (like Outlook) scanning the link. Your account is likely already verified. Please try to log in.");
+        
+        // This is a separate error for time-based expiration.
         } else if (error.code === "auth/expired-action-code") {
-            setMessage("This verification link has expired. Please request a new one.");
+            setMessage("This verification link has expired. Please go back to the login page, try to login and request a new link.");
+        
+        // This is a catch-all for any other errors (e.g., network issues).
         } else {
-            setMessage("Verification failed. Please try again or contact support.");
+            setMessage("An unexpected error occurred. Please try again or contact support.");
         }
         }
     };
