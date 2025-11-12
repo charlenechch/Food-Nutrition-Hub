@@ -7,10 +7,10 @@ import { MdOutlineFileUpload } from "react-icons/md";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { FiSave } from "react-icons/fi";
 
-// API URL
+// Get the API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// Origin options
+// Define the options for the Region of Origin dropdown
 const ORIGIN_OPTIONS = [
   "Malay",
   "Iban",
@@ -25,19 +25,22 @@ const ORIGIN_OPTIONS = [
 const EditFoodPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-
-  const [food, setFood] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [existingImageUrl, setExistingImageUrl] = useState("");
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [existingImageUrl, setExistingImageUrl] = useState("");
+
+  // 🌟 NEW STATE: To show save status as a modal pop-up
   const [showNotification, setShowNotification] = useState({
     visible: false,
     message: "",
     type: "",
   });
 
-  // --- Fetch food data ---
+  // Initialize state as null, we will fetch the data
+  const [food, setFood] = useState(null);
+
+  // --- 1. Fetch Food Data On Load ---
   useEffect(() => {
     const fetchFood = async () => {
       try {
@@ -56,6 +59,7 @@ const EditFoodPage = () => {
             carbs: data.data.Carbohydrates_g || "",
             fat: data.data.Fat_g || "",
             fiber: data.data.Fiber_g || "",
+            sodium: data.data.Sodium_mg || "",
             name_ms: data.data.name_ms || "",
             category: data.data.category || "",
             description: data.data.description || "",
@@ -65,19 +69,10 @@ const EditFoodPage = () => {
           });
           setExistingImageUrl(data.data.image || "");
         } else {
-          setShowNotification({
-            visible: true,
-            message: data.error || "Failed to fetch food data",
-            type: "error",
-          });
+          console.error("Failed to fetch food:", data.error);
         }
       } catch (err) {
         console.error("Error fetching food:", err);
-        setShowNotification({
-          visible: true,
-          message: "Error fetching food data",
-          type: "error",
-        });
       } finally {
         setLoading(false);
       }
@@ -86,32 +81,35 @@ const EditFoodPage = () => {
     fetchFood();
   }, [id]);
 
-  // --- Input change handler ---
+  // --- 2. Handle Form Input Changes ---
   const handleChange = (e) => {
     setFood({ ...food, [e.target.name]: e.target.value });
   };
 
-  // --- Save confirmation ---
+  // --- 3. Handle Save Button Click ---
   const handleSaveClick = () => {
     setShowSaveConfirm(true);
     setShowNotification({ visible: false, message: "", type: "" });
   };
-  const handleCancelSave = () => setShowSaveConfirm(false);
 
-  // --- Close notification ---
+  const handleCancelSave = () => {
+    setShowSaveConfirm(false);
+  };
+
+  // Helper function to close the notification modal
   const handleCloseNotification = () => {
     setShowNotification({ visible: false, message: "", type: "" });
   };
 
-  // --- Image upload ---
+  // --- 4A. Handle Image Upload ---
   const handleImageUpload = async (file) => {
-    if (!file) return { success: true, url: existingImageUrl };
+    if (!file) return existingImageUrl;
 
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("foodImage", file);
 
     try {
-      const uploadRes = await fetch(`${API_URL}/api/foods/upload/food-image`, {
+      const uploadRes = await fetch(`${API_URL}/api/upload/food-image`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -120,14 +118,15 @@ const EditFoodPage = () => {
       const uploadResult = await uploadRes.json();
 
       if (uploadResult.success && uploadResult.imageUrl) {
-        return { success: true, url: uploadResult.imageUrl };
+        return uploadResult.imageUrl;
       } else {
+        console.error("Image upload failed:", uploadResult.error);
         setShowNotification({
           visible: true,
           message: "Image upload failed. Food data was not saved.",
           type: "error",
         });
-        return { success: false, url: existingImageUrl };
+        return existingImageUrl;
       }
     } catch (err) {
       console.error("Error during image upload:", err);
@@ -137,27 +136,30 @@ const EditFoodPage = () => {
           "Error communicating with upload server. Food data was not saved.",
         type: "error",
       });
-      return { success: false, url: existingImageUrl };
+      return existingImageUrl;
     }
   };
 
-  // --- Confirm save ---
+  // --- 4. Handle Confirming the Save (Modified for Notification) ---
   const handleConfirmSave = async () => {
     setShowSaveConfirm(false);
 
-    const { success: uploadSuccess, url: finalImageUrl } =
-      await handleImageUpload(selectedImage);
-    if (!uploadSuccess) return;
+    // 1. Upload image first
+    const finalImageUrl = await handleImageUpload(selectedImage);
 
+    // Stop here if a notification has been set by handleImageUpload
+    if (showNotification.type === "error") return;
+
+    // 2. Map the form state back to what the API expects
     const dataToSave = {
       name: food.name,
       origin: food.origin,
-      category: food.category,
       Energy_kcal: food.calories,
       Protein_g: food.protein,
       Carbohydrates_g: food.carbs,
       Fat_g: food.fat,
       Fiber_g: food.fiber,
+      Sodium_mg: food.sodium,
       image: finalImageUrl,
       VitaminC_mg: 0,
     };
@@ -175,16 +177,18 @@ const EditFoodPage = () => {
       if (result.success) {
         setExistingImageUrl(finalImageUrl);
         setSelectedImage(null);
-        document.getElementById("fileInput").value = "";
         setShowNotification({
           visible: true,
           message: "Changes saved successfully! All data updated.",
           type: "success",
         });
       } else {
+        console.error("Failed to save:", result.error);
         setShowNotification({
           visible: true,
-          message: result.error || "Failed to save changes",
+          message: `Failed to save changes: ${
+            result.error || "Unknown error."
+          }`,
           type: "error",
         });
       }
@@ -192,20 +196,14 @@ const EditFoodPage = () => {
       console.error("Error saving:", err);
       setShowNotification({
         visible: true,
-        message: "An unknown error occurred while updating the food item.",
+        message:
+          "An unknown error occurred while updating the food item.",
         type: "error",
       });
     }
   };
 
-  // --- Revoke object URL to avoid memory leak ---
-  useEffect(() => {
-    return () => {
-      if (selectedImage) URL.revokeObjectURL(selectedImage);
-    };
-  }, [selectedImage]);
-
-  // --- Render ---
+  // --- 5. Render Loading or Not Found State ---
   if (loading) {
     return (
       <div className="edit-food-page">
@@ -230,18 +228,20 @@ const EditFoodPage = () => {
     );
   }
 
+  // --- 6. Render the Full Page with Data ---
   return (
     <div className="edit-food-page">
       <Header />
 
       <div className="edit-food-container">
-        {/* Topbar */}
         <div className="edit-topbar">
           <button
             className="admin-edit-food-back-btn"
             onClick={() => navigate("/admin")}
           >
-            <FaArrowLeftLong />
+            <span className="admin-edit-food-back-icon">
+              <FaArrowLeftLong />
+            </span>
             Back to Dashboard
           </button>
 
@@ -254,14 +254,15 @@ const EditFoodPage = () => {
             className="admin-edit-food-save-btn"
             onClick={handleSaveClick}
           >
-            <FiSave />
+            <span className="admin-edit-food-save-icon">
+              <FiSave />
+            </span>
             Save Changes
           </button>
         </div>
 
-        {/* Edit Grid */}
         <div className="edit-grid">
-          {/* Food Image */}
+          {/* === Food Image Section === */}
           <div className="edit-food-image-upload-section">
             <h3>Food Image</h3>
             <div className="image-preview">
@@ -286,14 +287,18 @@ const EditFoodPage = () => {
             />
             <button
               className="admin-edit-food-upload-btn"
-              onClick={() => document.getElementById("fileInput").click()}
+              onClick={() =>
+                document.getElementById("fileInput").click()
+              }
             >
-              <MdOutlineFileUpload />
+              <span className="admin-edit-food-upload-icon">
+                <MdOutlineFileUpload />
+              </span>
               Upload New Image
             </button>
           </div>
 
-          {/* Basic Info */}
+          {/* === Basic Info Section === */}
           <div className="edit-food-basic-info-card">
             <h3>Basic Information</h3>
             <div className="edit-food-basic-info-two-col">
@@ -307,7 +312,9 @@ const EditFoodPage = () => {
                 />
               </div>
               <div>
-                <label className="basic-info-label">Name (Bahasa Malaysia)</label>
+                <label className="basic-info-label">
+                  Name (Bahasa Malaysia)
+                </label>
                 <input
                   className="edit-food-input"
                   name="name_ms"
@@ -318,6 +325,7 @@ const EditFoodPage = () => {
               </div>
             </div>
 
+            {/* === Category Dropdown === */}
             <div className="food-category-field">
               <label className="basic-info-label">Category</label>
               <div className="custom-select-wrapper">
@@ -341,6 +349,7 @@ const EditFoodPage = () => {
               </div>
             </div>
 
+            {/* === Origin Dropdown === */}
             <div className="food-origin-field">
               <label className="basic-info-label">Region of Origin</label>
               <div className="custom-select-wrapper">
@@ -362,7 +371,7 @@ const EditFoodPage = () => {
           </div>
         </div>
 
-        {/* Cultural Context */}
+        {/* === Cultural Context === */}
         <div className="edit-cultural-context-card">
           <h3>Cultural Context (Not Saved)</h3>
           <label className="basic-info-label">Description</label>
@@ -373,7 +382,9 @@ const EditFoodPage = () => {
             onChange={handleChange}
             rows={5}
           />
-          <label className="basic-info-label">Cultural Significance</label>
+          <label className="basic-info-label">
+            Cultural Significance
+          </label>
           <textarea
             className="edit-food-textarea"
             name="cultural_significance"
@@ -382,7 +393,9 @@ const EditFoodPage = () => {
             placeholder="Describe the cultural background behind this dish"
             rows={5}
           />
-          <label className="basic-info-label">Traditional Preparation</label>
+          <label className="basic-info-label">
+            Traditional Preparation
+          </label>
           <textarea
             className="edit-food-textarea"
             name="traditional_preparation"
@@ -393,10 +406,11 @@ const EditFoodPage = () => {
           />
         </div>
 
-        {/* Nutritional Info */}
+        {/* === Nutritional Info === */}
         <div className="edit-cultural-context-card">
           <h3 className="edit-food-section-title">
-            Nutritional Information <span className="serving-note">(per serving)</span>
+            Nutritional Information{" "}
+            <span className="serving-note">(per serving)</span>
           </h3>
           <div className="nutrition-grid">
             <div>
@@ -418,7 +432,9 @@ const EditFoodPage = () => {
               />
             </div>
             <div>
-              <label className="basic-info-label">Carbohydrates (g)</label>
+              <label className="basic-info-label">
+                Carbohydrates (g)
+              </label>
               <input
                 className="edit-food-input"
                 name="carbs"
@@ -436,7 +452,9 @@ const EditFoodPage = () => {
               />
             </div>
             <div>
-              <label className="basic-info-label">Dietary Fiber (g)</label>
+              <label className="basic-info-label">
+                Dietary Fiber (g)
+              </label>
               <input
                 className="edit-food-input"
                 name="fiber"
@@ -444,11 +462,19 @@ const EditFoodPage = () => {
                 onChange={handleChange}
               />
             </div>
+            <div>
+              <label className="basic-info-label">Sodium (mg)</label>
+              <input
+                className="edit-food-input"
+                name="sodium"
+                value={food.sodium}
+                onChange={handleChange}
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Save Confirmation Modal */}
       {showSaveConfirm && (
         <div className="modal-overlay">
           <div className="delete-modal">
@@ -470,19 +496,23 @@ const EditFoodPage = () => {
         </div>
       )}
 
-      {/* Notification Modal */}
+      {/* 🌟 NEW NOTIFICATION POP-UP MODAL 🌟 */}
       {showNotification.visible && (
         <div className="modal-overlay">
           <div className={`notification-modal ${showNotification.type}`}>
             <h3
               style={{
-                color: showNotification.type === "error" ? "#a33b3b" : "#387346",
+                color:
+                  showNotification.type === "error" ? "#a33b3b" : "#387346",
               }}
             >
               {showNotification.type === "success" ? "Success!" : "Error!"}
             </h3>
             <p>{showNotification.message}</p>
-            <div className="modal-actions" style={{ justifyContent: "center" }}>
+            <div
+              className="modal-actions"
+              style={{ justifyContent: "center" }}
+            >
               <button
                 className="confirm-save-btn"
                 onClick={handleCloseNotification}
