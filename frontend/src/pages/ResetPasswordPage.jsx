@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import "../css/ResetPasswordPage.css";
 import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
 import { auth } from "../config/firebase";
+import { FaEye, FaEyeSlash } from "react-icons/fa"; // ✅ Font Awesome icons
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -67,7 +68,6 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError("");
 
-    // 🔹 Check password rules
     for (let rule of passwordRules) {
       if (!rule.regex.test(pwd)) {
         setError(`Password requirement not met: ${rule.label}`);
@@ -81,10 +81,8 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      // 🔹 Reset password in Firebase
       await confirmPasswordReset(auth, oobCode, pwd);
 
-      // 🔹 Sync password with backend if email exists
       if (email) {
         const res = await fetch(`${API_URL}/api/auth/updatePassword`, {
           method: "POST",
@@ -97,7 +95,6 @@ export default function ResetPasswordPage() {
         if (!res.ok) throw new Error(data.message || "Failed to update backend password");
       }
 
-      // 🔹 Mark success and redirect
       setSuccess(true);
       setTimeout(() => navigate("/loginregister"), 2500);
     } catch (err) {
@@ -106,7 +103,6 @@ export default function ResetPasswordPage() {
     }
   };
 
-  // ✅ Loading state
   if (loading) {
     return (
       <div className="rpp-container">
@@ -117,7 +113,6 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // ✅ Success state
   if (success) {
     return (
       <div className="rpp-container">
@@ -129,7 +124,6 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // ✅ Invalid link
   if (error && !email) {
     return (
       <div className="rpp-container">
@@ -147,7 +141,6 @@ export default function ResetPasswordPage() {
     );
   }
 
-  // ✅ Main Reset Form
   return (
     <div className="rpp-container">
       <div className="rpp-card">
@@ -172,7 +165,7 @@ export default function ResetPasswordPage() {
               className="password-eye-icon"
               onClick={() => setShowPwd((prev) => !prev)}
             >
-              {showPwd ? "👁️‍🗨️" : "👁️"}
+              {showPwd ? <FaEyeSlash /> : <FaEye />}
             </span>
 
             {showHint && (
@@ -205,13 +198,11 @@ export default function ResetPasswordPage() {
               onChange={(e) => setConfirm(e.target.value)}
             />
             <span
-                              onClick={() => setShowRegPassword(!showRegPassword)}
-                              className="password-eye-icon"
-                              role="button"
-                              aria-label={showRegPassword ? "Hide password" : "Show password"}
-                            >
-                              {showRegPassword ? <FaEyeSlash /> : <FaEye />}
-                            </span>
+              className="password-eye-icon"
+              onClick={() => setShowConfirm((prev) => !prev)}
+            >
+              {showConfirm ? <FaEyeSlash /> : <FaEye />}
+            </span>
           </div>
 
           {error && <p className="rpp-error">{error}</p>}
