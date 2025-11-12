@@ -32,11 +32,11 @@ export function AuthProvider({ children }) {
 
   // This is now the ONLY way to log a user out on the frontend
   const forceLogout = () => {
-    setUser(null); // Set user to null
+    setUser(null);
     
-    // Check if we're already on the login page to avoid a redirect loop
+    // Check if already on the login page to avoid a redirect loop
     if (window.location.pathname !== "/loginregister") {
-      navigate("/loginregister");
+      window.location.href = "/loginregister";
     }
   };
 
@@ -110,10 +110,8 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-  
-    setIsLoggingOut(true);
-
-  try {
+    setIsLoggingOut(true); // Set the flag to stop checkSession
+    try {
       await fetch(`${API_URL}/api/logout`, {
         method: "POST",
         credentials: "include",
@@ -121,14 +119,10 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
-      // Clear the user and redirect
-      setUser(null); 
-      if (window.location.pathname !== "/loginregister") {
-        navigate("/loginregister");
-      }
-      setIsLoggingOut(false); // Reset the flag
+      // Call the original forceLogout
+      forceLogout();
     }
-};
+  }
 
   const loginAsGuest = () => setUser({ role: "guest", viewMode: "guest" });
 
