@@ -568,9 +568,7 @@ const toggleFoodLike = async () => {
       if (isGuest) return setShowLoginPrompt(true);
       if (!newComment.trim()) return;
 
-      const actualUserProfileID = user?.role === 'admin' 
-      ? (user?.userProfileID || user?.profileID || user?.id)
-      : userProfileID;
+      const actualUserProfileID = userProfileID;
 
       const actualFoodID = foodId;
 
@@ -668,9 +666,7 @@ const postReply = async (discussionId) => {
   const text = replyTexts[discussionId]?.trim();
   if (!text) return;
 
-  const actualUserProfileID = user?.role === 'admin' 
-    ? (user?.userProfileID || user?.profileID || user?.id)
-    : userProfileID;
+  const actualUserProfileID = userProfileID;
 
   console.log("FRONTEND - postReply called:", {
     discussionId,
