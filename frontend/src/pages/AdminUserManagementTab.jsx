@@ -636,8 +636,31 @@ export default function UserManagement() {
                   pageUsers.map(u => (
                     <tr key={u.id}>
                       <td>
+                        <div className="umg-name">{u.name}</div>
+                        <div className="umg-subline">{u.email}</div>
+                        <div className="umg-subline">{u.city}</div>
+                        
+                        {/* Corrected inline status for mobile */}
+                        <div className="umg-status-inline">
+                          {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) && (
+                            <span className="umg-pill umg-pill-suspended">Suspended</span>
+                          )}
+                          {u.status === "Active" && (
+                            <span className="umg-pill umg-pill-active">Active</span>
+                          )}
+                          {u.status === "Inactive" && (
+                            <span className="umg-pill umg-pill-inactive">Inactive</span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td>
+                        <span className="umg-pill umg-pill-role">{u.role}</span>
+                      </td>
+
+                      <td>
                         <div className="umg-status-stack">
-                          {/* Show Activity pill (Active/Inactive) */}
+                          {/*  Show Activity pill (Active/Inactive) */}
                           {u.status === "Active" && (
                             <span className="umg-pill umg-pill-active">Active</span>
                           )}
@@ -654,30 +677,8 @@ export default function UserManagement() {
                               </div>
                             </>
                           )}
+                          
                         </div>
-                      </td>
-
-                      <td>
-                        <span className="umg-pill umg-pill-role">{u.role}</span>
-                      </td>
-
-                      <td>
-                        {u.status === "Active" && (
-                          <span className="umg-pill umg-pill-active">Active</span>
-                        )}
-                        {u.status === "Inactive" && (
-                          <span className="umg-pill umg-pill-inactive">Inactive</span>
-                        )}
-                        {u.status === "Suspended" && (
-                          <div className="umg-status-stack">
-                              <span className="umg-pill umg-pill-suspended">Suspended</span>
-                              {(u.suspendedUntil || u.suspensionReason) && (
-                                  <div className="umg-status-note">
-                                      {u.suspensionReason ? `Reason: ${u.suspensionReason}` : `Until: ${u.suspendedUntil.split('T')[0]}`}
-                                  </div>
-                              )}
-                          </div>
-                      )}
                       </td>
 
                       <td>
