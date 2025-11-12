@@ -59,7 +59,6 @@ const EditFoodPage = () => {
             carbs: data.data.Carbohydrates_g || "",
             fat: data.data.Fat_g || "",
             fiber: data.data.Fiber_g || "",
-            sodium: data.data.Sodium_mg || "",
             name_ms: data.data.name_ms || "",
             category: data.data.category || "",
             description: data.data.description || "",
@@ -159,9 +158,8 @@ const EditFoodPage = () => {
       Carbohydrates_g: food.carbs,
       Fat_g: food.fat,
       Fiber_g: food.fiber,
-      Sodium_mg: food.sodium,
-      image: finalImageUrl,
       VitaminC_mg: 0,
+      image: finalImageUrl,
     };
 
     try {
@@ -459,15 +457,6 @@ const EditFoodPage = () => {
                 className="edit-food-input"
                 name="fiber"
                 value={food.fiber}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label className="basic-info-label">Sodium (mg)</label>
-              <input
-                className="edit-food-input"
-                name="sodium"
-                value={food.sodium}
                 onChange={handleChange}
               />
             </div>
