@@ -185,7 +185,7 @@ export default function UserManagement() {
     const adminCount = users.filter(u => u.role === "Admin").length;
     const contributors = users.filter(u => u.submissions > 0).length;
     const activeCount = users.filter(u => u.status === "Active").length;
-    const suspendedCount = users.filter(u => u.status === "Suspended").length;
+    const suspendedCount = users.filter(u => u.suspendedUntil && new Date(u.suspendedUntil) > new Date()).length;
   
     // Filtering
     const filteredUsers = users.filter(u => {
@@ -199,8 +199,16 @@ export default function UserManagement() {
       const matchesRole =
         roleFilter === "All Roles" || u.role === roleFilter;
   
-      const matchesStatus =
-        statusFilter === "All Statuses" || u.status === statusFilter;
+      let matchesStatus = true;
+      if (statusFilter === "Suspended") {
+        matchesStatus = u.suspendedUntil && new Date(u.suspendedUntil) > new Date();
+      } else if (statusFilter === "Active" || statusFilter === "Inactive") {
+        // When checking for Active/Inactive, ALSO make sure they are NOT suspended
+        matchesStatus = u.status === statusFilter && (!u.suspendedUntil || new Date(u.suspendedUntil) <= new Date());
+      } else {
+        // All Statuses
+        matchesStatus = true;
+      }
   
       return matchesSearch && matchesRole && matchesStatus;
     });
@@ -326,7 +334,6 @@ export default function UserManagement() {
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({
-                    status: "Suspended",
                     suspendedUntil: suspensionDate,
                     suspensionReason: reason,
                 }),
@@ -342,7 +349,7 @@ export default function UserManagement() {
             if (data.success && data.user) {
                 // Update local state to reflect new status
                 setUsers(prev =>
-                    prev.map(u => u.id === userId ? { ...u, ...data.user, status: "Suspended", suspendedUntil: suspensionDate, suspensionReason: reason } : u)
+                    prev.map(u => u.id === userId ? { ...u, ...data.user, suspendedUntil: suspensionDate, suspensionReason: reason } : u)
                 );
                 alert(`User ${data.user.name} suspended until ${suspensionDate}.`);
             }
@@ -366,8 +373,7 @@ export default function UserManagement() {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
-                body: JSON.stringify({
-                    status: "Active", 
+                body: JSON.stringify({ 
                     suspendedUntil: null, // Clear suspension date
                     suspensionReason: "", // Clear reason
                 }),
@@ -382,7 +388,7 @@ export default function UserManagement() {
             
             if (data.success && data.user) {
                 setUsers(prev =>
-                    prev.map(u => u.id === userId ? { ...u, ...data.user, status: "Active", suspendedUntil: null, suspensionReason: "" } : u)
+                    prev.map(u => u.id === userId ? { ...u, ...data.user, suspendedUntil: null, suspensionReason: "" } : u)
                 );
                 alert(`User ${data.user.name} has been unsuspended.`);
             }
@@ -630,13 +636,24 @@ export default function UserManagement() {
                   pageUsers.map(u => (
                     <tr key={u.id}>
                       <td>
-                        <div className="umg-name">{u.name}</div>
-                        <div className="umg-subline">{u.email}</div>
-                        <div className="umg-subline">{u.city}</div>
-                        <div className="umg-status-inline">
-                          {u.status === "Active" && <span className="umg-pill umg-pill-active">Active</span>}
-                          {u.status === "Inactive" && <span className="umg-pill umg-pill-inactive">Inactive</span>}
-                          {u.status === "Suspended" && <span className="umg-pill umg-pill-suspended">Suspended</span>}
+                        <div className="umg-status-stack">
+                          {/* Show Activity pill (Active/Inactive) */}
+                          {u.status === "Active" && (
+                            <span className="umg-pill umg-pill-active">Active</span>
+                          )}
+                          {u.status === "Inactive" && (
+                            <span className="umg-pill umg-pill-inactive">Inactive</span>
+                          )}
+
+                          {/* Show Suspension pill if they are suspended */}
+                          {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) && (
+                            <>
+                              <span className="umg-pill umg-pill-suspended">Suspended</span>
+                              <div className="umg-status-note">
+                                {u.suspensionReason ? `Reason: ${u.suspensionReason}` : `Until: ${u.suspendedUntil.split('T')[0]}`}
+                              </div>
+                            </>
+                          )}
                         </div>
                       </td>
 
@@ -673,7 +690,7 @@ export default function UserManagement() {
                       <td>{u.lastLogin}</td>
 
                       <td className="umg-ellipsis-td">
-                          {u.status === "Suspended" ? (
+                          {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) ? (
                               <button
                                   className="umg-ellipsis umg-unsuspend-btn"
                                   title="Unsuspend user"
@@ -1006,21 +1023,24 @@ export default function UserManagement() {
                         <div className="umg-field">
                             <label className="umg-label">Current Status</label>
                             
-                            {/* This div just displays the value, it's not an input */}
                             <div className="umg-value">
-                                <span className={`umg-pill ${userForm.status === "Suspended" ? "umg-pill-suspended" : (userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive")}`}>
+                                {/* Show Activity Status */}
+                                <span className={`umg-pill ${userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive"}`}>
                                     {userForm.status}
                                 </span>
+                                
+                                {/* Show Suspension Status */}
+                                {(userForm.suspendedUntil && new Date(userForm.suspendedUntil) > new Date()) && (
+                                   <span className="umg-pill umg-pill-suspended">
+                                        Suspended
+                                    </span>
+                                )}
                             </div>
                             
                             {/* Display suspension details if user IS suspended */}
-                            {userForm.status === "Suspended" && (
+                            {(userForm.suspendedUntil && new Date(userForm.suspendedUntil) > new Date()) && (
                                 <div className="umg-hint">
-                                    User is **Suspended**. Use the table's "Unsuspend" button.
-                                    {/* Show reason if it exists */}
-                                    {userForm.suspensionReason && 
-                                        <span> Reason: {userForm.suspensionReason}</span>
-                                    }
+                                    Suspended {userForm.suspensionReason ? `for: ${userForm.suspensionReason}` : `until: ${userForm.suspendedUntil.split('T')[0]}`}
                                 </div>
                             )}
                         </div>

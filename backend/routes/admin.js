@@ -146,14 +146,14 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       });
     }
 
-    const { name, email, city, role, status, suspendedUntil } = req.body;
+    const { name, email, city, role, suspendedUntil, suspensionReason } = req.body;
 
     // This catches the 'undefined' parameter error.
-    if (!name || !email || !role || !status) {
-      console.warn("❌ Admin update validation failed. Missing data:", { name, email, role, status });
+    if (!name || !email || !role) {
+      console.warn("❌ Admin update validation failed. Missing data:", { name, email, role });
       return res.status(400).json({ 
         success: false, 
-        message: "Validation failed. Name, email, role, and status are required." 
+        message: "Validation failed. Name, email, and role are required." 
       });
     }
 
@@ -179,44 +179,17 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       });
     }
 
-    const currentStatus = existingUser[0].status;
     const currentEmail = existingUser[0].email;
     const firebaseUID = existingUser[0].firebase_uid;
-
-    let finalStatus = currentStatus; // Default to current status in DB
-
     let shouldResetVerification = false;
 
-    // Rule: Admin can only change status IF the action involves suspension (set or clear).
-    const isSuspensionAction = (status === 'Suspended') || (suspendedUntil === null);
-
-    if (isSuspensionAction) {
-        // Allow the status change calculated by the frontend (Suspending or Unsuspecting)
-        finalStatus = status; 
-    } else {
-        // If the admin tried to manually set 'Active' or 'Inactive', block the change.
-        if (status && status !== currentStatus) {
-            console.warn(`⚠️ Admin attempted to manually change status from ${currentStatus} to ${status}. Change blocked, status retained.`);
-        }
-        finalStatus = currentStatus; 
-    }
-    
-    // Calculate final suspendedUntil date based on the *finalStatus*.
-    // Only set a date if the final calculated status is 'Suspended'.
+    // Calculate final suspendedUntil date.
+    // The frontend will send a date-string or null.
     let finalsuspendedUntil = null;
-    const dateString = String(suspendedUntil || '').trim();
-
-    if (finalStatus === 'Suspended' && dateString && typeof dateString === 'string') {
-        const dateObj = new Date(dateString);
-        
-        // 1. Check if the date object is valid (i.e., not "Invalid Date")
-        // 2. We use getTime() because it returns NaN for Invalid Date
+    if (suspendedUntil) {
+        const dateObj = new Date(suspendedUntil);
         if (!isNaN(dateObj) && dateObj.getTime()) {
-            // Convert to YYYY-MM-DD string format (required for MySQL DATE type)
-            finalsuspendedUntil = dateObj.toISOString().slice(0, 10); 
-        } else {
-            // This happens if the input was an empty string "" or malformed.
-            console.warn(`⚠️ Invalid date value received for suspendedUntil: ${dateString}`);
+            finalsuspendedUntil = dateObj.toISOString().slice(0, 10);
         }
     }
 
@@ -261,8 +234,8 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     // Update user table
     const userRole = role === 'Admin' ? 'admin' : 'member';
     await db.execute(
-      'UPDATE user SET firstname = ?, lastname = ?, email = ?, verified = ?, role = ?, status = ?, suspendedUntil = ? WHERE userID = ?',
-      [firstname, lastname, email, newVerificationStatus, userRole, finalStatus, finalsuspendedUntil, targetUserID]
+      'UPDATE user SET firstname = ?, lastname = ?, email = ?, verified = ?, role = ?, suspendedUntil = ? WHERE userID = ?',
+      [firstname, lastname, email, newVerificationStatus, userRole, finalsuspendedUntil, targetUserID]
     );
 
     // Update or create userProfile

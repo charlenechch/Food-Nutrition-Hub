@@ -91,59 +91,19 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // Check account status for SUSPENDED users
-    if (user.status === "Suspended") {
+    // Check for active suspension
+    if (user.suspendedUntil && new Date(user.suspendedUntil) > new Date()) {
         
-        // Check if a suspension date exists in the database
-        if (user.suspendedUntil) { 
-            
-            const suspendedUntilDate = new Date(user.suspendedUntil);
-            
-            // Set the suspension date to the end of the day (23:59:59) for accurate comparison
-            suspendedUntilDate.setHours(23, 59, 59, 999); 
-            
-            const now = new Date();
+        const suspendedUntilDate = new Date(user.suspendedUntil);
+        suspendedUntilDate.setHours(23, 59, 59, 999); // Set to end of day
+        const untilString = suspendedUntilDate.toISOString().slice(0, 10);
 
-            // 1. Check if the suspension period has EXPIRED
-            if (now <= suspendedUntilDate) {
-                // 🚫 Suspension is still active: Block login and show the date
-                const untilString = suspendedUntilDate.toISOString().slice(0, 10);
-                console.warn(`🚫 Blocked login for Suspended user: ${email}. Active until: ${untilString}`);
-                
-                return res.status(403).json({
-                    success: false,
-                    message: `Your account is suspended until ${untilString}. Please try again after this date.`,
-                });
-            }
-            
-            // 2. Suspension has expired, but the database status is not updated yet.
-            // Update database status and local session status
-            console.log(`✅ Suspension has expired for user: ${email}. Allowing login.`);
-
-            try {
-                // Update database: set status = 'Active', clear suspension date
-                await db.query(
-                    "UPDATE user SET status = 'Active', suspendedUntil = NULL WHERE userID = ?",
-                    [user.userID]
-                );
-                // Update local object used for session data
-                user.status = 'Active'; 
-                user.suspendedUntil = null;
-                console.log(`✅ Status updated to Active for user: ${user.email}`);
-
-            } catch (updateError) {
-                console.error("❌ Failed to auto-activate user after suspension:", updateError);
-                // Continue login, but log the DB error
-            }
-            
-        } else {
-            // No suspension date was set (permanent/indefinite suspension).
-            console.warn(`🚫 Blocked login for ${email} (indefinite suspension)`);
-            return res.status(403).json({
-                success: false,
-                message: "Your account has been suspended. Please contact support.",
-            });
-        }
+        console.warn(`🚫 Blocked login for Suspended user: ${email}. Active until: ${untilString}`);
+        
+        return res.status(403).json({
+            success: false,
+            message: `Your account is suspended until ${untilString}. Please try again after this date.`,
+        });
     }
 
     // Check account status for INACTIVE users
