@@ -1056,13 +1056,17 @@ export default function UserManagement() {
                         {/* Submissions / Approved (Existing code) */}
                         <div className="umg-field">
                             <label className="umg-label">Submissions / Approved</label>
-                            {/* ... */}
+                            <div className="umg-value">
+                                {userForm.submissions} submissions / {userForm.approved} approved
+                            </div>
                         </div>
 
                         {/* Last Login (Existing code) */}
                         <div className="umg-field">
                             <label className="umg-label">Last Login</label>
-                            {/* ... */}
+                            <div className="umg-value">
+                                {userForm.lastLogin}
+                            </div>
                         </div>
                     </div>
                 )}
