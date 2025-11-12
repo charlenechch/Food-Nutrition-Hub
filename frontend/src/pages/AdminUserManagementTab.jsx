@@ -363,7 +363,7 @@ export default function UserManagement() {
     // handle Unsuspension
     const handleUnsuspend = async (userId, userName) => {
         // NOTE: Using alert() as a placeholder for a custom UI confirmation dialog
-        if (!alert(`Are you sure you want to unsuspend user "${userName}"?`)) {
+        if (!window.confirm(`Are you sure you want to unsuspend user "${userName}"?`)) {
             return;
         }
 
