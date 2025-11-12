@@ -41,7 +41,10 @@ export function AuthProvider({ children }) {
   };
 
   const checkSession = async () => {
-    if (isLoggingOut) return;
+    if (isLoggingOut) {
+      setLoading(false);
+      return;
+    }
 
     // Define the public pages that don't need a redirect
     const publicAuthPaths = [
