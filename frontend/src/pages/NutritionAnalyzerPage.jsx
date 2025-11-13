@@ -143,7 +143,7 @@ export default function NutritionAnalyzerPage() {
       // 1) If file provided -> call FastAPI /predict (image route)
       if (selectedFile) {
         const fd = new FormData();
-        fd.append("image", selectedFile);               // <-- agreed field name
+        fd.append("file", selectedFile);          // ✅ Correct field name
         if (foodName) fd.append("food_name", foodName);
         if (ingredients) fd.append("ingredients", ingredients);
 
@@ -151,6 +151,7 @@ export default function NutritionAnalyzerPage() {
           method: "POST",
           body: fd,
         });
+
         const data = await r.json();
 
         // shape into UI model
@@ -222,7 +223,7 @@ export default function NutritionAnalyzerPage() {
                 value={foodName}
                 onChange={(e) => {
                   if (requireLogin("typing in food name")) return;
-                  setFoodName(e.target.value);
+                  setIngredients(e.target.value);
                 }}
               />
 
