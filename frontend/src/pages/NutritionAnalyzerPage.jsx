@@ -158,20 +158,34 @@ export default function NutritionAnalyzerPage() {
         const shaped = {
           source: "ai",
           food_name:
-            data.food_name
-            || data.pred_class
-            || foodName
-            || "Detected Food",
+            data.food_name ||
+            data.pred_class ||
+            foodName ||
+            "Detected Food",
+
           confidence: data.confidence,
-          nutrition: data.nutrition ?? null,
-          tips: data.tips ?? [],
-          alternatives: data.alternatives?.map?.(a => a.name ?? a) ?? [],
-          altDescription: data.alternatives?.[0]?.note ?? "",
-          meta: { portion: data.portion_note, imageUsed: true },
+
+          nutrition: data.nutrition
+            ? {
+                Energy_kcal: data.nutrition.calories,
+                Protein_g: data.nutrition.protein_g,
+                Fat_g: data.nutrition.fat_g,
+                Carbohydrates_g: data.nutrition.carbs_g,
+                Fiber_g: data.nutrition.fiber_g,
+                VitaminC_mg: data.nutrition.vitaminC_mg,
+              }
+            : null,
+
+          tips: data.tips ? [data.tips] : [],
+          alternatives: [],
+          altDescription: "",
+          meta: { portion: "1 serving", imageUsed: true },
         };
+
         setResult(shaped);
-        return;
+         return;
       }
+
 
       // 2) Else (no file) -> ask backend to return DB row or synthesize
       const r2 = await fetch(`${API_URL}/api/ai/analyze`, {
