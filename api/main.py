@@ -1,6 +1,6 @@
 # ================================================================
-# main.py  — Food Recognition Backend (EffNetB0 + ResNet50)
-# CLEAN, BUG-FREE, DEPLOY-READY FOR RAILWAY
+# main.py — Food Recognition API (EfficientNet + optional ResNet)
+# Clean, Production-Ready, Fully Compatible With Your Frontend
 # ================================================================
 
 import os
@@ -24,8 +24,8 @@ import mysql.connector
 # ================================================================
 # ENVIRONMENT VARIABLES
 # ================================================================
-AI_MODEL_PATH = os.getenv("MODEL_PATH")            # e.g. /app/effb0_best.keras
-AI_MODEL2_PATH = os.getenv("SECOND_MODEL_PATH")    # e.g. /app/resnet50_best.keras
+AI_MODEL_PATH = os.getenv("MODEL_PATH")              # e.g., /app/effb0_best.keras
+AI_MODEL2_PATH = os.getenv("SECOND_MODEL_PATH")      # optional ResNet model
 LABELS_PATH = os.getenv("LABELS_PATH", "/app/labels.json")
 
 DB_CFG = {
@@ -37,36 +37,33 @@ DB_CFG = {
 }
 
 IMG_SIZE = (224, 224)
-THRESHOLD = 0.45  # minimum confidence for valid prediction
+THRESHOLD = 0.45  # confidence threshold
 
 
 # ================================================================
-# LABELS LOADING (FIXED)
+# LOAD LABELS
 # ================================================================
 try:
     with open(LABELS_PATH, "r") as f:
-        raw_labels = json.load(f)
+        raw = json.load(f)
 
-    # If labels.json is an array ["Laksa","Mee",...]
-    if isinstance(raw_labels, list):
-        CLASS_NAMES = raw_labels
+    if isinstance(raw, list):
+        CLASS_NAMES = raw
     else:
-        # If labels.json is {"0":"Laksa",...}
-        CLASS_NAMES = [raw_labels[str(i)] for i in range(len(raw_labels))]
-
-    print("Loaded CLASS_NAMES:", CLASS_NAMES)
+        CLASS_NAMES = [raw[str(i)] for i in range(len(raw))]
+    print("Loaded labels:", CLASS_NAMES)
 
 except Exception as e:
-    print("!! ERROR loading labels:", e)
+    print("!! Failed to load labels:", e)
     CLASS_NAMES = []
 
 
 # ================================================================
-# SAFE MODEL LOADER (EfficientNet & ResNet) — FIXED for Lambda
+# SAFE MODEL LOADER
 # ================================================================
 def load_model_safely(path: Optional[str], flavor: str):
     if not path or not os.path.exists(path):
-        print(f"!! Model path missing: {path}")
+        print(f"!! Model missing at {path}")
         return None
 
     try:
@@ -75,7 +72,7 @@ def load_model_safely(path: Optional[str], flavor: str):
                 path,
                 custom_objects={
                     "eff_pre": eff_pre,
-                    "preprocess_input": eff_pre,  # required for Lambda
+                    "preprocess_input": eff_pre,
                 },
                 compile=False,
             )
@@ -88,20 +85,21 @@ def load_model_safely(path: Optional[str], flavor: str):
                 },
                 compile=False,
             )
-        return tf.keras.models.load_model(path, compile=False)
+        else:
+            return tf.keras.models.load_model(path, compile=False)
 
     except Exception as e:
-        print(f"!! FAILED to load {flavor} model:", e)
+        print(f"!! Error loading {flavor} model:", e)
         return None
 
 
 eff_model = load_model_safely(AI_MODEL_PATH, "eff")
 res_model = load_model_safely(AI_MODEL2_PATH, "rn")
-print(f"[Models Loaded] EfficientNet={eff_model is not None}, ResNet={res_model is not None}")
+print(f"Models Loaded → EfficientNet: {eff_model is not None}, ResNet: {res_model is not None}")
 
 
 # ================================================================
-# DATABASE CONNECTION
+# DATABASE
 # ================================================================
 def get_db():
     try:
@@ -111,8 +109,45 @@ def get_db():
         return None
 
 
+def fetch_nutrition(name: str):
+    conn = get_db()
+    if not conn:
+        return None
+
+    try:
+        cur = conn.cursor(dictionary=True)
+
+        # ---- Exact match
+        cur.execute("""
+            SELECT *
+            FROM food
+            WHERE LOWER(name) = LOWER(%s)
+            LIMIT 1
+        """, (name,))
+        row = cur.fetchone()
+        if row:
+            return row
+
+        # ---- Alternative match
+        cur.execute("""
+            SELECT *
+            FROM food
+            WHERE LOWER(alternative) LIKE CONCAT('%', LOWER(%s), '%')
+            LIMIT 1
+        """, (name,))
+        row = cur.fetchone()
+        return row
+
+    finally:
+        try:
+            cur.close()
+            conn.close()
+        except:
+            pass
+
+
 # ================================================================
-# FASTAPI APP
+# FASTAPI
 # ================================================================
 app = FastAPI(title="Food Recognition API")
 
@@ -126,7 +161,7 @@ app.add_middleware(
 
 
 # ================================================================
-# RESPONSE MODEL
+# OUTPUT MODEL
 # ================================================================
 class PredictOut(BaseModel):
     pred_class: Optional[str]
@@ -136,80 +171,36 @@ class PredictOut(BaseModel):
 
 
 # ================================================================
-# IMAGE HELPERS
+# IMAGE PROCESSING
 # ================================================================
 def pil_to_array(img: Image.Image) -> np.ndarray:
     img = img.convert("RGB").resize(IMG_SIZE)
-    return np.array(img).astype("float32")  # no normalization — Lambda handles it
+    return np.array(img).astype("float32")  # model takes raw floats; Lambda handles preprocessing
 
 
 # ================================================================
-# MODEL INFERENCE (ENSEMBLE)
+# MODEL INFERENCE
 # ================================================================
 def run_models(arr: np.ndarray):
-    x = arr[None, ...]  # shape (1,224,224,3)
+    x = arr[None, ...]
     preds = []
 
     if eff_model is not None:
         preds.append(eff_model.predict(x, verbose=0))
-
     if res_model is not None:
         preds.append(res_model.predict(x, verbose=0))
 
     if not preds:
-        print("!! No models loaded")
         return None, 0.0
 
-    p_avg = np.mean(preds, axis=0)
-    idx = int(np.argmax(p_avg))
-    conf = float(p_avg[0][idx])
+    avg = np.mean(preds, axis=0)
+    idx = int(np.argmax(avg))
+    conf = float(avg[0][idx])
 
-    if conf < THRESHOLD:
-        return None, conf
-
-    if not CLASS_NAMES:
+    if conf < THRESHOLD or not CLASS_NAMES:
         return None, conf
 
     return CLASS_NAMES[idx], conf
-
-
-# ================================================================
-# DATABASE LOOKUP
-# ================================================================
-def fetch_nutrition(name: str):
-    conn = get_db()
-    if not conn:
-        return None
-
-    try:
-        cur = conn.cursor(dictionary=True)
-
-        # 1. Exact food name
-        cur.execute("""
-            SELECT *
-            FROM foods
-            WHERE LOWER(name) = LOWER(%s)
-            LIMIT 1
-        """, (name,))
-        row = cur.fetchone()
-        if row:
-            return row
-
-        # 2. Try alternative matches
-        cur.execute("""
-            SELECT *
-            FROM foods
-            WHERE LOWER(alternative) LIKE CONCAT('%', LOWER(%s), '%')
-            LIMIT 1
-        """, (name,))
-        return cur.fetchone()
-
-    finally:
-        try:
-            cur.close()
-            conn.close()
-        except:
-            pass
 
 
 # ================================================================
@@ -226,7 +217,7 @@ def health():
 
 
 # ================================================================
-# PREDICTION ENDPOINT
+# PREDICT ENDPOINT
 # ================================================================
 @app.post("/predict", response_model=PredictOut)
 async def predict(
@@ -236,7 +227,7 @@ async def predict(
 ):
 
     # ------------------------------------------------------------
-    # 1) IF USER TYPED A NAME → DIRECT DB LOOKUP
+    # 1) If user typed a food name → DB lookup
     # ------------------------------------------------------------
     if food_name and food_name.strip():
         info = fetch_nutrition(food_name.strip())
@@ -263,12 +254,12 @@ async def predict(
         img = Image.open(io.BytesIO(img_bytes))
 
         arr = pil_to_array(img)
-        pred_class, conf = run_models(arr)
+        pred_name, conf = run_models(arr)
 
-        if not pred_class:
+        if not pred_name:
             return PredictOut(pred_class=None, confidence=conf)
 
-        info = fetch_nutrition(pred_class)
+        info = fetch_nutrition(pred_name)
         nutrition = None
         if info:
             nutrition = {
@@ -281,13 +272,13 @@ async def predict(
             }
 
         return PredictOut(
-            pred_class=pred_class,
+            pred_class=pred_name,
             confidence=conf,
             nutrition=nutrition,
             tips=info.get("healthTips") if info else None,
         )
 
     # ------------------------------------------------------------
-    # 3) NOTHING PROVIDED
+    # 3) No input at all
     # ------------------------------------------------------------
     return PredictOut(pred_class=None, confidence=0.0)

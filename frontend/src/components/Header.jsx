@@ -46,12 +46,6 @@ export default function Header() {
     }
   };
 
-
-  // ✅ Determine label + icon
-  const isAdminView = location.pathname.startsWith("/admin");
-  const toggleLabel = isAdminView ? "User View" : "Admin View";
-  const toggleIcon = isAdminView ? <FaUser size={14} /> : <FaCrown size={14} />;
-
   return (
     <>
       <nav className="navbar">
@@ -80,48 +74,64 @@ export default function Header() {
           <span></span>
         </div>
 
-        {/* === Navigation Links === */}
-        <ul className={`navbar-links ${menuOpen ? "active" : ""}`}>
+        {/* === Desktop Nav Links === */}
+        <ul className="navbar-links">
           <li>
             <NavLink
               to={user?.role === "admin" ? "/admin" : "/home"}
-              onClick={closeMenu}
             >
               Home
             </NavLink>
           </li>
-          <li><NavLink to="/foods" onClick={closeMenu}>Explore Foods</NavLink></li>
-          <li><NavLink to="/analyzer" onClick={closeMenu}>Nutrition Analyzer</NavLink></li>
-          <li><NavLink to="/recipes" onClick={closeMenu}>Recipes</NavLink></li>
-          <li><NavLink to="/community" onClick={closeMenu}>Community</NavLink></li>
-
-          <hr className="menu-divider" />
-          <li className="mobile-action" onClick={handleProfileClick}>
-            Profile
-          </li>
-
-          {user && user.role !== 'guest' ? (
-            <li className="mobile-action logout" onClick={handleLogout}>
-              Logout
-            </li>
-          ) : (
-            <li className="mobile-action" onClick={() => { navigate("/loginregister"); closeMenu(); }}>
-              Login / Register
-            </li>
-          )}
+          <li><NavLink to="/foods">Explore Foods</NavLink></li>
+          <li><NavLink to="/analyzer">Nutrition Analyzer</NavLink></li>
+          <li><NavLink to="/recipes">Recipes</NavLink></li>
+          <li><NavLink to="/community">Community</NavLink></li>
         </ul>
+
+        {/* === MOBILE MENU (Hamburger Drawer) === */}
+        {menuOpen && (
+          <div className="mobile-menu">
+            <NavLink to={user?.role === "admin" ? "/admin" : "/home"} onClick={closeMenu}>Home</NavLink>
+            <NavLink to="/foods" onClick={closeMenu}>Explore Foods</NavLink>
+            <NavLink to="/analyzer" onClick={closeMenu}>Nutrition Analyzer</NavLink>
+            <NavLink to="/recipes" onClick={closeMenu}>Recipes</NavLink>
+            <NavLink to="/community" onClick={closeMenu}>Community</NavLink>
+
+            <hr />
+
+            <button onClick={() => navigate("/language")} className="mobile-btn">
+              <FaGlobe className="mobile-icon" /> EN
+            </button>
+
+            <button onClick={handleProfileClick} className="mobile-btn">
+              <User className="mobile-icon" size={18} /> Profile
+            </button>
+
+            {user && user.role !== "guest" ? (
+              <button onClick={handleLogout} className="mobile-btn logout">
+                <FaSignOutAlt className="mobile-icon"/> Logout
+              </button>
+            ) : (
+              <button onClick={() => navigate("/loginregister")} className="mobile-btn">
+                <User size={16} /> Login / Register
+              </button>
+            )}
+          </div>
+        )}
+
 
         {/* === Desktop Actions === */}
         <div className="navbar-actions">
           {/* 🌐 Language */}
           <button className="lang-btn" onClick={() => navigate("/language")}>
-            <FaGlobe /> EN
+            <FaGlobe  /> EN
           </button>
 
           
           {/* 👤 Profile */}
           <button onClick={handleProfileClick}>
-            <User size={20} /> Profile
+            <User size={18} /> Profile
           </button>
 
           {/* 🚪 Logout / Login */}

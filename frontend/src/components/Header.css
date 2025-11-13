@@ -1,6 +1,4 @@
-/* =============================
-   MAIN NAVBAR CONTAINER
-============================= */
+/* MAIN NAVBAR CONTAINER */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -17,9 +15,7 @@
   line-height: 1; /* Ensures even vertical rhythm */
 }
 
-/* =============================
-   LOGO SECTION (Perfect Center)
-============================= */
+/* LOGO SECTION (Perfect Center)*/
 .navbar-logo {
   display: flex;
   align-items: center;
@@ -59,9 +55,7 @@
 }
 
 
-/* =============================
-   NAV LINKS
-============================= */
+/* NAV LINKS */
 .navbar-links {
   display: flex;
   gap: clamp(0.8rem, 2vw, 1.5rem);
@@ -93,9 +87,61 @@
   color: white;
 }
 
-/* =============================
-   NAV ACTIONS (Right Side)
-============================= */
+/* MOBILE MENU */
+.mobile-menu {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  align-items: center;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.5rem;
+  gap: 1rem;
+  z-index: 999;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.mobile-menu a,
+.mobile-menu .mobile-btn {
+  font-family: "Poppins", sans-serif;
+  text-align: left;
+  font-size: 1rem;
+  color: #5a4636;
+  padding: 8px 0;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: center;     
+  justify-content: center;
+  display: flex;
+  gap: 8px;  
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.mobile-menu a:hover {
+  background-color: #f1e5d0;
+  color: #6b3e26;
+}
+
+.mobile-menu a.active {
+  font-weight: 600;
+  background-color: #8b5e3c;
+  color: white;
+}
+
+.mobile-icon {
+  position: relative;
+  top: 3px; 
+  margin-right: 6px;
+}
+
+/* NAV ACTIONS (Right Side)*/
 .navbar-actions {
   display: flex;
   align-items: center;
@@ -120,9 +166,7 @@
   color: #8b5e3c;
 }
 
-/* =============================
-   HAMBURGER MENU (Hidden by Default)
-============================= */
+/* HAMBURGER MENU (Hidden by Default) */
 .hamburger {
   display: none;
   flex-direction: column;
@@ -155,108 +199,35 @@
   transform: translateY(-8px) rotate(-45deg);
 }
 
-/* =============================
-   RESPONSIVE (TABLET & MOBILE)
-============================= */
-
-/* Adjusted breakpoint — triggers hamburger earlier */
+/* RESPONSIVE (TABLET & MOBILE)*/
+/* Mobile  */
 @media (max-width: 1024px) {
+
+  /* Hide desktop nav + actions */
   .navbar-links {
-    display: none; /* hide main nav earlier */
+    display: none !important;
   }
-  .hamburger {
-    display: flex; /* show hamburger earlier */
-  }
-}
 
-/* Hamburger active state */
-.navbar-links.active {
-  display: flex;
-  position: absolute;
-  top: 70px;
-  left: 0;
-  right: 0;
-  flex-direction: column;
-  align-items: center;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 1rem 0;
-  transform: translateY(0);
-  opacity: 1;
-  pointer-events: auto;
-  transition: all 0.4s ease;
-}
-
-.navbar-links li {
-  margin: 10px 0;
-}
-
-/* Keep EN / Logout hidden on small screens */
-@media (max-width: 1024px) {
   .navbar-actions {
-    display: none;
+    display: none !important;
   }
-}
-.linklike-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-}
-.linklike-btn:hover { text-decoration: underline; }
 
-/* =============================
-   FIX DUPLICATE PROFILE / LOGOUT
-   (Show inside hamburger only)
-============================= */
+  /* Show hamburger */
+  .hamburger {
+    display: flex;
+  }
 
-/* Hide mobile items on desktop */
-.navbar-links .mobile-action,
-.navbar-links .menu-divider {
-  display: none;
-}
-
-/* Show only when hamburger is active on smaller screens */
-@media (max-width: 1024px) {
+  /* Show extra mobile-only items (if any) */
   .navbar-links .mobile-action,
   .navbar-links .menu-divider {
     display: block;
   }
 }
 
-/* === Smart Toggle Button (Switch View) === */
-.switch-view-btn {
-  background-color: #704f2b; /* your SarawakEats accent */
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  padding: 6px 16px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  margin: 0 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  white-space: nowrap;
-}
-
-.switch-view-btn:hover {
-  background-color: #8a5f33;
-  transform: translateY(-1px);
-}
-
-.switch-view-btn:active {
-  transform: translateY(0);
-}
-
-/* Keep all buttons aligned properly */
-.navbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* Desktop  */
+@media (min-width: 1025px) {
+  /* Hide mobile menu drawer on desktop */
+  .mobile-menu {
+    display: none !important;
+  }
 }
