@@ -9,8 +9,9 @@ import {
     FiMail as Mail,
     FiFileText as FileText,
     FiX as X,
+    FiCheckCircle as CheckIcon
 } from "react-icons/fi";
-
+import Modal from "../components/Modal";
 export default function AdminSystemSettings({
     onPageChange = () => { },
     language = "en",
@@ -94,6 +95,16 @@ export default function AdminSystemSettings({
         message: SYSTEM_EMAIL_TEMPLATES["Custom message"].message,
         markAnnouncement: true,
     });
+    const [sysDialog, setSysDialog] = useState({
+        open: false,
+        title: "",
+        message: "",
+        icon: null,
+        primaryText: "OK",
+        onPrimary: null,
+    });
+    const closeSysDialog = () => setSysDialog((m) => ({ ...m, open: false, onPrimary: null }));
+
 
     // lock scroll like UM
     useEffect(() => {
@@ -407,8 +418,15 @@ export default function AdminSystemSettings({
                             <button
                                 className="umg-btn-primary"
                                 onClick={() => {
-                                    if (!sysEmailForm.subject.trim() || !sysEmailForm.message.trim()) {
-                                        alert("Please provide a subject and message.");
+                                        if (!sysEmailForm.subject.trim() || !sysEmailForm.message.trim()) {
+                                        setSysDialog({
+                                            open: true,
+                                            title: "Missing Required Fields",
+                                            message: "Please provide a subject and message.",
+                                            icon: <AlertTriangle />,
+                                            primaryText: "OK",
+                                            onPrimary: closeSysDialog,
+                                        });
                                         return;
                                     }
                                     let recipients = [];
@@ -430,6 +448,14 @@ export default function AdminSystemSettings({
                                     });
 
                                     setShowSysEmailModal(false);
+                                    setSysDialog({
+                                        open: true,
+                                        title: "Announcement Queued",
+                                        message: `Your message will be sent to ${recipients.length} recipient(s).`,
+                                        icon: <CheckIcon />,
+                                        primaryText: "Done",
+                                        onPrimary: closeSysDialog,
+                                    });
                                 }}
                             >
                                 Send Email
@@ -438,6 +464,16 @@ export default function AdminSystemSettings({
                     </div>
                 </div>
             )}
+            <Modal
+                open={sysDialog.open}
+                title={sysDialog.title}
+                icon={sysDialog.icon}
+                primaryText={sysDialog.primaryText}
+                onClose={closeSysDialog}
+                onPrimary={sysDialog.onPrimary}
+            >
+                {sysDialog.message}
+            </Modal>
         </div>
     );
 }
