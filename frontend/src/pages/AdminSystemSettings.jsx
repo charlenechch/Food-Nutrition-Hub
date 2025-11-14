@@ -450,7 +450,7 @@ export default function AdminSystemSettings({
                                     setShowSysEmailModal(false);
                                     setSysDialog({
                                         open: true,
-                                        title: "Announcement Queued",
+                                        title: "Announcement Sent",
                                         message: `Your message will be sent to ${recipients.length} recipient(s).`,
                                         icon: <CheckIcon />,
                                         primaryText: "Done",
