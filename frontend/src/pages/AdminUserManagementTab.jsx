@@ -985,9 +985,16 @@ export default function UserManagement() {
             )}
             {showSuspendModal && userToSuspend && (
                 <SuspendUserModal
-                    user={userToSuspend}
-                    onClose={() => setShowSuspendModal(false)}
-                    onSave={handleSuspendSave}
+                  user={userToSuspend}
+                  onClose={() => setShowSuspendModal(false)}
+                  onSave={handleSuspendSave}
+                  onAlert={(title, message) => setDlg({
+                    open: true,
+                    title,
+                    message,
+                    icon: <AlertIcon />,
+                    onPrimary: closeDlg,
+                  })}
                 />
             )}
             </>
@@ -1015,18 +1022,6 @@ export default function UserManagement() {
           >
             {confirm.message}
           </Modal>
-          <SuspendUserModal
-            user={userToSuspend}
-            onClose={() => setShowSuspendModal(false)}
-            onSave={handleSuspendSave}
-            onAlert={(title, message) => setDlg({
-              open: true,
-              title,
-              message,
-              icon: <AlertIcon />,
-              onPrimary: closeDlg,
-            })}
-          />
         </div>
     );
 };
