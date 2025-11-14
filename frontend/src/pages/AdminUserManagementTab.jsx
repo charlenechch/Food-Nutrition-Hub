@@ -3,6 +3,8 @@ import { CiSearch } from "react-icons/ci";
 import { Mail, Shield, Users, Activity, CircleCheckBig, CircleX, CircleOff, X, Bell, Send } from 'lucide-react';
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
+import Modal from "../components/Modal";
+import { CircleAlert as AlertIcon, CheckCircle2 as SuccessIcon, TriangleAlert as WarnIcon } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -244,6 +246,28 @@ export default function UserManagement() {
     };
     const [userForm, setUserForm] = useState(emptyUser);
 
+    const [dlg, setDlg] = useState({
+      open: false,
+      title: "",
+      message: "",
+      icon: null,
+      primaryText: "OK",
+      onPrimary: null,
+    });
+    const closeDlg = () => setDlg((m) => ({ ...m, open: false, onPrimary: null }));
+
+    const [confirm, setConfirm] = useState({
+      open: false,
+      title: "",
+      message: "",
+      icon: null,
+      confirmText: "Confirm",
+      cancelText: "Cancel",
+      onConfirm: null,
+    });
+    const closeConfirm = () => setConfirm((m) => ({ ...m, open: false, onConfirm: null }));
+
+
     // Open Create
     const openCreateUser = () => {
     setUserMode("create");
@@ -291,20 +315,38 @@ export default function UserManagement() {
                     prev.map(u => u.id === userId ? { ...u, ...data.user, suspendedUntil: suspensionDate, suspensionReason: reason } : u)
                 );
                 alert(`User ${data.user.name} suspended until ${suspensionDate}.`);
+                setDlg({
+                  open: true,
+                  title: "User Suspended",
+                  message: `User ${data.user.name} suspended until ${suspensionDate}.`,
+                  icon: <SuccessIcon />,
+                  onPrimary: closeDlg,
+                });
             }
 
         } catch (err) {
             console.error("Error suspending user:", err);
-            alert(`Error: ${err.message}`);
+            setDlg({
+              open: true,
+              title: "Failed to Suspend",
+              message: err.message || "Please try again.",
+              icon: <AlertIcon />,
+              onPrimary: closeDlg,
+            });
         }
     };
 
     // handle Unsuspension
     const handleUnsuspend = async (userId, userName) => {
-        // NOTE: Using alert() as a placeholder for a custom UI confirmation dialog
-        if (!window.confirm(`Are you sure you want to unsuspend user "${userName}"?`)) {
-            return;
-        }
+      setConfirm({
+        open: true,
+        title: "Unsuspend User",
+        message: `Are you sure you want to unsuspend "${userName}"?`,
+        icon: <WarnIcon />,
+        confirmText: "Unsuspend",
+        cancelText: "Cancel",
+        onConfirm: async () => {
+          closeConfirm();
 
         try {
             // This is the API call to clear the suspension
@@ -329,21 +371,39 @@ export default function UserManagement() {
                 setUsers(prev =>
                     prev.map(u => u.id === userId ? { ...u, ...data.user, suspendedUntil: null, suspensionReason: "" } : u)
                 );
-                alert(`User ${data.user.name} has been unsuspended.`);
+                setDlg({
+                  open: true,
+                  title: "User Unsuspended",
+                  message: `User ${data.user.name} has been unsuspended.`,
+                  icon: <SuccessIcon />,
+                  onPrimary: closeDlg,
+                });
             }
 
         } catch (err) {
             console.error("Error unsuspending user:", err);
-            alert(`Error: ${err.message}`);
+            setDlg({
+              open: true,
+              title: "Unsuspend Failed",
+              message: err.message || "Please try again.",
+              icon: <AlertIcon />,
+              onPrimary: closeDlg,
+            });
         }
-    };
+      },
+    });
+  };
 
     // Save (Create or Update)
     const saveUser = async () => {
-    // basic validation
-    if (!userForm.name.trim()) return alert("Name is required.");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email)) return alert("Valid email is required.");
-
+    if (!userForm.name.trim()) {
+      setDlg({ open: true, title: "Missing Name", message: "Name is required.", icon: <AlertIcon />, onPrimary: closeDlg });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email)) {
+      setDlg({ open: true, title: "Invalid Email", message: "Please enter a valid email address.", icon: <AlertIcon />, onPrimary: closeDlg });
+      return;
+    }
     try {
       if (userMode === "create") {
         // Call backend to create user
@@ -403,56 +463,91 @@ export default function UserManagement() {
 
       setShowUserModal(false);
       setPage(1);
-      alert(userMode === "create" ? "User created successfully!" : "User updated successfully!");
-
+      setDlg({
+        open: true,
+        title: userMode === "create" ? "User Created" : "User Updated",
+        message: userMode === "create"
+          ? "The user has been created successfully."
+          : "The user has been updated successfully.",
+        icon: <SuccessIcon />,
+        onPrimary: closeDlg,
+      });
     } catch (err) {
       console.error("Error saving user:", err);
-      alert(`Error: ${err.message}`);
+      setDlg({
+        open: true,
+        title: "Save Failed",
+        message: err.message || "Please try again.",
+        icon: <AlertIcon />,
+        onPrimary: closeDlg,
+      });
     }
     };
 
     // Delete
     const deleteUserById = async (id) => {
-    const u = users.find(x => x.id === id);
-    if (!u) return;
-    
-    if (window.confirm(`Delete user "${u.name}"? This cannot be undone.`)) {
-        try {
-            const response = await fetch(`${API_URL}/api/admin/users/${id}`, {
-                method: "DELETE",
-                credentials: "include",
-            });
+      const u = users.find(x => x.id === id);
+      if (!u) return;
+      
+      setConfirm({
+        open: true,
+        title: "Delete User",
+        message: `Delete user "${u.name}"? This cannot be undone.`,
+        icon: <WarnIcon />,
+        confirmText: "Delete",
+        cancelText: "Cancel",
+        onConfirm: async () => {
+          closeConfirm();
+          try {
+              const response = await fetch(`${API_URL}/api/admin/users/${id}`, {
+                  method: "DELETE",
+                  credentials: "include",
+              });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Failed to delete user");
-            }
+              if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(errorData.message || "Failed to delete user");
+              }
 
-            // Remove user from local state after successful deletion
-            setUsers(prev => prev.filter(x => x.id !== id));
-            setPage(1);
-            alert("User deleted successfully!");
+              // Remove user from local state after successful deletion
+              setUsers(prev => prev.filter(x => x.id !== id));
+              setPage(1);
+              setDlg({ open: true, title: "User Deleted", message: "The user has been removed.", icon: <SuccessIcon />, onPrimary: closeDlg });
 
-        } catch (err) {
-            console.error("Error deleting user:", err);
-            alert(`Error: ${err.message}`);
-        }
+          } catch (err) {
+              console.error("Error deleting user:", err);
+              setDlg({ open: true, title: "Delete Failed", message: err.message || "Please try again.", icon: <AlertIcon />, onPrimary: closeDlg });
+          }
+        },
+      });
     }
-    };
 
     const invalidateSessions = (id) => {
-        if (!id) return;
-        if (!window.confirm("Invalidate all active sessions for this user? They’ll be logged out on all devices.")) {
-            return;
-        }
+      if (!id) return;
+      setConfirm({
+        open: true,
+        title: "Invalidate Sessions",
+        message: "Invalidate all active sessions for this user? They’ll be logged out on all devices.",
+        icon: <WarnIcon />,
+        confirmText: "Invalidate",
+        cancelText: "Cancel",
+        onConfirm: async () => {
+          closeConfirm();
 
-        // TODO: replace with real API call:
-        // await fetch(`/api/admin/users/${id}/invalidate-sessions`, { method: "POST" })
+          // TODO: replace with real API call:
+          // await fetch(`/api/admin/users/${id}/invalidate-sessions`, { method: "POST" })
 
-        console.log("INVALIDATE_SESSIONS ▶ userId:", id);
-        alert("Sessions invalidated. The user will be logged out everywhere.");
+          console.log("INVALIDATE_SESSIONS ▶ userId:", id);
+          setDlg({
+            open: true,
+            title: "Sessions Invalidated",
+            message: "The user will be logged out everywhere.",
+            icon: <SuccessIcon />,
+            onPrimary: closeDlg,
+          });
+        },
+      });
     };
-
   
     return (
         // User Management
@@ -892,6 +987,29 @@ export default function UserManagement() {
             )}
             </>
           )}
+          <Modal
+            open={dlg.open}
+            title={dlg.title}
+            icon={dlg.icon}
+            primaryText={dlg.primaryText || "OK"}
+            onClose={closeDlg}
+            onPrimary={dlg.onPrimary || closeDlg}
+          >
+            {dlg.message}
+          </Modal>
+
+          <Modal
+            open={confirm.open}
+            title={confirm.title}
+            icon={confirm.icon}
+            secondaryText={confirm.cancelText || "Cancel"}
+            onSecondary={closeConfirm}
+            primaryText={confirm.confirmText || "Confirm"}
+            onPrimary={confirm.onConfirm}
+            onClose={closeConfirm}
+          >
+            {confirm.message}
+          </Modal>
         </div>
     );
 };

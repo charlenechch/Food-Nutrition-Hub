@@ -8,8 +8,11 @@ export default function Modal({
   children,                   
   primaryText = "OK",
   onClose,
-  onPrimary,                  
-  centerActions = true,       
+  onPrimary,  
+  secondaryText,          
+  onSecondary,                 
+  centerActions = true, 
+  showActions = true,      
 }) {
   useEffect(() => {
     if (!open) return;
@@ -61,11 +64,17 @@ export default function Modal({
         </div>
 
         {/* Actions */}
+        {showActions && (
         <div
           className={
             "lrp-modal-actions" + (centerActions ? " lrp-modal-actions--center" : "")
           }
         >
+            {secondaryText && (
+              <button className="lrp-btn lrp-btn-outline lrp-btn-lg" onClick={onSecondary || onClose}>
+                {secondaryText}
+              </button>
+            )}
           <button
             className="lrp-btn lrp-btn-primary lrp-btn-lg"
             onClick={onPrimary || onClose}
@@ -73,6 +82,7 @@ export default function Modal({
             {primaryText}
           </button>
         </div>
+        )}
       </div>
     </div>
   );
