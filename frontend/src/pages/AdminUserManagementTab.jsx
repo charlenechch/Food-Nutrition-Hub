@@ -9,7 +9,7 @@ import { CircleAlert as AlertIcon, CheckCircle2 as SuccessIcon, TriangleAlert as
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Suspend User Modal Component
-    const SuspendUserModal = ({ user, onClose, onSave }) => {
+    const SuspendUserModal = ({ user, onClose, onSave, onAlert }) => {
     // State for the suspension details
     const [suspensionDate, setSuspensionDate] = useState(
         // Default to today or load existing suspension date
@@ -18,8 +18,8 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
     const [reason, setReason] = useState(user?.suspensionReason || "");
 
     const handleSave = () => {
-        if (!suspensionDate) return alert("Suspension date is required.");
-        if (!reason.trim()) return alert("Suspension reason is required.");
+        if (!suspensionDate) return onAlert?.("Missing Date", "Suspension date is required.");
+        if (!reason.trim()) return onAlert?.("Missing Reason", "Suspension reason is required.");
 
         // Call the parent handler with the collected data
         onSave(user.id, suspensionDate, reason.trim());
@@ -314,7 +314,6 @@ export default function UserManagement() {
                 setUsers(prev =>
                     prev.map(u => u.id === userId ? { ...u, ...data.user, suspendedUntil: suspensionDate, suspensionReason: reason } : u)
                 );
-                alert(`User ${data.user.name} suspended until ${suspensionDate}.`);
                 setDlg({
                   open: true,
                   title: "User Suspended",
@@ -948,8 +947,14 @@ export default function UserManagement() {
                             if (window.confirm("Invalidate all active sessions for this user? They’ll be logged out on all devices.")) {
                                 // await fetch(`/api/admin/users/${userForm.id}/invalidate-sessions`, { method: "POST" })
                                 console.log("INVALIDATE_SESSIONS ▶", userForm.id);
-                                alert("Sessions invalidated. The user will be logged out everywhere.");
-                            }
+                                setDlg({
+                                  open: true,
+                                  title: "Sessions Invalidated",
+                                  message: "The user will be logged out everywhere.",
+                                  icon: <SuccessIcon />,
+                                  onPrimary: closeDlg,
+                                });                            
+                              }
                             }}
                         >
                             Invalidate session
@@ -1010,6 +1015,18 @@ export default function UserManagement() {
           >
             {confirm.message}
           </Modal>
+          <SuspendUserModal
+            user={userToSuspend}
+            onClose={() => setShowSuspendModal(false)}
+            onSave={handleSuspendSave}
+            onAlert={(title, message) => setDlg({
+              open: true,
+              title,
+              message,
+              icon: <AlertIcon />,
+              onPrimary: closeDlg,
+            })}
+          />
         </div>
     );
 };
