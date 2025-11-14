@@ -484,7 +484,8 @@ export default function UserManagement() {
     };
 
     // Delete
-    const deleteUserById = async (id) => {
+    const deleteUserById = async (id, opts = {}) => {
+      const { onSuccess } = opts;
       const u = users.find(x => x.id === id);
       if (!u) return;
       
@@ -511,6 +512,7 @@ export default function UserManagement() {
               // Remove user from local state after successful deletion
               setUsers(prev => prev.filter(x => x.id !== id));
               setPage(1);
+              onSuccess?.();
               setDlg({ open: true, title: "User Deleted", message: "The user has been removed.", icon: <SuccessIcon />, onPrimary: closeDlg });
 
           } catch (err) {
@@ -929,10 +931,8 @@ export default function UserManagement() {
                             type="button"
                             className="umg-btn umg-btn-danger"
                             onClick={() => {
-                            if (userForm?.id && window.confirm(`Delete user "${userForm.name}"? This cannot be undone.`)) {
-                                deleteUserById(userForm.id);
-                                setShowUserModal(false);
-                            }
+                              if (!userForm?.id) return;
+                              deleteUserById(userForm.id, { onSuccess: () => setShowUserModal(false) });
                             }}
                         >
                             Delete
@@ -944,18 +944,39 @@ export default function UserManagement() {
                             title="Force logout this user on all devices"
                             onClick={() => {
                             if (!userForm?.id) return;
-                            if (window.confirm("Invalidate all active sessions for this user? They’ll be logged out on all devices.")) {
-                                // await fetch(`/api/admin/users/${userForm.id}/invalidate-sessions`, { method: "POST" })
-                                console.log("INVALIDATE_SESSIONS ▶", userForm.id);
-                                setDlg({
-                                  open: true,
-                                  title: "Sessions Invalidated",
-                                  message: "The user will be logged out everywhere.",
-                                  icon: <SuccessIcon />,
-                                  onPrimary: closeDlg,
-                                });                            
-                              }
-                            }}
+                            setConfirm({
+                              open: true,
+                              title: "Invalidate Sessions",
+                              message: "Invalidate all active sessions for this user? They’ll be logged out on all devices.",
+                              icon: <WarnIcon />,
+                              confirmText: "Invalidate",
+                              cancelText: "Cancel",
+                              onConfirm: async () => {
+                                closeConfirm();
+                                try {
+                                  // TODO: call your real API here:
+                                  // await fetch(`${API_URL}/api/admin/users/${userForm.id}/invalidate-sessions`, { method: "POST", credentials: "include" });
+                                  console.log("INVALIDATE_SESSIONS ▶", userForm.id);
+
+                                  setDlg({
+                                    open: true,
+                                    title: "Sessions Invalidated",
+                                    message: "The user will be logged out everywhere.",
+                                    icon: <SuccessIcon />,
+                                    onPrimary: closeDlg,
+                                  });
+                                } catch (err) {
+                                  setDlg({
+                                    open: true,
+                                    title: "Action Failed",
+                                    message: err.message || "Please try again.",
+                                    icon: <AlertIcon />,
+                                    onPrimary: closeDlg,
+                                  });
+                                }
+                              },
+                            });
+                          }}
                         >
                             Invalidate session
                         </button>
