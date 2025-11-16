@@ -327,15 +327,17 @@ const EditFoodPage = () => {
           <div className="edit-food-image-upload-section">
             <h3>Food Image</h3>
             <div className="image-preview">
-              {selectedImage ? (
-                <img src={URL.createObjectURL(selectedImage)} alt="New Image Preview" />
-              ) : existingImageUrl ? (
-                <img src={getDisplayImage(existingImageUrl)} alt={food.name} />
-              ) : (
-                <p>No Image</p>
-              )}
-            </div>
-
+                {selectedImage ? (
+                  <img src={URL.createObjectURL(selectedImage)} alt="New Image Preview" />
+                ) : existingImageUrl ? (
+                  <img
+                    src={`${getDisplayImage(existingImageUrl)}?t=${Date.now()}`}
+                    alt={food.name}
+                  />
+                ) : (
+                  <p>No Image</p>
+                )}
+              </div>
             <input
               ref={fileInputRef}
               className="edit-food-input"
