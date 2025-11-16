@@ -22,28 +22,6 @@ const ORIGIN_OPTIONS = [
   "Others",
 ];
 
-// Proxy image loader (Option B)
-const getImageSrc = (url) => {
-  if (!url) return null;
-
-  // External image → use proxy
-  if (
-    url.startsWith(API_URL) ||
-    url.startsWith(API_URL.replace('http:', 'https:')) ||
-    url.startsWith('/')
-  ) {
-    return url.startsWith('/') ? `${API_URL}${url}` : url;
-  }
-
-  if (url.startsWith("http")) {
-    return `${API_URL}/proxy-image?url=${encodeURIComponent(url)}`;
-  }
-
-  const fixedUrl = url.startsWith("/") ? url : `/${url}`;
-  return `${API_URL}${fixedUrl}`;
-};
-
-
 const EditFoodPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -81,7 +59,6 @@ const EditFoodPage = () => {
             carbs: data.data.Carbohydrates_g || "",
             fat: data.data.Fat_g || "",
             fiber: data.data.Fiber_g || "",
-            vitamin: data.data.VitaminC_mg || "", // Updated to match input field
             name_ms: data.data.name_ms || "",
             category: data.data.category || "",
             description: data.data.description || "",
@@ -164,67 +141,65 @@ const EditFoodPage = () => {
 
   // --- 4. Handle Confirming the Save (Modified for Notification) ---
   const handleConfirmSave = async () => {
-  setShowSaveConfirm(false);
+    setShowSaveConfirm(false);
 
-  // 1. Upload image first
-  const finalImageUrl = await handleImageUpload(selectedImage);
+    // 1. Upload image first
+    const finalImageUrl = await handleImageUpload(selectedImage);
 
-  if (showNotification.type === "error") return;
+    // Stop here if a notification has been set by handleImageUpload
+    if (showNotification.type === "error") return;
 
-  // 2. Map frontend state to backend fields
-  const dataToSave = {
-    name: food.name,
-    name_ms: food.name_ms,
-    origin: food.origin,
-    category: food.category,
-    description: food.description,
-    cultural_significance: food.cultural_significance,
-    traditional_preparation: food.traditional_preparation,
-    Energy_kcal: food.calories,        
-    Protein_g: food.protein,           
-    Fat_g: food.fat,                   
-    Carbohydrates_g: food.carbs,       
-    Fiber_g: food.fiber,               
-    VitaminC_mg: food.vitamin,         
-    image: finalImageUrl,
-  };
+    // 2. Map the form state back to what the API expects
+    const dataToSave = {
+      name: food.name,
+      origin: food.origin,
+      Energy_kcal: food.calories,
+      Protein_g: food.protein,
+      Carbohydrates_g: food.carbs,
+      Fat_g: food.fat,
+      Fiber_g: food.fiber,
+      VitaminC_mg: food.vitaminc,
+      image: finalImageUrl,
+    };
 
-  try {
-    const res = await fetch(`${API_URL}/api/foods/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(dataToSave),
-    });
-
-    const result = await res.json();
-
-    if (result.success) {
-      setExistingImageUrl(finalImageUrl);
-      setSelectedImage(null);
-      setShowNotification({
-        visible: true,
-        message: "Changes saved successfully! All data updated.",
-        type: "success",
+    try {
+      const res = await fetch(`${API_URL}/api/foods/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(dataToSave),
       });
-    } else {
-      console.error("Failed to save:", result.error);
+
+      const result = await res.json();
+
+      if (result.success) {
+        setExistingImageUrl(finalImageUrl);
+        setSelectedImage(null);
+        setShowNotification({
+          visible: true,
+          message: "Changes saved successfully! All data updated.",
+          type: "success",
+        });
+      } else {
+        console.error("Failed to save:", result.error);
+        setShowNotification({
+          visible: true,
+          message: `Failed to save changes: ${
+            result.error || "Unknown error."
+          }`,
+          type: "error",
+        });
+      }
+    } catch (err) {
+      console.error("Error saving:", err);
       setShowNotification({
         visible: true,
-        message: `Failed to save changes: ${result.error || "Unknown error."}`,
+        message:
+          "An unknown error occurred while updating the food item.",
         type: "error",
       });
     }
-  } catch (err) {
-    console.error("Error saving:", err);
-    setShowNotification({
-      visible: true,
-      message: "An unknown error occurred while updating the food item.",
-      type: "error",
-    });
-  }
-};
-
+  };
 
   // --- 5. Render Loading or Not Found State ---
   if (loading) {
@@ -289,17 +264,17 @@ const EditFoodPage = () => {
           <div className="edit-food-image-upload-section">
             <h3>Food Image</h3>
             <div className="image-preview">
-  {selectedImage ? (
-    <img
-      src={URL.createObjectURL(selectedImage)}
-      alt="New Image Preview"
-    />
-  ) : existingImageUrl ? (
-    <img src={getImageSrc(existingImageUrl)} alt={food.name} />
-  ) : (
-    <p>No Image</p>
-  )}
-</div>
+              {selectedImage ? (
+                <img
+                  src={URL.createObjectURL(selectedImage)}
+                  alt="New Image Preview"
+                />
+              ) : existingImageUrl ? (
+                <img src={existingImageUrl} alt={food.name} />
+              ) : (
+                <p>No Image</p>
+              )}
+            </div>
             <input
               className="edit-food-input"
               type="file"
@@ -490,7 +465,7 @@ const EditFoodPage = () => {
               <input
                 className="edit-food-input"
                 name="vitamin"
-                value={food.vitamin}
+                value={food.vitaminc}
                 onChange={handleChange}
               />
             </div>
