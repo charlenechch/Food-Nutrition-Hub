@@ -156,16 +156,22 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // ✅ Update food (ADMIN ONLY)
+// ✅ Update food (ADMIN ONLY)
 router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
   const {
     name,
     origin,
+    category,
+    description,
+    culturalSignificance,
+    traditionalPreparation,
     Energy_kcal,
     Protein_g,
     Fat_g,
     Carbohydrates_g,
     Fiber_g,
     VitaminC_mg,
+    image,
   } = req.body;
 
   try {
@@ -178,28 +184,57 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     }
 
     const sql = `
-      UPDATE food 
-      SET name=?, origin=?, Energy_kcal=?, Protein_g=?, Fat_g=?, Carbohydrates_g=?, Fiber_g=?, VitaminC_mg=?
-      WHERE foodID=?`;
+      UPDATE food
+      SET 
+        name=?,
+        origin=?,
+        category=?,
+        description=?,
+        culturalSignificance=?,
+        traditionalPreparation=?,
+        Energy_kcal=?,
+        Protein_g=?,
+        Fat_g=?,
+        Carbohydrates_g=?,
+        Fiber_g=?,
+        VitaminC_mg=?,
+        image=?
+      WHERE foodID=?
+    `;
+
     const values = [
-      name,
-      origin,
-      Energy_kcal,
-      Protein_g,
-      Fat_g,
-      Carbohydrates_g,
-      Fiber_g,
-      VitaminC_mg,
+      name || existing[0].name,
+      origin || existing[0].origin,
+      category || existing[0].category,
+      description || existing[0].description,
+      culturalSignificance || existing[0].culturalSignificance,
+      traditionalPreparation || existing[0].traditionalPreparation,
+      Number(Energy_kcal) || existing[0].Energy_kcal || 0,
+      Number(Protein_g) || existing[0].Protein_g || 0,
+      Number(Fat_g) || existing[0].Fat_g || 0,
+      Number(Carbohydrates_g) || existing[0].Carbohydrates_g || 0,
+      Number(Fiber_g) || existing[0].Fiber_g || 0,
+      Number(VitaminC_mg) || existing[0].VitaminC_mg || 0,
+      image || existing[0].image || null,
       req.params.id,
     ];
 
-    await db.query(sql, values);
+    const [result] = await db.query(sql, values);
+
+    if (result.affectedRows === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "No changes were made. Check data types or values.",
+      });
+    }
+
     res.json({ success: true, message: "Food updated successfully" });
   } catch (err) {
     console.error("❌ Update food error:", err.message);
     res.status(500).json({ success: false, error: "Failed to update food" });
   }
 });
+
 
 // ✅ Delete food (ADMIN ONLY)
 router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
