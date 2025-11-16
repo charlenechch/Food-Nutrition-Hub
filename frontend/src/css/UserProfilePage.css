@@ -33,12 +33,14 @@
 /* Avatar Upload Modal */
 .upp-modal-overlay {
   position: fixed;
+  inset: 0;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  display: flex;
+  display: grid;
+  place-items: center;
   align-items: center;
   justify-content: center;
   z-index: 1000;
@@ -46,54 +48,61 @@
 
 .upp-modal {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 0;
   max-width: 500px;
-  width: 90%;
+  width: min(520px, 92vw);  
   max-height: 90vh;
   overflow: auto;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 22px 60px rgba(0,0,0,.18);
+  overflow: hidden;
+}
+.upp-modal:has(.upp-avatar-preview) {
+  width: min(680px, 95vw);            
 }
 
 .upp-modal-header {
   display: flex;
-  justify-content: between;
   align-items: center;
-  padding: 20px 24px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
   border-bottom: 1px solid #e5e5e5;
 }
 
 .upp-modal-header h3 {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  width: 100%;
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 700;
+  word-break: normal;                
+  white-space: normal;
 }
 
 .upp-modal-close {
-  background: none;
+  border: 0;
+  background: transparent;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  color: rgb(143, 47, 47);
-  margin-left: 260px;
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  border-radius: 8px;
 }
 
 .upp-modal-close:hover {
-  background: rgba(143, 47, 47, 0.2);
-  transform: scale(1.05); 
+  background: #f5f5f5; 
 }
 
 .upp-modal-body {
-  padding: 24px;
+  padding: 18px 20px 8px;
 }
 
 .upp-modal-footer {
-  padding: 20px 24px;
-  border-top: 1px solid #e5e5e5;
   display: flex;
-  gap: 12px;
   justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid #eee;
 }
 
 /* Avatar Preview */
