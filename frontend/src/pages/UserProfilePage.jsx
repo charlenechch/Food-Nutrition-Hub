@@ -190,7 +190,7 @@ export default function UserProfilePage() {
     setDlg(m => ({ ...m, open: false, onPrimary: null }));
 
   const openAlert = (title, message, onPrimary) =>
-    setDlg({ open: true, title, message, primaryText: "OK", onPrimary: onPrimary || closeDlg });
+    setDlg({ open: true, title, message, primaryText: "OK", onPrimary: () => {try { onPrimary?.(); } finally { closeDlg(); }},});
 
   // Confirm dialog
   const [confirm, setConfirm] = useState({
