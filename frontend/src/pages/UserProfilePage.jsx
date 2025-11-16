@@ -847,7 +847,7 @@ const savePrefs = async () => {
               </div>
               
               <div className="upp-avatar-help">
-                <p>Supported formats: JPEG, JPG, PNG, GIF, WebP, SVG, BMP</p>
+                <p>Supported formats: JPEG, JPG, PNG, GIF, WebP</p>
                 <p>Max file size: 5MB</p>
               </div>
             </div>
