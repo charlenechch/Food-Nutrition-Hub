@@ -111,13 +111,19 @@ router.get("/:id", async (req, res) => {
 router.post("/", requireAuth, requireAdmin, async (req, res) => {
   const {
     name,
+    name_ms,
+    category,
     origin,
+    description,
+    cultural_significance,
+    traditional_preparation,
     Energy_kcal,
     Protein_g,
     Fat_g,
     Carbohydrates_g,
     Fiber_g,
     VitaminC_mg,
+    image,
   } = req.body;
 
   if (!name || !origin) {
@@ -128,19 +134,25 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
 
   try {
     const sql = `
-      INSERT INTO food 
-      (name, origin, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO food
+      (name, name_ms, category, origin, description, cultural_significance, traditional_preparation, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, image)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const values = [
       name,
+      name_ms,
+      category,
       origin,
+      description,
+      cultural_significance,
+      traditional_preparation,
       Energy_kcal,
       Protein_g,
       Fat_g,
       Carbohydrates_g,
       Fiber_g,
       VitaminC_mg,
+      image,
     ];
 
     const [result] = await db.query(sql, values);
@@ -159,13 +171,19 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
 router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
   const {
     name,
+    name_ms,
+    category,
     origin,
+    description,
+    cultural_significance,
+    traditional_preparation,
     Energy_kcal,
     Protein_g,
     Fat_g,
     Carbohydrates_g,
     Fiber_g,
     VitaminC_mg,
+    image,
   } = req.body;
 
   try {
@@ -179,27 +197,48 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
 
     const sql = `
       UPDATE food 
-      SET name=?, origin=?, Energy_kcal=?, Protein_g=?, Fat_g=?, Carbohydrates_g=?, Fiber_g=?, VitaminC_mg=?
-      WHERE foodID=?`;
+      SET name = ?, 
+          name_ms = ?, 
+          category = ?, 
+          origin = ?, 
+          description = ?, 
+          cultural_significance = ?, 
+          traditional_preparation = ?, 
+          Energy_kcal = ?, 
+          Protein_g = ?, 
+          Fat_g = ?, 
+          Carbohydrates_g = ?, 
+          Fiber_g = ?, 
+          VitaminC_mg = ?, 
+          image = ?
+      WHERE foodID = ?`;
     const values = [
       name,
+      name_ms,
+      category,
       origin,
+      description,
+      cultural_significance,
+      traditional_preparation,
       Energy_kcal,
       Protein_g,
       Fat_g,
       Carbohydrates_g,
       Fiber_g,
       VitaminC_mg,
+      image,
       req.params.id,
     ];
 
     await db.query(sql, values);
+
     res.json({ success: true, message: "Food updated successfully" });
   } catch (err) {
     console.error("❌ Update food error:", err.message);
     res.status(500).json({ success: false, error: "Failed to update food" });
   }
 });
+
 
 // ✅ Delete food (ADMIN ONLY)
 router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {

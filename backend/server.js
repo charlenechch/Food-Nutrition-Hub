@@ -208,6 +208,38 @@ const dbOptions = {
     })
   );
 
+  const fetch = require("node-fetch");
+
+app.get("/proxy-image", async (req, res) => {
+  const imageUrl = req.query.url;
+
+  if (!imageUrl) return res.status(400).send("No URL provided");
+
+  try {
+    const response = await fetch(imageUrl);
+
+    if (!response.ok) {
+      return res.status(400).send("Failed to load image from external source");
+    }
+
+    const contentType = response.headers.get("content-type");
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    res.removeHeader('X-Content-Type-Options');
+    res.set("X-Content-Type-Options", "nosniff");
+    res.set('Content-Disposition', 'inline');
+    res.set("Access-Control-Allow-Origin", req.headers.origin || '*');
+
+    res.set("Content-Type", contentType);
+    res.send(buffer);
+  } catch (err) {
+    console.error("Image proxy error:", err);
+    res.status(500).send("Proxy error");
+  }
+});
+
+
 // ---------- 6) Routes that must come BEFORE global HPP ----------
 app.use(
   "/api/register",
@@ -260,26 +292,46 @@ app.use(
   recipeRoutes
 );
 
+
 app.use("/api/food", foodSearchRoutes);
 
+// Place this BEFORE global HPP
+app.use(
+  "/api/foods",
+  hppProtect({
+    policy: "first",
+    allowlist: [
+      "foodID", "name", "name_ms", "category", "origin", "description",
+      "cultural_significance", "traditional_preparation",
+      "Energy_kcal", "Protein_g", "Fat_g", "Carbohydrates_g", "Fiber_g", "VitaminC_mg",
+      "image", "name_ms", "category", "cultural_significance", "traditional_preparation",
+    ],
+    logger: (tag, meta) => {
+      console.warn(`[${tag}]`, JSON.stringify(meta));
+    },
+  }),
+  foodRoutes
+);
 
 // ---------- 7) Global HPP protection for everything else ----------
 app.use(
   hppProtect({
     policy: "first", // block duplicates globally
     allowlist: [
-      "id", "page", "q", "sort", "email", "password", "newPassword", "userID", "token", "role",
-      "userProfileID", "firebase_uid", "bio", "location", "firstname", "lastname",
-      "city", "suspendedUntil", "suspensionReason", "avatar", "allergies", "dietary", "emailNotifications",
-      "prefs", "pushNotifications", "profileVisibility", "language", "recipes",
-      "status", "stats", "saveFoods", "likes", "type", "postId", "postID",
-      "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID",
-      "likeID", "name", "origin", "difficulty", "prepTime", "cookTime",
-      "servings", "image", "description", "foodType", "dietaryTags",
-      "ingredients", "instructions", "funFact", "chefTips",
-      "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll", "Energy_kcal",
-      "Protein_g", "Fat_g", "Carbohydrates_g", "Fiber_g", "VitaminC_mg", "view", "year"
-    ],
+  "id", "page", "q", "sort", "email", "password", "newPassword", "userID", "token", "role",
+  "userProfileID", "firebase_uid", "bio", "location", "firstname", "lastname",
+  "city", "suspendedUntil", "suspensionReason", "avatar", "allergies", "dietary", "emailNotifications",
+  "prefs", "pushNotifications", "profileVisibility", "language", "recipes",
+  "status", "stats", "saveFoods", "likes", "type", "postId", "postID",
+  "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID",
+  "likeID", "name", "origin", "difficulty", "prepTime", "cookTime",
+  "servings", "image", "description", "foodType", "dietaryTags",
+  "ingredients", "instructions", "funFact", "chefTips",
+  "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll",
+  "Energy_kcal", "Protein_g", "Fat_g", "Carbohydrates_g", "Fiber_g", "VitaminC_mg",
+  "view", "year", 
+],
+
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));
     },
@@ -287,9 +339,27 @@ app.use(
 );
 
 // ---------- Static File Serving ----------
-// ⭐ REQUIRED FIX: Configure Express to serve files from the 'uploads' directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// -----------------------------------------
+// REQUIRED FIX: Configure Express to serve files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+    setHeaders: (res, path, stat) => {
+        // Allow loading the static content from your frontend's origin
+        const allowedOrigins = [
+            "http://localhost:5173",
+            "https://food-nutrition-hub.vercel.app",
+            "https://food-nutrition-3iuim4cpf-fyp-group10-fnh.vercel.app",
+        ];
+        // Use the origin from the request headers if it's in the allowed list, otherwise default to a safe value.
+        const origin = res.req.headers.origin;
+        if (allowedOrigins.includes(origin)) {
+            res.set('Access-Control-Allow-Origin', origin);
+        } else {
+             // For static files, generally '*' is safe if you control the content
+             res.set('Access-Control-Allow-Origin', '*'); 
+        }
+        // This header is essential for avoiding the 'NotSameOrigin' block on static content
+        res.set('Access-Control-Allow-Credentials', 'true');
+    }
+}));
 
 // ---------- 8) Other Routes ----------
 app.use("/api/logout", logoutRoutes);
@@ -306,7 +376,6 @@ app.use("/api/foodDiscussion", foodDiscussionRoutes);
 app.use("/api/recipe", recipeRoutes);
 app.use("/api/saveFood", saveFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
-app.use("/api/foods", foodRoutes);
 app.use("/api/userProfile", userProfileRoutes);
 app.use("/api/likes", likeRoutes);
 
