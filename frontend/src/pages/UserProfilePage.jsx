@@ -558,7 +558,7 @@ const savePrefs = async () => {
 
             if (!verifyRes.ok) {
               const verifyData = await verifyRes.json().catch(() => ({}));
-              openAlert("Incorrect Password", verifyData.error || "Incorrect password. Account deletion cancelled.");
+              openAlert("Account Deletion Failed", verifyData.error || "Incorrect password. Account deletion cancelled.");
               return;
             }
 
