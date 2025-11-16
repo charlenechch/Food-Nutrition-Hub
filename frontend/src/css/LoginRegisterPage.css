@@ -571,6 +571,9 @@ body, html, #root {
   outline: 2px solid #8b5e34;
   outline-offset: 2px;
 }
+.lrp-modal-close:focus {
+  outline: none;
+}
 
 .lrp-modal-header {
   display: flex;
