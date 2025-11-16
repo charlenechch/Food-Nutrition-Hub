@@ -17,10 +17,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Options
 const DIETARY_OPTIONS = [
-  "vegetarian", "vegan", "halal", "gluten-free", "dairy-free", "low-fat", "high-protein", "spicy", "None"
+  "vegetarian", "vegan", "halal", "gluten-free", "dairy-free", "low-fat", "high-protein", "spicy"
 ];
 const ALLERGY_OPTIONS = [
-  "tree-nuts", "peanuts", "seafood", "shellfish", "egg", "soy", "sesame", "wheat", "no-spicy", "None"
+  "tree-nuts", "peanuts", "seafood", "shellfish", "egg", "soy", "sesame", "wheat", "no-spicy"
 ];
 
 const DEFAULT_PREFS = {
