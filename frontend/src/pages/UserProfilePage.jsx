@@ -1203,7 +1203,7 @@ const savePrefs = async () => {
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">Email Notifications</div>
-                      <div className="upp-muted">Receive updates about new recipes and foods</div>
+                      <div className="upp-muted2">Receive updates about new recipes and foods</div>
                     </div>
                     <label className="upp-switch">
                       <input
@@ -1218,7 +1218,7 @@ const savePrefs = async () => {
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">Push Notifications</div>
-                      <div className="upp-muted">Get notified about community activities</div>
+                      <div className="upp-muted2">Get notified about community activities</div>
                     </div>
                     <label className="upp-switch">
                       <input
@@ -1236,7 +1236,7 @@ const savePrefs = async () => {
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">Language</div>
-                      <div className="upp-muted">Choose your preferred language</div>
+                      <div className="upp-muted2">Choose your preferred language</div>
                     </div>
                     <button
                       className="lrp-btn lrp-btn-outline upp-btn"
@@ -1252,7 +1252,7 @@ const savePrefs = async () => {
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">Profile Visibility</div>
-                      <div className="upp-muted">Allow others to see your profile</div>
+                      <div className="upp-muted2">Allow others to see your profile</div>
                     </div>
                     <label className="upp-switch">
                       <input
@@ -1267,7 +1267,7 @@ const savePrefs = async () => {
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">Data Export</div>
-                      <div className="upp-muted">Download your saved data</div>
+                      <div className="upp-muted2">Download your saved data</div>
                     </div>
                     <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => openAlert("Export Started", "We're preparing your data export. You'll get a download when it's ready.")}>
                       Export Data
@@ -1281,7 +1281,7 @@ const savePrefs = async () => {
                     <div className="upp-row between">
                       <div>
                         <div className="upp-strong">Admin Panel</div>
-                        <div className="upp-muted">Access administrative features and management tools</div>
+                        <div className="upp-muted2">Access administrative features and management tools</div>
                       </div>
                       <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => navigate("/admin")}>
                         <ExternalLink className="rdp-sec-icon" /> Open Admin Dashboard
@@ -1295,7 +1295,7 @@ const savePrefs = async () => {
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">Delete Account</div>
-                      <div className="upp-muted">Permanently remove your account and all associated data.</div>
+                      <div className="upp-muted2">Permanently remove your account and all associated data.</div>
                     </div>
                     <button
                       type="button"

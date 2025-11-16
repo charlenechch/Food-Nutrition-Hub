@@ -328,6 +328,11 @@
     font-size: 12px;
     margin-top: 1.7rem; 
 }
+.upp-muted2 { 
+    color:#8c7f72; 
+    font-size: 12px;
+    margin-top: 1rem; 
+}
 
 .upp-card-grid { 
     display:grid; 
