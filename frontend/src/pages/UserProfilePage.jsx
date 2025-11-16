@@ -11,6 +11,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Bell, Eye, Globe, Shield, ExternalLink, OctagonX, Camera, X } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
+import Modal from "../components/Modal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -177,6 +178,57 @@ export default function UserProfilePage() {
   const [communityPosts, setCommunityPosts] = useState([]);
   const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
 
+  // Generic alert dialog
+  const [dlg, setDlg] = useState({
+    open: false,
+    title: "",
+    message: "",
+    primaryText: "OK",
+    onPrimary: null,
+  });
+  const closeDlg = () =>
+    setDlg(m => ({ ...m, open: false, onPrimary: null }));
+
+  const openAlert = (title, message, onPrimary) =>
+    setDlg({ open: true, title, message, primaryText: "OK", onPrimary: onPrimary || closeDlg });
+
+  // Confirm dialog
+  const [confirm, setConfirm] = useState({
+    open: false,
+    title: "",
+    message: "",
+    confirmText: "Confirm",
+    cancelText: "Cancel",
+    onConfirm: null,
+  });
+  const closeConfirm = () =>
+    setConfirm(m => ({ ...m, open: false, onConfirm: null }));
+
+  const openConfirm = (opts) =>
+    setConfirm({
+      open: true,
+      title: opts.title || "Confirm",
+      message: opts.message || "",
+      confirmText: opts.confirmText || "Confirm",
+      cancelText: opts.cancelText || "Cancel",
+      onConfirm: async () => {
+        closeConfirm();
+        await opts.onConfirm?.();
+      },
+    });
+
+  // Password modal (for account deletion)
+  const [pwModal, setPwModal] = useState({
+    open: false,
+    title: "Confirm Account Deletion",
+    message: "For security, please enter your password to confirm.",
+    password: "",
+    onSubmit: null,
+  });
+  const openPasswordModal = (onSubmit) =>
+    setPwModal({ open: true, title: "Confirm Account Deletion", message: "For security, please enter your password to confirm.", password: "", onSubmit });
+  const closePasswordModal = () =>
+    setPwModal(m => ({ ...m, open: false, onSubmit: null, password: "" }));
 
   // ===== Save: Personal Info =====
 const savePersonal = async () => {
@@ -213,14 +265,14 @@ const savePersonal = async () => {
     console.log("✅ Personal info update result:", result);
     
     if (result.success) {
-      alert("Profile updated successfully!");
+      openAlert("Saved", "Profile updated successfully!");
       setUser(prev => ({ ...prev, location: form.location, bio: bio }));
     } else {
       throw new Error(result.error || "Update failed");
     }
   } catch (e) {
     console.error("Personal info update error:", e);
-    alert(e.message || "Failed to update profile");
+    openAlert("Update Failed", e.message || "Failed to update profile");
   }
 };
 
@@ -259,13 +311,13 @@ const savePrefs = async () => {
     console.log("✅ Preferences update result:", result);
     
     if (result.success) {
-      alert("Preferences updated successfully!");
+      openAlert("Saved", "Preferences updated successfully!");
     } else {
       throw new Error(result.error || "Update failed");
     }
   } catch (e) {
     console.error("Preferences update error:", e);
-    alert(e.message || "Failed to update preferences");
+    openAlert("Update Failed", e.message || "Failed to update preferences");
   }
 };
 
@@ -487,58 +539,58 @@ const savePrefs = async () => {
 
   // Delete account handler - Backend password verification
   const handleDeleteAccount = async () => {
-    // Confirm deletion
-    const confirmed = window.confirm(
-      "Are you sure you want to delete your account? This action cannot be undone and will remove all your data."
-    );
-    
-    if (!confirmed) return;
+    openConfirm({
+      title: "Delete Account",
+      message: "Are you sure you want to delete your account? This action cannot be undone and will remove all your data.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      onConfirm: () => {
+        // Step 2: ask for password in controlled modal
+        openPasswordModal(async (password) => {
+          try {
+            // Verify password with backend
+            const verifyRes = await fetch(`${API_BASE_URL}/api/auth/verifyAccountDeletion`, {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ password })
+            });
 
-    // Ask for password to verify
-    const password = prompt("For security, please enter your password to confirm account deletion:");
-    
-    if (!password) {
-      alert("Account deletion cancelled.");
-      return;
-    }
+            if (!verifyRes.ok) {
+              const verifyData = await verifyRes.json().catch(() => ({}));
+              openAlert("Incorrect Password", verifyData.error || "Incorrect password. Account deletion cancelled.");
+              return;
+            }
 
-    try {
-      // Verify password with backend
-      const verifyRes = await fetch(`${API_BASE_URL}/api/auth/verifyAccountDeletion`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password })
-      });
+            console.log("Password verified");
 
-      if (!verifyRes.ok) {
-        const verifyData = await verifyRes.json();
-        alert(verifyData.error || "Incorrect password. Account deletion cancelled.");
-        return;
-      }
-
-      console.log("Password verified");
-
-      // Delete account (backend handles both MySQL and Firebase)
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/delete`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok && data.success) {
-        alert('Account deleted successfully');
-        window.location.href = '/';
-      } else {
-        alert(data.error || 'Failed to delete account');
-      }
-      
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      alert('Failed to delete account. Please try again.');
-    }
+            // Delete account (backend handles both MySQL and Firebase)
+            const res = await fetch(`${API_BASE_URL}/api/userProfile/delete`, {
+              method: 'DELETE',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const data = await res.json().catch(() => ({}));
+            
+            if (res.ok && data.success) {
+                openAlert("Account Deleted", "Your account has been deleted successfully.", () => {
+                  closeDlg();
+                  window.location.href = '/';
+                });
+            } else {
+              openAlert("Delete Failed", data.error || "Failed to delete account. ");
+            }
+            
+          } catch (error) {
+            console.error('Error deleting account:', error);
+            openAlert("Delete Failed", "Failed to delete account. Please try again.");
+          }finally {
+                closePasswordModal();
+          }
+        });
+      },
+    });
   };
 
   // ✅ Pagination for saved foods
@@ -568,13 +620,13 @@ const savePrefs = async () => {
     // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-      alert('Please select a valid image file (JPEG, PNG, GIF, WebP)');
+      openAlert("Invalid File", "Please select a valid image file (JPEG, PNG, GIF, WebP)");
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
+      openAlert("File Too Large", "Image size should be less than 5MB");
       return;
     }
 
@@ -590,7 +642,7 @@ const savePrefs = async () => {
 
   const uploadAvatar = async () => {
     if (!avatarFile) {
-      alert('Please select an image first');
+      openAlert("No Image", "Please select an image first");
       return;
     }
 
@@ -615,7 +667,7 @@ const savePrefs = async () => {
       if (result.success) {
         // Update user state with new avatar
         setUser(prev => ({ ...prev, avatar: result.avatarUrl }));
-        alert('Avatar updated successfully!');
+        openAlert("Avatar Updated", "Your avatar was updated successfully.");
         closeAvatarModal();
         
         // Reload the profile to get updated data
@@ -632,55 +684,59 @@ const savePrefs = async () => {
       }
     } catch (error) {
       console.error('Avatar upload error:', error);
-      alert(error.message || 'Failed to upload avatar');
+      openAlert("Upload Failed", error.message || "Failed to upload avatar");
     } finally {
       setIsUploadingAvatar(false);
     }
   };
 
   const removeAvatar = async () => {
-    if (!window.confirm('Are you sure you want to remove your avatar?')) {
-      return;
-    }
+    openConfirm({
+      title: "Remove Avatar",
+      message: "Are you sure you want to remove your avatar?",
+      confirmText: "Remove",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/userProfile/avatar`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/avatar`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+          if (!res.ok) {
+            throw new Error(`Failed to remove avatar (${res.status})`);
+          }
 
-      if (!res.ok) {
-        throw new Error(`Failed to remove avatar (${res.status})`);
-      }
-
-      const result = await res.json();
-      
-      if (result.success) {
-        // Update user state to remove avatar
-        setUser(prev => ({ ...prev, avatar: null }));
-        alert('Avatar removed successfully!');
-        closeAvatarModal();
-        
-        // Reload the profile
-        const endpoint = userProfileID
-          ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
-          : `${API_BASE_URL}/api/userProfile`;
-        const r2 = await fetch(endpoint, { credentials: "include" });
-        if (r2.ok) {
-          const updatedUser = await r2.json();
-          setUser(updatedUser);
+          const result = await res.json();
+          
+          if (result.success) {
+            // Update user state to remove avatar
+            setUser(prev => ({ ...prev, avatar: null }));
+            openAlert("Avatar Removed", "Your avatar was removed successfully.");
+            closeAvatarModal();
+            
+            // Reload the profile
+            const endpoint = userProfileID
+              ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
+              : `${API_BASE_URL}/api/userProfile`;
+            const r2 = await fetch(endpoint, { credentials: "include" });
+            if (r2.ok) {
+              const updatedUser = await r2.json();
+              setUser(updatedUser);
+            }
+          } else {
+            throw new Error(result.error || 'Remove failed');
+          }
+        } catch (error) {
+          console.error('Avatar remove error:', error);
+          openAlert("Remove Failed", error.message || "Failed to remove avatar");
         }
-      } else {
-        throw new Error(result.error || 'Remove failed');
       }
-    } catch (error) {
-      console.error('Avatar remove error:', error);
-      alert(error.message || 'Failed to remove avatar');
-    }
-  };
+    });
+  }
 
   const closeAvatarModal = () => {
     setShowAvatarModal(false);
@@ -1206,7 +1262,7 @@ const savePrefs = async () => {
                       <div className="upp-strong">Data Export</div>
                       <div className="upp-muted">Download your saved data</div>
                     </div>
-                    <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => alert("Exported!")}>
+                    <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => openAlert("Export Started", "We're preparing your data export. You'll get a download when it's ready.")}>
                       Export Data
                     </button>
                   </div>
@@ -1250,6 +1306,63 @@ const savePrefs = async () => {
       )}
 
       <Footer />
+      <Modal
+        open={dlg.open}
+        title={dlg.title}
+        primaryText={dlg.primaryText || "OK"}
+        onPrimary={dlg.onPrimary || closeDlg}
+        onClose={closeDlg}
+      >
+        {dlg.message}
+      </Modal>
+
+      <Modal
+        open={confirm.open}
+        title={confirm.title}
+        primaryText={confirm.confirmText || "Confirm"}
+        secondaryText={confirm.cancelText || "Cancel"}
+        onPrimary={confirm.onConfirm}
+        onSecondary={closeConfirm}
+        onClose={closeConfirm}
+      >
+        {confirm.message}
+      </Modal>
+      {pwModal.open && (
+        <div className="upp-modal-overlay">
+          <div className="upp-modal">
+            <div className="upp-modal-header">
+              <h3>{pwModal.title}</h3>
+              <button className="upp-modal-close" onClick={closePasswordModal}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="upp-modal-body">
+              <p className="upp-muted" style={{ marginBottom: 12 }}>{pwModal.message}</p>
+              <label className="upp-block">
+                <span>Password</span>
+                <input
+                  type="password"
+                  value={pwModal.password}
+                  onChange={(e) => setPwModal(m => ({ ...m, password: e.target.value }))}
+                  placeholder="Enter your password"
+                />
+              </label>
+            </div>
+            <div className="upp-modal-footer">
+              <button className="lrp-btn lrp-btn-outline" onClick={closePasswordModal}>
+                Cancel
+              </button>
+              <button
+                className="lrp-btn lrp-btn-primary"
+                onClick={() => pwModal.onSubmit?.(pwModal.password)}
+                disabled={!pwModal.password}
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
