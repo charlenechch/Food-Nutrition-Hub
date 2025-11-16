@@ -614,19 +614,29 @@ const savePrefs = async () => {
   };
 
   const handleAvatarFileSelect = (e) => {
-    const file = e.target.files[0];
+    const input = e.target;
+    const file = input.files[0];
     if (!file) return;
 
     // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    
+    const resetPicker = () => {
+      input.value = '';
+      setAvatarFile(null);
+      setAvatarPreview(null);
+    };
+
     if (!validTypes.includes(file.type)) {
-      openAlert("Invalid File", "Please select a valid image file (JPEG, PNG, GIF, WebP)");
+      openAlert("Invalid File", "Please select a valid image file (JPEG, PNG, GIF, WebP)", resetPicker);
+      resetPicker();
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      openAlert("File Too Large", "Image size should be less than 5MB");
+      openAlert("File Too Large", "Image size should be less than 5MB", resetPicker);
+      resetPicker();
       return;
     }
 
@@ -634,9 +644,7 @@ const savePrefs = async () => {
     
     // Create preview
     const reader = new FileReader();
-    reader.onload = (e) => {
-      setAvatarPreview(e.target.result);
-    };
+    reader.onload = (ev) => setAvatarPreview(ev.target.result);
     reader.readAsDataURL(file);
   };
 
