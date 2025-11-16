@@ -824,8 +824,8 @@ const savePrefs = async () => {
               
               <div className="upp-avatar-actions">
                 <label htmlFor="avatar-upload" className="lrp-btn lrp-btn-primary">
-                  <Camera size={16} />
-                  Choose Image
+                  <Camera size={20} />
+                   Choose Image
                 </label>
                 <input
                   id="avatar-upload"
