@@ -2,62 +2,76 @@ const express = require("express");
 const router = express.Router();
 const { pool: db } = require("../config/db");
 const { requireAuth, requireAdmin } = require("../middleware/auth");
-const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
+// removed multer/fs/path since we now use Cloudinary
 
 // ============================
 // 📂 IMAGE UPLOAD SETUP
 // ============================
 
-// Create upload folder if not exists
-const uploadDir = path.join(__dirname, "../uploads/food-images");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log("✅ Created upload directory:", uploadDir);
-}
-
-// Multer storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
+// Cloudinary setup (NEW: Base64 -> Cloudinary)
+const cloudinary = require("cloudinary").v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME || "",
+  api_key: process.env.CLOUDINARY_API_KEY || process.env.CloudINARY_API_KEY || "",
+  api_secret: process.env.CLOUDINARY_API_SECRET || process.env.CloudINARY_API_SECRET || "",
 });
-
-// File upload filter (only images)
-const upload = multer({
-  storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
-  fileFilter: (req, file, cb) => {
-    const allowed = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
-    if (!allowed.includes(file.mimetype)) {
-      return cb(new Error("Only JPG, PNG, or WEBP images are allowed"));
-    }
-    cb(null, true);
-  },
+console.log("🔧 Cloudinary configured:", {
+  cloud_name: cloudinary.config().cloud_name ? "✅ Set" : "❌ Missing",
+  api_key: cloudinary.config().api_key ? "✅ Set" : "❌ Missing",
 });
 
 // ============================
 // 🖼️ IMAGE UPLOAD ENDPOINT
 // ============================
 // URL: POST /api/foods/upload/food-image
+// Replaced Multer + local uploads with Base64 -> Cloudinary
 router.post(
   "/upload/food-image",
   requireAuth,
   requireAdmin,
-  upload.single("foodImage"),
-  (req, res) => {
+  async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ success: false, error: "No image uploaded" });
+      // Expect JSON body: { image: "data:image/png;base64,..." }
+      const { image } = req.body;
+
+      if (!image) {
+        return res.status(400).json({ success: false, error: "No image received" });
       }
 
-      const imageUrl = `/uploads/food-images/${req.file.filename}`;
-      console.log("✅ Image uploaded:", imageUrl);
+      // Optional: basic validation for data URI
+      if (typeof image !== "string" || !image.startsWith("data:image")) {
+        return res
+          .status(400)
+          .json({ success: false, error: "Invalid image format; expected data URI" });
+      }
 
-      res.status(200).json({ success: true, imageUrl });
+      // Optional: estimate base64 size and reject large uploads (example: 10MB)
+      try {
+        const estimatedBytes = Math.ceil((image.length * 3) / 4);
+        const maxBytes = 10 * 1024 * 1024; // 10 MB
+        if (estimatedBytes > maxBytes) {
+          return res.status(400).json({
+            success: false,
+            error: "Image too large. Please use an image smaller than 10MB.",
+          });
+        }
+      } catch (sizeErr) {
+        console.warn("Could not estimate image size:", sizeErr && sizeErr.message);
+      }
+
+      console.log("📤 Uploading image to Cloudinary (food-images folder)...");
+      const uploaded = await cloudinary.uploader.upload(image, {
+        folder: "food-images",
+        resource_type: "image",
+        timeout: 30000,
+        // you can add transformations or public_id here if desired
+      });
+
+      console.log("✅ Image uploaded to Cloudinary:", uploaded.secure_url);
+      return res.status(200).json({ success: true, imageUrl: uploaded.secure_url });
     } catch (err) {
-      console.error("❌ Image upload failed:", err.message);
-      res.status(500).json({ success: false, error: "Image upload failed" });
+      console.error("❌ Cloudinary upload failed:", err && err.message ? err.message : err);
+      return res.status(500).json({ success: false, error: "Cloudinary upload failed" });
     }
   }
 );
@@ -234,7 +248,6 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: "Failed to update food" });
   }
 });
-
 
 // ✅ Delete food (ADMIN ONLY)
 router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {

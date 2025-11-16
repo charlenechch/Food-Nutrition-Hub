@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const { pool: db } = require("../config/db");
 const cloudinary = require('cloudinary').v2;
-const multer = require('multer');
 const { updateUserStats } = require('./userProfile');
 
 // ✅ NEW: Validation + sanitization setup (added without removing anything)

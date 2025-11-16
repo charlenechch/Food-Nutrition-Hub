@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "../css/EditFoodPage.css";
 import Header from "../components/Header";
@@ -24,17 +24,17 @@ const ORIGIN_OPTIONS = [
 const EditFoodPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const fileInputRef = useRef(null);
+
   const [selectedImage, setSelectedImage] = useState(null);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [existingImageUrl, setExistingImageUrl] = useState("");
-
   const [showNotification, setShowNotification] = useState({
     visible: false,
     message: "",
     type: "",
   });
-
   const [food, setFood] = useState(null);
 
   // --- Fetch Food Data on Load ---
@@ -83,68 +83,140 @@ const EditFoodPage = () => {
     setFood({ ...food, [e.target.name]: e.target.value });
   };
 
-  // --- Handle Save Click ---
+  // --- Buttons / Notifications ---
   const handleSaveClick = () => {
     setShowSaveConfirm(true);
     setShowNotification({ visible: false, message: "", type: "" });
   };
-
-  const handleCancelSave = () => {
-    setShowSaveConfirm(false);
-  };
-
-  const handleCloseNotification = () => {
+  const handleCancelSave = () => setShowSaveConfirm(false);
+  const handleCloseNotification = () =>
     setShowNotification({ visible: false, message: "", type: "" });
-  };
 
-  // --- Handle Image Upload ---
+  // --- Robust Image Upload (Base64 -> Cloudinary) ---
   const handleImageUpload = async (file) => {
-    if (!file) return existingImageUrl;
-
-    const formData = new FormData();
-    formData.append("foodImage", file);
-
-    try {
-      const uploadRes = await fetch(`${API_URL}/api/foods/upload/food-image`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-
-      const uploadResult = await uploadRes.json();
-
-      if (uploadResult.success && uploadResult.imageUrl) {
-        return uploadResult.imageUrl;
-      } else {
-        console.error("Image upload failed:", uploadResult.error);
-        setShowNotification({
-          visible: true,
-          message: "Image upload failed. Food data was not saved.",
-          type: "error",
-        });
-        return existingImageUrl;
-      }
-    } catch (err) {
-      console.error("Error during image upload:", err);
-      setShowNotification({
-        visible: true,
-        message:
-          "Error communicating with upload server. Food data was not saved.",
-        type: "error",
-      });
+    if (!file) {
+      console.log("[upload] no file provided, returning existingImageUrl");
       return existingImageUrl;
     }
+
+    console.log("[upload] selected file:", {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
+
+    const maxBytes = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxBytes) {
+      setShowNotification({
+        visible: true,
+        message: "Selected image is too large (max 10MB).",
+        type: "error",
+      });
+      throw new Error("File too large");
+    }
+    if (!file.type.startsWith("image/")) {
+      setShowNotification({
+        visible: true,
+        message: "Please select a valid image file.",
+        type: "error",
+      });
+      throw new Error("Invalid file type");
+    }
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onerror = (err) => {
+        console.error("[upload] FileReader error:", err);
+        setShowNotification({
+          visible: true,
+          message: "Failed to read the selected image.",
+          type: "error",
+        });
+        reject(new Error("FileReader failed"));
+      };
+
+      reader.onloadend = async () => {
+        const base64Image = reader.result;
+        console.log("[upload] base64 length:", base64Image ? base64Image.length : 0);
+
+        if (!base64Image || typeof base64Image !== "string" || !base64Image.startsWith("data:image")) {
+          console.error("[upload] invalid base64 produced:", base64Image && base64Image.slice(0, 50));
+          setShowNotification({
+            visible: true,
+            message: "Could not convert image to base64.",
+            type: "error",
+          });
+          return reject(new Error("Invalid base64"));
+        }
+
+        try {
+          const uploadRes = await fetch(`${API_URL}/api/foods/upload/food-image`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: base64Image }),
+          });
+
+          let uploadResult;
+          try {
+            uploadResult = await uploadRes.json();
+          } catch (jsonErr) {
+            console.error("[upload] failed to parse JSON response:", jsonErr);
+            setShowNotification({
+              visible: true,
+              message: "Server response was not valid JSON.",
+              type: "error",
+            });
+            return reject(new Error("Invalid server response"));
+          }
+
+          console.log("[upload] server response:", uploadResult);
+
+          if (!uploadRes.ok || !uploadResult.success || !uploadResult.imageUrl) {
+            const serverMsg = uploadResult && uploadResult.error ? uploadResult.error : "Upload failed";
+            setShowNotification({
+              visible: true,
+              message: `Image upload failed: ${serverMsg}`,
+              type: "error",
+            });
+            return reject(new Error(serverMsg));
+          }
+
+          return resolve(uploadResult.imageUrl);
+        } catch (err) {
+          console.error("[upload] network or server error:", err);
+          setShowNotification({
+            visible: true,
+            message: "Server error during image upload.",
+            type: "error",
+          });
+          return reject(err);
+        }
+      };
+
+      reader.readAsDataURL(file);
+    });
   };
 
-  // --- Handle Confirm Save ---
+  // --- Confirm Save (upload then PUT) ---
   const handleConfirmSave = async () => {
     setShowSaveConfirm(false);
 
-    const finalImageUrl = await handleImageUpload(selectedImage);
+    let finalImageUrl = existingImageUrl;
 
-    if (showNotification.type === "error") return;
+    try {
+      if (selectedImage) {
+        finalImageUrl = await handleImageUpload(selectedImage);
+        console.log("[save] finalImageUrl after upload:", finalImageUrl);
+      } else {
+        console.log("[save] no new image selected — using existingImageUrl:", existingImageUrl);
+      }
+    } catch (uploadErr) {
+      console.warn("[save] upload failed — aborting save:", uploadErr);
+      return;
+    }
 
-    // Convert numeric inputs to numbers or default to 0
     const dataToSave = {
       name: food.name,
       origin: food.origin,
@@ -158,7 +230,7 @@ const EditFoodPage = () => {
     };
 
     try {
-      console.log("Updating food:", dataToSave); // debug
+      console.log("[save] updating food with:", dataToSave);
       const res = await fetch(`${API_URL}/api/foods/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -167,6 +239,7 @@ const EditFoodPage = () => {
       });
 
       const result = await res.json();
+      console.log("[save] update response:", result);
 
       if (result.success) {
         setExistingImageUrl(finalImageUrl);
@@ -177,7 +250,7 @@ const EditFoodPage = () => {
           type: "success",
         });
       } else {
-        console.error("Failed to save:", result.error);
+        console.error("[save] Failed to save:", result.error);
         setShowNotification({
           visible: true,
           message: `Failed to save changes: ${result.error || "Unknown error."}`,
@@ -185,7 +258,7 @@ const EditFoodPage = () => {
         });
       }
     } catch (err) {
-      console.error("Error saving:", err);
+      console.error("[save] Error saving:", err);
       setShowNotification({
         visible: true,
         message: "An unknown error occurred while updating the food item.",
@@ -199,9 +272,7 @@ const EditFoodPage = () => {
     return (
       <div className="edit-food-page">
         <Header />
-        <p style={{ textAlign: "center", marginTop: "2rem" }}>
-          Loading food data...
-        </p>
+        <p style={{ textAlign: "center", marginTop: "2rem" }}>Loading food data...</p>
         <Footer />
       </div>
     );
@@ -211,13 +282,18 @@ const EditFoodPage = () => {
     return (
       <div className="edit-food-page">
         <Header />
-        <p style={{ textAlign: "center", marginTop: "2rem" }}>
-          Food not found.
-        </p>
+        <p style={{ textAlign: "center", marginTop: "2rem" }}>Food not found.</p>
         <Footer />
       </div>
     );
   }
+
+  // Helper to display image whether cloud URL or server path
+  const getDisplayImage = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http")) return url;
+    return `${API_URL}/${url.replace(/^\/+/, "")}`;
+  };
 
   // --- Render Page ---
   return (
@@ -226,10 +302,7 @@ const EditFoodPage = () => {
 
       <div className="edit-food-container">
         <div className="edit-topbar">
-          <button
-            className="admin-edit-food-back-btn"
-            onClick={() => navigate("/admin")}
-          >
+          <button className="admin-edit-food-back-btn" onClick={() => navigate("/admin")}>
             <span className="admin-edit-food-back-icon">
               <FaArrowLeftLong />
             </span>
@@ -241,10 +314,7 @@ const EditFoodPage = () => {
             <p>{food.name}</p>
           </div>
 
-          <button
-            className="admin-edit-food-save-btn"
-            onClick={handleSaveClick}
-          >
+          <button className="admin-edit-food-save-btn" onClick={handleSaveClick}>
             <span className="admin-edit-food-save-icon">
               <FiSave />
             </span>
@@ -258,27 +328,30 @@ const EditFoodPage = () => {
             <h3>Food Image</h3>
             <div className="image-preview">
               {selectedImage ? (
-                <img
-                  src={URL.createObjectURL(selectedImage)}
-                  alt="New Image Preview"
-                />
+                <img src={URL.createObjectURL(selectedImage)} alt="New Image Preview" />
               ) : existingImageUrl ? (
-                <img src={existingImageUrl} alt={food.name} />
+                <img src={getDisplayImage(existingImageUrl)} alt={food.name} />
               ) : (
                 <p>No Image</p>
               )}
             </div>
+
             <input
+              ref={fileInputRef}
               className="edit-food-input"
               type="file"
               id="fileInput"
               accept="image/*"
-              onChange={(e) => setSelectedImage(e.target.files[0])}
+              onChange={(e) => {
+                console.log("[input] onChange, files:", e.target.files);
+                const file = e.target.files && e.target.files[0];
+                setSelectedImage(file || null);
+              }}
               style={{ display: "none" }}
             />
             <button
               className="admin-edit-food-upload-btn"
-              onClick={() => document.getElementById("fileInput").click()}
+              onClick={() => fileInputRef.current && fileInputRef.current.click()}
             >
               <span className="admin-edit-food-upload-icon">
                 <MdOutlineFileUpload />
@@ -293,12 +366,7 @@ const EditFoodPage = () => {
             <div className="edit-food-basic-info-two-col">
               <div>
                 <label className="basic-info-label">Food Name</label>
-                <input
-                  className="edit-food-input"
-                  name="name"
-                  value={food.name}
-                  onChange={handleChange}
-                />
+                <input className="edit-food-input" name="name" value={food.name} onChange={handleChange} />
               </div>
               <div>
                 <label className="basic-info-label">Name (Bahasa Malaysia)</label>
@@ -316,12 +384,7 @@ const EditFoodPage = () => {
             <div className="food-category-field">
               <label className="basic-info-label">Category</label>
               <div className="custom-select-wrapper">
-                <select
-                  className="edit-food-select"
-                  name="category"
-                  value={food.category}
-                  onChange={handleChange}
-                >
+                <select className="edit-food-select" name="category" value={food.category} onChange={handleChange}>
                   <option value="">Select category</option>
                   <option value="Poultry">Poultry</option>
                   <option value="Seafood">Seafood</option>
@@ -340,12 +403,7 @@ const EditFoodPage = () => {
             <div className="food-origin-field">
               <label className="basic-info-label">Region of Origin</label>
               <div className="custom-select-wrapper">
-                <select
-                  className="edit-food-select"
-                  name="origin"
-                  value={food.origin}
-                  onChange={handleChange}
-                >
+                <select className="edit-food-select" name="origin" value={food.origin} onChange={handleChange}>
                   <option value="">Select an origin</option>
                   {ORIGIN_OPTIONS.map((origin) => (
                     <option key={origin} value={origin}>
@@ -362,13 +420,7 @@ const EditFoodPage = () => {
         <div className="edit-cultural-context-card">
           <h3>Cultural Context (Not Saved)</h3>
           <label className="basic-info-label">Description</label>
-          <textarea
-            className="edit-food-textarea"
-            name="description"
-            value={food.description}
-            onChange={handleChange}
-            rows={5}
-          />
+          <textarea className="edit-food-textarea" name="description" value={food.description} onChange={handleChange} rows={5} />
           <label className="basic-info-label">Cultural Significance</label>
           <textarea
             className="edit-food-textarea"
@@ -405,12 +457,7 @@ const EditFoodPage = () => {
             ].map((item) => (
               <div key={item.name}>
                 <label className="basic-info-label">{item.label}</label>
-                <input
-                  className="edit-food-input"
-                  name={item.name}
-                  value={food[item.name]}
-                  onChange={handleChange}
-                />
+                <input className="edit-food-input" name={item.name} value={food[item.name]} onChange={handleChange} />
               </div>
             ))}
           </div>
@@ -443,11 +490,7 @@ const EditFoodPage = () => {
       {showNotification.visible && (
         <div className="modal-overlay">
           <div className={`notification-modal ${showNotification.type}`}>
-            <h3
-              style={{
-                color: showNotification.type === "error" ? "#a33b3b" : "#387346",
-              }}
-            >
+            <h3 style={{ color: showNotification.type === "error" ? "#a33b3b" : "#387346" }}>
               {showNotification.type === "success" ? "Success!" : "Error!"}
             </h3>
             <p>{showNotification.message}</p>
@@ -455,10 +498,7 @@ const EditFoodPage = () => {
               <button
                 className="confirm-save-btn"
                 onClick={handleCloseNotification}
-                style={{
-                  backgroundColor:
-                    showNotification.type === "error" ? "#a33b3b" : "#7b4b26",
-                }}
+                style={{ backgroundColor: showNotification.type === "error" ? "#a33b3b" : "#7b4b26" }}
               >
                 OK
               </button>
