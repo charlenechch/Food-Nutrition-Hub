@@ -330,3 +330,118 @@
 .nutrition-table { width: 100%; border-collapse: collapse; }
 .nutrition-table td { padding: 8px 6px; border-bottom: 1px solid #f0e8de; }
 .nutrition-table tr:last-child td { border-bottom: none; }
+
+/* Main container for right side */
+.analysis-container {
+  padding: 10px 4px;
+}
+
+/* Title */
+.analysis-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #4a3b2f;
+}
+
+.analysis-meta {
+  opacity: 0.7;
+  margin-top: -2px;
+  margin-bottom: 12px;
+}
+
+/* Image */
+.analysis-image-wrapper {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.analysis-image {
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Section headers */
+.section-header {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #58422e;
+}
+
+/* Macros */
+.macro-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.macro-card {
+  background: #f6f1ea;
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  border: 1px solid #e7dccc;
+}
+
+.macro-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #5a3f2a;
+}
+
+.macro-label {
+  margin-top: -4px;
+  opacity: 0.7;
+}
+
+/* Alternatives */
+.alternatives-section {
+  margin-top: 30px;
+}
+
+.alternative-card {
+  background: #fdfbf7;
+  border: 1px solid #ecdac5;
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.alt-main {
+  font-weight: 600;
+  color: #4c3829;
+}
+
+.alt-desc {
+  margin-top: 4px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* Tips */
+.tips-section {
+  margin-top: 30px;
+}
+
+.tip-card {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.tip-warning {
+  background: #fff8db;
+  border: 1px solid #f4e4ab;
+}
+
+.tip-info {
+  background: #eef4ff;
+  border: 1px solid #ccdaff;
+}
+

@@ -357,67 +357,103 @@ export default function NutritionAnalyzerPage() {
           )}
 
           {result && (
-            <div>
-              <h3 style={{ marginTop: 0 }}>{result.food_name}</h3>
+            <div className="analysis-container">
+
+              {/* Food Name */}
+              <h2 className="analysis-title">{result.food_name}</h2>
+
+              {/* Food Meta */}
+              {(result.meta?.origin || result.meta?.foodType || result.meta?.difficulty) && (
+                <p className="analysis-meta">
+                  {result.meta.origin && `${result.meta.origin} · `}
+                  {result.meta.foodType && `${result.meta.foodType} · `}
+                  {result.meta.difficulty && result.meta.difficulty}
+                </p>
+              )}
+
+              {/* IMAGE */}
               {result.meta?.image && (
-                <div className="result-image-wrapper" style={{ marginTop: 12 }}>
+                <div className="analysis-image-wrapper">
                   <img
                     src={result.meta.image}
                     alt={result.food_name}
-                    className="result-image"
-                    style={{
-                      width: "100%",
-                      borderRadius: "10px",
-                      objectFit: "cover",
-                      maxHeight: "240px"
-                    }}
+                    className="analysis-image"
                   />
                 </div>
               )}
 
-
+              {/* Nutrition Section */}
               {result.nutrition && (
-                <div style={{ marginTop: 10 }}>
-                  <strong>Nutrition (per portion)</strong>
-                  <ul style={{ margin: "6px 0 0 18px" }}>
-                    <li>Energy: {result.nutrition.Energy_kcal ?? "—"} kcal</li>
-                    <li>Protein: {result.nutrition.Protein_g ?? "—"} g</li>
-                    <li>Fat: {result.nutrition.Fat_g ?? "—"} g</li>
-                    <li>Carbs: {result.nutrition.Carbohydrates_g ?? "—"} g</li>
-                    <li>Fiber: {result.nutrition.Fiber_g ?? "—"} g</li>
-                    <li>Vitamin C: {result.nutrition.VitaminC_mg ?? "—"} mg</li>
-                  </ul>
+                <div className="nutrition-section">
+                  <h3 className="section-header">Nutrition (per portion)</h3>
+
+                  <div className="macro-grid">
+
+                    <div className="macro-card">
+                      <p className="macro-value">{result.nutrition.Energy_kcal ?? "—"}</p>
+                      <p className="macro-label">calories</p>
+                    </div>
+
+                    <div className="macro-card">
+                      <p className="macro-value">{result.nutrition.Protein_g ?? "—"}g</p>
+                      <p className="macro-label">protein</p>
+                    </div>
+
+                    <div className="macro-card">
+                      <p className="macro-value">{result.nutrition.Fat_g ?? "—"}g</p>
+                      <p className="macro-label">fat</p>
+                    </div>
+
+                    <div className="macro-card">
+                      <p className="macro-value">{result.nutrition.Carbohydrates_g ?? "—"}g</p>
+                      <p className="macro-label">carbs</p>
+                    </div>
+
+                    <div className="macro-card">
+                      <p className="macro-value">{result.nutrition.Fiber_g ?? "—"}g</p>
+                      <p className="macro-label">fiber</p>
+                    </div>
+
+                    <div className="macro-card">
+                      <p className="macro-value">{result.nutrition.VitaminC_mg ?? "—"}mg</p>
+                      <p className="macro-label">vitamin C</p>
+                    </div>
+
+                  </div>
                 </div>
               )}
 
-              {!!(result.alternatives?.length) && (
-                <div style={{ marginTop: 14 }}>
-                  <strong>Healthier alternatives</strong>
-                  <ul style={{ margin: "6px 0 0 18px" }}>
-                    {result.alternatives.map((a, i) => <li key={i}>{a}</li>)}
-                  </ul>
-                  {result.altDescription && (
-                    <p style={{ marginTop: 6, opacity: 0.9 }}>{result.altDescription}</p>
-                  )}
+              {/* Healthier Alternatives */}
+              {!!result.alternatives?.length && (
+                <div className="alternatives-section">
+                  <h3 className="section-header">Healthier Alternatives</h3>
+
+                  {result.alternatives.map((alt, index) => (
+                    <div className="alternative-card" key={index}>
+                      <div className="alt-main">{alt}</div>
+                      {result.altDescription && (
+                        <div className="alt-desc">{result.altDescription}</div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
 
-              {!!(result.tips?.length) && (
-                <div style={{ marginTop: 14 }}>
-                  <strong>Tips</strong>
-                  <ul style={{ margin: "6px 0 0 18px" }}>
-                    {result.tips.map((t, i) => <li key={i}>{t}</li>)}
-                  </ul>
+              {/* Tips */}
+              {!!result.tips?.length && (
+                <div className="tips-section">
+                  <h3 className="section-header">Health Tips</h3>
+
+                  {result.tips.map((tip, index) => (
+                    <div
+                      className={`tip-card ${tip.toLowerCase().includes("sodium") ? "tip-warning" : "tip-info"}`}
+                      key={index}
+                    >
+                      {tip}
+                    </div>
+                  ))}
                 </div>
               )}
-
-              {/* ALT DESCRIPTION (from DB or AI) */}
-                {result.altDescription && (
-                  <p style={{ marginTop: 14, opacity: 0.9 }}>
-                    {result.altDescription}
-                  </p>
-                )}
-
 
             </div>
           )}
