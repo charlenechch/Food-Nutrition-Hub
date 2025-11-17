@@ -45,7 +45,7 @@ function getStableProfileId(user) {
     return adminProfileId;
   }
   
-  // For regular 
+  // For regular users
   return user?.userProfileID || user?.userID || user?.id || null;
 }
 
