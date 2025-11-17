@@ -143,7 +143,8 @@ export default function NutritionAnalyzerPage() {
       // 1) If file provided -> call FastAPI /predict (image route)
       if (selectedFile) {
         const fd = new FormData();
-        fd.append("file", selectedFile);          
+        fd.append("file", selectedFile);
+        // you *can* send food_name if you want, but it's optional now
         if (foodName) fd.append("food_name", foodName);
         if (ingredients) fd.append("ingredients", ingredients);
 
@@ -154,16 +155,13 @@ export default function NutritionAnalyzerPage() {
 
         const data = await r.json();
 
-        if (!data.pred_class && !data.nutrition) {
-          setError("The AI couldn’t confidently recognize this food. Try a clearer photo or another angle.");
-          setResult(null);
-          return;
-          }
-
-        // shape into UI model
         const shaped = {
           source: "ai",
-          food_name: data.pred_class, 
+          food_name:
+            data.pred_class ||
+            data.food_name ||
+            foodName ||
+            "Detected Food",
 
           confidence: data.confidence,
 
@@ -180,25 +178,28 @@ export default function NutritionAnalyzerPage() {
 
           tips: data.tips ? [data.tips] : [],
 
-           alternatives: data.alternative
-            ? data.alternative.split(",").map((x) => x.trim())
+          alternatives: data.alternative
+            ? data.alternative.split(",").map((s) => s.trim()).filter(Boolean)
             : [],
 
           altDescription: data.altDescription || "",
 
-           meta: {
+          meta: {
             origin: data.origin,
             category: data.category,
             foodType: data.foodType,
             difficulty: data.difficulty,
-            image: data.image,                   
+            image: data.image,
             commonIngredients: data.commonIngredients,
-          }
+            portion: "1 serving",
+            imageUsed: true,
+          },
         };
 
         setResult(shaped);
-         return;
+        return;
       }
+
 
 
       // 2) Else (no file) -> ask backend to return DB row or synthesize
@@ -358,11 +359,22 @@ export default function NutritionAnalyzerPage() {
           {result && (
             <div>
               <h3 style={{ marginTop: 0 }}>{result.food_name}</h3>
-              {result.meta?.origin && (
-                <p style={{ opacity: 0.8, marginTop: -6 }}>
-                  {result.meta.origin} · {result.meta.foodType} · {result.meta.difficulty}
-                </p>
+              {result.meta?.image && (
+                <div className="result-image-wrapper" style={{ marginTop: 12 }}>
+                  <img
+                    src={result.meta.image}
+                    alt={result.food_name}
+                    className="result-image"
+                    style={{
+                      width: "100%",
+                      borderRadius: "10px",
+                      objectFit: "cover",
+                      maxHeight: "240px"
+                    }}
+                  />
+                </div>
               )}
+
 
               {result.nutrition && (
                 <div style={{ marginTop: 10 }}>
@@ -398,6 +410,15 @@ export default function NutritionAnalyzerPage() {
                   </ul>
                 </div>
               )}
+
+              {/* ALT DESCRIPTION (from DB or AI) */}
+                {result.altDescription && (
+                  <p style={{ marginTop: 14, opacity: 0.9 }}>
+                    {result.altDescription}
+                  </p>
+                )}
+
+
             </div>
           )}
         </div>
