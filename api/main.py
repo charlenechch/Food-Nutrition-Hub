@@ -146,7 +146,6 @@ app.add_middleware(
 
 # OUTPUT MODEL
 class PredictOut(BaseModel):
-    class PredictOut(BaseModel):
     pred_class: Optional[str]
     confidence: float
     
