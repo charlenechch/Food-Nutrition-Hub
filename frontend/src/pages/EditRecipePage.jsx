@@ -127,9 +127,9 @@ export default function EditRecipePage() {
         status: recipe.status ?? "Approved",
       };
 
-      console.log("PUT /api/recipe/recipes payload:", payload);
+      console.log("PUT /revise/recipes payload:", payload);
 
-      const res = await fetch(`${API_URL}/api/recipe/recipes/${recipe.id}`, {
+      const res = await fetch(`${API_URL}/revise/recipes/${recipe.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -155,12 +155,12 @@ export default function EditRecipePage() {
     }
   };
 
-  const handleUpdateStatus = async (status) => {
+  const handleUpdateStatus = async (newStatus) => {
     if (isApproved) return;
 
     setUpdatingStatus(true);
     try {
-      const payload = { status: status, feedback: recipe.feedback ?? "" };
+      const payload = { status: newStatus, feedback: recipe.feedback ?? "" };
       console.log("PATCH /api/recipe/updateStatus payload:", payload);
 
       const res = await fetch(`${API_URL}/api/recipe/updateStatus/${recipe.id}`, {
@@ -179,7 +179,7 @@ export default function EditRecipePage() {
         throw new Error(errText);
       }
 
-      alert(`✅ Recipe marked as ${status}.`);
+      alert(`✅ Recipe marked as ${newStatus}.`);
       navigate("/admin");
     } catch (err) {
       console.error("Failed to update status:", err);
