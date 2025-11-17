@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { FaRegFlag, FaPlus } from "react-icons/fa6";
 import { CiSearch, CiFilter } from "react-icons/ci";
 import { MdOutlineFileUpload } from "react-icons/md";
+import { HiOutlinePencilAlt } from "react-icons/hi";
+import { RiDeleteBin5Line } from "react-icons/ri";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -13,17 +15,12 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
   const [category, setCategory] = useState("All Categories");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
-
   const [showFilters, setShowFilters] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 5;
-
-  const currentRecipes = recipesProp.slice(
-    (currentPage - 1) * perPage,
-    currentPage * perPage
-  );
+  const currentRecipes = recipesProp.slice((currentPage - 1) * perPage, currentPage * perPage);
   const totalPages = Math.ceil(recipesProp.length / perPage);
 
   const handlePageChange = (page) => {
@@ -57,15 +54,14 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
 
   return (
     <div className="recipe-database-section">
+      {/* Header */}
       <div className="recipe-header">
         <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
 
+        {/* Only Approved recipes get Add / Import buttons */}
         {sectionType === "approved" && (
           <div className="recipe-actions">
-            <button
-              className="admin-recipe-btn-add"
-              onClick={() => navigate("/admin/addrecipe")}
-            >
+            <button className="admin-recipe-btn-add" onClick={() => navigate("/admin/addrecipe")}>
               <FaPlus /> Add New Recipe
             </button>
             <button className="admin-recipe-btn-import">
@@ -81,6 +77,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
           <CiSearch className="search-icon" />
           <input type="text" placeholder="Search recipes..." />
         </div>
+
         <div
           className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`}
           ref={dropdownRef}
@@ -107,10 +104,8 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
             </ul>
           )}
         </div>
-        <button
-          className="admin-recipe-btn-filter"
-          onClick={() => setShowFilters(!showFilters)}
-        >
+
+        <button className="admin-recipe-btn-filter" onClick={() => setShowFilters(!showFilters)}>
           <CiFilter className="filter-icon" /> Filters
         </button>
       </div>
@@ -135,11 +130,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
                 <br />
                 <small>{r.servings ? `${r.servings} servings` : ""}</small>
               </td>
-              <td>
-                <span className="category-tag">
-                  {r.foodType || r.category || "N/A"}
-                </span>
-              </td>
+              <td><span className="category-tag">{r.foodType || r.category || "N/A"}</span></td>
               <td>{r.origin || "Unknown"}</td>
               <td>{r.date || "—"}</td>
               <td>
@@ -156,20 +147,38 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
                 </span>
               </td>
               <td className="admin-recipe-action-buttons">
-                <button
-                  className="review-btn"
-                  onClick={() =>
-                    navigate(`/admin/edit/recipe/${r.id || i}`)
-                  }
-                >
-                  Review
-                </button>
+                {/* ✅ Only Approved recipes have Food DB style icons */}
+                {sectionType === "approved" ? (
+                  <>
+                    <button
+                      className="food-database-btn-edit"
+                      onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}
+                    >
+                      <HiOutlinePencilAlt />
+                    </button>
+                    <button
+                      className="food-database-btn-delete"
+                      onClick={() => console.log("Delete recipe", r.id || i)}
+                    >
+                      <RiDeleteBin5Line />
+                    </button>
+                  </>
+                ) : (
+                  /* Pending / Rejected keep original actions untouched */
+                  <button
+                    className="review-btn"
+                    onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}
+                  >
+                    Review
+                  </button>
+                )}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="admin-pagination">
           <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
@@ -184,10 +193,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
               {i + 1}
             </button>
           ))}
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
+          <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
             Next ›
           </button>
         </div>
