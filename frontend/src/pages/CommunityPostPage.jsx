@@ -148,7 +148,7 @@ const LikeButton = ({ postId, initialLikes, user, onAlert  }) => {
     }
   } catch (error) {
     console.error("Error updating like:", error);
-    onAlert?.("Error Updating Like", "We couldn't update your like. Please try again.");
+    onAlert?.("Error Updating Like", "We couldn't update your like. Please try again.", null, <i className="fas fa-triangle-exclamation"></i>);
   } finally {
     setLoading(false);
   }
@@ -264,11 +264,11 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
       if (response.ok && result.success) {
         onCommentDeleted(commentToDelete.id);
       } else {
-        onAlert?.("Delete Failed", result.message || "Failed to delete comment");
+        onAlert?.("Delete Failed", result.message || "Failed to delete comment", null, <i className="fas fa-times-circle"></i>);
       }
     } catch (error) {
       console.error('Error deleting comment:', error);
-      onAlert?.("Delete Error", "An unexpected error occurred while deleting the comment.");
+      onAlert?.("Delete Error", "An unexpected error occurred while deleting the comment.", null, <i className="fas fa-triangle-exclamation"></i>);
     } finally {
       setDeletingCommentId(null);
       closeDeleteModal();
@@ -332,13 +332,13 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
     if (result.success && result.comment) {
       onCommentAdded(result.comment);
       setComment("");
-      onAlert?.("Comment Posted", "Your comment has been posted.");
+      onAlert?.("Comment Posted", "Your comment has been posted.", null, <i className="fas fa-check-circle"></i>);
     } else {
       throw new Error(result.message || "Failed to post comment");
     }
   } catch (err) {
     console.error("Error posting comment:", err);
-    onAlert?.("Post Failed", err.message || "Failed to post comment. Please try again.");
+    onAlert?.("Post Failed", err.message || "Failed to post comment. Please try again.", null, <i className="fas fa-times-circle"></i>);
   } finally {
     setLoading(false);
   }
@@ -500,14 +500,15 @@ export default function CommunityPost() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [dlg, setDlg] = useState({ open:false, title:"", message:"", primaryText:"OK", onPrimary:null });
+  const [dlg, setDlg] = useState({ open:false, title:"", message:"", primaryText:"OK", onPrimary:null, icon:null });
   const closeDlg = () => setDlg(m => ({ ...m, open:false, onPrimary:null }));
-  const openAlert = (title, message, onPrimary) =>
+  const openAlert = (title, message, onPrimary, icon=null) =>
     setDlg({
       open: true,
       title,
       message,
       primaryText: "OK",
+      icon,
       onPrimary: () => { try { onPrimary?.(); } finally { closeDlg(); } }
     });
 
@@ -680,6 +681,7 @@ export default function CommunityPost() {
       <Modal
         open={dlg.open}
         title={dlg.title}
+        icon={dlg.icon}
         primaryText={dlg.primaryText}
         onPrimary={dlg.onPrimary || closeDlg}
         onClose={closeDlg}
