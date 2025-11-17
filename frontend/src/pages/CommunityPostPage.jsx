@@ -5,6 +5,7 @@ import "../css/Community.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import LoginPromptModal from "../components/LoginPromptModal"; 
+import Modal from "../components/Modal";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 // ------------ Helpers -------------
@@ -49,7 +50,7 @@ function getStableProfileId(user) {
 }
 
 // ------------ Like Button Component -------------
-const LikeButton = ({ postId, initialLikes, user }) => {
+const LikeButton = ({ postId, initialLikes, user, onAlert  }) => {
   const [likes, setLikes] = useState(initialLikes || 0);
   const [isLiked, setIsLiked] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -147,6 +148,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
     }
   } catch (error) {
     console.error("Error updating like:", error);
+    onAlert?.("Error Updating Like", "We couldn't update your like. Please try again.");
   } finally {
     setLoading(false);
   }
@@ -172,7 +174,7 @@ const LikeButton = ({ postId, initialLikes, user }) => {
 };
 
 // ------------ Comment Section -------------
-const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDeleted }) => {
+const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDeleted, onAlert }) => {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -262,11 +264,11 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
       if (response.ok && result.success) {
         onCommentDeleted(commentToDelete.id);
       } else {
-        alert(result.message || 'Failed to delete comment');
+        onAlert?.("Delete Failed", result.message || "Failed to delete comment");
       }
     } catch (error) {
       console.error('Error deleting comment:', error);
-      alert('Error deleting comment');
+      onAlert?.("Delete Error", "An unexpected error occurred while deleting the comment.");
     } finally {
       setDeletingCommentId(null);
       closeDeleteModal();
@@ -330,14 +332,13 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
     if (result.success && result.comment) {
       onCommentAdded(result.comment);
       setComment("");
-      // Optional: Show success message
-      alert("Comment posted successfully!");
+      onAlert?.("Comment Posted", "Your comment has been posted.");
     } else {
       throw new Error(result.message || "Failed to post comment");
     }
   } catch (err) {
     console.error("Error posting comment:", err);
-    alert(err.message || "Failed to post comment. Please try again.");
+    onAlert?.("Post Failed", err.message || "Failed to post comment. Please try again.");
   } finally {
     setLoading(false);
   }
@@ -499,6 +500,17 @@ export default function CommunityPost() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [dlg, setDlg] = useState({ open:false, title:"", message:"", primaryText:"OK", onPrimary:null });
+  const closeDlg = () => setDlg(m => ({ ...m, open:false, onPrimary:null }));
+  const openAlert = (title, message, onPrimary) =>
+    setDlg({
+      open: true,
+      title,
+      message,
+      primaryText: "OK",
+      onPrimary: () => { try { onPrimary?.(); } finally { closeDlg(); } }
+    });
+
   useEffect(() => {
     fetchPost();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -651,6 +663,7 @@ export default function CommunityPost() {
             postId={post.id} 
             initialLikes={post.likeCount || 0} 
             user={user} 
+            onAlert={openAlert}
           />
           <h3>Comments ({comments.length})</h3>
 
@@ -660,9 +673,19 @@ export default function CommunityPost() {
             comments={comments}
             onCommentAdded={handleNewComment}
             onCommentDeleted={handleCommentDeleted}
+            onAlert={openAlert}
           />
         </div>
       </div>
+      <Modal
+        open={dlg.open}
+        title={dlg.title}
+        primaryText={dlg.primaryText}
+        onPrimary={dlg.onPrimary || closeDlg}
+        onClose={closeDlg}
+      >
+        {dlg.message}
+      </Modal>
 
       <Footer />
     </div>
