@@ -8,8 +8,8 @@ import { LuSparkles } from "react-icons/lu";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
-const API_URL = import.meta.env.VITE_API_URL;        // ← Node backend (Railway)
-const AI_URL  = import.meta.env.VITE_AI_API_URL;     // ← FastAPI (Railway: ai-...up.railway.app)
+const API_URL = import.meta.env.VITE_API_URL;        // Node backend (Railway)
+const AI_URL  = import.meta.env.VITE_AI_API_URL;     // FastAPI (Railway: ai-...up.railway.app)
 
 export default function NutritionAnalyzerPage() {
   const { user } = useAuth();
@@ -143,7 +143,7 @@ export default function NutritionAnalyzerPage() {
       // 1) If file provided -> call FastAPI /predict (image route)
       if (selectedFile) {
         const fd = new FormData();
-        fd.append("file", selectedFile);          // ✅ Correct field name
+        fd.append("file", selectedFile);          
         if (foodName) fd.append("food_name", foodName);
         if (ingredients) fd.append("ingredients", ingredients);
 
@@ -153,6 +153,12 @@ export default function NutritionAnalyzerPage() {
         });
 
         const data = await r.json();
+
+        if (!data.pred_class && !data.nutrition) {
+          setError("The AI couldn’t confidently recognize this food. Try a clearer photo or another angle.");
+          setResult(null);
+          return;
+        }
 
         // shape into UI model
         const shaped = {
@@ -237,7 +243,7 @@ export default function NutritionAnalyzerPage() {
                 value={foodName}
                 onChange={(e) => {
                   if (requireLogin("typing in food name")) return;
-                  setIngredients(e.target.value);
+                   setFoodName(e.target.value);
                 }}
               />
 
@@ -248,7 +254,7 @@ export default function NutritionAnalyzerPage() {
                 value={ingredients}
                 onChange={(e) => {
                   if (requireLogin("typing in ingredients")) return;
-                  setFoodName(e.target.value);
+                  setIngredients(e.target.value);
                 }}
               />
             </div>
