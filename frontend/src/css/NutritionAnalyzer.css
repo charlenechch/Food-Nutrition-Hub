@@ -153,10 +153,8 @@
 
 /* RESULT CARD (RIGHT COLUMN) */
 .result-card {
-  background: #fff;
-  padding: 22px;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  /* padding: 22px;
+  border-radius: 12px; */
   min-height: 300px;
   display: flex;
   flex-direction: column;
@@ -169,7 +167,7 @@
   border: 1px solid #e6d8c3;
   border-radius: 14px;
   padding: 24px;
-  margin-bottom: 24px;      /* <-- This is the key */
+  margin-bottom: 24px;      
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
