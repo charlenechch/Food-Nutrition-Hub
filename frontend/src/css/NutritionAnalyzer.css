@@ -173,8 +173,8 @@
   border-radius: 12px;
   border: 1px solid #e9c8a6;
   box-shadow: 0px 3px 6px rgba(0,0,0,0.06);
-  margin-top: 150px;
-  min-height: 300px;
+  margin-top: 100px;
+  min-height: 500px;
   display: flex;
   flex-direction: column;
   justify-content: center;   /* vertical center */
@@ -308,7 +308,7 @@
 
 /* Tips */
 .tips-section {
-  margin-top: 30px;
+  margin-bottom: 30px;
 }
 
 .tip-card {
