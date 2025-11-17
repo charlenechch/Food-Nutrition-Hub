@@ -164,6 +164,15 @@
   font-size: 15px;
 }
 
+.result-card .analysis-container {
+  background: #fff;
+  border: 1px solid #e6d8c3;
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;      /* <-- This is the key */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
 /* Main container for right side */
 .analysis-container {
   padding: 10px 4px;
@@ -222,7 +231,7 @@
 /* Each nutrition card */
 .nutri-card {
   background: #f7f2eb;
-  padding: 18px 14px;
+  padding: 14px 12px;
   border-radius: 14px;
   text-align: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
