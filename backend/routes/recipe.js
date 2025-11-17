@@ -17,6 +17,9 @@ if (typeof value === "string") {
 return value;
 }
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // ✅ NEW: Joi schema for recipe create/update inputs
 const recipeSchema = Joi.object({
 name: Joi.string().max(100).required(),

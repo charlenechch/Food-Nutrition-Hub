@@ -237,8 +237,10 @@ app.use(
       "prepTime", "cookTime", "servings", "image", "description",
       "foodType", "dietaryTags", "ingredients", "instructions",
       "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory",
-      "recipe", "content", "image", "userProfileID", "status", "comment", "origin"
+      "recipe", "content", "image", "userProfileID", "status", "comment", "feedback"
     ],
+    checkBody: true, // <-- ensure body is checked against allowlist
+    checkQuery: false // <-- if want only body
   }),
   recipeRoutes
 );
@@ -279,7 +281,7 @@ app.use(
       "foodType", "dietaryTags", "ingredients", "instructions", 
       "funFact", "chefTips", "category", 
       "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll",
-      "view", "year"
+      "view", "year", "feedback"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));
