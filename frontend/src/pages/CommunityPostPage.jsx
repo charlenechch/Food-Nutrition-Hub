@@ -45,7 +45,7 @@ function getStableProfileId(user) {
     return adminProfileId;
   }
   
-  // For regular users
+  // For regular 
   return user?.userProfileID || user?.userID || user?.id || null;
 }
 
@@ -508,6 +508,7 @@ export default function CommunityPost() {
       title,
       message,
       primaryText: "OK",
+      icon,
       onPrimary: () => { try { onPrimary?.(); } finally { closeDlg(); } }
     });
 
