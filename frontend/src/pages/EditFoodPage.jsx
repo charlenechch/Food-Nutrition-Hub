@@ -217,17 +217,22 @@ const EditFoodPage = () => {
       return;
     }
 
-    const dataToSave = {
-      name: food.name,
-      origin: food.origin,
-      Energy_kcal: Number(food.calories) || 0,
-      Protein_g: Number(food.protein) || 0,
-      Carbohydrates_g: Number(food.carbs) || 0,
-      Fat_g: Number(food.fat) || 0,
-      Fiber_g: Number(food.fiber) || 0,
-      VitaminC_mg: Number(food.vitaminc) || 0,
-      image: finalImageUrl,
-    };
+      const dataToSave = {
+        name: food.name,
+        name_ms: food.name_ms,
+        origin: food.origin,
+        category: food.category,
+        description: food.description,
+        culturalSignificance: food.culturalSignificance,
+        traditionalPreparation: food.traditionalPreparation,
+        Energy_kcal: Number(food.calories) || 0,
+        Protein_g: Number(food.protein) || 0,
+        Carbohydrates_g: Number(food.carbs) || 0,
+        Fat_g: Number(food.fat) || 0,
+        Fiber_g: Number(food.fiber) || 0,
+        VitaminC_mg: Number(food.vitaminc) || 0,
+        image: finalImageUrl,
+  };
 
     try {
       console.log("[save] updating food with:", dataToSave);

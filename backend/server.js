@@ -33,12 +33,9 @@ const likeRoutes = require("./routes/likes");
 const aiRoutes = require("./routes/ai");
 const foodSearchRoutes = require("./routes/foodSearch");
 
-// ✅ NEW: Admin route import (for Admin User Management)
+// Admin
 const adminRoutes = require("./routes/admin");
 const analyticsRoutes = require("./routes/analytics");
-
-// ❌ REMOVED: Content Moderation route import (no longer needed)
-// const contentRoutes = require("./routes/content");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -73,27 +70,22 @@ console.log("🔧 Database Config:", {
 
 const db = mysql.createPool(dbConfig);
 const promiseDb = db.promise();
-
-// ✅ Make the pool available to routes
 app.set("dbPool", promiseDb);
 
-// Test DB connection
 promiseDb
   .execute("SELECT 1 as test")
   .then(() => console.log("✅ Database connection test successful"))
   .catch((err) => console.error("❌ Database connection failed:", err.message));
 
-// ---------- 1) Proxy & security headers ----------
-app.set("trust proxy", 1); // behind Railway/Vercel
+// ---------- Security & Proxy ----------
+app.set("trust proxy", 1);
 
-// Helmet base
 app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
   })
 );
 
-// Content Security Policy
 app.use(
   helmet.contentSecurityPolicy({
     useDefaults: true,
@@ -120,7 +112,6 @@ app.use(
   })
 );
 
-// HSTS (only prod)
 if (IS_PROD) {
   app.use(
     helmet.hsts({
@@ -130,11 +121,10 @@ if (IS_PROD) {
     })
   );
 }
-
 app.use(helmet.noSniff());
 app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
 
-// ---------- 2) CORS ----------
+// ---------- CORS ----------
 const allowedOrigins = [
   "http://localhost:5173",
   "https://food-nutrition-hub.vercel.app",
@@ -151,11 +141,11 @@ app.use(
   })
 );
 
-// ---------- 3) Body parsers ----------
+// ---------- Body Parsers ----------
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
-// ---------- 4) Rate limiting ----------
+// ---------- Rate Limiting ----------
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 300,
@@ -177,38 +167,39 @@ const authLimiter = rateLimit({
   },
 });
 
-// ---------- 5) Sessions ----------
+// ---------- Sessions ----------
 const dbOptions = {
-    host: process.env.MYSQLHOST,
-    port: Number(process.env.MYSQLPORT) || 3306,
-    user: process.env.MYSQLUSER,
-    password: process.env.MYSQLPASSWORD,
-    database: process.env.MYSQLDATABASE,
-    clearExpired: true,
-    checkExpirationInterval: 15 * 60 * 1000,
-    expiration: 24 * 60 * 60 * 1000,
-  };
-  
-  const sessionStore = new MySQLStore(dbOptions);
-  
-  app.use(
-    session({
-      name: "sid",
-      secret: process.env.SESSION_SECRET || "change-me",
-      store: sessionStore,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
+  host: process.env.MYSQLHOST,
+  port: Number(process.env.MYSQLPORT) || 3306,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  clearExpired: true,
+  checkExpirationInterval: 15 * 60 * 1000,
+  expiration: 24 * 60 * 60 * 1000,
+};
+
+const sessionStore = new MySQLStore(dbOptions);
+
+app.use(
+  session({
+    name: "sid",
+    secret: process.env.SESSION_SECRET || "change-me",
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
       httpOnly: true,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000,
-    }
+    },
+  })
+);
 
-    })
-  );
+// ---------- Routes BEFORE global HPP ----------
 
-// ---------- 6) Routes that must come BEFORE global HPP ----------
+// Register & Login
 app.use(
   "/api/register",
   authLimiter,
@@ -224,27 +215,19 @@ app.use(
   authLimiter,
   hppProtect({
     policy: "reject",
-    allowlist: ["email", "password", "rememberDevice"], // Remember Me allowed
+    allowlist: ["email", "password", "rememberDevice"],
   }),
   loginRoutes
 );
 
+// AI
 app.use(
   "/api/ai",
   cors({ origin: allowedOrigins, credentials: true }),
   aiRoutes
 );
 
-// ✅ Diagnostic Middleware to confirm sequence
-app.use((req, res, next) => {
-  if (req.originalUrl.includes("/api/recipe/all/recipes")) {
-    console.log("🧭 Incoming request before HPP:", req.originalUrl);
-    console.log("🔹 Query params detected:", req.query);
-  }
-  next();
-});
-
-// ✅ MOVE RECIPE ROUTE UP HERE (before global HPP)
+// Recipe - BEFORE global HPP
 app.use(
   "/api/recipe",
   hppProtect({
@@ -260,25 +243,42 @@ app.use(
   recipeRoutes
 );
 
-app.use("/api/food", foodSearchRoutes);
+// Foods - BEFORE global HPP
+app.use(
+  "/api/foods",
+  hppProtect({
+    policy: "first",
+    allowlist: [
+      "name", "name_ms", "category", "culturalSignificance",
+      "traditionalPreparation", "origin", "description",
+      "image", "foodType", "dietaryTags", "ingredients"
+    ],
+  }),
+  foodRoutes
+);
 
+// Search
+app.use("/api/foodSearch", foodSearchRoutes);
 
-// ---------- 7) Global HPP protection for everything else ----------
+// ---------- Global HPP for everything else ----------
 app.use(
   hppProtect({
-    policy: "first", // block duplicates globally
+    policy: "first",
     allowlist: [
-      "id", "page", "q", "sort", "email", "password", "newPassword", "userID", "token", "role",
-      "userProfileID", "firebase_uid", "bio", "location", "firstname", "lastname",
-      "city", "suspendedUntil", "suspensionReason", "avatar", "allergies", "dietary", "emailNotifications",
-      "prefs", "pushNotifications", "profileVisibility", "language", "recipes",
+      "id", "page", "q", "sort", "email", "password", "newPassword", "userID",
+      "token", "role", "userProfileID", "firebase_uid", "bio", "location",
+      "firstname", "lastname", "city", "suspendedUntil", "suspensionReason",
+      "avatar", "allergies", "dietary", "emailNotifications", "prefs",
+      "pushNotifications", "profileVisibility", "language", "recipes",
       "status", "stats", "saveFoods", "likes", "type", "postId", "postID",
-      "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID",
-      "likeID", "name", "origin", "difficulty", "prepTime", "cookTime",
-      "servings", "image", "description", "foodType", "dietaryTags",
-      "ingredients", "instructions", "funFact", "chefTips",
-      "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll", "Energy_kcal",
-      "Protein_g", "Fat_g", "Carbohydrates_g", "Fiber_g", "VitaminC_mg", "view", "year"
+      "content", "title", "culturalOrigin", "recipe", "reply", "comment", 
+      "foodID", "likeID", "name", "difficulty", 
+      "prepTime", "cookTime", "servings", "image", "description", 
+      "foodType", "dietaryTags", "ingredients", "instructions", 
+      "funFact", "chefTips", "category", 
+      "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll",
+      "Energy_kcal", "Protein_g", "Fat_g", "Carbohydrates_g", "Fiber_g",
+      "VitaminC_mg", "view", "year"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));
@@ -286,15 +286,7 @@ app.use(
   })
 );
 
-// ---------- Static File Serving ----------
-// ⭐ REQUIRED FIX: Configure Express to serve files from the 'uploads' directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// -----------------------------------------
-
-// ---------- 8) Other Routes ----------
-app.use("/api/logout", logoutRoutes);
-
-// ---------- 8) Other Routes ----------
+// ---------- Other Routes ----------
 app.use("/api/logout", logoutRoutes);
 app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
@@ -303,70 +295,40 @@ app.use("/api/otp", otpRoutes);
 app.use("/api/exploreFood", hppProtect({ policy: "first", allowlist: ["q", "page", "sort"] }), exploreFoodRoutes);
 app.use("/api/foodDetail", foodDetailRoutes);
 app.use("/api/foodDiscussion", foodDiscussionRoutes);
-app.use("/api/recipe", recipeRoutes);
 app.use("/api/saveFood", saveFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
-app.use("/api/foods", foodRoutes);
 app.use("/api/userProfile", userProfileRoutes);
 app.use("/api/likes", likeRoutes);
 
-// ✅ NEW: Link Admin Management routes (for Admin User Management tab)
+// Admin
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
-// ❌ REMOVED: Link Content Moderation route (no longer needed)
-// app.use("/api/content", contentRoutes);
+// ---------- Static Files ----------
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ---------- Example Admin Guard ----------
-app.get("/api/admin/data", (req, res) => {
-  if (!req.session?.user || req.session.user.role !== "admin") {
-    return res.status(403).json({ error: "Forbidden: Admins only" });
-  }
-  res.json({ secret: "This is admin-only data." });
-});
-
-// ---------- Session check ----------
+// ---------- Health & Session ----------
 app.get("/api/auth/session", (req, res) => {
-  console.log(" Session check requested");
-  console.log(" Session ID:", req.sessionID);
-  console.log(" Has session user:", !!req.session?.user);
-
   if (req.session && req.session.user) {
-    console.log("Valid session for:", req.session.user.email);
-    return res.status(200).json({
-      authenticated: true,
-      user: req.session.user,
-    });
-  } else {
-    console.log("❌ No valid session");
-    return res.status(401).json({
-      authenticated: false,
-      message: "No active session",
-    });
+    return res.status(200).json({ authenticated: true, user: req.session.user });
   }
+  return res.status(401).json({ authenticated: false, message: "No active session" });
 });
 
-// ---------- Health check ----------
 app.get("/", (req, res) => {
   res.send("🚀 Backend running with advanced security, MySQL & sessions!");
 });
 
-// ---------- 9) 404 + Error handler ----------
-app.use((req, res) => {
-  res.status(404).json({ error: "Not Found" });
-});
+// ---------- 404 + Error Handler ----------
+app.use((req, res) => res.status(404).json({ error: "Not Found" }));
 
 app.use((err, req, res, next) => {
-  if (err.code === "EBADCSRFTOKEN") {
-    return res.status(403).json({ error: "Invalid CSRF token" });
-  }
+  if (err.code === "EBADCSRFTOKEN") return res.status(403).json({ error: "Invalid CSRF token" });
   console.error("❌ Server error:", err);
-  res.status(err.status || 500).json({
-    error: err.status === 500 ? "Internal Server Error" : err.message,
-  });
+  res.status(err.status || 500).json({ error: err.status === 500 ? "Internal Server Error" : err.message });
 });
 
-// ---------- 10) Start server ----------
+// ---------- Start Server ----------
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT} (mode: ${process.env.NODE_ENV || "dev"})`);
 });

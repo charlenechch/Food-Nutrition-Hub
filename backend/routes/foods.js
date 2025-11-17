@@ -170,7 +170,6 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
 });
 
 // ✅ Update food (ADMIN ONLY)
-// ✅ Update food (ADMIN ONLY)
 router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
   const {
     name,
@@ -186,6 +185,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     Fiber_g,
     VitaminC_mg,
     image,
+    name_ms,
   } = req.body;
 
   try {
@@ -197,41 +197,44 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
       return res.status(404).json({ success: false, error: "Food not found" });
     }
 
-    const sql = `
-      UPDATE food
-      SET 
-        name=?,
-        origin=?,
-        category=?,
-        description=?,
-        culturalSignificance=?,
-        traditionalPreparation=?,
-        Energy_kcal=?,
-        Protein_g=?,
-        Fat_g=?,
-        Carbohydrates_g=?,
-        Fiber_g=?,
-        VitaminC_mg=?,
-        image=?
-      WHERE foodID=?
-    `;
+      const sql = `
+    UPDATE food
+    SET 
+      name = ?,
+      name_ms = ?,           
+      origin = ?,
+      category = ?,            
+      description = ?,         
+      culturalSignificance = ?,
+      traditionalPreparation = ?, 
+      Energy_kcal = ?,
+      Protein_g = ?,
+      Fat_g = ?,
+      Carbohydrates_g = ?,
+      Fiber_g = ?,
+      VitaminC_mg = ?,
+      image = ?
+    WHERE foodID = ?
+  `;
 
-    const values = [
-      name || existing[0].name,
-      origin || existing[0].origin,
-      category || existing[0].category,
-      description || existing[0].description,
-      culturalSignificance || existing[0].culturalSignificance,
-      traditionalPreparation || existing[0].traditionalPreparation,
-      Energy_kcal || existing[0].Energy_kcal || 0,
-      Protein_g || existing[0].Protein_g || 0,
-      Fat_g || existing[0].Fat_g || 0,
-      Carbohydrates_g || existing[0].Carbohydrates_g || 0,
-      Fiber_g || existing[0].Fiber_g || 0,
-      VitaminC_mg || existing[0].VitaminC_mg || 0,
-      image || existing[0].image || null,
-      req.params.id,
-    ];
+  const values = [
+    name || existing[0].name,
+    name_ms || existing[0].name_ms,
+    origin || existing[0].origin,
+    category || existing[0].category,
+    description || existing[0].description,
+    culturalSignificance || existing[0].culturalSignificance,
+    traditionalPreparation || existing[0].traditionalPreparation,
+    Energy_kcal || existing[0].Energy_kcal || 0,
+    Protein_g || existing[0].Protein_g || 0,
+    Fat_g || existing[0].Fat_g || 0,
+    Carbohydrates_g || existing[0].Carbohydrates_g || 0,
+    Fiber_g || existing[0].Fiber_g || 0,
+    VitaminC_mg || existing[0].VitaminC_mg || 0,
+    image || existing[0].image || null,
+    req.params.id,
+  ];
+
 
     const [result] = await db.query(sql, values);
 
