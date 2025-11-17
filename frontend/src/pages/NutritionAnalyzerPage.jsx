@@ -131,6 +131,12 @@ export default function NutritionAnalyzerPage() {
       setResult(null); // clear any DB preview to avoid confusion
     }
   };
+  
+  const handleRemoveFile = () => {
+    setSelectedFile(null);   // remove the file
+    setResult(null);         // clear any preview
+  };
+
 
   // ---- Analyze button ----
   const handleAnalyze = async (e) => {
