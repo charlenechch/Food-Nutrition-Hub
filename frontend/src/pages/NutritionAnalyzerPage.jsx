@@ -358,109 +358,123 @@ export default function NutritionAnalyzerPage() {
 
           {result && (
             <>
-            <div className="analysis-container">
+              {/* MAIN ANALYSIS CARD */}
+              <div className="analysis-container">
+                {/* Food Name */}
+                <h2 className="analysis-title">{result.food_name}</h2>
 
-              {/* Food Name */}
-              <h2 className="analysis-title">{result.food_name}</h2>
+                {/* Food Meta */}
+                {(result.meta?.origin || result.meta?.foodType || result.meta?.difficulty) && (
+                  <p className="analysis-meta">
+                    {result.meta.origin && `${result.meta.origin} · `}
+                    {result.meta.foodType && `${result.meta.foodType} · `}
+                    {result.meta.difficulty && result.meta.difficulty}
+                  </p>
+                )}
 
-              {/* Food Meta */}
-              {(result.meta?.origin || result.meta?.foodType || result.meta?.difficulty) && (
-                <p className="analysis-meta">
-                  {result.meta.origin && `${result.meta.origin} · `}
-                  {result.meta.foodType && `${result.meta.foodType} · `}
-                  {result.meta.difficulty && result.meta.difficulty}
-                </p>
-              )}
+                {/* IMAGE */}
+                {result.meta?.image && (
+                  <div className="analysis-image-wrapper">
+                    <img
+                      src={result.meta.image}
+                      alt={result.food_name}
+                      className="analysis-image"
+                    />
+                  </div>
+                )}
 
-              {/* IMAGE */}
-              {result.meta?.image && (
-                <div className="analysis-image-wrapper">
-                  <img
-                    src={result.meta.image}
-                    alt={result.food_name}
-                    className="analysis-image"
-                  />
-                </div>
-              )}
+                {/* Nutrition Section */}
+                {result.nutrition && (
+                  <div className="nutrition-section">
+                    <h3 className="section-header">Nutrition (per portion)</h3>
 
-              {/* Nutrition Section */}
-              {result.nutrition && (
-                <div className="nutrition-section">
-                  <h3 className="section-header">Nutrition (per portion)</h3>
+                    <div className="nutrition-grid">
+                      <div className="nutri-card">
+                        <span className="nutri-value">
+                          {result.nutrition.Energy_kcal ?? "—"} kcal
+                        </span>
+                        <span className="nutri-label">Calories</span>
+                      </div>
 
-                  <div className="nutrition-grid">
-                    <div className="nutri-card">
-                      <span className="nutri-value">{result.nutrition.Energy_kcal ?? "—"} kcal</span>
-                      <span className="nutri-label">Calories</span>
+                      <div className="nutri-card">
+                        <span className="nutri-value">
+                          {result.nutrition.Protein_g ?? "—"} g
+                        </span>
+                        <span className="nutri-label">Protein</span>
+                      </div>
+
+                      <div className="nutri-card">
+                        <span className="nutri-value">
+                          {result.nutrition.Fat_g ?? "—"} g
+                        </span>
+                        <span className="nutri-label">Fat</span>
+                      </div>
+
+                      <div className="nutri-card">
+                        <span className="nutri-value">
+                          {result.nutrition.Carbohydrates_g ?? "—"} g
+                        </span>
+                        <span className="nutri-label">Carbs</span>
+                      </div>
+
+                      <div className="nutri-card">
+                        <span className="nutri-value">
+                          {result.nutrition.Fiber_g ?? "—"} g
+                        </span>
+                        <span className="nutri-label">Fiber</span>
+                      </div>
+
+                      <div className="nutri-card">
+                        <span className="nutri-value">
+                          {result.nutrition.VitaminC_mg ?? "—"} mg
+                        </span>
+                        <span className="nutri-label">Vitamin C</span>
+                      </div>
                     </div>
+                  </div>
+                )}
+              </div>
 
-                    <div className="nutri-card">
-                      <span className="nutri-value">{result.nutrition.Protein_g ?? "—"} g</span>
-                      <span className="nutri-label">Protein</span>
-                    </div>
+              {/* HEALTHIER ALTERNATIVES CARD */}
+              {!!result.alternatives?.length && (
+                <div className="analysis-container">
+                  <div className="alternatives-section">
+                    <h3 className="section-header">Healthier Alternatives</h3>
 
-                    <div className="nutri-card">
-                      <span className="nutri-value">{result.nutrition.Fat_g ?? "—"} g</span>
-                      <span className="nutri-label">Fat</span>
-                    </div>
-
-                    <div className="nutri-card">
-                      <span className="nutri-value">{result.nutrition.Carbohydrates_g ?? "—"} g</span>
-                      <span className="nutri-label">Carbs</span>
-                    </div>
-
-                    <div className="nutri-card">
-                      <span className="nutri-value">{result.nutrition.Fiber_g ?? "—"} g</span>
-                      <span className="nutri-label">Fiber</span>
-                    </div>
-
-                    <div className="nutri-card">
-                      <span className="nutri-value">{result.nutrition.VitaminC_mg ?? "—"} mg</span>
-                      <span className="nutri-label">Vitamin C</span>
-                    </div>
-
-                    
+                    {result.alternatives.map((alt, index) => (
+                      <div className="alternative-card" key={index}>
+                        <div className="alt-main">{alt}</div>
+                        {result.altDescription && (
+                          <div className="alt-desc">{result.altDescription}</div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
-            </div>
 
-            <div className="analysis-container">
-              {/* Healthier Alternatives */}
-              {!!result.alternatives?.length && (
-                <div className="alternatives-section">
-                  <h3 className="section-header">Healthier Alternatives</h3>
-
-                  {result.alternatives.map((alt, index) => (
-                    <div className="alternative-card" key={index}>
-                      <div className="alt-main">{alt}</div>
-                      {result.altDescription && (
-                        <div className="alt-desc">{result.altDescription}</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Tips */}
+              {/* HEALTH TIPS CARD */}
               {!!result.tips?.length && (
-                <div className="tips-section">
-                  <h3 className="section-header">Health Tips</h3>
+                <div className="analysis-container">
+                  <div className="tips-section">
+                    <h3 className="section-header">Health Tips</h3>
 
-                  {result.tips.map((tip, index) => (
-                    <div
-                      className={`tip-card ${tip.toLowerCase().includes("sodium") ? "tip-warning" : "tip-info"}`}
-                      key={index}
-                    >
-                      {tip}
-                    </div>
-                  ))}
+                    {result.tips.map((tip, index) => (
+                      <div
+                        key={index}
+                        className={`tip-card ${
+                          tip.toLowerCase().includes("sodium") ? "tip-warning" : "tip-info"
+                        }`}
+                      >
+                        {tip}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-
-            </div>
             </>
           )}
+
         </div>
       </div>
 
