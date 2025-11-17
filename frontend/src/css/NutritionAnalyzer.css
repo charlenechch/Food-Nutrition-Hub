@@ -45,8 +45,7 @@
 }
 
 .food-input-card,
-.upload-card,
-.result-card {
+.upload-card {
   background: #fff;
   padding: clamp(1rem, 2vw, 1.5rem);
   border-radius: 12px;
