@@ -9,7 +9,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../css/UserProfilePage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Bell, Eye, Globe, Shield, ExternalLink, OctagonX, Camera, X } from "lucide-react";
+import { Bell, Eye, Globe, Shield, ExternalLink, OctagonX, Camera, X, AlertTriangle, CheckCircle2, Trash2 } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
 import Modal from "../components/Modal";
 
@@ -183,6 +183,7 @@ export default function UserProfilePage() {
     open: false,
     title: "",
     message: "",
+    icon: null,
     primaryText: "OK",
     onPrimary: null,
   });
@@ -197,6 +198,7 @@ export default function UserProfilePage() {
     open: false,
     title: "",
     message: "",
+    icon: null,
     confirmText: "Confirm",
     cancelText: "Cancel",
     onConfirm: null,
@@ -265,14 +267,14 @@ const savePersonal = async () => {
     console.log("✅ Personal info update result:", result);
     
     if (result.success) {
-      openAlert("Saved", "Profile updated successfully!");
+      openAlert("Saved", "Profile updated successfully!", null, <CheckCircle2 />);
       setUser(prev => ({ ...prev, location: form.location, bio: bio }));
     } else {
       throw new Error(result.error || "Update failed");
     }
   } catch (e) {
     console.error("Personal info update error:", e);
-    openAlert("Update Failed", e.message || "Failed to update profile");
+    openAlert("Update Failed", e.message || "Failed to update profile", null, <AlertTriangle />);
   }
 };
 
@@ -311,13 +313,13 @@ const savePrefs = async () => {
     console.log("✅ Preferences update result:", result);
     
     if (result.success) {
-      openAlert("Saved", "Preferences updated successfully!");
+      openAlert("Saved", "Preferences updated successfully!", null, <CheckCircle2 />);
     } else {
       throw new Error(result.error || "Update failed");
     }
   } catch (e) {
     console.error("Preferences update error:", e);
-    openAlert("Update Failed", e.message || "Failed to update preferences");
+    openAlert("Update Failed", e.message || "Failed to update preferences", null, <AlertTriangle />);
   }
 };
 
@@ -558,7 +560,7 @@ const savePrefs = async () => {
 
             if (!verifyRes.ok) {
               const verifyData = await verifyRes.json().catch(() => ({}));
-              openAlert("Account Deletion Failed", verifyData.error || "Incorrect password. Account deletion cancelled.");
+              openAlert("Account Deletion Failed", verifyData.error || "Incorrect password. Account deletion cancelled.", null, <AlertTriangle />);
               return;
             }
 
@@ -574,17 +576,17 @@ const savePrefs = async () => {
             const data = await res.json().catch(() => ({}));
             
             if (res.ok && data.success) {
-                openAlert("Account Deleted", "Your account has been deleted successfully.", () => {
+                openAlert("Account Deleted", "Your account has been deleted successfully.", null, <CheckCircle2 />, () => {
                   closeDlg();
                   window.location.href = '/';
                 });
             } else {
-              openAlert("Delete Failed", data.error || "Failed to delete account. ");
+              openAlert("Delete Failed", data.error || "Failed to delete account. ", null, <AlertTriangle />);
             }
             
           } catch (error) {
             console.error('Error deleting account:', error);
-            openAlert("Delete Failed", "Failed to delete account. Please try again.");
+            openAlert("Delete Failed", "Failed to delete account. Please try again.", null, <AlertTriangle />);
           }finally {
                 closePasswordModal();
           }
@@ -628,14 +630,14 @@ const savePrefs = async () => {
     };
 
     if (!validTypes.includes(file.type)) {
-      openAlert("Invalid File", "Please select a valid image file (JPEG, PNG, GIF, WebP)", resetPicker);
+      openAlert("Invalid File", "Please select a valid image file (JPEG, PNG, GIF, WebP)", null, <AlertTriangle />, resetPicker);
       resetPicker();
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      openAlert("File Too Large", "Image size should be less than 5MB", resetPicker);
+      openAlert("File Too Large", "Image size should be less than 5MB", null, <AlertTriangle />, resetPicker);
       resetPicker();
       return;
     }
@@ -650,7 +652,7 @@ const savePrefs = async () => {
 
   const uploadAvatar = async () => {
     if (!avatarFile) {
-      openAlert("No Image", "Please select an image first");
+      openAlert("No Image", "Please select an image first", null, <AlertTriangle />);
       return;
     }
 
@@ -675,7 +677,7 @@ const savePrefs = async () => {
       if (result.success) {
         // Update user state with new avatar
         setUser(prev => ({ ...prev, avatar: result.avatarUrl }));
-        openAlert("Avatar Updated", "Your avatar was updated successfully.");
+        openAlert("Avatar Updated", "Your avatar was updated successfully.", null, <CheckCircle2 />);
         closeAvatarModal();
         
         // Reload the profile to get updated data
@@ -692,7 +694,7 @@ const savePrefs = async () => {
       }
     } catch (error) {
       console.error('Avatar upload error:', error);
-      openAlert("Upload Failed", error.message || "Failed to upload avatar");
+      openAlert("Upload Failed", error.message || "Failed to upload avatar", null, <AlertTriangle />);
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -723,7 +725,7 @@ const savePrefs = async () => {
           if (result.success) {
             // Update user state to remove avatar
             setUser(prev => ({ ...prev, avatar: null }));
-            openAlert("Avatar Removed", "Your avatar was removed successfully.");
+            openAlert("Avatar Removed", "Your avatar was removed successfully.", null, <CheckCircle2 />);
             closeAvatarModal();
             
             // Reload the profile
@@ -740,7 +742,7 @@ const savePrefs = async () => {
           }
         } catch (error) {
           console.error('Avatar remove error:', error);
-          openAlert("Remove Failed", error.message || "Failed to remove avatar");
+          openAlert("Remove Failed", error.message || "Failed to remove avatar", null, <AlertTriangle />);
         }
       }
     });
@@ -1269,7 +1271,7 @@ const savePrefs = async () => {
                       <div className="upp-strong">Data Export</div>
                       <div className="upp-muted2">Download your saved data</div>
                     </div>
-                    <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => openAlert("Export Started", "We're preparing your data export. You'll get a download when it's ready.")}>
+                    <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => openAlert("Export Started", "We're preparing your data export. You'll get a download when it's ready.", null, <CheckCircle2 />)}>
                       Export Data
                     </button>
                   </div>
