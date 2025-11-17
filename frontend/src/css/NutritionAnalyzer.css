@@ -202,7 +202,7 @@
 .section-header {
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   color: #58422e;
 }
 
@@ -211,15 +211,9 @@
   margin-top: 20px;
 }
 
-/* .result-subtitle {
-  font-size: 18px;
-  font-weight: 700;
-  color: #5b3a1e;
-  margin-bottom: 12px;
-} */
-
 /* Grid layout */
 .nutrition-grid {
+  margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
@@ -245,7 +239,7 @@
 
 /* Number */
 .nutri-value {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: #6d4b2d;
 }
@@ -253,7 +247,7 @@
 /* Label */
 .nutri-label {
   margin-top: 4px;
-  font-size: 13px;
+  font-size: 14px;
   color: #8a715b;
 }
 

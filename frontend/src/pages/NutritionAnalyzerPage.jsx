@@ -386,37 +386,37 @@ export default function NutritionAnalyzerPage() {
               {/* Nutrition Section */}
               {result.nutrition && (
                 <div className="nutrition-section">
-                  <h3 className="result-subtitle">Nutrition (per portion)</h3>
+                  <h3 className="section-header">Nutrition (per portion)</h3>
 
                   <div className="nutrition-grid">
                     <div className="nutri-card">
                       <span className="nutri-value">{result.nutrition.Energy_kcal ?? "—"} kcal</span>
-                      <span className="nutri-label">calories</span>
+                      <span className="nutri-label">Calories</span>
                     </div>
 
                     <div className="nutri-card">
                       <span className="nutri-value">{result.nutrition.Protein_g ?? "—"} g</span>
-                      <span className="nutri-label">protein</span>
+                      <span className="nutri-label">Protein</span>
                     </div>
 
                     <div className="nutri-card">
                       <span className="nutri-value">{result.nutrition.Fat_g ?? "—"} g</span>
-                      <span className="nutri-label">fat</span>
+                      <span className="nutri-label">Fat</span>
                     </div>
 
                     <div className="nutri-card">
                       <span className="nutri-value">{result.nutrition.Carbohydrates_g ?? "—"} g</span>
-                      <span className="nutri-label">carbs</span>
+                      <span className="nutri-label">Carbs</span>
                     </div>
 
                     <div className="nutri-card">
                       <span className="nutri-value">{result.nutrition.Fiber_g ?? "—"} g</span>
-                      <span className="nutri-label">fiber</span>
+                      <span className="nutri-label">Fiber</span>
                     </div>
 
                     <div className="nutri-card">
                       <span className="nutri-value">{result.nutrition.VitaminC_mg ?? "—"} mg</span>
-                      <span className="nutri-label">vitamin C</span>
+                      <span className="nutri-label">Vitamin C</span>
                     </div>
 
                     
