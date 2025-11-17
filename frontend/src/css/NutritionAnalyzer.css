@@ -373,31 +373,57 @@
   color: #58422e;
 }
 
-/* Macros */
-.macro-grid {
+/* ---- Nutrition Section ---- */
+.nutrition-section {
+  margin-top: 20px;
+}
+
+.result-subtitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #5b3a1e;
+  margin-bottom: 12px;
+}
+
+/* Grid layout */
+.nutrition-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
-.macro-card {
-  background: #f6f1ea;
-  border-radius: 12px;
-  padding: 14px;
+/* Each nutrition card */
+.nutri-card {
+  background: #f7f2eb;
+  padding: 18px 14px;
+  border-radius: 14px;
   text-align: center;
-  border: 1px solid #e7dccc;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.macro-value {
+/* Empty placeholders */
+.nutri-card.empty {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Number */
+.nutri-value {
   font-size: 20px;
   font-weight: 700;
-  color: #5a3f2a;
+  color: #6d4b2d;
 }
 
-.macro-label {
-  margin-top: -4px;
-  opacity: 0.7;
+/* Label */
+.nutri-label {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #8a715b;
 }
+
 
 /* Alternatives */
 .alternatives-section {

@@ -385,40 +385,40 @@ export default function NutritionAnalyzerPage() {
               {/* Nutrition Section */}
               {result.nutrition && (
                 <div className="nutrition-section">
-                  <h3 className="section-header">Nutrition (per portion)</h3>
+                  <h3 className="result-subtitle">Nutrition (per portion)</h3>
 
-                  <div className="macro-grid">
-
-                    <div className="macro-card">
-                      <p className="macro-value">{result.nutrition.Energy_kcal ?? "—"}</p>
-                      <p className="macro-label">calories</p>
+                  <div className="nutrition-grid">
+                    <div className="nutri-card">
+                      <span className="nutri-value">{result.nutrition.Energy_kcal ?? "—"} kcal</span>
+                      <span className="nutri-label">calories</span>
                     </div>
 
-                    <div className="macro-card">
-                      <p className="macro-value">{result.nutrition.Protein_g ?? "—"}g</p>
-                      <p className="macro-label">protein</p>
+                    <div className="nutri-card">
+                      <span className="nutri-value">{result.nutrition.Protein_g ?? "—"} g</span>
+                      <span className="nutri-label">protein</span>
                     </div>
 
-                    <div className="macro-card">
-                      <p className="macro-value">{result.nutrition.Fat_g ?? "—"}g</p>
-                      <p className="macro-label">fat</p>
+                    <div className="nutri-card">
+                      <span className="nutri-value">{result.nutrition.Fat_g ?? "—"} g</span>
+                      <span className="nutri-label">fat</span>
                     </div>
 
-                    <div className="macro-card">
-                      <p className="macro-value">{result.nutrition.Carbohydrates_g ?? "—"}g</p>
-                      <p className="macro-label">carbs</p>
+                    <div className="nutri-card">
+                      <span className="nutri-value">{result.nutrition.Carbohydrates_g ?? "—"} g</span>
+                      <span className="nutri-label">carbs</span>
                     </div>
 
-                    <div className="macro-card">
-                      <p className="macro-value">{result.nutrition.Fiber_g ?? "—"}g</p>
-                      <p className="macro-label">fiber</p>
+                    <div className="nutri-card">
+                      <span className="nutri-value">{result.nutrition.Fiber_g ?? "—"} g</span>
+                      <span className="nutri-label">fiber</span>
                     </div>
 
-                    <div className="macro-card">
-                      <p className="macro-value">{result.nutrition.VitaminC_mg ?? "—"}mg</p>
-                      <p className="macro-label">vitamin C</p>
+                    <div className="nutri-card">
+                      <span className="nutri-value">{result.nutrition.VitaminC_mg ?? "—"} mg</span>
+                      <span className="nutri-label">vitamin C</span>
                     </div>
 
+                    
                   </div>
                 </div>
               )}
