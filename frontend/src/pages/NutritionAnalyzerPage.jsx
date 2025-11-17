@@ -202,8 +202,6 @@ export default function NutritionAnalyzerPage() {
         return;
       }
 
-
-
       // 2) Else (no file) -> ask backend to return DB row or synthesize
       const r2 = await fetch(`${API_URL}/api/ai/analyze`, {
         method: "POST",
@@ -279,14 +277,38 @@ export default function NutritionAnalyzerPage() {
                 className="upload-box"
                 onClick={() => {
                   if (requireLogin("open file picker")) return;
-                  document.getElementById("fileInput").click();
-                }}
-                style={{ cursor: "pointer" }}
-              >
-                <FaCamera size={28} />
-                <p>
-                  {selectedFile ? selectedFile.name : "Drag & drop an image or click to upload"}
-                </p>
+                  if (!selectedFile) document.getElementById("fileInput").click();
+                }}> 
+
+                {/* Show when NO FILE selected */}
+                {!selectedFile && (
+                  <>
+                    <FaCamera size={28} />
+                    <p>Drag & drop an image or click to upload</p>
+                  </>
+                )}
+
+                {/* Show when FILE is selected */}
+                {selectedFile && (
+                  <div className="upload-preview">
+                    <FaCamera size={28} />
+                    <p>{selectedFile.name}</p>
+
+                    {/* Remove button */}
+                    <button
+                      type="button"
+                      className="remove-file-btn"
+                      onClick={(e) => {
+                        e.stopPropagation(); // prevent triggering upload click
+                        setSelectedFile(null);
+                        document.getElementById("fileInput").value = "";
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+
                 <input
                   id="fileInput"
                   type="file"

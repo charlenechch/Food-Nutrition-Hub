@@ -150,6 +150,11 @@
   transform: translateY(-2px);
 }
 
+.analyze-btn:focus, .analyze-btn:focus-visible, .analyze-btn:active {
+  outline: none; 
+  border: none;
+}
+
 /* RESULT CARD (RIGHT COLUMN) */
 /* Placeholder right column when no results */
 .result-card {
