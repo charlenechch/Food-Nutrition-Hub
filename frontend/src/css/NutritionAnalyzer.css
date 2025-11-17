@@ -136,26 +136,29 @@
   gap: 6px;
 }
 
-.remove-file-btn {
+.file-remove-btn {
   position: absolute;
-  top: -10px;
-  right: -10px;
-  background: #b04d4d;
+  top: 80px;       
+  right: 60px;    
+  width: 32px;
+  height: 32px;
+  background: #f04242;
   color: white;
   border: none;
-  width: 22px;
-  height: 22px;
   border-radius: 50%;
-  cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
   transition: 0.2s ease;
 }
 
-.remove-file-btn:hover {
-  background: #8a3838;
+.file-remove-btn:hover {
+  background: #ff4e4e;
+  transform: scale(1.1);
 }
 
 /* BUTTON */

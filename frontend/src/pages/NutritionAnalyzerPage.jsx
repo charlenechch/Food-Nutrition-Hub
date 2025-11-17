@@ -268,55 +268,46 @@ export default function NutritionAnalyzerPage() {
               />
             </div>
 
-            {/* Upload */}
+              {/* Upload */}
             <div className="upload-card">
-              <h3 className="section-title"><IoCameraOutline/> Or Upload Food Photo</h3>
+              <h3 className="section-title">
+                <IoCameraOutline /> Or Upload Food Photo
+              </h3>
               <p>Take a photo or upload an image for AI analysis</p>
 
-              <div
-                className="upload-box"
-                onClick={() => {
-                  if (requireLogin("open file picker")) return;
-                  if (!selectedFile) document.getElementById("fileInput").click();
-                }}> 
+              {/* Wrapper allows button to attach to dashed box */}
+              <div className="upload-box-wrapper">
+                <div
+                  className="upload-box"
+                  onClick={() => {
+                    if (requireLogin("open file picker")) return;
+                    document.getElementById("fileInput").click();
+                  }}
+                >
+                  <FaCamera size={28} />
+                  <p>
+                    {selectedFile
+                      ? selectedFile.name
+                      : "Drag & drop an image or click to upload"}
+                  </p>
 
-                {/* Show when NO FILE selected */}
-                {!selectedFile && (
-                  <>
-                    <FaCamera size={28} />
-                    <p>Drag & drop an image or click to upload</p>
-                  </>
-                )}
+                  <input
+                    id="fileInput"
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={handleFileChange}
+                  />
+                </div>
 
-                {/* Show when FILE is selected */}
+                {/* Remove button ATTACHED TO BOX */}
                 {selectedFile && (
-                  <div className="upload-preview">
-                    <FaCamera size={28} />
-                    <p>{selectedFile.name}</p>
-
-                    {/* Remove button */}
-                    <button
-                      type="button"
-                      className="remove-file-btn"
-                      onClick={(e) => {
-                        e.stopPropagation(); // prevent triggering upload click
-                        setSelectedFile(null);
-                        document.getElementById("fileInput").value = "";
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
+                  <button type="button" className="file-remove-btn" onClick={handleRemoveFile}>
+                    ✕
+                  </button>
                 )}
-
-                <input
-                  id="fileInput"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
-                />
               </div>
+
             </div>
 
             {/* Analyze */}
