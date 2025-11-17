@@ -12,9 +12,7 @@
   box-sizing: border-box;
 }
 
-/* ===============================
-   PAGE TITLES
-=============================== */
+/* PAGE TITLES */
 .page-title {
   font-size: clamp(1.8rem, 3vw, 2.5rem);
   font-weight: 700;
@@ -28,9 +26,7 @@
   margin-bottom: clamp(1.5rem, 3vw, 2rem);
 }
 
-/* ===============================
-   GRID CONTAINER
-=============================== */
+/* GRID CONTAINER */
 .analyzer-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -41,9 +37,7 @@
   align-items: flex-start;
 }
 
-/* ===============================
-   FORM SECTION
-=============================== */
+/* FORM SECTION */
 .food-form {
   display: flex;
   flex-direction: column;
@@ -51,8 +45,7 @@
 }
 
 .food-input-card,
-.upload-card,
-.result-card {
+.upload-card {
   background: #fff;
   padding: clamp(1rem, 2vw, 1.5rem);
   border-radius: 12px;
@@ -62,9 +55,7 @@
   gap: 1.2rem;
 }
 
-/* ===============================
-   SECTION TITLES
-=============================== */
+/* SECTION TITLES */
 .section-title {
   font-size: clamp(0.9rem, 1vw, 1rem);
   font-weight: 600;
@@ -75,9 +66,7 @@
   gap: 8px;
 }
 
-/* ===============================
-   FORM INPUTS
-=============================== */
+/* FORM INPUTS */
 .food-input-card label {
   font-size: clamp(0.85rem, 1vw, 0.95rem);
   display: block;
@@ -106,9 +95,7 @@
   font-size: clamp(0.85rem, 1vw, 0.95rem);
 }
 
-/* ===============================
-   UPLOAD SECTION
-=============================== */
+/* UPLOAD SECTION */
 .upload-card p {
   color: #555;
   font-size: clamp(0.85rem, 1vw, 0.95rem);
@@ -141,9 +128,7 @@
   cursor: pointer;
 }
 
-/* ===============================
-   BUTTON
-=============================== */
+/* BUTTON */
 .analyze-btn {
   background: #b8926a;
   color: #fff;
@@ -165,87 +150,182 @@
   transform: translateY(-2px);
 }
 
-/* ===============================
-   RESULT CARD (RIGHT COLUMN)
-=============================== */
-/* .result-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #777;
-  text-align: center;
-  height: fit-content;
-  min-height: 350px;
-}
-
-.result-icon {
-  color: #916848;
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  margin-bottom: 1rem;
-} */
-
-/* Result Card Layout */
+/* RESULT CARD (RIGHT COLUMN) */
+/* Placeholder right column when no results */
 .result-card {
   background: #fff;
   padding: 22px;
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  min-height: 300px;
+  border: 1px solid #e9c8a6;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
+  min-height: 200px;
+  text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  font-size: 15px;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Suggestions List (Did you mean...) */
-.suggestion-btn {
-  background: #f3e8dc;
-  border: 1px solid #d8c7b2;
-  padding: 6px 12px;
-  margin: 5px 5px 0 0;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: 0.2s;
-}
-.suggestion-btn:hover {
-  background: #e9dccb;
-}
-
-/* Nutrition Box */
-.nutrition-box {
-  background: #fff7ec;
-  border: 1px solid #e8d3b6;
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  line-height: 1.55;
-  margin-top: 10px;
+/* --- Placeholder state (NO RESULT) --- */
+.result-card.empty {
+  background: #fff;
+  padding: 22px;
+  border-radius: 12px;
+  border: 1px solid #e9c8a6;
+  box-shadow: 0px 3px 6px rgba(0,0,0,0.06);
+  margin-top: 20px;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* vertical center */
+  align-items: center;       /* horizontal center */
+  text-align: center;
 }
 
-/* Health Tips Box */
-.tips-box {
-  margin-top: 16px;
-  background: #eef9f1;
-  border-left: 4px solid #4caf50;
-  padding: 12px 16px;
-  border-radius: 8px;
+/* When actual results are shown */
+.result-card.has-result {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  display: block;
 }
-.tips-box h3 {
-  margin: 0 0 6px 0;
-  font-size: 15px;
+
+
+.result-card .analysis-container {
+  background: #fff;
+  border: 1px solid #e6d8c3;
+  border-radius: 14px;
+  padding: 24px;
+  text-align: left;
+  margin-bottom: 25px;      
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
-.tips-box li {
-  font-size: 14px;
-  margin-left: 18px;
+
+/* Title */
+.analysis-title {
+  font-size: 22px;
+  font-weight: 700;
   margin-bottom: 4px;
+  color: #4a3b2f;
+}
+
+.analysis-meta {
+  opacity: 0.7;
+  margin-top: -2px;
+  margin-bottom: 12px;
+}
+
+/* Image */
+.analysis-image-wrapper {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.analysis-image {
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Section headers */
+.section-header {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #58422e;
+}
+
+/* ---- Nutrition Section ---- */
+.nutrition-section {
+  margin-bottom: 20px;
+}
+
+/* Grid layout */
+.nutrition-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* Each nutrition card */
+.nutri-card {
+  background: #f7f2eb;
+  padding: 14px 12px;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Empty placeholders */
+.nutri-card.empty {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Number */
+.nutri-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #6d4b2d;
+}
+
+/* Label */
+.nutri-label {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #8a715b;
 }
 
 
-/* ===============================
-   RESPONSIVE BEHAVIOUR
-=============================== */
+/* Alternatives */
+
+.alternative-card {
+  background: #fdfbf7;
+  border: 1px solid #ecdac5;
+  padding: 8px 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.alt-main {
+  font-weight: 600;
+  color: #4c3829;
+}
+
+.alt-desc {
+  margin-top: 4px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* Tips */
+.tip-card {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.tip-warning {
+  background: #fff8db;
+  border: 1px solid #f4e4ab;
+}
+
+.tip-info {
+  background: #eef4ff;
+  border: 1px solid #ccdaff;
+}
+
+
+/* RESPONSIVE BEHAVIOUR */
 
 /* Tablet */
 @media (max-width: 992px) {
@@ -318,15 +398,3 @@
 }
 
 
-.result-section { display: grid; gap: 16px; }
-.result-header { margin-bottom: 4px; }
-.result-title { font-size: 20px; font-weight: 700; margin: 0; }
-.accuracy-text { color: #6f6f6f; font-size: 13px; margin-top: 4px; }
-.portion-note { color: #7b7b7b; font-size: 12px; margin-top: 2px; }
-
-.result-block { background: #fff; border: 1px solid #eee1d5; border-radius: 10px; padding: 12px; }
-.block-title { margin: 0 0 8px 0; font-weight: 700; font-size: 14px; }
-
-.nutrition-table { width: 100%; border-collapse: collapse; }
-.nutrition-table td { padding: 8px 6px; border-bottom: 1px solid #f0e8de; }
-.nutrition-table tr:last-child td { border-bottom: none; }

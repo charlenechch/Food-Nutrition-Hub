@@ -57,7 +57,6 @@ const EditFoodPage = () => {
             fat: data.data.Fat_g || "",
             fiber: data.data.Fiber_g || "",
             vitaminc: data.data.VitaminC_mg || "",
-            name_ms: data.data.name_ms || "",
             category: data.data.category || "",
             description: data.data.description || "",
             culturalSignificance: data.data.culturalSignificance || "",
@@ -217,17 +216,21 @@ const EditFoodPage = () => {
       return;
     }
 
-    const dataToSave = {
-      name: food.name,
-      origin: food.origin,
-      Energy_kcal: Number(food.calories) || 0,
-      Protein_g: Number(food.protein) || 0,
-      Carbohydrates_g: Number(food.carbs) || 0,
-      Fat_g: Number(food.fat) || 0,
-      Fiber_g: Number(food.fiber) || 0,
-      VitaminC_mg: Number(food.vitaminc) || 0,
-      image: finalImageUrl,
-    };
+      const dataToSave = {
+        name: food.name,
+        origin: food.origin,
+        category: food.category,
+        description: food.description,
+        culturalSignificance: food.culturalSignificance,
+        traditionalPreparation: food.traditionalPreparation,
+        Energy_kcal: Number(food.calories) || 0,
+        Protein_g: Number(food.protein) || 0,
+        Carbohydrates_g: Number(food.carbs) || 0,
+        Fat_g: Number(food.fat) || 0,
+        Fiber_g: Number(food.fiber) || 0,
+        VitaminC_mg: Number(food.vitaminc) || 0,
+        image: finalImageUrl,
+  };
 
     try {
       console.log("[save] updating food with:", dataToSave);
@@ -369,16 +372,6 @@ const EditFoodPage = () => {
               <div>
                 <label className="basic-info-label">Food Name</label>
                 <input className="edit-food-input" name="name" value={food.name} onChange={handleChange} />
-              </div>
-              <div>
-                <label className="basic-info-label">Name (Bahasa Malaysia)</label>
-                <input
-                  className="edit-food-input"
-                  name="name_ms"
-                  value={food.name_ms}
-                  onChange={handleChange}
-                  placeholder="Not saved to DB yet"
-                />
               </div>
             </div>
 
