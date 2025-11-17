@@ -1,7 +1,4 @@
-# ================================================================
 # main.py — Food Recognition API (EfficientNet + optional ResNet)
-# Clean, Production-Ready, Fully Compatible With Your Frontend
-# ================================================================
 
 import os
 import io
@@ -20,12 +17,9 @@ from tensorflow.keras.applications.resnet50 import preprocess_input as rn_pre
 
 import mysql.connector
 
-
-# ================================================================
 # ENVIRONMENT VARIABLES
-# ================================================================
-AI_MODEL_PATH = os.getenv("MODEL_PATH")              # e.g., /app/effb0_best.keras
-AI_MODEL2_PATH = os.getenv("SECOND_MODEL_PATH")      # optional ResNet model
+AI_MODEL_PATH = os.getenv("MODEL_PATH")             
+AI_MODEL2_PATH = os.getenv("SECOND_MODEL_PATH")      
 LABELS_PATH = os.getenv("LABELS_PATH", "/app/labels.json")
 
 DB_CFG = {
@@ -39,10 +33,7 @@ DB_CFG = {
 IMG_SIZE = (224, 224)
 THRESHOLD = 0.0  # confidence threshold
 
-
-# ================================================================
 # LOAD LABELS
-# ================================================================
 try:
     with open(LABELS_PATH, "r") as f:
         raw = json.load(f)
@@ -58,9 +49,7 @@ except Exception as e:
     CLASS_NAMES = []
 
 
-# ================================================================
 # SAFE MODEL LOADER
-# ================================================================
 def load_model_safely(path: Optional[str], flavor: str):
     if not path or not os.path.exists(path):
         print(f"!! Model missing at {path}")
@@ -98,9 +87,7 @@ res_model = load_model_safely(AI_MODEL2_PATH, "rn")
 print(f"Models Loaded → EfficientNet: {eff_model is not None}, ResNet: {res_model is not None}")
 
 
-# ================================================================
 # DATABASE
-# ================================================================
 def get_db():
     try:
         return mysql.connector.connect(**DB_CFG)
@@ -128,7 +115,7 @@ def fetch_nutrition(name: str):
         if row:
             return row
 
-        # ---- Alternative match
+        # Alternative match
         cur.execute("""
             SELECT *
             FROM food
@@ -146,9 +133,7 @@ def fetch_nutrition(name: str):
             pass
 
 
-# ================================================================
 # FASTAPI
-# ================================================================
 app = FastAPI(title="Food Recognition API")
 
 app.add_middleware(
@@ -159,31 +144,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# ================================================================
 # OUTPUT MODEL
-# ================================================================
 class PredictOut(BaseModel):
+    class PredictOut(BaseModel):
     pred_class: Optional[str]
     confidence: float
+    
+    # Nutrition block
     nutrition: Optional[Dict[str, Any]] = None
+
+    # Health tips
     tips: Optional[str] = None
 
+    # Extra metadata (to match DB)
+    image: Optional[str] = None
+    origin: Optional[str] = None
+    category: Optional[str] = None
+    foodType: Optional[str] = None
+    difficulty: Optional[str] = None
+    alternative: Optional[str] = None
+    altDescription: Optional[str] = None
+    commonIngredients: Optional[str] = None
 
-# ================================================================
+
 # IMAGE PROCESSING
-# ================================================================
 def pil_to_array(img: Image.Image) -> np.ndarray:
     img = img.convert("RGB").resize(IMG_SIZE)
     return np.array(img).astype("float32") # model takes raw floats; Lambda handles preprocessing
 
 
-# ================================================================
 # MODEL INFERENCE
-# ================================================================
 def run_models(arr: np.ndarray):
     # Apply EfficientNet preprocessing
-    x = eff_pre(arr[None, ...])   # <-- Mandatory step
+    x = eff_pre(arr[None, ...])  
 
     preds = []
 
@@ -203,9 +196,7 @@ def run_models(arr: np.ndarray):
     return CLASS_NAMES[idx], conf
 
 
-# ================================================================
 # HEALTH CHECK
-# ================================================================
 @app.get("/health")
 def health():
     return {
@@ -216,9 +207,7 @@ def health():
     }
 
 
-# ================================================================
 # PREDICT ENDPOINT
-# ================================================================
 @app.post("/predict", response_model=PredictOut)
 async def predict(
     file: UploadFile = File(None),
@@ -226,9 +215,7 @@ async def predict(
     ingredients: Optional[str] = Form(None),
 ):
 
-    # ------------------------------------------------------------
     # 1) If user typed a food name → DB lookup
-    # ------------------------------------------------------------
     if food_name and food_name.strip():
         info = fetch_nutrition(food_name.strip())
         if info:
@@ -246,9 +233,7 @@ async def predict(
                 tips=info.get("healthTips"),
             )
 
-    # ------------------------------------------------------------
     # 2) IMAGE INFERENCE
-    # ------------------------------------------------------------
     if file is not None:
         img_bytes = await file.read()
         img = Image.open(io.BytesIO(img_bytes))
@@ -275,10 +260,19 @@ async def predict(
             pred_class=pred_name,
             confidence=conf,
             nutrition=nutrition,
+
             tips=info.get("healthTips") if info else None,
+
+             # New fields
+            image=info.get("image"),
+            origin=info.get("origin"),
+            category=info.get("category"),
+            foodType=info.get("foodType"),
+            difficulty=info.get("difficulty"),
+            alternative=info.get("alternative"),
+            altDescription=info.get("altDescription"),
+            commonIngredients=info.get("commonIngredients"),
         )
 
-    # ------------------------------------------------------------
     # 3) No input at all
-    # ------------------------------------------------------------
     return PredictOut(pred_class=None, confidence=0.0)

@@ -158,16 +158,12 @@ export default function NutritionAnalyzerPage() {
           setError("The AI couldn’t confidently recognize this food. Try a clearer photo or another angle.");
           setResult(null);
           return;
-        }
+          }
 
         // shape into UI model
         const shaped = {
           source: "ai",
-          food_name:
-            data.food_name ||
-            data.pred_class ||
-            foodName ||
-            "Detected Food",
+          food_name: data.pred_class, 
 
           confidence: data.confidence,
 
@@ -183,9 +179,21 @@ export default function NutritionAnalyzerPage() {
             : null,
 
           tips: data.tips ? [data.tips] : [],
-          alternatives: [],
-          altDescription: "",
-          meta: { portion: "1 serving", imageUsed: true },
+
+           alternatives: data.alternative
+            ? data.alternative.split(",").map((x) => x.trim())
+            : [],
+
+          altDescription: data.altDescription || "",
+
+           meta: {
+            origin: data.origin,
+            category: data.category,
+            foodType: data.foodType,
+            difficulty: data.difficulty,
+            image: data.image,                   
+            commonIngredients: data.commonIngredients,
+          }
         };
 
         setResult(shaped);
