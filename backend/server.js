@@ -251,11 +251,13 @@ app.use(
     allowlist: [
       "name", "name_ms", "category", "culturalSignificance",
       "traditionalPreparation", "origin", "description",
-      "image", "foodType", "dietaryTags", "ingredients"
+      "image", "foodType", "dietaryTags", "ingredients",
+      "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg"
     ],
   }),
   foodRoutes
 );
+
 
 // Search
 app.use("/api/foodSearch", foodSearchRoutes);
@@ -277,8 +279,7 @@ app.use(
       "foodType", "dietaryTags", "ingredients", "instructions", 
       "funFact", "chefTips", "category", 
       "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll",
-      "Energy_kcal", "Protein_g", "Fat_g", "Carbohydrates_g", "Fiber_g",
-      "VitaminC_mg", "view", "year"
+      "view", "year"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));
