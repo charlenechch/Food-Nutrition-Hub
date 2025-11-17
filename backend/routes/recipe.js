@@ -840,19 +840,19 @@ try {
 
   // 🥦 Update food table
   const updateFoodQuery = `
-    UPDATE food 
-    SET 
-      name = ?, 
-      origin = ?, 
-      difficulty = ?, 
-      prepTime = ?, 
-      image = ?, 
-      description = ?, 
-      foodType = ?, 
-      category = ?, 
-      dietaryTags = ?
-    WHERE foodID = ?
-  `;
+  UPDATE food 
+  SET 
+    name = ?, 
+    origin = ?, 
+    difficulty = ?, 
+    prepTime = ?, 
+    image = ?, 
+    description = ?, 
+    foodType = ?, 
+    category = ?, 
+    dietaryTags = ?
+  WHERE foodID = ?
+`;
   const foodParams = [
     name,
     origin,

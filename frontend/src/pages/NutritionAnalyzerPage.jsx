@@ -36,7 +36,7 @@ export default function NutritionAnalyzerPage() {
 
   // ---- Debounced lookup to backend (DB) when typing food name ----
   const debouncedName = useMemo(() => foodName.trim(), [foodName]);
-  useEffect(() => {
+      useEffect(() => {
     if (!debouncedName) {
       setSuggestions([]);
       return;
@@ -45,6 +45,7 @@ export default function NutritionAnalyzerPage() {
     const t = setTimeout(async () => {
       try {
         setError("");
+
         const r = await fetch(
           `${API_URL}/api/ai/lookup?name=${encodeURIComponent(debouncedName)}`,
           { credentials: "include" }
@@ -52,13 +53,13 @@ export default function NutritionAnalyzerPage() {
         const data = await r.json();
 
         if (data.found && data.item) {
-          // auto-fill immediate preview on the right
-          setResult(shapeResultFromDB(data.item));
+          // Only clear suggestions so it doesn’t list similar names
           setSuggestions([]);
         } else {
-          setResult(null);
+          // ✔ Show suggestions if fuzzy match found
           setSuggestions(Array.isArray(data.suggestions) ? data.suggestions : []);
         }
+
       } catch (e) {
         console.error(e);
         setSuggestions([]);
@@ -67,6 +68,7 @@ export default function NutritionAnalyzerPage() {
 
     return () => clearTimeout(t);
   }, [debouncedName]);
+
 
   // ---- Helpers ----
   function shapeResultFromDB(row) {
@@ -129,6 +131,12 @@ export default function NutritionAnalyzerPage() {
       setResult(null); // clear any DB preview to avoid confusion
     }
   };
+  
+  const handleRemoveFile = () => {
+    setSelectedFile(null);   // remove the file
+    setResult(null);         // clear any preview
+  };
+
 
   // ---- Analyze button ----
   const handleAnalyze = async (e) => {
@@ -200,8 +208,6 @@ export default function NutritionAnalyzerPage() {
         return;
       }
 
-
-
       // 2) Else (no file) -> ask backend to return DB row or synthesize
       const r2 = await fetch(`${API_URL}/api/ai/analyze`, {
         method: "POST",
@@ -268,31 +274,46 @@ export default function NutritionAnalyzerPage() {
               />
             </div>
 
-            {/* Upload */}
+              {/* Upload */}
             <div className="upload-card">
-              <h3 className="section-title"><IoCameraOutline/> Or Upload Food Photo</h3>
+              <h3 className="section-title">
+                <IoCameraOutline /> Or Upload Food Photo
+              </h3>
               <p>Take a photo or upload an image for AI analysis</p>
 
-              <div
-                className="upload-box"
-                onClick={() => {
-                  if (requireLogin("open file picker")) return;
-                  document.getElementById("fileInput").click();
-                }}
-                style={{ cursor: "pointer" }}
-              >
-                <FaCamera size={28} />
-                <p>
-                  {selectedFile ? selectedFile.name : "Drag & drop an image or click to upload"}
-                </p>
-                <input
-                  id="fileInput"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
-                />
+              {/* Wrapper allows button to attach to dashed box */}
+              <div className="upload-box-wrapper">
+                <div
+                  className="upload-box"
+                  onClick={() => {
+                    if (requireLogin("open file picker")) return;
+                    document.getElementById("fileInput").click();
+                  }}
+                >
+                  <FaCamera size={28} />
+                  <p>
+                    {selectedFile
+                      ? selectedFile.name
+                      : "Drag & drop an image or click to upload"}
+                  </p>
+
+                  <input
+                    id="fileInput"
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={handleFileChange}
+                  />
+                </div>
+
+                {/* Remove button ATTACHED TO BOX */}
+                {selectedFile && (
+                  <button type="button" className="file-remove-btn" onClick={handleRemoveFile}>
+                    ✕
+                  </button>
+                )}
               </div>
+
             </div>
 
             {/* Analyze */}

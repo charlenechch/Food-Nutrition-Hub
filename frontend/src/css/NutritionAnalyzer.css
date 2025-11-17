@@ -96,6 +96,10 @@
 }
 
 /* UPLOAD SECTION */
+.upload-card {
+  position: relative;
+}
+
 .upload-card p {
   color: #555;
   font-size: clamp(0.85rem, 1vw, 0.95rem);
@@ -128,6 +132,39 @@
   cursor: pointer;
 }
 
+.upload-preview {
+  position: relative;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  min-height: 120px;
+}
+
+.file-remove-btn {
+  position: absolute;
+  top: 80px;       
+  right: 60px;    
+  width: 32px;
+  height: 32px;
+  background: #f04242;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  transition: 0.2s ease;
+}
+
+.file-remove-btn:hover {
+  background: #ff4e4e;
+  transform: scale(1.1);
+}
+
 /* BUTTON */
 .analyze-btn {
   background: #b8926a;
@@ -148,6 +185,11 @@
 .analyze-btn:hover {
   background: #916848;
   transform: translateY(-2px);
+}
+
+.analyze-btn:focus, .analyze-btn:focus-visible, .analyze-btn:active {
+  outline: none; 
+  border: none;
 }
 
 /* RESULT CARD (RIGHT COLUMN) */
