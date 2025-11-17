@@ -12,9 +12,7 @@
   box-sizing: border-box;
 }
 
-/* ===============================
-   PAGE TITLES
-=============================== */
+/* PAGE TITLES */
 .page-title {
   font-size: clamp(1.8rem, 3vw, 2.5rem);
   font-weight: 700;
@@ -28,9 +26,7 @@
   margin-bottom: clamp(1.5rem, 3vw, 2rem);
 }
 
-/* ===============================
-   GRID CONTAINER
-=============================== */
+/* GRID CONTAINER */
 .analyzer-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -41,9 +37,7 @@
   align-items: flex-start;
 }
 
-/* ===============================
-   FORM SECTION
-=============================== */
+/* FORM SECTION */
 .food-form {
   display: flex;
   flex-direction: column;
@@ -62,9 +56,7 @@
   gap: 1.2rem;
 }
 
-/* ===============================
-   SECTION TITLES
-=============================== */
+/* SECTION TITLES */
 .section-title {
   font-size: clamp(0.9rem, 1vw, 1rem);
   font-weight: 600;
@@ -75,9 +67,7 @@
   gap: 8px;
 }
 
-/* ===============================
-   FORM INPUTS
-=============================== */
+/* FORM INPUTS */
 .food-input-card label {
   font-size: clamp(0.85rem, 1vw, 0.95rem);
   display: block;
@@ -106,9 +96,7 @@
   font-size: clamp(0.85rem, 1vw, 0.95rem);
 }
 
-/* ===============================
-   UPLOAD SECTION
-=============================== */
+/* UPLOAD SECTION */
 .upload-card p {
   color: #555;
   font-size: clamp(0.85rem, 1vw, 0.95rem);
@@ -141,9 +129,7 @@
   cursor: pointer;
 }
 
-/* ===============================
-   BUTTON
-=============================== */
+/* BUTTON */
 .analyze-btn {
   background: #b8926a;
   color: #fff;
@@ -165,27 +151,7 @@
   transform: translateY(-2px);
 }
 
-/* ===============================
-   RESULT CARD (RIGHT COLUMN)
-=============================== */
-/* .result-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #777;
-  text-align: center;
-  height: fit-content;
-  min-height: 350px;
-}
-
-.result-icon {
-  color: #916848;
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  margin-bottom: 1rem;
-} */
-
-/* Result Card Layout */
+/* RESULT CARD (RIGHT COLUMN) */
 .result-card {
   background: #fff;
   padding: 22px;
@@ -197,139 +163,6 @@
   gap: 14px;
   font-size: 15px;
 }
-
-/* Suggestions List (Did you mean...) */
-.suggestion-btn {
-  background: #f3e8dc;
-  border: 1px solid #d8c7b2;
-  padding: 6px 12px;
-  margin: 5px 5px 0 0;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: 0.2s;
-}
-.suggestion-btn:hover {
-  background: #e9dccb;
-}
-
-/* Nutrition Box */
-.nutrition-box {
-  background: #fff7ec;
-  border: 1px solid #e8d3b6;
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  line-height: 1.55;
-  margin-top: 10px;
-}
-
-/* Health Tips Box */
-.tips-box {
-  margin-top: 16px;
-  background: #eef9f1;
-  border-left: 4px solid #4caf50;
-  padding: 12px 16px;
-  border-radius: 8px;
-}
-.tips-box h3 {
-  margin: 0 0 6px 0;
-  font-size: 15px;
-}
-.tips-box li {
-  font-size: 14px;
-  margin-left: 18px;
-  margin-bottom: 4px;
-}
-
-
-/* ===============================
-   RESPONSIVE BEHAVIOUR
-=============================== */
-
-/* Tablet */
-@media (max-width: 992px) {
-  .analyzer-container {
-    grid-template-columns: 1fr;
-  }
-
-  .result-card {
-    margin-top: 1.5rem;
-  }
-}
-
-/* Mobile */
-@media (max-width: 600px) {
-  .page-title {
-    font-size: 1.8rem;
-    margin-top: 70px;
-  }
-
-  .page-subtitle {
-    font-size: 0.95rem;
-  }
-
-  .upload-box {
-    padding: 1rem;
-  }
-
-  .food-input-card input,
-  .food-input-card textarea {
-    font-size: 0.9rem;
-  }
-
-  .analyze-btn {
-    width: 100%;
-    font-size: 0.95rem;
-  }
-}
-
-/* ===============================
-   MODAL & BACKGROUND BLUR
-=============================== */
-
-/* blur the page when modal appears */
-.blur-sm {
-  filter: blur(4px);
-  pointer-events: none;
-  transition: filter 0.3s ease;
-}
-
-/* disabled button style */
-.disabled-btn {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-/* fade-in animation for the modal popup */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.25s ease-out forwards;
-}
-
-
-.result-section { display: grid; gap: 16px; }
-.result-header { margin-bottom: 4px; }
-.result-title { font-size: 20px; font-weight: 700; margin: 0; }
-.accuracy-text { color: #6f6f6f; font-size: 13px; margin-top: 4px; }
-.portion-note { color: #7b7b7b; font-size: 12px; margin-top: 2px; }
-
-.result-block { background: #fff; border: 1px solid #eee1d5; border-radius: 10px; padding: 12px; }
-.block-title { margin: 0 0 8px 0; font-weight: 700; font-size: 14px; }
-
-.nutrition-table { width: 100%; border-collapse: collapse; }
-.nutrition-table td { padding: 8px 6px; border-bottom: 1px solid #f0e8de; }
-.nutrition-table tr:last-child td { border-bottom: none; }
 
 /* Main container for right side */
 .analysis-container {
@@ -470,4 +303,78 @@
   background: #eef4ff;
   border: 1px solid #ccdaff;
 }
+
+
+/* RESPONSIVE BEHAVIOUR */
+
+/* Tablet */
+@media (max-width: 992px) {
+  .analyzer-container {
+    grid-template-columns: 1fr;
+  }
+
+  .result-card {
+    margin-top: 1.5rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .page-title {
+    font-size: 1.8rem;
+    margin-top: 70px;
+  }
+
+  .page-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .upload-box {
+    padding: 1rem;
+  }
+
+  .food-input-card input,
+  .food-input-card textarea {
+    font-size: 0.9rem;
+  }
+
+  .analyze-btn {
+    width: 100%;
+    font-size: 0.95rem;
+  }
+}
+
+/* ===============================
+   MODAL & BACKGROUND BLUR
+=============================== */
+
+/* blur the page when modal appears */
+.blur-sm {
+  filter: blur(4px);
+  pointer-events: none;
+  transition: filter 0.3s ease;
+}
+
+/* disabled button style */
+.disabled-btn {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* fade-in animation for the modal popup */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
 
