@@ -249,7 +249,7 @@ app.use(
   hppProtect({
     policy: "first",
     allowlist: [
-      "name", "name_ms", "category", "culturalSignificance",
+      "name", "category", "culturalSignificance",
       "traditionalPreparation", "origin", "description",
       "image", "foodType", "dietaryTags", "ingredients",
       "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg"

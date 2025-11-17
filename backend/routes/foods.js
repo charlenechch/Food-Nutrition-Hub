@@ -185,7 +185,6 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     Fiber_g,
     VitaminC_mg,
     image,
-    name_ms,
   } = req.body;
 
   try {
@@ -200,8 +199,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
       const sql = `
     UPDATE food
     SET 
-      name = ?,
-      name_ms = ?,           
+      name = ?,        
       origin = ?,
       category = ?,            
       description = ?,         
@@ -219,7 +217,6 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
 
   const values = [
     name || existing[0].name,
-    name_ms || existing[0].name_ms,
     origin || existing[0].origin,
     category || existing[0].category,
     description || existing[0].description,
