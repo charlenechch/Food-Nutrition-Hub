@@ -357,6 +357,7 @@ export default function NutritionAnalyzerPage() {
           )}
 
           {result && (
+            <>
             <div className="analysis-container">
 
               {/* Food Name */}
@@ -422,7 +423,9 @@ export default function NutritionAnalyzerPage() {
                   </div>
                 </div>
               )}
+            </div>
 
+            <div className="analysis-container">
               {/* Healthier Alternatives */}
               {!!result.alternatives?.length && (
                 <div className="alternatives-section">
@@ -456,6 +459,7 @@ export default function NutritionAnalyzerPage() {
               )}
 
             </div>
+            </>
           )}
         </div>
       </div>

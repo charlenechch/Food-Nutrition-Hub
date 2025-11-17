@@ -211,12 +211,12 @@
   margin-top: 20px;
 }
 
-.result-subtitle {
+/* .result-subtitle {
   font-size: 18px;
   font-weight: 700;
   color: #5b3a1e;
   margin-bottom: 12px;
-}
+} */
 
 /* Grid layout */
 .nutrition-grid {
@@ -245,7 +245,7 @@
 
 /* Number */
 .nutri-value {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   color: #6d4b2d;
 }
