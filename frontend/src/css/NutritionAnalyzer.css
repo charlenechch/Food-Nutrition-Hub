@@ -166,6 +166,22 @@
   justify-content: center;
 }
 
+/* --- Placeholder state (NO RESULT) --- */
+.result-card.empty {
+  background: #fff;
+  padding: 22px;
+  border-radius: 12px;
+  border: 1px solid #e9c8a6;
+  box-shadow: 0px 3px 6px rgba(0,0,0,0.06);
+  
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   /* vertical center */
+  align-items: center;       /* horizontal center */
+  text-align: center;
+}
+
 /* When actual results are shown */
 .result-card.has-result {
   background: transparent;
@@ -225,7 +241,7 @@
 
 /* ---- Nutrition Section ---- */
 .nutrition-section {
-  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 /* Grid layout */

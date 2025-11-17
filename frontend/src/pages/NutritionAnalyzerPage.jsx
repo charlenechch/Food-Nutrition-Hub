@@ -318,7 +318,7 @@ export default function NutritionAnalyzerPage() {
         </div>
 
         {/* RIGHT: Suggestions + Results */}
-        <div className={`result-card ${result ? "has-result" : ""}`}>
+        <div className={`result-card ${result ? "has-result" : "empty"}`}>
           {/* Suggestions (chips) */}
           {suggestions.length > 0 && (
             <>
