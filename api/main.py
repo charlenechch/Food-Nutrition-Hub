@@ -37,7 +37,7 @@ DB_CFG = {
 }
 
 IMG_SIZE = (224, 224)
-THRESHOLD = 0.45  # confidence threshold
+THRESHOLD = 0.0  # confidence threshold
 
 
 # ================================================================
@@ -175,20 +175,20 @@ class PredictOut(BaseModel):
 # ================================================================
 def pil_to_array(img: Image.Image) -> np.ndarray:
     img = img.convert("RGB").resize(IMG_SIZE)
-    return np.array(img).astype("float32")  # model takes raw floats; Lambda handles preprocessing
+    return np.array(img).astype("float32") # model takes raw floats; Lambda handles preprocessing
 
 
 # ================================================================
 # MODEL INFERENCE
 # ================================================================
 def run_models(arr: np.ndarray):
-    x = arr[None, ...]
+    # Apply EfficientNet preprocessing
+    x = eff_pre(arr[None, ...])   # <-- Mandatory step
+
     preds = []
 
     if eff_model is not None:
         preds.append(eff_model.predict(x, verbose=0))
-    if res_model is not None:
-        preds.append(res_model.predict(x, verbose=0))
 
     if not preds:
         return None, 0.0
