@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import "../css/EditRecipe.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { FaArrowLeft, FaUser, FaCalendarAlt, FaFileAlt, FaCheck, FaTimes } from "react-icons/fa";
+import Modal from "../components/Modal";
+import { FaArrowLeft, FaUser, FaCalendarAlt, FaFileAlt, FaCheck, FaTimes, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -13,6 +14,22 @@ const EditRecipePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(""); // 'approve' or 'reject'
   const [recipe, setRecipe] = useState(null);
+  const [infoDlg, setInfoDlg] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+  });
+  const openInfo = (opts) =>
+    setInfoDlg({
+      open: true,
+      title: opts.title || "",
+      message: opts.message || "",
+      icon: opts.icon || null,
+      primaryText: opts.primaryText || "OK",
+    });
+  const closeInfo = () => setInfoDlg((m) => ({ ...m, open: false }));
 
   // Fetch recipe data
   useEffect(() => {
@@ -74,7 +91,11 @@ const EditRecipePage = () => {
     const feedback = feedbackInput?.value.trim();
 
     if (!feedback) {
-      alert("Please enter feedback before sending.");
+      openInfo({
+        title: "Missing Feedback",
+        message: "Please enter feedback before sending.",
+        icon: <FaExclamationTriangle />,
+      });
       return;
     }
 
@@ -91,11 +112,19 @@ const EditRecipePage = () => {
         throw new Error(errData.message || "Failed to send feedback");
       }
 
-      alert("✅ Feedback sent successfully!");
+      openInfo({
+        title: "Feedback Sent",
+        message: "Your feedback has been sent successfully.",
+        icon: <FaCheckCircle />,
+      });
       feedbackInput.value = "";
     } catch (err) {
       console.error("Error sending feedback:", err);
-      alert(`Error: ${err.message}`);
+      openInfo({
+        title: "Failed to Send",
+        message: err.message || "Could not send feedback.",
+        icon: <FaExclamationTriangle />,
+      });
     }
   };
 
@@ -282,13 +311,20 @@ const EditRecipePage = () => {
                     }
 
                     setShowModal(false);
-                    alert(
-                      `${newStatus === "Approved" ? "✅ Approved" : "❌ Rejected"}\n\nAdmin Feedback:\n${feedback}`
-                    );
+                    openInfo({
+                      title: newStatus === "Approved" ? "Approved" : "Rejected",
+                      message: `Admin Feedback:\n${feedback}`,
+                      icon: newStatus === "Approved" ? <FaCheckCircle /> : <FaExclamationTriangle />,
+                      primaryText: "OK",
+                    });
                     navigate("/admin");
                   } catch (err) {
                     console.error("Failed to update status:", err);
-                    alert(`Error: ${err.message}`);
+                    openInfo({
+                      title: "Failed to update status",
+                      message: err.message || "Could not update status.",
+                      icon: <FaExclamationTriangle />,
+                    });
                   }
                 }}
               >
@@ -298,6 +334,16 @@ const EditRecipePage = () => {
           </div>
         </div>
       )}
+      <Modal
+        open={infoDlg.open}
+        title={infoDlg.title}
+        icon={infoDlg.icon}
+        primaryText={infoDlg.primaryText}
+        onPrimary={closeInfo}
+        onClose={closeInfo}
+      >
+        {infoDlg.message}
+      </Modal>
 
       <Footer />
     </div>
