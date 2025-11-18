@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -46,6 +46,8 @@ export default function FoodDetailPage() {
     icon: null,
     primaryText: "OK",
   });
+
+  const sharingRef = useRef(false);
 
   const openInfo = ({ title, message, icon, primaryText = "OK"}) =>
     setInfoDlg({open: true, title, message, icon, primaryText});
@@ -339,23 +341,40 @@ export default function FoodDetailPage() {
   const handleBack = () => navigate(-1);
 
   const handleShare = async () => {
+    if (!food || sharingRef.current) return;
+    sharingRef.current = true;
     const url = `${window.location.origin}/fooddetail/${food.id}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: food.name,
-          text: food.description,
-          url
+    const title = food.name || "Food";
+    const text = food.description || "Check out this Sarawakian Food!";
+
+    try{
+      if (navigator.share) {
+        try {
+          await navigator.share({ title, text, url});
+          return;
+        } catch (err) {
+          if (err?.name === "AbortError") {
+            return;
+          }
+        }
+      }
+      if (window.isSecureContext && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        openInfo({
+          title: "Link copied",
+          message: "The link of the page has been copied to your clipboard.",
+          icon: <CheckCircle2 />,
         });
         return;
-      } catch {}
+      }
+      openInfo({
+        title: "Copy this link",
+        message: url,
+        icon: <AlertTriangle />,
+      });
+    } finally {
+      sharingRef.current = false;
     }
-    await navigator.clipboard.writeText(url);
-    openInfo({
-      title: "Link copied",
-      message: "The link of the page has been copied to your clipboard.",
-      icon: <CheckCircle2 />,
-    });
   };
 
   if (loading) {
