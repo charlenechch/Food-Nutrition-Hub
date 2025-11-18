@@ -22,34 +22,29 @@ const EditCommunityPostPage = () => {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [feedbackText, setFeedbackText] = useState("");
 
   // Fetch post
   useEffect(() => {
     const fetchPost = async () => {
       setLoading(true);
       setError(null);
-
       try {
-        const response = await fetch(`${API_URL}/api/communityPost/admin/${id}`, {
+        const res = await fetch(`${API_URL}/api/communityPost/admin/${id}`, {
           credentials: "include",
         });
-
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
           throw new Error(data.message || "Failed to fetch post");
         }
-
-        const data = await response.json();
-
-        if (!data || !data.data) {
+        const data = await res.json();
+        if (!data?.data) {
           setError("Post not found.");
           setPost(null);
           return;
         }
-
         const p = data.data;
-
-        const normalized = {
+        setPost({
           title: p.foodName || "Untitled Post",
           author: p.author || "Unknown",
           email: p.authorEmail || "N/A",
@@ -61,12 +56,11 @@ const EditCommunityPostPage = () => {
           culturalStory: p.culturalStory || "No story provided.",
           recipe: p.recipe || "No recipe provided.",
           image: p.image || null,
-          images: Array.isArray(p.images) ? p.images : [],
-        };
-
-        setPost(normalized);
+          images: p.photos ? p.photos.split(",").map((url) => url.trim()) : [],
+          adminFeedback: p.adminFeedback || "",
+        });
       } catch (err) {
-        console.error("Fetch error:", err);
+        console.error(err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -78,59 +72,44 @@ const EditCommunityPostPage = () => {
 
   // Approve / Reject
   const handleConfirmAction = async () => {
-    const status = modalType === "approve" ? "Approved" : "Rejected";
-
-    const feedback =
-      document.querySelector(".admin-feedback-input")?.value.trim() ||
-      "No feedback provided.";
-
+    const endpoint =
+      modalType === "approve"
+        ? `${API_URL}/api/communityPost/admin/approve/${id}`
+        : `${API_URL}/api/communityPost/admin/reject/${id}`;
     try {
-      const res = await fetch(
-        `${API_URL}/api/communityPost/updateStatus/${id}`,
-        {
-          method: "PATCH",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            status,
-            adminFeedback: feedback,
-          }),
-        }
-      );
-
+      const res = await fetch(endpoint, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      alert(`Post ${status} successfully!`);
-      navigate("/admin");
+      if (!res.ok) throw new Error(data.message || "Action failed");
+      alert(`Post ${modalType === "approve" ? "approved" : "rejected"} successfully!`);
+      setShowModal(false);
+      // Refetch post to update status
+      setPost((prev) => ({ ...prev, status: modalType === "approve" ? "Approved" : "Rejected" }));
     } catch (err) {
       alert(err.message);
     }
   };
 
-  // Send feedback only (for approved posts)
+  // Send feedback (only if approved)
   const handleSendFeedback = async () => {
-    const feedback =
-      document.querySelector(".admin-feedback-input")?.value.trim();
-    if (!feedback) return alert("Please enter feedback before sending.");
-
+    if (!feedbackText.trim()) return alert("Please enter feedback before sending.");
     try {
-      const res = await fetch(
-        `${API_URL}/api/communityPost/sendFeedback/${id}`,
-        {
-          method: "PATCH",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ feedback }),
-        }
-      );
-
+      const res = await fetch(`${API_URL}/api/communityPost/admin/sendFeedback/${id}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feedback: feedbackText.trim() }),
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message || "Failed to send feedback");
       }
-
       alert("✅ Feedback sent successfully!");
+      setPost((prev) => ({ ...prev, adminFeedback: feedbackText.trim() }));
+      setFeedbackText("");
     } catch (err) {
       alert(err.message);
     }
@@ -143,13 +122,8 @@ const EditCommunityPostPage = () => {
   return (
     <div className="admin-review-page">
       <Header />
-
-      {/* Header */}
       <div className="admin-review-header">
-        <button
-          className="admin-recipe-edit-back-btn"
-          onClick={() => navigate("/admin")}
-        >
+        <button className="admin-recipe-edit-back-btn" onClick={() => navigate("/admin")}>
           <span className="recipe-edit-btn"><FaArrowLeft /></span> Back to Moderation
         </button>
 
@@ -158,7 +132,7 @@ const EditCommunityPostPage = () => {
           <p>{post.title}</p>
         </div>
 
-        {/* Only show approve/reject if NOT approved */}
+        {/* Approve/Reject only if not approved */}
         {post.status !== "Approved" && (
           <div className="rcp-edit-review-actions">
             <button
@@ -183,10 +157,9 @@ const EditCommunityPostPage = () => {
         )}
       </div>
 
-      {/* Content */}
       <div className="review-container">
         <div className="review-layout">
-          {/* Left Sidebar */}
+          {/* Sidebar */}
           <div className="review-left-sidebar">
             <h3><FaFileAlt /> Submission Details</h3>
             <div className="review-info">
@@ -220,7 +193,7 @@ const EditCommunityPostPage = () => {
               </div>
             </div>
 
-            {/* Cultural info */}
+            {/* Cultural Info */}
             <div className="rcp-review-section rcp-basic-info-grid">
               <h3>Cultural Information</h3>
               <p><strong>Origin:</strong> {post.culturalOrigin}</p>
@@ -233,7 +206,7 @@ const EditCommunityPostPage = () => {
               <p style={{ whiteSpace: "pre-wrap" }}>{post.recipe}</p>
             </div>
 
-            {/* Admin Feedback */}
+            {/* Feedback */}
             <div className="rcp-review-section">
               <h3>Admin Feedback</h3>
               <textarea
@@ -241,9 +214,9 @@ const EditCommunityPostPage = () => {
                 placeholder="Enter feedback..."
                 rows="4"
                 style={{ width: "100%", padding: "10px" }}
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
               />
-
-              {/* Send Feedback only if approved */}
               {post.status === "Approved" && (
                 <button
                   className="approve-btn"
