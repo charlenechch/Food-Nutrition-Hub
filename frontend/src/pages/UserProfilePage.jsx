@@ -1318,6 +1318,7 @@ const savePrefs = async () => {
       <Modal
         open={dlg.open}
         title={dlg.title}
+        icon={dlg.icon}
         primaryText={dlg.primaryText || "OK"}
         onPrimary={dlg.onPrimary || closeDlg}
         onClose={closeDlg}
@@ -1328,6 +1329,7 @@ const savePrefs = async () => {
       <Modal
         open={confirm.open}
         title={confirm.title}
+        icon={confirm.icon}
         primaryText={confirm.confirmText || "Confirm"}
         secondaryText={confirm.cancelText || "Cancel"}
         onPrimary={confirm.onConfirm}
