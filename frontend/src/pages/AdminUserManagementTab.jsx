@@ -522,33 +522,6 @@ export default function UserManagement() {
         },
       });
     }
-
-    const invalidateSessions = (id) => {
-      if (!id) return;
-      setConfirm({
-        open: true,
-        title: "Invalidate Sessions",
-        message: "Invalidate all active sessions for this user? They’ll be logged out on all devices.",
-        icon: <WarnIcon />,
-        confirmText: "Invalidate",
-        cancelText: "Cancel",
-        onConfirm: async () => {
-          closeConfirm();
-
-          // TODO: replace with real API call:
-          // await fetch(`/api/admin/users/${id}/invalidate-sessions`, { method: "POST" })
-
-          console.log("INVALIDATE_SESSIONS ▶ userId:", id);
-          setDlg({
-            open: true,
-            title: "Sessions Invalidated",
-            message: "The user will be logged out everywhere.",
-            icon: <SuccessIcon />,
-            onPrimary: closeDlg,
-          });
-        },
-      });
-    };
   
     return (
         // User Management
@@ -936,49 +909,6 @@ export default function UserManagement() {
                             }}
                         >
                             Delete
-                        </button>
-
-                        <button
-                            type="button"
-                            className="umg-btn umg-btn-warning"
-                            title="Force logout this user on all devices"
-                            onClick={() => {
-                            if (!userForm?.id) return;
-                            setConfirm({
-                              open: true,
-                              title: "Invalidate Sessions",
-                              message: "Invalidate all active sessions for this user? They’ll be logged out on all devices.",
-                              icon: <WarnIcon />,
-                              confirmText: "Invalidate",
-                              cancelText: "Cancel",
-                              onConfirm: async () => {
-                                closeConfirm();
-                                try {
-                                  // TODO: call your real API here:
-                                  // await fetch(`${API_URL}/api/admin/users/${userForm.id}/invalidate-sessions`, { method: "POST", credentials: "include" });
-                                  console.log("INVALIDATE_SESSIONS ▶", userForm.id);
-
-                                  setDlg({
-                                    open: true,
-                                    title: "Sessions Invalidated",
-                                    message: "The user will be logged out everywhere.",
-                                    icon: <SuccessIcon />,
-                                    onPrimary: closeDlg,
-                                  });
-                                } catch (err) {
-                                  setDlg({
-                                    open: true,
-                                    title: "Action Failed",
-                                    message: err.message || "Please try again.",
-                                    icon: <AlertIcon />,
-                                    onPrimary: closeDlg,
-                                  });
-                                }
-                              },
-                            });
-                          }}
-                        >
-                            Invalidate session
                         </button>
                         </div>
                     )}
