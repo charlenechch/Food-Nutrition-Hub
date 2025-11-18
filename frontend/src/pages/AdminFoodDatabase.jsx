@@ -40,7 +40,12 @@ const AdminFoodDatabase = ({ categories = [] }) => {
         const data = await res.json();
 
         if (data.success) {
-          setFoodData(data.data);
+          // Map updatedAt to lastUpdated for frontend consistency
+          const mapped = data.data.map(f => ({
+            ...f,
+            lastUpdated: f.updatedAt,
+          }));
+          setFoodData(mapped);
         } else {
           console.error("Failed to fetch foods:", data.error);
         }
@@ -280,7 +285,11 @@ const AdminFoodDatabase = ({ categories = [] }) => {
                 <span className="category-tag">{food.category}</span>
               </td>
               <td>{food.origin}</td>
-              <td>{food.updated_at ? new Date(food.updated_at).toLocaleDateString() : "—"}</td>
+              <td>
+                {food.lastUpdated
+                  ? new Date(food.lastUpdated).toLocaleString()
+                  : "—"}
+              </td>
               <td>
                 <button
                   className="food-database-btn-edit"
