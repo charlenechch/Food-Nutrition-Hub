@@ -804,7 +804,7 @@ export default function UserManagement() {
                         className="umg-input"
                         value={userForm.name}
                         onChange={(e) => setUserForm(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Full name"
+                        placeholder="The first word will be saved as the First Name. Everything after the first space is treated as the Last Name."
                     />
                     </div>
 
