@@ -200,11 +200,9 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
     // If status is provided, use it. If not, calculate it based on suspension date.
     let finalStatus = status || currentUser.status;
-    if (finalsuspendedUntil && new Date(finalsuspendedUntil) > new Date()) {
-        finalStatus = 'Suspended';
-    } else if (finalStatus === 'Suspended' && !finalsuspendedUntil) {
-        // If explicitly clearing suspension but no status sent, revert to Active (or Inactive based on login)
-        finalStatus = 'Active'; 
+    
+    if (!finalsuspendedUntil && currentUser.status === 'Active') {
+      finalStatus = 'Active';
     }
 
     // Synchronize Email with Firebase Auth
@@ -280,17 +278,14 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
     console.log(`✅ Admin updated user: ${email} (ID: ${targetUserID})`);
 
-    // If the user is being suspended, wipe their sessions from the database immediately.
-    if (finalStatus === 'Suspended') {
-        console.log(`🔒 Suspending user ${targetUserID}: Invalidating active sessions.`);
-        try {
-            // This query searches the JSON session data for the specific userID and deletes those rows.
-            await db.query(`DELETE FROM sessions WHERE data LIKE ?`, [`%\"userID\":${targetUserID}%`]);
-            console.log(`✅ Sessions invalidated for user ${targetUserID}`);
-        } catch (sessionErr) {
-            console.error("⚠️ Failed to invalidate user sessions (table might not exist or differ):", sessionErr.message);
-            // Don't block the response if this fails, but we log it.
-        }
+    if (finalsuspendedUntil && new Date(finalsuspendedUntil) > new Date()) {
+      console.log(`🔒 Suspending user ${targetUserID}: Invalidating active sessions.`);
+      try {
+          await db.query(`DELETE FROM sessions WHERE data LIKE ?`, [`%\"userID\":${targetUserID}%`]);
+          console.log(`✅ Sessions invalidated for user ${targetUserID}`);
+      } catch (sessionErr) {
+          console.error("⚠️ Failed to invalidate user sessions (table might not exist or differ):", sessionErr.message);
+      }
     }
 
     // Get updated user stats
