@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/FoodDetailPage.css";
+import "../components/Modal"
 import { 
   Share2, 
   Info, 
@@ -10,7 +11,7 @@ import {
   MessagesSquare, 
   ShoppingBasket, 
   Cross, 
-  ScrollText 
+  ScrollText,
 } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";

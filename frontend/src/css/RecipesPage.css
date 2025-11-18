@@ -316,6 +316,7 @@
   display: -webkit-box;
   overflow: hidden;
   line-height: 1.4em;
+  margin-bottom: .5rem;
 }
 .login-prompt-btn:focus {
   outline: none;
