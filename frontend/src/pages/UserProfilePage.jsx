@@ -190,8 +190,8 @@ export default function UserProfilePage() {
   const closeDlg = () =>
     setDlg(m => ({ ...m, open: false, onPrimary: null }));
 
-  const openAlert = (title, message, onPrimary) =>
-    setDlg({ open: true, title, message, primaryText: "OK", onPrimary: () => {try { onPrimary?.(); } finally { closeDlg(); }},});
+  const openAlert = (title, message, icon, onPrimary) =>
+    setDlg({ open: true, title, message, icon, primaryText: "OK", onPrimary: () => {try { onPrimary?.(); } finally { closeDlg(); }},});
 
   // Confirm dialog
   const [confirm, setConfirm] = useState({
@@ -267,14 +267,14 @@ const savePersonal = async () => {
     console.log("✅ Personal info update result:", result);
     
     if (result.success) {
-      openAlert("Saved", "Profile updated successfully!", null, <CheckCircle2 />);
+      openAlert("Saved", "Profile updated successfully!", <CheckCircle2 />);
       setUser(prev => ({ ...prev, location: form.location, bio: bio }));
     } else {
       throw new Error(result.error || "Update failed");
     }
   } catch (e) {
     console.error("Personal info update error:", e);
-    openAlert("Update Failed", e.message || "Failed to update profile", null, <AlertTriangle />);
+    openAlert("Update Failed", e.message || "Failed to update profile", <AlertTriangle />);
   }
 };
 
@@ -313,13 +313,13 @@ const savePrefs = async () => {
     console.log("✅ Preferences update result:", result);
     
     if (result.success) {
-      openAlert("Saved", "Preferences updated successfully!", null, <CheckCircle2 />);
+      openAlert("Saved", "Preferences updated successfully!", <CheckCircle2 />);
     } else {
       throw new Error(result.error || "Update failed");
     }
   } catch (e) {
     console.error("Preferences update error:", e);
-    openAlert("Update Failed", e.message || "Failed to update preferences", null, <AlertTriangle />);
+    openAlert("Update Failed", e.message || "Failed to update preferences", <AlertTriangle />);
   }
 };
 
@@ -560,7 +560,7 @@ const savePrefs = async () => {
 
             if (!verifyRes.ok) {
               const verifyData = await verifyRes.json().catch(() => ({}));
-              openAlert("Account Deletion Failed", verifyData.error || "Incorrect password. Account deletion cancelled.", null, <AlertTriangle />);
+              openAlert("Account Deletion Failed", verifyData.error || "Incorrect password. Account deletion cancelled.", <AlertTriangle />);
               return;
             }
 
@@ -576,17 +576,17 @@ const savePrefs = async () => {
             const data = await res.json().catch(() => ({}));
             
             if (res.ok && data.success) {
-                openAlert("Account Deleted", "Your account has been deleted successfully.", null, <CheckCircle2 />, () => {
+                openAlert("Account Deleted", "Your account has been deleted successfully.", <CheckCircle2 />, () => {
                   closeDlg();
                   window.location.href = '/';
                 });
             } else {
-              openAlert("Delete Failed", data.error || "Failed to delete account. ", null, <AlertTriangle />);
+              openAlert("Delete Failed", data.error || "Failed to delete account. ", <AlertTriangle />);
             }
             
           } catch (error) {
             console.error('Error deleting account:', error);
-            openAlert("Delete Failed", "Failed to delete account. Please try again.", null, <AlertTriangle />);
+            openAlert("Delete Failed", "Failed to delete account. Please try again.", <AlertTriangle />);
           }finally {
                 closePasswordModal();
           }
@@ -630,14 +630,14 @@ const savePrefs = async () => {
     };
 
     if (!validTypes.includes(file.type)) {
-      openAlert("Invalid File", "Please select a valid image file (JPEG, PNG, GIF, WebP)", null, <AlertTriangle />, resetPicker);
+      openAlert("Invalid File", "Please select a valid image file (JPEG, PNG, GIF, WebP)", <AlertTriangle />, resetPicker);
       resetPicker();
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      openAlert("File Too Large", "Image size should be less than 5MB", null, <AlertTriangle />, resetPicker);
+      openAlert("File Too Large", "Image size should be less than 5MB", <AlertTriangle />, resetPicker);
       resetPicker();
       return;
     }
@@ -652,7 +652,7 @@ const savePrefs = async () => {
 
   const uploadAvatar = async () => {
     if (!avatarFile) {
-      openAlert("No Image", "Please select an image first", null, <AlertTriangle />);
+      openAlert("No Image", "Please select an image first", <AlertTriangle />);
       return;
     }
 
@@ -677,7 +677,7 @@ const savePrefs = async () => {
       if (result.success) {
         // Update user state with new avatar
         setUser(prev => ({ ...prev, avatar: result.avatarUrl }));
-        openAlert("Avatar Updated", "Your avatar was updated successfully.", null, <CheckCircle2 />);
+        openAlert("Avatar Updated", "Your avatar was updated successfully.", <CheckCircle2 />);
         closeAvatarModal();
         
         // Reload the profile to get updated data
@@ -694,7 +694,7 @@ const savePrefs = async () => {
       }
     } catch (error) {
       console.error('Avatar upload error:', error);
-      openAlert("Upload Failed", error.message || "Failed to upload avatar", null, <AlertTriangle />);
+      openAlert("Upload Failed", error.message || "Failed to upload avatar", <AlertTriangle />);
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -725,7 +725,7 @@ const savePrefs = async () => {
           if (result.success) {
             // Update user state to remove avatar
             setUser(prev => ({ ...prev, avatar: null }));
-            openAlert("Avatar Removed", "Your avatar was removed successfully.", null, <CheckCircle2 />);
+            openAlert("Avatar Removed", "Your avatar was removed successfully.", <CheckCircle2 />);
             closeAvatarModal();
             
             // Reload the profile
@@ -742,7 +742,7 @@ const savePrefs = async () => {
           }
         } catch (error) {
           console.error('Avatar remove error:', error);
-          openAlert("Remove Failed", error.message || "Failed to remove avatar", null, <AlertTriangle />);
+          openAlert("Remove Failed", error.message || "Failed to remove avatar", <AlertTriangle />);
         }
       }
     });
@@ -1271,7 +1271,7 @@ const savePrefs = async () => {
                       <div className="upp-strong">Data Export</div>
                       <div className="upp-muted2">Download your saved data</div>
                     </div>
-                    <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => openAlert("Export Started", "We're preparing your data export. You'll get a download when it's ready.", null, <CheckCircle2 />)}>
+                    <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => openAlert("Export Started", "We're preparing your data export. You'll get a download when it's ready.", <CheckCircle2 />)}>
                       Export Data
                     </button>
                   </div>
@@ -1318,6 +1318,7 @@ const savePrefs = async () => {
       <Modal
         open={dlg.open}
         title={dlg.title}
+        icon={dlg.icon}
         primaryText={dlg.primaryText || "OK"}
         onPrimary={dlg.onPrimary || closeDlg}
         onClose={closeDlg}
@@ -1328,6 +1329,7 @@ const savePrefs = async () => {
       <Modal
         open={confirm.open}
         title={confirm.title}
+        icon={confirm.icon}
         primaryText={confirm.confirmText || "Confirm"}
         secondaryText={confirm.cancelText || "Cancel"}
         onPrimary={confirm.onConfirm}
