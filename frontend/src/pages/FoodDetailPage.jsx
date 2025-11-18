@@ -469,6 +469,15 @@ export default function FoodDetailPage() {
               >
                 {savedLoading ? "..." : saved ? "✓ Saved" : "❤ Save Food"}
               </button>
+              <button
+                type = "button"
+                className = "lrp-btn lrp-btn-outline fdp-share"
+                onClick = {handleShare}
+                aria-label = "Share this food"
+                title = "Share"
+              >
+                <Share2 className = "rdp-sec-icon" />
+              </button>
             </div>
             <div className="fdp-actions">
               <button type="button" className="lrp-btn lrp-btn-outline" onClick={goToRecipe} disabled={jumping}>
