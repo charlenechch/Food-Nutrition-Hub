@@ -59,6 +59,8 @@ const EditCommunityPostPage = () => {
           images: p.photos ? p.photos.split(",").map((url) => url.trim()) : [],
           adminFeedback: p.adminFeedback || "",
         });
+        // Preload existing feedback
+        setFeedbackText(p.adminFeedback || "");
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -93,7 +95,7 @@ const EditCommunityPostPage = () => {
     }
   };
 
-  // Send feedback (only if approved)
+  // Send feedback (any status)
   const handleSendFeedback = async () => {
     if (!feedbackText.trim()) return alert("Please enter feedback before sending.");
     try {
@@ -109,7 +111,7 @@ const EditCommunityPostPage = () => {
       }
       alert("✅ Feedback sent successfully!");
       setPost((prev) => ({ ...prev, adminFeedback: feedbackText.trim() }));
-      setFeedbackText("");
+      // Keep feedback text for further editing
     } catch (err) {
       alert(err.message);
     }
@@ -122,6 +124,7 @@ const EditCommunityPostPage = () => {
   return (
     <div className="admin-review-page">
       <Header />
+
       <div className="admin-review-header">
         <button className="admin-recipe-edit-back-btn" onClick={() => navigate("/admin")}>
           <span className="recipe-edit-btn"><FaArrowLeft /></span> Back to Moderation
@@ -217,15 +220,13 @@ const EditCommunityPostPage = () => {
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
               />
-              {post.status === "Approved" && (
-                <button
-                  className="approve-btn"
-                  style={{ marginTop: "10px" }}
-                  onClick={handleSendFeedback}
-                >
-                  Send Feedback
-                </button>
-              )}
+              <button
+                className="approve-btn"
+                style={{ marginTop: "10px" }}
+                onClick={handleSendFeedback}
+              >
+                Send Feedback
+              </button>
             </div>
           </div>
         </div>
