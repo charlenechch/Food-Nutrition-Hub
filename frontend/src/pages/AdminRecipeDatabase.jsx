@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { FaRegFlag, FaPlus } from "react-icons/fa6";
 import { CiSearch, CiFilter } from "react-icons/ci";
 import { MdOutlineFileUpload } from "react-icons/md";
+import { HiOutlinePencilAlt } from "react-icons/hi";
+import { RiDeleteBin5Line } from "react-icons/ri";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -155,15 +157,33 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
                   {r.status}
                 </span>
               </td>
+
+              {/* ✅ Updated Actions: Pencil + Trash like Food Database */}
               <td className="admin-recipe-action-buttons">
-                <button
-                  className="review-btn"
-                  onClick={() =>
-                    navigate(`/admin/edit/recipe/${r.id || i}`)
-                  }
-                >
-                  Review
-                </button>
+                {r.status === "Approved" ? (
+                  <>
+                    <button
+                      className="food-database-btn-edit"
+                      onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}
+                    >
+                      <HiOutlinePencilAlt />
+                    </button>
+
+                    <button
+                      className="food-database-btn-delete"
+                      onClick={() => console.log("Delete recipe ID:", r.id)}
+                    >
+                      <RiDeleteBin5Line />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="review-btn"
+                    onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}
+                  >
+                    Review
+                  </button>
+                )}
               </td>
             </tr>
           ))}

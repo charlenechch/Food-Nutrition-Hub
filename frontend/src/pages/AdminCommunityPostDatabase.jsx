@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { FaRegFlag, FaPlus } from "react-icons/fa6";
 import { CiSearch, CiFilter } from "react-icons/ci";
 import { MdOutlineFileUpload } from "react-icons/md";
+import { HiOutlinePencilAlt } from "react-icons/hi";
+import { RiDeleteBin5Line } from "react-icons/ri";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -144,13 +146,33 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
                   {p.status}
                 </span>
               </td>
+
+              {/* ✅ UPDATED ACTION BUTTONS */}
               <td className="admin-recipe-action-buttons">
-                <button
+                {p.status === "Approved" ? (
+                  <>
+                    <button
+                      className="food-database-btn-edit"
+                      onClick={() => navigate(`/admin/edit/community/${p.id}`)}
+                    >
+                      <HiOutlinePencilAlt />
+                    </button>
+
+                    <button
+                      className="food-database-btn-delete"
+                      onClick={() => console.log("Delete post ID:", p.id)}
+                    >
+                      <RiDeleteBin5Line />
+                    </button>
+                  </>
+                ) : (
+                  <button
                     className="review-btn"
                     onClick={() => navigate(`/admin/edit/community/${p.id}`)}
                   >
                     Review
                   </button>
+                )}
               </td>
             </tr>
           ))}
