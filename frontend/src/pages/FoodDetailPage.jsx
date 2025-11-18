@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/FoodDetailPage.css";
-import "../components/Modal"
+import Modal from "../components/Modal"
 import { 
   Share2, 
   Info, 
@@ -12,6 +12,8 @@ import {
   ShoppingBasket, 
   Cross, 
   ScrollText,
+  CheckCircle2,
+  AlertTriangle
 } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
@@ -36,6 +38,19 @@ export default function FoodDetailPage() {
   const [savedLoading, setSavedLoading] = useState(false);
   const [healthAlerts, setHealthAlerts] = useState([]);
   const [jumping, setJumping] = useState(false);
+
+  const [infoDlg, setInfoDlg] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+  });
+
+  const openInfo = ({ title, message, icon, primaryText = "OK"}) =>
+    setInfoDlg({open: true, title, message, icon, primaryText});
+
+  const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false}));
 
   const num = (v) => (v == null ? 0 : Number(v));
 
@@ -336,7 +351,11 @@ export default function FoodDetailPage() {
       } catch {}
     }
     await navigator.clipboard.writeText(url);
-    alert("Link copied to clipboard");
+    openInfo({
+      title: "Link copied",
+      message: "The link of the page has been copied to your clipboard.",
+      icon: <CheckCircle2 />,
+    });
   };
 
   if (loading) {
@@ -570,6 +589,16 @@ export default function FoodDetailPage() {
           onLogin={() => navigate("/loginregister")}
         />
       )}
+      <Modal
+        open = {infoDlg.open}
+        title = {infoDlg.title}
+        icon = {infoDlg.icon}
+        primaryText = {infoDlg.primaryText}
+        onPrimary = {closeInfo}
+        onClose = {closeInfo}
+      >
+        {infoDlg.message}
+      </Modal>
     </div>
   );
 }
