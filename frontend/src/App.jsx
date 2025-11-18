@@ -149,13 +149,13 @@ function App() {
 
         {/* ✅ Community Review Routes */}
         <Route
-          path="/admin/community/database"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminCommunityPostDatabase />
-            </ProtectedRoute>
-          }
-        />
+            path="/admin/edit/community/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditCommunityPostPage />
+              </ProtectedRoute>
+            }
+          />
         <Route
           path="/admin/review/:type/:id"
           element={

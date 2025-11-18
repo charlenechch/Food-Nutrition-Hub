@@ -146,11 +146,11 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
               </td>
               <td className="admin-recipe-action-buttons">
                 <button
-                  className="review-btn"
-                  onClick={() => navigate(`/admin/review/communitypost/${p.id || i}`)}
-                >
-                  Review
-                </button>
+                    className="review-btn"
+                    onClick={() => navigate(`/admin/edit/community/${p.id}`)}
+                  >
+                    Review
+                  </button>
               </td>
             </tr>
           ))}

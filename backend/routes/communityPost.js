@@ -163,57 +163,71 @@ router.get("/:id", async (req, res) => {
   try {
     const postId = req.params.id;
     console.log(`📥 Fetching post with ID: ${postId}`);
-    
+
+    // Get userProfileID if user is logged in
+    let userProfileID = null;
+    if (req.session?.user?.userID) {
+      const [profileResult] = await db.execute(
+        "SELECT userProfileID FROM userProfile WHERE userID = ?",
+        [req.session.user.userID]
+      );
+      if (profileResult.length > 0) userProfileID = profileResult[0].userProfileID;
+    }
+
     const postQuery = `
-        SELECT 
-            p.postID,
-            p.status,
-            p.created_at,
-            p.culturalStory,
-            p.photos,
-            p.foodName,
-            p.origin AS culturalOrigin,
-            p.recipe,
-            up.userProfileID,
-            CONCAT(u.firstname, ' ', u.lastname) AS author,
-            COUNT(DISTINCT l.likeID) as likeCount,
-            COUNT(DISTINCT c.commentID) as commentCount
-        FROM posts p
-        JOIN userProfile up ON p.userProfileID = up.userProfileID
-        JOIN user u ON up.userID = u.userID
-        LEFT JOIN likes l ON p.postID = l.postID
-        LEFT JOIN comments c ON p.postID = c.postID
-        WHERE p.postID = ? AND p.status = 'Approved'
-        GROUP BY p.postID
+      SELECT 
+          p.postID,
+          p.status,
+          p.created_at,
+          p.culturalStory,
+          p.photos,
+          p.foodName,
+          p.origin AS culturalOrigin,
+          p.recipe,
+          up.userProfileID,
+          CONCAT(u.firstname, ' ', u.lastname) AS author,
+          COUNT(DISTINCT l.likeID) as likeCount,
+          COUNT(DISTINCT c.commentID) as commentCount
+      FROM posts p
+      JOIN userProfile up ON p.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      LEFT JOIN likes l ON p.postID = l.postID
+      LEFT JOIN comments c ON p.postID = c.postID
+      WHERE p.postID = ? 
+        AND (
+          p.status = 'Approved' OR
+          up.userProfileID = ?
+        )
+      GROUP BY p.postID
     `;
 
-    const [posts] = await db.execute(postQuery, [postId]);
+    const [posts] = await db.execute(postQuery, [postId, userProfileID]);
+
     if (posts.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "Post not found"
+        message: "Post not found or you don't have access"
       });
     }
 
     const post = posts[0];
-    console.log('Post found:', post.foodName);
 
+    // Fetch comments
     const commentsQuery = `
-        SELECT 
-            c.commentID,
-            c.comment AS text,
-            c.created_at,
-            up.userProfileID,
-            COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS author
-        FROM comments c
-        LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
-        LEFT JOIN user u ON up.userID = u.userID
-        WHERE c.postID = ?
-        ORDER BY c.created_at ASC
+      SELECT 
+        c.commentID,
+        c.comment AS text,
+        c.created_at,
+        up.userProfileID,
+        COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS author
+      FROM comments c
+      LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
+      LEFT JOIN user u ON up.userID = u.userID
+      WHERE c.postID = ?
+      ORDER BY c.created_at ASC
     `;
 
     const [comments] = await db.execute(commentsQuery, [postId]);
-    console.log(`Found ${comments.length} comments`);
 
     const formattedPost = {
       id: post.postID,
@@ -231,8 +245,9 @@ router.get("/:id", async (req, res) => {
         author: comment.author,
         daysAgo: getTimeAgo(comment.created_at),
         userProfileID: comment.userProfileID
-      })),            
-      recipe: post.recipe,           
+      })),
+      recipe: post.recipe,
+      status: post.status,
       userProfile: {
         id: post.userProfileID,
         name: post.author
