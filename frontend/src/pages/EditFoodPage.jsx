@@ -36,7 +36,6 @@ const EditFoodPage = () => {
     type: "",
   });
   const [food, setFood] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState("");
 
   // --- Fetch Food Data on Load ---
   useEffect(() => {
@@ -65,7 +64,6 @@ const EditFoodPage = () => {
             image: data.data.image || "",
           });
           setExistingImageUrl(data.data.image || "");
-          setLastUpdated(data.data.lastUpdated || "");
         } else {
           console.error("Failed to fetch food:", data.error);
         }
