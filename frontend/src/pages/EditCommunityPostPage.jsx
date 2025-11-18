@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Modal from "../components/Modal";
 import {
   FaArrowLeft,
   FaUser,
@@ -9,6 +10,8 @@ import {
   FaFileAlt,
   FaCheck,
   FaTimes,
+  FaCheckCircle,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -23,6 +26,23 @@ const EditCommunityPostPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [feedbackText, setFeedbackText] = useState("");
+  const [infoDlg, setInfoDlg] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+  });
+  const openInfo = (opts) =>
+    setInfoDlg({
+      open: true,
+      title: opts.title || "",
+      message: opts.message || "",
+      icon: opts.icon || null,
+      primaryText: opts.primaryText || "OK",
+    });
+  const closeInfo = () =>
+    setInfoDlg((m) => ({ ...m, open: false }));
 
   // Fetch post
   useEffect(() => {
@@ -86,18 +106,33 @@ const EditCommunityPostPage = () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Action failed");
-      alert(`Post ${modalType === "approve" ? "approved" : "rejected"} successfully!`);
+      openInfo({
+        title: "Success",
+        message: `Post ${modalType === "approve" ? "approved" : "rejected"} successfully!`,
+        icon: <FaCheckCircle />,
+      });
       setShowModal(false);
       // Refetch post to update status
       setPost((prev) => ({ ...prev, status: modalType === "approve" ? "Approved" : "Rejected" }));
     } catch (err) {
-      alert(err.message);
+      openInfo({
+        title: "Action Failed",
+        message: err.message || "Something went wrong.",
+        icon: <FaExclamationTriangle />,
+      });
     }
   };
 
   // Send feedback (any status)
   const handleSendFeedback = async () => {
-    if (!feedbackText.trim()) return alert("Please enter feedback before sending.");
+  if (!feedbackText.trim()) {
+    openInfo({
+      title: "Missing Feedback",
+      message: "Please enter feedback before sending.",
+      icon: <FaExclamationTriangle />,
+    });
+    return;
+  }
     try {
       const res = await fetch(`${API_URL}/api/communityPost/admin/sendFeedback/${id}`, {
         method: "PATCH",
@@ -109,11 +144,19 @@ const EditCommunityPostPage = () => {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message || "Failed to send feedback");
       }
-      alert("✅ Feedback sent successfully!");
+      openInfo({
+        title: "Feedback Sent",
+        message: "Your feedback has been sent successfully.",
+        icon: <FaCheckCircle />,
+      });
       setPost((prev) => ({ ...prev, adminFeedback: feedbackText.trim() }));
       // Keep feedback text for further editing
     } catch (err) {
-      alert(err.message);
+      openInfo({
+        title: "Failed to Send Feedback",
+        message: err.message || "Could not send feedback.",
+        icon: <FaExclamationTriangle />,
+      });
     }
   };
 
@@ -250,6 +293,16 @@ const EditCommunityPostPage = () => {
           </div>
         </div>
       )}
+      <Modal
+        open={infoDlg.open}
+        title={infoDlg.title}
+        icon={infoDlg.icon}
+        primaryText={infoDlg.primaryText}
+        onPrimary={closeInfo}
+        onClose={closeInfo}
+      >
+        {infoDlg.message}
+      </Modal>
 
       <Footer />
     </div>
