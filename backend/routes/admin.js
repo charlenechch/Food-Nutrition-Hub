@@ -146,7 +146,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       });
     }
 
-    const { name, email, city, role, suspendedUntil, suspensionReason } = req.body;
+    const { name, email, city, role, status, suspendedUntil, suspensionReason } = req.body;
 
     // This catches the 'undefined' parameter error.
     if ((name !== undefined || email !== undefined || role !== undefined) && (!name || !email || !role)) {
@@ -198,6 +198,15 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
         }
     }
 
+    // If status is provided, use it. If not, calculate it based on suspension date.
+    let finalStatus = status || currentUser.status;
+    if (finalsuspendedUntil && new Date(finalsuspendedUntil) > new Date()) {
+        finalStatus = 'Suspended';
+    } else if (finalStatus === 'Suspended' && !finalsuspendedUntil) {
+        // If explicitly clearing suspension but no status sent, revert to Active (or Inactive based on login)
+        finalStatus = 'Active'; 
+    }
+
     // Synchronize Email with Firebase Auth
     if (email && email !== currentEmail) {
       // Check if email is being changed to one that already exists
@@ -241,8 +250,8 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     const userRole = role ? (role === 'Admin' ? 'admin' : 'member') : currentUser.role;
     const finalEmail = email || currentUser.email;
     await db.execute(
-      'UPDATE user SET firstname = ?, lastname = ?, email = ?, verified = ?, role = ?, suspendedUntil = ? WHERE userID = ?',
-      [firstname, lastname, finalEmail, newVerificationStatus, userRole, finalsuspendedUntil, targetUserID]
+      'UPDATE user SET firstname = ?, lastname = ?, email = ?, verified = ?, role = ?, status = ?, suspendedUntil = ? WHERE userID = ?',
+      [firstname, lastname, finalEmail, newVerificationStatus, userRole, finalStatus, finalsuspendedUntil, targetUserID]
     );
 
     // Update or create userProfile
@@ -270,6 +279,19 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     }
 
     console.log(`✅ Admin updated user: ${email} (ID: ${targetUserID})`);
+
+    // If the user is being suspended, wipe their sessions from the database immediately.
+    if (finalStatus === 'Suspended') {
+        console.log(`🔒 Suspending user ${targetUserID}: Invalidating active sessions.`);
+        try {
+            // This query searches the JSON session data for the specific userID and deletes those rows.
+            await db.query(`DELETE FROM sessions WHERE data LIKE ?`, [`%\"userID\":${targetUserID}%`]);
+            console.log(`✅ Sessions invalidated for user ${targetUserID}`);
+        } catch (sessionErr) {
+            console.error("⚠️ Failed to invalidate user sessions (table might not exist or differ):", sessionErr.message);
+            // Don't block the response if this fails, but we log it.
+        }
+    }
 
     // Get updated user stats
     const [updatedUser] = await db.execute(

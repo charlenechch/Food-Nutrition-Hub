@@ -8,6 +8,37 @@ import {
   useSearchParams,
 } from "react-router-dom";
 
+import axios from "axios";
+
+// Global Axios Configuration
+// Configure axios defaults for all API calls
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+axios.defaults.withCredentials = true; // Send cookies with requests
+
+// Add response interceptor to handle session invalidation
+axios.interceptors.response.use(
+  (response) => {
+    // If response is successful, return it as-is
+    return response;
+  },
+  (error) => {
+    // If 401 Unauthorized, the session is invalid (user suspended or logged out)
+    if (error.response?.status === 401) {
+      console.log("🔒 Session invalid or user suspended - Logging out");
+      
+      // Clear all client-side storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Redirect to login page
+      window.location.href = "/loginregister";
+    }
+    
+    // Pass the error forward so individual components can handle it if needed
+    return Promise.reject(error);
+  }
+);
+
 // === User & Public Pages ===
 import LoginRegisterPage from "./pages/LoginRegisterPage";
 import UserHomepage from "./pages/UserHomepage";
