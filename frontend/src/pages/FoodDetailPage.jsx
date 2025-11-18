@@ -339,22 +339,73 @@ export default function FoodDetailPage() {
   const handleBack = () => navigate(-1);
 
   const handleShare = async () => {
+    if (!food) return;
+
     const url = `${window.location.origin}/fooddetail/${food.id}`;
+    const title = food.name || "Food";
+    const text = food.description || "Check out this Sarawakian food!";
+
+    // 1) Try native Web Share
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: food.name,
-          text: food.description,
-          url
+        await navigator.share({ title, text, url });
+        // Optional success toast/modal if you want:
+        openInfo({
+          title: "Shared",
+          message: "Thanks for sharing!",
+          icon: <CheckCircle2 />
         });
         return;
-      } catch {}
+      } catch (err) {
+        // If user cancels, continue to copy fallback
+        if (!err || err.name !== "AbortError") {
+          console.warn("navigator.share failed, falling back:", err);
+        }
+      }
     }
-    await navigator.clipboard.writeText(url);
+
+    // 2) Clipboard API fallback (HTTPS or localhost)
+    try {
+      await navigator.clipboard.writeText(`${title} — ${text}\n${url}`);
+      openInfo({
+        title: "Link copied",
+        message: "The link has been copied to your clipboard.",
+        icon: <CheckCircle2 />
+      });
+      return;
+    } catch (err) {
+      console.warn("clipboard.writeText failed, trying legacy copy:", err);
+    }
+
+    // 3) Legacy fallback for non-secure contexts / older browsers
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = `${title} — ${text}\n${url}`;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "-1000px";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+
+      if (ok) {
+        openInfo({
+          title: "Link copied",
+          message: "The link has been copied to your clipboard.",
+          icon: <CheckCircle2 />
+        });
+        return;
+      }
+    } catch (e) {
+      // ignore and show final fallback modal below
+    }
+
+    // 4) Final fallback: show the URL so the user can copy manually
     openInfo({
-      title: "Link copied",
-      message: "The link of the page has been copied to your clipboard.",
-      icon: <CheckCircle2 />,
+      title: "Copy this link",
+      message: `Unable to auto-copy. Here’s the link:\n\n${url}`,
+      icon: <AlertTriangle />
     });
   };
 
