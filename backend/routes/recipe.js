@@ -1088,9 +1088,8 @@ router.patch('/updateStatus/:id', async (req, res) => {
           });
           console.log(`📩 Approved email sent to ${email}`);
         }
-      }
 
-      // B. REJECTED Logic (✅ NEW)
+      // B. REJECTED Logic
       else if (status === "Rejected") {
         const feedbackText = feedback || "No specific feedback provided. Please review our content guidelines.";
         
@@ -1130,6 +1129,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
         });
         console.log(`📩 Rejection email sent to ${email}`);
       }
+    }
 
       console.log(`✅ Recipe ${recipeId} status updated to ${status}`);
       res.json({ success: true, message: `Recipe marked as ${status}.` });
