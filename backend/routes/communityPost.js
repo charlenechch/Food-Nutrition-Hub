@@ -5,6 +5,8 @@ const multer = require('multer');
 // const path = require('path');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
+const { sendEmail } = require("../config/mailer");
+const { updateUserStats } = require('./userProfile');
 
 // ✅ NEW: Validation and sanitization imports
 const Joi = require("joi");
@@ -1016,6 +1018,59 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
         success: false,
         message: "Post not found or already approved/rejected.",
       });
+    }
+
+    // Fetch User Info & Post Details for Email
+    const [rows] = await db.query(`
+      SELECT u.email, u.firstname, p.foodName, u.userID, up.userProfileID
+      FROM posts p
+      JOIN userProfile up ON p.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      WHERE p.postID = ?
+    `, [id]);
+
+    if (rows.length > 0) {
+      const { email, firstname, foodName, userID, userProfileID } = rows[0];
+
+      // Recount User Stats
+      if (userID) {
+        await updateUserStats(userID);
+        console.log(`✅ User stats recounted for userProfileID: ${userProfileID}`);
+      }
+
+      // Send "Approved" Email
+      const approvedHTML = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <div style="background-color: #28a745; padding: 20px; text-align: center;">
+            <h1 style="color: #fff; margin: 0;">Story Approved!</h1>
+          </div>
+          <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <h2 style="color: #28a745;">Wonderful news, ${firstname}!</h2>
+            <p>Your community story <strong>"${foodName}"</strong> has been reviewed and approved.</p>
+            
+            <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #28a745;">
+              <p style="margin: 0;">It is now live on the SarawakEats Community page for everyone to read!</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 25px;">
+              <a href="https://food-nutrition-hub.vercel.app/community" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Community</a>
+            </div>
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+              Best regards,<br>The SarawakEats Team
+            </p>
+          </div>
+        </div>
+      `;
+
+      // Send asynchronously
+      sendEmail({
+        to: email,
+        subject: "🎉 Your Story Has Been Approved!",
+        html: approvedHTML,
+        text: `Great news! Your story "${foodName}" has been approved and is now live.`
+      });
+      console.log(`📩 Approved email sent to ${email}`);
     }
 
     console.log(`✅ [ADMIN] Post ${id} approved successfully.`);
