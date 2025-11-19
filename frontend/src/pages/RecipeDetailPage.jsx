@@ -1,12 +1,13 @@
 // ✅ FULL RecipeDetailPage.jsx — Part 1/3
 // ✅ All original code kept, only guest-save logic added
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/RecipeDetailPage.css";
-import { Info, NotebookText, Share2, ShoppingBasket } from "lucide-react";
+import Modal from "../components/Modal";
+import { Info, NotebookText, Share2, ShoppingBasket, CheckCircle2, AlertTriangle  } from "lucide-react";
 
 // ✅ NEW — Import Auth & Login Modal
 import { useAuth } from "../context/AuthContext";
@@ -115,6 +116,21 @@ export default function RecipeDetailPage() {
 
   // ✅ New — control show login popup for guests
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  const [infoDlg, setInfoDlg] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+  });
+
+  const sharingRef = useRef(false);
+  
+  const openInfo = ({ title, message, icon, primaryText = "OK" }) =>
+    setInfoDlg({ open: true, title, message, icon, primaryText });
+
+  const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false }));
 
   const isLoggedIn = () => {
     const loggedIn = user && user.role !== "guest";
@@ -285,26 +301,40 @@ export default function RecipeDetailPage() {
   const tags = Array.isArray(recipe.dietaryTags) ? recipe.dietaryTags : [];
 
   async function handleShare() {
-    if (!recipe) return;
+    if (!recipe || sharingRef.current) return;
+    sharingRef.current = true;
 
     const url = `${window.location.origin}/recipe/${recipe.id}`;
     const title = recipe.name || "Recipe";
     const text = recipe.description || "Check out this Sarawakian recipe!";
 
-    if (navigator.share) {
-      try {
-        await navigator.share({ title, text, url });
-        return;
-      } catch (err) {
-        if (err && err.name !== "AbortError") console.warn("Share failed:", err);
-      }
-    }
-
     try {
-      await navigator.clipboard.writeText(`${title} — ${text}\n${url}`);
-      alert("Link copied to clipboard!");
-    } catch {
-      window.prompt("Copy this link:", url);
+      if (navigator.share) {
+        try {
+          await navigator.share({ title, text, url });
+          return;
+        } catch (err) {
+          if (err?.name === "AbortError") return; 
+        }
+      }
+
+      if (window.isSecureContext && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(`${title} — ${text}\n${url}`);
+        openInfo({
+          title: "Link copied",
+          message: "The link to this recipe has been copied to your clipboard.",
+          icon: <CheckCircle2 />,
+        });
+        return;
+      }
+
+      openInfo({
+        title: "Copy this link",
+        message: `${title} — ${text}\n${url}`,
+        icon: <AlertTriangle />,
+      });
+    } finally {
+      sharingRef.current = false;
     }
   }
 
@@ -447,6 +477,16 @@ export default function RecipeDetailPage() {
           onLogin={() => navigate("/loginregister")}
         />
       )}
+      <Modal
+        open={infoDlg.open}
+        title={infoDlg.title}
+        icon={infoDlg.icon}
+        primaryText={infoDlg.primaryText}
+        onPrimary={closeInfo}
+        onClose={closeInfo}
+      >
+        {infoDlg.message}
+      </Modal>
     </div>
   );
 }

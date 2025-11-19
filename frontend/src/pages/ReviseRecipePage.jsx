@@ -5,6 +5,8 @@ import Footer from "../components/Footer";
 import { FaCamera, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa"; 
 import LS_KEY from "./UserProfilePage"; 
 import "../css/ReviseRecipePage.css"; // Import the CSS
+import Modal from "../components/Modal";
+import { CheckCircle2, AlertTriangle } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -63,6 +65,19 @@ export default function ReviseRecipePage() {
     otherFoodEnabled: false,
     otherFoodText: "",
   });
+
+  const [infoDlg, setInfoDlg] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+  });
+
+  const openInfo = ({ title, message, icon, primaryText = "OK" }) =>
+    setInfoDlg({ open: true, title, message, icon, primaryText });
+
+  const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false }));
 
   const needsFix = new Set(item?.fieldsWithIssues || []);
 
@@ -291,14 +306,22 @@ export default function ReviseRecipePage() {
         console.warn('⚠️ localStorage update failed:', localStorageError);
       }
 
-      alert("Recipe revised successfully! It will be reviewed again.");
+      openInfo({
+        title: "Recipe revised successfully!",
+        message: "It will be reviewed again.",
+        icon: <CheckCircle2 />,
+      });
       navigate(-1);
     } else {
       throw new Error(result.error || "Update failed");
     }
   } catch (error) {
     console.error("❌ Update error:", error);
-    alert(error.message || "Failed to update recipe. Please try again.");
+    openInfo({
+      title: "Failed to update recipe.",
+      message: error?.message || "Please try again.",
+      icon: <AlertTriangle />,
+    });
   } finally {
     setIsSubmitting(false);
   }
@@ -604,6 +627,17 @@ export default function ReviseRecipePage() {
           </div>
         </div>
       </div>
+      <Modal
+        open={infoDlg.open}
+        title={infoDlg.title}
+        icon={infoDlg.icon}
+        primaryText={infoDlg.primaryText}
+        onPrimary={closeInfo}
+        onClose={closeInfo}
+      >
+        {infoDlg.message}
+      </Modal>
+
       <Footer />
     </div>
   );
