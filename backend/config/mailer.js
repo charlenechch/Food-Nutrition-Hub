@@ -6,8 +6,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const sendEmail = async ({ to, subject, html, text }) => {
   try {
     const data = await resend.emails.send({
-      from: "SarawakEats <onboarding@resend.dev>", // Use this default for testing
-      to: to, // MUST be your own email address until you verify a domain
+      from: "SarawakEats <noreply@sarawakeats.site>",
+      to: to,
       subject: subject,
       html: html,
       text: text || "View this email in HTML",
