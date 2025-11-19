@@ -50,6 +50,42 @@ import FoodDiscussion from "./pages/FoodDiscussionPage";
 // === Shared Components ===
 import ProtectedRoute from "./components/ProtectedRoute";
 
+// Global Fetch Interceptor
+function FetchInterceptorSetup() {
+  const { user, forceLogout } = useAuth();
+
+  useEffect(() => {
+    // Save the original browser fetch function
+    const originalFetch = window.fetch;
+
+    // Overwrite it with our own wrapper
+    window.fetch = async (...args) => {
+      // Perform the actual request
+      const response = await originalFetch(...args);
+
+      // Check if the session is dead/suspended (Status 401)
+      if (response.status === 401) {
+        // Only kick them out if they claim to be a logged-in member/admin.
+        // Ignore "guests" because they are allowed to be unauthenticated.
+        if (user && user.role !== "guest") {
+          console.log("⛔ Global Fetch Interceptor: 401 detected. Forcing logout...");
+          forceLogout();
+        }
+      }
+
+      // Return the response so the rest of the app works normally
+      return response;
+    };
+
+    // Cleanup: Restore original fetch if this component unmounts
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [user, forceLogout]); // Re-run if user or logout function changes
+
+  return null; // This component renders nothing visually
+}
+
 function AxiosInterceptorSetup() {
   const { forceLogout } = useAuth();
 
@@ -86,13 +122,29 @@ function AxiosInterceptorSetup() {
 }
 
 function SessionChecker() {
-  const { checkSession } = useAuth();
+  const { checkSession, user } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
     // Check session whenever route changes
     checkSession();
   }, [location.pathname, checkSession]);
+
+  // Active Polling
+  useEffect(() => {
+    // STOP if we are a guest or not logged in. 
+    // Guests don't need to be polled (and we don't want to kick them out).
+    if (!user || user.role === "guest") return;
+
+    // Run checkSession every 10 seconds
+    const interval = setInterval(() => {
+      console.log("💓 Checking session status...");
+      checkSession(); 
+    }, 10000); // 10000ms = 10 seconds
+
+    // Cleanup the timer when component unmounts or user logs out
+    return () => clearInterval(interval);
+  }, [user?.role]); // Only restart the timer if the user's role changes
 
   return null;
 }
@@ -156,6 +208,7 @@ function FoodDiscussionRoute() {
 function AppRoutes() {
   return (
     <Router>
+      <FetchInterceptorSetup />
       <AxiosInterceptorSetup />
       <SessionChecker />
       <Routes>
