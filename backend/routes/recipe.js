@@ -1090,6 +1090,47 @@ router.patch('/updateStatus/:id', async (req, res) => {
         }
       }
 
+      // B. REJECTED Logic (✅ NEW)
+      else if (status === "Rejected") {
+        const feedbackText = feedback || "No specific feedback provided. Please review our content guidelines.";
+        
+        const rejectedHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #dc3545; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Action Required</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2 style="color: #dc3545;">Hello ${firstname},</h2>
+              <p>Thank you for submitting <strong>"${recipeName}"</strong>.</p>
+              <p>Unfortunately, we could not approve it in its current form.</p>
+              
+              <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #dc3545;">
+                <strong style="color: #856404;">Admin Feedback:</strong><br/>
+                <p style="margin-top: 5px; margin-bottom: 0;">${feedbackText}</p>
+              </div>
+
+              <p>Please edit your recipe to address these issues and resubmit it for review.</p>
+
+              <div style="text-align: center; margin-top: 25px;">
+                <a href="https://food-nutrition-hub.vercel.app/revise/${recipeId}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit Recipe</a>
+              </div>
+              
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
+            </div>
+          </div>
+        `;
+
+        sendEmail({
+          to: email,
+          subject: "Update on your Recipe Submission",
+          html: rejectedHTML,
+          text: `Your recipe "${recipeName}" requires revision. Feedback: ${feedbackText}`
+        });
+        console.log(`📩 Rejection email sent to ${email}`);
+      }
+
       console.log(`✅ Recipe ${recipeId} status updated to ${status}`);
       res.json({ success: true, message: `Recipe marked as ${status}.` });
 

@@ -1087,6 +1087,9 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
 // 3️⃣ REJECT A POST (For Admin Review Page)
 router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
   const { id } = req.params;
+  const { feedback } = req.body; 
+  const feedbackText = feedback || "No specific feedback provided.";
+  
   console.log(`📥 [ADMIN] Rejecting post ID: ${id}`);
 
   const updateQuery = `
@@ -1104,6 +1107,56 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
         success: false,
         message: "Post not found or already actioned.",
       });
+    }
+
+    // 3. Fetch User Email for Notification
+    const [rows] = await db.query(`
+      SELECT u.email, u.firstname, p.foodName
+      FROM posts p
+      JOIN userProfile up ON p.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      WHERE p.postID = ?
+    `, [id]);
+
+    if (rows.length > 0) {
+      const { email, firstname, foodName } = rows[0];
+
+      // 4. Send Rejection Email
+      const rejectedHTML = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <div style="background-color: #dc3545; padding: 20px; text-align: center;">
+            <h1 style="color: #fff; margin: 0;">Submission Update</h1>
+          </div>
+          <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <h2 style="color: #dc3545;">Hello ${firstname},</h2>
+            <p>Regarding your community story <strong>"${foodName}"</strong>.</p>
+            <p>After review, we have decided not to publish it at this time.</p>
+            
+            <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #dc3545;">
+              <strong style="color: #856404;">Reason for Rejection:</strong><br/>
+              <p style="margin-top: 5px; margin-bottom: 0;">${feedbackText}</p>
+            </div>
+
+            <p>You can edit your story based on this feedback and resubmit it from your profile.</p>
+
+            <div style="text-align: center; margin-top: 25px;">
+              <a href="https://food-nutrition-hub.vercel.app/revisecommunitypostpage/${id}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit Submission</a>
+            </div>
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+              Best regards,<br>The SarawakEats Team
+            </p>
+          </div>
+        </div>
+      `;
+
+      sendEmail({
+        to: email,
+        subject: "Action Required: Community Story Submission",
+        html: rejectedHTML,
+        text: `Your story "${foodName}" was rejected. Reason: ${feedbackText}`
+      });
+      console.log(`📩 Rejection email sent to ${email}`);
     }
 
     console.log(`✅ [ADMIN] Post ${id} rejected successfully.`);
