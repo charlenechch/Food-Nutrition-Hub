@@ -3,6 +3,7 @@ const router = express.Router();
 const { pool: db } = require("../config/db");
 const cloudinary = require('cloudinary').v2;
 const { updateUserStats } = require('./userProfile');
+const { sendEmail } = require("../config/mailer");
 
 // ✅ NEW: Validation + sanitization setup (added without removing anything)
 const Joi = require("joi");
@@ -1029,23 +1030,73 @@ router.patch('/updateStatus/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: "Recipe not found." });
     }
 
-    // Force the stats to recount
-    const [userResult] = await db.query("SELECT userProfileID FROM recipe WHERE foodID = ?", [recipeId]);
-    if (userResult.length > 0) {
-        const userProfileID = userResult[0].userProfileID;
-        const [userRow] = await db.query("SELECT userID FROM userProfile WHERE userProfileID = ?", [userProfileID]);
-        const userID = userRow[0].userID;
-        await updateUserStats(userID);
-        console.log(`✅ User stats recounted for userProfileID: ${userProfileID}`);
+    // Fetch User Info & Recipe Details for Email
+    const [rows] = await db.query(`
+      SELECT u.email, u.firstname, f.name AS recipeName
+      FROM recipe r
+      JOIN userProfile up ON r.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      JOIN food f ON r.foodID = f.foodID
+      WHERE r.foodID = ?
+    `, [recipeId]);
+
+    if (rows.length > 0) {
+      const { email, firstname, recipeName } = rows[0];
+
+      // Force the stats to recount
+      const [userResult] = await db.query("SELECT userProfileID FROM recipe WHERE foodID = ?", [recipeId]);
+      if (userResult.length > 0) {
+          const userProfileID = userResult[0].userProfileID;
+          const [userRow] = await db.query("SELECT userID FROM userProfile WHERE userProfileID = ?", [userProfileID]);
+          const userID = userRow[0].userID;
+          await updateUserStats(userID);
+          console.log(`✅ User stats recounted for userProfileID: ${userProfileID}`);
+      }
+
+        // Send "Approved" Email
+        if (status === "Approved") {
+          const approvedHTML = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+              <div style="background-color: #28a745; padding: 20px; text-align: center;">
+                <h1 style="color: #fff; margin: 0;">Recipe Approved!</h1>
+              </div>
+              <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h2 style="color: #28a745;">Great news, ${firstname}!</h2>
+                <p>Your recipe <strong>"${recipeName}"</strong> has been reviewed and approved by our team.</p>
+                
+                <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #28a745;">
+                  <p style="margin: 0;">It is now live on SarawakEats for the whole community to enjoy!</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 25px;">
+                  <a href="https://food-nutrition-hub.vercel.app/recipes" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Recipes</a>
+                </div>
+                
+                <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                  Best regards,<br>The SarawakEats Team
+                </p>
+              </div>
+            </div>
+          `;
+
+          // Send asynchronously
+          sendEmail({
+            to: email,
+            subject: "🎉 Your Recipe Has Been Approved!",
+            html: approvedHTML,
+            text: `Great news! Your recipe "${recipeName}" has been approved and is now live.`
+          });
+          console.log(`📩 Approved email sent to ${email}`);
+        }
+      }
+
+      console.log(`✅ Recipe ${recipeId} status updated to ${status}`);
+      res.json({ success: true, message: `Recipe marked as ${status}.` });
+
+    } catch (error) {
+      console.error("❌ Error updating recipe status:", error);
+      res.status(500).json({ success: false, message: "Database update failed." });
     }
-
-    console.log(`✅ Recipe ${recipeId} status updated to ${status}`);
-    res.json({ success: true, message: `Recipe marked as ${status}.` });
-
-  } catch (error) {
-    console.error("❌ Error updating recipe status:", error);
-    res.status(500).json({ success: false, message: "Database update failed." });
-  }
 });
 
 module.exports = router;
