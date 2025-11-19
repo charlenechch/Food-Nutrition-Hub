@@ -264,19 +264,6 @@
   font-size: 0.95rem;
 }
 
-/* Button Styles to Match Login Prompt */
-/* .lrp-btn-outline {
-  background: white;
-  border: 2px solid #e0e0e0;
-  color: #8B4513;
-}
-
-.lrp-btn-outline:hover {
-  background: #8B4513;
-  border-color: #8B4513;
-  transform: translateY(-1px);
-} */
-
 .lrp-btn-danger {
   background: #8B4513;
   border: 2px solid #8B4513;
