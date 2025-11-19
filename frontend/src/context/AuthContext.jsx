@@ -78,14 +78,14 @@ export function AuthProvider({ children }) {
       } else {
         // If session is not OK, only force logout if user is not on one of the public auth pages
         if (!publicAuthPaths.includes(currentPath)) {
-          convertToGuest();
+          forceLogout();
         }
       }
     } catch (err) {
       console.error("Session error:", err);
       // If session check fails, only force logout if user is not on one of the public auth pages.
       if (!publicAuthPaths.includes(currentPath)) {
-        convertToGuest();
+        forceLogout();
       }
     } finally {
       setLoading(false);
@@ -147,7 +147,6 @@ export function AuthProvider({ children }) {
         checkSession,
         toggleRole,
         forceLogout,
-        convertToGuest,
       }}
     >
       {!loading && children}
