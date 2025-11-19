@@ -51,7 +51,7 @@ import FoodDiscussion from "./pages/FoodDiscussionPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function AxiosInterceptorSetup() {
-  const { forceLogout } = useAuth();
+  const { convertToGuest } = useAuth();
 
   useEffect(() => {
     // Configure axios defaults
@@ -68,7 +68,7 @@ function AxiosInterceptorSetup() {
         // If 401 Unauthorized, the session is invalid (user suspended or logged out)
         if (error.response?.status === 401) {
           console.log("🔒 Session invalid or user suspended - Logging out via forceLogout");
-          forceLogout(); // Use the forceLogout from AuthContext
+          convertToGuest();
         }
         
         // Pass the error forward so individual components can handle it if needed
@@ -80,9 +80,9 @@ function AxiosInterceptorSetup() {
     return () => {
       axios.interceptors.response.eject(interceptor);
     };
-  }, [forceLogout]);
+  }, [convertToGuest]);
 
-  return null; // This component doesn't render anything
+  return null;
 }
 
 function SessionChecker() {

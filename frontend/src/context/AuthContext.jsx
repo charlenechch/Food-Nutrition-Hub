@@ -27,7 +27,25 @@ export function AuthProvider({ children }) {
     };
   };
 
-  // This is now the ONLY way to log a user out on the frontend
+  // Convert user to guest without redirect
+  const convertToGuest = async () => {
+    // Explicitly destroy session on backend
+    try {
+      await fetch(`${API_URL}/api/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+      console.log("✅ Session destroyed on backend");
+    } catch (err) {
+      console.log("⚠️ Logout failed (session may already be deleted):", err.message);
+    }
+    
+    // Convert to guest on frontend
+    setUser({ role: "guest", viewMode: "guest" });
+    console.log("🔓 User converted to guest mode");
+  };
+
+  // Log a user out on the frontend
   const forceLogout = () => {
     setUser(null); // Set user to null
     
@@ -60,14 +78,14 @@ export function AuthProvider({ children }) {
       } else {
         // If session is not OK, only force logout if user is not on one of the public auth pages
         if (!publicAuthPaths.includes(currentPath)) {
-          forceLogout();
+          convertToGuest();
         }
       }
     } catch (err) {
       console.error("Session error:", err);
       // If session check fails, only force logout if user is not on one of the public auth pages.
       if (!publicAuthPaths.includes(currentPath)) {
-        forceLogout();
+        convertToGuest();
       }
     } finally {
       setLoading(false);
@@ -129,6 +147,7 @@ export function AuthProvider({ children }) {
         checkSession,
         toggleRole,
         forceLogout,
+        convertToGuest,
       }}
     >
       {!loading && children}
