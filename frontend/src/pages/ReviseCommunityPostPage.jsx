@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import Modal from "../components/Modal";
+import { AlertTriangle } from "lucide-react";
 import { FaCamera } from "react-icons/fa";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -39,6 +41,20 @@ export default function ReviseCommunityPostPage() {
   const [success, setSuccess] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
 
+  const [infoDlg, setInfoDlg] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+  });
+
+  const openInfo = ({ title, message, icon, primaryText = "OK" }) =>
+    setInfoDlg({ open: true, title, message, icon, primaryText });
+
+  const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false }));
+
+
   // Initialize form with real contribution data
   useEffect(() => {
     if (contribution) {
@@ -65,13 +81,22 @@ export default function ReviseCommunityPostPage() {
     // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-      alert('Please select a valid image file (JPEG, PNG, GIF, WebP)');
+      openInfo({
+        title: "Invalid image file type",
+        message: "Please select a valid image file (JPEG, PNG, GIF, WebP)",
+        icon: <AlertTriangle />,
+      });
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('Image size should be less than 5MB');
+      openInfo({
+        title: "Invalid image size",
+        message: "Image size should be less than 5MB",
+        icon: <AlertTriangle />,
+      });
       return;
     }
 
@@ -377,6 +402,16 @@ export default function ReviseCommunityPostPage() {
           </div>
         </div>
       </div>
+      <Modal
+        open={infoDlg.open}
+        title={infoDlg.title}
+        icon={infoDlg.icon}
+        primaryText={infoDlg.primaryText}
+        onPrimary={closeInfo}
+        onClose={closeInfo}
+      >
+        {infoDlg.message}
+      </Modal>
 
       <Footer />
     </div>
