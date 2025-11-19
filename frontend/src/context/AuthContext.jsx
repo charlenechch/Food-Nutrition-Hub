@@ -73,6 +73,14 @@ export function AuthProvider({ children }) {
       });
       const data = await res.json();
 
+      console.log("🔍 Session Check:", {
+        status: res.status,
+        ok: res.ok,
+        hasUser: !!data?.user,
+        userData: data?.user,
+        currentPath
+      });
+
       if (res.ok && data?.user) {
         setUser(normalizeUser(data.user));
       } else {

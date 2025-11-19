@@ -189,7 +189,9 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     // Calculate final suspendedUntil date.
     // The frontend will send a date-string or null.
     let finalsuspendedUntil = currentUser.suspendedUntil;
-    if (suspendedUntil !== undefined) { // Check if 'suspendedUntil' was in the request (even if null)
+
+     // Check if 'suspendedUntil' was in the request (even if null)
+    if (suspendedUntil !== undefined) {
         const dateObj = new Date(suspendedUntil);
         if (suspendedUntil === null) {
             finalsuspendedUntil = null;
