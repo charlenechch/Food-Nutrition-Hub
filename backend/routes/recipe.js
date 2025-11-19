@@ -941,6 +941,56 @@ try {
 }
 });
 
+// =============================
+// GET feedback for a specific recipe
+// =============================
+router.get("/recipes/:id/feedback", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const query = `
+      SELECT f.*, 
+      CONCAT(u.firstname, ' ', u.lastname) AS adminName
+      FROM feedback f
+      LEFT JOIN user u ON f.adminID = u.userID
+      WHERE f.recipeID = ?
+      ORDER BY f.createdAt DESC
+    `;
+
+    const [rows] = await db.query(query, [id]);
+
+    res.json(rows);
+  } catch (error) {
+    console.error("❌ Error fetching feedback:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// =============================
+// POST admin feedback
+// =============================
+router.post("/recipes/:id/feedback", async (req, res) => {
+  try {
+    const { id } = req.params;       // recipeID
+    const { adminID, userID, message } = req.body;
+
+    if (!adminID || !userID || !message) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const query = `
+      INSERT INTO feedback (recipeID, adminID, userID, message)
+      VALUES (?, ?, ?, ?)
+    `;
+
+    await db.query(query, [id, adminID, userID, message]);
+
+    res.json({ success: true, message: "Feedback submitted successfully" });
+  } catch (error) {
+    console.error("❌ Error submitting feedback:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // ✅ ADMIN: Update recipe approval status (Approve / Reject)
 router.patch('/updateStatus/:id', async (req, res) => {
