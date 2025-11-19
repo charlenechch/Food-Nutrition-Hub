@@ -85,6 +85,18 @@ function AxiosInterceptorSetup() {
   return null; // This component doesn't render anything
 }
 
+function SessionChecker() {
+  const { checkSession } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check session whenever route changes
+    checkSession();
+  }, [location.pathname, checkSession]);
+
+  return null;
+}
+
 // -------------------------------
 //  Helper Route Wrappers
 // -------------------------------
@@ -145,6 +157,7 @@ function AppRoutes() {
   return (
     <Router>
       <AxiosInterceptorSetup />
+      <SessionChecker />
       <Routes>
         {/* === Default & Auth Routes === */}
         <Route path="/" element={<Navigate to="/loginregister" replace />} />
