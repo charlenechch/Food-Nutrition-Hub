@@ -1,20 +1,18 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
+console.log("--- EMAIL CONFIG CHECK ---");
+console.log("User:", process.env.EMAIL_USER ? "LOADED ✅" : "MISSING ❌");
+console.log("Pass:", process.env.EMAIL_PASS ? "LOADED ✅" : "MISSING ❌");
+console.log("--------------------------");
+
 // 1. Create the transporter (The connection to Gmail)
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  tls: {
-    ciphers: "SSLv3",
-    rejectUnauthorized: false,
-  },
-  family: 4,
 });
 
 // 2. Verify connection for debugging
