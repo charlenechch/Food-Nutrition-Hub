@@ -9,35 +9,8 @@ import {
 } from "react-router-dom";
 
 import axios from "axios";
-
-// Global Axios Configuration
-// Configure axios defaults for all API calls
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || "http://localhost:5000";
-axios.defaults.withCredentials = true; // Send cookies with requests
-
-// Add response interceptor to handle session invalidation
-axios.interceptors.response.use(
-  (response) => {
-    // If response is successful, return it as-is
-    return response;
-  },
-  (error) => {
-    // If 401 Unauthorized, the session is invalid (user suspended or logged out)
-    if (error.response?.status === 401) {
-      console.log("🔒 Session invalid or user suspended - Logging out");
-      
-      // Clear all client-side storage
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Redirect to login page
-      window.location.href = "/loginregister";
-    }
-    
-    // Pass the error forward so individual components can handle it if needed
-    return Promise.reject(error);
-  }
-);
+import { useEffect } from "react";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // === User & Public Pages ===
 import LoginRegisterPage from "./pages/LoginRegisterPage";
@@ -76,6 +49,41 @@ import FoodDiscussion from "./pages/FoodDiscussionPage";
 
 // === Shared Components ===
 import ProtectedRoute from "./components/ProtectedRoute";
+
+function AxiosInterceptorSetup() {
+  const { forceLogout } = useAuth();
+
+  useEffect(() => {
+    // Configure axios defaults
+    axios.defaults.baseURL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    axios.defaults.withCredentials = true;
+
+    // Add response interceptor
+    const interceptor = axios.interceptors.response.use(
+      (response) => {
+        // If response is successful, return it as-is
+        return response;
+      },
+      (error) => {
+        // If 401 Unauthorized, the session is invalid (user suspended or logged out)
+        if (error.response?.status === 401) {
+          console.log("🔒 Session invalid or user suspended - Logging out via forceLogout");
+          forceLogout(); // Use the forceLogout from AuthContext
+        }
+        
+        // Pass the error forward so individual components can handle it if needed
+        return Promise.reject(error);
+      }
+    );
+
+    // Cleanup: remove interceptor when component unmounts
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, [forceLogout]);
+
+  return null; // This component doesn't render anything
+}
 
 // -------------------------------
 //  Helper Route Wrappers
@@ -133,9 +141,10 @@ function FoodDiscussionRoute() {
 //  Main App Component
 // -------------------------------
 
-function App() {
+function AppRoutes() {
   return (
     <Router>
+      <AxiosInterceptorSetup />
       <Routes>
         {/* === Default & Auth Routes === */}
         <Route path="/" element={<Navigate to="/loginregister" replace />} />
@@ -221,6 +230,14 @@ function App() {
         <Route path="*" element={<Navigate to="/loginregister" replace />} />
       </Routes>
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 }
 
