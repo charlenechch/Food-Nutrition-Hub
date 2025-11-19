@@ -5,6 +5,7 @@ const { pool: db } = require("../config/db");
 const userProfileRoutes = require("../routes/userProfile");
 const deleteUser = userProfileRoutes.deleteUser;
 const { updateFirebaseEmail, createFirebaseUser } = userProfileRoutes;
+const { sendEmail } = require("../config/mailer");
 
 // ✅ Example Admin API – only admins can access
 router.get("/dashboard", requireAdmin, (req, res) => {
@@ -449,6 +450,47 @@ router.post("/users", requireAdmin, async (req, res) => {
 
         await connection.commit();
         console.log(`✅ User ${email} created successfully with ID: ${newUserID}. Temp password: ${tempPassword}`);
+
+        const welcomeHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #8B4513; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Welcome to SarawakEats</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2 style="color: #8B4513;">Hello ${firstname},</h2>
+              <p>Your account has been successfully created by our admin team.</p>
+              
+              <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>Username:</strong> ${email}</p>
+                <p style="margin: 5px 0;"><strong>Role:</strong> ${role}</p>
+              </div>
+
+              <h3 style="color: #8B4513; margin-bottom: 10px;">How to Activate Your Account:</h3>
+              <ol style="line-height: 1.6;">
+                <li>Go to the login page and click <strong>"Forgot Password"</strong> to set your initial password.</li>
+                <li>Log in with your new password.</li>
+                <li>Look for the notification saying "Email not verified" and click the <strong>"Resend Verification Email"</strong> button.</li>
+                <li>Check your inbox for the verification link to fully activate your account.</li>
+              </ol>
+              
+              <div style="text-align: center; margin-top: 25px;">
+                <a href="https://food-nutrition-hub.vercel.app/loginregister" style="display: inline-block; background-color: #8B4513; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Login Page</a>
+              </div>
+              
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
+            </div>
+          </div>
+        `;
+
+        // Send async (don't await it, so the admin dashboard doesn't lag)
+        sendEmail({
+            to: email,
+            subject: "Welcome to SarawakEats! Account Created",
+            text: `Welcome ${firstname}! Your account has been created. Please use Forgot Password to log in.`,
+            html: welcomeHTML
+        });
 
         // Format and Return New User Data
         const newUserData = {
