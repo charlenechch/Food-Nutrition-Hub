@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { pool: db } = require("../config/db");
 const bcrypt = require("bcrypt");
+const { sendEmail } = require("../config/mailer");
 
 // ✅ 1. PARSE JSON BODIES
 // This middleware *must* come before your routes to parse req.body
@@ -269,20 +270,65 @@ router.post("/syncEmailVerification", async (req, res) => {
   }
 
   try {
-    const [result] = await db.execute(
-      "UPDATE user SET verified = 1 WHERE email = ?",
+    // Fetch user first
+    const [users] = await db.execute(
+      "SELECT userID, firstname, verified FROM user WHERE email = ?",
       [email]
     );
 
-    if (result.affectedRows === 0) {
+    if (users.length === 0) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    console.log(`Email verification synced for: ${email}`);
-    
+    const user = users[0];
+
+    // If the database says "True", we stop
+    if (user.verified === 'True') {
+      return res.json({ success: true, message: "User already verified" });
+    }
+
+    await db.execute(
+      "UPDATE user SET verified = 'True' WHERE email = ?",
+      [email]
+    );
+
+    console.log(`✅ Email verified for: ${email}`);
+
+    // Send Email Notification
+    const successHTML = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+        <div style="background-color: #28a745; padding: 20px; text-align: center;">
+          <h1 style="color: #fff; margin: 0;">Account Verified!</h1>
+        </div>
+        <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+          <h2 style="color: #28a745;">You're all set, ${user.firstname}!</h2>
+          <p>Thank you for verifying your email address.</p>
+          
+          <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #28a745;">
+            <p style="margin: 0;"><strong>Your account is now fully active.</strong> You can now submit recipes, post stories, and save your favorite foods.</p>
+          </div>
+
+          <div style="text-align: center; margin-top: 25px;">
+            <a href="https://food-nutrition-hub.vercel.app/home" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Start Exploring</a>
+          </div>
+          
+          <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+            Best regards,<br>The SarawakEats Team
+          </p>
+        </div>
+      </div>
+    `;
+
+    sendEmail({
+      to: email,
+      subject: "Account Verified! Welcome to SarawakEats",
+      html: successHTML,
+      text: "Your account has been verified! You can now access all features."
+    });
+
     return res.json({ 
       success: true, 
-      message: "Email verification synced successfully" 
+      message: "Email verification synced and notification sent" 
     });
 
   } catch (error) {
