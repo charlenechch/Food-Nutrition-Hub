@@ -5,8 +5,9 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/FoodDiscussionPage.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-
+import {CheckCircle2, AlertTriangle} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import Modal from "../components/Modal";
 import LoginPromptModal from "../components/LoginPromptModal";
 
 // ✅ Delete Confirmation Modal Component
@@ -312,6 +313,19 @@ export default function FoodDiscussionPage() {
     isAdminAction: false // Track if this is an admin action
   });
 
+  const [infoDlg, setInfoDlg] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+  });
+
+  const openInfo = ({ title, message, icon, primaryText = "OK" }) =>
+    setInfoDlg({ open: true, title, message, icon, primaryText });
+
+  const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false}));
+
   useEffect(() => {
     if (user?.userID && !userProfileID) {
       getUserProfileID().then(profileID => {
@@ -533,7 +547,11 @@ const toggleFoodLike = async () => {
         console.warn('Failed to revert likes in localStorage:', storageError);
       }
       
-      alert(data?.message || "Failed to update like");
+      openInfo({
+        title: "Couldn't update like",
+        message: data?.message || "Please try again",
+        icon: <AlertTriangle />,
+      });
     }
   } catch (err) {
     console.error("❌ Network error:", err);
@@ -552,7 +570,11 @@ const toggleFoodLike = async () => {
       console.warn('Failed to revert likes in localStorage:', storageError);
     }
     
-    alert("Network error while updating like");
+    openInfo({
+      title: "Network Error",
+      message: "We couldn't update your like. Please check your connection",
+      icon: <AlertTriangle />,
+    });
   }
 };
 
@@ -581,12 +603,20 @@ const toggleFoodLike = async () => {
     });
       
       if (!actualUserProfileID) {
-        alert("Admin account needs a userProfileID to post comments. Please contact support.");
+        openInfo({
+          title: "Failed to post comment",
+          message: "Admin account needs a userProfileID to post comments. Please contact support.",
+          icon: <AlertTriangle />,
+        });
         return;
       }
 
       if (!actualFoodID) {
-        alert("Food ID not found. Please go back and try again.");
+        openInfo({
+          title: "Food ID not found",
+          message: "Please go back and try again",
+          icon: <AlertTriangle />,
+        });
         return;
       }
 
@@ -644,19 +674,31 @@ const toggleFoodLike = async () => {
               : comment
           )
         );
-        alert("Comment posted successfully!");
+        openInfo({
+          title: "Comment posted",
+          message: "Your comment is visibile now.",
+          icon: <CheckCircle2 />,
+        });
       } else {
         setComments((prev) => prev.filter(comment => 
           comment.id !== tempComment.id || !comment.isTemp
         ));
-        alert(data?.message || "Unable to post comment");
+        openInfo({
+          title: "Failed to post reply",
+          message: data?.message || "Please try again",
+          icon: <AlertTriangle />,
+        });
       }
     } catch (err) {
       setComments((prev) => prev.filter(comment => 
         comment.id !== tempComment.id || !comment.isTemp
       ));
       console.error("Error posting comment:", err);
-      alert("Server error while posting comment.");
+      openInfo({
+        title: "Server error",
+        message: "We couldn't post your comment. Try again later",
+        icon: <AlertTriangle />,
+      });
     }
   };
 
@@ -675,7 +717,11 @@ const postReply = async (discussionId) => {
   });
 
   if (!actualUserProfileID) {
-    alert("User profile ID not found. Please log in again.");
+    openInfo({
+      title: "User profile ID not found",
+      message: "Please log in again",
+      icon: <AlertTriangle />,
+    });
     return;
   }
 
@@ -742,7 +788,11 @@ const postReply = async (discussionId) => {
             : c
         )
       );
-      alert("Reply posted successfully!");
+      openInfo({
+        title: "Reply posted",
+        message: "Your reply is visible now.",
+        icon: <CheckCircle2 />,
+      });
     } else {
       // ✅ Remove temporary reply if failed
       setComments((prev) =>
@@ -755,7 +805,11 @@ const postReply = async (discussionId) => {
             : c
         )
       );
-      alert(data?.message || "Unable to post reply");
+      openInfo({
+        title: "Failed to post reply",
+        message: data?.message || "We couldn't post your reply. Please try again later.",
+        icon: <AlertTriangle />,
+      });
     }
   } catch (err) {
     // ✅ Remove temporary reply on error
@@ -770,7 +824,11 @@ const postReply = async (discussionId) => {
       )
     );
     console.error("Error posting reply:", err);
-    alert("Server error while posting reply.");
+    openInfo({
+      title: "Server error",
+      message: "We couldn't post your reply. Please try again later.",
+      icon: <AlertTriangle />,
+    });
   }
 };
 
@@ -826,7 +884,11 @@ const postReply = async (discussionId) => {
           }
           return comment;
         }));
-        alert("Failed to update like: " + data.message);
+        openInfo({
+          title: "Failed to update like",
+          message: data?.message || "Please try again",
+          icon: <AlertTriangle />,
+        });
       }
     } catch (err) {
       console.error("Error updating like:", err);
@@ -844,7 +906,11 @@ const postReply = async (discussionId) => {
         }
         return comment;
       }));
-      alert("Network error while updating like");
+      openInfo({
+        title: "Network error",
+        message: "We couldn't update your like. Please try again later",
+        icon: <AlertTriangle />,
+      });
     }
   };
 
@@ -879,11 +945,19 @@ const postReply = async (discussionId) => {
         setDeleteModal({ show: false, type: "comment", commentId: null, replyId: null, onConfirm: null, isAdminAction: false });
         //alert(isAdminAction ? "Comment deleted successfully as administrator." : "Comment deleted successfully.");
       } else {
-        alert(data?.message || "Failed to delete comment");
+        openInfo({
+          title: "Failed to delete comment",
+          message: data?.message || "We couldn't delete this comment. Please try again later.",
+          icon: <AlertTriangle />,
+        });
       }
     } catch (err) {
       console.error("Error deleting comment:", err);
-      alert("Server error while deleting comment.");
+      openInfo({
+        title: "Server error",
+        message: "We couldn't delete this comment. Please try again later.",
+        icon: <AlertTriangle />,
+      });
     }
   };
 
@@ -923,11 +997,19 @@ const postReply = async (discussionId) => {
         setDeleteModal({ show: false, type: "reply", commentId: null, replyId: null, onConfirm: null, isAdminAction: false });
         //alert(isAdminAction ? "Reply deleted successfully as administrator." : "Reply deleted successfully.");
       } else {
-        alert(data?.message || "Failed to delete reply");
+        openInfo({
+          title: "Failed to delete reply",
+          message: data?.message || "We couldn't delete this reply. Please try again later.",
+          icon: <AlertTriangle />,
+        });
       }
     } catch (err) {
       console.error("Error deleting reply:", err);
-      alert("Server error while deleting reply.");
+      openInfo({
+        title: "Server error",
+        message: "We couldn't delete this reply. Please try again later.",
+        icon: <AlertTriangle />,
+      });
     }
   };
 
@@ -1062,6 +1144,17 @@ const postReply = async (discussionId) => {
           )}
         </div>
       </div>
+
+      <Modal
+        open = {infoDlg.open}
+        title = {infoDlg.title}
+        icon = {infoDlg.icon}
+        primaryText = {infoDlg.primaryText}
+        onPrimary = {closeInfo}
+        onClose = {closeInfo}
+      >
+        {infoDlg.message}
+      </Modal>
 
       <Footer />
     </div>
