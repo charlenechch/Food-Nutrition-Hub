@@ -1004,7 +1004,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
   console.log("Received body for updateStatus:", req.body);
   // ------------------------------------
 
-  const { status } = req.body; // This is 'undefined' if the body is wrong
+  const { status, feedback } = req.body; // This is 'undefined' if the body is wrong
 
   const validStatuses = ["Approved", "Rejected", "Pending"];
 
