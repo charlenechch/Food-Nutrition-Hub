@@ -7,22 +7,62 @@ const bcrypt = require("bcrypt");
 // This middleware *must* come before your routes to parse req.body
 router.use(express.json());
 
-/* ✅ 2. Session Check (Supports Guests)
+/* ✅ 2. Session Check (Supports Guests + Verifies Suspension)
   - Path: GET /session
 */
 router.get("/session", async (req, res) => {
-  if (req.session && req.session.user) {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({
+      authenticated: false,
+      guest: true,
+      message: "Not logged in",
+    });
+  }
+
+  try {
+    // Query DB to ensure user isn't suspended/deleted
+    // Query the 'user' table using the ID stored in the session
+    const [rows] = await db.execute(
+      "SELECT userID, role, status, suspendedUntil FROM user WHERE userID = ?",
+      [req.session.user.userID]
+    );
+
+    // Case A: User was deleted from database
+    if (rows.length === 0) {
+      req.session.destroy();
+      return res.status(401).json({ authenticated: false, message: "User not found" });
+    }
+
+    const user = rows[0];
+
+    // Case B: User is Suspended (Current time < suspendedUntil)
+    if (user.suspendedUntil && new Date(user.suspendedUntil) > new Date()) {
+      console.log(`⛔ Blocked suspended user session: ${req.session.user.email}`);
+      
+      // Kill the session immediately
+      req.session.destroy((err) => {
+        if (err) console.error("Session destroy error:", err);
+        // Return 401 so the frontend interceptor catches it
+        return res.status(401).json({ 
+          authenticated: false, 
+          message: "Account suspended",
+          suspended: true 
+        });
+      });
+      return;
+    }
+
+    // If safe, return the session data
     return res.status(200).json({
       authenticated: true,
       user: req.session.user,
     });
-  }
 
-  return res.status(401).json({
-    authenticated: false,
-    guest: true,
-    message: "Not logged in",
-  });
+  } catch (err) {
+    console.error("Session validation error:", err);
+    // If DB fails, returning 500 is safer than letting them stay logged in
+    return res.status(500).json({ authenticated: false, message: "Server error" });
+  }
 });
 
 /* ✅ 3. Login
