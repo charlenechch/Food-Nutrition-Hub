@@ -139,7 +139,7 @@ export default function LoginRegisterPage() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) {
         try {
-          await fetch(`${API_URL}/api/verifyEmail/sync`, {
+          await fetch(`${API_URL}/api/syncEmailVerification`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
