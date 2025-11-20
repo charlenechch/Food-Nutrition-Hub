@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "home": "Laman Utama",
+    "explore_food": "Terokai Makanan",
+    "nutrition_analyzer": "Penganalisis Pemakanan",
+    "recipes": "Resepi",
+    "community": "Komuniti",
+    "profile": "Profil",
+    "logout": "Log Keluar",
+    "login": "Log Masuk",
+    "login_register": "Log Masuk / Daftar"
+  },
+  "modal": {
+    "login_required": "Sila log masuk atau daftar untuk mengakses profil anda."
+  }
+}
