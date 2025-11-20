@@ -46,24 +46,17 @@ export function AuthProvider({ children }) {
   };
 
   // Log a user out on the frontend
-  const forceLogout = () => {
-    setUser(null); // Set user to null
-    
-    // Check if we're already on the login page to avoid a redirect loop
+  const forceLogout = useCallback(() => {
+    setUser(null);
     if (window.location.pathname !== "/loginregister") {
       window.location.href = "/loginregister";
     }
-  };
+  }, []);
 
-  const checkSession = async () => {
-    // Define the public pages that don't need a redirect
+  const checkSession = useCallback(async () => {
     const publicAuthPaths = [
-      '/loginregister',
-      '/auth/action',
-      '/verifyemail',
-      '/forgotpassword',
-      '/resetpassword',
-      '/otpverification'
+      '/loginregister', '/auth/action', '/verifyemail',
+      '/forgotpassword', '/resetpassword', '/otpverification'
     ];
     const currentPath = window.location.pathname;
 
@@ -73,43 +66,36 @@ export function AuthProvider({ children }) {
       });
       const data = await res.json();
 
-      console.log("🔍 Session Check:", {
-        status: res.status,
-        ok: res.ok,
-        hasUser: !!data?.user,
-        userData: data?.user,
-        currentPath
-      });
-
       if (res.ok && data?.user) {
-        setUser(normalizeUser(data.user));
+        // Optimization: Only update state if data actually changed to prevent re-renders
+        setUser(prev => {
+          if (JSON.stringify(prev) === JSON.stringify(normalizeUser(data.user))) return prev;
+          return normalizeUser(data.user);
+        });
       } else {
-        // If session is not OK, only force logout if user is not on one of the public auth pages
         if (!publicAuthPaths.includes(currentPath)) {
           forceLogout();
         }
       }
     } catch (err) {
       console.error("Session error:", err);
-      // If session check fails, only force logout if user is not on one of the public auth pages.
       if (!publicAuthPaths.includes(currentPath)) {
         forceLogout();
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // ✅ Toggle view mode (admin can switch UI but stay admin)
-  const toggleRole = async () => {
+  const toggleRole = useCallback(async () => {
     if (!user) return;
 
-    // If admin, just change their viewMode (not role)
+     // If admin, just change their viewMode (not role
     if (user.role === "admin") {
       const newMode = user.viewMode === "admin" ? "member" : "admin";
       setUser((prev) => ({ ...prev, viewMode: newMode }));
     }
-  };
+  }, [user]);
 
   const login = async (email, password) => {
     try {
@@ -142,6 +128,11 @@ export function AuthProvider({ children }) {
   };
 
   const loginAsGuest = () => setUser({ role: "guest", viewMode: "guest" });
+  
+  // Initial check on mount
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
 
   return (
     <AuthContext.Provider

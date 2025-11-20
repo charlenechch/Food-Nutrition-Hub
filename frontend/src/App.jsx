@@ -125,10 +125,11 @@ function SessionChecker() {
   const { checkSession, user } = useAuth();
   const location = useLocation();
 
+  // 1. Route Change Check (Safe)
   useEffect(() => {
-    // Check session whenever route changes
     checkSession();
-  }, [location.pathname, checkSession]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   // Active Polling
   useEffect(() => {
