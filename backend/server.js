@@ -176,7 +176,7 @@ const dbOptions = {
   database: process.env.MYSQLDATABASE,
   clearExpired: true,
   checkExpirationInterval: 1000,
-  expiration: 30 * 1000, // TEST: Set expiration to 30 seconds
+  expiration: 5 * 1000, // TEST: Set expiration to 5 seconds
 };
 
 const sessionStore = new MySQLStore(dbOptions);

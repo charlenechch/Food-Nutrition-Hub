@@ -27,24 +27,6 @@ export function AuthProvider({ children }) {
     };
   };
 
-  // Convert user to guest without redirect
-  const convertToGuest = async () => {
-    // Explicitly destroy session on backend
-    try {
-      await fetch(`${API_URL}/api/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      console.log("✅ Session destroyed on backend");
-    } catch (err) {
-      console.log("⚠️ Logout failed (session may already be deleted):", err.message);
-    }
-    
-    // Convert to guest on frontend
-    setUser({ role: "guest", viewMode: "guest" });
-    console.log("🔓 User converted to guest mode");
-  };
-
   // Log a user out on the frontend
   const forceLogout = useCallback(() => {
     setUser(null);
