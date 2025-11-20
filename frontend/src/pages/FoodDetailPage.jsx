@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { CheckCircle2, AlertTriangle } from "lucide-react";
 import "../css/FoodDetailPage.css";
 import Modal from "../components/Modal"
 import { 
