@@ -137,11 +137,11 @@ function SessionChecker() {
     // Guests don't need to be polled (and we don't want to kick them out).
     if (!user || user.role === "guest") return;
 
-    // Run checkSession every 10 seconds
+    // Run checkSession every 60 seconds
     const interval = setInterval(() => {
       console.log("💓 Checking session status...");
       checkSession(); 
-    }, 10000); // 10000ms = 10 seconds
+    }, 60000);
 
     // Cleanup the timer when component unmounts or user logs out
     return () => clearInterval(interval);

@@ -175,8 +175,8 @@ const dbOptions = {
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
   clearExpired: true,
-  checkExpirationInterval: 1000,
-  expiration: 5 * 1000, // TEST: Set expiration to 5 seconds
+  checkExpirationInterval: 15 * 60 * 1000,
+  expiration: 24 * 60 * 60 * 1000,
 };
 
 const sessionStore = new MySQLStore(dbOptions);
@@ -192,7 +192,7 @@ app.use(
       httpOnly: true,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
-      maxAge: 30 * 1000, // TEST: Set expiration to 30 seconds
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
 );
