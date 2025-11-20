@@ -138,11 +138,11 @@ router.post("/", async (req, res) => {
 
       // Remember Me logic
       if (rememberDevice) {
-        const sevenDays = 7 * 24 * 60 * 60 * 1000;
+        const sevenDays = 60 * 1000; // ✅ ADD TEST TIME (60 Seconds):
         req.session.cookie.maxAge = sevenDays;
         req.session.cookie.expires = new Date(Date.now() + sevenDays);
         req.session.rememberMe = true;
-        console.log("🕒 Remember Me active → 7-day session lifespan");
+        console.log("🕒 Remember Me active → 60s session lifespan");
       } else {
         req.session.cookie.maxAge = null;
         req.session.cookie.expires = false;
