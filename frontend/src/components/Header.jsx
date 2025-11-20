@@ -5,7 +5,6 @@ import { useAuth } from "../context/AuthContext";
 import { User } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal";
 import "./Header.css";
-import { useTranslation } from "react-i18next";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -15,8 +14,6 @@ export default function Header() {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const { t, i18n } = useTranslation("common");
-  const currentLang = i18n.resolvedLanguage || i18n.language;
 
     React.useEffect(() => {
     if (user?.role === "admin" && location.pathname === "/home") {
@@ -48,7 +45,6 @@ export default function Header() {
       navigate("/profile");
     }
   };
-  
 
   return (
     <>
@@ -82,42 +78,31 @@ export default function Header() {
         <ul className="navbar-links">
           <li>
             <NavLink
-              to={user?.role === "admin" ? "/admin" : "/home"}>
-                {t("nav.home")}
+              to={user?.role === "admin" ? "/admin" : "/home"}
+            >
+              Home
             </NavLink>
           </li>
-          <li><NavLink to="/foods">{t("nav.explore_food")}</NavLink></li>
-          <li><NavLink to="/analyzer">{t("nav.nutrition_analyzer")}</NavLink></li>
-          <li><NavLink to="/recipes">{t("nav.recipes")}</NavLink></li>
-          <li><NavLink to="/community">{t("nav.community")}</NavLink></li>
+          <li><NavLink to="/foods">Explore Foods</NavLink></li>
+          <li><NavLink to="/analyzer">Nutrition Analyzer</NavLink></li>
+          <li><NavLink to="/recipes">Recipes</NavLink></li>
+          <li><NavLink to="/community">Community</NavLink></li>
         </ul>
 
         {/* === MOBILE MENU (Hamburger Drawer) === */}
         {menuOpen && (
           <div className="mobile-menu">
-            <NavLink to={user?.role === "admin" ? "/admin" : "/home"} onClick={closeMenu}>{t("nav.home")}</NavLink>
-            <NavLink to="/foods" onClick={closeMenu}>{t("nav.explore_food")}</NavLink>
-            <NavLink to="/analyzer" onClick={closeMenu}>{t("nav.nutrition_analyzer")}</NavLink>
-            <NavLink to="/recipes" onClick={closeMenu}>{t("nav.recipes")}</NavLink>
-            <NavLink to="/community" onClick={closeMenu}>{t("nav.community")}</NavLink>
+            <NavLink to={user?.role === "admin" ? "/admin" : "/home"} onClick={closeMenu}>Home</NavLink>
+            <NavLink to="/foods" onClick={closeMenu}>Explore Foods</NavLink>
+            <NavLink to="/analyzer" onClick={closeMenu}>Nutrition Analyzer</NavLink>
+            <NavLink to="/recipes" onClick={closeMenu}>Recipes</NavLink>
+            <NavLink to="/community" onClick={closeMenu}>Community</NavLink>
 
             <hr />
 
-            <div className="mobile-lang-row">
-              <button
-                onClick={() => i18n.changeLanguage("en")}
-                className={`mobile-btn ${currentLang === "en" ? "active" : ""}`}
-              >
-                <FaGlobe className="mobile-icon" /> EN
-              </button>
-
-              <button
-                onClick={() => i18n.changeLanguage("ms")}
-                className={`mobile-btn ${currentLang === "ms" ? "active" : ""}`}
-              >
-                <FaGlobe className="mobile-icon" /> BM
-              </button>
-            </div>
+            <button onClick={() => navigate("/language")} className="mobile-btn">
+              <FaGlobe className="mobile-icon" /> EN
+            </button>
 
             <button onClick={handleProfileClick} className="mobile-btn">
               <User className="mobile-icon" size={18} /> Profile
@@ -139,21 +124,9 @@ export default function Header() {
         {/* === Desktop Actions === */}
         <div className="navbar-actions">
           {/* 🌐 Language */}
-          <div className="lang-toggle">
-            <button
-              className={`lang-btn ${currentLang === "en" ? "active" : ""}`}
-              onClick={() => i18n.changeLanguage("en")}
-            >
-              EN
-            </button>
-            <span>/</span>
-            <button
-              className={`lang-btn ${currentLang === "ms" ? "active" : ""}`}
-              onClick={() => i18n.changeLanguage("ms")}
-            >
-              BM
-            </button>
-          </div>
+          <button className="lang-btn" onClick={() => navigate("/language")}>
+            <FaGlobe  /> EN
+          </button>
 
           
           {/* 👤 Profile */}
