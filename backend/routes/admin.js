@@ -100,7 +100,7 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
 
     // Get Firebase UID from database
     const [userRows] = await db.execute(
-      'SELECT firebase_uid, firstname, lastname FROM user WHERE userID = ?',
+      'SELECT firebase_uid, firstname, lastname, email FROM user WHERE userID = ?',
       [targetUserID]
     );
     
@@ -111,9 +111,43 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
       });
     }
 
-    const firebaseUID = userRows[0]?.firebase_uid || null;
-    const userName = `${userRows[0].firstname} ${userRows[0].lastname}`;
+    const targetUser = userRows[0];
+    const firebaseUID = targetUser.firebase_uid || null;
+    const userEmail = targetUser.email;
+    const userName = `${targetUser.firstname} ${targetUser.lastname}`;
     console.log(`Admin deleting user ${targetUserID} (${userName}) with Firebase UID: ${firebaseUID}`);
+
+    // Send "Account Removed" Email Notification
+    if (userEmail) {
+        const deletionHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #dc3545; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Account Removed</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2 style="color: #dc3545;">Hello ${targetUser.firstname},</h2>
+              <p>This email is to inform you that your SarawakEats account (<strong>${userEmail}</strong>) has been removed by an administrator.</p>
+              
+              <div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; margin: 20px 0; color: #721c24; border-left: 5px solid #dc3545;">
+                <p style="margin: 0;"><strong>Reason:</strong> Administrative Action</p>
+                <p style="margin: 5px 0 0; font-size: 0.9em;">If you believe this is a mistake, please contact our support team immediately.</p>
+              </div>
+
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
+            </div>
+          </div>
+        `;
+
+        sendEmail({
+            to: userEmail,
+            subject: "Important: Your Account Has Been Removed",
+            html: deletionHTML,
+            text: "Your account has been removed by an administrator."
+        });
+        console.log(`📩 Deletion notification sent to ${userEmail}`);
+    }
 
     // Call the helper function
     const result = await deleteUser(targetUserID, firebaseUID);

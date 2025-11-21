@@ -4,13 +4,14 @@ const { pool: db } = require("../config/db");
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const { deleteFirebaseUser, isInitialized, admin } = require('../config/firebaseAdmin');
+const { sendEmail } = require("../config/mailer");
 
-// ✅ NEW: Validation and sanitization imports
+// Validation and sanitization imports
 const Joi = require("joi");
 const validator = require("validator");
 const sanitizeHtml = require("sanitize-html");
 
-// ✅ Helper to sanitize strings
+// Helper to sanitize strings
 function sanitizeInput(value) {
   if (typeof value === "string") {
     value = sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} });
@@ -1126,12 +1127,50 @@ router.delete("/delete", async (req, res) => {
     
     // Get Firebase UID from database
     const [userRows] = await db.execute(
-      'SELECT firebase_uid FROM user WHERE userID = ?',
+      'SELECT firebase_uid, email, firstname FROM user WHERE userID = ?',
       [userID]
     );
     
-    const firebaseUID = userRows[0]?.firebase_uid || null;
+    const userData = userRows[0];
+    const firebaseUID = userData?.firebase_uid || null;
+    const userEmail = userData?.email;
+    const userName = userData?.firstname || "User";
+
     console.log(`Deleting user ${userID} with Firebase UID: ${firebaseUID}`);
+
+    // Send "Goodbye" Email Notification
+    if (userEmail) {
+        const goodbyeHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #6c757d; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Account Deleted</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2>Goodbye, ${userName}</h2>
+              <p>Your account <strong>${userEmail}</strong> has been successfully deleted upon your request.</p>
+              <p>All your data, recipes, and posts have been removed from our system.</p>
+              
+              <div style="background-color: #fff3cd; padding: 10px; border-radius: 5px; margin: 20px 0; font-size: 0.9em; border-left: 5px solid #ffc107;">
+                <strong>Security Alert:</strong> If you did not request this deletion, please contact support immediately.
+              </div>
+
+              <p>We hope to see you again someday!</p>
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
+            </div>
+          </div>
+        `;
+
+        // Send asynchronously
+        sendEmail({
+            to: userEmail,
+            subject: "Your Account Has Been Deleted",
+            html: goodbyeHTML,
+            text: "Your account has been deleted successfully."
+        });
+        console.log(`📩 Goodbye email sent to ${userEmail}`);
+    }
 
     // Call the helper function with Firebase UID
     const result = await deleteUser(userID, firebaseUID);
