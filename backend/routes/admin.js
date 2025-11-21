@@ -354,13 +354,20 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
     console.log(`✅ Admin updated user: ${email} (ID: ${targetUserID})`);
 
-    if (finalsuspendedUntil && new Date(finalsuspendedUntil) > new Date()) {
-      console.log(`🔒 Suspending user ${targetUserID}: Invalidating active sessions.`);
+    // Invalidate sessions if suspended OR role changed OR email changed if the user is currently logged in
+    const roleChanged = (role && role.toLowerCase() !== currentUser.role);
+    const emailChanged = (email && email !== currentUser.email);
+    const isSuspended = (finalsuspendedUntil && new Date(finalsuspendedUntil) > new Date());
+
+    if (isSuspended || roleChanged || emailChanged) {
+      console.log(`🔒 Security Update for user ${targetUserID} (Suspended: ${isSuspended}, Role Changed: ${roleChanged})`);
+      console.log(`🚫 Invalidating active sessions to enforce new permissions.`);
       try {
+          // This deletes their session file, forcing a logout
           await db.query(`DELETE FROM sessions WHERE data LIKE ?`, [`%\"userID\":${targetUserID}%`]);
           console.log(`✅ Sessions invalidated for user ${targetUserID}`);
       } catch (sessionErr) {
-          console.error("⚠️ Failed to invalidate user sessions (table might not exist or differ):", sessionErr.message);
+          console.error("⚠️ Failed to invalidate sessions:", sessionErr.message);
       }
     }
 
