@@ -311,7 +311,9 @@ export default function ReviseRecipePage() {
         message: "It will be reviewed again.",
         icon: <CheckCircle2 />,
       });
-      navigate(-1);
+      setTimeout(() => {
+        navigate(-1);
+      }, 2000); 
     } else {
       throw new Error(result.error || "Update failed");
     }
