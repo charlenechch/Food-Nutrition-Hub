@@ -260,10 +260,6 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     // Generate HTML list for email
     const changesListHTML = changes.map(change => `<li>${change}</li>`).join('');
 
-    const currentEmail = existingUser[0].email;
-    const firebaseUID = existingUser[0].firebase_uid;
-    let shouldResetVerification = false;
-
     // Calculate final suspendedUntil date.
     // The frontend will send a date-string or null.
     let finalsuspendedUntil = currentUser.suspendedUntil;
