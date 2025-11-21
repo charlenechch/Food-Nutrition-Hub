@@ -4,7 +4,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Modal from "../components/Modal";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { FaCamera } from "react-icons/fa";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -159,7 +159,14 @@ export default function ReviseCommunityPostPage() {
       
       if (result.success) {
         setSuccess("Community post revised successfully! It has been resubmitted for admin review.");
-        navigate("/profile"); // Go back to profile page
+        openInfo({
+           title: "Post Revised Successfully! 🎉",
+           message: "Your community contribution has been resubmitted and is awaiting admin review.",
+           icon: <CheckCircle2 />,
+         });
+        setTimeout(() => {
+          navigate("/profile"); 
+        }, 2000);      
       } else {
         throw new Error(result.error || "Update failed");
       }
