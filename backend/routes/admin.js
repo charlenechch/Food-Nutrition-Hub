@@ -170,6 +170,11 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
 // Admin update user by ID
 router.put("/users/:id", requireAdmin, async (req, res) => {
   console.log("Admin user update request received");
+
+  let shouldResetVerification = false;
+  let firebaseUID = null;
+  let currentEmail = null;
+
   try {
     const targetUserID = parseInt(req.params.id, 10);
     
@@ -219,6 +224,8 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     }
 
     const currentUser = existingUser[0];
+    currentEmail = currentUser.email;
+    firebaseUID = currentUser.firebase_uid;
 
     // Detect changes for email content
     const changes = [];
@@ -470,16 +477,16 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
           </div>
         </div>
       `;
-    }
 
-    // Send to the FINAL email (in case the admin changed the email address too)
-    sendEmail({
-        to: finalEmail, 
-        subject: "Notification: Your Account Details Have Been Updated",
-        html: updateHTML,
-        text: "Your account details have been updated by an administrator."
-    });
-    console.log(`📩 Update notification sent to ${finalEmail}`);
+      // Send to the FINAL email (in case the admin changed the email address too)
+      sendEmail({
+          to: finalEmail, 
+          subject: "Notification: Your Account Details Have Been Updated",
+          html: updateHTML,
+          text: "Your account details have been updated by an administrator."
+      });
+      console.log(`📩 Update notification sent to ${finalEmail}`);
+    } 
 
     // Get updated user stats
     const [updatedUser] = await db.execute(
@@ -538,6 +545,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     // Check if we attempted a Firebase email change that needs to be reverted
     // 'shouldResetVerification' is the flag that Firebase was successfully changed
     
+    // Rollback Firebase if needed
     if (shouldResetVerification === true && firebaseUID && currentEmail) {
         
         console.warn(`MySQL update failed. Attempting to roll back Firebase email change for UID: ${firebaseUID}`);
