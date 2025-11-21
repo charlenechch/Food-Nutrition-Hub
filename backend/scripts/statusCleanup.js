@@ -1,4 +1,5 @@
 const { pool: db } = require("../config/db");
+const { sendEmail } = require("../config/mailer");
 
 // Finds and updates user statuses based on expired suspensions and inactivity.
 async function updateStaleAndExpiredUsers() {
@@ -15,8 +16,8 @@ async function updateStaleAndExpiredUsers() {
         
         // Find users whose status is "Suspended" but whose suspendedUntil date is in the past.
         const [expiredSuspensions] = await db.execute(
-            `SELECT userID, lastLogin FROM \`user\`
-             WHERE \`status\` = 'Suspended' 
+            `SELECT userID, lastLogin, email, firstname FROM \`user\`
+             WHERE \`suspendedUntil\` IS NOT NULL 
                AND \`suspendedUntil\` < ?`, // Check if the expiration date is older than now
             [nowString]
         );
@@ -26,6 +27,7 @@ async function updateStaleAndExpiredUsers() {
             
             const toActivate = [];
             const toInactivate = [];
+            const usersToNotify = [];
 
             expiredSuspensions.forEach(user => {
                 // Determine if their lastLogin date is older than 7 days
@@ -60,6 +62,44 @@ async function updateStaleAndExpiredUsers() {
                 );
                 console.log(`✅ ${toActivate.length} users auto-activated after suspension expired.`);
             }
+
+            // Send "Suspension Expired" Email Notification
+            const emailPromises = usersToNotify.map(user => {
+                const html = `
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                    <div style="background-color: #28a745; padding: 20px; text-align: center;">
+                      <h1 style="color: #fff; margin: 0;">Suspension Expired</h1>
+                    </div>
+                    <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+                      <h2 style="color: #28a745;">Welcome back, ${user.firstname}!</h2>
+                      <p>Your account suspension has automatically expired.</p>
+                      
+                      <div style="background-color: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #28a745;">
+                        <p style="margin: 0;">You can now log in and access your account.</p>
+                      </div>
+
+                      <div style="text-align: center; margin-top: 25px;">
+                        <a href="https://food-nutrition-hub.vercel.app/loginregister" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login Now</a>
+                      </div>
+                      
+                      <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                        Best regards,<br>The SarawakEats Team
+                      </p>
+                    </div>
+                  </div>
+                `;
+                
+                return sendEmail({
+                    to: user.email,
+                    subject: "Your Account Suspension Has Ended",
+                    html: html,
+                    text: "Your account suspension has ended. You can now log in."
+                });
+            });
+
+            // Wait for all emails to try sending (doesn't block if one fails)
+            await Promise.all(emailPromises);
+            console.log(`✅ Sent ${usersToNotify.length} auto-unsuspension emails.`);
         }
         
         // Find other currently 'Active' users who are stale (7+ days inactive)

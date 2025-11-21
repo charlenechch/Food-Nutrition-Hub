@@ -202,9 +202,12 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       }
     }
 
-    // Check if user exists
+    // Fetch User and Profile to compare old values
     const [existingUser] = await db.execute(
-      'SELECT * FROM user WHERE userID = ?',
+      `SELECT u.*, up.location 
+      FROM user u 
+      LEFT JOIN userProfile up ON u.userID = up.userID 
+      WHERE u.userID = ?`,
       [targetUserID]
     );
 
@@ -216,6 +219,40 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     }
 
     const currentUser = existingUser[0];
+
+    // Detect changes for email content
+    const changes = [];
+
+    // Check Name
+    const currentFullName = `${currentUser.firstname || ''} ${currentUser.lastname || ''}`.trim();
+    if (name && name.trim() !== currentFullName) {
+        changes.push(`Name updated`);
+    }
+
+    // Check Email
+    if (email && email !== currentUser.email) {
+        changes.push(`Email address updated`);
+    }
+
+    // Check City (Location)
+    if (city !== undefined && city !== currentUser.location) {
+        changes.push(`Location updated`);
+    }
+
+    // Check Role (Normalize to lowercase for comparison)
+    const newRoleLower = role ? role.toLowerCase() : currentUser.role;
+    if (newRoleLower !== currentUser.role) {
+        changes.push(`Account role changed to ${role}`);
+    }
+    
+    // If nothing specific found (or only internal fields changed), default message
+    if (changes.length === 0) {
+        changes.push("Profile details updated");
+    }
+
+    // Generate HTML list for email
+    const changesListHTML = changes.map(change => `<li>${change}</li>`).join('');
+
     const currentEmail = existingUser[0].email;
     const firebaseUID = existingUser[0].firebase_uid;
     let shouldResetVerification = false;
@@ -324,35 +361,116 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       }
     }
 
-    // Send "Account Updated" Email Notification when user details is edited
-    const updateHTML = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-        <div style="background-color: #17a2b8; padding: 20px; text-align: center;">
-          <h1 style="color: #fff; margin: 0;">Account Details Updated</h1>
-        </div>
-        <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
-          <h2 style="color: #17a2b8;">Hello ${firstname},</h2>
-          <p>This is a notification that your SarawakEats account details have been updated by an administrator.</p>
-          
-          <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #17a2b8;">
-            <p style="margin: 0;"><strong>What changed?</strong></p>
-            <ul style="margin: 5px 0 0 20px; padding: 0;">
-              <li>Profile information or settings were modified by our team.</li>
-            </ul>
-          </div>
+    const wasSuspended = currentUser.suspendedUntil && new Date(currentUser.suspendedUntil) > new Date();
+    const isNowSuspended = finalsuspendedUntil && new Date(finalsuspendedUntil) > new Date();
 
-          <p>If you did not request this change, please contact support immediately.</p>
-          
-          <div style="text-align: center; margin-top: 25px;">
-            <a href="https://food-nutrition-hub.vercel.app/profile" style="display: inline-block; background-color: #17a2b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Profile</a>
-          </div>
+    // Case A: Account Suspended
+    if (!wasSuspended && isNowSuspended) {
+        const suspendHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #dc3545; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Account Suspended</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2 style="color: #dc3545;">Hello ${firstname},</h2>
+              <p>Your account has been suspended by an administrator.</p>
+              
+              <div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #dc3545;">
+                <p><strong>Reason:</strong> ${suspensionReason || "No specific reason provided"}</p>
+                <p><strong>Suspended Until:</strong> ${finalsuspendedUntil}</p>
+              </div>
 
-          <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
-            Best regards,<br>The SarawakEats Team
-          </p>
+              <p>You will not be able to log in or post content until the suspension period expires.</p>
+
+              <p style="margin-top: 15px; font-size: 0.95em;">
+                If you believe this suspension is an error or would like to request an early unsuspension, 
+                please contact our support team for an appeal.
+              </p>
+              
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
+            </div>
+          </div>
+        `;
+
+        sendEmail({
+            to: finalEmail,
+            subject: "Important: Your Account Has Been Suspended",
+            html: suspendHTML,
+            text: `Your account has been suspended until ${finalsuspendedUntil}. Reason: ${suspensionReason}`
+        });
+        console.log(`📩 Suspension email sent to ${finalEmail}`);
+    }
+
+    // Case B: Account Unsuspended (Manually)
+    else if (wasSuspended && !isNowSuspended) {
+        const unsuspendHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #28a745; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Account Reactivated</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2 style="color: #28a745;">Welcome back, ${firstname}!</h2>
+              <p>Your account suspension has been lifted.</p>
+              
+              <div style="background-color: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #28a745;">
+                <p>You now have full access to login and use SarawakEats again.</p>
+              </div>
+
+              <div style="text-align: center; margin-top: 25px;">
+                <a href="https://food-nutrition-hub.vercel.app/loginregister" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login Now</a>
+              </div>
+
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
+            </div>
+          </div>
+        `;
+
+        sendEmail({
+            to: finalEmail,
+            subject: "Account Reactivated",
+            html: unsuspendHTML,
+            text: "Your account suspension has been lifted. You can now log in."
+        });
+        console.log(`📩 Unsuspension email sent to ${finalEmail}`);
+    }
+
+    const statusEmailSent = (!wasSuspended && isNowSuspended) || (wasSuspended && !isNowSuspended);
+
+    if (!statusEmailSent) {
+      // Send "Account Updated" Email Notification when user details is edited
+      const updateHTML = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <div style="background-color: #17a2b8; padding: 20px; text-align: center;">
+            <h1 style="color: #fff; margin: 0;">Account Details Updated</h1>
+          </div>
+          <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <h2 style="color: #17a2b8;">Hello ${firstname},</h2>
+            <p>This is a notification that your SarawakEats account details have been updated by an administrator.</p>
+            
+            <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #17a2b8;">
+              <p style="margin: 0;"><strong>What changed?</strong></p>
+              <ul style="margin: 5px 0 0 20px; padding: 0;">
+                ${changesListHTML} 
+              </ul>
+            </div>
+
+            <p>If you did not request this change, please contact support immediately.</p>
+            
+            <div style="text-align: center; margin-top: 25px;">
+              <a href="https://food-nutrition-hub.vercel.app/profile" style="display: inline-block; background-color: #17a2b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Profile</a>
+            </div>
+
+            <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+              Best regards,<br>The SarawakEats Team
+            </p>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
 
     // Send to the FINAL email (in case the admin changed the email address too)
     sendEmail({
