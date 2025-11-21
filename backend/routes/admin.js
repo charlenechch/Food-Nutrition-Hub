@@ -129,7 +129,6 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
               <p>This email is to inform you that your SarawakEats account (<strong>${userEmail}</strong>) has been removed by an administrator.</p>
               
               <div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; margin: 20px 0; color: #721c24; border-left: 5px solid #dc3545;">
-                <p style="margin: 0;"><strong>Reason:</strong> Administrative Action</p>
                 <p style="margin: 5px 0 0; font-size: 0.9em;">If you believe this is a mistake, please contact our support team immediately.</p>
               </div>
 
@@ -324,6 +323,45 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
           console.error("⚠️ Failed to invalidate user sessions (table might not exist or differ):", sessionErr.message);
       }
     }
+
+    // Send "Account Updated" Email Notification when user details is edited
+    const updateHTML = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+        <div style="background-color: #17a2b8; padding: 20px; text-align: center;">
+          <h1 style="color: #fff; margin: 0;">Account Details Updated</h1>
+        </div>
+        <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+          <h2 style="color: #17a2b8;">Hello ${firstname},</h2>
+          <p>This is a notification that your SarawakEats account details have been updated by an administrator.</p>
+          
+          <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #17a2b8;">
+            <p style="margin: 0;"><strong>What changed?</strong></p>
+            <ul style="margin: 5px 0 0 20px; padding: 0;">
+              <li>Profile information or settings were modified by our team.</li>
+            </ul>
+          </div>
+
+          <p>If you did not request this change, please contact support immediately.</p>
+          
+          <div style="text-align: center; margin-top: 25px;">
+            <a href="https://food-nutrition-hub.vercel.app/profile" style="display: inline-block; background-color: #17a2b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Profile</a>
+          </div>
+
+          <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+            Best regards,<br>The SarawakEats Team
+          </p>
+        </div>
+      </div>
+    `;
+
+    // Send to the FINAL email (in case the admin changed the email address too)
+    sendEmail({
+        to: finalEmail, 
+        subject: "Notification: Your Account Details Have Been Updated",
+        html: updateHTML,
+        text: "Your account details have been updated by an administrator."
+    });
+    console.log(`📩 Update notification sent to ${finalEmail}`);
 
     // Get updated user stats
     const [updatedUser] = await db.execute(

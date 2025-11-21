@@ -1151,7 +1151,7 @@ router.delete("/delete", async (req, res) => {
               <p>All your data, recipes, and posts have been removed from our system.</p>
               
               <div style="background-color: #fff3cd; padding: 10px; border-radius: 5px; margin: 20px 0; font-size: 0.9em; border-left: 5px solid #ffc107;">
-                <strong>Security Alert:</strong> If you did not request this deletion, please contact support immediately.
+                If you did not request this deletion, please contact support immediately.
               </div>
 
               <p>We hope to see you again someday!</p>
