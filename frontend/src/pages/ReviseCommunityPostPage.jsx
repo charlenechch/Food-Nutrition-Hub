@@ -160,7 +160,7 @@ export default function ReviseCommunityPostPage() {
       if (result.success) {
         setSuccess("Community post revised successfully! It has been resubmitted for admin review.");
         openInfo({
-           title: "Post Revised Successfully! 🎉",
+           title: "Post Revised Successfully!",
            message: "Your community contribution has been resubmitted and is awaiting admin review.",
            icon: <CheckCircle2 />,
          });

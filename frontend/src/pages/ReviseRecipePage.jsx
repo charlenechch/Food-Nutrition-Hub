@@ -308,7 +308,7 @@ export default function ReviseRecipePage() {
 
       openInfo({
         title: "Recipe revised successfully!",
-        message: "It will be reviewed again.",
+        message: "Your recipe contribution has been resubmitted and is awaiting admin review.",
         icon: <CheckCircle2 />,
       });
       setTimeout(() => {
