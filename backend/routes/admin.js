@@ -607,7 +607,7 @@ router.post("/users", requireAdmin, async (req, res) => {
         await connection.beginTransaction();
         
         let firebaseUID;
-        let tempPassword; // Used for logging feedback, not sent to user
+        let tempPassword;
         try {
             const result = await createFirebaseUser(email, name, role); 
             firebaseUID = result.uid;
@@ -650,7 +650,8 @@ router.post("/users", requireAdmin, async (req, res) => {
         );
 
         await connection.commit();
-        console.log(`✅ User ${email} created successfully with ID: ${newUserID}. Temp password: ${tempPassword}`);
+        console.log(`✅ User ${email} created successfully with ID: ${newUserID}.`);
+        console.log(`💡 User must use 'Forgot Password' flow to set their initial password.`);
 
         const welcomeHTML = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">

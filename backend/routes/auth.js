@@ -176,7 +176,7 @@ router.post("/logout", (req, res) => {
   - Path: POST /updatePassword
 */
 router.post("/updatePassword", async (req, res) => {
-  console.log("📩 /updatePassword route hit. Body:", req.body);
+  console.log("📩 /updatePassword route hit for user:", email);
 
   // Use string trimming for safety
   const email = req.body.email?.trim();

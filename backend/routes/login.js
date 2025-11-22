@@ -144,7 +144,7 @@ router.post("/", async (req, res) => {
             [user.userID, otpCode, expiresAt]
         );
 
-        console.log(`🔐 2FA Triggered for ${email}. Code: ${otpCode}`);
+        console.log(`🔐 2FA Triggered for ${email}.`);
 
         // Send Email
         const otpHTML = `
