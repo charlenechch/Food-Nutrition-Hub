@@ -7,7 +7,7 @@ const { pool: db } = require("../config/db");
 // Store OTPs temporarily
 const { otpStore } = require("./register");
 
-// ✅ NEW: Validation and sanitization setup (added globally)
+// Validation and sanitization setup (added globally)
 const Joi = require("joi");
 const validator = require("validator");
 const sanitizeHtml = require("sanitize-html");
@@ -24,6 +24,16 @@ const sendOTPSchema = Joi.object({ email: Joi.string().email().required() });
 const verifyOTPSchema = Joi.object({
   email: Joi.string().email().required(),
   otp: Joi.string().length(6).pattern(/^[0-9]+$/).required(),
+});
+
+const sendLoginSchema = Joi.object({
+  userId: Joi.number().integer().required()
+});
+
+const verifyLoginSchema = Joi.object({
+  userId: Joi.number().integer().required(),
+  code: Joi.string().length(6).pattern(/^[0-9]+$/).required(),
+  rememberDevice: Joi.boolean().optional()
 });
 
 // Generate 6-digit OTP
@@ -181,157 +191,147 @@ router.post("/verify", async (req, res) => {
   }
 });
 
-// Send login OTP
+// Resend Login OTP
 router.post("/sendLogin", async (req, res) => {
-  const { email } = req.body;
-
-  // ✅ Validate and sanitize
-  const { error, value } = sendOTPSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+  const { error, value } = sendLoginSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
   if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
-  const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
-  Object.assign(req.body, cleanData);
+  
+  const { userId } = value; 
 
-  if (!email) {
-    return res.status(400).json({ error: "Email required" });
+  // Validate Input
+  if (!userId) {
+    return res.status(400).json({ error: "User ID required" });
   }
 
   try {
-    // Check if user exists and is verified
-    const [users] = await db.query(
-      "SELECT verified FROM user WHERE email = ? LIMIT 1",
-      [email]
-    );
-
+    // Fetch user email from Database
+    const [users] = await db.execute("SELECT email, verified FROM user WHERE userID = ?", [userId]);
+    
     if (users.length === 0) {
-      return res.status(404).json({ error: "User not found" });
+        return res.status(404).json({ error: "User not found" });
     }
+    
+    const user = users[0];
 
-    if (users[0].verified !== 'True') {
+    // Check verification status
+    if (user.verified !== 'True' && user.verified !== 1) {
       return res.status(400).json({ error: "Please verify your email first." });
     }
 
-    // Generate OTP
-    const otp = generateOTP();
+    // Generate 6-digit OTP
+    const crypto = require("crypto"); 
+    const otpCode = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Store OTP with expiration
-    otpStore.set(`login_${email}`, {
-      code: otp,
-      expires: Date.now() + 10 * 60 * 1000, // 10 minutes
-      attempts: 0
-    });
+    // Save to DB (Clear old codes first to prevent duplicates)
+    await db.execute('DELETE FROM otp WHERE userID = ?', [userId]);
+    
+    await db.execute(
+        'INSERT INTO otp (userID, code, expires_at) VALUES (?, ?, ?)',
+        [userId, otpCode, expiresAt]
+    );
 
-    console.log(`Login OTP sent: ${otp}`);
+    console.log(`🔄 OTP resent for ${user.email}: ${otpCode}`);
 
-    // Create email content
-    const emailSubject = "Your Login Verification Code";
-    const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #4CAF50;">Food-Nutrition Knowledge Hub</h2>
-        <p>Hello,</p>
-        <p>Your login verification code is:</p>
-        <div style="background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-          ${otp}
-        </div>
-        <p>This code will expire in <strong>10 minutes</strong>.</p>
+    // Send Email
+    const otpHTML = `
+      <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+        <h2>Login Verification</h2>
+        <p>Here is your new verification code:</p>
+        <h1 style="font-size: 32px; letter-spacing: 5px; color: #8B4513;">${otpCode}</h1>
+        <p>This code expires in 10 minutes.</p>
         <p>If you didn't request this code, please ignore this email.</p>
       </div>
     `;
 
-    // Send the email
-    const emailResult = await sendEmail({
-      to: email,
-      subject: emailSubject,
-      html: emailHtml,
+    await sendEmail({
+        to: user.email,
+        subject: "Resend: Your Login Verification Code",
+        html: otpHTML,
+        text: `Your new code is ${otpCode}`
     });
 
-    if (emailResult.success) {
-      return res.json({
-        success: true,
-        message: "Login code sent to your email",
-        devOTP: process.env.NODE_ENV !== 'production' ? otp : undefined
-      });
-    }
-
-    return res.status(500).json({
-      error: "Failed to send verification email",
-      devOTP: process.env.NODE_ENV !== 'production' ? otp : undefined
+    return res.json({ 
+        success: true, 
+        message: "New code sent to your email" 
     });
 
   } catch (err) {
-    console.error("Login OTP send error:", err);
-    return res.status(500).json({ error: "Failed to send OTP" });
+    console.error("OTP Resend Error:", err);
+    return res.status(500).json({ error: "Failed to resend OTP" });
   }
 });
 
 
-// Verify login OTP
+// Verify Login OTP
 router.post("/verifyLogin", async (req, res) => {
-  const { email, otp } = req.body;
-
-  // ✅ Validate and sanitize
-  const { error, value } = verifyOTPSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+  // Frontend sends 'userId' and 'code' (Step 2 of login)
+  const { error, value } = verifyLoginSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
   if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
-  const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
-  Object.assign(req.body, cleanData);
 
-  if (!email || !otp) {
-    return res.status(400).json({ error: "Email and OTP required" });
+  const { userId, code, rememberDevice } = value;
+
+  if (!userId || !code) {
+    return res.status(400).json({ error: "Missing credentials" });
   }
 
   try {
-    const stored = otpStore.get(`login_${email}`);
-
-    if (!stored) {
-      return res.status(401).json({ error: "OTP not found or expired" });
-    }
-
-    if (Date.now() > stored.expires) {
-      otpStore.delete(`login_${email}`);
-      return res.status(401).json({ error: "OTP expired. Please request a new code." });
-    }
-
-    if (stored.attempts >= 5) {
-      otpStore.delete(`login_${email}`);
-      return res.status(429).json({ error: "Too many attempts. Please request a new code." });
-    }
-
-    if (stored.code !== otp) {
-      stored.attempts += 1;
-      otpStore.set(`login_${email}`, stored);
-      return res.status(401).json({
-        error: "Invalid OTP",
-        attemptsRemaining: 5 - stored.attempts
-      });
-    }
-
-    // OTP is valid
-    otpStore.delete(`login_${email}`);
-
-    // Get user info for login
-    const [users] = await db.query(
-      "SELECT user_id, email, first_name, last_name, role FROM user WHERE email = ?",
-      [email]
+    // Check DB for valid code (Using table 'otp')
+    const [rows] = await db.execute(
+        `SELECT * FROM otp 
+         WHERE userID = ? AND code = ? AND expires_at > NOW()`,
+        [userId, code]
     );
 
-    if (users.length === 0) {
-      return res.status(404).json({ error: "User not found" });
+    if (rows.length === 0) {
+        return res.status(400).json({ success: false, message: "Invalid or expired code" });
     }
 
+    // If code is valid, clean up used OTP
+    await db.execute('DELETE FROM otp WHERE userID = ?', [userId]);
+
+    // Fetch user details to create session
+    const [users] = await db.execute('SELECT * FROM user WHERE userID = ?', [userId]);
+    
+    if (users.length === 0) {
+        return res.status(404).json({ error: "User not found" });
+    }
+    
     const user = users[0];
 
-    // Create session
+    // Create Session (Same logic as original login)
     req.session.user = {
-      user_id: user.user_id,
-      email: user.email,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      role: user.role
+        userID: user.userID,
+        email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        role: user.role,
     };
 
+    // Apply Remember Me Logic (Same as login.js)
+    if (rememberDevice) {
+        const sevenDays = 7 * 24 * 60 * 60 * 1000;
+        req.session.cookie.maxAge = sevenDays;
+        req.session.cookie.expires = new Date(Date.now() + sevenDays);
+        req.session.rememberMe = true;
+        console.log("🕒 OTP Login: Remember Me active → 7 Days");
+    } else {
+        req.session.cookie.maxAge = null;
+        req.session.cookie.expires = false;
+        req.session.rememberMe = false;
+    }
+
+    req.session.save();
+
+    // Update Last Login
+    await db.query("UPDATE user SET lastLogin = ? WHERE userID = ?", [new Date(), user.userID]);
+
+    console.log(`✅ 2FA Verification successful for user: ${user.email}`);
+
     return res.json({
-      success: true,
-      message: "Login successful",
-      user: req.session.user
+        success: true,
+        message: "Login successful",
+        user: req.session.user
     });
 
   } catch (err) {

@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const router = express.Router();
 const { pool: db } = require("../config/db");
+const crypto = require("crypto");
 
 // Validation & sanitization imports
 const Joi = require("joi");
@@ -124,6 +125,53 @@ router.post("/", async (req, res) => {
         console.error("❌ Failed to auto-activate INACTIVE user:", updateError);
         // Log the error but continue login
       }
+    }
+
+     // Set to false to disable 2FA globally
+    const requires2FA = true;
+
+    if (requires2FA) {
+        // Generate 6-digit code
+        const otpCode = crypto.randomInt(100000, 999999).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+        // Save to DB (Clear old codes for this user first)
+        await db.execute('DELETE FROM otp WHERE userID = ?', [user.userID]);
+        
+        await db.execute(
+            'INSERT INTO otp (userID, code, expires_at) VALUES (?, ?, ?)',
+            [user.userID, otpCode, expiresAt]
+        );
+
+        console.log(`🔐 2FA Triggered for ${email}. Code: ${otpCode}`);
+
+        // Send Email
+        const otpHTML = `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+            <h2>Login Verification</h2>
+            <p>Your verification code is:</p>
+            <h1 style="font-size: 32px; letter-spacing: 5px; color: #8B4513;">${otpCode}</h1>
+            <p>This code expires in 10 minutes.</p>
+            <p>If you did not request this, please ignore this email.</p>
+          </div>
+        `;
+
+        await sendEmail({
+            to: user.email,
+            subject: "Your Login Verification Code",
+            html: otpHTML,
+            text: `Your code is ${otpCode}`
+        });
+
+        // Stop the login process
+        // The frontend will see this and switch to the "Enter Code" screen.
+        return res.json({
+            success: true,
+            requires2FA: true,
+            tempUserId: user.userID, 
+            rememberDevice: rememberDevice,
+            message: "Verification code sent to email"
+        });
     }
     
     // Regenerate session (prevent fixation)

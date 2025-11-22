@@ -43,6 +43,13 @@ export default function LoginRegisterPage() {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegPassword, setShowRegPassword] = useState(false);
 
+  // OTP states
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [tempUserId, setTempUserId] = useState(null);
+  const [otpCode, setOtpCode] = useState("");
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [tempRememberMe, setTempRememberMe] = useState(false);
+
   // lockout system
   const [lockouts, setLockouts] = useState(() => {
     const saved = localStorage.getItem("accountLockouts");
@@ -189,12 +196,6 @@ export default function LoginRegisterPage() {
     });
   };
 
-  // handleResendVerification, handleLogin, handleFailedAttempt,
-  // validatePassword, handleRegister, handleGuest, getLockLabel
-  // -- keep your existing implementations exactly as you already have them.
-  // For brevity in this reply I'll keep them unchanged but they remain present in your file.
-  // (Paste your existing implementations here — unchanged.)
-  // ---------- Begin existing functions (copy/paste your original functions) ----------
   const handleResendVerification = async () => {
     if (resendCooldown > 0 || isResending) return;
     setIsResending(true);
@@ -252,6 +253,70 @@ export default function LoginRegisterPage() {
     }
   };
 
+  // Verify the OTP code
+  const handleVerifyOtp = async () => {
+    if (!otpCode || otpCode.length !== 6) {
+      setLoginError("Please enter a valid 6-digit code.");
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    setLoginError("");
+
+    try {
+      const res = await fetch(`${API_URL}/api/otp/verifyLogin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ userId: tempUserId, code: otpCode, rememberDevice: tempRememberMe }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setUser(data.user);
+        navigate(data.user.role === "admin" ? "/admin" : "/home");
+      } else {
+        setLoginError(data.message || "Invalid code. Please try again.");
+      }
+    } catch (err) {
+      console.error("OTP Error:", err);
+      setLoginError("Verification failed. Please try again.");
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  // Resend OTP Handler
+  const handleResendOtp = async () => {
+    if (isResending) return; // Prevent double clicks
+    setIsResending(true);
+    setLoginError("");
+
+    try {
+      const res = await fetch(`${API_URL}/api/otp/sendLogin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        // Send the tempUserId we saved from the login step
+        body: JSON.stringify({ userId: tempUserId }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setLoginError("A new code has been sent to your email.");
+        setResendCooldown(60); // Start 60s cooldown
+      } else {
+        setLoginError(data.message || "Failed to resend code.");
+      }
+    } catch (err) {
+      setLoginError("Network error. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const handleLogin = async () => {
     setLoginError("");
     const locked = lockouts[email];
@@ -275,6 +340,16 @@ export default function LoginRegisterPage() {
         body: JSON.stringify({ email, password, rememberDevice }),
       });
       const data = await res.json();
+
+      // Check for 2FA trigger
+      if (data.requires2FA) {
+          setTempUserId(data.tempUserId);
+          setTempRememberMe(data.rememberDevice);
+          setShowOtpInput(true); 
+          setLoginError(""); 
+          return; // Stop here. Don't log in yet.
+      }
+
       if (res.ok && data.success && data.user) {
         setUser(data.user);
         setLockouts((prev) => {
@@ -523,64 +598,113 @@ export default function LoginRegisterPage() {
                 </div>
               )}
 
-              <div>
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  placeholder="e.g. johndoe@gmail.com"
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
+              {showOtpInput ? (
+                <div className="otp-form-section">
+                  <div className="otp-header-box">
+                    <p className="otp-text">
+                      We sent a 6-digit code to <strong>{email}</strong>.
+                    </p>
+                  </div>
 
-              {/* -----------------------------------------------------------------------
-                  LOGIN password input
-                  - now uses password-input-wrap and password-eye-icon classes
-                  - no floating hint for login (only for register)
-                 ----------------------------------------------------------------------- */}
-              <div className="password-input-wrap">
-                <label>Password</label>
+                  <div className="password-input-wrap">
+                    <label>Verification Code</label>
+                    <input
+                      type="text"
+                      className="otp-input-field"
+                      value={otpCode}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+                        setOtpCode(val);
+                      }}
+                      placeholder="123456"
+                      maxLength={6}
+                      autoFocus
+                    />
+                  </div>
 
-                <input
-                  type={showLoginPassword ? "text" : "password"}
-                  value={password}
-                  placeholder="e.g. John123!"
-                  onChange={(e) => setPassword(e.target.value)}
-                  aria-label="Login password"
-                />
+                  <button 
+                    onClick={handleVerifyOtp} 
+                    className="lrp-btn lrp-btn-primary otp-verify-btn"
+                    disabled={isVerifyingOtp}
+                  >
+                    {isVerifyingOtp ? "Verifying..." : "Verify Login"}
+                  </button>
 
-                {/* eye icon placed absolutely by CSS */}
-                <span
-                  onClick={() => setShowLoginPassword(!showLoginPassword)}
-                  className="password-eye-icon"
-                  role="button"
-                  aria-label={showLoginPassword ? "Hide password" : "Show password"}
-                >
-                  {showLoginPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-              </div>
+                  <button 
+                    onClick={handleResendOtp}
+                    className="lrp-btn lrp-btn-outline otp-resend-btn"
+                    disabled={resendCooldown > 0 || isResending}
+                  >
+                    {resendCooldown > 0 
+                      ? `Resend available in ${resendCooldown}s` 
+                      : isResending ? "Sending..." : "Resend Code"}
+                  </button>
+                  
+                  <button 
+                    onClick={() => {
+                      setShowOtpInput(false);
+                      setOtpCode("");
+                      setLoginError("");
+                    }} 
+                    className="lrp-btn lrp-btn-outline otp-back-btn"
+                  >
+                    Back to Password
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      value={email}
+                      placeholder="e.g. johndoe@gmail.com"
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
 
-              <div className="otp-remember">
-                <input
-                  id="remember-device"
-                  type="checkbox"
-                  checked={rememberDevice}
-                  onChange={(e) => setRememberDevice(e.target.checked)}
-                />
-                <label htmlFor="remember-device">Remember me for 7 days</label>
-              </div>
+                  <div className="password-input-wrap">
+                    <label>Password</label>
+                    <input
+                      type={showLoginPassword ? "text" : "password"}
+                      value={password}
+                      placeholder="e.g. John123!"
+                      onChange={(e) => setPassword(e.target.value)}
+                      aria-label="Login password"
+                    />
+                    <span
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="password-eye-icon"
+                      role="button"
+                      aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                    >
+                      {showLoginPassword ? <FaEyeSlash /> : <FaEye />}
+                    </span>
+                  </div>
 
-              <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
-                Sign In
-              </button>
-              <button onClick={() => navigate("/forgotpassword")} className="lrp-btn lrp-btn-primary">
-                Forgot Password
-              </button>
-              <div className="lrp-divider"><span>or</span></div>
+                  <div className="otp-remember">
+                    <input
+                      id="remember-device"
+                      type="checkbox"
+                      checked={rememberDevice}
+                      onChange={(e) => setRememberDevice(e.target.checked)}
+                    />
+                    <label htmlFor="remember-device">Remember me for 7 days</label>
+                  </div>
 
-              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
-                Continue as Guest
-              </button>
+                  <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
+                    Sign In
+                  </button>
+                  <button onClick={() => navigate("/forgotpassword")} className="lrp-btn lrp-btn-primary">
+                    Forgot Password
+                  </button>
+                  <div className="lrp-divider"><span>or</span></div>
+
+                  <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
+                    Continue as Guest
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <div className="lrp-form-content">
