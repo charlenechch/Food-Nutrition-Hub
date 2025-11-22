@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const router = express.Router();
 const { pool: db } = require("../config/db");
 const crypto = require("crypto");
+const { sendEmail } = require("../config/mailer");
 
 // Validation & sanitization imports
 const Joi = require("joi");
