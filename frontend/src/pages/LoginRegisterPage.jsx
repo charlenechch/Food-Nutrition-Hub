@@ -268,7 +268,7 @@ export default function LoginRegisterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ userId: tempUserId, code: otpCode, rememberDevice: tempRememberMe }),
+        body: JSON.stringify({ userID: tempUserId, code: otpCode, rememberDevice: tempRememberMe }),
       });
 
       const data = await res.json();
@@ -299,7 +299,7 @@ export default function LoginRegisterPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         // Send the tempUserId we saved from the login step
-        body: JSON.stringify({ userId: tempUserId }),
+        body: JSON.stringify({ userID: tempUserId }),
       });
 
       const data = await res.json();

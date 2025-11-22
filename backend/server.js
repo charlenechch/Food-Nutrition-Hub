@@ -267,7 +267,7 @@ app.use(
   hppProtect({
     policy: "first",
     allowlist: [
-      "id", "page", "q", "sort", "email", "password", "newPassword", "userID",
+      "id", "page", "q", "sort", "email", "password", "newPassword", "userID", "code", "rememberDevice",
       "token", "role", "userProfileID", "firebase_uid", "bio", "location",
       "firstname", "lastname", "city", "suspendedUntil", "suspensionReason",
       "avatar", "allergies", "dietary", "emailNotifications", "prefs",

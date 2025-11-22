@@ -27,11 +27,11 @@ const verifyOTPSchema = Joi.object({
 });
 
 const sendLoginSchema = Joi.object({
-  userId: Joi.number().integer().required()
+  userID: Joi.number().integer().required()
 });
 
 const verifyLoginSchema = Joi.object({
-  userId: Joi.number().integer().required(),
+  userID: Joi.number().integer().required(),
   code: Joi.string().length(6).pattern(/^[0-9]+$/).required(),
   rememberDevice: Joi.boolean().optional()
 });
@@ -45,7 +45,7 @@ function generateOTP() {
 router.post("/send", async (req, res) => {
   const { email } = req.body;
 
-  // ✅ Validate and sanitize
+  // Validate and sanitize
   const { error, value } = sendOTPSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
   if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
   const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
@@ -125,7 +125,7 @@ router.post("/send", async (req, res) => {
 router.post("/verify", async (req, res) => {
   const { email, otp } = req.body;
 
-  // ✅ Validate and sanitize
+  // Validate and sanitize
   const { error, value } = verifyOTPSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
   if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
   const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
@@ -196,16 +196,16 @@ router.post("/sendLogin", async (req, res) => {
   const { error, value } = sendLoginSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
   if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
   
-  const { userId } = value; 
+  const { userID } = value; 
 
   // Validate Input
-  if (!userId) {
+  if (!userID) {
     return res.status(400).json({ error: "User ID required" });
   }
 
   try {
     // Fetch user email from Database
-    const [users] = await db.execute("SELECT email, verified FROM user WHERE userID = ?", [userId]);
+    const [users] = await db.execute("SELECT email, verified FROM user WHERE userID = ?", [userID]);
     
     if (users.length === 0) {
         return res.status(404).json({ error: "User not found" });
@@ -224,11 +224,11 @@ router.post("/sendLogin", async (req, res) => {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Save to DB (Clear old codes first to prevent duplicates)
-    await db.execute('DELETE FROM otp WHERE userID = ?', [userId]);
+    await db.execute('DELETE FROM otp WHERE userID = ?', [userID]);
     
     await db.execute(
         'INSERT INTO otp (userID, code, expires_at) VALUES (?, ?, ?)',
-        [userId, otpCode, expiresAt]
+        [userID, otpCode, expiresAt]
     );
 
     console.log(`🔄 OTP resent for ${user.email}: ${otpCode}`);
@@ -265,13 +265,13 @@ router.post("/sendLogin", async (req, res) => {
 
 // Verify Login OTP
 router.post("/verifyLogin", async (req, res) => {
-  // Frontend sends 'userId' and 'code' (Step 2 of login)
+  // Frontend sends 'userID' and 'code' (Step 2 of login)
   const { error, value } = verifyLoginSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
   if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
 
-  const { userId, code, rememberDevice } = value;
+  const { userID, code, rememberDevice } = value;
 
-  if (!userId || !code) {
+  if (!userID || !code) {
     return res.status(400).json({ error: "Missing credentials" });
   }
 
@@ -280,7 +280,7 @@ router.post("/verifyLogin", async (req, res) => {
     const [rows] = await db.execute(
         `SELECT * FROM otp 
          WHERE userID = ? AND code = ? AND expires_at > NOW()`,
-        [userId, code]
+        [userID, code]
     );
 
     if (rows.length === 0) {
@@ -288,10 +288,10 @@ router.post("/verifyLogin", async (req, res) => {
     }
 
     // If code is valid, clean up used OTP
-    await db.execute('DELETE FROM otp WHERE userID = ?', [userId]);
+    await db.execute('DELETE FROM otp WHERE userID = ?', [userID]);
 
     // Fetch user details to create session
-    const [users] = await db.execute('SELECT * FROM user WHERE userID = ?', [userId]);
+    const [users] = await db.execute('SELECT * FROM user WHERE userID = ?', [userID]);
     
     if (users.length === 0) {
         return res.status(404).json({ error: "User not found" });
