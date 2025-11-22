@@ -648,7 +648,7 @@ export default function LoginRegisterPage() {
                     }} 
                     className="lrp-btn lrp-btn-outline otp-back-btn"
                   >
-                    Back to Password
+                    Back to Login
                   </button>
                 </div>
               ) : (
