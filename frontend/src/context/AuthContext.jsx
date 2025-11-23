@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
   const checkSession = useCallback(async () => {
     const publicAuthPaths = [
       '/loginregister', '/auth/action', '/verifyemail',
-      '/forgotpassword', '/resetpassword', '/otpverification'
+      '/forgotpassword', '/resetpassword', '/otpverification', '/home', '/explore', '/analyzer', '/recipes', '/community', '/privacy', '/terms'
     ];
     const currentPath = window.location.pathname;
 
