@@ -23,11 +23,11 @@ export default function Footer() {
         <div className="footer-links">
           <h4>Quick Links</h4>
           <ul>
-            <li><a href="/home">Home</a></li>
-            <li><a href="/explore">Explore Foods</a></li>
-            <li><a href="/analyzer">Nutrition Analyzer</a></li>
-            <li><a href="/recipes">Recipes</a></li>
-            <li><a href="/community">Community</a></li>
+            <li><Link to="/home">Home</Link></li>
+            <li><Link to="/explore">Explore Foods</Link></li>
+            <li><Link to="/analyzer">Nutrition Analyzer</Link></li>
+            <li><Link to="/recipes">Recipes</Link></li>
+            <li><Link to="/community">Community</Link></li>
           </ul>
         </div>
 
