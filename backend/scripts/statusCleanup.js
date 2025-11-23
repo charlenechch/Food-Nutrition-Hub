@@ -31,7 +31,7 @@ async function updateStaleAndExpiredUsers() {
 
             await db.execute(
                 `UPDATE \`user\` 
-                SET \`suspendedUntil\` = NULL, \`suspensionReason\` = NULL
+                SET \`suspendedUntil\` = NULL 
                 WHERE userID IN (${placeholders})`,
                 expiredIDs
             );
