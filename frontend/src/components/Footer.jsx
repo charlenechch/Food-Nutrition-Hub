@@ -1,6 +1,7 @@
 import React from "react";
 import "./Footer.css";
 import { FaEnvelope, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
