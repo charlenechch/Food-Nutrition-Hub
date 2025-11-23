@@ -41,7 +41,9 @@ export function AuthProvider({ children }) {
   const checkSession = useCallback(async () => {
     const publicAuthPaths = [
       '/loginregister', '/auth/action', '/verifyemail',
-      '/forgotpassword', '/resetpassword', '/otpverification', '/home', '/explore', '/analyzer', '/recipes', '/community', '/privacy', '/terms'
+      '/forgotpassword', '/resetpassword', '/otpverification', 
+      '/home', '/explore', '/analyzer', '/recipes', 
+      '/community', '/privacy', '/terms'
     ];
     const currentPath = window.location.pathname;
 
@@ -70,7 +72,6 @@ export function AuthProvider({ children }) {
       }
     } catch (err) {
       console.error("Session error:", err);
-      const isCurrentlyGuest = user?.role === 'guest';
 
       if (!publicAuthPaths.includes(currentPath) && !isCurrentlyGuest) {
         forceLogout();
