@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+const ALL_PUBLIC_PATHS = [
+  '/loginregister', '/auth/action', '/verifyemail',
+  '/forgotpassword', '/resetpassword', '/otpverification',
+  '/', '/home', '/explore', '/recipes', '/community', 
+  '/privacy', '/terms'
+];
+
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -31,22 +38,14 @@ export function AuthProvider({ children }) {
   const forceLogout = useCallback(() => {
     setUser(null);
 
-    const publicPaths = ['/loginregister', '/', '/home', '/recipe'];
-    
-    if (!publicPaths.includes(window.location.pathname)) {
+    if (!ALL_PUBLIC_PATHS.includes(window.location.pathname)) {
         window.location.href = "/loginregister";
     }
   }, []);
 
   const checkSession = useCallback(async () => {
-    const publicAuthPaths = [
-      '/loginregister', '/auth/action', '/verifyemail',
-      '/forgotpassword', '/resetpassword', '/otpverification', 
-      '/home', '/explore', '/analyzer', '/recipes', 
-      '/community', '/privacy', '/terms'
-    ];
+    const publicAuthPaths = ALL_PUBLIC_PATHS;
     const currentPath = window.location.pathname;
-
     const isCurrentlyGuest = user?.role === 'guest';
 
     try {
