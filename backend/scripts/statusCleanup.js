@@ -16,7 +16,7 @@ async function updateStaleAndExpiredUsers() {
         
         // Find users whose status is "Suspended" but whose suspendedUntil date is in the past.
         const [expiredSuspensions] = await db.execute(
-            `SELECT userID, lastLogin, email, firstname FROM \`user\`
+            `SELECT userID, email, firstname FROM \`user\`
              WHERE \`suspendedUntil\` IS NOT NULL 
                AND \`suspendedUntil\` < ?`, // Check if the expiration date is older than now
             [nowString]
@@ -25,43 +25,21 @@ async function updateStaleAndExpiredUsers() {
         if (expiredSuspensions.length > 0) {
             console.log(`Found ${expiredSuspensions.length} expired suspensions to process.`);
             
-            const toActivate = [];
-            const toInactivate = [];
-            const usersToNotify = [];
+            // Clear suspension fields only, without changing activity status
+            const expiredIDs = expiredSuspensions.map(u => u.userID);
+            const placeholders = expiredIDs.map(() => '?').join(',');
 
-            expiredSuspensions.forEach(user => {
-                // Determine if their lastLogin date is older than 7 days
-                // The comparison is between the user's lastLogin timestamp and the cutoffDate string.
-                const isInactive = user.lastLogin === null || new Date(user.lastLogin).getTime() < sevenDaysAgo.getTime();
-                
-                if (isInactive) {
-                    toInactivate.push(user.userID); // Suspended + Inactive for 7+ days = INACTIVE status
-                } else {
-                    toActivate.push(user.userID);   // Suspended + Active recently = ACTIVE status
-                }
-            });
+            await db.execute(
+                `UPDATE \`user\` 
+                SET \`suspendedUntil\` = NULL, \`suspensionReason\` = NULL
+                WHERE userID IN (${placeholders})`,
+                expiredIDs
+            );
 
-            // 1a. Set users to 'Inactive' (Suspension expired AND inactive)
-            if (toInactivate.length > 0) {
-                const placeholders = toInactivate.map(() => '?').join(',');
-                await db.execute(
-                    `UPDATE \`user\` SET \`status\` = 'Inactive', \`suspendedUntil\` = NULL
-                     WHERE userID IN (${placeholders})`,
-                    toInactivate
-                );
-                console.log(`✅ ${toInactivate.length} users auto-inactivated after suspension expired.`);
-            }
+            console.log(`✅ ${expiredSuspensions.length} suspensions cleared.`);
 
-            // 1b. Set users to 'Active' (Suspension expired AND recently active)
-            if (toActivate.length > 0) {
-                const placeholders = toActivate.map(() => '?').join(',');
-                await db.execute(
-                    `UPDATE \`user\` SET \`status\` = 'Active', \`suspendedUntil\` = NULL
-                     WHERE userID IN (${placeholders})`,
-                    toActivate
-                );
-                console.log(`✅ ${toActivate.length} users auto-activated after suspension expired.`);
-            }
+            // Prepare users for email notification
+            const usersToNotify = expiredSuspensions;
 
             // Send "Suspension Expired" Email Notification
             const emailPromises = usersToNotify.map(user => {
