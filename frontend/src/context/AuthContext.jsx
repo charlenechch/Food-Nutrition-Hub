@@ -30,8 +30,11 @@ export function AuthProvider({ children }) {
   // Log a user out on the frontend
   const forceLogout = useCallback(() => {
     setUser(null);
-    if (window.location.pathname !== "/loginregister") {
-      window.location.href = "/loginregister";
+
+    const publicPaths = ['/loginregister', '/', '/home', '/recipe'];
+    
+    if (!publicPaths.includes(window.location.pathname)) {
+        window.location.href = "/loginregister";
     }
   }, []);
 
@@ -41,6 +44,8 @@ export function AuthProvider({ children }) {
       '/forgotpassword', '/resetpassword', '/otpverification'
     ];
     const currentPath = window.location.pathname;
+
+    const isCurrentlyGuest = user?.role === 'guest';
 
     try {
       const res = await fetch(`${API_URL}/api/auth/session`, {
@@ -55,19 +60,25 @@ export function AuthProvider({ children }) {
           return normalizeUser(data.user);
         });
       } else {
-        if (!publicAuthPaths.includes(currentPath)) {
+        if (!publicAuthPaths.includes(currentPath) && !isCurrentlyGuest) {
+          // Only force logout if on a protected page AND NOT already a guest
           forceLogout();
+        } else if (isCurrentlyGuest) {
+          // If the backend returned 401 but we're locally a guest, do nothing.
+          setLoading(false);
         }
       }
     } catch (err) {
       console.error("Session error:", err);
-      if (!publicAuthPaths.includes(currentPath)) {
+      const isCurrentlyGuest = user?.role === 'guest';
+
+      if (!publicAuthPaths.includes(currentPath) && !isCurrentlyGuest) {
         forceLogout();
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user, forceLogout]);
 
   const toggleRole = useCallback(async () => {
     if (!user) return;
