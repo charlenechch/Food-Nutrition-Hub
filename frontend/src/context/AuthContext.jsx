@@ -4,7 +4,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const ALL_PUBLIC_PATHS = [
   '/loginregister', '/auth/action', '/verifyemail',
   '/forgotpassword', '/resetpassword', '/otpverification',
-  '/', '/home', '/explore', '/recipes', '/community', 
+  '/', '/home', '/foods', '/recipes', '/community', 
   '/privacy', '/terms'
 ];
 

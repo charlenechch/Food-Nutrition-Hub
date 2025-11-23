@@ -40,7 +40,7 @@ router.get(
 
 // 🧩 Public Pages — Accessible by guests & members
 router.get(
-  "/explore",
+  "/foods",
   attachUser,
   allowPageAccess("explore"),
   (req, res) => {
