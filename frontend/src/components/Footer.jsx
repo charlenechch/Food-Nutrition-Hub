@@ -25,7 +25,7 @@ export default function Footer() {
           <h4>Quick Links</h4>
           <ul>
             <li><Link to="/home">Home</Link></li>
-            <li><Link to="/explore">Explore Foods</Link></li>
+            <li><Link to="/foods">Explore Foods</Link></li>
             <li><Link to="/analyzer">Nutrition Analyzer</Link></li>
             <li><Link to="/recipes">Recipes</Link></li>
             <li><Link to="/community">Community</Link></li>
