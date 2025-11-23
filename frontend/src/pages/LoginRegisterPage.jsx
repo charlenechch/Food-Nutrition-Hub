@@ -850,12 +850,12 @@ export default function LoginRegisterPage() {
       >
         Please verify your email to continue. We've sent a verification link to your inbox.
 
-        <strong style={{ display: 'block', marginTop: '15px' }}>
-          Using Outlook, Hotmail, or a work email?
+        <strong className="verification-outlook-notice">
+          Using Outlook, business or corporate email?
         </strong>
-        <p style={{ fontSize: '14px', lineHeight: '1.5', margin: '5px 0 0' }}>
-          Your email service might scan the link for security purposes and verify it for you. 
-          If you see a "link already used" error, don't worry! It means you're verified. Just try to log in.
+        <p className="verification-outlook-text">
+          Your email service may automatically scan links for security, which can verify your account before you click. 
+          If you see "Verification Failed" or "Link already used", your account might already be verified and you may to log in.
         </p>
       </Modal>
     </div>

@@ -800,3 +800,18 @@ body, html, #root {
   margin-top: 10px;
   font-size: 0.9rem;
 }
+
+/* Outlook/Business Email Notice in Verification Modal */
+.verification-outlook-notice {
+  display: block;
+  margin-top: 15px;
+  font-weight: 600;
+  color: #916848;
+}
+
+.verification-outlook-text {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 5px 0 0;
+  color: #666;
+}
