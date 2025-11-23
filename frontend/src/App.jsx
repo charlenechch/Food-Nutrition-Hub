@@ -254,7 +254,7 @@ function AppRoutes() {
         <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />
         <Route path="/admin/reviewcontent/:id" element={<ReviewContentPage />} />
 
-        {/* ✅ Community Review Routes */}
+        {/* Community Review Routes */}
         <Route
             path="/admin/edit/community/:id"
             element={
@@ -272,7 +272,6 @@ function AppRoutes() {
           }
         />
         
-        {/* --- THIS IS THE FIX --- */}
         {/* This single dynamic route now handles recipes, community posts, and anything else */}
         <Route
           path="/admin/review/:type/:id"
@@ -283,7 +282,7 @@ function AppRoutes() {
           }
         />
 
-        {/* ✅ Protected Profile (member + admin only) */}
+        {/* Protected Profile (member + admin only) */}
         <Route
           path="/profile"
           element={

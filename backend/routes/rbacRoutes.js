@@ -66,7 +66,7 @@ router.get(
 // 🧩 Member-only features (Analyser + Community)
 router.get(
   "/analyser",
-  requireAuth,
+  attachUser,
   allowPageAccess("analyser"),
   (req, res) => {
     res.status(200).json({
