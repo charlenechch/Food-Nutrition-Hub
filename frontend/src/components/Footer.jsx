@@ -1,7 +1,6 @@
 import React from "react";
 import "./Footer.css";
 import { FaEnvelope, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
-import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
@@ -24,11 +23,11 @@ export default function Footer() {
         <div className="footer-links">
           <h4>Quick Links</h4>
           <ul>
-            <li><Link to="/home">Home</Link></li>
-            <li><Link to="/foods">Explore Foods</Link></li>
-            <li><Link to="/analyzer">Nutrition Analyzer</Link></li>
-            <li><Link to="/recipes">Recipes</Link></li>
-            <li><Link to="/community">Community</Link></li>
+            <li><a href="/home">Home</a></li>
+            <li><a href="/foods">Explore Foods</a></li>
+            <li><a href="/analyzer">Nutrition Analyzer</a></li>
+            <li><a href="/recipes">Recipes</a></li>
+            <li><a href="/community">Community</a></li>
           </ul>
         </div>
 
