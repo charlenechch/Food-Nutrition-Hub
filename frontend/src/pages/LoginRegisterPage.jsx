@@ -80,7 +80,15 @@ export default function LoginRegisterPage() {
   // existing effects (unchanged logic)
   // ------------------------------
   useEffect(() => {
-    if (user && user.role !== "guest") {
+    // Define public paths that should trigger an automatic redirect if the user is logged in
+    const redirectTriggerPaths = ["/loginregister", "/"];
+    const currentPath = window.location.pathname;
+
+    if (
+      user && 
+      user.role !== "guest" && 
+      redirectTriggerPaths.includes(currentPath) // Check if current path is one we should override
+    ) {
       navigate(user.role === "admin" ? "/admin" : "/home");
     }
   }, [user, navigate]);
