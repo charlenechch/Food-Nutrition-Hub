@@ -452,6 +452,26 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
     if (!statusEmailSent) {
       // Send "Account Updated" Email Notification when user details is edited
+      
+      // Verification Reminder Block
+      let verificationReminderHTML = '';
+      if (emailChanged) {
+          // If the email was changed, the verification status was reset.
+          // The user needs explicit instructions.
+          verificationReminderHTML = `
+            <h3 style="color: #dc3545; margin-top: 25px; border-bottom: 1px solid #eee; padding-bottom: 5px;">⚠️ Action Required: Re-verify Your Account</h3>
+            <p>Because your email address was changed, your account verification status has been reset for security reasons.</p>
+            <p><strong>To re-verify your new email (${finalEmail}), please follow these steps:</strong></p>
+            <ol style="line-height: 1.6; padding-left: 20px;">
+              <li>Try to log in using your new email and current password.</li>
+              <li>You will see a message that the email is not verified.</li>
+              <li>Click the <strong>"Resend Verification Email"</strong> button that appears.</li>
+              <li>Check your inbox for the new verification link to fully reactivate your account.</li>
+            </ol>
+          `;
+      }
+
+      // Send "Account Updated" Email Notification when user details is edited
       const updateHTML = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
           <div style="background-color: #17a2b8; padding: 20px; text-align: center;">
