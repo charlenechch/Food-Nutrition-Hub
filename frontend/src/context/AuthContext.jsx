@@ -43,6 +43,11 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // Helper function to check if a path is public
+  const isPublicPath = useCallback((path) => {
+    return ALL_PUBLIC_PATHS.includes(path);
+  }, []);
+
   const checkSession = useCallback(async () => {
     const publicAuthPaths = ALL_PUBLIC_PATHS;
     const currentPath = window.location.pathname;
@@ -139,6 +144,7 @@ export function AuthProvider({ children }) {
         checkSession,
         toggleRole,
         forceLogout,
+        isPublicPath,
       }}
     >
       {!loading && children}
