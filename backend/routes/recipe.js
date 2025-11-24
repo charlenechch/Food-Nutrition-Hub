@@ -1169,36 +1169,49 @@ router.patch('/updateStatus/:id', async (req, res) => {
     }
 });
 
-// ============================
-// POST — Save Feedback
-// ============================
+// POST feedback
 router.post("/recipes/:id/feedback", async (req, res) => {
+  const recipeID = parseInt(req.params.id, 10);
+  const { adminID, userID, message } = req.body;
+
+  // Validate input with Joi
+  const schema = Joi.object({
+    adminID: Joi.number().integer().positive().required(),
+    userID: Joi.number().integer().positive().required(),
+    message: Joi.string().trim().min(1).max(1000).required(),
+  });
+
+  const { error } = schema.validate({ adminID, userID, message });
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+
+  // Sanitize message
+  const cleanMessage = sanitizeHtml(message);
+
   try {
-    const recipeID = req.params.id;
-    const { adminID, userID, message } = req.body;
-
-    if (!adminID || !userID || !message) {
-      return res.status(400).json({ error: "Missing required fields" });
+    // Check if recipe exists
+    const [recipeRows] = await db.query("SELECT id FROM recipes WHERE id = ?", [recipeID]);
+    if (recipeRows.length === 0) {
+      return res.status(404).json({ error: "Recipe not found" });
     }
 
-    // ✨ Sanitize message to prevent XSS
-    const sanitizedMessage = sanitizeHtml(message, { allowedTags: [], allowedAttributes: {} }).trim();
-
-    if (!sanitizedMessage || sanitizedMessage.length > 1000) {
-      return res.status(400).json({ error: "Message is required and must be under 1000 characters" });
+    // Check if user exists
+    const [userRows] = await db.query("SELECT userID FROM user WHERE userID = ?", [userID]);
+    if (userRows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-    const query = `
-      INSERT INTO feedback (recipeID, adminID, userID, message)
-      VALUES (?, ?, ?, ?)
-    `;
+    // Insert feedback
+    await db.query(
+      "INSERT INTO feedback (recipeID, adminID, userID, message) VALUES (?, ?, ?, ?)",
+      [recipeID, adminID, userID, cleanMessage]
+    );
 
-    await db.query(query, [recipeID, adminID, userID, sanitizedMessage]);
-
-    res.json({ success: true, message: "Feedback submitted successfully" });
-  } catch (error) {
-    console.error("Error saving feedback:", error);
-    res.status(500).json({ error: "Failed to save feedback" });
+    res.status(201).json({ message: "Feedback sent successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

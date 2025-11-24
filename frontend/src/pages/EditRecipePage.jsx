@@ -46,6 +46,7 @@ const EditRecipePage = () => {
           name: data.name || "Untitled Recipe",
           author: data.authorName || "Unknown Author",
           email: data.authorEmail || "N/A",
+          userID: data.userID,
           submissionDate: new Date().toISOString().split("T")[0],
           type: "Recipe",
           status: data.status || "Pending Review",
@@ -86,7 +87,7 @@ const EditRecipePage = () => {
   if (!recipe) return <p>Loading...</p>;
 
   // Send feedback function
-  const handleSendFeedback = async () => {
+const handleSendFeedback = async () => {
   const feedbackInput = document.querySelector(".admin-feedback-input");
   const feedback = feedbackInput?.value.trim();
 
@@ -99,14 +100,28 @@ const EditRecipePage = () => {
     return;
   }
 
+  // Ensure userID and adminID are valid numbers
+  const userID = Number(recipe.userID);
+  const adminID = 1; // Replace with real admin ID from auth if available
+
+  if (!userID || isNaN(userID)) {
+    console.error("Invalid userID:", recipe.userID);
+    openInfo({
+      title: "Invalid User",
+      message: "Cannot send feedback: invalid user ID.",
+      icon: <FaExclamationTriangle />,
+    });
+    return;
+  }
+
   try {
     const res = await fetch(`${API_URL}/api/recipe/recipes/${id}/feedback`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({
-        adminID: 1,        // 🔥 PUT YOUR REAL ADMIN ID
-        userID: recipe.userID, // 🔥 Must come from recipe details
+        adminID: Number(adminID),
+        userID: userID,
         message: feedback,
       }),
     });
