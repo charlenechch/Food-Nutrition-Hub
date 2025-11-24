@@ -237,7 +237,7 @@ app.use(
       "prepTime", "cookTime", "servings", "image", "description",
       "foodType", "dietaryTags", "ingredients", "instructions",
       "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory",
-      "recipe", "content", "image", "userProfileID", "status", "comment"
+      "recipe", "content", "image", "userProfileID", "status", "comment", "message", "adminID"
     ],
   }),
   recipeRoutes

@@ -972,19 +972,48 @@ router.get("/recipes/:id/feedback", async (req, res) => {
 // =============================
 router.post("/recipes/:id/feedback", async (req, res) => {
   try {
-    const { id } = req.params;       // recipeID
-    const { adminID, userID, message } = req.body;
-
-    if (!adminID || !userID || !message) {
-      return res.status(400).json({ error: "Missing required fields" });
+    // Sanitize & parse recipe ID from params
+    const recipeID = parseInt(req.params.id, 10);
+    if (isNaN(recipeID) || recipeID <= 0) {
+      return res.status(400).json({ error: "Invalid recipe ID" });
     }
 
+    // Destructure body
+    let { adminID, userID, message } = req.body;
+
+    // Convert IDs to integers
+    adminID = parseInt(adminID, 10);
+    userID = parseInt(userID, 10);
+
+    // Joi schema for validation
+    const schema = Joi.object({
+      adminID: Joi.number().integer().positive().required(),
+      userID: Joi.number().integer().positive().required(),
+      message: Joi.string().trim().min(1).max(1000).required(),
+    });
+
+    // Validate inputs
+    const { error, value } = schema.validate({ adminID, userID, message });
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    // Sanitize message
+    const sanitizedMessage = sanitizeHtml(value.message, {
+      allowedTags: [],
+      allowedAttributes: {},
+    }).trim();
+
+    if (!sanitizedMessage) {
+      return res.status(400).json({ error: "Message cannot be empty after sanitization" });
+    }
+
+    // Insert into DB
     const query = `
       INSERT INTO feedback (recipeID, adminID, userID, message)
       VALUES (?, ?, ?, ?)
     `;
-
-    await db.query(query, [id, adminID, userID, message]);
+    await db.query(query, [recipeID, value.adminID, value.userID, sanitizedMessage]);
 
     res.json({ success: true, message: "Feedback submitted successfully" });
   } catch (error) {
@@ -1138,6 +1167,61 @@ router.patch('/updateStatus/:id', async (req, res) => {
       console.error("❌ Error updating recipe status:", error);
       res.status(500).json({ success: false, message: "Database update failed." });
     }
+});
+
+// ============================
+// POST — Save Feedback
+// ============================
+router.post("/recipes/:id/feedback", async (req, res) => {
+  try {
+    const recipeID = req.params.id;
+    const { adminID, userID, message } = req.body;
+
+    if (!adminID || !userID || !message) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // ✨ Sanitize message to prevent XSS
+    const sanitizedMessage = sanitizeHtml(message, { allowedTags: [], allowedAttributes: {} }).trim();
+
+    if (!sanitizedMessage || sanitizedMessage.length > 1000) {
+      return res.status(400).json({ error: "Message is required and must be under 1000 characters" });
+    }
+
+    const query = `
+      INSERT INTO feedback (recipeID, adminID, userID, message)
+      VALUES (?, ?, ?, ?)
+    `;
+
+    await db.query(query, [recipeID, adminID, userID, sanitizedMessage]);
+
+    res.json({ success: true, message: "Feedback submitted successfully" });
+  } catch (error) {
+    console.error("Error saving feedback:", error);
+    res.status(500).json({ error: "Failed to save feedback" });
+  }
+});
+
+// ============================
+// GET — Fetch Feedback
+// ============================
+router.get("/recipes/:id/feedback", async (req, res) => {
+  try {
+    const recipeID = req.params.id;
+
+    const query = `
+      SELECT * FROM feedback
+      WHERE recipeID = ?
+      ORDER BY createdAt DESC
+    `;
+
+    const [rows] = await db.query(query, [recipeID]);
+
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching feedback:", error);
+    res.status(500).json({ error: "Failed to fetch feedback" });
+  }
 });
 
 module.exports = router;
