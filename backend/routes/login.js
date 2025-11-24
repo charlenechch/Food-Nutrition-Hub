@@ -54,7 +54,10 @@ router.post("/", async (req, res) => {
   );
 
   const { email, password, rememberDevice } = cleanData;
-  console.log("🧼 Sanitized input:", cleanData);
+
+  // ✔ SAFER LOG — password hidden
+  const safeLog = { ...cleanData, password: "••••••••" };
+  console.log("🧼 Sanitized input:", safeLog);
 
   try {
     // Query user
@@ -163,8 +166,6 @@ router.post("/", async (req, res) => {
             text: `Your code is ${otpCode}`
         });
 
-        // Stop the login process
-        // The frontend will see this and switch to the "Enter Code" screen.
         return res.json({
             success: true,
             requires2FA: true,
@@ -198,7 +199,6 @@ router.post("/", async (req, res) => {
         console.log("🕒 Standard session (browser-close expiry)");
       }
 
-      // Attach user to session
       req.session.user = {
         userID: user.userID,
         email: user.email,
@@ -207,7 +207,6 @@ router.post("/", async (req, res) => {
         role: user.role,
       };
 
-      // Save session
       await new Promise((resolve, reject) => {
         req.session.save((err) => {
           if (err) {
@@ -217,13 +216,11 @@ router.post("/", async (req, res) => {
         });
       });
 
-      // Update lastLogin timestamp
       try {
         await db.query("UPDATE user SET lastLogin = ? WHERE userID = ?", [new Date(), user.userID]);
         console.log(`✅ Updated lastLogin for user: ${user.email}`);
       } catch (updateError) {
         console.error("❌ Failed to update lastLogin:", updateError);
-        // Don't stop the login, just log the error
       }
 
       console.log("✅ Login success for:", email);
@@ -236,7 +233,6 @@ router.post("/", async (req, res) => {
       });
     });
   } catch (err) {
-    // Catch-all for backend or DB errors
     console.error("💥 Login error:", err);
     res.status(500).json({ success: false, message: "Authentication error" });
   }
