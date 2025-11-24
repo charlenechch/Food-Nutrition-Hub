@@ -71,7 +71,7 @@ SELECT
       f.difficulty, 
       f.prepTime, 
       f.image, 
-      f.description, 
+      f.description, yes 
       f.foodType,
       f.category,
       f.dietaryTags,
