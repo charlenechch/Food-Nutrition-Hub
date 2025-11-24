@@ -35,12 +35,14 @@ export function AuthProvider({ children }) {
   };
 
   // Log a user out on the frontend
-  const forceLogout = useCallback(() => {
-    setUser(null);
+  const forceLogout = useCallback((shouldRedirect = false) => {
+      setUser(null);
+      const currentPath = window.location.pathname;
 
-    if (!ALL_PUBLIC_PATHS.includes(window.location.pathname)) {
-        window.location.href = "/loginregister";
-    }
+      // Redirect if on a protected page OR if the calling function requires it (i.e., manual logout)
+      if (shouldRedirect || !ALL_PUBLIC_PATHS.includes(currentPath)) {
+          window.location.href = "/loginregister";
+      }
   }, []);
 
   // Helper function to check if a path is public
@@ -121,7 +123,7 @@ export function AuthProvider({ children }) {
         credentials: "include",
       });
     } finally {
-      forceLogout();
+      forceLogout(true);
     }
   };
 
