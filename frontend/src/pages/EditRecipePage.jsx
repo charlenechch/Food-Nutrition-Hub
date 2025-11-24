@@ -87,52 +87,46 @@ const EditRecipePage = () => {
 
   // Send feedback function
   const handleSendFeedback = async () => {
-  const feedbackInput = document.querySelector(".admin-feedback-input");
-  const message = feedbackInput?.value.trim();
+    const feedbackInput = document.querySelector(".admin-feedback-input");
+    const feedback = feedbackInput?.value.trim();
 
-  if (!message) {
-    openInfo({
-      title: "Missing Feedback",
-      message: "Please enter feedback before sending.",
-      icon: <FaExclamationTriangle />,
-    });
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_URL}/api/feedback`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        recipeID: id,
-        userID: recipe.userID, 
-        adminID: YOUR_ADMIN_ID, 
-        message,
-        parentFeedbackID: null 
-      }),
-    });
-
-    if (!res.ok) {
-      const errData = await res.json();
-      throw new Error(errData.message || "Failed to send feedback");
+    if (!feedback) {
+      openInfo({
+        title: "Missing Feedback",
+        message: "Please enter feedback before sending.",
+        icon: <FaExclamationTriangle />,
+      });
+      return;
     }
 
-    openInfo({
-      title: "Feedback Sent",
-      message: "Your feedback has been sent successfully.",
-      icon: <FaCheckCircle />,
-    });
-    feedbackInput.value = "";
-  } catch (err) {
-    console.error("Error sending feedback:", err);
-    openInfo({
-      title: "Failed to Send",
-      message: err.message || "Could not send feedback.",
-      icon: <FaExclamationTriangle />,
-    });
-  }
-};
+    try {
+      const res = await fetch(`${API_URL}/api/recipe/sendFeedback/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ feedback }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Failed to send feedback");
+      }
+
+      openInfo({
+        title: "Feedback Sent",
+        message: "Your feedback has been sent successfully.",
+        icon: <FaCheckCircle />,
+      });
+      feedbackInput.value = "";
+    } catch (err) {
+      console.error("Error sending feedback:", err);
+      openInfo({
+        title: "Failed to Send",
+        message: err.message || "Could not send feedback.",
+        icon: <FaExclamationTriangle />,
+      });
+    }
+  };
 
   return (
     <div className="admin-review-page">
