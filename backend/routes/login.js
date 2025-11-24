@@ -33,7 +33,6 @@ function sanitizeInput(value) {
 }
 
 router.post("/", async (req, res) => {
-  console.log("🔹 Incoming login payload:", req.body); // ✅ helps confirm HPP behavior
 
   // Validate input
   const { error, value } = loginSchema.validate(req.body, {
