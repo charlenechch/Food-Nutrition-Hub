@@ -281,7 +281,7 @@ try {
       r.steps AS instructions, 
       r.DidYouKnow AS funFact, 
       r.chefTips,
-      r.status
+      r.status,
       r.admin_feedback
     FROM food f
     LEFT JOIN recipe r ON f.foodID = r.foodID
