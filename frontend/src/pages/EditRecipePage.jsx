@@ -14,6 +14,7 @@ const EditRecipePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(""); // 'approve' or 'reject'
   const [recipe, setRecipe] = useState(null);
+  const [adminFeedback, setAdminFeedback] = useState("");
   const [infoDlg, setInfoDlg] = useState({
     open: false,
     title: "",
@@ -87,46 +88,51 @@ const EditRecipePage = () => {
 
   // Send feedback function
   const handleSendFeedback = async () => {
-    const feedbackInput = document.querySelector(".admin-feedback-input");
-    const feedback = feedbackInput?.value.trim();
+    // 1. Use the state directly (adminFeedback) instead of document.querySelector
+    const feedback = adminFeedback.trim();
 
-    if (!feedback) {
-      openInfo({
-        title: "Missing Feedback",
-        message: "Please enter feedback before sending.",
-        icon: <FaExclamationTriangle />,
-      });
-      return;
-    }
+    if (!feedback) {
+      openInfo({
+        title: "Missing Feedback",
+        message: "Please enter feedback before sending.",
+        icon: <FaExclamationTriangle />,
+      });
+      return;
+    }
 
-    try {
-      const res = await fetch(`${API_URL}/api/recipe/sendFeedback/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ feedback }),
-      });
+    try {
+      const res = await fetch(`${API_URL}/api/recipe/sendFeedback/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        // 2. Send the state variable
+        body: JSON.stringify({ feedback }), 
+      });
 
-      if (!res.ok) {
-        const errData = await res.json();
+      if (!res.ok) {
+        // 3. Log the actual server error message to the console for easier debugging
+        const errData = await res.json();
+        console.error("Server validation error:", JSON.stringify(errData, null, 2)); 
         throw new Error(errData.message || "Failed to send feedback");
-      }
+      }
 
-      openInfo({
-        title: "Feedback Sent",
-        message: "Your feedback has been sent successfully.",
-        icon: <FaCheckCircle />,
-      });
-      feedbackInput.value = "";
-    } catch (err) {
-      console.error("Error sending feedback:", err);
-      openInfo({
-        title: "Failed to Send",
-        message: err.message || "Could not send feedback.",
-        icon: <FaExclamationTriangle />,
-      });
-    }
-  };
+      openInfo({
+        title: "Feedback Sent",
+        message: "Your feedback has been sent successfully.",
+        icon: <FaCheckCircle />,
+      });
+      
+      // 4. Clear the state, which automatically clears the input
+      setAdminFeedback(""); 
+    } catch (err) {
+      console.error("Error sending feedback:", err);
+      openInfo({
+        title: "Failed to Send",
+        message: err.message || "Could not send feedback.",
+        icon: <FaExclamationTriangle />,
+      });
+    }
+  };
 
   return (
     <div className="admin-review-page">
@@ -258,6 +264,8 @@ const EditRecipePage = () => {
                     className="admin-feedback-input"
                     placeholder="Enter feedback for the submitter..."
                     rows="4"
+                    value={adminFeedback}
+                    onChange={(e) => setAdminFeedback(e.target.value)}
                   ></textarea>
                   <button
                     className="approve-btn"

@@ -282,6 +282,7 @@ try {
       r.DidYouKnow AS funFact, 
       r.chefTips,
       r.status
+      r.admin_feedback
     FROM food f
     LEFT JOIN recipe r ON f.foodID = r.foodID
     WHERE f.foodID = ? 
@@ -320,7 +321,8 @@ try {
     instructions: row.instructions || '',
     funFact: row.funFact || '',
     chefTips: row.chefTips || '',
-    status: row.status || 'Unknown'
+    status: row.status || 'Unknown',
+    adminFeedback: row.admin_feedback || ''
   };
   
   console.log('Sending transformed recipe:', {
@@ -635,6 +637,7 @@ try {
         f.name AS foodName,
         f.origin AS culturalOrigin,
         r.status,
+        r.admin_feedback,
         f.description AS culturalStory,
         f.image AS photos,
         r.ingredients,
@@ -713,6 +716,7 @@ try {
       foodName: recipe.foodName || 'Untitled Recipe',
       culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
       status: (recipe.status || 'pending').toLowerCase(),
+      adminFeedback: recipe.admin_feedback || null,
       culturalStory: recipe.culturalStory || '',
       images: images,
       ingredients: ingredients, // ✅ Include ingredients array
@@ -1022,8 +1026,8 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
   try {
     const [result] = await db.query(
-      "UPDATE recipe SET status = ? WHERE foodID = ?",
-      [status, recipeId]
+      "UPDATE recipe SET status = ?, admin_feedback = ? WHERE foodID = ?",
+      [status, feedback || null, recipeId] 
     );
 
     if (result.affectedRows === 0) {
@@ -1138,6 +1142,39 @@ router.patch('/updateStatus/:id', async (req, res) => {
       console.error("❌ Error updating recipe status:", error);
       res.status(500).json({ success: false, message: "Database update failed." });
     }
+});
+
+// =============================
+// PATCH: Send Admin Feedback Only
+// =============================
+router.patch('/sendFeedback/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    // We check for 'feedback' (what your frontend sends) 
+    // OR 'message' (in case you changed it).
+    const feedback = req.body.feedback || req.body.message;
+
+    console.log(`📝 Updating feedback for recipe ${id}...`);
+
+    if (!feedback) {
+      return res.status(400).json({ error: "Feedback content is required." });
+    }
+
+    // Update the admin_feedback column in the recipe table
+    const query = "UPDATE recipe SET admin_feedback = ? WHERE foodID = ?";
+    const [result] = await db.query(query, [feedback, id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Recipe not found." });
+    }
+
+    console.log(`✅ Feedback updated for recipe ${id}`);
+    res.json({ success: true, message: "Feedback sent successfully." });
+
+  } catch (error) {
+    console.error("❌ Error sending feedback:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 module.exports = router;

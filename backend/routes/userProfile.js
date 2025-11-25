@@ -662,12 +662,14 @@ const getUserContributions = async (userID) => {
     // 1. Get recipe contributions
     console.log(`🍳 Checking recipe table for contributions...`);
     try {
+      // ✅ MODIFIED: Added r.admin_feedback to the SELECT list
       const [recipeContributions] = await db.execute(
         `SELECT 
           r.recipeID as id,
           f.name as title,
           f.image as image,
           r.status,
+          r.admin_feedback, 
           r.createdAt as submittedDate,
           'recipe' as type
         FROM recipe r
@@ -705,15 +707,6 @@ const getUserContributions = async (userID) => {
     }
 
     console.log(`📊 Total contributions found: ${allContributions.length}`);
-    
-    if (allContributions.length > 0) {
-      console.log(`📊 Contribution breakdown by type:`);
-      const typeCounts = allContributions.reduce((acc, item) => {
-        acc[item.type] = (acc[item.type] || 0) + 1;
-        return acc;
-      }, {});
-      console.log(`📊 Type counts:`, typeCounts);
-    }
 
     // Format the contributions
     const formattedContributions = allContributions.map(item => ({
@@ -721,6 +714,8 @@ const getUserContributions = async (userID) => {
       title: item.title,
       image: item.image,
       status: item.status,
+      // ✅ MODIFIED: Pass the feedback to the frontend
+      adminFeedback: item.admin_feedback || null, 
       submittedDate: item.submittedDate ? new Date(item.submittedDate).toISOString() : new Date().toISOString(),
       type: item.type
     }));
