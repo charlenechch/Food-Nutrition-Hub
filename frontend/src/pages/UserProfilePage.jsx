@@ -324,77 +324,103 @@ const savePrefs = async () => {
 };
 
   const ContributionRow = ({ c }) => {
-  const navigate = useNavigate(); 
+    const navigate = useNavigate();
 
-  console.log("🔍 ContributionRow data:", c);
-  console.log("🔍 Date fields - createdAt:", c.createdAt, "submittedDate:", c.submittedDate);
-  console.log("🔍 Image fields - images:", c.images, "image:", c.image);
-  console.log("🔍 All fields:", Object.keys(c));
-  
-  const isRecipeItem = c?.foodName !== undefined;
-  const isCommunityItem = ["community", "post", "story", "community_post"].includes((c?.type || "").toLowerCase());
-  
-  const handleRevise = () => {
-    if (isRecipeItem) {
-      // Navigate to recipe revision
-      navigate(`/revise/${c.id}`, {
-        state: {
-          owner: `${user.firstName} ${user.lastName}`,
-          id: c.id,
-          snapshot: JSON.parse(JSON.stringify(c)),
-          contribution: c,
-          adminFeedback: c.feedback,
-          fieldsWithIssues: c.fieldsWithIssues || [],
-        },
-      });
-    } else if (isCommunityItem) {
-      // Navigate to community post revision
-      navigate(`/revisecommunitypostpage/${c.id}`, {
-        state: {
-          owner: `${user.firstName} ${user.lastName}`,
-          id: c.id,
-          snapshot: JSON.parse(JSON.stringify(c)),
-          contribution: c,
-          adminFeedback: c.feedback,
-          fieldsWithIssues: c.fieldsWithIssues || [],
-        },
-      });
-    } else {
-      throw new Error(`Unknown content type for item ${c.id}. Cannot determine revision path.`);
-    }
-  };
+    // 1. Logic to determine if item is Recipe or Community Post
+    const isRecipeItem = c?.foodName !== undefined;
+    const isCommunityItem = ["community", "post", "story", "community_post"].includes((c?.type || "").toLowerCase());
+
+    const handleRevise = () => {
+      if (isRecipeItem) {
+        navigate(`/revise/${c.id}`, {
+          state: {
+            owner: `${user.firstName} ${user.lastName}`,
+            id: c.id,
+            snapshot: JSON.parse(JSON.stringify(c)),
+            contribution: c,
+            adminFeedback: c.adminFeedback || c.feedback,
+            fieldsWithIssues: c.fieldsWithIssues || [],
+          },
+        });
+      } else if (isCommunityItem) {
+        navigate(`/revisecommunitypostpage/${c.id}`, {
+          state: {
+            owner: `${user.firstName} ${user.lastName}`,
+            id: c.id,
+            snapshot: JSON.parse(JSON.stringify(c)),
+            contribution: c,
+            adminFeedback: c.adminFeedback || c.feedback,
+            fieldsWithIssues: c.fieldsWithIssues || [],
+          },
+        });
+      }
+    };
+
+    // 2. Get Feedback Text Safely
+    const feedbackText = c.adminFeedback || c.feedback;
+
+    // 3. Helper to pick color based on status
+    const getFeedbackStyle = (status) => {
+      const s = (status || "").toLowerCase();
+      if (s === "approved") {
+        return { bg: "#F0FFF4", border: "#48BB78", text: "#2F855A" }; // Green
+      } else if (s === "rejected") {
+        return { bg: "#FFF5F5", border: "#E53E3E", text: "#C53030" }; // Red
+      } else {
+        return { bg: "#EBF8FF", border: "#4299E1", text: "#2B6CB0" }; // Blue (Pending/Default)
+      }
+    };
+
+    const styles = getFeedbackStyle(c.status);
 
     return (
       <div className="upp-row-card" key={`${c.type}-${c.id}`}>
         <div className="upp-row-thumb">
           {c.images && c.images.length > 0 ? (
-              <img src={c.images[0]} alt={c.foodName || c.title} />
-            ) : c.image ? (
-              <img src={c.image} alt={c.foodName || c.title} />
-            ) : (
-              <div className="upp-noimg" />
-            )}
+            <img src={c.images[0]} alt={c.foodName || c.title} />
+          ) : c.image ? (
+            <img src={c.image} alt={c.foodName || c.title} />
+          ) : (
+            <div className="upp-noimg" />
+          )}
+        </div>
+        <div className="upp-row-body">
+          <div className="upp-row-top">
+            <h4 className="upp-food-title upp-row-title">{c.foodName || c.title}</h4>
+            <span className={`upp-chip ${getStatusClass(c.status)}`}>
+              {fmtStatus(c.status)}
+            </span>
           </div>
-          <div className="upp-row-body">
-            <div className="upp-row-top">
-              <h4 className="upp-food-title upp-row-title">{c.foodName || c.title}</h4>
-              <span className={`upp-chip ${getStatusClass(c.status)}`}>
-                {fmtStatus(c.status)}
-              </span>
+
+          {/* 👇 MODIFIED: Show Feedback for ALL statuses if text exists 👇 */}
+          {feedbackText && (
+            <div style={{
+              marginTop: "10px",
+              padding: "10px",
+              backgroundColor: styles.bg,
+              borderLeft: `4px solid ${styles.border}`,
+              borderRadius: "4px",
+              fontSize: "0.9rem",
+              color: styles.text,
+              marginBottom: "5px"
+            }}>
+              <strong>Admin Feedback:</strong> {feedbackText}
             </div>
+          )}
+          {/* 👆 END MODIFIED BLOCK 👆 */}
 
           <div className="upp-row-meta">
             <div className="upp-muted">
               {c.culturalOrigin} • Submitted on{" "}
-                {/* Debug which date field exists */}
-                {c.createdAt ? formatContributionDate(c.createdAt) : 
-                c.submittedDate ? formatContributionDate(c.submittedDate) : 
-                'Date not available'}
-              </div>
+              {c.createdAt ? formatContributionDate(c.createdAt) :
+                c.submittedDate ? formatContributionDate(c.submittedDate) :
+                  'Date not available'}
+            </div>
 
+            {/* Revise Button - Keep only for Rejected/Needs Revision */}
             {(c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected") && (
-              <button 
-                className="lrp-btn lrp-btn-outline upp-revise-btn" 
+              <button
+                className="lrp-btn lrp-btn-outline upp-revise-btn"
                 onClick={handleRevise}
                 type="button"
               >
