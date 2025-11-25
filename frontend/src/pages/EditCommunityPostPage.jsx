@@ -93,27 +93,47 @@ const EditCommunityPostPage = () => {
   }, [id]);
 
   // Approve / Reject
+  // Approve / Reject
   const handleConfirmAction = async () => {
     const endpoint =
       modalType === "approve"
         ? `${API_URL}/api/communityPost/admin/approve/${id}`
         : `${API_URL}/api/communityPost/admin/reject/${id}`;
+
+    // ✅ FIX: Prepare the body. If rejecting, send the feedback text!
+    const requestOptions = {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    };
+
+    // Only add body if we are rejecting
+    if (modalType === "reject") {
+      requestOptions.body = JSON.stringify({ feedback: feedbackText });
+    }
+
     try {
-      const res = await fetch(endpoint, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await fetch(endpoint, requestOptions);
       const data = await res.json();
+      
       if (!res.ok) throw new Error(data.message || "Action failed");
+      
       openInfo({
         title: "Success",
         message: `Post ${modalType === "approve" ? "approved" : "rejected"} successfully!`,
         icon: <FaCheckCircle />,
       });
+      
       setShowModal(false);
+      
       // Refetch post to update status
-      setPost((prev) => ({ ...prev, status: modalType === "approve" ? "Approved" : "Rejected" }));
+      setPost((prev) => ({ 
+        ...prev, 
+        status: modalType === "approve" ? "Approved" : "Rejected",
+        // Update local feedback state if it was a rejection
+        adminFeedback: modalType === "reject" ? feedbackText : prev.adminFeedback
+      }));
+      
     } catch (err) {
       openInfo({
         title: "Action Failed",

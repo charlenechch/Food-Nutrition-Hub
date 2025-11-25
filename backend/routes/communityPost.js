@@ -729,6 +729,7 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
 });
 
 // ✅ GET user's community posts for profile contributions
+// ✅ GET user's community posts for profile contributions
 router.get("/user/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
@@ -742,11 +743,12 @@ router.get("/user/:userId", async (req, res) => {
 
     if (profileResult.length === 0) {
       console.warn(`⚠️ No userProfile found for userID: ${userId}`);
-      return res.json([]); // Return empty array if no profile found
+      return res.json([]); 
     }
 
     const userProfileID = profileResult[0].userProfileID;
 
+    // ✅ MODIFIED: Added 'admin_feedback' to the SELECT list
     const query = `
       SELECT 
         postID AS id,
@@ -757,7 +759,8 @@ router.get("/user/:userId", async (req, res) => {
         'community' AS type,
         origin AS culturalOrigin,
         culturalStory AS content,
-        recipe
+        recipe,
+        admin_feedback   -- 👈 ADDED THIS
       FROM posts 
       WHERE userProfileID = ?
       ORDER BY created_at DESC
@@ -767,7 +770,7 @@ router.get("/user/:userId", async (req, res) => {
     
     console.log(`✅ Found ${posts.length} community posts for user ${userId}`);
 
-    // Format posts (take first image only if multiple)
+    // Format posts
     const formattedPosts = posts.map(post => ({
       id: post.id,
       title: post.title,
@@ -777,7 +780,8 @@ router.get("/user/:userId", async (req, res) => {
       type: post.type,
       culturalOrigin: post.culturalOrigin,
       content: post.content,
-      recipe: post.recipe
+      recipe: post.recipe,
+      adminFeedback: post.admin_feedback // 👈 ADDED THIS
     }));
 
     res.json(formattedPosts);
@@ -966,6 +970,7 @@ router.get("/admin/pending", checkIsAdmin, async (req, res) => {
       p.postID,
       p.foodName,
       p.status,
+      p.admin_feedback,
       p.created_at,
       CONCAT(u.firstname, ' ', u.lastname) AS author
     FROM posts p
@@ -1010,7 +1015,7 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
   `;
 
   try {
-    const [result] = await db.execute(updateQuery, [id]);
+    const [result] = await db.execute(updateQuery, [feedbackText, id]);
 
     if (result.affectedRows === 0) {
       console.warn(`⚠️ [ADMIN] Post ${id} not found or not pending.`);
@@ -1090,16 +1095,14 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
   const { feedback } = req.body; 
   const feedbackText = feedback || "No specific feedback provided.";
   
-  console.log(`📥 [ADMIN] Rejecting post ID: ${id}`);
+  console.log(`[ADMIN] Rejecting post ID: ${id}`);
 
   const updateQuery = `
-    UPDATE posts 
-    SET status = 'Rejected' 
-    WHERE postID = ?;
+    UPDATE posts SET status = 'Rejected', admin_feedback = ? WHERE postID = ?;
   `;
 
   try {
-    const [result] = await db.execute(updateQuery, [id]);
+    const [result] = await db.execute(updateQuery, [feedbackText, id]);
 
     if (result.affectedRows === 0) {
       console.warn(`⚠️ [ADMIN] Post ${id} not found or not pending.`);
@@ -1204,6 +1207,7 @@ router.get("/admin/:id", checkIsAdmin, async (req, res) => {
       p.recipe,
       p.photos,
       p.status,
+      p.admin_feedback,
       p.created_at,
       CONCAT(u.firstname, ' ', u.lastname) AS author
     FROM posts p
@@ -1237,6 +1241,7 @@ router.get("/admin/:id", checkIsAdmin, async (req, res) => {
         image: post.photos ? post.photos.split(",")[0] : null,
         author: post.author,
         status: post.status,
+        adminFeedback: post.admin_feedback,
         created_at: post.created_at,
       },
     });
@@ -1246,6 +1251,36 @@ router.get("/admin/:id", checkIsAdmin, async (req, res) => {
       success: false,
       message: "Internal server error while fetching post.",
     });
+  }
+});
+
+// =============================
+// PATCH: Send Admin Feedback Only
+// =============================
+router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const feedback = req.body.feedback || req.body.message;
+
+    console.log(`📝 [ADMIN] Updating feedback for post ${id}...`);
+
+    if (!feedback) {
+      return res.status(400).json({ error: "Feedback content is required." });
+    }
+
+    const query = "UPDATE posts SET admin_feedback = ? WHERE postID = ?";
+    const [result] = await db.query(query, [feedback, id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Post not found." });
+    }
+
+    console.log(`✅ [ADMIN] Feedback updated for post ${id}`);
+    res.json({ success: true, message: "Feedback sent successfully." });
+
+  } catch (error) {
+    console.error("❌ Error sending feedback:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
