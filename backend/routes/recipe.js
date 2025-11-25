@@ -282,9 +282,7 @@ try {
       r.DidYouKnow AS funFact, 
       r.chefTips,
       r.status,
-      r.admin_feedback,
-      CONCAT(u.firstname, ' ', u.lastname) AS authorName,
-      u.email AS authorEmail
+      r.admin_feedback
     FROM food f
     LEFT JOIN recipe r ON f.foodID = r.foodID
     WHERE f.foodID = ? 
@@ -324,9 +322,7 @@ try {
     funFact: row.funFact || '',
     chefTips: row.chefTips || '',
     status: row.status || 'Unknown',
-    adminFeedback: row.admin_feedback || '',
-    authorName: row.authorName || 'Unknown Author',
-    authorEmail: row.authorEmail || 'N/A'
+    adminFeedback: row.admin_feedback || ''
   };
   
   console.log('Sending transformed recipe:', {
