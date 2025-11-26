@@ -40,6 +40,9 @@ export default function EmailVerificationPage() {
         return;
     }
     
+    // ✅ 1. WAIT for the token to load before running
+    if (!csrfToken) return;
+
     const verifyEmail = async () => {
         try {
         // Step 1: Get email from verification code
@@ -53,17 +56,18 @@ export default function EmailVerificationPage() {
         try {
             const response = await fetch(`${API_URL}/api/auth/syncEmailVerification`, {
             method: "POST",
-            headers: { "Content-Type": "application/json",
-            "X-CSRF-Token": csrfToken
+            headers: { 
+                "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken // ✅ Token is now guaranteed to exist
              },
             credentials: "include",
             body: JSON.stringify({ email })
             });
             
             if (response.ok) {
-            console.log("Verification synced to database");
+                console.log("Verification synced to database");
             } else {
-            console.error("Failed to sync verification to database");
+                console.error("Failed to sync verification to database");
             }
         } catch (syncError) {
             console.error("Database sync error:", syncError);
@@ -75,25 +79,20 @@ export default function EmailVerificationPage() {
         setTimeout(() => navigate("/loginregister"), 3000);
         
         } catch (error) {
-        setStatus("error");
-        
-        // This is the most common error, caused by Outlook or the link being used once.
-        if (error.code === "auth/invalid-action-code") {
-            setMessage("This link is invalid or has already been used. This could be caused by email security (like Outlook) scanning the link. Your account is likely already verified. Please try to log in.");
-        
-        // This is a separate error for time-based expiration.
-        } else if (error.code === "auth/expired-action-code") {
-            setMessage("This verification link has expired. Please go back to the login page, try to login and request a new link.");
-        
-        // This is a catch-all for any other errors (e.g., network issues).
-        } else {
-            setMessage("An unexpected error occurred. Please try again or contact support.");
-        }
+            setStatus("error");
+            // ... existing error handling ...
+            if (error.code === "auth/invalid-action-code") {
+                setMessage("This link is invalid or has already been used...");
+            } else if (error.code === "auth/expired-action-code") {
+                setMessage("This verification link has expired...");
+            } else {
+                setMessage("An unexpected error occurred. Please try again or contact support.");
+            }
         }
     };
     
     verifyEmail();
-    }, [oobCode, navigate]);
+    }, [oobCode, navigate, csrfToken]);
   
   return (
     <div className="ev-container">
