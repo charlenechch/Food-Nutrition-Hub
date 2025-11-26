@@ -197,7 +197,7 @@ export default function LoginRegisterPage() {
         setIsResending(false);
         return;
       }
-      setResendCooldown(120);
+      setResendCooldown(60);
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
