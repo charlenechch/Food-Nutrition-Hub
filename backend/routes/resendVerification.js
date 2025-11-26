@@ -6,8 +6,8 @@ const { pool: db } = require("../config/db");
 // In production, use Redis or database for persistence across restarts
 const resendTimestamps = new Map();
 
-// Cooldown period: 120 seconds (2 minutes)
-const COOLDOWN_MS = 120 * 1000;
+// Cooldown period: 60 seconds (1 minute)
+const COOLDOWN_MS = 60 * 1000;
 
 router.post("/", async (req, res) => {
   const { email } = req.body;
