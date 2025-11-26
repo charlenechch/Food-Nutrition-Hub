@@ -1264,7 +1264,7 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
       return res.status(400).json({ error: "Feedback content is required." });
     }
 
-    // Use specific column admin_feedback
+    // 1. Update the database
     const query = "UPDATE posts SET admin_feedback = ? WHERE postID = ?";
     const [result] = await db.query(query, [feedback, id]);
 
@@ -1272,7 +1272,57 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
       return res.status(404).json({ error: "Post not found." });
     }
 
-    res.json({ success: true, message: "Feedback sent successfully." });
+    const [rows] = await db.query(`
+      SELECT u.email, u.firstname, p.foodName
+      FROM posts p
+      JOIN userProfile up ON p.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      WHERE p.postID = ?
+    `, [id]);
+
+    // 2. Construct and Send Email
+    if (rows.length > 0) {
+      const { email, firstname, foodName } = rows[0];
+
+      const feedbackHTML = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <div style="background-color: #ffc107; padding: 20px; text-align: center;">
+            <h1 style="color: #000; margin: 0;">New Feedback Received</h1>
+          </div>
+          <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <h2 style="color: #333;">Hello ${firstname},</h2>
+            <p>You have received new feedback regarding your community story <strong>"${foodName}"</strong>.</p>
+            
+            <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #ffc107;">
+              <strong style="color: #856404;">Admin Message:</strong><br/>
+              <p style="margin-top: 5px; margin-bottom: 0;">${feedback}</p>
+            </div>
+
+            <p>Please review this feedback. You can edit your story to address these comments.</p>
+
+            <div style="text-align: center; margin-top: 25px;">
+              <a href="https://food-nutrition-hub.vercel.app/revisecommunitypostpage/${id}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit Story</a>
+            </div>
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+              Best regards,<br>The SarawakEats Team
+            </p>
+          </div>
+        </div>
+      `;
+
+      // Send asynchronously
+      await sendEmail({
+        to: email,
+        subject: `New Feedback on "${foodName}"`,
+        html: feedbackHTML,
+        text: `You have received feedback on your story "${foodName}": ${feedback}`
+      });
+      
+      console.log(`📩 Feedback notification email sent to ${email}`);
+    }
+
+    res.json({ success: true, message: "Feedback sent successfully and email notification sent." });
   } catch (error) {
     console.error("❌ Error sending feedback:", error);
     res.status(500).json({ error: error.message });
