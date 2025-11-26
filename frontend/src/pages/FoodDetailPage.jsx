@@ -47,6 +47,25 @@ export default function FoodDetailPage() {
     primaryText: "OK",
   });
 
+  //================
+  //CSRF
+  //=============
+    const [csrfToken, setCsrfToken] = useState("");
+  
+    useEffect(() => {
+      const fetchCsrfToken = async () => {
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+          const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+          const data = await res.json();
+          setCsrfToken(data.csrfToken);
+        } catch (err) {
+          console.error("Failed to fetch CSRF token", err);
+        }
+      };
+      fetchCsrfToken();
+    }, []);
+
   const sharingRef = useRef(false);
 
   const openInfo = ({ title, message, icon, primaryText = "OK"}) =>
@@ -245,6 +264,7 @@ export default function FoodDetailPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
         },
         credentials: 'include',
         body: JSON.stringify({

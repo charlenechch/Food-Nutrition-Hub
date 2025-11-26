@@ -81,6 +81,25 @@ export default function ReviseRecipePage() {
 
   const needsFix = new Set(item?.fieldsWithIssues || []);
 
+//====================
+  //CSRF
+  //======================
+const [csrfToken, setCsrfToken] = useState("");
+
+useEffect(() => {
+  const fetchCsrfToken = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+      const data = await res.json();
+      setCsrfToken(data.csrfToken);
+    } catch (err) {
+      console.error("Failed to fetch CSRF token", err);
+    }
+  };
+  fetchCsrfToken();
+}, []);
+
   useEffect(() => {
     const initializeForm = () => {
       // Use the contribution from state if available
@@ -255,7 +274,8 @@ export default function ReviseRecipePage() {
       const response = await fetch(`${API_BASE_URL}/api/recipe/revise/recipes/${id}`, {
         method: "PUT",
         headers: { 
-          "Content-Type": "application/json" 
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken
         },
         credentials: "include",
         body: JSON.stringify(revisedData),

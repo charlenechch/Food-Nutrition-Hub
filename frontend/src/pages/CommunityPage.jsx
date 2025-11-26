@@ -30,6 +30,25 @@ export default function Community() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+//====================
+  //CSRF
+  //======================
+const [csrfToken, setCsrfToken] = useState("");
+
+useEffect(() => {
+  const fetchCsrfToken = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+      const data = await res.json();
+      setCsrfToken(data.csrfToken);
+    } catch (err) {
+      console.error("Failed to fetch CSRF token", err);
+    }
+  };
+  fetchCsrfToken();
+}, []);
+
   // Filter
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrigin, setSelectedOrigin] = useState("all");
@@ -186,6 +205,7 @@ export default function Community() {
 
       const response = await fetch(`${API_BASE_URL}/api/communityPost/create`, {
         method: "POST",
+        headers: { 'X-CSRF-Token': csrfToken },
         body: submitData,
         credentials: 'include'
       });

@@ -30,6 +30,24 @@ export default function OTPVerificationPage({ email: emailProp }) {
     setOtp(clean);
     setError("");
   };
+//===========
+//CSRF
+//============
+const [csrfToken, setCsrfToken] = useState("");
+
+useEffect(() => {
+  const fetchCsrfToken = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+      const data = await res.json();
+      setCsrfToken(data.csrfToken);
+    } catch (err) {
+      console.error("Failed to fetch CSRF token", err);
+    }
+  };
+  fetchCsrfToken();
+}, []);
 
   // Handle verify
   const handleVerify = async (e) => {
@@ -47,7 +65,9 @@ export default function OTPVerificationPage({ email: emailProp }) {
       const res = await fetch(`${API_URL}/api/otp/verifyLogin`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
         body: JSON.stringify({ email, otp }),
       });
 
@@ -81,7 +101,9 @@ export default function OTPVerificationPage({ email: emailProp }) {
       const res = await fetch(`${API_URL}/api/otp/sendLogin`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", 
+        "X-CSRF-Token": csrfToken  
+        },
         body: JSON.stringify({ email }),
       });
       

@@ -127,6 +127,25 @@ export default function UserManagement() {
       }
     };
 
+      //================
+      //CSRF
+      //================
+            const [csrfToken, setCsrfToken] = useState("");
+          
+            useEffect(() => {
+              const fetchCsrfToken = async () => {
+                try {
+                  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+                  const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+                  const data = await res.json();
+                  setCsrfToken(data.csrfToken);
+                } catch (err) {
+                  console.error("Failed to fetch CSRF token", err);
+                }
+              };
+              fetchCsrfToken();
+            }, []);
+
     fetchUsers();
   }, []); // Empty dependency array = run once on mount
 
@@ -294,7 +313,9 @@ export default function UserManagement() {
             // This is the API call to update the user's status to Suspended
             const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken
+                 },
                 credentials: "include",
                 body: JSON.stringify({
                     suspendedUntil: suspensionDate,
@@ -351,7 +372,9 @@ export default function UserManagement() {
             // This is the API call to clear the suspension
             const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken
+                 },
                 credentials: "include",
                 body: JSON.stringify({ 
                     suspendedUntil: null, // Clear suspension date
@@ -408,7 +431,9 @@ export default function UserManagement() {
         // Call backend to create user
         const response = await fetch(`${API_URL}/api/admin/users`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken
+           },
           credentials: "include",
           body: JSON.stringify({
             name: userForm.name,
@@ -435,7 +460,9 @@ export default function UserManagement() {
         // Call backend to update user
         const response = await fetch(`${API_URL}/api/admin/users/${userForm.id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken
+           },
           credentials: "include",
           body: JSON.stringify({
             name: userForm.name,
@@ -501,6 +528,9 @@ export default function UserManagement() {
           try {
               const response = await fetch(`${API_URL}/api/admin/users/${id}`, {
                   method: "DELETE",
+                  headers: {
+                    "X-CSRF-Token": csrfToken
+                  },
                   credentials: "include",
               });
 

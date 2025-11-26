@@ -81,6 +81,25 @@ const EditRecipePage = () => {
       }
     };
 
+//================
+//CSRF
+//================
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
+
     fetchRecipe();
   }, [id]);
 
@@ -103,7 +122,9 @@ const EditRecipePage = () => {
     try {
       const res = await fetch(`${API_URL}/api/recipe/sendFeedback/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+ },
         credentials: "include",
         // 2. Send the state variable
         body: JSON.stringify({ feedback }), 
@@ -310,7 +331,9 @@ const EditRecipePage = () => {
 
                     const res = await fetch(updateUrl, {
                       method: "PATCH",
-                      headers: { "Content-Type": "application/json" },
+                      headers: { "Content-Type": "application/json",
+                      "X-CSRF-Token": csrfToken
+                       },
                       credentials: "include",
                       body: JSON.stringify(payload),
                     });

@@ -148,6 +148,25 @@ export default function UserProfilePage() {
   const { userProfileID } = useParams();
   const navigate = useNavigate();
 
+//====================
+  //CSRF
+  //======================
+const [csrfToken, setCsrfToken] = useState("");
+
+useEffect(() => {
+  const fetchCsrfToken = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+      const data = await res.json();
+      setCsrfToken(data.csrfToken);
+    } catch (err) {
+      console.error("Failed to fetch CSRF token", err);
+    }
+  };
+  fetchCsrfToken();
+}, []);
+
   // State
   const [user, setUser] = useState(null);
   const [prefs, setPrefs] = useState(DEFAULT_PREFS);
@@ -580,7 +599,9 @@ const savePrefs = async () => {
             const verifyRes = await fetch(`${API_BASE_URL}/api/auth/verifyAccountDeletion`, {
               method: "POST",
               credentials: "include",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json",
+              "X-CSRF-Token": csrfToken
+            },
               body: JSON.stringify({ password })
             });
 
@@ -596,7 +617,9 @@ const savePrefs = async () => {
             const res = await fetch(`${API_BASE_URL}/api/userProfile/delete`, {
               method: 'DELETE',
               credentials: 'include',
-              headers: { 'Content-Type': 'application/json' }
+              headers: { 'Content-Type': 'application/json',
+              "X-CSRF-Token": csrfToken
+               }
             });
             
             const data = await res.json().catch(() => ({}));
@@ -691,6 +714,9 @@ const savePrefs = async () => {
       const res = await fetch(`${API_BASE_URL}/api/userProfile/avatar`, {
         method: 'POST',
         credentials: 'include',
+        headers: {
+          'X-CSRF-Token': csrfToken 
+        },
         body: formData,
       });
 
@@ -739,6 +765,7 @@ const savePrefs = async () => {
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
+              'X-CSRF-Token': csrfToken
             },
           });
 

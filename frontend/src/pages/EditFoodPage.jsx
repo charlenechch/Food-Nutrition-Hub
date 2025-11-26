@@ -37,6 +37,25 @@ const EditFoodPage = () => {
   });
   const [food, setFood] = useState(null);
 
+  //================
+    //CSRF
+    //================
+      const [csrfToken, setCsrfToken] = useState("");
+    
+      useEffect(() => {
+        const fetchCsrfToken = async () => {
+          try {
+            const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+            const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+            const data = await res.json();
+            setCsrfToken(data.csrfToken);
+          } catch (err) {
+            console.error("Failed to fetch CSRF token", err);
+          }
+        };
+        fetchCsrfToken();
+      }, []);
+
   // --- Fetch Food Data on Load ---
   useEffect(() => {
     const fetchFood = async () => {
@@ -153,7 +172,9 @@ const EditFoodPage = () => {
           const uploadRes = await fetch(`${API_URL}/api/foods/upload/food-image`, {
             method: "POST",
             credentials: "include",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken
+             },
             body: JSON.stringify({ image: base64Image }),
           });
 
@@ -236,7 +257,9 @@ const EditFoodPage = () => {
       console.log("[save] updating food with:", dataToSave);
       const res = await fetch(`${API_URL}/api/foods/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
         credentials: "include",
         body: JSON.stringify(dataToSave),
       });

@@ -286,6 +286,25 @@ export default function FoodDiscussionPage() {
   const isGuest = !user || user.role === "guest";
   const actualUserID = userProfileID;
   
+//================
+//CSRF
+//=============
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
+  
   // Check if user is admin
   const isAdmin = user?.role === "admin";
 
@@ -499,7 +518,9 @@ const toggleFoodLike = async () => {
     console.log('🟡 Calling toggle-like API for food:', foodId);
     const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/toggle-like`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken
+       },
       credentials: "include",
     });
 
@@ -642,7 +663,9 @@ const toggleFoodLike = async () => {
 
       const res = await fetch(`${API}/api/foodDiscussion`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
         credentials: "include",
         body: JSON.stringify({
           foodID: actualFoodID,
@@ -759,7 +782,9 @@ const postReply = async (discussionId) => {
 
     const res = await fetch(`${API}/api/foodDiscussion/${discussionId}/replies`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken
+       },
       credentials: "include",
       body: JSON.stringify({
         userProfileID: actualUserProfileID,
@@ -859,7 +884,9 @@ const postReply = async (discussionId) => {
     try {
       const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
         credentials: "include",
         body: JSON.stringify({
           userProfileID: userProfileID  
@@ -929,7 +956,9 @@ const postReply = async (discussionId) => {
 
       const res = await fetch(`${API}/api/foodDiscussion/${commentId}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
         credentials: "include",
         body: JSON.stringify(requestBody),
       });

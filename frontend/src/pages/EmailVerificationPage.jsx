@@ -14,6 +14,25 @@ export default function EmailVerificationPage() {
   const [status, setStatus] = useState('verifying'); // verifying, success, error
   const [message, setMessage] = useState('Verifying your email...');
   
+//================
+//CSRF
+//=============
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
+
   useEffect(() => {
     if (!oobCode) {
         setStatus("error");
@@ -34,7 +53,9 @@ export default function EmailVerificationPage() {
         try {
             const response = await fetch(`${API_URL}/api/auth/syncEmailVerification`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken
+             },
             credentials: "include",
             body: JSON.stringify({ email })
             });

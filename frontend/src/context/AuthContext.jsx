@@ -14,6 +14,19 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // ✅ Helper to fetch CSRF token on demand
+  const getCsrfToken = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
+      if (!res.ok) return "";
+      const data = await res.json();
+      return data.csrfToken;
+    } catch (err) {
+      console.error("Failed to fetch CSRF token", err);
+      return "";
+    }
+  };
+
   useEffect(() => {
     checkSession();
   }, []);
@@ -29,23 +42,18 @@ export function AuthProvider({ children }) {
       email: raw.email ?? null,
       firstname: raw.firstname ?? raw.firstName ?? null,
       lastname: raw.lastname ?? raw.lastName ?? null,
-      // ✅ Local-only view mode for admin toggling
       viewMode: raw.viewMode || raw.role || "member",
     };
   };
 
-  // Log a user out on the frontend
   const forceLogout = useCallback((shouldRedirect = false) => {
       setUser(null);
       const currentPath = window.location.pathname;
-
-      // Redirect if on a protected page OR if the calling function requires it (i.e., manual logout)
       if (shouldRedirect || !ALL_PUBLIC_PATHS.includes(currentPath)) {
           window.location.href = "/loginregister";
       }
   }, []);
 
-  // Helper function to check if a path is public
   const isPublicPath = useCallback((path) => {
     return ALL_PUBLIC_PATHS.includes(path);
   }, []);
@@ -59,26 +67,31 @@ export function AuthProvider({ children }) {
       const res = await fetch(`${API_URL}/api/auth/session`, {
         credentials: "include",
       });
+
+      // ✅ FIX: Handle 401 (Not Logged In) gracefully
+      if (res.status === 401) {
+        if (!publicAuthPaths.includes(currentPath) && !isCurrentlyGuest) {
+          forceLogout();
+        }
+        setLoading(false);
+        return; // Stop here, do not parse JSON or log error
+      }
+
       const data = await res.json();
 
       if (res.ok && data?.user) {
-        // Optimization: Only update state if data actually changed to prevent re-renders
         setUser(prev => {
           if (JSON.stringify(prev) === JSON.stringify(normalizeUser(data.user))) return prev;
           return normalizeUser(data.user);
         });
       } else {
         if (!publicAuthPaths.includes(currentPath) && !isCurrentlyGuest) {
-          // Only force logout if on a protected page AND NOT already a guest
           forceLogout();
-        } else if (isCurrentlyGuest) {
-          // If the backend returned 401 but we're locally a guest, do nothing.
-          setLoading(false);
         }
       }
     } catch (err) {
-      console.error("Session error:", err);
-
+      // Only log real errors (network issues), not 401s
+      console.error("Session check error:", err);
       if (!publicAuthPaths.includes(currentPath) && !isCurrentlyGuest) {
         forceLogout();
       }
@@ -89,19 +102,23 @@ export function AuthProvider({ children }) {
 
   const toggleRole = useCallback(async () => {
     if (!user) return;
-
-     // If admin, just change their viewMode (not role
     if (user.role === "admin") {
       const newMode = user.viewMode === "admin" ? "member" : "admin";
       setUser((prev) => ({ ...prev, viewMode: newMode }));
     }
   }, [user]);
 
+  // ✅ UPDATED: Login with CSRF Token
   const login = async (email, password) => {
     try {
+      const csrfToken = await getCsrfToken(); // 1. Get Token
+
       const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken // 2. Send Token
+        },
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
@@ -116,10 +133,16 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // ✅ UPDATED: Logout with CSRF Token
   const logout = async () => {
     try {
+      const csrfToken = await getCsrfToken(); // 1. Get Token
+
       await fetch(`${API_URL}/api/logout`, {
         method: "POST",
+        headers: { 
+          "X-CSRF-Token": csrfToken // 2. Send Token
+        },
         credentials: "include",
       });
     } finally {
@@ -129,7 +152,6 @@ export function AuthProvider({ children }) {
 
   const loginAsGuest = () => setUser({ role: "guest", viewMode: "guest" });
   
-  // Initial check on mount
   useEffect(() => {
     checkSession();
   }, [checkSession]);

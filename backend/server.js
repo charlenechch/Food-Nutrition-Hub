@@ -197,6 +197,20 @@ app.use(
   })
 );
 
+// CSRF PROTECTION
+
+const csrfProtection = csrf();
+
+// 1. Enable CSRF globally
+// This will block any POST/PUT/DELETE request that doesn't have the "X-CSRF-Token" header
+app.use(csrfProtection);
+
+// 2. CSRF Token Endpoint
+// The frontend calls this ONCE when the app loads to get the secret handshake token
+app.get("/api/csrf-token", (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
 // ---------- Routes BEFORE global HPP ----------
 
 // Register & Login

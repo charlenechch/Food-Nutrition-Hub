@@ -16,6 +16,25 @@ const ReviewContentPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+//====================
+  //CSRF
+  //======================
+const [csrfToken, setCsrfToken] = useState("");
+
+useEffect(() => {
+  const fetchCsrfToken = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+      const data = await res.json();
+      setCsrfToken(data.csrfToken);
+    } catch (err) {
+      console.error("Failed to fetch CSRF token", err);
+    }
+  };
+  fetchCsrfToken();
+}, []);
+
   // ✅ Fetch submission (dynamic: recipe or community post)
   useEffect(() => {
     const fetchSubmission = async () => {
@@ -82,8 +101,10 @@ const ReviewContentPage = () => {
 
       // 3. Set up the request options
       const fetchOptions = {
-        method: "PUT", // Use PUT (to match your backend)
-        headers: { "Content-Type": "application/json" },
+        method: "PUT", 
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
         credentials: "include",
       };
 

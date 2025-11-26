@@ -32,6 +32,25 @@ const AdminFoodDatabase = ({ categories = [] }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const foodsPerPage = 5;
 
+        //================
+        //CSRF
+        //================
+              const [csrfToken, setCsrfToken] = useState("");
+            
+              useEffect(() => {
+                const fetchCsrfToken = async () => {
+                  try {
+                    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+                    const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+                    const data = await res.json();
+                    setCsrfToken(data.csrfToken);
+                  } catch (err) {
+                    console.error("Failed to fetch CSRF token", err);
+                  }
+                };
+                fetchCsrfToken();
+              }, []);
+
   // --- ✅ Fetch Food Data from Backend ---
   useEffect(() => {
     const fetchFoods = async () => {
@@ -80,6 +99,9 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     try {
       const res = await fetch(`${API_URL}/api/foods/${selectedFood.foodID}`, {
         method: "DELETE",
+        headers: {
+        "X-CSRF-Token": csrfToken
+    },
         credentials: "include",
       });
       const data = await res.json();
