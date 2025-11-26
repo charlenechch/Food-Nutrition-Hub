@@ -140,7 +140,9 @@ export default function LoginRegisterPage() {
           await fetch(`${API_URL}/api/syncEmailVerification`, {
             method: "POST",
             credentials: "include",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken
+             },
             body: JSON.stringify({ email: user.email }),
           });
           console.log("✅ Verification synced to Database");
@@ -200,7 +202,9 @@ export default function LoginRegisterPage() {
       const checkRes = await fetch(`${API_URL}/api/resendVerification`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
         body: JSON.stringify({ email }),
       });
       const checkData = await checkRes.json();
@@ -254,7 +258,9 @@ export default function LoginRegisterPage() {
     try {
       const res = await fetch(`${API_URL}/api/otp/verifyLogin`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
         credentials: "include",
         body: JSON.stringify({ userID: tempUserId, code: otpCode, rememberDevice: tempRememberMe }),
       });
@@ -283,7 +289,9 @@ export default function LoginRegisterPage() {
     try {
       const res = await fetch(`${API_URL}/api/otp/sendLogin`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
         credentials: "include",
         body: JSON.stringify({ userID: tempUserId }),
       });
@@ -324,7 +332,9 @@ export default function LoginRegisterPage() {
       const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
         body: JSON.stringify({ email, password, rememberDevice }),
       });
       const data = await res.json();
@@ -411,7 +421,9 @@ export default function LoginRegisterPage() {
       const res = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
         body: JSON.stringify({
           firstname: firstName,
           lastname: lastName,
