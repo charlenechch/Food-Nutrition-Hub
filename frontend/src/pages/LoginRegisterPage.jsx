@@ -18,7 +18,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function LoginRegisterPage() {
   // ------------------------------
-  // state (existing)
+  // State
   // ------------------------------
   const [activeTab, setActiveTab] = useState("login");
   const [email, setEmail] = useState("");
@@ -33,13 +33,13 @@ export default function LoginRegisterPage() {
   const [regPassword, setRegPassword] = useState("");
   const [registerError, setRegisterError] = useState("");
 
-  // resend verification
+  // Resend verification
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
   const [showResendButton, setShowResendButton] = useState(false);
   const [storedPassword, setStoredPassword] = useState("");
 
-  // password visibility toggles
+  // Password visibility
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegPassword, setShowRegPassword] = useState(false);
 
@@ -50,14 +50,10 @@ export default function LoginRegisterPage() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [tempRememberMe, setTempRememberMe] = useState(false);
 
-  // lockout system
-  const [lockouts, setLockouts] = useState(() => {
-    const saved = localStorage.getItem("accountLockouts");
-    return saved ? JSON.parse(saved) : {};
-  });
-  const [remainingTime, setRemainingTime] = useState(0);
+  // 🔒 NEW: Server-Side Lockout Timer
+  const [serverLockoutTimer, setServerLockoutTimer] = useState(0);
 
-  // password criteria
+  // Password criteria
   const [regPasswordCriteria, setRegPasswordCriteria] = useState({
     length: false,
     upper: false,
@@ -66,10 +62,10 @@ export default function LoginRegisterPage() {
     special: false,
   });
 
-  // registration modal
+  // Registration modal
   const [showRegSuccess, setShowRegSuccess] = useState(false);
 
-  // ── ADDED: show/hide hint + ref to detect outside clicks
+  // Hint logic
   const [showPasswordHint, setShowPasswordHint] = useState(false);
   const passwordHintRef = useRef(null);
 
@@ -77,64 +73,32 @@ export default function LoginRegisterPage() {
   const { user, setUser, loginAsGuest } = useAuth();
 
   // ------------------------------
-  // existing effects (unchanged logic)
+  // Effects
   // ------------------------------
   useEffect(() => {
-    // Define public paths that should trigger an automatic redirect if the user is logged in
     const redirectTriggerPaths = ["/loginregister", "/"];
     const currentPath = window.location.pathname;
 
     if (
       user && 
       user.role !== "guest" && 
-      redirectTriggerPaths.includes(currentPath) // Check if current path is one we should override
+      redirectTriggerPaths.includes(currentPath)
     ) {
       navigate(user.role === "admin" ? "/admin" : "/home");
     }
   }, [user, navigate]);
 
+  // 🔒 NEW: Countdown effect for the server lockout
   useEffect(() => {
-    const sync = (e) => {
-      if (e.key === "accountLockouts") {
-        setLockouts(e.newValue ? JSON.parse(e.newValue) : {});
-      }
-    };
-    window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("accountLockouts", JSON.stringify(lockouts));
-  }, [lockouts]);
-
-  useEffect(() => {
-    if (!email || !lockouts[email]?.unlockAt) return;
+    if (serverLockoutTimer <= 0) return;
     const interval = setInterval(() => {
-      const diff = Math.max(
-        0,
-        Math.ceil((lockouts[email].unlockAt - Date.now()) / 1000)
-      );
-      setRemainingTime(diff);
-
-      if (diff <= 0) {
-        setLockouts((prev) => {
-          const newData = { ...prev };
-          const entry = newData[email];
-          if (entry) {
-            if (entry.pendingPromotion) {
-              entry.lockStage = Math.min((entry.lockStage || 0) + 1, 3);
-            }
-            entry.unlockAt = null;
-            entry.attemptCount = 0;
-            entry.pendingPromotion = false;
-            entry.showReset = false;
-          }
-          return newData;
-        });
-      }
+      setServerLockoutTimer((prev) => {
+        if (prev <= 1) return 0;
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(interval);
-  }, [email, lockouts]);
+  }, [serverLockoutTimer]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -169,7 +133,6 @@ export default function LoginRegisterPage() {
     return () => unsubscribe();
   }, []);
 
-  // ── ADDED: click outside to close password hint
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -184,7 +147,7 @@ export default function LoginRegisterPage() {
   }, []);
 
   // ------------------------------
-  // helper functions (kept)
+  // Helper Functions
   // ------------------------------
   const formatTime = (sec) => {
     const m = Math.floor(sec / 60)
@@ -261,13 +224,11 @@ export default function LoginRegisterPage() {
     }
   };
 
-  // Verify the OTP code
   const handleVerifyOtp = async () => {
     if (!otpCode || otpCode.length !== 6) {
       setLoginError("Please enter a valid 6-digit code.");
       return;
     }
-
     setIsVerifyingOtp(true);
     setLoginError("");
 
@@ -295,9 +256,8 @@ export default function LoginRegisterPage() {
     }
   };
 
-  // Resend OTP Handler
   const handleResendOtp = async () => {
-    if (isResending) return; // Prevent double clicks
+    if (isResending) return; 
     setIsResending(true);
     setLoginError("");
 
@@ -306,7 +266,6 @@ export default function LoginRegisterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        // Send the tempUserId we saved from the login step
         body: JSON.stringify({ userID: tempUserId }),
       });
 
@@ -314,7 +273,7 @@ export default function LoginRegisterPage() {
 
       if (res.ok && data.success) {
         setLoginError("A new code has been sent to your email.");
-        setResendCooldown(60); // Start 60s cooldown
+        setResendCooldown(60); 
       } else {
         setLoginError(data.message || "Failed to resend code.");
       }
@@ -325,21 +284,23 @@ export default function LoginRegisterPage() {
     }
   };
 
+  // ------------------------------
+  // 🔒 UPDATED: Login Handler
+  // ------------------------------
   const handleLogin = async () => {
     setLoginError("");
-    const locked = lockouts[email];
-    if (locked?.unlockAt && locked.unlockAt > Date.now()) {
-      setLoginError(
-        `Account locked. Try again in ${formatTime(
-          Math.ceil((locked.unlockAt - Date.now()) / 1000)
-        )}.`
-      );
-      return;
+
+    // 1. Prevent request if timer is running (Client-side check)
+    if (serverLockoutTimer > 0) {
+       setLoginError(`Account locked. Try again in ${formatTime(serverLockoutTimer)}.`);
+       return;
     }
+
     if (!email || !password) {
       setLoginError("Please fill in all fields.");
       return;
     }
+
     try {
       const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
@@ -349,78 +310,40 @@ export default function LoginRegisterPage() {
       });
       const data = await res.json();
 
-      // Check for 2FA trigger
+      // 2. 🔒 Check for 429 Status (Account Lockout)
+      if (res.status === 429 && data.lockoutRemaining) {
+          setServerLockoutTimer(data.lockoutRemaining);
+          setLoginError(`Too many attempts. Account locked for ${formatTime(data.lockoutRemaining)}.`);
+          return;
+      }
+
+      // Check for 2FA
       if (data.requires2FA) {
           setTempUserId(data.tempUserId);
           setTempRememberMe(data.rememberDevice);
           setShowOtpInput(true); 
           setLoginError(""); 
-          return; // Stop here. Don't log in yet.
+          return; 
       }
 
       if (res.ok && data.success && data.user) {
         setUser(data.user);
-        setLockouts((prev) => {
-          const updated = { ...prev };
-          delete updated[email];
-          return updated;
-        });
         navigate(data.user.role === "admin" ? "/admin" : "/home");
         return;
       }
+
       if (data.notVerified) {
         setLoginError("Email is not verified. Please check your inbox or spam folder.");
         setShowResendButton(true);
         setStoredPassword(password);
         return;
       }
-      handleFailedAttempt(email);
+      
       setLoginError(data.message || "Invalid email or password.");
     } catch (err) {
       console.error("Login error:", err);
       setLoginError("Login failed. Please try again.");
     }
-  };
-
-  const handleFailedAttempt = (email) => {
-    setLockouts((prev) => {
-      const entry =
-        prev[email] || {
-          attemptCount: 0,
-          lockStage: 0,
-          unlockAt: null,
-          pendingPromotion: false,
-          showReset: false,
-        };
-      let { attemptCount, lockStage, unlockAt, pendingPromotion } = entry;
-      attemptCount++;
-      if (lockStage === 0 && attemptCount >= 30) {
-        unlockAt = Date.now() + 2 * 60 * 1000;
-        attemptCount = 0;
-        pendingPromotion = true;
-      } else if (lockStage === 1 && attemptCount >= 1) {
-        unlockAt = Date.now() + 5 * 60 * 1000;
-        attemptCount = 0;
-        pendingPromotion = true;
-      } else if (lockStage === 2 && attemptCount >= 1) {
-        unlockAt = Date.now() + 10 * 60 * 1000;
-        attemptCount = 0;
-        pendingPromotion = true;
-      } else if (lockStage >= 3) {
-        unlockAt = null;
-        pendingPromotion = false;
-      }
-      return {
-        ...prev,
-        [email]: {
-          attemptCount,
-          lockStage,
-          unlockAt,
-          pendingPromotion,
-          showReset: lockStage >= 3,
-        },
-      };
-    });
   };
 
   const validatePassword = (password) => {
@@ -511,17 +434,8 @@ export default function LoginRegisterPage() {
     navigate("/home");
   };
 
-  const getLockLabel = (stage) => {
-    if (stage === 0) return "2 minutes lock";
-    if (stage === 1) return "5 minutes lock";
-    if (stage === 2) return "10 minutes lock";
-    return "Account protection";
-  };
-  // ---------- End of existing functions ----------
   // ------------------------------
-
-  // ------------------------------
-  // JSX (modified markup for password wrappers)
+  // JSX
   // ------------------------------
   return (
     <div className="login-register-page">
@@ -561,20 +475,10 @@ export default function LoginRegisterPage() {
               {loginError && (
                 <div className="lrp-error-box">
                   {loginError}
-                  {lockouts[email]?.unlockAt > Date.now() && (
+                  {/* 🔒 NEW: Display the server timer if active */}
+                  {serverLockoutTimer > 0 && (
                     <p className="lrp-timer">
-                      Try again in {formatTime(remainingTime)} ({getLockLabel(lockouts[email].lockStage)})
-                    </p>
-                  )}
-                  {lockouts[email]?.showReset && (
-                    <p className="lrp-reset-hint">
-                      Too many attempts.{" "}
-                      <span
-                        onClick={() => navigate("/forgotpassword")}
-                        style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}
-                      >
-                        Forgot your password? Reset it here.
-                      </span>
+                      Please wait {formatTime(serverLockoutTimer)}
                     </p>
                   )}
 
@@ -749,12 +653,6 @@ export default function LoginRegisterPage() {
                 />
               </div>
 
-              {/* -----------------------------------------------------------------------
-                  REGISTER password input + floating hint
-                  - wrapper (password-input-wrap) is the positioning context
-                  - eye icon uses same class
-                  - floating hint uses password-hint-box
-                 ----------------------------------------------------------------------- */}
               <div ref={passwordHintRef} className="password-input-wrap">
                 <label>Password</label>
 

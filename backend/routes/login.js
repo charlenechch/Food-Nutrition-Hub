@@ -75,13 +75,68 @@ router.post("/", async (req, res) => {
 
     const user = users[0];
 
+    // ---------------------------------------------------------
+    // 🔒 SECURITY LOCKOUT CHECK (New Logic)
+    // ---------------------------------------------------------
+    if (user.lockout_until && new Date(user.lockout_until) > new Date()) {
+        const remainingMs = new Date(user.lockout_until) - new Date();
+        const remainingSeconds = Math.ceil(remainingMs / 1000);
+        
+        console.warn(`⛔ Locked out user ${email} attempted login. Remaining: ${remainingSeconds}s`);
+
+        return res.status(429).json({ 
+            success: false, 
+            message: "Account is temporarily locked due to too many failed attempts.", 
+            lockoutRemaining: remainingSeconds 
+        });
+    }
+
     // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
+    
+    // ---------------------------------------------------------
+    // ❌ HANDLE FAILED PASSWORD & INCREMENT LOCKOUT (New Logic)
+    // ---------------------------------------------------------
     if (!isMatch) {
       console.warn("❌ Incorrect password for:", email);
+
+      let newAttempts = (user.failed_attempts || 0) + 1;
+      let newLockoutTime = null;
+      let lockDurationMinutes = 0;
+
+      // Lockout Rules
+      // 30 attempts -> 2 mins
+      // 31 attempts -> 5 mins
+      // 32+ attempts -> 10 mins
+      if (newAttempts === 30) lockDurationMinutes = 2;
+      else if (newAttempts === 31) lockDurationMinutes = 5;
+      else if (newAttempts >= 32) lockDurationMinutes = 10;
+
+      if (lockDurationMinutes > 0) {
+           const lockDate = new Date();
+           lockDate.setMinutes(lockDate.getMinutes() + lockDurationMinutes);
+           newLockoutTime = lockDate;
+      }
+
+      // Update the user record with new attempt count and potential lockout time
+      await db.query(
+          "UPDATE user SET failed_attempts = ?, lockout_until = ? WHERE userID = ?", 
+          [newAttempts, newLockoutTime, user.userID]
+      );
+
       return res
         .status(401)
         .json({ success: false, message: "Invalid email or password" });
+    }
+
+    // ---------------------------------------------------------
+    // ✅ SUCCESS: RESET LOCKOUT COUNTERS (New Logic)
+    // ---------------------------------------------------------
+    if (user.failed_attempts > 0 || user.lockout_until !== null) {
+        await db.query(
+            "UPDATE user SET failed_attempts = 0, lockout_until = NULL WHERE userID = ?", 
+            [user.userID]
+        );
     }
 
     // Email verification check
@@ -95,7 +150,7 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // Check for active suspension
+    // Check for active suspension (Admin/Manual Ban)
     if (user.suspendedUntil && new Date(user.suspendedUntil) > new Date()) {
         
         const suspendedUntilDate = new Date(user.suspendedUntil);
@@ -139,9 +194,9 @@ router.post("/", async (req, res) => {
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
         // Save to DB (Clear old codes for this user first)
-        await db.execute('DELETE FROM otp WHERE userID = ?', [user.userID]);
+        await db.query('DELETE FROM otp WHERE userID = ?', [user.userID]);
         
-        await db.execute(
+        await db.query(
             'INSERT INTO otp (userID, code, expires_at) VALUES (?, ?, ?)',
             [user.userID, otpCode, expiresAt]
         );
