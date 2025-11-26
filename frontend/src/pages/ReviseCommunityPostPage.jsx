@@ -25,9 +25,10 @@ export default function ReviseCommunityPostPage() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get real data from navigation state
-  const { contribution, adminFeedback, fieldsWithIssues } = location.state || {};
+  // 1. Get initial data from navigation state (if available)
+  const stateData = location.state || {};
 
+  // 2. State for form and UI
   const [form, setForm] = useState({
     title: "",
     culturalOrigin: "",
@@ -35,7 +36,11 @@ export default function ReviseCommunityPostPage() {
     recipe: "",
     image: ""
   });
-
+  
+  // 3. New State variables for data fetching
+  const [adminFeedback, setAdminFeedback] = useState(stateData.adminFeedback || "");
+  const [fieldsWithIssues, setFieldsWithIssues] = useState(stateData.fieldsWithIssues || []);
+  const [isLoading, setIsLoading] = useState(!stateData.contribution); // Load if no state data
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -54,20 +59,64 @@ export default function ReviseCommunityPostPage() {
 
   const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false }));
 
-
-  // Initialize form with real contribution data
+  // 4. Effect: Initialize form (Handle both Navigation State AND API Fetch)
   useEffect(() => {
-    if (contribution) {
-      console.log("📝 Initializing form with real contribution:", contribution);
+    // A: We have data from the Profile page (Navigation State)
+    if (stateData.contribution) {
+      console.log("📝 Initializing form with navigation state:", stateData.contribution);
       setForm({
-        title: contribution.title || "",
-        culturalOrigin: contribution.culturalOrigin || "",
-        content: contribution.content || "",
-        recipe: contribution.recipe || "",
-        image: contribution.image || ""
+        title: stateData.contribution.title || "",
+        culturalOrigin: stateData.contribution.culturalOrigin || "",
+        content: stateData.contribution.content || "",
+        recipe: stateData.contribution.recipe || "",
+        image: stateData.contribution.image || ""
       });
+      setIsLoading(false);
+    } 
+    // B: We have NO data (Link from Email) -> Fetch from Backend
+    else {
+      console.log("🌍 No state found. Fetching from API for ID:", id);
+      const fetchPost = async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/communityPost/${id}`, {
+            credentials: "include", // Important for session check
+          });
+          
+          if (!res.ok) throw new Error("Failed to load post data.");
+          
+          const result = await res.json();
+          if (!result.success || !result.data) throw new Error("Post not found.");
+
+          const data = result.data;
+          console.log("✅ Fetched API Data:", data);
+
+          // Populate form with fetched data
+          setForm({
+            title: data.foodName || "",
+            culturalOrigin: data.culturalOrigin || "",
+            content: data.culturalStory || "",
+            recipe: data.recipe || "",
+            // Handle image array or single string
+            image: Array.isArray(data.images) ? data.images[0] : (data.images || "")
+          });
+
+          // Note: Standard GET /:id might not return admin_feedback depending on your backend.
+          // If you see "No feedback" after this fix, we might need to update the backend query too.
+          if (data.admin_feedback || data.adminFeedback) {
+             setAdminFeedback(data.admin_feedback || data.adminFeedback);
+          }
+
+        } catch (err) {
+          console.error("❌ Error loading post:", err);
+          setError("Could not load community post. It may have been deleted.");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchPost();
     }
-  }, [contribution]);
+  }, [id, stateData.contribution]);
 
   const onChangeForm = (e) => {
     const { name, value } = e.target;
@@ -78,7 +127,6 @@ export default function ReviseCommunityPostPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       openInfo({
@@ -89,9 +137,7 @@ export default function ReviseCommunityPostPage() {
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
       openInfo({
         title: "Invalid image size",
         message: "Image size should be less than 5MB",
@@ -101,61 +147,40 @@ export default function ReviseCommunityPostPage() {
     }
 
     setSelectedFile(file);
-    
     const reader = new FileReader();
-    reader.onload = () =>
-      setForm((prev) => ({ ...prev, image: reader.result }));
+    reader.onload = () => setForm((prev) => ({ ...prev, image: reader.result }));
     reader.readAsDataURL(file);
   };
 
   const submitRevision = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  setError("");
-  setSuccess("");
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+    setSuccess("");
 
-  try {
-    console.log("🔍 DEBUG: Starting revision submission");
-    console.log("🔍 DEBUG: Post ID:", id);
-    console.log("🔍 DEBUG: API URL:", `${API_BASE_URL}/api/communityPost/${id}`);
-    console.log("🔍 DEBUG: Form data to send:", {
-      title: form.title.trim(),
-      culturalOrigin: form.culturalOrigin,
-      content: form.content.trim(),
-      recipe: form.recipe,
-      status: "Pending"
-    });
+    try {
+      const revisedData = {
+        title: form.title.trim(),
+        culturalOrigin: form.culturalOrigin,
+        content: form.content.trim(),
+        recipe: form.recipe,
+        status: "Pending",
+        image: form.image
+      };
 
-    const revisedData = {
-      title: form.title.trim(),
-      culturalOrigin: form.culturalOrigin,
-      content: form.content.trim(),
-      recipe: form.recipe,
-      status: "Pending",
-      image: form.image
-    };
-
-    console.log("📤 Sending JSON data:", revisedData);
-
-    const res = await fetch(`${API_BASE_URL}/api/communityPost/revise/${id}`, {
-      method: "PUT",
-      headers: { 
-        "Content-Type": "application/json" 
-      },
-      credentials: "include",
-      body: JSON.stringify(revisedData),
-    });
-
-      console.log("📥 Response status:", res.status);
+      const res = await fetch(`${API_BASE_URL}/api/communityPost/revise/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(revisedData),
+      });
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('❌ Server error response:', errorText);
-        throw new Error(`Failed to update community post (${res.status}): ${errorText}`);
+        throw new Error(`Failed to update community post: ${errorText}`);
       }
 
       const result = await res.json();
-      console.log('✅ Update successful:', result);
       
       if (result.success) {
         setSuccess("Community post revised successfully! It has been resubmitted for admin review.");
@@ -178,10 +203,25 @@ export default function ReviseCommunityPostPage() {
     }
   };
 
-  // Check which fields need fixing
+  // Check which fields need fixing (Optional chaining for safety)
   const needsFix = new Set(fieldsWithIssues || []);
 
-  if (!contribution) {
+  if (isLoading) {
+    return (
+      <div className="revise-recipe-page">
+        <Header />
+        <div className="upp-page">
+          <div className="upp-wrap" style={{ textAlign: 'center', padding: '50px' }}>
+            <h2>Loading Contribution...</h2>
+            <p>Please wait while we fetch your data.</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error && !form.title) {
     return (
       <div className="revise-recipe-page">
         <Header />
@@ -189,7 +229,7 @@ export default function ReviseCommunityPostPage() {
           <div className="upp-wrap">
             <div className="rcp-error">
               <h2>Error</h2>
-              <p>No community post data found for revision.</p>
+              <p>{error}</p>
               <button 
                 className="lrp-btn lrp-btn-primary"
                 onClick={() => navigate("/profile")}
@@ -220,9 +260,7 @@ export default function ReviseCommunityPostPage() {
           <div className="rcp-wrap">
             <h2 className="rp-title">Revise Community Contribution</h2>
             <p className="upp-muted" style={{ marginBottom: 16 }}>
-              Fix the highlighted fields and resubmit. Your original submission
-              date:{" "}
-              {contribution.submittedDate ? new Date(contribution.submittedDate).toLocaleDateString("en-GB") : "Unknown"}
+              Fix the highlighted fields and resubmit.
             </p>
 
             {/* Admin Feedback */}
@@ -235,7 +273,7 @@ export default function ReviseCommunityPostPage() {
                   Admin Feedback
                 </div>
                 <div>{adminFeedback}</div>
-                {fieldsWithIssues && fieldsWithIssues.length > 0 && (
+                {fieldsWithIssues.length > 0 && (
                   <div style={{ marginTop: "10px" }}>
                     <div className="upp-strong">Areas needing improvement:</div>
                     <ul>
@@ -249,25 +287,13 @@ export default function ReviseCommunityPostPage() {
             )}
 
             {/* Error/Success Messages */}
-            {error && (
-              <div className="rcp-error-message">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="rcp-success-message">
-                {success}
-              </div>
-            )}
+            {error && <div className="rcp-error-message">{error}</div>}
+            {success && <div className="rcp-success-message">{success}</div>}
 
             <form className="rp-form" onSubmit={submitRevision}>
               {/* Food Name + Cultural Origin */}
               <div className="rp-grid-2">
-                <div
-                  className={`rp-field ${
-                    needsFix.has("title") || needsFix.has("foodName") ? "needs-fix" : ""
-                  }`}
-                >
+                <div className={`rp-field ${needsFix.has("title") ? "needs-fix" : ""}`}>
                   <label>Food Name *</label>
                   <input
                     name="title"
@@ -278,11 +304,7 @@ export default function ReviseCommunityPostPage() {
                   />
                 </div>
 
-                <div
-                  className={`rp-field ${
-                    needsFix.has("culturalOrigin") || needsFix.has("origin") ? "needs-fix" : ""
-                  }`}
-                >
+                <div className={`rp-field ${needsFix.has("culturalOrigin") ? "needs-fix" : ""}`}>
                   <label>Cultural Origin *</label>
                   <select
                     name="culturalOrigin"
@@ -301,17 +323,13 @@ export default function ReviseCommunityPostPage() {
               </div>
 
               {/* Cultural Story */}
-              <div
-                className={`rp-field ${
-                  needsFix.has("content") || needsFix.has("culturalStory") ? "needs-fix" : ""
-                }`}
-              >
+              <div className={`rp-field ${needsFix.has("content") ? "needs-fix" : ""}`}>
                 <label>Cultural Story *</label>
                 <textarea
                   name="content"
                   value={form.content}
                   onChange={onChangeForm}
-                  placeholder="Tell us the story behind this dish—when is it served, how is it meaningful to your community, etc."
+                  placeholder="Tell us the story behind this dish..."
                   required
                 />
               </div>
@@ -328,26 +346,16 @@ export default function ReviseCommunityPostPage() {
               </div>
 
               {/* Upload Photo */}
-              <div
-                className={`rp-field ${
-                  needsFix.has("image") || needsFix.has("imageData") ? "needs-fix" : ""
-                }`}
-              >
+              <div className={`rp-field ${needsFix.has("image") ? "needs-fix" : ""}`}>
                 <label>Upload Photo *</label>
                 <div
                   className="upload-box"
-                  onClick={() =>
-                    document.getElementById("ccp-file-input").click()
-                  }
+                  onClick={() => document.getElementById("ccp-file-input").click()}
                   role="button"
                   tabIndex={0}
                 >
                   {form.image ? (
-                    <img
-                      src={form.image}
-                      alt="Preview"
-                      className="preview-img"
-                    />
+                    <img src={form.image} alt="Preview" className="preview-img" />
                   ) : (
                     <div className="upload-placeholder">
                       <FaCamera className="camera-icon" />
@@ -375,26 +383,6 @@ export default function ReviseCommunityPostPage() {
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Submitting..." : "Submit Revision"}
-                </button>
-                <button
-                  className="rp-btn rp-btn-muted"
-                  type="button"
-                  onClick={() => {
-                    setForm({
-                      title: contribution.title || "",
-                      culturalOrigin: contribution.culturalOrigin || "",
-                      content: contribution.content || "",
-                      recipe: contribution.recipe || "",
-                      image: contribution.image || ""
-                    });
-                    setSelectedFile(null);
-                    // Clear file input
-                    const fileInput = document.getElementById("ccp-file-input");
-                    if (fileInput) fileInput.value = '';
-                  }}
-                  disabled={isSubmitting}
-                >
-                  Reset
                 </button>
                 <button
                   className="rp-btn rp-btn-muted"
