@@ -176,11 +176,12 @@ router.post("/logout", (req, res) => {
   - Path: POST /updatePassword
 */
 router.post("/updatePassword", async (req, res) => {
-  console.log("📩 /updatePassword route hit for user:", email);
-
-  // Use string trimming for safety
+  // 1️⃣ DEFINE variables first
   const email = req.body.email?.trim();
   const newPassword = req.body.newPassword?.trim();
+
+  // 2️⃣ THEN you can safely log them
+  console.log("📩 /updatePassword route hit for user:", email);
 
   // Robust check for undefined, null, or empty strings
   if (!email || !newPassword) {
@@ -365,4 +366,3 @@ router.post("/toggle-role", async (req, res) => {
 });
 
 module.exports = router;
-
