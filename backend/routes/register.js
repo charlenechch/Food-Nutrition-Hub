@@ -48,7 +48,7 @@ const registerSchema = Joi.object({
     .pattern(/[A-Z]/, "uppercase")
     .pattern(/[a-z]/, "lowercase")
     .pattern(/[0-9]/, "number")
-    .pattern(/[!@#$%^&*(),.?":{}|<>]/, "special character")
+    .pattern(/[^a-zA-Z0-9]/, "special character")
     .required()
     .messages({
       "string.pattern.name": "Password must include at least one {#name}",

@@ -186,14 +186,36 @@ router.post("/", async (req, res) => {
     }
 
      // Set to false to disable 2FA globally
+    // Set to false to disable 2FA globally
     const requires2FA = true;
 
     if (requires2FA) {
-        // Generate 6-digit code
+        // 1. CHECK FOR EXISTING RECENT OTP (Throttling)
+        const [existingOtps] = await db.query(
+            'SELECT created_at FROM otp WHERE userID = ? ORDER BY created_at DESC LIMIT 1',
+            [user.userID]
+        );
+
+        if (existingOtps.length > 0) {
+            const lastOtpTime = new Date(existingOtps[0].created_at).getTime();
+            const now = Date.now();
+            const timeDiff = (now - lastOtpTime) / 1000; // seconds
+
+            // If an OTP was sent less than 60 seconds ago, STOP.
+            if (timeDiff < 60) {
+                console.warn(`⏳ OTP request throttled for ${email}`);
+                return res.status(429).json({
+                    success: false,
+                    message: `Please wait ${Math.ceil(60 - timeDiff)} seconds before requesting a new code.`
+                });
+            }
+        }
+
+        // 2. Generate 6-digit code
         const otpCode = crypto.randomInt(100000, 999999).toString();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        // Save to DB (Clear old codes for this user first)
+        // 3. Save to DB (Clear old codes first)
         await db.query('DELETE FROM otp WHERE userID = ?', [user.userID]);
         
         await db.query(
@@ -203,7 +225,7 @@ router.post("/", async (req, res) => {
 
         console.log(`🔐 2FA Triggered for ${email}.`);
 
-        // Send Email
+        // 4. Send Email
         const otpHTML = `
           <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
             <h2>Login Verification</h2>
@@ -214,12 +236,18 @@ router.post("/", async (req, res) => {
           </div>
         `;
 
-        await sendEmail({
-            to: user.email,
-            subject: "Your Login Verification Code",
-            html: otpHTML,
-            text: `Your code is ${otpCode}`
-        });
+        // Note: wrapped in try-catch so email failure doesn't crash server
+        try {
+            await sendEmail({
+                to: user.email,
+                subject: "Your Login Verification Code",
+                html: otpHTML,
+                text: `Your code is ${otpCode}`
+            });
+        } catch (emailErr) {
+            console.error("❌ Failed to send OTP email:", emailErr);
+            return res.status(500).json({ success: false, message: "Failed to send verification email." });
+        }
 
         return res.json({
             success: true,
