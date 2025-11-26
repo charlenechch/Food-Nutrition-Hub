@@ -158,7 +158,7 @@ export default function Community() {
       setModal({
         open: true,
         title: "Missing Required Fields",
-        message: "Food Name, Cultural Origin, and Cultural Story are required.",
+        message: "Food Name, Cultural Origin, Cultural Story, and a Photo are required.",
         icon: <GrDocumentMissing />,
         primaryText: "OK",
         onPrimary: closeModal,
@@ -322,7 +322,7 @@ export default function Community() {
             </div>
 
             <div className="form-group">
-              <label>Upload Photo</label>
+              <label>Upload Photo *</label>
               <div
                 className="upload-box"
                 onClick={() => document.getElementById("file-input").click()}

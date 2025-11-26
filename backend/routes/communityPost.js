@@ -649,6 +649,13 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
       });
     }
 
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'At least one photo is required to post.'
+      });
+    }
+
     console.log('✅ All required fields present:', { foodName, culturalOrigin });
 
     const imageUrls = [];
