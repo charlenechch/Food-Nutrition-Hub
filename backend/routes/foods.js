@@ -3,6 +3,7 @@ const router = express.Router();
 const { pool: db } = require("../config/db");
 const { requireAuth, requireAdmin } = require("../middleware/auth");
 const cloudinary = require("cloudinary").v2;
+const { sendEmail } = require("../config/mailer");
 
 // ============================
 // 📂 CLOUDINARY CONFIG
@@ -192,14 +193,15 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     image,
   } = req.body;
 
+  const foodId = req.params.id;
+
   try {
-    const [existing] = await db.query("SELECT * FROM food WHERE foodID = ?", [
-      req.params.id,
-    ]);
+    const [existing] = await db.query("SELECT * FROM food WHERE foodID = ?", [foodId]);
 
     if (existing.length === 0)
       return res.status(404).json({ success: false, error: "Food not found" });
 
+    // 1. Perform the Update
     const sql = `
       UPDATE food
       SET name = ?, origin = ?, category = ?, description = ?, culturalSignificance = ?, traditionalPreparation = ?,
@@ -222,7 +224,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
       Fiber_g || existing[0].Fiber_g || 0,
       VitaminC_mg || existing[0].VitaminC_mg || 0,
       image || existing[0].image || null,
-      req.params.id,
+      foodId,
     ];
 
     const [result] = await db.query(sql, values);
@@ -230,7 +232,53 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     if (result.affectedRows === 0)
       return res.status(400).json({ success: false, error: "No changes were made." });
 
-    res.json({ success: true, message: "Food updated successfully" });
+    // 2. Find the User linked to this Food (via Recipe table)
+    const [userResult] = await db.query(`
+      SELECT u.email, u.firstname, f.name AS foodName
+      FROM food f
+      JOIN recipe r ON f.foodID = r.foodID
+      JOIN userProfile up ON r.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      WHERE f.foodID = ?
+    `, [foodId]);
+
+    // 3. Send Email if a user is found
+    if (userResult.length > 0) {
+      const { email, firstname, foodName } = userResult[0];
+      console.log(`📧 Sending update notification to ${email} for food: ${foodName}`);
+
+      const emailHTML = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <div style="background-color: #387346; padding: 20px; text-align: center;">
+            <h1 style="color: #fff; margin: 0;">Food Item Updated</h1>
+          </div>
+          <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <h2 style="color: #387346;">Hello ${firstname},</h2>
+            <p>This is a notification that an administrator has updated the details for the food item:</p>
+            <h3 style="text-align:center; background:#f4f4f4; padding:10px;">${foodName}</h3>
+            
+            <p>These changes were made to ensure the accuracy of our food database, such as nutritional info, cultural details, or categorization.</p>
+
+            <p>You can view the updated details on your profile or the recipes page.</p>
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+              Best regards,<br>The SarawakEats Team
+            </p>
+          </div>
+        </div>
+      `;
+
+      await sendEmail({
+        to: email,
+        subject: `Update: Your submission "${foodName}" has been modified`,
+        html: emailHTML,
+        text: `Your food submission "${foodName}" has been updated by an admin to ensure database accuracy.`
+      });
+    } else {
+      console.log("ℹ️ No user linked to this food item. Skipping email.");
+    }
+
+    res.json({ success: true, message: "Food updated successfully and notification sent (if applicable)." });
   } catch (err) {
     console.error("❌ Update food error:", err.message);
     res.status(500).json({ success: false, error: "Failed to update food" });
