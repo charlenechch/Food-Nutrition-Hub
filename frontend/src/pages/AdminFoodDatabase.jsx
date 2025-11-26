@@ -110,7 +110,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
   }
 
   return (
-    <div className="food-database-section">
+    <div className="food-database-section" style={{ backgroundColor: "white" }}>
       {/* Header */}
       <div className="food-header">
         <h2>

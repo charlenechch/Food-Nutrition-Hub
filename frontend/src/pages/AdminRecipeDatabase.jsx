@@ -48,8 +48,8 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
 
   if (!recipesProp || recipesProp.length === 0) {
     return (
-      <div className="recipe-database-section">
-        <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
+     <div className="recipe-database-section" style={{ backgroundColor: "white" }}>
+      <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
         <p style={{ textAlign: "center", marginTop: 20, color: "#999" }}>
           No recipes found.
         </p>
@@ -58,8 +58,8 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
   }
 
   return (
-    <div className="recipe-database-section">
-      <div className="recipe-header">
+    <div className="recipe-database-section" style={{ backgroundColor: "white" }}>
+    <div className="recipe-header">
         <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
 
         {sectionType === "approved" && (

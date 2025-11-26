@@ -47,8 +47,8 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
 
   if (!postsProp || postsProp.length === 0) {
     return (
-      <div className="recipe-database-section">
-        <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
+      <div className="recipe-database-section" style={{ backgroundColor: "white" }}>
+      <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
         <p style={{ textAlign: "center", marginTop: 20, color: "#999" }}>
           No community posts found.
         </p>
@@ -57,8 +57,8 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
   }
 
   return (
-    <div className="recipe-database-section">
-      <div className="recipe-header">
+    <div className="recipe-database-section" style={{ backgroundColor: "white" }}>
+    <div className="recipe-header">
         <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
 
         {sectionType === "approved" && (
