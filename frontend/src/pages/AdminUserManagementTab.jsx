@@ -97,6 +97,25 @@ export default function UserManagement() {
   const initialPageSize = typeof window !== "undefined" && window.innerWidth <= 680 ? 6 : 10;
   const [pageSize, setPageSize] = useState(initialPageSize);
 
+  //================
+      //CSRF
+      //================
+            const [csrfToken, setCsrfToken] = useState("");
+          
+            useEffect(() => {
+              const fetchCsrfToken = async () => {
+                try {
+                  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+                  const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+                  const data = await res.json();
+                  setCsrfToken(data.csrfToken);
+                } catch (err) {
+                  console.error("Failed to fetch CSRF token", err);
+                }
+              };
+              fetchCsrfToken();
+            }, []);
+
   // Fetch users from backend on component mount
   useEffect(() => {
     const fetchUsers = async () => {
@@ -126,25 +145,6 @@ export default function UserManagement() {
         setLoading(false);
       }
     };
-
-      //================
-      //CSRF
-      //================
-            const [csrfToken, setCsrfToken] = useState("");
-          
-            useEffect(() => {
-              const fetchCsrfToken = async () => {
-                try {
-                  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-                  const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-                  const data = await res.json();
-                  setCsrfToken(data.csrfToken);
-                } catch (err) {
-                  console.error("Failed to fetch CSRF token", err);
-                }
-              };
-              fetchCsrfToken();
-            }, []);
 
     fetchUsers();
   }, []); // Empty dependency array = run once on mount
