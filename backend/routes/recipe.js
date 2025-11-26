@@ -1003,28 +1003,16 @@ router.post("/recipes/:id/feedback", async (req, res) => {
 // ✅ ADMIN: Update recipe approval status (Approve / Reject)
 router.patch('/updateStatus/:id', async (req, res) => {
   const recipeId = req.params.id;
-
-  // --- MODIFICATION 1: Add logging ---
-  // Log the *entire* body to see what the frontend is sending.
-  // My guess is this will log: "Received body for updateStatus: {}" or "undefined"
   console.log(`Attempting to update status for ID: ${recipeId}`);
-  console.log("Received body for updateStatus:", req.body);
-  // ------------------------------------
 
-  const { status, feedback } = req.body; // This is 'undefined' if the body is wrong
-
+  const { status, feedback } = req.body;
   const validStatuses = ["Approved", "Rejected", "Pending"];
 
   if (!validStatuses.includes(status)) {
-    
-    // --- MODIFICATION 2: Better error message ---
-    // This is more helpful for debugging.
-    console.log(`❌ Invalid status value received: '${status}'`);
     return res.status(400).json({ 
       success: false, 
-      message: `Invalid or missing status. Received: '${status}', but expected one of: ${validStatuses.join(', ')}.` 
+      message: `Invalid status. Received: '${status}'` 
     });
-    // -------------------------------------------
   }
 
   try {
@@ -1037,7 +1025,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: "Recipe not found." });
     }
 
-    // Fetch User Info & Recipe Details for Email
+    // Fetch User Info & Recipe Details
     const [rows] = await db.query(`
       SELECT u.email, u.firstname, f.name AS recipeName
       FROM recipe r
@@ -1050,55 +1038,65 @@ router.patch('/updateStatus/:id', async (req, res) => {
     if (rows.length > 0) {
       const { email, firstname, recipeName } = rows[0];
 
-      // Force the stats to recount
+      // Force stats recount
       const [userResult] = await db.query("SELECT userProfileID FROM recipe WHERE foodID = ?", [recipeId]);
       if (userResult.length > 0) {
           const userProfileID = userResult[0].userProfileID;
           const [userRow] = await db.query("SELECT userID FROM userProfile WHERE userProfileID = ?", [userProfileID]);
           const userID = userRow[0].userID;
           await updateUserStats(userID);
-          console.log(`✅ User stats recounted for userProfileID: ${userProfileID}`);
       }
 
-        // Send "Approved" Email
-        if (status === "Approved") {
-          const approvedHTML = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-              <div style="background-color: #28a745; padding: 20px; text-align: center;">
-                <h1 style="color: #fff; margin: 0;">Recipe Approved!</h1>
-              </div>
-              <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h2 style="color: #28a745;">Great news, ${firstname}!</h2>
-                <p>Your recipe <strong>"${recipeName}"</strong> has been reviewed and approved by our team.</p>
-                
-                <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #28a745;">
-                  <p style="margin: 0;">It is now live on SarawakEats for the whole community to enjoy!</p>
-                </div>
-
-                <div style="text-align: center; margin-top: 25px;">
-                  <a href="https://food-nutrition-hub.vercel.app/recipes" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Recipes</a>
-                </div>
-                
-                <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
-                  Best regards,<br>The SarawakEats Team
-                </p>
-              </div>
+      // A. APPROVED Logic
+      if (status === "Approved") {
+        
+        let feedbackHtmlBlock = "";
+        if (feedback && feedback.trim().length > 0) {
+          feedbackHtmlBlock = `
+            <div style="background-color: #f0fff4; border: 1px solid #c3e6cb; padding: 15px; margin: 20px 0; border-left: 5px solid #28a745;">
+               <strong style="color: #155724;">Admin Note:</strong><br/>
+               <p style="margin-top: 5px; margin-bottom: 0; color: #155724;">${feedback}</p>
             </div>
           `;
-
-          // Send asynchronously
-          sendEmail({
-            to: email,
-            subject: "🎉 Your Recipe Has Been Approved!",
-            html: approvedHTML,
-            text: `Great news! Your recipe "${recipeName}" has been approved and is now live.`
-          });
-          console.log(`📩 Approved email sent to ${email}`);
         }
+
+        const approvedHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #28a745; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Recipe Approved!</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2 style="color: #28a745;">Great news, ${firstname}!</h2>
+              <p>Your recipe <strong>"${recipeName}"</strong> has been reviewed and approved by our team.</p>
+              
+              ${feedbackHtmlBlock}
+
+              <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p style="margin: 0;">It is now live on SarawakEats for the whole community to enjoy!</p>
+              </div>
+
+              <div style="text-align: center; margin-top: 25px;">
+                <a href="https://food-nutrition-hub.vercel.app/recipes" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Recipes</a>
+              </div>
+              
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
+            </div>
+          </div>
+        `;
+
+        sendEmail({
+          to: email,
+          subject: "🎉 Your Recipe Has Been Approved!",
+          html: approvedHTML,
+          text: `Your recipe "${recipeName}" is approved.`
+        });
+      }
 
       // B. REJECTED Logic
       else if (status === "Rejected") {
-        const feedbackText = feedback || "No specific feedback provided. Please review our content guidelines.";
+        const feedbackText = feedback || "No specific feedback provided.";
         
         const rejectedHTML = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -1132,36 +1130,32 @@ router.patch('/updateStatus/:id', async (req, res) => {
           to: email,
           subject: "Update on your Recipe Submission",
           html: rejectedHTML,
-          text: `Your recipe "${recipeName}" requires revision. Feedback: ${feedbackText}`
+          text: `Your recipe "${recipeName}" requires revision.`
         });
-        console.log(`📩 Rejection email sent to ${email}`);
       }
     }
 
-      console.log(`✅ Recipe ${recipeId} status updated to ${status}`);
-      res.json({ success: true, message: `Recipe marked as ${status}.` });
+    res.json({ success: true, message: `Recipe marked as ${status}.` });
 
-    } catch (error) {
-      console.error("❌ Error updating recipe status:", error);
-      res.status(500).json({ success: false, message: "Database update failed." });
-    }
+  } catch (error) {
+    console.error("❌ Error updating recipe status:", error);
+    res.status(500).json({ success: false, message: "Database update failed." });
+  }
 });
 
 // =============================
-// PATCH: Send Admin Feedback Only + Email Notification
+// PATCH: Send Admin Feedback Only + Smart Email Notification
 // =============================
 router.patch('/sendFeedback/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const feedback = req.body.feedback || req.body.message;
 
-    console.log(`📝 Updating feedback for recipe ${id}...`);
-
     if (!feedback) {
       return res.status(400).json({ error: "Feedback content is required." });
     }
 
-    // 1. Update the admin_feedback in the database
+    // 1. Update database
     const query = "UPDATE recipe SET admin_feedback = ? WHERE foodID = ?";
     const [result] = await db.query(query, [feedback, id]);
 
@@ -1169,9 +1163,9 @@ router.patch('/sendFeedback/:id', async (req, res) => {
       return res.status(404).json({ error: "Recipe not found." });
     }
 
-    // 2. NEW: Fetch User Info & Recipe Name to send the email
+    // 2. Fetch Info AND Status
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, f.name AS recipeName
+      SELECT u.email, u.firstname, f.name AS recipeName, r.status
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
@@ -1179,54 +1173,88 @@ router.patch('/sendFeedback/:id', async (req, res) => {
       WHERE r.foodID = ?
     `, [id]);
 
-    // 3.Construct and Send the Email
+    // 3. Construct Smart Email
     if (rows.length > 0) {
-      const { email, firstname, recipeName } = rows[0];
+      const { email, firstname, recipeName, status } = rows[0];
 
-      const feedbackHTML = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-          <div style="background-color: #ffc107; padding: 20px; text-align: center;">
-            <h1 style="color: #000; margin: 0;">New Feedback Received</h1>
-          </div>
-          <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
-            <h2 style="color: #333;">Hello ${firstname},</h2>
-            <p>You have received new feedback regarding your recipe submission <strong>"${recipeName}"</strong>.</p>
-            
-            <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #ffc107;">
-              <strong style="color: #856404;">Admin Message:</strong><br/>
-              <p style="margin-top: 5px; margin-bottom: 0;">${feedback}</p>
+      let subjectLine = "";
+      let emailBodyHTML = "";
+
+      // 🚨 SCENARIO A: Rejected (Urgent Red)
+      if (status === "Rejected") {
+        subjectLine = `Action Required: Please Revise "${recipeName}"`;
+        emailBodyHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #dc3545; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Revision Requested</h1>
             </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2 style="color: #dc3545;">Hello ${firstname},</h2>
+              <p>We have reviewed your rejected recipe <strong>"${recipeName}"</strong> and have new feedback.</p>
+              
+              <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #dc3545;">
+                <strong style="color: #856404;">Action Required:</strong><br/>
+                <p style="margin-top: 5px; margin-bottom: 0;">${feedback}</p>
+              </div>
 
-            <p>Please review this feedback. You can edit your recipe to address these comments.</p>
+              <p>Please update your recipe based on this feedback.</p>
 
-            <div style="text-align: center; margin-top: 25px;">
-              <a href="https://food-nutrition-hub.vercel.app/revise/${id}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit Recipe</a>
+              <div style="text-align: center; margin-top: 25px;">
+                <a href="https://food-nutrition-hub.vercel.app/revise/${id}" style="display: inline-block; background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit & Resubmit</a>
+              </div>
+              
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
             </div>
-            
-            <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
-              Best regards,<br>The SarawakEats Team
-            </p>
           </div>
-        </div>
-      `;
+        `;
+      } 
+      // ⚠️ SCENARIO B: Approved/Pending (Standard Yellow)
+      else {
+        subjectLine = `New Feedback on "${recipeName}"`;
+        emailBodyHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #ffc107; padding: 20px; text-align: center;">
+              <h1 style="color: #000; margin: 0;">New Feedback Received</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2 style="color: #333;">Hello ${firstname},</h2>
+              <p>You have received a new note regarding your recipe <strong>"${recipeName}"</strong>.</p>
+              
+              <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #ffc107;">
+                <strong style="color: #856404;">Admin Message:</strong><br/>
+                <p style="margin-top: 5px; margin-bottom: 0;">${feedback}</p>
+              </div>
 
-      // Send the email asynchronously
+              <div style="text-align: center; margin-top: 25px;">
+                <a href="https://food-nutrition-hub.vercel.app/revise/${id}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Recipe</a>
+              </div>
+              
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
+            </div>
+          </div>
+        `;
+      }
+
       await sendEmail({
         to: email,
-        subject: `New Feedback on "${recipeName}"`,
-        html: feedbackHTML,
-        text: `You have received feedback on your recipe "${recipeName}": ${feedback}`
+        subject: subjectLine,
+        html: emailBodyHTML,
+        text: `Feedback on "${recipeName}": ${feedback}`
       });
       
-      console.log(`📩 Feedback notification email sent to ${email}`);
+      console.log(`📩 Feedback notification (${status}) sent to ${email}`);
     }
 
-    console.log(`✅ Feedback updated for recipe ${id}`);
-    res.json({ success: true, message: "Feedback sent successfully and email notification sent." });
+    res.json({ success: true, message: "Feedback sent successfully." });
 
   } catch (error) {
     console.error("❌ Error sending feedback:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
 module.exports = router;

@@ -150,7 +150,6 @@ const EditRecipePage = () => {
 
         {/* Approve/Reject buttons only for Pending or Rejected */}
         {recipe.status !== "Approved" && (
-          <div className="rcp-edit-review-actions">
             <button
               className="rcp-edit-approve-btn"
               onClick={() => {
@@ -160,6 +159,8 @@ const EditRecipePage = () => {
             >
               <span className="recipe-edit-btn"><FaCheck /></span> Approve
             </button>
+          )}
+                  {recipe.status === "Pending" && (
             <button
               className="rcp-edit-reject-btn"
               onClick={() => {
@@ -169,9 +170,8 @@ const EditRecipePage = () => {
             >
               <span className="recipe-edit-btn"><FaTimes /></span> Reject
             </button>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
       {/* Content */}
       <div className="review-container">
@@ -267,6 +267,7 @@ const EditRecipePage = () => {
                     value={adminFeedback}
                     onChange={(e) => setAdminFeedback(e.target.value)}
                   ></textarea>
+                  {(recipe.status === "Approved" || recipe.status === "Rejected") && (
                   <button
                     className="approve-btn"
                     style={{ marginTop: "10px" }}
@@ -274,6 +275,7 @@ const EditRecipePage = () => {
                   >
                     Send Feedback
                   </button>
+                  )}
                 </div>
               </div>
             </div>
