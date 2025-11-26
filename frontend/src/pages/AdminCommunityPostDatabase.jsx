@@ -5,6 +5,7 @@ import { CiSearch, CiFilter } from "react-icons/ci";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
+import Modal from "../components/Modal"; // ✅ Ensure this path is correct
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -14,12 +15,23 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
   const [category, setCategory] = useState("All Categories");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
-
   const [showFilters, setShowFilters] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 5;
+
+  // 1️⃣ Modal State
+  const [modal, setModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+    onPrimary: null,
+  });
+
+  const closeModal = () => setModal((m) => ({ ...m, open: false, onPrimary: null }));
 
   const currentPosts = postsProp.slice(
     (currentPage - 1) * perPage,
@@ -45,6 +57,63 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
       ? "Approved Community Posts"
       : "Pending / Rejected Community Posts";
 
+  // 2️⃣ Trigger the Pop-up (Replaces window.confirm)
+  const handleDeleteClick = (postId) => {
+    setModal({
+      open: true,
+      title: "Confirm Deletion",
+      message: "Are you sure you want to delete this post? This action cannot be undone.",
+      icon: <RiDeleteBin5Line size={30} color="#dc3545" />, 
+      primaryText: "Yes, Delete",
+      onPrimary: () => performDelete(postId), 
+    });
+  };
+
+  // 3️⃣ Actual Delete Logic (API Call)
+  const performDelete = async (postId) => {
+    try {
+      const response = await fetch(`${API_URL}/api/communityPost/admin/delete/${postId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Show Success Modal
+        setModal({
+          open: true,
+          title: "Deleted!",
+          message: "The post has been successfully removed.",
+          icon: <FaRegFlag size={30} color="green" />,
+          primaryText: "OK",
+          onPrimary: () => {
+             closeModal();
+             window.location.reload(); 
+          },
+        });
+      } else {
+        // Show Error Modal
+        setModal({
+          open: true,
+          title: "Error",
+          message: result.message || "Failed to delete post.",
+          primaryText: "Close",
+          onPrimary: closeModal,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      setModal({
+        open: true,
+        title: "Error",
+        message: "An error occurred. Please try again.",
+        primaryText: "Close",
+        onPrimary: closeModal,
+      });
+    }
+  };
+
   if (!postsProp || postsProp.length === 0) {
     return (
       <div className="recipe-database-section" style={{ backgroundColor: "white" }}>
@@ -55,35 +124,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
       </div>
     );
   }
-
-// Function to handle post deletion
-  const handleDelete = async (postId) => {
-    // 1. Confirm with the user
-    if (!window.confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
-      return;
-    }
-
-    try {
-      // 2. Call the backend API
-      const response = await fetch(`${API_URL}/api/communityPost/admin/delete/${postId}`, {
-        method: "DELETE",
-        credentials: "include", // Important: sends cookies/session to verify you are Admin
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        alert("Post deleted successfully.");
-        // 3. Refresh the page to see changes
-        window.location.reload(); 
-      } else {
-        alert(result.message || "Failed to delete post.");
-      }
-    } catch (error) {
-      console.error("Error deleting post:", error);
-      alert("An error occurred. Please try again.");
-    }
-  };
 
   return (
     <div className="recipe-database-section" style={{ backgroundColor: "white" }}>
@@ -176,7 +216,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
                 </span>
               </td>
 
-              {/* ✅ UPDATED ACTION BUTTONS */}
               <td className="admin-recipe-action-buttons">
                 {p.status === "Approved" ? (
                   <>
@@ -189,7 +228,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
 
                     <button
                       className="food-database-btn-delete"
-                      onClick={() => handleDelete(p.id)}
+                      onClick={() => handleDeleteClick(p.id)} 
                     >
                       <RiDeleteBin5Line />
                     </button>
@@ -230,6 +269,19 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
           </button>
         </div>
       )}
+
+      {/* 4️⃣ Render Modal */}
+      <Modal
+        open={modal.open}
+        title={modal.title}
+        icon={modal.icon}
+        primaryText={modal.primaryText}
+        onClose={closeModal}
+        onPrimary={modal.onPrimary}
+      >
+        {modal.message}
+      </Modal>
+
     </div>
   );
 };
