@@ -32,6 +32,25 @@ const EditRecipePage = () => {
     });
   const closeInfo = () => setInfoDlg((m) => ({ ...m, open: false }));
 
+  //================
+//CSRF
+//================
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
+
   // Fetch recipe data
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -80,25 +99,6 @@ const EditRecipePage = () => {
         console.error("❌ Error loading recipe:", err);
       }
     };
-
-//================
-//CSRF
-//================
-  const [csrfToken, setCsrfToken] = useState("");
-
-  useEffect(() => {
-    const fetchCsrfToken = async () => {
-      try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-        const data = await res.json();
-        setCsrfToken(data.csrfToken);
-      } catch (err) {
-        console.error("Failed to fetch CSRF token", err);
-      }
-    };
-    fetchCsrfToken();
-  }, []);
 
     fetchRecipe();
   }, [id]);

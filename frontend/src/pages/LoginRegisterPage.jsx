@@ -136,9 +136,7 @@ export default function LoginRegisterPage() {
  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       // Only run if user exists AND is verified
-      if (user && user.emailVerified) {
-        
-        // 🛑 STOP if we don't have the token yet. 
+      if (user && user.emailVerified) { 
         // The effect will re-run automatically once the token loads.
         if (!csrfToken) return;
 
