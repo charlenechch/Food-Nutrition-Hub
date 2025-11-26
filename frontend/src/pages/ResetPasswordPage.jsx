@@ -99,7 +99,7 @@ export default function ResetPasswordPage() {
       setTimeout(() => navigate("/loginregister"), 2500);
     } catch (err) {
       console.error(err);
-      setError("Something went wrong. Please try again or request a new link.");
+      setError(err.message || "Something went wrong. Please try again or request a new link.");
     }
   };
 
