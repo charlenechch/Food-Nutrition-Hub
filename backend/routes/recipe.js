@@ -52,17 +52,13 @@ api_key: process.env.CLOUDINARY_API_KEY ? "✅ Set" : "❌ Missing"
 });
 
 
-// ✅✅ UPDATED ROUTE BELOW: supports ?includeAll=true for admin moderation
 // GET all recipes (for admin and public)
 router.get('/all/recipes', async (req, res) => {
 try {
-// NEW: detect query param
+
 const includeAll = req.query.includeAll === 'true';
 console.log(`Fetching ${includeAll ? 'ALL' : 'APPROVED'} recipes...`);
 
-  // ✅ FIXED QUERY
-  // This query now starts FROM recipe (the submissions)
-  // and JOINS the food info and user info.
 const query = `
 SELECT 
       f.foodID AS id,
@@ -282,9 +278,13 @@ try {
       r.DidYouKnow AS funFact, 
       r.chefTips,
       r.status,
-      r.admin_feedback
+      r.admin_feedback,
+      CONCAT(u.firstname, ' ', u.lastname) AS authorName,
+      u.email AS authorEmail
     FROM food f
     LEFT JOIN recipe r ON f.foodID = r.foodID
+    LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
+    LEFT JOIN user u ON up.userID = u.userID
     WHERE f.foodID = ? 
   `;
   
@@ -322,7 +322,10 @@ try {
     funFact: row.funFact || '',
     chefTips: row.chefTips || '',
     status: row.status || 'Unknown',
-    adminFeedback: row.admin_feedback || ''
+    adminFeedback: row.admin_feedback || '',
+    authorName: row.authorName || 'Unknown Author',
+    authorEmail: row.authorEmail || 'N/A',
+    createdAt: row.createdAt
   };
   
   console.log('Sending transformed recipe:', {
