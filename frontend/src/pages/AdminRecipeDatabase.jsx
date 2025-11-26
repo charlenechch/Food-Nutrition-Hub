@@ -6,6 +6,7 @@ import { CiSearch, CiFilter } from "react-icons/ci";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
+import Modal from "../components/Modal"; // ✅ Import Modal
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -15,12 +16,23 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
   const [category, setCategory] = useState("All Categories");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
-
   const [showFilters, setShowFilters] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 5;
+
+  // 1️⃣ Modal State
+  const [modal, setModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+    onPrimary: null,
+  });
+
+  const closeModal = () => setModal((m) => ({ ...m, open: false, onPrimary: null }));
 
   const currentRecipes = recipesProp.slice(
     (currentPage - 1) * perPage,
@@ -45,6 +57,61 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
     sectionType === "approved"
       ? "Approved Recipe Database"
       : "Pending / Rejected Recipes";
+
+  // 2️⃣ Trigger the Pop-up
+  const handleDeleteClick = (recipeId) => {
+    setModal({
+      open: true,
+      title: "Confirm Deletion",
+      message: "Are you sure you want to delete this recipe? This action cannot be undone.",
+      icon: <RiDeleteBin5Line size={30} color="#dc3545" />,
+      primaryText: "Yes, Delete",
+      onPrimary: () => performDelete(recipeId),
+    });
+  };
+
+  // 3️⃣ Actual Delete Logic (API Call)
+  const performDelete = async (recipeId) => {
+    try {
+      const response = await fetch(`${API_URL}/api/recipe/admin/delete/${recipeId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setModal({
+          open: true,
+          title: "Deleted!",
+          message: "The recipe has been successfully removed.",
+          icon: <FaRegFlag size={30} color="green" />,
+          primaryText: "OK",
+          onPrimary: () => {
+             closeModal();
+             window.location.reload(); 
+          },
+        });
+      } else {
+        setModal({
+          open: true,
+          title: "Error",
+          message: result.message || "Failed to delete recipe.",
+          primaryText: "Close",
+          onPrimary: closeModal,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting recipe:", error);
+      setModal({
+        open: true,
+        title: "Error",
+        message: "An error occurred. Please try again.",
+        primaryText: "Close",
+        onPrimary: closeModal,
+      });
+    }
+  };
 
   if (!recipesProp || recipesProp.length === 0) {
     return (
@@ -158,7 +225,6 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
                 </span>
               </td>
 
-              {/* ✅ Updated Actions: Pencil + Trash like Food Database */}
               <td className="admin-recipe-action-buttons">
                 {r.status === "Approved" ? (
                   <>
@@ -171,7 +237,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
 
                     <button
                       className="food-database-btn-delete"
-                      onClick={() => console.log("Delete recipe ID:", r.id)}
+                      onClick={() => handleDeleteClick(r.id)} // ✅ Call handle delete here
                     >
                       <RiDeleteBin5Line />
                     </button>
@@ -212,6 +278,19 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
           </button>
         </div>
       )}
+
+      {/* 4️⃣ Render Modal */}
+      <Modal
+        open={modal.open}
+        title={modal.title}
+        icon={modal.icon}
+        primaryText={modal.primaryText}
+        onClose={closeModal}
+        onPrimary={modal.onPrimary}
+      >
+        {modal.message}
+      </Modal>
+
     </div>
   );
 };

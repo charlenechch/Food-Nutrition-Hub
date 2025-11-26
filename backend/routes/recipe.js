@@ -1257,4 +1257,38 @@ router.patch('/sendFeedback/:id', async (req, res) => {
   }
 });
 
+// ✅ DELETE RECIPE (Admin Only)
+router.delete("/admin/delete/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log(`🗑️ [ADMIN] Deleting recipe ID: ${id}`);
+
+  // 1. Security Check: Ensure user is Admin
+  if (req.session?.user?.role !== "admin") {
+    return res.status(403).json({ success: false, message: "Unauthorized: Admin access required." });
+  }
+
+  try {
+    // 2. Delete from 'recipe' table first (Child table)
+    await db.query("DELETE FROM recipe WHERE foodID = ?", [id]);
+
+    // 3. Delete from 'food' table next (Parent table)
+    const [result] = await db.query("DELETE FROM food WHERE foodID = ?", [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Recipe not found." });
+    }
+
+    console.log(`✅ [ADMIN] Recipe ${id} deleted successfully.`);
+    res.json({ success: true, message: "Recipe deleted successfully." });
+
+  } catch (error) {
+    console.error(`❌ [ADMIN] Error deleting recipe ${id}:`, error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error during deletion.",
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;
