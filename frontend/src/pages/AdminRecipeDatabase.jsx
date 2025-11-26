@@ -123,7 +123,6 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
           <tr>
             <th>Recipe Name</th>
             <th>Food Item</th>
-            <th>Origin</th>
             <th>Author</th>
             <th>Last Updated</th>
             <th>Status</th>
@@ -143,7 +142,6 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
                   {r.foodType || r.category || "N/A"}
                 </span>
               </td>
-              <td>{r.origin || "Unknown"}</td>
               <td>{r.author || "Unknown"}</td>
               <td>{r.date || "—"}</td>
               <td>
