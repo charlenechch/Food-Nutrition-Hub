@@ -959,7 +959,7 @@ const checkIsAdmin = (req, res, next) => {
   }
 };
 
-// 1️⃣ GET ALL PENDING POSTS (For Admin Dashboard)
+// 1 GET ALL PENDING POSTS (For Admin Dashboard)
 router.get("/admin/pending", checkIsAdmin, async (req, res) => {
   console.log("📥 [ADMIN] Fetching all pending community posts...");
 
@@ -1000,19 +1000,25 @@ router.get("/admin/pending", checkIsAdmin, async (req, res) => {
 });
 
 
-// 2️⃣ APPROVE A POST (For Admin Review Page)
+// 2️ APPROVE A POST (With Optional Feedback)
 router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
   const { id } = req.params;
-  console.log(`📥 [ADMIN] Approving post ID: ${id}`);
+  // ✅ 1. Extract feedback from the request body
+  const { feedback } = req.body; 
+  const feedbackText = feedback || ""; // Default to empty string if no feedback
 
+  console.log(`📥 [ADMIN] Approving post ID: ${id} with feedback: "${feedbackText}"`);
+
+  // 2. Update SQL to save the feedback into admin_feedback column
   const updateQuery = `
     UPDATE posts 
-    SET status = 'Approved' 
+    SET status = 'Approved', admin_feedback = ? 
     WHERE postID = ?;
   `;
 
   try {
-    const [result] = await db.execute(updateQuery, [id]);
+    // Pass feedbackText into the query
+    const [result] = await db.execute(updateQuery, [feedbackText, id]);
 
     if (result.affectedRows === 0) {
       console.warn(`⚠️ [ADMIN] Post ${id} not found or not pending.`);
@@ -1040,7 +1046,17 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
         console.log(`✅ User stats recounted for userProfileID: ${userProfileID}`);
       }
 
-      // Send "Approved" Email
+      // 3. Add Feedback Section to the Email HTML (only if feedback exists)
+      let feedbackHtmlBlock = "";
+      if (feedbackText.trim().length > 0) {
+        feedbackHtmlBlock = `
+          <div style="background-color: #f0fff4; border: 1px solid #c3e6cb; padding: 15px; margin: 20px 0; border-left: 5px solid #28a745;">
+             <strong style="color: #155724;">Admin Note:</strong><br/>
+             <p style="margin-top: 5px; margin-bottom: 0; color: #155724;">${feedbackText}</p>
+          </div>
+        `;
+      }
+
       const approvedHTML = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
           <div style="background-color: #28a745; padding: 20px; text-align: center;">
@@ -1050,7 +1066,9 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
             <h2 style="color: #28a745;">Wonderful news, ${firstname}!</h2>
             <p>Your community story <strong>"${foodName}"</strong> has been reviewed and approved.</p>
             
-            <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #28a745;">
+            ${feedbackHtmlBlock}
+
+            <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0;">
               <p style="margin: 0;">It is now live on the SarawakEats Community page for everyone to read!</p>
             </div>
 
@@ -1065,12 +1083,11 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
         </div>
       `;
 
-      // Send asynchronously
       sendEmail({
         to: email,
         subject: "🎉 Your Story Has Been Approved!",
         html: approvedHTML,
-        text: `Great news! Your story "${foodName}" has been approved and is now live.`
+        text: `Great news! Your story "${foodName}" has been approved.${feedbackText ? ` Admin Note: ${feedbackText}` : ''}`
       });
       console.log(`📩 Approved email sent to ${email}`);
     }
@@ -1086,7 +1103,7 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
   }
 });
 
-// 3️⃣ REJECT A POST (For Admin Review Page)
+// 3 REJECT A POST (For Admin Review Page)
 router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
   const { id } = req.params;
   const { feedback } = req.body; 
@@ -1109,7 +1126,7 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
       });
     }
 
-    // 3. Fetch User Email for Notification
+    // 4. Fetch User Email for Notification
     const [rows] = await db.query(`
       SELECT u.email, u.firstname, p.foodName
       FROM posts p
@@ -1121,7 +1138,7 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
     if (rows.length > 0) {
       const { email, firstname, foodName } = rows[0];
 
-      // 4. Send Rejection Email
+      // 5. Send Rejection Email
       const rejectedHTML = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
           <div style="background-color: #dc3545; padding: 20px; text-align: center;">
@@ -1253,7 +1270,7 @@ router.get("/admin/:id", checkIsAdmin, async (req, res) => {
 });
 
 // =============================
-// PATCH: Send Admin Feedback Only
+// PATCH: Send Admin Feedback + Smart Email Notification
 // =============================
 router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
   try {
@@ -1272,57 +1289,93 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
       return res.status(404).json({ error: "Post not found." });
     }
 
+    // 2. Fetch User Info AND Status to decide email style
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, p.foodName
+      SELECT u.email, u.firstname, p.foodName, p.status
       FROM posts p
       JOIN userProfile up ON p.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
       WHERE p.postID = ?
     `, [id]);
 
-    // 2. Construct and Send Email
+    // 3. Construct and Send Email
     if (rows.length > 0) {
-      const { email, firstname, foodName } = rows[0];
+      const { email, firstname, foodName, status } = rows[0];
 
-      const feedbackHTML = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-          <div style="background-color: #ffc107; padding: 20px; text-align: center;">
-            <h1 style="color: #000; margin: 0;">New Feedback Received</h1>
-          </div>
-          <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
-            <h2 style="color: #333;">Hello ${firstname},</h2>
-            <p>You have received new feedback regarding your community story <strong>"${foodName}"</strong>.</p>
-            
-            <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #ffc107;">
-              <strong style="color: #856404;">Admin Message:</strong><br/>
-              <p style="margin-top: 5px; margin-bottom: 0;">${feedback}</p>
+      let subjectLine = "";
+      let emailBodyHTML = "";
+
+      // SCENARIO A: Post is REJECTED -> Send Urgent Red Alert
+      if (status === "Rejected") {
+        subjectLine = `Action Required: Please Revise "${foodName}"`;
+        emailBodyHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #dc3545; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Revision Requested</h1>
             </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2 style="color: #dc3545;">Hello ${firstname},</h2>
+              <p>We have reviewed your rejected submission <strong>"${foodName}"</strong> and have new feedback for you.</p>
+              
+              <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #dc3545;">
+                <strong style="color: #856404;">Action Required:</strong><br/>
+                <p style="margin-top: 5px; margin-bottom: 0;">${feedback}</p>
+              </div>
 
-            <p>Please review this feedback. You can edit your story to address these comments.</p>
+              <p>Please update your story based on this feedback so we can reconsider it for approval.</p>
 
-            <div style="text-align: center; margin-top: 25px;">
-              <a href="https://food-nutrition-hub.vercel.app/revisecommunitypostpage/${id}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit Story</a>
+              <div style="text-align: center; margin-top: 25px;">
+                <a href="https://food-nutrition-hub.vercel.app/revisecommunitypostpage/${id}" style="display: inline-block; background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit & Resubmit</a>
+              </div>
+              
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
             </div>
-            
-            <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
-              Best regards,<br>The SarawakEats Team
-            </p>
           </div>
-        </div>
-      `;
+        `;
+      } 
+      // SCENARIO B: Post is APPROVED or PENDING -> Send Standard Yellow Feedback
+      else {
+        subjectLine = `New Feedback on "${foodName}"`;
+        emailBodyHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #ffc107; padding: 20px; text-align: center;">
+              <h1 style="color: #000; margin: 0;">New Feedback Received</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2 style="color: #333;">Hello ${firstname},</h2>
+              <p>You have received a new note regarding your story <strong>"${foodName}"</strong>.</p>
+              
+              <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #ffc107;">
+                <strong style="color: #856404;">Admin Message:</strong><br/>
+                <p style="margin-top: 5px; margin-bottom: 0;">${feedback}</p>
+              </div>
 
-      // Send asynchronously
+              <div style="text-align: center; margin-top: 25px;">
+                <a href="https://food-nutrition-hub.vercel.app/revisecommunitypostpage/${id}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Story</a>
+              </div>
+              
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
+            </div>
+          </div>
+        `;
+      }
+
+      // Send the email
       await sendEmail({
         to: email,
-        subject: `New Feedback on "${foodName}"`,
-        html: feedbackHTML,
-        text: `You have received feedback on your story "${foodName}": ${feedback}`
+        subject: subjectLine,
+        html: emailBodyHTML,
+        text: `Feedback on "${foodName}": ${feedback}`
       });
       
-      console.log(`📩 Feedback notification email sent to ${email}`);
+      console.log(`📩 Feedback notification (${status}) sent to ${email}`);
     }
 
-    res.json({ success: true, message: "Feedback sent successfully and email notification sent." });
+    res.json({ success: true, message: "Feedback sent successfully." });
   } catch (error) {
     console.error("❌ Error sending feedback:", error);
     res.status(500).json({ error: error.message });

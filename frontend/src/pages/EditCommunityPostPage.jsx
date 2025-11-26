@@ -105,9 +105,7 @@ const EditCommunityPostPage = () => {
       headers: { "Content-Type": "application/json" },
     };
 
-    if (modalType === "reject") {
-      requestOptions.body = JSON.stringify({ feedback: feedbackText });
-    }
+    requestOptions.body = JSON.stringify({ feedback: feedbackText });
 
     try {
       const res = await fetch(endpoint, requestOptions);
@@ -195,28 +193,28 @@ const EditCommunityPostPage = () => {
 
         {/* Approve/Reject only if not approved */}
         {post.status !== "Approved" && (
-          <div className="rcp-edit-review-actions">
-            <button
-              className="rcp-edit-approve-btn"
-              onClick={() => {
-                setModalType("approve");
-                setShowModal(true);
-              }}
-            >
-              <FaCheck /> Approve
-            </button>
-            <button
-              className="rcp-edit-reject-btn"
-              onClick={() => {
-                setModalType("reject");
-                setShowModal(true);
-              }}
-            >
-              <FaTimes /> Reject
-            </button>
-          </div>
+          <button
+            className="rcp-edit-approve-btn"
+            onClick={() => {
+              setModalType("approve");
+              setShowModal(true);
+            }}
+          >
+            <FaCheck /> Approve
+          </button>
         )}
-      </div>
+            {post.status === "Pending" && (
+              <button
+                className="rcp-edit-reject-btn"
+                onClick={() => {
+                  setModalType("reject");
+                  setShowModal(true);
+                }}
+              >
+                <FaTimes /> Reject
+              </button>
+            )}
+          </div>
 
       <div className="review-container">
         <div className="review-layout">
@@ -278,13 +276,15 @@ const EditCommunityPostPage = () => {
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
               />
-              <button
-                className="approve-btn"
-                style={{ marginTop: "10px" }}
-                onClick={handleSendFeedback}
-              >
-                Send Feedback
-              </button>
+              {(post.status === "Approved" || post.status === "Rejected") && (
+                  <button
+                    className="approve-btn"
+                    style={{ marginTop: "10px" }}
+                    onClick={handleSendFeedback}
+                  >
+                    Send Feedback
+                  </button>
+                )}
             </div>
           </div>
         </div>
