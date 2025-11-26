@@ -53,7 +53,7 @@ router.post("/", async (req, res) => {
         success: false, 
         error: "Please wait before requesting another email",
         remainingSeconds: remainingSeconds,
-        cooldownSeconds: 120
+        cooldownSeconds: 60
       });
     }
 
@@ -73,7 +73,7 @@ router.post("/", async (req, res) => {
     return res.json({ 
       success: true, 
       message: "Resend approved. Please check your inbox for the new link.",
-      cooldownSeconds: 120
+      cooldownSeconds: 60
     });
 
   } catch (err) {
