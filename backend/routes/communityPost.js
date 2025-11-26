@@ -1390,4 +1390,31 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
   }
 });
 
+// 5. DELETE A POST (Admin Only)
+router.delete("/admin/delete/:id", checkIsAdmin, async (req, res) => {
+  const { id } = req.params;
+  console.log(`🗑️ [ADMIN] Deleting post ID: ${id}`);
+
+  try {
+    // Execute delete query
+    const query = "DELETE FROM posts WHERE postID = ?";
+    const [result] = await db.execute(query, [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Post not found." });
+    }
+
+    console.log(`✅ [ADMIN] Post ${id} deleted successfully.`);
+    res.json({ success: true, message: "Post deleted successfully." });
+
+  } catch (err) {
+    console.error(`❌ [ADMIN] Error deleting post ${id}:`, err);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error during deletion.",
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
 module.exports = router;

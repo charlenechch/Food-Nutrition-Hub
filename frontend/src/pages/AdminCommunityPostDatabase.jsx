@@ -56,6 +56,35 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
     );
   }
 
+// Function to handle post deletion
+  const handleDelete = async (postId) => {
+    // 1. Confirm with the user
+    if (!window.confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      // 2. Call the backend API
+      const response = await fetch(`${API_URL}/api/communityPost/admin/delete/${postId}`, {
+        method: "DELETE",
+        credentials: "include", // Important: sends cookies/session to verify you are Admin
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert("Post deleted successfully.");
+        // 3. Refresh the page to see changes
+        window.location.reload(); 
+      } else {
+        alert(result.message || "Failed to delete post.");
+      }
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      alert("An error occurred. Please try again.");
+    }
+  };
+
   return (
     <div className="recipe-database-section" style={{ backgroundColor: "white" }}>
     <div className="recipe-header">
@@ -160,7 +189,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
 
                     <button
                       className="food-database-btn-delete"
-                      onClick={() => console.log("Delete post ID:", p.id)}
+                      onClick={() => handleDelete(p.id)}
                     >
                       <RiDeleteBin5Line />
                     </button>
