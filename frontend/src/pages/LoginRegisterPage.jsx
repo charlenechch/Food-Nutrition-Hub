@@ -133,16 +133,23 @@ export default function LoginRegisterPage() {
     return () => clearInterval(interval);
   }, [resendCooldown]);
 
-  useEffect(() => {
+ useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      // Only run if user exists AND is verified
       if (user && user.emailVerified) {
+        
+        // 🛑 STOP if we don't have the token yet. 
+        // The effect will re-run automatically once the token loads.
+        if (!csrfToken) return;
+
         try {
           await fetch(`${API_URL}/api/syncEmailVerification`, {
             method: "POST",
             credentials: "include",
-            headers: { "Content-Type": "application/json",
-            "X-CSRF-Token": csrfToken
-             },
+            headers: { 
+                "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken 
+            },
             body: JSON.stringify({ email: user.email }),
           });
           console.log("✅ Verification synced to Database");
@@ -152,7 +159,7 @@ export default function LoginRegisterPage() {
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [csrfToken]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
