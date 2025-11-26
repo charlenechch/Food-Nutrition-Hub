@@ -1148,13 +1148,11 @@ router.patch('/updateStatus/:id', async (req, res) => {
 });
 
 // =============================
-// PATCH: Send Admin Feedback Only
+// PATCH: Send Admin Feedback Only + Email Notification
 // =============================
 router.patch('/sendFeedback/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    // We check for 'feedback' (what your frontend sends) 
-    // OR 'message' (in case you changed it).
     const feedback = req.body.feedback || req.body.message;
 
     console.log(`📝 Updating feedback for recipe ${id}...`);
@@ -1163,7 +1161,7 @@ router.patch('/sendFeedback/:id', async (req, res) => {
       return res.status(400).json({ error: "Feedback content is required." });
     }
 
-    // Update the admin_feedback column in the recipe table
+    // 1. Update the admin_feedback in the database
     const query = "UPDATE recipe SET admin_feedback = ? WHERE foodID = ?";
     const [result] = await db.query(query, [feedback, id]);
 
@@ -1171,13 +1169,64 @@ router.patch('/sendFeedback/:id', async (req, res) => {
       return res.status(404).json({ error: "Recipe not found." });
     }
 
+    // 2. NEW: Fetch User Info & Recipe Name to send the email
+    const [rows] = await db.query(`
+      SELECT u.email, u.firstname, f.name AS recipeName
+      FROM recipe r
+      JOIN userProfile up ON r.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      JOIN food f ON r.foodID = f.foodID
+      WHERE r.foodID = ?
+    `, [id]);
+
+    // 3.Construct and Send the Email
+    if (rows.length > 0) {
+      const { email, firstname, recipeName } = rows[0];
+
+      const feedbackHTML = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <div style="background-color: #ffc107; padding: 20px; text-align: center;">
+            <h1 style="color: #000; margin: 0;">New Feedback Received</h1>
+          </div>
+          <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <h2 style="color: #333;">Hello ${firstname},</h2>
+            <p>You have received new feedback regarding your recipe submission <strong>"${recipeName}"</strong>.</p>
+            
+            <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #ffc107;">
+              <strong style="color: #856404;">Admin Message:</strong><br/>
+              <p style="margin-top: 5px; margin-bottom: 0;">${feedback}</p>
+            </div>
+
+            <p>Please review this feedback. You can edit your recipe to address these comments.</p>
+
+            <div style="text-align: center; margin-top: 25px;">
+              <a href="https://food-nutrition-hub.vercel.app/revise/${id}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit Recipe</a>
+            </div>
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+              Best regards,<br>The SarawakEats Team
+            </p>
+          </div>
+        </div>
+      `;
+
+      // Send the email asynchronously
+      await sendEmail({
+        to: email,
+        subject: `New Feedback on "${recipeName}"`,
+        html: feedbackHTML,
+        text: `You have received feedback on your recipe "${recipeName}": ${feedback}`
+      });
+      
+      console.log(`📩 Feedback notification email sent to ${email}`);
+    }
+
     console.log(`✅ Feedback updated for recipe ${id}`);
-    res.json({ success: true, message: "Feedback sent successfully." });
+    res.json({ success: true, message: "Feedback sent successfully and email notification sent." });
 
   } catch (error) {
     console.error("❌ Error sending feedback:", error);
     res.status(500).json({ error: error.message });
   }
 });
-
 module.exports = router;
