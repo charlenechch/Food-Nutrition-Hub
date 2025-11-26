@@ -757,7 +757,8 @@ router.get("/user/:userId", async (req, res) => {
         'community' AS type,
         origin AS culturalOrigin,
         culturalStory AS content,
-        recipe
+        recipe,
+        admin_feedback
       FROM posts 
       WHERE userProfileID = ?
       ORDER BY created_at DESC
@@ -777,7 +778,8 @@ router.get("/user/:userId", async (req, res) => {
       type: post.type,
       culturalOrigin: post.culturalOrigin,
       content: post.content,
-      recipe: post.recipe
+      recipe: post.recipe,
+      adminFeedback: post.admin_feedback
     }));
 
     res.json(formattedPosts);
@@ -1093,13 +1095,11 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
   console.log(`📥 [ADMIN] Rejecting post ID: ${id}`);
 
   const updateQuery = `
-    UPDATE posts 
-    SET status = 'Rejected' 
-    WHERE postID = ?;
+    UPDATE posts SET status = 'Rejected', admin_feedback = ? WHERE postID = ?;
   `;
 
   try {
-    const [result] = await db.execute(updateQuery, [id]);
+    const [result] = await db.execute(updateQuery, [feedbackText, id]);
 
     if (result.affectedRows === 0) {
       console.warn(`⚠️ [ADMIN] Post ${id} not found or not pending.`);
@@ -1205,7 +1205,9 @@ router.get("/admin/:id", checkIsAdmin, async (req, res) => {
       p.photos,
       p.status,
       p.created_at,
-      CONCAT(u.firstname, ' ', u.lastname) AS author
+      p.admin_feedback,
+      CONCAT(u.firstname, ' ', u.lastname) AS author,
+      u.email AS authorEmail
     FROM posts p
     JOIN userProfile up ON p.userProfileID = up.userProfileID
     JOIN user u ON up.userID = u.userID
@@ -1237,6 +1239,7 @@ router.get("/admin/:id", checkIsAdmin, async (req, res) => {
         image: post.photos ? post.photos.split(",")[0] : null,
         author: post.author,
         status: post.status,
+        adminFeedback: post.admin_feedback,
         created_at: post.created_at,
       },
     });
@@ -1246,6 +1249,33 @@ router.get("/admin/:id", checkIsAdmin, async (req, res) => {
       success: false,
       message: "Internal server error while fetching post.",
     });
+  }
+});
+
+// =============================
+// PATCH: Send Admin Feedback Only
+// =============================
+router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const feedback = req.body.feedback || req.body.message;
+
+    if (!feedback) {
+      return res.status(400).json({ error: "Feedback content is required." });
+    }
+
+    // Use specific column admin_feedback
+    const query = "UPDATE posts SET admin_feedback = ? WHERE postID = ?";
+    const [result] = await db.query(query, [feedback, id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Post not found." });
+    }
+
+    res.json({ success: true, message: "Feedback sent successfully." });
+  } catch (error) {
+    console.error("❌ Error sending feedback:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 

@@ -98,22 +98,37 @@ const EditCommunityPostPage = () => {
       modalType === "approve"
         ? `${API_URL}/api/communityPost/admin/approve/${id}`
         : `${API_URL}/api/communityPost/admin/reject/${id}`;
+
+    const requestOptions = {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    };
+
+    if (modalType === "reject") {
+      requestOptions.body = JSON.stringify({ feedback: feedbackText });
+    }
+
     try {
-      const res = await fetch(endpoint, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await fetch(endpoint, requestOptions);
       const data = await res.json();
+      
       if (!res.ok) throw new Error(data.message || "Action failed");
+      
       openInfo({
         title: "Success",
         message: `Post ${modalType === "approve" ? "approved" : "rejected"} successfully!`,
         icon: <FaCheckCircle />,
       });
+      
       setShowModal(false);
-      // Refetch post to update status
-      setPost((prev) => ({ ...prev, status: modalType === "approve" ? "Approved" : "Rejected" }));
+      
+      setPost((prev) => ({ 
+        ...prev, 
+        status: modalType === "approve" ? "Approved" : "Rejected",
+        adminFeedback: modalType === "reject" ? feedbackText : prev.adminFeedback
+      }));
+      
     } catch (err) {
       openInfo({
         title: "Action Failed",
