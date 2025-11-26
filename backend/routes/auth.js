@@ -176,16 +176,14 @@ router.post("/logout", (req, res) => {
   - Path: POST /updatePassword
 */
 router.post("/updatePassword", async (req, res) => {
-  // 1️⃣ DEFINE variables first
+  // 1️⃣ Define variables first
   const email = req.body.email?.trim();
   const newPassword = req.body.newPassword?.trim();
 
-  // 2️⃣ THEN you can safely log them
+  // 2️⃣ Log after defining
   console.log("📩 /updatePassword route hit for user:", email);
 
-  // Robust check for undefined, null, or empty strings
   if (!email || !newPassword) {
-    console.warn("⚠️ Validation failed. Email or newPassword missing.", { email, newPassword });
     return res.status(400).json({
       success: false,
       message: "Email and newPassword are required",
@@ -193,7 +191,32 @@ router.post("/updatePassword", async (req, res) => {
   }
 
   try {
-    console.log(`🔑 Hashing password for: ${email}`);
+    // 🔍 STEP 1: Fetch the CURRENT password hash first
+    const [users] = await db.execute(
+      "SELECT password FROM user WHERE email = ?",
+      [email]
+    );
+
+    // If user exists, check if new password == old password
+    if (users.length > 0) {
+      const currentHash = users[0].password;
+      
+      // Only compare if a hash actually exists
+      if (currentHash) {
+        const isSame = await bcrypt.compare(newPassword, currentHash);
+        
+        // 🛑 STEP 2: Block if passwords are the same
+        if (isSame) {
+          console.warn(`⚠️ User ${email} tried to use the same password.`);
+          return res.status(400).json({
+            success: false,
+            message: "New password cannot be the same as your current password.",
+          });
+        }
+      }
+    }
+
+    console.log(`🔑 Hashing new password for: ${email}`);
     const hashed = await bcrypt.hash(newPassword, 10);
 
     console.log(`💾 Updating password in MySQL for: ${email}`);
@@ -204,7 +227,6 @@ router.post("/updatePassword", async (req, res) => {
 
     if (result.affectedRows === 0) {
       console.log(`ℹ️ No user found in MySQL for: ${email}. Skipping update.`);
-      // This is still a "success" because Firebase updated.
       return res.json({
         success: true,
         message: "No matching MySQL user; skipped update",
@@ -216,9 +238,10 @@ router.post("/updatePassword", async (req, res) => {
 
   } catch (err) {
     console.error(`💥 /updatePassword error for ${email}:`, err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error during password update" });
+    return res.status(500).json({ 
+      success: false, 
+      message: "Server error during password update" 
+    });
   }
 });
 
