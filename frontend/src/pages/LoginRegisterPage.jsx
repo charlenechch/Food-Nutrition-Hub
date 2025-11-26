@@ -141,7 +141,7 @@ export default function LoginRegisterPage() {
         if (!csrfToken) return;
 
         try {
-          await fetch(`${API_URL}/api/syncEmailVerification`, {
+          await fetch(`${API_URL}/api/auth/syncEmailVerification`, {
             method: "POST",
             credentials: "include",
             headers: { 
