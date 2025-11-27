@@ -155,8 +155,8 @@ const globalLimiter = rateLimit({
 app.use(globalLimiter);
 
 const authLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  limit: 10,
+  windowMs: 30 * 60 * 1000,
+  limit: 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many attempts, try again later." },
