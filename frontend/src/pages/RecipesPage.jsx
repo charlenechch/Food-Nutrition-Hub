@@ -374,7 +374,7 @@ useEffect(() => {
       setExpanded(false);
             
       showInfo({
-        title: "Recipe Created Successfully!",
+        title: "Recipe Submitted Successfully!",
         body: "Your recipe has been submitted for review. It will be visible to others after admin approval.",
         icon: <PiChefHat />,
       });

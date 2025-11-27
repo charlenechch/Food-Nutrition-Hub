@@ -218,9 +218,9 @@ useEffect(() => {
 
       setModal({
         open: true,
-        title: "Story Submitted Successfully!",
+        title: "Post Submitted Successfully!",
         message:
-          "Your story has been submitted for review. Please wait for admin approval before it appears publicly.",
+          "Your post has been submitted for review. Please wait for admin approval before it appears publicly.",
         icon: <PiChefHat />,
         primaryText: "OK",
         onPrimary: () => {
