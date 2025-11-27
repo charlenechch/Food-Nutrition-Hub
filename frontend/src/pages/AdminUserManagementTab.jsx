@@ -646,7 +646,7 @@ export default function UserManagement() {
                 <span>User Accounts ({filteredUsers.length})</span>
               </div>
               <button className="umg-btn-primary" onClick={openCreateUser}>
-                + Add User
+                + Create User
               </button>
             </div>
 
