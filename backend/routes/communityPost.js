@@ -1111,11 +1111,14 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
   }
 });
 
-// 3 REJECT A POST (For Admin Review Page)
+// 3 Reject a post (For Admin Review Page)
 router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
   const { id } = req.params;
   const { feedback } = req.body; 
-  const feedbackText = feedback || "No specific feedback provided.";
+
+  const rejectionEmailContent = feedback && feedback.trim().length > 0 
+                             ? feedback 
+                             : "No specific feedback provided.";
   
   console.log(`📥 [ADMIN] Rejecting post ID: ${id}`);
 
@@ -1124,7 +1127,7 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
   `;
 
   try {
-    const [result] = await db.execute(updateQuery, [feedbackText, id]);
+    const [result] = await db.execute(updateQuery, [feedback || null, id]);
 
     if (result.affectedRows === 0) {
       console.warn(`⚠️ [ADMIN] Post ${id} not found or not pending.`);
@@ -1159,7 +1162,7 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
             
             <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #dc3545;">
               <strong style="color: #856404;">Reason for Rejection:</strong><br/>
-              <p style="margin-top: 5px; margin-bottom: 0;">${feedbackText}</p>
+              <p style="margin-top: 5px; margin-bottom: 0;">${rejectionEmailContent}</p>
             </div>
 
             <p>You can edit your story based on this feedback and resubmit it from your profile.</p>
@@ -1177,9 +1180,9 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
 
       sendEmail({
         to: email,
-        subject: "Action Required: Community Story Submission",
+        subject: "Update on your Community Story Submission",
         html: rejectedHTML,
-        text: `Your story "${foodName}" was rejected. Reason: ${feedbackText}`
+        text: `Your story "${foodName}" has been rejected.`
       });
       console.log(`📩 Rejection email sent to ${email}`);
     }
