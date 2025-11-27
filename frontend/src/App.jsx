@@ -125,16 +125,15 @@ function SessionChecker() {
   const { checkSession, user } = useAuth();
   const location = useLocation();
 
-  // 1. Route Change Check (Safe)
+  // Route Change Check (Safe)
   useEffect(() => {
     checkSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   // Active Polling
   useEffect(() => {
-    // STOP if we are a guest or not logged in. 
-    // Guests don't need to be polled (and we don't want to kick them out).
+    // Stop if a guest or not logged in. 
+    // Guests don't need to be polled (don't want to kick them out).
     if (!user || user.role === "guest") return;
 
     // Run checkSession every 60 seconds
