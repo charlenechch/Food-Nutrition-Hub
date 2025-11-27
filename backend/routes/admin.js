@@ -683,7 +683,7 @@ router.post("/users", requireAdmin, async (req, res) => {
               <p>Your account has been successfully created by our admin team.</p>
               
               <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <p style="margin: 5px 0;"><strong>Username:</strong> ${email}</p>
+                <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
                 <p style="margin: 5px 0;"><strong>Role:</strong> ${role}</p>
               </div>
 
