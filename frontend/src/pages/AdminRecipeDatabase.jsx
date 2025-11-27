@@ -206,7 +206,13 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
       </div>
 
       {/* Recipe Table */}
-      <table className="content-table" style={{ width: "100%" }}>
+      <table 
+        className="content-table" 
+        style={{ 
+          width: "100%", 
+          borderCollapse: "collapse" // FIX 1: Ensures lines are straight
+        }}
+      >
         <thead>
           <tr>
             <th>Recipe Name</th>
@@ -219,20 +225,24 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
         </thead>
         <tbody>
           {currentRecipes.map((r, i) => (
-            <tr key={r.id || i}>
-              <td>
+            <tr 
+              key={r.id || i}
+              style={{ verticalAlign: "top" }} 
+            >
+              {/* TD MODIFICATIONS: Fixed height and border-bottom */}
+              <td style={{ borderBottom: "1px solid #e0e0e0", verticalAlign: "middle", height: "60px" }}>
                 {r.name || "Unnamed Recipe"}
                 <br />
                 <small>{r.servings ? `${r.servings} servings` : ""}</small>
               </td>
-              <td>
+              <td style={{ borderBottom: "1px solid #e0e0e0", verticalAlign: "middle", height: "60px" }}>
                 <span className="category-tag">
                   {r.foodType || r.category || "N/A"}
                 </span>
               </td>
-              <td>{r.author || "Unknown"}</td>
-              <td>{r.date || "—"}</td>
-              <td>
+              <td style={{ borderBottom: "1px solid #e0e0e0", verticalAlign: "middle", height: "60px" }}>{r.author || "Unknown"}</td>
+              <td style={{ borderBottom: "1px solid #e0e0e0", verticalAlign: "middle", height: "60px" }}>{r.date || "—"}</td>
+              <td style={{ borderBottom: "1px solid #e0e0e0", verticalAlign: "middle", height: "60px" }}>
                 <span
                   className={`recipe-status-tag ${
                     r.status === "Pending"
@@ -246,7 +256,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
                 </span>
               </td>
 
-              <td className="admin-recipe-action-buttons">
+              <td className="admin-recipe-action-buttons" style={{ borderBottom: "1px solid #e0e0e0", verticalAlign: "middle", height: "60px" }}>
                 {r.status === "Approved" ? (
                   <>
                     <button
@@ -267,6 +277,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
                   <button
                     className="review-btn"
                     onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}
+                    style={{ margin: 0, padding: '5px 15px' }} // FIX 3: Ensures no external margin on the button
                   >
                     Review
                   </button>

@@ -61,6 +61,24 @@ const LikeButton = ({ postId, initialLikes, user, onAlert  }) => {
 
   const openLoginModal = () => setShowLoginModal(true);
 
+  //================
+    //CSRF
+    //================
+    const [csrfToken, setCsrfToken] = useState("");       
+      useEffect(() => {
+        const fetchCsrfToken = async () => {
+          try {
+            const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+            const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+            const data = await res.json();
+             setCsrfToken(data.csrfToken);
+            } catch (err) {
+              console.error("Failed to fetch CSRF token", err);
+               }
+           };
+          fetchCsrfToken();
+      }, []);
+
   // Check if user already liked this post
   useEffect(() => {
     const checkUserLike = async () => {
@@ -288,6 +306,24 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
       openLoginModal();
     }
   };
+
+    //================
+      //CSRF
+      //================
+      const [csrfToken, setCsrfToken] = useState("");       
+        useEffect(() => {
+          const fetchCsrfToken = async () => {
+            try {
+              const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+              const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+              const data = await res.json();
+               setCsrfToken(data.csrfToken);
+              } catch (err) {
+                console.error("Failed to fetch CSRF token", err);
+                 }
+             };
+            fetchCsrfToken();
+        }, []);
 
   const handleSubmit = async (e) => {
   e.preventDefault();
@@ -522,25 +558,6 @@ export default function CommunityPost() {
     fetchPost();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
-
-  //================
-  //CSRF
-  //================
-        const [csrfToken, setCsrfToken] = useState("");
-      
-        useEffect(() => {
-          const fetchCsrfToken = async () => {
-            try {
-              const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-              const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-              const data = await res.json();
-              setCsrfToken(data.csrfToken);
-            } catch (err) {
-              console.error("Failed to fetch CSRF token", err);
-            }
-          };
-          fetchCsrfToken();
-        }, []);
 
   const fetchPost = async () => {
     try {
