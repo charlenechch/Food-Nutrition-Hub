@@ -105,12 +105,12 @@ router.post("/", async (req, res) => {
       let lockDurationMinutes = 0;
 
       // Lockout Rules
-      // 30 attempts -> 2 mins
-      // 31 attempts -> 5 mins
-      // 32+ attempts -> 10 mins
-      if (newAttempts === 30) lockDurationMinutes = 2;
-      else if (newAttempts === 31) lockDurationMinutes = 5;
-      else if (newAttempts >= 32) lockDurationMinutes = 10;
+      // 5 attempts -> 2 mins
+      // 6 attempts -> 5 mins
+      // 7+ attempts -> 10 mins
+      if (newAttempts === 5) lockDurationMinutes = 2;
+      else if (newAttempts === 6) lockDurationMinutes = 5;
+      else if (newAttempts >= 7) lockDurationMinutes = 10;
 
       if (lockDurationMinutes > 0) {
            const lockDate = new Date();
