@@ -96,7 +96,7 @@ router.post("/sendLogin", async (req, res) => {
 
     await sendEmail({
         to: user.email,
-        subject: "Resend: Your Login Verification Code",
+        subject: "Your Login Verification Code",
         html: otpHTML,
         text: `Your new code is ${otpCode}`
     });
