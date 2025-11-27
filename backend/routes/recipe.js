@@ -1096,7 +1096,9 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
       // B. REJECTED Logic
       else if (status === "Rejected") {
-        const feedbackText = feedback || "No specific feedback provided.";
+        const rejectionContent = feedback && feedback.trim().length > 0
+                             ? feedback 
+                             : "No specific feedback provided.";
         
         const rejectedHTML = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -1110,7 +1112,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
               
               <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #dc3545;">
                 <strong style="color: #856404;">Admin Feedback:</strong><br/>
-                <p style="margin-top: 5px; margin-bottom: 0;">${feedbackText}</p>
+                <p style="margin-top: 5px; margin-bottom: 0;">${rejectionContent}</p>
               </div>
 
               <p>Please edit your recipe to address these issues and resubmit it for review.</p>
@@ -1130,7 +1132,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
           to: email,
           subject: "Update on your Recipe Submission",
           html: rejectedHTML,
-          text: `Your recipe "${recipeName}" requires revision.`
+          text: `Your recipe "${recipeName}" has been rejected.`
         });
       }
     }
