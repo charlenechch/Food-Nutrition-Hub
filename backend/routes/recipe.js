@@ -1132,7 +1132,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
           to: email,
           subject: "Update on your Recipe Submission",
           html: rejectedHTML,
-          text: `Your recipe "${recipeName}" has been rejected.`
+          text: `Your recipe "${recipeName}" has been rejected. Admin Feedback: ${rejectionContent}`
         });
       }
     }
