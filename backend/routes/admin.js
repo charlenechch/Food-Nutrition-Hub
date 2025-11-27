@@ -488,6 +488,8 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
               </ul>
             </div>
 
+            ${verificationReminderHTML}
+
             <p>If you did not request this change, please contact support immediately.</p>
             
             <div style="text-align: center; margin-top: 25px;">
