@@ -269,7 +269,9 @@ const savePersonal = async () => {
     
     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken
+       },
       credentials: "include",
       body: JSON.stringify(updateData),
     });
@@ -315,7 +317,9 @@ const savePrefs = async () => {
 
     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken
+       },
       credentials: "include",
       body: JSON.stringify(preferencesPayload),
     });
@@ -715,7 +719,7 @@ const savePrefs = async () => {
         method: 'POST',
         credentials: 'include',
         headers: {
-          'X-CSRF-Token': csrfToken 
+        'X-CSRF-Token': csrfToken 
         },
         body: formData,
       });
