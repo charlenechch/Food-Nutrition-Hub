@@ -633,3 +633,28 @@
     display: "flex";
     gap: 8px;
 }
+
+/* When viewing (not editing), it looks like clean text */
+.upp-read-only {
+    padding: 10px 12px; 
+    font-size: 1rem;
+    color: #333;
+    border-bottom: 1px solid transparent; 
+    min-height: 44px; 
+    display: flex;
+    align-items: center;
+}
+
+/* When editing, highlight the inputs slightly */
+.upp-input-edit {
+    background-color: #fff !important;
+    border: 1px solid #8B4513 !important; 
+    transition: all 0.2s;
+}
+
+/* Action bar for Save/Cancel */
+.upp-edit-actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+}

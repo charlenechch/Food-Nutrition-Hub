@@ -147,6 +147,8 @@ const getStatusClass = (status) => {
 export default function UserProfilePage() {
   const { userProfileID } = useParams();
   const navigate = useNavigate();
+  //Controls view and edit mode
+  const [isEditing, setIsEditing] = useState(false);
 
 //====================
   //CSRF
@@ -1002,63 +1004,120 @@ const savePrefs = async () => {
                   <div className="upp-card">
                     <h3 className="upp-card-title">Personal Information</h3>
 
+                    {/* --- First Name & Last Name --- */}
                     <div className="upp-form-grid">
                       <label>
                         <span>First Name</span>
-                        <input
-                          value={form.firstName}
-                          onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))}
-                        />
+                        {isEditing ? (
+                          <input 
+                            value={form.firstName} 
+                            onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))} 
+                            className="upp-input-edit"
+                          />
+                        ) : (
+                          <div className="upp-read-only">{form.firstName}</div>
+                        )}
                       </label>
                       <label>
                         <span>Last Name</span>
-                        <input
-                          value={form.lastName}
-                          onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))}
-                        />
+                        {isEditing ? (
+                          <input 
+                            value={form.lastName} 
+                            onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))} 
+                            className="upp-input-edit"
+                          />
+                        ) : (
+                          <div className="upp-read-only">{form.lastName}</div>
+                        )}
                       </label>
                     </div>
 
-                    {/* Email & Location side-by-side for consistent styling */}
+                    {/* --- Email & Location --- */}
                     <div className="upp-form-grid">
                       <label>
                         <span>Email</span>
-                        <input
-                          type="email"
-                          value={form.email}
-                          onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                        {/* Email usually stays disabled for security */}
+                        <input 
+                          type="email" 
+                          value={form.email} 
+                          disabled 
+                          style={{ backgroundColor: "#f9f9f9", color: "#999", border: "1px solid #eee", cursor: "not-allowed" }} 
                         />
                       </label>
-
                       <label>
                         <span>Location</span>
-                        <input
-                          value={form.location}
-                          onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
-                        />
+                        {isEditing ? (
+                          <input 
+                            value={form.location} 
+                            onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} 
+                            className="upp-input-edit"
+                          />
+                        ) : (
+                          <div className="upp-read-only">{form.location || "Not specified"}</div>
+                        )}
                       </label>
                     </div>
 
+                    {/* --- Bio --- */}
                     <label className="upp-block">
                       <span>Bio</span>
-                      <textarea
-                        value={bio}
-                        onChange={(e) => setBio(e.target.value)}
-                        rows={3}
-                        maxLength={200}
-                        className="upp-textarea"
-                        placeholder="Tell us about yourself…"
-                      />
-                      <div className="upp-help">{bio.length}/200</div>
+                      {isEditing ? (
+                        <>
+                          <textarea 
+                            value={bio} 
+                            onChange={(e) => setBio(e.target.value)} 
+                            rows={3} 
+                            maxLength={200} 
+                            className="upp-textarea" 
+                          />
+                          <div className="upp-help">{bio.length}/200</div>
+                        </>
+                      ) : (
+                        <div className="upp-read-only" style={{ minHeight: "60px", whiteSpace: "pre-wrap" }}>
+                          {bio || "No bio yet."}
+                        </div>
+                      )}
                     </label>
 
-                    <button className="lrp-btn lrp-btn-primary" onClick={savePersonal}>
-                      Save Changes
-                    </button>
+                    {/* --- ACTION BUTTONS (Instagram Style) --- */}
+                    <div style={{ marginTop: "24px" }}>
+                      {!isEditing ? (
+                        // VIEW MODE: Big Edit Button
+                        <button 
+                          className="lrp-btn lrp-btn-outline" 
+                          style={{ width: "100%", padding: "12px", fontWeight: "bold", border: "1px solid #ccc" }}
+                          onClick={() => setIsEditing(true)}
+                        >
+                          Edit Profile
+                        </button>
+                      ) : (
+                        // EDIT MODE: Cancel + Save
+                        <div style={{ display: "flex", gap: "12px" }}>
+                          <button 
+                            className="lrp-btn lrp-btn-outline" 
+                            style={{ flex: 1 }}
+                            onClick={() => setIsEditing(false)}
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            className="lrp-btn lrp-btn-primary" 
+                            style={{ flex: 1 }}
+                            onClick={async () => {
+                              await savePersonal();
+                              setIsEditing(false);
+                            }}
+                          >
+                            Save Changes
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 </div>
 
-                {/* Sidebar stats */}
+                {/* Sidebar Stats (Unchanged) */}
                 <aside className="upp-sticky">
                   <div className="upp-card">
                     <h3 className="upp-card-title">My Contributions</h3>
