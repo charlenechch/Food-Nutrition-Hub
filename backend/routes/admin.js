@@ -425,7 +425,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
               <p>Your account suspension has been lifted.</p>
               
               <div style="background-color: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #28a745;">
-                <p>You now have full access to login and use SarawakEats again.</p>
+                <p>You can now log in to SarawakEats and access your account.</p>
               </div>
 
               <div style="text-align: center; margin-top: 25px;">
@@ -441,9 +441,9 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
         sendEmail({
             to: finalEmail,
-            subject: "Account Reactivated",
+            subject: "Important: Your Account Suspension Has Been Lifted By An Admin",
             html: unsuspendHTML,
-            text: "Your account suspension has been lifted. You can now log in."
+            text: "Your account suspension has been lifted by an admin. You can now log in."
         });
         console.log(`📩 Unsuspension email sent to ${finalEmail}`);
     }
