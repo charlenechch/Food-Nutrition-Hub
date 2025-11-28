@@ -311,7 +311,7 @@ const EditRecipePage = () => {
                 className={modalType === "approve" ? "approve-btn" : "delete-btn"}
                 onClick={async () => {
                   const newStatus = modalType === "approve" ? "Approved" : "Rejected";
-                  const feedbackToSend = adminFeedback ? adminFeedback.trim() : "";
+                  const feedbackToSend = adminFeedback ? adminFeedback.trim() : ""; 
 
                   try {
                     const updateUrl = `${API_URL}/api/recipe/updateStatus/${id}`;
@@ -335,7 +335,7 @@ const EditRecipePage = () => {
                     setShowModal(false);
                     openInfo({
                       title: newStatus === "Approved" ? "Approved" : "Rejected",
-                      message: `Admin Feedback:\n${feedback}`,
+                      message: `Admin Feedback:\n${feedbackToSend}`,
                       icon: newStatus === "Approved" ? <FaCheckCircle /> : <FaExclamationTriangle />,
                       primaryText: "OK",
                     });
