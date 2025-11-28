@@ -30,24 +30,22 @@ export default function Community() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-//====================
-  //CSRF
-  //======================
-const [csrfToken, setCsrfToken] = useState("");
+  // CSRF
+  const [csrfToken, setCsrfToken] = useState("");
 
-useEffect(() => {
-  const fetchCsrfToken = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-      const data = await res.json();
-      setCsrfToken(data.csrfToken);
-    } catch (err) {
-      console.error("Failed to fetch CSRF token", err);
-    }
-  };
-  fetchCsrfToken();
-}, []);
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   // Filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,10 +62,12 @@ useEffect(() => {
     icon: null,
     primaryText: "OK",
     onPrimary: null,
+    secondaryText: null, // Added secondary support
+    onSecondary: null
   });
 
   const closeModal = () =>
-    setModal((m) => ({ ...m, open: false, onPrimary: null }));
+    setModal((m) => ({ ...m, open: false, onPrimary: null, onSecondary: null }));
   
   useEffect(() => {
     fetchPosts();
@@ -140,10 +140,9 @@ useEffect(() => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-  // Replace confirm() with LoginPromptModal
   const handleExpand = () => {
     if (!isAuthenticated) {
-      setShowLoginModal(true); // ✅ Show modal
+      setShowLoginModal(true); 
       return;
     }
     setExpanded(true);
@@ -194,9 +193,7 @@ useEffect(() => {
       submitData.append("culturalOrigin", formData.culturalOrigin);
       submitData.append("culturalStory", formData.culturalStory);
       submitData.append("recipe", formData.recipe || "");
-      console.log("User object:", user);
       submitData.append("userProfileID", user.id);
-
       submitData.append("author", user?.firstname || user?.email);
 
       if (selectedFile) {
@@ -216,27 +213,31 @@ useEffect(() => {
         throw new Error(result.message || "Failed to submit post");
       }
 
+      // UPDATED SUCCESS MODAL LOGIC
       setModal({
         open: true,
         title: "Post Submitted Successfully!",
-        message:
-          "Your post has been submitted for review. Please wait for admin approval before it appears publicly.",
+        // Educational message
+        message: "Your post has been sent to the Admins for approval. It is currently in Pending. You can track its progress in your Profile under the Contributions tab.",
         icon: <PiChefHat />,
-        primaryText: "OK",
+        
+        // Primary Action: Go to Profile
+        primaryText: "Track My Post",
         onPrimary: () => {
           closeModal();
-      setFormData({
-        foodName: "",
-        culturalOrigin: "",
-        culturalStory: "",
-        recipe: "",
+          resetForm();
+          navigate("/profile?tab=status"); // Redirects to Contributions tab
+        },
+
+        // Secondary Action: Stay Here
+        secondaryText: "Close",
+        onSecondary: () => {
+          closeModal();
+          resetForm();
+          fetchPosts(); 
+        }
       });
-      setPreview(null);
-      setSelectedFile(null);
-      setExpanded(false);
-      fetchPosts();
-      },
-    });
+
     } catch (err) {
       setModal({
         open: true,
@@ -497,8 +498,10 @@ useEffect(() => {
       title={modal.title}
       icon={modal.icon}
       primaryText={modal.primaryText}
+      secondaryText={modal.secondaryText} 
       onClose={closeModal}
       onPrimary={modal.onPrimary}
+      onSecondary={modal.onSecondary} 
     >
       {modal.message}
     </Modal>
