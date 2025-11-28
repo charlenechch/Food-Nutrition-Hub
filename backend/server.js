@@ -145,12 +145,15 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
-// ---------- Rate Limiting ----------
+// ---------- Rate Limiting (UPDATED) ----------
+
+// 1. Global Limiter (Prevents general spam)
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000, // 15 minutes
   limit: 300,
   standardHeaders: true,
   legacyHeaders: false,
+  // Send JSON error instead of text to prevent frontend crash
   message: {
     success: false,
     message: "Too many requests, please try again later."
@@ -158,15 +161,23 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
+// 2. Auth Limiter (Prevents login spam)
 const authLimiter = rateLimit({
-  windowMs: 30 * 60 * 1000,
-  limit: 300,
+  //  Short cooldown (30 seconds) instead of 30 minutes
+  windowMs: 30 * 1000, 
+  
+  // Limit to 5 attempts per 30 seconds
+  limit: 5, 
+  
   standardHeaders: true,
   legacyHeaders: false,
+  
+  // JSON response + Friendly message
   message: { 
     success: false, 
-    message: "Too many login attempts, please try again later." 
+    message: "You are doing that too fast! Please wait 30 seconds and try again." 
   },
+  
   keyGenerator: (req, res) => {
     const ipKey = ipKeyGenerator(req, res);
     const emailKey = req.body?.email || "guest";
@@ -206,12 +217,8 @@ app.use(
 
 // CSRF PROTECTION
 const csrfProtection = csrf();
-// 1. Enable CSRF globally
-// This will block any POST/PUT/DELETE request that doesn't have the "X-CSRF-Token" header
 app.use(csrfProtection);
 
-// 2. CSRF Token Endpoint
-// frontend calls this ONCE when the app loads to get the secret handshake token
 app.get("/api/csrf-token", (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
