@@ -53,7 +53,7 @@ async function updateStaleAndExpiredUsers() {
                       <p>Your account suspension has automatically expired.</p>
                       
                       <div style="background-color: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #28a745;">
-                        <p style="margin: 0;">You can now log in and access your account.</p>
+                        <p style="margin: 0;">You can now log in to SarawakEats and access your account.</p>
                       </div>
 
                       <div style="text-align: center; margin-top: 25px;">
@@ -69,7 +69,7 @@ async function updateStaleAndExpiredUsers() {
                 
                 return sendEmail({
                     to: user.email,
-                    subject: "Your Account Suspension Has Ended",
+                    subject: "Important: Your Account Suspension Has Ended",
                     html: html,
                     text: "Your account suspension has ended. You can now log in."
                 });
