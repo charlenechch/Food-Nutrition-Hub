@@ -5,12 +5,18 @@ import { CiSearch, CiFilter } from "react-icons/ci";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
-import Modal from "../components/Modal"; // ✅ Ensure this path is correct
+import Modal from "../components/Modal";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved" }) => {
+const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "approved" }) => {
   const navigate = useNavigate();
+
+  const [localPosts, setLocalPosts] = useState(postsProp);
+
+  useEffect(() => {
+    setLocalPosts(postsProp);
+  }, [postsProp]);
 
   const [category, setCategory] = useState("All Categories");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -21,7 +27,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 5;
 
-  // 1️⃣ Modal State
+  // Modal State
   const [modal, setModal] = useState({
     open: false,
     title: "",
@@ -33,33 +39,33 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
 
   const closeModal = () => setModal((m) => ({ ...m, open: false, onPrimary: null }));
 
-  const currentPosts = postsProp.slice(
+  const currentPosts = localPosts.slice(
     (currentPage - 1) * perPage,
     currentPage * perPage
   );
-  const totalPages = Math.ceil(postsProp.length / perPage);
+  const totalPages = Math.ceil(localPosts.length / perPage);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
-  //================
-    //CSRF
-    //================
-    const [csrfToken, setCsrfToken] = useState("");       
-      useEffect(() => {
-        const fetchCsrfToken = async () => {
-          try {
-            const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-            const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-            const data = await res.json();
-             setCsrfToken(data.csrfToken);
-            } catch (err) {
-              console.error("Failed to fetch CSRF token", err);
-               }
-           };
-          fetchCsrfToken();
-      }, []);
+  //==============
+  // CSRF
+  //==============
+  const [csrfToken, setCsrfToken] = useState("");       
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   useEffect(() => {
     const closeDropdown = (e) => {
@@ -75,7 +81,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
       ? "Approved Community Posts"
       : "Pending / Rejected Community Posts";
 
-  // 2️⃣ Trigger the Pop-up (Replaces window.confirm)
   const handleDeleteClick = (postId) => {
     setModal({
       open: true,
@@ -87,21 +92,23 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
     });
   };
 
-  // 3️⃣ Actual Delete Logic (API Call)
+  // 4. Updated Delete Logic
   const performDelete = async (postId) => {
     try {
       const response = await fetch(`${API_URL}/api/communityPost/admin/delete/${postId}`, {
         method: "DELETE",
         headers: {
-        "X-CSRF-Token": csrfToken
-    },
+          "X-CSRF-Token": csrfToken
+        },
         credentials: "include",
       });
 
       const result = await response.json();
 
       if (response.ok && result.success) {
-        // Show Success Modal
+        // Update local state to remove the item instantly
+        setLocalPosts((prev) => prev.filter((post) => post.id !== postId));
+
         setModal({
           open: true,
           title: "Deleted!",
@@ -110,11 +117,9 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
           primaryText: "OK",
           onPrimary: () => {
              closeModal();
-             window.location.reload(); 
           },
         });
       } else {
-        // Show Error Modal
         setModal({
           open: true,
           title: "Error",
@@ -135,7 +140,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
     }
   };
 
-  if (!postsProp || postsProp.length === 0) {
+  if (!localPosts || localPosts.length === 0) {
     return (
       <div className="recipe-database-section" style={{ backgroundColor: "white" }}>
       <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
@@ -291,7 +296,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp, sectionType = "approved"
         </div>
       )}
 
-      {/* 4️⃣ Render Modal */}
+      {/* Render Modal */}
       <Modal
         open={modal.open}
         title={modal.title}

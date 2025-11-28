@@ -10,8 +10,16 @@ import Modal from "../components/Modal";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType = "approved" }) => {
+const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories, sectionType = "approved" }) => {
   const navigate = useNavigate();
+
+  // 1. Create local state to manage the list internally
+  const [localRecipes, setLocalRecipes] = useState(recipesProp);
+
+  // 2. Sync local state if parent props change
+  useEffect(() => {
+    setLocalRecipes(recipesProp);
+  }, [recipesProp]);
 
   const [category, setCategory] = useState("All Categories");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -22,7 +30,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 5;
 
-  // 1️⃣ Modal State
+  // Modal State
   const [modal, setModal] = useState({
     open: false,
     title: "",
@@ -34,33 +42,34 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
 
   const closeModal = () => setModal((m) => ({ ...m, open: false, onPrimary: null }));
 
-  const currentRecipes = recipesProp.slice(
+  // ✅ 3. Use localRecipes for slicing/pagination
+  const currentRecipes = localRecipes.slice(
     (currentPage - 1) * perPage,
     currentPage * perPage
   );
-  const totalPages = Math.ceil(recipesProp.length / perPage);
+  const totalPages = Math.ceil(localRecipes.length / perPage);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
-  //================
-  //CSRF
-  //================
+  //=============
+  // CSRF
+  //=============
   const [csrfToken, setCsrfToken] = useState("");       
-    useEffect(() => {
-      const fetchCsrfToken = async () => {
-        try {
-          const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-          const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-          const data = await res.json();
-           setCsrfToken(data.csrfToken);
-          } catch (err) {
-            console.error("Failed to fetch CSRF token", err);
-             }
-         };
-        fetchCsrfToken();
-    }, []);
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   useEffect(() => {
     const closeDropdown = (e) => {
@@ -76,7 +85,6 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
       ? "Approved Recipe Database"
       : "Pending / Rejected Recipes";
 
-  // 2️⃣ Trigger the Pop-up
   const handleDeleteClick = (recipeId) => {
     setModal({
       open: true,
@@ -88,7 +96,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
     });
   };
 
-  // 3️⃣ Actual Delete Logic (API Call)
+  // ✅ 4. Updated Delete Logic
   const performDelete = async (recipeId) => {
     try {
       const response = await fetch(`${API_URL}/api/recipe/admin/delete/${recipeId}`, {
@@ -102,6 +110,8 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
       const result = await response.json();
 
       if (response.ok && result.success) {
+        setLocalRecipes((prev) => prev.filter((r) => r.id !== recipeId));
+
         setModal({
           open: true,
           title: "Deleted!",
@@ -110,7 +120,6 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
           primaryText: "OK",
           onPrimary: () => {
              closeModal();
-             window.location.reload(); 
           },
         });
       } else {
@@ -134,7 +143,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
     }
   };
 
-  if (!recipesProp || recipesProp.length === 0) {
+  if (!localRecipes || localRecipes.length === 0) {
     return (
      <div className="recipe-database-section" style={{ backgroundColor: "white" }}>
       <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
@@ -304,7 +313,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp, categories, sectionType =
         </div>
       )}
 
-      {/* 4️⃣ Render Modal */}
+      {/* Render Modal */}
       <Modal
         open={modal.open}
         title={modal.title}
