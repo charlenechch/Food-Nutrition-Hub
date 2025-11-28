@@ -151,6 +151,10 @@ const globalLimiter = rateLimit({
   limit: 300,
   standardHeaders: true,
   legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests, please try again later."
+  },
 });
 app.use(globalLimiter);
 
@@ -159,7 +163,10 @@ const authLimiter = rateLimit({
   limit: 300,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: "Too many attempts, try again later." },
+  message: { 
+    success: false, 
+    message: "Too many login attempts, please try again later." 
+  },
   keyGenerator: (req, res) => {
     const ipKey = ipKeyGenerator(req, res);
     const emailKey = req.body?.email || "guest";
