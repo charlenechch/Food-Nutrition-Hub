@@ -168,7 +168,7 @@ const EditRecipePage = () => {
       <Header />
 
       <div className="admin-review-header">
-        {/* ✅ UPDATED BACK BUTTON */}
+        {/* BACK BUTTON */}
         <button className="admin-recipe-edit-back-btn" onClick={handleBack}>
           <span className="recipe-edit-btn"><FaArrowLeft /></span> {backButtonText}
         </button>
@@ -311,14 +311,13 @@ const EditRecipePage = () => {
                 className={modalType === "approve" ? "approve-btn" : "delete-btn"}
                 onClick={async () => {
                   const newStatus = modalType === "approve" ? "Approved" : "Rejected";
-                  const feedback =
-                    document.querySelector(".admin-feedback-input")?.value.trim() || "No feedback provided.";
+                  const feedbackToSend = adminFeedback ? adminFeedback.trim() : "";
 
                   try {
                     const updateUrl = `${API_URL}/api/recipe/updateStatus/${id}`;
                     const payload = { 
                         status: newStatus,
-                        feedback: feedbackInput
+                        feedback: feedbackToSend
                     };
 
                     const res = await fetch(updateUrl, {
