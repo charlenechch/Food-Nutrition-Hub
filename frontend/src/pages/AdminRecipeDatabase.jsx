@@ -1,36 +1,64 @@
-// src/pages/AdminRecipeDatabase.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaRegFlag, FaPlus } from "react-icons/fa6";
+import { FaRegFlag } from "react-icons/fa6";
 import { CiSearch, CiFilter } from "react-icons/ci";
-import { MdOutlineFileUpload } from "react-icons/md";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import Modal from "../components/Modal";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories, sectionType = "approved" }) => {
+const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sectionType = "approved" }) => {
   const navigate = useNavigate();
 
-  // 1. Create local state to manage the list internally
+  // --- States ---
   const [localRecipes, setLocalRecipes] = useState(recipesProp);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [category, setCategory] = useState("All Categories");
+  const [difficulty, setDifficulty] = useState("All"); 
+  const [statusFilter, setStatusFilter] = useState("All");
 
-  // 2. Sync local state if parent props change
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef();
+  const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 5;
+
+  // --- Sync Props ---
   useEffect(() => {
     setLocalRecipes(recipesProp);
   }, [recipesProp]);
 
-  const [category, setCategory] = useState("All Categories");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef();
-  const [showFilters, setShowFilters] = useState(false);
+  // Reset page
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, category, difficulty, statusFilter]);
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const perPage = 5;
+  // --- Filtering Logic ---
+  const filteredRecipes = localRecipes.filter((r) => {
+    const term = searchTerm.toLowerCase();
+    const name = (r.name || "").toLowerCase();
+    const author = (r.author || "").toLowerCase();
+    const matchesSearch = name.includes(term) || author.includes(term);
+    const matchesCategory = category === "All Categories" || (r.foodType === category || r.category === category);
+    const matchesDifficulty = difficulty === "All" || (r.difficulty || "Medium") === difficulty;
+    const matchesStatus = statusFilter === "All" || r.status === statusFilter;
 
-  // Modal State
+    return matchesSearch && matchesCategory && matchesDifficulty && matchesStatus;
+  });
+
+  // --- Pagination ---
+  const currentRecipes = filteredRecipes.slice(
+    (currentPage - 1) * perPage,
+    currentPage * perPage
+  );
+  const totalPages = Math.ceil(filteredRecipes.length / perPage);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
+  // --- Modal & CSRF ---
   const [modal, setModal] = useState({
     open: false,
     title: "",
@@ -39,29 +67,13 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories, sectionT
     primaryText: "OK",
     onPrimary: null,
   });
-
   const closeModal = () => setModal((m) => ({ ...m, open: false, onPrimary: null }));
 
-  // ✅ 3. Use localRecipes for slicing/pagination
-  const currentRecipes = localRecipes.slice(
-    (currentPage - 1) * perPage,
-    currentPage * perPage
-  );
-  const totalPages = Math.ceil(localRecipes.length / perPage);
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
-  };
-
-  //=============
-  // CSRF
-  //=============
   const [csrfToken, setCsrfToken] = useState("");       
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
         const data = await res.json();
         setCsrfToken(data.csrfToken);
       } catch (err) {
@@ -80,10 +92,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories, sectionT
     return () => document.removeEventListener("click", closeDropdown);
   }, []);
 
-  const sectionTitle =
-    sectionType === "approved"
-      ? "Approved Recipe Database"
-      : "Pending / Rejected Recipes";
+  const sectionTitle = sectionType === "approved" ? "Approved Recipe Database" : "Pending / Rejected Recipes";
 
   const handleDeleteClick = (recipeId) => {
     setModal({
@@ -96,31 +105,24 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories, sectionT
     });
   };
 
-  // ✅ 4. Updated Delete Logic
   const performDelete = async (recipeId) => {
     try {
       const response = await fetch(`${API_URL}/api/recipe/admin/delete/${recipeId}`, {
         method: "DELETE",
-        headers: {
-        "X-CSRF-Token": csrfToken
-    },
+        headers: { "X-CSRF-Token": csrfToken },
         credentials: "include",
       });
-
       const result = await response.json();
 
       if (response.ok && result.success) {
         setLocalRecipes((prev) => prev.filter((r) => r.id !== recipeId));
-
         setModal({
           open: true,
           title: "Deleted!",
           message: "The recipe has been successfully removed.",
           icon: <FaRegFlag size={30} color="green" />,
           primaryText: "OK",
-          onPrimary: () => {
-             closeModal();
-          },
+          onPrimary: closeModal,
         });
       } else {
         setModal({
@@ -133,19 +135,12 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories, sectionT
       }
     } catch (error) {
       console.error("Error deleting recipe:", error);
-      setModal({
-        open: true,
-        title: "Error",
-        message: "An error occurred. Please try again.",
-        primaryText: "Close",
-        onPrimary: closeModal,
-      });
     }
   };
 
   if (!localRecipes || localRecipes.length === 0) {
     return (
-     <div className="recipe-database-section" style={{ backgroundColor: "white" }}>
+     <div className="recipe-database-section" style={{ backgroundColor: "white", minHeight: showFilters ? "850px" : "600px", transition: "min-height 0.3s ease" }}>
       <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
         <p style={{ textAlign: "center", marginTop: 20, color: "#999" }}>
           No recipes found.
@@ -155,176 +150,148 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories, sectionT
   }
 
   return (
-    <div className="recipe-database-section" style={{ backgroundColor: "white" }}>
-    <div className="recipe-header">
-        <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
+    // ✅ DYNAMIC HEIGHT APPLIED
+    <div 
+      className="recipe-database-section" 
+      style={{ 
+        backgroundColor: "white", 
+        minHeight: showFilters ? "850px" : "600px", 
+        display: "flex", 
+        flexDirection: "column", 
+        justifyContent: "space-between",
+        transition: "min-height 0.3s ease"
+      }}
+    >
+      
+      <div>
+        <div className="recipe-header">
+          <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
+        </div>
 
-        {sectionType === "approved" && (
-          <div className="recipe-actions">
-            <button
-              className="admin-recipe-btn-add"
-              onClick={() => navigate("/admin/addrecipe")}
-            >
-              <FaPlus /> Add New Recipe
+        <div className="food-filters">
+          <div className="search-box">
+            <CiSearch className="search-icon" />
+            <input 
+              type="text" 
+              placeholder="Search recipes..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`} ref={dropdownRef}>
+            <button className="admin-beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
+              {category}
             </button>
-            <button className="admin-recipe-btn-import">
-              <MdOutlineFileUpload /> Bulk Import
-            </button>
+            {dropdownOpen && (
+              <ul className="admin-beige-list">
+                {["All Categories", ...categories.filter(c => c !== "All Categories")].map((opt, i) => (
+                  <li key={i} onClick={() => { setCategory(opt); setDropdownOpen(false); }}>
+                    {opt}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <button className="admin-recipe-btn-filter" onClick={() => setShowFilters(!showFilters)}>
+            <CiFilter className="filter-icon" /> Filters
+          </button>
+        </div>
+
+        {showFilters && (
+          <div className="advanced-filters">
+            <h4><CiFilter /> Advanced Filters</h4>
+            <div className="filter-grid">
+              <div className="filter-item">
+                <label>Difficulty</label>
+                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                  <option value="All">All</option>
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
+              <div className="filter-item">
+                <label>Category</label>
+                <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                  <option>All Categories</option>
+                  {categories.filter(c => c !== "All Categories").map((cat) => (
+                    <option key={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-item">
+                <label>Status</label>
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="All">All</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
           </div>
         )}
-      </div>
 
-      {/* Filters */}
-      <div className="food-filters">
-        <div className="search-box">
-          <CiSearch className="search-icon" />
-          <input type="text" placeholder="Search recipes..." />
-        </div>
-        <div
-          className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`}
-          ref={dropdownRef}
-        >
-          <button
-            className="admin-beige-trigger"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-          >
-            {category}
-          </button>
-          {dropdownOpen && (
-            <ul className="admin-beige-list">
-              {categories.map((opt, i) => (
-                <li
-                  key={i}
-                  onClick={() => {
-                    setCategory(opt);
-                    setDropdownOpen(false);
-                  }}
-                >
-                  {opt}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <button
-          className="admin-recipe-btn-filter"
-          onClick={() => setShowFilters(!showFilters)}
-        >
-          <CiFilter className="filter-icon" /> Filters
-        </button>
-      </div>
-
-      {/* Recipe Table */}
-      <table 
-        className="content-table" 
-      >
-        <thead>
-          <tr>
-            <th>Recipe Name</th>
-            <th>Food Item</th>
-            <th>Author</th>
-            <th>Last Updated</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentRecipes.map((r, i) => (
-            <tr 
-              key={r.id || i}
-            >
-              <td>
-                {r.name || "Unnamed Recipe"}
-                <br />
-                <small>{r.servings ? `${r.servings} servings` : ""}</small>
-              </td>
-              <td>
-                <span className="category-tag">
-                  {r.foodType || r.category || "N/A"}
-                </span>
-              </td>
-              <td>{r.author || "Unknown"}</td>
-              <td>{r.date || "—"}</td>
-              <td>
-                <span
-                  className={`recipe-status-tag ${
-                    r.status === "Pending"
-                      ? "pending"
-                      : r.status === "Rejected"
-                      ? "rejected"
-                      : "approved"
-                  }`}
-                >
-                  {r.status}
-                </span>
-              </td>
-
-              <td className="admin-recipe-action-buttons">
-                {r.status === "Approved" ? (
-                  <>
-                    <button
-                      className="food-database-btn-edit"
-                      onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}
-                    >
-                      <HiOutlinePencilAlt />
-                    </button>
-
-                    <button
-                      className="food-database-btn-delete"
-                      onClick={() => handleDeleteClick(r.id)} 
-                    >
-                      <RiDeleteBin5Line />
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    className="review-btn"
-                    onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}
-                  >
-                    Review
-                  </button>
-                )}
-              </td>
+        <table className="content-table">
+          <thead>
+            <tr>
+              <th>Recipe Name</th>
+              <th>Food Item</th>
+              <th>Author</th>
+              <th>Last Updated</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {currentRecipes.map((r, i) => (
+              <tr key={r.id || i}>
+                <td>
+                  {r.name || "Unnamed Recipe"}
+                  <br />
+                  <small>{r.servings ? `${r.servings} servings` : ""}</small>
+                </td>
+                <td><span className="category-tag">{r.foodType || r.category || "N/A"}</span></td>
+                <td>{r.author || "Unknown"}</td>
+                <td>{r.date || "—"}</td>
+                <td>
+                  <span className={`recipe-status-tag ${r.status === "Pending" ? "pending" : r.status === "Rejected" ? "rejected" : "approved"}`}>
+                    {r.status}
+                  </span>
+                </td>
+                <td className="admin-recipe-action-buttons">
+                  {r.status === "Approved" ? (
+                    <>
+                      <button className="food-database-btn-edit" onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}>
+                        <HiOutlinePencilAlt />
+                      </button>
+                      <button className="food-database-btn-delete" onClick={() => handleDeleteClick(r.id)}>
+                        <RiDeleteBin5Line />
+                      </button>
+                    </>
+                  ) : (
+                    <button className="review-btn" onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}>
+                      Review
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      {totalPages > 1 && (
-        <div className="admin-pagination">
-          <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-            ‹ Prev
-          </button>
+      <div className="admin-pagination" style={{ marginBottom: "20px" }}>
+          <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>‹ Prev</button>
           {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              onClick={() => handlePageChange(i + 1)}
-              className={currentPage === i + 1 ? "active" : ""}
-            >
-              {i + 1}
-            </button>
+            <button key={i} onClick={() => handlePageChange(i + 1)} className={currentPage === i + 1 ? "active" : ""}>{i + 1}</button>
           ))}
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            Next ›
-          </button>
-        </div>
-      )}
+          <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next ›</button>
+      </div>
 
-      {/* Render Modal */}
-      <Modal
-        open={modal.open}
-        title={modal.title}
-        icon={modal.icon}
-        primaryText={modal.primaryText}
-        onClose={closeModal}
-        onPrimary={modal.onPrimary}
-      >
+      <Modal open={modal.open} title={modal.title} icon={modal.icon} primaryText={modal.primaryText} onClose={closeModal} onPrimary={modal.onPrimary}>
         {modal.message}
       </Modal>
-
     </div>
   );
 };
