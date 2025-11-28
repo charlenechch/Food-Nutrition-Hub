@@ -316,7 +316,10 @@ const EditRecipePage = () => {
 
                   try {
                     const updateUrl = `${API_URL}/api/recipe/updateStatus/${id}`;
-                    const payload = { status: newStatus };
+                    const payload = { 
+                        status: newStatus,
+                        feedback: feedbackInput
+                    };
 
                     const res = await fetch(updateUrl, {
                       method: "PATCH",
