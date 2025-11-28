@@ -1000,7 +1000,7 @@ router.post("/recipes/:id/feedback", async (req, res) => {
   }
 });
 
-// ✅ ADMIN: Update recipe approval status (Approve / Reject)
+// Admin update recipe approval status (Approve / Reject)
 router.patch('/updateStatus/:id', async (req, res) => {
   const recipeId = req.params.id;
   console.log(`Attempting to update status for ID: ${recipeId}`);
@@ -1015,9 +1015,20 @@ router.patch('/updateStatus/:id', async (req, res) => {
     });
   }
 
-  try {
+  // Coerce feedback into a string and trim whitespace
+    const inputFeedback = String(feedback || '').trim();
+
+    // Define the variable for the database (NULL if empty)
     const dbFeedbackValue = inputFeedback.length > 0 ? inputFeedback : null;
 
+    // Define the variable for email display (includes the default fallback)
+    const rejectionContent = inputFeedback.length > 0 
+                             ? inputFeedback 
+                             : "No specific feedback provided.";
+
+  try {
+
+    // SQL Update: Use the defined dbFeedbackValue variable
     const [result] = await db.query(
       "UPDATE recipe SET status = ?, admin_feedback = ? WHERE foodID = ?",
       [status, dbFeedbackValue, recipeId] 
@@ -1098,13 +1109,6 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
       // B. REJECTED Logic
       else if (status === "Rejected") {
-        // Coerce feedback into a string and trim whitespace
-        const inputFeedback = String(feedback || '').trim();
-        
-        // Define the variable using the clean string's length check
-        const rejectionContent = inputFeedback.length > 0
-                             ? inputFeedback 
-                             : "No specific feedback provided.";
         
         const rejectedHTML = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
