@@ -394,7 +394,7 @@ useEffect(() => {
           <div className="rcp-wrap">
           <h2 className="rp-title">Revise Recipe</h2>
           
-          {/* ✅ ADDED ADMIN ALERT BOX */}
+          {/* ADMIN ALERT BOX */}
           <div className="rcp-admin-alert">
             <div className="rcp-alert-header">
               <FaExclamationTriangle className="rcp-alert-icon" />

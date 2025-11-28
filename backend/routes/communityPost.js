@@ -1322,14 +1322,15 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
         emailBodyHTML = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
             <div style="background-color: #dc3545; padding: 20px; text-align: center;">
-              <h1 style="color: #fff; margin: 0;">Revision Requested</h1>
+              <h1 style="color: #fff; margin: 0;">Action Required</h1>
             </div>
             <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
               <h2 style="color: #dc3545;">Hello ${firstname},</h2>
+              <p>Thank you for submitting <strong>"${foodName}"</strong>.</p>
               <p>We have reviewed your rejected submission <strong>"${foodName}"</strong> and have new feedback for you.</p>
               
               <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #dc3545;">
-                <strong style="color: #856404;">Action Required:</strong><br/>
+                <strong style="color: #856404;">Admin Feedback:</strong><br/>
                 <p style="margin-top: 5px; margin-bottom: 0;">${feedback}</p>
               </div>
 

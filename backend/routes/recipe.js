@@ -1096,8 +1096,12 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
       // B. REJECTED Logic
       else if (status === "Rejected") {
-        const rejectionContent = feedback && feedback.trim().length > 0
-                             ? feedback 
+        // Coerce feedback into a string and trim whitespace
+        const inputFeedback = String(feedback || '').trim();
+        
+        // Define the variable using the clean string's length check
+        const rejectionContent = inputFeedback.length > 0
+                             ? inputFeedback 
                              : "No specific feedback provided.";
         
         const rejectedHTML = `
@@ -1115,7 +1119,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
                 <p style="margin-top: 5px; margin-bottom: 0;">${rejectionContent}</p>
               </div>
 
-              <p>Please edit your recipe to address these issues and resubmit it for review.</p>
+              <p>Please update your recipe based on this feedback so we can reconsider it for approval.</p>
 
               <div style="text-align: center; margin-top: 25px;">
                 <a href="https://food-nutrition-hub.vercel.app/revise/${recipeId}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit Recipe</a>
@@ -1130,7 +1134,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
         sendEmail({
           to: email,
-          subject: "Update on your Recipe Submission",
+          subject: `Action Required: Please Revise "${recipeName}`,
           html: rejectedHTML,
           text: `Your recipe "${recipeName}" has been rejected. Admin Feedback: ${rejectionContent}`
         });
