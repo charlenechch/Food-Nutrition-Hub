@@ -1064,11 +1064,11 @@ router.patch('/updateStatus/:id', async (req, res) => {
       if (status === "Approved") {
         
         let feedbackHtmlBlock = "";
-        if (feedback && feedback.trim().length > 0) {
+        if (inputFeedback.length > 0) {
           feedbackHtmlBlock = `
             <div style="background-color: #f0fff4; border: 1px solid #c3e6cb; padding: 15px; margin: 20px 0; border-left: 5px solid #28a745;">
                <strong style="color: #155724;">Admin Note:</strong><br/>
-               <p style="margin-top: 5px; margin-bottom: 0; color: #155724;">${feedback}</p>
+               <p style="margin-top: 5px; margin-bottom: 0; color: #155724;">${inputFeedback}</p>
             </div>
           `;
         }
