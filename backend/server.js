@@ -150,7 +150,7 @@ app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 // 1. Global Limiter (Prevents general spam)
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 300,
+  limit: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   // Send JSON error instead of text to prevent frontend crash

@@ -33,6 +33,7 @@ const EditCommunityPostPage = () => {
     icon: null,
     primaryText: "OK",
   });
+  
   const openInfo = (opts) =>
     setInfoDlg({
       open: true,
@@ -41,27 +42,22 @@ const EditCommunityPostPage = () => {
       icon: opts.icon || null,
       primaryText: opts.primaryText || "OK",
     });
-  const closeInfo = () =>
-    setInfoDlg((m) => ({ ...m, open: false }));
+  const closeInfo = () => setInfoDlg((m) => ({ ...m, open: false }));
 
-  //================
-  //CSRF
-  //================
-    const [csrfToken, setCsrfToken] = useState("");
-  
-    useEffect(() => {
-      const fetchCsrfToken = async () => {
-        try {
-          const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-          const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-          const data = await res.json();
-          setCsrfToken(data.csrfToken);
-        } catch (err) {
-          console.error("Failed to fetch CSRF token", err);
-        }
-      };
-      fetchCsrfToken();
-    }, []);
+  // CSRF
+  const [csrfToken, setCsrfToken] = useState("");
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
   
   // Fetch post
   useEffect(() => {
@@ -98,7 +94,6 @@ const EditCommunityPostPage = () => {
           images: p.photos ? p.photos.split(",").map((url) => url.trim()) : [],
           adminFeedback: p.adminFeedback || "",
         });
-        // Preload existing feedback
         setFeedbackText(p.adminFeedback || "");
       } catch (err) {
         console.error(err);
@@ -111,6 +106,23 @@ const EditCommunityPostPage = () => {
     if (id) fetchPost();
   }, [id]);
 
+  // ✅ SMART NAVIGATION LOGIC
+  const handleBack = () => {
+    if (!post) {
+      navigate("/admin");
+      return;
+    }
+    const status = (post.status || "").toLowerCase();
+    
+    // Approved -> Database Tab (default /admin)
+    // Pending/Rejected -> Moderation Tab (/admin?tab=moderation)
+    if (status === "approved") {
+      navigate("/admin"); 
+    } else {
+      navigate("/admin?tab=moderation");
+    }
+  };
+
   // Approve / Reject
   const handleConfirmAction = async () => {
     const endpoint =
@@ -121,12 +133,9 @@ const EditCommunityPostPage = () => {
     const requestOptions = {
       method: "PUT",
       credentials: "include",
-      headers: { "Content-Type": "application/json",
-      "X-CSRF-Token": csrfToken
-       },
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+      body: JSON.stringify({ feedback: feedbackText }),
     };
-
-    requestOptions.body = JSON.stringify({ feedback: feedbackText });
 
     try {
       const res = await fetch(endpoint, requestOptions);
@@ -157,28 +166,25 @@ const EditCommunityPostPage = () => {
     }
   };
 
-  // Send feedback (any status)
+  // Send feedback
   const handleSendFeedback = async () => {
-  if (!feedbackText.trim()) {
-    openInfo({
-      title: "Missing Feedback",
-      message: "Please enter feedback before sending.",
-      icon: <FaExclamationTriangle />,
-    });
-    return;
-  }
+    if (!feedbackText.trim()) {
+      openInfo({
+        title: "Missing Feedback",
+        message: "Please enter feedback before sending.",
+        icon: <FaExclamationTriangle />,
+      });
+      return;
+    }
     try {
       const res = await fetch(`${API_URL}/api/communityPost/admin/sendFeedback/${id}`, {
         method: "PATCH",
         credentials: "include",
-        headers: { "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
-         },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
         body: JSON.stringify({ feedback: feedbackText.trim() }),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Failed to send feedback");
+        throw new Error("Failed to send feedback");
       }
       openInfo({
         title: "Feedback Sent",
@@ -186,7 +192,6 @@ const EditCommunityPostPage = () => {
         icon: <FaCheckCircle />,
       });
       setPost((prev) => ({ ...prev, adminFeedback: feedbackText.trim() }));
-      // Keep feedback text for further editing
     } catch (err) {
       openInfo({
         title: "Failed to Send Feedback",
@@ -200,13 +205,17 @@ const EditCommunityPostPage = () => {
   if (error) return <p className="text-center mt-20">{error}</p>;
   if (!post) return <p className="text-center mt-20">Post not found</p>;
 
+  // Button text logic
+  const backButtonText = (post.status === "Approved") ? "Back to Dashboard" : "Back to Moderation";
+
   return (
     <div className="admin-review-page">
       <Header />
 
       <div className="admin-review-header">
-        <button className="admin-recipe-edit-back-btn" onClick={() => navigate("/admin")}>
-          <span className="recipe-edit-btn"><FaArrowLeft /></span> Back to Moderation
+        {/* ✅ UPDATED BACK BUTTON */}
+        <button className="admin-recipe-edit-back-btn" onClick={handleBack}>
+          <span className="recipe-edit-btn"><FaArrowLeft /></span> {backButtonText}
         </button>
 
         <div className="review-title">
@@ -214,34 +223,26 @@ const EditCommunityPostPage = () => {
           <p>{post.title}</p>
         </div>
 
-        {/* Approve/Reject only if not approved */}
         {post.status !== "Approved" && (
           <button
             className="rcp-edit-approve-btn"
-            onClick={() => {
-              setModalType("approve");
-              setShowModal(true);
-            }}
+            onClick={() => { setModalType("approve"); setShowModal(true); }}
           >
             <FaCheck /> Approve
           </button>
         )}
-            {post.status === "Pending" && (
-              <button
-                className="rcp-edit-reject-btn"
-                onClick={() => {
-                  setModalType("reject");
-                  setShowModal(true);
-                }}
-              >
-                <FaTimes /> Reject
-              </button>
-            )}
-          </div>
+        {post.status === "Pending" && (
+          <button
+            className="rcp-edit-reject-btn"
+            onClick={() => { setModalType("reject"); setShowModal(true); }}
+          >
+            <FaTimes /> Reject
+          </button>
+        )}
+      </div>
 
       <div className="review-container">
         <div className="review-layout">
-          {/* Sidebar */}
           <div className="review-left-sidebar">
             <h3><FaFileAlt /> Submission Details</h3>
             <div className="review-info">
@@ -259,9 +260,7 @@ const EditCommunityPostPage = () => {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="review-main">
-            {/* Image */}
             <div className="review-section uploaded-image-card">
               <h3><FaFileAlt /> Uploaded Image</h3>
               <div className="uploaded-img-box">
@@ -275,20 +274,17 @@ const EditCommunityPostPage = () => {
               </div>
             </div>
 
-            {/* Cultural Info */}
             <div className="rcp-review-section rcp-basic-info-grid">
               <h3>Cultural Information</h3>
               <p><strong>Origin:</strong> {post.culturalOrigin}</p>
               <p style={{ whiteSpace: "pre-wrap" }}>{post.culturalStory}</p>
             </div>
 
-            {/* Recipe */}
             <div className="rcp-review-section">
               <h3>Recipe</h3>
               <p style={{ whiteSpace: "pre-wrap" }}>{post.recipe}</p>
             </div>
 
-            {/* Feedback */}
             <div className="rcp-review-section">
               <h3>Admin Feedback</h3>
               <textarea
@@ -313,7 +309,6 @@ const EditCommunityPostPage = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div className="confirm-overlay">
           <div className="confirm-modal">

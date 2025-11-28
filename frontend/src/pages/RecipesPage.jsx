@@ -50,7 +50,6 @@ export default function RecipesPage() {
     fetchCsrfToken();
   }, []);
 
-  // ✅ DEBUG LOGS (Restored)
   useEffect(() => {
     console.log('Recipes data:', recipes);
     if (recipes && recipes.length > 0) {
@@ -319,7 +318,7 @@ export default function RecipesPage() {
             
       setInfo({
         open: true,
-        title: "Recipe Submitted Successfully!!",
+        title: "Recipe Submitted Successfully!",
         // Educational message
         body: "Thanks for sharing! Your recipe has been sent to the Admins for approval. It is currently in Pending. You can track its progress in your Profile under the Contributions tab.",
         icon: <PiChefHat />,
@@ -328,7 +327,12 @@ export default function RecipesPage() {
         confirmText: "Track My Post",
         onPrimary: () => {
           closeInfo();
-          navigate("/profile?tab=status");
+          if (user?.id || user?.userID) {
+            const uid = user.id || user.userID;
+            navigate(`/profile/${uid}?tab=status`); 
+          } else {
+            navigate("/profile?tab=status");
+          }
         },
 
         // Secondary Action

@@ -34,6 +34,15 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
     setCurrentPage(1);
   }, [searchTerm, category, difficulty, statusFilter]);
 
+  // --- Helper: Format Date (assuming user wanted original creation date in previous turn) ---
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    // Formats as DD/MM/YYYY (e.g. 11/06/2025)
+    return date.toLocaleDateString("en-GB"); 
+  };
+
+
   // --- Filtering Logic ---
   const filteredRecipes = localRecipes.filter((r) => {
     const term = searchTerm.toLowerCase();
@@ -42,7 +51,11 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
     const matchesSearch = name.includes(term) || author.includes(term);
     const matchesCategory = category === "All Categories" || (r.foodType === category || r.category === category);
     const matchesDifficulty = difficulty === "All" || (r.difficulty || "Medium") === difficulty;
-    const matchesStatus = statusFilter === "All" || r.status === statusFilter;
+    
+    // Status Filter: Only apply if sectionType is NOT 'approved' OR if filter is set to something specific
+    const statusToCheck = sectionType === "approved" ? "Approved" : statusFilter;
+    const matchesStatus = statusToCheck === "All" || r.status === statusToCheck;
+
 
     return matchesSearch && matchesCategory && matchesDifficulty && matchesStatus;
   });
@@ -150,7 +163,6 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
   }
 
   return (
-    // ✅ DYNAMIC HEIGHT APPLIED
     <div 
       className="recipe-database-section" 
       style={{ 
@@ -219,15 +231,18 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                   ))}
                 </select>
               </div>
-              <div className="filter-item">
-                <label>Status</label>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                  <option value="All">All</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-              </div>
+              
+              {/* ✅ CONDITIONAL STATUS FILTER: Only show for Moderation section */}
+              {sectionType !== "approved" && (
+                <div className="filter-item">
+                  <label>Status</label>
+                  <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                    <option value="All">All</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -238,7 +253,8 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
               <th>Recipe Name</th>
               <th>Food Item</th>
               <th>Author</th>
-              <th>Last Updated</th>
+              {/* Using Date Created as requested */}
+              <th>Date Created</th> 
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -253,7 +269,10 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                 </td>
                 <td><span className="category-tag">{r.foodType || r.category || "N/A"}</span></td>
                 <td>{r.author || "Unknown"}</td>
-                <td>{r.date || "—"}</td>
+                
+                {/* Date Created */}
+                <td>{formatDate(r.createdAt || r.date)}</td>
+                
                 <td>
                   <span className={`recipe-status-tag ${r.status === "Pending" ? "pending" : r.status === "Rejected" ? "rejected" : "approved"}`}>
                     {r.status}

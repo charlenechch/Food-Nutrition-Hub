@@ -175,7 +175,14 @@ useEffect(() => {
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", location: "" });
   const [bio, setBio] = useState("");
 
-  const [tab, setTab] = useState("info");
+  const [tab, setTab] = useState(() => {
+  // ✅ Read URL param immediately on first load
+  const params = new URLSearchParams(window.location.search);
+  const requestedTab = params.get("tab");
+  const validTabs = ["info", "saved", "status", "prefs", "settings"];
+  
+  return validTabs.includes(requestedTab) ? requestedTab : "info";
+});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false); // ✅ Guest popup control
