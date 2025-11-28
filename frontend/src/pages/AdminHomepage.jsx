@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // ✅ Added useLocation
 import "../css/AdminDashboard.css";
 
 // === Components ===
@@ -21,24 +21,24 @@ import { FaRegFlag } from "react-icons/fa6";
 import { FaRegChartBar } from "react-icons/fa";
 import { CiSettings } from "react-icons/ci";
 
-// ✅ Backend API endpoint
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState("food");
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ Get URL location
+
+  // ✅ Initialize tab based on URL, or default to 'food'
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    return ["food", "users", "moderation", "analytics", "settings"].includes(tab) 
+      ? tab 
+      : "food";
+  });
 
   const categories = [
-    "All Categories",
-    "Poultry",
-    "Seafood",
-    "Vegetables",
-    "Fermented",
-    "Desserts",
-    "Rice Dish",
-    "Noodles",
-    "Soup",
-    "Meat",
+    "All Categories", "Poultry", "Seafood", "Vegetables", "Fermented",
+    "Desserts", "Rice Dish", "Noodles", "Soup", "Meat",
   ];
 
   // ✅ State definitions
@@ -58,6 +58,22 @@ const AdminDashboard = () => {
 
   const [pendingCommunityPosts, setPendingCommunityPosts] = useState([]);
   const [approvedCommunityPosts, setApprovedCommunityPosts] = useState([]);
+
+  // ✅ LISTENER: If the URL changes (e.g. back button), update the tab
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab");
+    if (tab && ["food", "users", "moderation", "analytics", "settings"].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
+
+  // Function to change tab and update URL
+  const handleTabChange = (tabName) => {
+    setActiveTab(tabName);
+    // Optional: Update URL without reloading so sharing links works
+    navigate(`/admin?tab=${tabName}`, { replace: true });
+  };
 
   // ========================================================
   // ✅ Fetch total food count
@@ -151,7 +167,6 @@ const AdminDashboard = () => {
         });
         const data = await res.json();
         if (data.success && Array.isArray(data.data)) {
-          console.log("✅ Pending community posts fetched:", data.data.length);
           setPendingCommunityPosts(data.data);
         } else {
           console.warn("⚠️ Unexpected response for pending posts:", data);
@@ -176,7 +191,6 @@ const AdminDashboard = () => {
 
       if (result.success) {
         setApprovedCommunityPosts(result.data);
-        console.log(`✅ Loaded ${result.data.length} approved community posts`);
       } else {
         console.error("❌ Failed to load approved posts:", result.message);
       }
@@ -191,25 +205,31 @@ const AdminDashboard = () => {
   // ✅ Summary calculation
   // ========================================================
   useEffect(() => {
-    // 1. Count pending recipes
+    // 1. Count Pending
     const pendingRecipeCount = recipes.filter(
-      (r) => r.status === "Pending"
+      (r) => (r.status || "").toLowerCase() === "pending"
     ).length;
 
-    // 2. Count pending community posts
-    // (We filter this array since it contains both 'Pending' and 'Rejected')
     const pendingPostCount = pendingCommunityPosts.filter(
-      (p) => p.status === "Pending"
+      (p) => (p.status || "").toLowerCase() === "pending"
+    ).length;
+
+    // 2. Count Flagged (Rejected)
+    const rejectedRecipeCount = recipes.filter(
+      (r) => (r.status || "").toLowerCase() === "rejected"
+    ).length;
+
+    const rejectedPostCount = pendingCommunityPosts.filter(
+      (p) => (p.status || "").toLowerCase() === "rejected"
     ).length;
 
     setSummary((prev) => ({
       ...prev,
-      // 3. Add them together
       pendingApproval: pendingRecipeCount + pendingPostCount,
       totalUsers: userList.length,
+      flaggedContent: rejectedRecipeCount + rejectedPostCount,
     }));
 
-    // 4. Add 'pendingCommunityPosts' to the dependency array
   }, [recipes, userList, pendingCommunityPosts]);
 
   // ========================================================
@@ -221,40 +241,6 @@ const AdminDashboard = () => {
   );
 
   // ========================================================
-  // 💾 OLD HARDCODED DATA (COMMENTED OUT for reference only)
-  // ========================================================
-  /*
-  const summary = {
-    totalFoods: 347,
-    totalUsers: 1247,
-    pendingApproval: 23,
-    flaggedContent: 8,
-  };
-
-  const foodData = [
-    { name: "Manok Pansoh", category: "Poultry", origin: "Iban", updated: "2024-01-15" },
-    { name: "Umai", category: "Seafood", origin: "Melanau", updated: "2024-01-14" },
-    { name: "Midin Belacan", category: "Vegetables", origin: "Indigenous", updated: "2024-01-13" },
-    { name: "Kasam Babi", category: "Dyvak", origin: "Bidayuh", updated: "2024-01-12" },
-    { name: "Kolo Mee", category: "Noodles", origin: "Chinese", updated: "2024-01-10" },
-    { name: "Laksa Sarawak", category: "Soup", origin: "Sarawak", updated: "2024-01-09" },
-  ];
-
-  const [recipes, setRecipes] = useState([
-    { name: "Traditional Manok Pansoh", servings: "4 servings", food: "Manok Pansoh", author: "Chef Ahmad", updated: "2024-01-15", status: "Approved" },
-    { name: "Melanau Umai Recipe", servings: "2 servings", food: "Umai", author: "Sarah Lim", updated: "2024-01-14", status: "Pending" },
-    { name: "Jungle Midin Stir-fry", servings: "3 servings", food: "Midin Belacan", author: "Local Chef", updated: "2024-01-13", status: "Approved" },
-    { name: "Bidayuh Linut Dessert", servings: "6 servings", food: "Linut", author: "Heritage Keeper", updated: "2024-01-12", status: "Rejected" },
-  ]);
-
-  const [contentPosts] = useState([
-    { id: 1, name: "Manok Pansoh", submitter: "Joanna Lee", date: "2025-10-20", status: "Pending" },
-    { id: 2, name: "Laksa Sarawak", submitter: "Brian Tan", date: "2025-10-22", status: "Pending" },
-    { id: 5, name: "Kek Lapis Modern", submitter: "Amira Binti Salleh", date: "2025-10-26", status: "Approved" },
-  ]);
-  */
-
-  // ========================================================
   // ✅ Render content
   // ========================================================
   const renderContent = () => {
@@ -262,51 +248,22 @@ const AdminDashboard = () => {
       case "food":
         return (
           <>
-            {/* === Food Database === */}
             <FoodDatabaseSection foodData={foodData} categories={categories} />
-
-            {/* === Approved Recipes === */}
-            <RecipeDatabaseSection
-              recipes={approvedRecipes}
-              categories={categories}
-              sectionType="approved"
-            />
-
-            {/* === Approved Community Posts === */}
-            <CommunityPostDatabaseSection
-              categories={categories}
-              posts={approvedCommunityPosts}
-              sectionType="approved"
-            />
+            <RecipeDatabaseSection recipes={approvedRecipes} categories={categories} sectionType="approved" />
+            <CommunityPostDatabaseSection categories={categories} posts={approvedCommunityPosts} sectionType="approved" />
           </>
         );
 
       case "users":
         return (
-          <UserManagement
-            users={userList}
-            loading={loadingUsers}
-            error={errorUsers}
-            setUsers={setUserList}
-          />
+          <UserManagement users={userList} loading={loadingUsers} error={errorUsers} setUsers={setUserList} />
         );
 
       case "moderation":
         return (
           <>
-            {/* === Pending Community Posts === */}
-            <CommunityPostDatabaseSection
-              categories={categories}
-              posts={pendingCommunityPosts}
-              sectionType="pending"
-            />
-
-            {/* === Pending / Rejected Recipes === */}
-            <RecipeDatabaseSection
-              recipes={pendingRecipes}
-              categories={categories}
-              sectionType="pending"
-            />
+            <CommunityPostDatabaseSection categories={categories} posts={pendingCommunityPosts} sectionType="pending" />
+            <RecipeDatabaseSection recipes={pendingRecipes} categories={categories} sectionType="pending" />
           </>
         );
 
@@ -314,7 +271,7 @@ const AdminDashboard = () => {
         return <Analytics />;
 
       case "settings":
-        return <AdminSystemSettings onPageChange={setActiveTab} />;
+        return <AdminSystemSettings onPageChange={handleTabChange} />;
 
       default:
         return <div className="food-database-section"></div>;
@@ -351,7 +308,12 @@ const AdminDashboard = () => {
             <div className="summary-icon"><GoPeople /></div>
           </div>
 
-          <div className="summary-card">
+          {/* Click to go to Moderation */}
+          <div 
+            className="summary-card" 
+            onClick={() => handleTabChange("moderation")}
+            style={{ cursor: "pointer" }}
+          >
             <div>
               <h3>Pending Approval</h3>
               <p>{summary.pendingApproval}</p>
@@ -359,10 +321,15 @@ const AdminDashboard = () => {
             <div className="summary-icon"><LuFileCheck /></div>
           </div>
 
-          <div className="summary-card">
+          {/* Click to go to Moderation */}
+          <div 
+            className="summary-card"
+            onClick={() => handleTabChange("moderation")}
+            style={{ cursor: "pointer" }}
+          >
             <div>
-              <h3>Flagged Content</h3>
-              <p>{summary.flaggedContent}</p>
+              <h3>Rejected Content</h3>
+              <p>{summary.flaggedContent}</p> 
             </div>
             <div className="summary-icon"><FaRegFlag /></div>
           </div>
@@ -372,31 +339,31 @@ const AdminDashboard = () => {
         <div className="dashboard-tabs">
           <button
             className={activeTab === "food" ? "active" : ""}
-            onClick={() => setActiveTab("food")}
+            onClick={() => handleTabChange("food")}
           >
             <FiDatabase /> Database
           </button>
           <button
             className={activeTab === "users" ? "active" : ""}
-            onClick={() => setActiveTab("users")}
+            onClick={() => handleTabChange("users")}
           >
             <GoPeople /> User Management
           </button>
           <button
             className={activeTab === "moderation" ? "active" : ""}
-            onClick={() => setActiveTab("moderation")}
+            onClick={() => handleTabChange("moderation")}
           >
             <LuFileCheck /> Content Moderation
           </button>
           <button
             className={activeTab === "analytics" ? "active" : ""}
-            onClick={() => setActiveTab("analytics")}
+            onClick={() => handleTabChange("analytics")}
           >
             <FaRegChartBar /> Analytics
           </button>
           <button
             className={activeTab === "settings" ? "active" : ""}
-            onClick={() => setActiveTab("settings")}
+            onClick={() => handleTabChange("settings")}
           >
             <CiSettings /> System Settings
           </button>

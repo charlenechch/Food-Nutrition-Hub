@@ -12,7 +12,7 @@ const EditRecipePage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(""); // 'approve' or 'reject'
+  const [modalType, setModalType] = useState(""); 
   const [recipe, setRecipe] = useState(null);
   const [adminFeedback, setAdminFeedback] = useState("");
   const [infoDlg, setInfoDlg] = useState({
@@ -32,16 +32,12 @@ const EditRecipePage = () => {
     });
   const closeInfo = () => setInfoDlg((m) => ({ ...m, open: false }));
 
-  //================
-//CSRF
-//================
+  // CSRF
   const [csrfToken, setCsrfToken] = useState("");
-
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
         const data = await res.json();
         setCsrfToken(data.csrfToken);
       } catch (err) {
@@ -103,101 +99,104 @@ const EditRecipePage = () => {
     fetchRecipe();
   }, [id]);
 
+  // ✅ SMART NAVIGATION LOGIC
+  const handleBack = () => {
+    if (!recipe) {
+      navigate("/admin");
+      return;
+    }
+    const status = (recipe.status || "").toLowerCase();
+    
+    // Approved -> Database Tab (default /admin)
+    // Pending/Rejected -> Moderation Tab (/admin?tab=moderation)
+    if (status === "approved") {
+      navigate("/admin"); 
+    } else {
+      navigate("/admin?tab=moderation");
+    }
+  };
+
   if (!recipe) return <p>Loading...</p>;
+
+  // Button text logic
+  const backButtonText = (recipe.status === "Approved") ? "Back to Database" : "Back to Moderation";
 
   // Send feedback function
   const handleSendFeedback = async () => {
-    // 1. Use the state directly (adminFeedback) instead of document.querySelector
-    const feedback = adminFeedback.trim();
+    const feedback = adminFeedback.trim();
 
-    if (!feedback) {
-      openInfo({
-        title: "Missing Feedback",
-        message: "Please enter feedback before sending.",
-        icon: <FaExclamationTriangle />,
-      });
-      return;
-    }
+    if (!feedback) {
+      openInfo({
+        title: "Missing Feedback",
+        message: "Please enter feedback before sending.",
+        icon: <FaExclamationTriangle />,
+      });
+      return;
+    }
 
-    try {
-      const res = await fetch(`${API_URL}/api/recipe/sendFeedback/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
- },
-        credentials: "include",
-        // 2. Send the state variable
-        body: JSON.stringify({ feedback }), 
-      });
+    try {
+      const res = await fetch(`${API_URL}/api/recipe/sendFeedback/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        credentials: "include",
+        body: JSON.stringify({ feedback }), 
+      });
 
-      if (!res.ok) {
-        // 3. Log the actual server error message to the console for easier debugging
-        const errData = await res.json();
-        console.error("Server validation error:", JSON.stringify(errData, null, 2)); 
+      if (!res.ok) {
+        const errData = await res.json();
         throw new Error(errData.message || "Failed to send feedback");
-      }
+      }
 
-      openInfo({
-        title: "Feedback Sent",
-        message: "Your feedback has been sent successfully.",
-        icon: <FaCheckCircle />,
-      });
+      openInfo({
+        title: "Feedback Sent",
+        message: "Your feedback has been sent successfully.",
+        icon: <FaCheckCircle />,
+      });
       
-      // 4. Clear the state, which automatically clears the input
       setAdminFeedback(""); 
-    } catch (err) {
-      console.error("Error sending feedback:", err);
-      openInfo({
-        title: "Failed to Send",
-        message: err.message || "Could not send feedback.",
-        icon: <FaExclamationTriangle />,
-      });
-    }
-  };
+    } catch (err) {
+      openInfo({
+        title: "Failed to Send",
+        message: err.message || "Could not send feedback.",
+        icon: <FaExclamationTriangle />,
+      });
+    }
+  };
 
   return (
     <div className="admin-review-page">
       <Header />
 
-      {/* Header */}
       <div className="admin-review-header">
-        <button className="admin-recipe-edit-back-btn" onClick={() => navigate("/admin")}>
-          <span className="recipe-edit-btn"><FaArrowLeft /></span> Back to Moderation
+        {/* ✅ UPDATED BACK BUTTON */}
+        <button className="admin-recipe-edit-back-btn" onClick={handleBack}>
+          <span className="recipe-edit-btn"><FaArrowLeft /></span> {backButtonText}
         </button>
         <div className="review-title">
           <h2>Review Submission</h2>
           <p>{recipe.name}</p>
         </div>
 
-        {/* Approve/Reject buttons only for Pending or Rejected */}
         {recipe.status !== "Approved" && (
             <button
               className="rcp-edit-approve-btn"
-              onClick={() => {
-                setModalType("approve");
-                setShowModal(true);
-              }}
+              onClick={() => { setModalType("approve"); setShowModal(true); }}
             >
               <span className="recipe-edit-btn"><FaCheck /></span> Approve
             </button>
           )}
-                  {recipe.status === "Pending" && (
+        {recipe.status === "Pending" && (
             <button
               className="rcp-edit-reject-btn"
-              onClick={() => {
-                setModalType("reject");
-                setShowModal(true);
-              }}
+              onClick={() => { setModalType("reject"); setShowModal(true); }}
             >
               <span className="recipe-edit-btn"><FaTimes /></span> Reject
             </button>
           )}
         </div>
 
-      {/* Content */}
       <div className="review-container">
         <div className="review-layout">
-          {/* Left Sidebar */}
           <div className="review-left-sidebar">
             <h3><FaFileAlt /> Submission Details</h3>
             <div className="review-info">
@@ -215,9 +214,7 @@ const EditRecipePage = () => {
             </div>
           </div>
 
-          {/* Right Content */}
           <div className="review-main">
-            {/* Uploaded Image */}
             <div className="review-section uploaded-image-card">
               <h3><FaFileAlt /> Uploaded Image</h3>
               <div className="uploaded-img-box">
@@ -225,7 +222,6 @@ const EditRecipePage = () => {
               </div>
             </div>
 
-            {/* Basic Information */}
             <div className="rcp-review-section rcp-basic-info-grid">
               <h3>Basic Information</h3>
               <div className="rcp-edit-info-grid">
@@ -237,7 +233,6 @@ const EditRecipePage = () => {
               </div>
             </div>
 
-            {/* Cultural Context */}
             <div className="rcp-review-section rcp-basic-info-grid">
               <h3>Cultural Context</h3>
               <div className="rcp-edit-info-grid">
@@ -245,7 +240,6 @@ const EditRecipePage = () => {
               </div>
             </div>
 
-            {/* Ingredients */}
             <div className="rcp-review-section rcp-info-grid">
               <h3>Ingredients</h3>
               <div className="rcp-info-grid">
@@ -254,7 +248,6 @@ const EditRecipePage = () => {
               </div>
             </div>
 
-            {/* Preparation Steps */}
             <div className="rcp-review-section rcp-info-grid">
               <h3>Preparation Steps</h3>
               <div className="rcp-info-grid">
@@ -266,7 +259,6 @@ const EditRecipePage = () => {
               </div>
             </div>
 
-            {/* Additional Notes */}
             <div className="rcp-review-section rcp-info-grid">
               <h3>Additional Notes</h3>
               <div className="rcp-info-grid">
@@ -276,7 +268,6 @@ const EditRecipePage = () => {
               </div>
             </div>
 
-            {/* Admin Feedback */}
             <div className="rcp-review-section rcp-basic-info-grid">
               <h3>Admin Feedback</h3>
               <div className="rcp-edit-info-grid">
@@ -305,7 +296,6 @@ const EditRecipePage = () => {
         </div>
       </div>
 
-      {/* Confirmation Modal */}
       {showModal && (
         <div className="confirm-overlay">
           <div className="confirm-modal">
@@ -327,13 +317,10 @@ const EditRecipePage = () => {
                   try {
                     const updateUrl = `${API_URL}/api/recipe/updateStatus/${id}`;
                     const payload = { status: newStatus };
-                    console.log("Sending PATCH payload:", payload);
 
                     const res = await fetch(updateUrl, {
                       method: "PATCH",
-                      headers: { "Content-Type": "application/json",
-                      "X-CSRF-Token": csrfToken
-                       },
+                      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
                       credentials: "include",
                       body: JSON.stringify(payload),
                     });
@@ -350,7 +337,14 @@ const EditRecipePage = () => {
                       icon: newStatus === "Approved" ? <FaCheckCircle /> : <FaExclamationTriangle />,
                       primaryText: "OK",
                     });
-                    navigate("/admin");
+                    
+                    // ✅ Navigate back to correct tab based on new status
+                    if (newStatus === "Approved") {
+                      navigate("/admin");
+                    } else {
+                      navigate("/admin?tab=moderation");
+                    }
+                    
                   } catch (err) {
                     console.error("Failed to update status:", err);
                     openInfo({

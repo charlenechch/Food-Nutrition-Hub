@@ -226,9 +226,15 @@ export default function Community() {
         onPrimary: () => {
           closeModal();
           resetForm();
-          navigate("/profile?tab=status"); // Redirects to Contributions tab
+          //Use the user's ID to be specific 
+          if (user?.id || user?.userID) {
+            const uid = user.id || user.userID;
+            navigate(`/profile/${uid}?tab=status`); 
+          } else {
+            // Fallback if ID is missing 
+            navigate("/profile?tab=status");
+          }
         },
-
         // Secondary Action: Stay Here
         secondaryText: "Close",
         onSecondary: () => {

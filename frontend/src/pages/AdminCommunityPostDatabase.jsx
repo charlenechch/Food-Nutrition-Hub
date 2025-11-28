@@ -33,14 +33,19 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
     setCurrentPage(1);
   }, [searchTerm, category, statusFilter]);
 
-  // --- Filtering Logic ---
+  // --- Filtering Logic (UPDATED) ---
   const filteredPosts = localPosts.filter((post) => {
     const term = searchTerm.toLowerCase();
     const title = (post.foodName || post.title || "").toLowerCase();
     const author = (post.author || "").toLowerCase();
     const matchesSearch = title.includes(term) || author.includes(term);
     const matchesCategory = category === "All Categories" || post.category === category;
-    const matchesStatus = statusFilter === "All" || post.status === statusFilter;
+    
+    // ✅ 1. Determine the required status based on the section type
+    const requiredStatus = sectionType === "approved" ? "Approved" : statusFilter;
+    
+    // Check if the post status matches the required status or if filter is "All"
+    const matchesStatus = requiredStatus === "All" || post.status === requiredStatus;
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
@@ -153,7 +158,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   const postCategories = ["Food", "Culture", "Events"];
 
   return (
-    // ✅ DYNAMIC HEIGHT APPLIED
     <div 
       className="recipe-database-section" 
       style={{ 
@@ -213,15 +217,17 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
                   ))}
                 </select>
               </div>
-              <div className="filter-item">
-                <label>Status</label>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                  <option value="All">All</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-              </div>
+              
+              {sectionType !== "approved" && (
+                <div className="filter-item">
+                  <label>Status</label>
+                  <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                    <option value="All">All</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         )}
