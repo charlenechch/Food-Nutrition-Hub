@@ -8,12 +8,12 @@ const ALL_PUBLIC_PATHS = [
   '/privacy', '/terms'
 ];
 
-const AuthContext = createContext();
-const [bypassSessionCheck, setBypassSessionCheck] = useState(false);
+const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [bypassSessionCheck, setBypassSessionCheck] = useState(false);
 
   // ✅ Helper to fetch CSRF token on demand
   const getCsrfToken = async () => {

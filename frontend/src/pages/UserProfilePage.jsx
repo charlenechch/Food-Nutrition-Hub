@@ -15,8 +15,6 @@ import Modal from "../components/Modal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const { setBypassSessionCheck } = useAuth();
-
 // Options
 const DIETARY_OPTIONS = [
   "vegetarian", "vegan", "halal", "gluten-free", "dairy-free", "low-fat", "high-protein", "spicy"
@@ -149,6 +147,7 @@ const getStatusClass = (status) => {
 export default function UserProfilePage() {
   const { userProfileID } = useParams();
   const navigate = useNavigate();
+  const { setBypassSessionCheck } = useAuth();
   //Controls view and edit mode
   const [isEditing, setIsEditing] = useState(false);
 
