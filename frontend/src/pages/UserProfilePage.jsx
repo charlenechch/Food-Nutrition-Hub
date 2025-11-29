@@ -624,18 +624,15 @@ const savePrefs = async () => {
             });
 
             if (!verifyRes.ok) {
-                    const verifyData = await verifyRes.json().catch(() => ({}));
+                  const verifyData = await verifyRes.json().catch(() => ({}));
+                
+                  closePasswordModal(); 
 
-                    // Set the flag to true
-                    setBypassSessionCheck(true);
-
-                    // Display the error message locally and clear input
-                    setPwModal(m => ({ 
-                        ...m, 
-                        loading: false, 
-                        error: verifyData.error || "Incorrect password. Verification failed.",
-                        password: ""
-                    })); 
+                  openAlert(
+                      "Verification Failed",
+                      verifyData.error || "Incorrect password. Please try again.",
+                      <AlertTriangle />
+                  );
                     return;
                 }
 
