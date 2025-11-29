@@ -627,7 +627,8 @@ const savePrefs = async () => {
               setPwModal(m => ({ 
                 ...m, 
                 loading: false, 
-                error: verifyData.error || "Verification failed."
+                error: verifyData.error || "Verification failed.",
+                password: ""
               })); 
               // Do not proceed to the deletion steps below
               closePasswordModal();
