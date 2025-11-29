@@ -246,6 +246,19 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
         changes.push(`Location updated`);
     }
 
+    // Check role (Standardize and Compare)
+    const currentDbRole = currentUser.role; // Database value: 'admin' or 'member'
+    const requestedUiRole = role;           // UI value: 'Admin' or 'User'
+
+    // Convert the current DB role to its Title Case UI equivalent for comparison:
+    const currentUiRole = currentDbRole === 'admin' ? 'Admin' : 'User'; 
+
+    // Compare the requested UI role against the current UI role:
+    if (requestedUiRole && requestedUiRole !== currentUiRole) {
+        // Only push the change if the role alias is genuinely different (e.g., Member -> Admin).
+        changes.push(`Account role changed to ${requestedUiRole}`);
+    }
+
     // Check Role (Normalize to lowercase for comparison)
     const newRoleLower = role ? role.toLowerCase() : currentUser.role;
     if (newRoleLower !== currentUser.role) {
