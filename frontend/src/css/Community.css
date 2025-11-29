@@ -5,7 +5,7 @@
   font-family: "Poppins", sans-serif;
   background: #fdfbf9;
   color: #3d2b1f;
-  padding: 85px 5% 80px; /* Adjusted to reduce upper space */
+  padding: 85px 5% 80px; 
 }
 
 /* ===== PAGE TITLES ===== */
@@ -221,9 +221,9 @@
 /* Cards grid layout */
 .cards-grid {
   display: grid; 
-  grid-template-columns: repeat(3, 1fr); 
+  grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
   gap: 2rem;
-  align-items: stretch;
+  align-items: stretch; 
 }
 
 .contribution-card {
@@ -236,15 +236,6 @@
   display: flex;
   flex-direction: column;
   height: 100%; 
-}
-
-.contribution-card {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #ebdfd0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-  transition: all 0.3s ease;
 }
 .contribution-card:hover {
   transform: translateY(-5px);
@@ -390,7 +381,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* --- NEW FLEX LAYOUT FOR TITLE AND LIKE BUTTON --- */
+/* --- FLEX LAYOUT FOR TITLE AND LIKE BUTTON --- */
 .title-and-likes-wrapper {
   display: flex;
   justify-content: space-between; /* Pushes H1 to the left and Like button to the right */
@@ -425,30 +416,29 @@
 
 /* Styling the heart icon */
 .likes-bar .heart-icon {
-  font-size: 1.2rem; /* Reduced size to fit title line */
+  font-size: 1.5rem; 
   line-height: 1;
-  color: #c4b5a0; /* Neutral color for unliked */
+  color: #c4b5a0; 
   margin-bottom: 0;
   transition: color 0.25s ease;
   font-weight: normal;
-  padding-top: 2px; /* Adjusted alignment */
+  padding-top: 0; 
 }
 
 /* Styling for the LIKED state */
 .likes-bar.liked {
-  /* Remove backgrounds/borders that don't apply to inline flow */
   background: none;
 }
 
 .likes-bar.liked .heart-icon {
-  color: #e55353; /* Eye-catching RED for liked state */
+  color: #e55353; 
   font-weight: 900;
 }
 
 .likes-bar .likes-count {
   font-weight: 500;
   color: #3d2b1f; 
-  font-size: 0.9rem; /* Smaller count to fit title line */
+  font-size: 1rem; /* Increased size from 0.9rem to 1rem */
 }
 
 .image-carousel {
@@ -467,7 +457,7 @@
 
 /* Arrows & Dots */
 .arrow {
-  all: unset; /* remove browser defaults */
+  all: unset; 
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -538,14 +528,12 @@
 
 /* Post Info */
 .post-info h1 {
-  /* DELETED margin-bottom here, replaced by wrapper margin */
   color: #7a4d2a; /* Keep the brown color */
   font-size: 2.2rem; /* Make the title much larger */
   font-weight: 700;
   line-height: 1.2;
-  /* Flex item specific */
   max-width: 80%;
-  margin: 0; /* Remove default h1 margin to align with flex */
+  margin: 0; 
 }
 .post-info .meta {
   color: #6b5c4d;
@@ -1060,6 +1048,7 @@
 .comment-author {
   font-weight: bold;
   color: #333;
+  font-size: 14px;
 }
 
 .comment-date {
