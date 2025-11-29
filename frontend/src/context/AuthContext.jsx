@@ -9,6 +9,7 @@ const ALL_PUBLIC_PATHS = [
 ];
 
 const AuthContext = createContext();
+const [bypassSessionCheck, setBypassSessionCheck] = useState(false);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -59,6 +60,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   const checkSession = useCallback(async () => {
+    if (bypassSessionCheck) {
+      setBypassSessionCheck(false);
+      setLoading(false);
+      return;
+    }
+
     const publicAuthPaths = ALL_PUBLIC_PATHS;
     const currentPath = window.location.pathname;
     const isCurrentlyGuest = user?.role === 'guest';
@@ -68,7 +75,7 @@ export function AuthProvider({ children }) {
         credentials: "include",
       });
 
-      // ✅ FIX: Handle 401 (Not Logged In) gracefully
+      // Handle 401 (Not Logged In) gracefully
       if (res.status === 401) {
         if (!publicAuthPaths.includes(currentPath) && !isCurrentlyGuest) {
           forceLogout();
@@ -98,7 +105,7 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [user, forceLogout]);
+  }, [user, bypassSessionCheck, forceLogout]);
 
   const toggleRole = useCallback(async () => {
     if (!user) return;
@@ -169,6 +176,7 @@ export function AuthProvider({ children }) {
         toggleRole,
         forceLogout,
         isPublicPath,
+        setBypassSessionCheck,
       }}
     >
       {!loading && children}

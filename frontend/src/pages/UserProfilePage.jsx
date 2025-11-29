@@ -15,6 +15,8 @@ import Modal from "../components/Modal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+const { setBypassSessionCheck } = useAuth();
+
 // Options
 const DIETARY_OPTIONS = [
   "vegetarian", "vegan", "halal", "gluten-free", "dairy-free", "low-fat", "high-protein", "spicy"
@@ -623,6 +625,10 @@ const savePrefs = async () => {
 
             if (!verifyRes.ok) {
                     const verifyData = await verifyRes.json().catch(() => ({}));
+
+                    // Set the flag to true
+                    setBypassSessionCheck(true);
+
                     // Display the error message locally and clear input
                     setPwModal(m => ({ 
                         ...m, 
