@@ -630,6 +630,7 @@ const savePrefs = async () => {
                 error: verifyData.error || "Verification failed."
               })); 
               // Do not proceed to the deletion steps below
+              closePasswordModal();
               return;
             }
 
