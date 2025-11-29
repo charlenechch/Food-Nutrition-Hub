@@ -83,7 +83,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
   // --- Reset Page ---
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, category, originFilter]);
+  }, [searchTerm, category, originFilter, calorieMin, calorieMax]);
 
   // --- Dropdown Close ---
   useEffect(() => {
@@ -175,11 +175,14 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     const term = searchTerm.toLowerCase();
     const name = (f.name || "").toLowerCase();
     const originName = (f.origin || "").toLowerCase();
+    const foodCalories = Number(f.Energy_kcal || f.calories || 0);
     const matchesSearch = name.includes(term) || originName.includes(term);
     const matchesCategory = category === "All Categories" || f.category === category;
     const matchesOrigin = originFilter === "All Origins" || f.origin === originFilter;
-
-    return matchesSearch && matchesCategory && matchesOrigin;
+    const matchesCalories = 
+      foodCalories >= calorieMin && 
+      foodCalories <= calorieMax;
+    return matchesSearch && matchesCategory && matchesOrigin && matchesCalories;
   });
 
   // --- Pagination Logic ---
