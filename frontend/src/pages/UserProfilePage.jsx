@@ -631,7 +631,6 @@ const savePrefs = async () => {
                 password: ""
               })); 
               // Do not proceed to the deletion steps below
-              closePasswordModal();
               return;
             }
 
@@ -1492,6 +1491,12 @@ const savePrefs = async () => {
                   placeholder="Enter your password"
                 />
               </label>
+
+              {pwModal.error && (
+                <p className="upp-error-inline">
+                  {pwModal.error} 
+                </p>
+              )}
             </div>
             <div className="upp-modal-footer">
               <button className="lrp-btn lrp-btn-outline" onClick={closePasswordModal}>
