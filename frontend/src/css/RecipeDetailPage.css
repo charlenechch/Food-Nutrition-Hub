@@ -1,11 +1,18 @@
 /* Layout */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 .recipe-detail-page{
     margin-top: 70px;
+    overflow-x: hidden;
 }
 .rdp-wrap { 
     max-width: 1100px; 
     margin: 0 auto; 
     padding: 1rem; 
+    box-sizing: border-box;
 }
 .rdp-grid { 
     display: grid; 
@@ -85,6 +92,11 @@
     display: grid; 
     grid-template-columns: repeat(4, 1fr); 
     gap: .75rem; 
+}
+@media (max-width: 600px) {
+  .rdp-meta {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 .rdp-meta-item { 
     background: #fffaf3; 
