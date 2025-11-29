@@ -49,6 +49,7 @@ import FoodDiscussion from "./pages/FoodDiscussionPage";
 
 // === Shared Components ===
 import ProtectedRoute from "./components/ProtectedRoute";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Global Fetch Interceptor
 function FetchInterceptorSetup() {
@@ -153,34 +154,6 @@ function SessionChecker() {
 //  Helper Route Wrappers
 // -------------------------------
 
-function FoodDetailRoute() {
-  const { state } = useLocation();
-  const [params] = useSearchParams();
-  const navigate = useNavigate();
-
-  const fromState = state?.food;
-  const id = params.get("id");
-  const fromQuery = null; // no local dataset, use backend fetch
-
-  const food = fromState || fromQuery;
-
-  if (!food && !id) return <Navigate to="/foods" replace />;
-
-  if (!food && id) {
-    return <FoodDetail foodId={id} />;
-  }
-
-  return (
-    <FoodDetail
-      food={food}
-      onBack={() => navigate("/foods")}
-      onViewDiscussion={() =>
-        navigate(`/fooddiscussion?id=${food.id}`, { state: { food } })
-      }
-    />
-  );
-}
-
 function FoodDiscussionRoute() {
   const { state } = useLocation();
   const [params] = useSearchParams();
@@ -211,6 +184,7 @@ function AppRoutes() {
       <FetchInterceptorSetup />
       <AxiosInterceptorSetup />
       <SessionChecker />
+      <ScrollToTop />
       <Routes>
         {/* === Default & Auth Routes === */}
         <Route path="/" element={<Navigate to="/loginregister" replace />} />
