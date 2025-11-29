@@ -622,17 +622,16 @@ const savePrefs = async () => {
             });
 
             if (!verifyRes.ok) {
-              const verifyData = await verifyRes.json().catch(() => ({}));
-              // Display the error message locally in the modal
-              setPwModal(m => ({ 
-                ...m, 
-                loading: false, 
-                error: verifyData.error || "Verification failed.",
-                password: ""
-              })); 
-              // Do not proceed to the deletion steps below
-              return;
-            }
+                    const verifyData = await verifyRes.json().catch(() => ({}));
+                    // Display the error message locally and clear input
+                    setPwModal(m => ({ 
+                        ...m, 
+                        loading: false, 
+                        error: verifyData.error || "Incorrect password. Verification failed.",
+                        password: ""
+                    })); 
+                    return;
+                }
 
             console.log("Password verified");
 
@@ -660,7 +659,7 @@ const savePrefs = async () => {
             console.error('Error deleting account:', error);
             openAlert("Delete Failed", "Failed to delete account. Please try again.", <AlertTriangle />);
           }finally {
-                closePasswordModal();
+            closePasswordModal();
           }
         });
       },
