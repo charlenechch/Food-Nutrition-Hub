@@ -258,12 +258,6 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
         // Only push the change if the role alias is genuinely different (e.g., Member -> Admin).
         changes.push(`Account role changed to ${requestedUiRole}`);
     }
-
-    // Check Role (Normalize to lowercase for comparison)
-    const newRoleLower = role ? role.toLowerCase() : currentUser.role;
-    if (newRoleLower !== currentUser.role) {
-        changes.push(`Account role changed to ${role}`);
-    }
     
     // If nothing specific found (or only internal fields changed), default message
     if (changes.length === 0) {
