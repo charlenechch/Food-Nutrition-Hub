@@ -607,6 +607,9 @@ const savePrefs = async () => {
       onConfirm: () => {
         // Step 2: ask for password in controlled modal
         openPasswordModal(async (password) => {
+          // State to track error inside the password modal
+          setPwModal(m => ({ ...m, loading: true, error: null }));
+
           try {
             // Verify password with backend
             const verifyRes = await fetch(`${API_BASE_URL}/api/auth/verifyAccountDeletion`, {
@@ -620,7 +623,13 @@ const savePrefs = async () => {
 
             if (!verifyRes.ok) {
               const verifyData = await verifyRes.json().catch(() => ({}));
-              openAlert("Account Deletion Failed", verifyData.error || "Incorrect password. Account deletion cancelled.", <AlertTriangle />);
+              // Display the error message locally in the modal
+              setPwModal(m => ({ 
+                ...m, 
+                loading: false, 
+                error: verifyData.error || "Verification failed."
+              })); 
+              // Do not proceed to the deletion steps below
               return;
             }
 
