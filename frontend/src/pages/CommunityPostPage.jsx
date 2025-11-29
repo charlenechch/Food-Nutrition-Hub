@@ -634,8 +634,17 @@ export default function CommunityPost() {
     <div className="community-page">
       <Header />
       <div className="post-layout">
+        {/* NEW BUTTON LOCATION: Moved to the top of the post-layout container */}
+        <button 
+          className="back-btn back-to-community-fixed" 
+          onClick={() => navigate("/community")}
+        >
+          ← Back
+        </button>
+        
         {/* LEFT */}
         <div className="post-left">
+          
           <div className="image-carousel">
             <img
               src={
@@ -673,7 +682,19 @@ export default function CommunityPost() {
           </div>
 
           <div className="post-info">
-            <h1>{post.foodName}</h1>
+            
+            {/* 🚨 NEW WRAPPER FOR TITLE + LIKE BUTTON */}
+            <div className="title-and-likes-wrapper">
+              <h1>{post.foodName}</h1>
+              <LikeButton 
+                postId={post.id} 
+                initialLikes={post.likeCount || 0} 
+                user={user} 
+                onAlert={openAlert}
+              />
+            </div>
+            {/* --------------------------------------------- */}
+
             <p className="meta">
               by <b>{post.author}</b> • {post.daysAgo} •{" "}
               <span>{post.culturalOrigin}</span>
@@ -693,21 +714,12 @@ export default function CommunityPost() {
               </div>
             )}
 
-            <button className="back-btn" onClick={() => navigate("/community")}>
-              ← Back
-            </button>
+            {/* OLD BUTTON LOCATION REMOVED HERE */}
           </div>
         </div>
 
         {/* RIGHT */}
         <div className="post-right">
-          {/* Updated to use clickable LikeButton component */}
-          <LikeButton 
-            postId={post.id} 
-            initialLikes={post.likeCount || 0} 
-            user={user} 
-            onAlert={openAlert}
-          />
           <h3>Comments ({comments.length})</h3>
 
           <CommentSection
