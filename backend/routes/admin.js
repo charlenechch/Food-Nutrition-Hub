@@ -233,17 +233,17 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     // Check Name
     const currentFullName = `${currentUser.firstname || ''} ${currentUser.lastname || ''}`.trim();
     if (name && name.trim() !== currentFullName) {
-        changes.push(`Name updated`);
+        changes.push(`Name updated to ${name.trim()}`);
     }
 
     // Check Email
     if (email && email !== currentUser.email) {
-        changes.push(`Email address updated`);
+        changes.push(`Email address updated to ${email}`);
     }
 
     // Check City (Location)
     if (city !== undefined && city !== currentUser.location) {
-        changes.push(`Location updated`);
+        changes.push(`Location updated to ${city || 'Cleared'}`);
     }
 
     // Check role (Standardize and Compare)
