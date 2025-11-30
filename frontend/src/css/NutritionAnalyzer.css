@@ -275,6 +275,10 @@ html, body {
   gap: 1.5rem;        
 }
 
+.nap-results .analysis-container + .analysis-container {
+  margin-top: 1.5rem;   /* adjust to taste */
+}
+
 .result-card .analysis-container {
   background: #fff;
   border: 1px solid #e6d8c3;
