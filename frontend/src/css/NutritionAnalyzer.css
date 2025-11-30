@@ -286,7 +286,8 @@ html, body {
 }
 
 .left-column,
-.result-card {
+.result-card,
+.upload-box-wrapper {
   min-width: 0;
 }
 
