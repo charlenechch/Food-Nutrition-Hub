@@ -1381,9 +1381,9 @@
     grid-template-columns: 1fr;
   }
   .post-right {
-    order: -1;
     position: relative;
     top: 0;
+    margin-top: 1.5rem; 
   }
 }
 
