@@ -266,6 +266,7 @@ html, body {
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
+
 .result-card,
 .result-card.empty,
 .result-card.has-result {
@@ -436,11 +437,10 @@ html, body {
   .analyzer-container {
     padding: 0 0.75rem;
     gap: 1.25rem;
-    margin-bottom: clamp(60px, 6vw, 100px);
+    margin-bottom: 25px;;
   }
 
   .upload-box {
-    max-width: 450px;
     padding: 0.9rem;
   }
 
