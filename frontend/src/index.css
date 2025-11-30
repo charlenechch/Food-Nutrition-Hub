@@ -46,3 +46,21 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+
+/* Hide Google top banner */
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+body {
+  top: 0px !important;
+}
+
+/* Hide the default dropdown */
+#google_translate_element select {
+  display: none !important;
+}
+
+/* Hide Google icon */
+.goog-te-gadget-icon {
+  display: none !important;
+}

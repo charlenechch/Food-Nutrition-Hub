@@ -46,6 +46,37 @@ export default function Header() {
     }
   };
 
+  // Google Translate Handler 
+  const TranslateButton = () => {
+    const changeLanguage = (lang) => {
+      const select = document.querySelector("#google_translate_element select");
+      if (!select) {
+        console.warn("Google Translate not loaded yet");
+        return;
+      }
+      select.value = lang;
+      select.dispatchEvent(new Event("change"));
+    };
+
+    return (
+      <div className="flex items-center gap-2 lang-switch">
+        <button
+          onClick={() => changeLanguage("en")}
+          className="px-2 py-1 border rounded text-sm hover:bg-gray-100"
+        >
+          EN
+        </button>
+
+        <button
+          onClick={() => changeLanguage("ms")}
+          className="px-2 py-1 border rounded text-sm hover:bg-gray-100"
+        >
+          BM
+        </button>
+      </div>
+    );
+  };
+
   return (
     <>
       <nav className="navbar">
@@ -100,9 +131,10 @@ export default function Header() {
 
             <hr />
 
-            <button onClick={() => navigate("/language")} className="mobile-btn">
-              <FaGlobe className="mobile-icon" /> EN
-            </button>
+            <div className="mobile-btn flex items-center gap-2">
+              <FaGlobe className="mobile-icon" />
+              <TranslateButton />
+            </div>
 
             <button onClick={handleProfileClick} className="mobile-btn">
               <User className="mobile-icon" size={18} /> Profile
@@ -124,9 +156,10 @@ export default function Header() {
         {/* === Desktop Actions === */}
         <div className="navbar-actions">
           {/* 🌐 Language */}
-          <button className="lang-btn" onClick={() => navigate("/language")}>
-            <FaGlobe  /> EN
-          </button>
+          <div className="lang-btn flex items-center gap-2">
+            <FaGlobe />
+            <TranslateButton />
+          </div>
 
           
           {/* 👤 Profile */}
