@@ -284,7 +284,8 @@ html, body {
   border: 1px solid #e6d8c3;
   border-radius: 14px;
   padding: 24px;
-  text-align: left; 
+  text-align: left;
+  margin-bottom: clamp(60px, 6vw, 100px);      
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
@@ -542,6 +543,3 @@ html, body {
   animation: fadeIn 0.25s ease-out forwards;
 }
 
-.nap-results {
-  margin-bottom: clamp(60px, 6vw, 100px);     
-}
