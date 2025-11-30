@@ -275,10 +275,6 @@ html, body {
   gap: 1.5rem;        
 }
 
-.result-card.has-result .analysis-container {
-  margin-bottom: 0;
-}
-
 .result-card .analysis-container {
   background: #fff;
   border: 1px solid #e6d8c3;
