@@ -398,7 +398,7 @@ useEffect(() => {
           )}
 
           {result && (
-            <>
+            <div className = "nap-results">
               {/* MAIN ANALYSIS CARD */}
               <div className="analysis-container">
                 {/* Food Name */}
@@ -513,7 +513,7 @@ useEffect(() => {
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
 
         </div>
