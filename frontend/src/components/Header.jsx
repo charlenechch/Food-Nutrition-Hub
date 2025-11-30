@@ -14,6 +14,7 @@ export default function Header() {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [currentLang, setCurrentLang] = useState("EN");
 
     React.useEffect(() => {
     if (user?.role === "admin" && location.pathname === "/home") {
@@ -45,6 +46,51 @@ export default function Header() {
       navigate("/profile");
     }
   };
+
+  // === Google Translate Handler ===
+  const TranslateButton = () => {
+    const changeLanguage = (lang) => {
+      const select = document.querySelector("#google_translate_element select");
+      if (!select) {
+        console.warn("Google Translate not loaded yet");
+        return;
+      }
+      select.value = lang;
+      select.dispatchEvent(new Event("change"));
+    };
+
+    return (
+      <div className="flex items-center gap-2 lang-switch">
+        <button
+          onClick={() => changeLanguage("en")}
+          className="px-2 py-1 border rounded text-sm hover:bg-gray-100"
+        >
+          EN
+        </button>
+
+        <button
+          onClick={() => changeLanguage("ms")}
+          className="px-2 py-1 border rounded text-sm hover:bg-gray-100"
+        >
+          BM
+        </button>
+      </div>
+    );
+  };
+
+  // === Language Toggle using Google Translate ===
+  const toggleLanguage = () => {
+    const select = document.querySelector("#google_translate_element select");
+    if (!select) return;
+
+    const newLang = currentLang === "EN" ? "ms" : "en";
+    const newLabel = currentLang === "EN" ? "BM" : "EN";
+
+    select.value = newLang;
+    select.dispatchEvent(new Event("change"));
+    setCurrentLang(newLabel);
+  };
+
 
   return (
     <>
@@ -100,8 +146,8 @@ export default function Header() {
 
             <hr />
 
-            <button onClick={() => navigate("/language")} className="mobile-btn">
-              <FaGlobe className="mobile-icon" /> EN
+            <button onClick={toggleLanguage} className="mobile-btn">
+              <FaGlobe className="mobile-icon" /> {currentLang}
             </button>
 
             <button onClick={handleProfileClick} className="mobile-btn">
@@ -124,10 +170,9 @@ export default function Header() {
         {/* === Desktop Actions === */}
         <div className="navbar-actions">
           {/* 🌐 Language */}
-          <button className="lang-btn" onClick={() => navigate("/language")}>
-            <FaGlobe  /> EN
+          <button className="lang-btn" onClick={toggleLanguage}>
+            <FaGlobe className="icon" /> {currentLang}
           </button>
-
           
           {/* 👤 Profile */}
           <button onClick={handleProfileClick}>
