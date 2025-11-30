@@ -116,8 +116,12 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Create new food
+// ============================
+//  CREATE FOOD ROUTE
+// ============================
 router.post("/", requireAuth, requireAdmin, async (req, res) => {
+  console.log("📥 [POST] Received Add Food Request:", req.body);
+
   const {
     name,
     origin,
@@ -132,46 +136,76 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     Fiber_g,
     VitaminC_mg,
     image,
+    foodType,
+    difficulty,
+    dietaryTags,
+    prepTime,
+    commonIngredients,
+    alternative,
+    altDescription,
+    healthTips
   } = req.body;
 
-  if (!name || !origin)
-    return res
-      .status(400)
-      .json({ success: false, error: "Name and origin are required" });
+  // 1. Validation
+  if (!name || !origin) {
+    console.error("❌ [POST] Validation Failed: Name or Origin missing");
+    return res.status(400).json({ success: false, error: "Name and origin are required" });
+  }
 
   try {
+    // 2. Prepare SQL
     const sql = `
       INSERT INTO food 
-      (name, origin, category, description, culturalSignificance, traditionalPreparation,
-       Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, image)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (
+        name, origin, category, description, culturalSignificance, traditionalPreparation,
+        Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, image,
+        foodType, difficulty, dietaryTags, prepTime, commonIngredients, 
+        alternative, altDescription, healthTips
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
+
     const values = [
       name,
       origin,
-      category || null,
-      description || null,
-      culturalSignificance || null,
-      traditionalPreparation || null,
+      category || "",
+      description || "",
+      culturalSignificance || "",
+      traditionalPreparation || "",
       Energy_kcal || 0,
       Protein_g || 0,
       Fat_g || 0,
       Carbohydrates_g || 0,
       Fiber_g || 0,
       VitaminC_mg || 0,
-      image || null,
+      image || "",
+      foodType || "",
+      difficulty || "",
+      dietaryTags || "",
+      prepTime || "",
+      commonIngredients || "",
+      alternative || "",
+      altDescription || "",
+      healthTips || ""
     ];
 
+    // 3. Execute
     const [result] = await db.query(sql, values);
 
+    console.log("✅ [POST] Food Created, ID:", result.insertId);
+    
     res.json({
       success: true,
       message: "Food created successfully",
       data: { foodID: result.insertId, name, origin },
     });
+
   } catch (err) {
-    console.error("❌ Create food error:", err.message);
-    res.status(500).json({ success: false, error: "Failed to create food" });
+    console.error("❌ [POST] Database Error:", err.message);
+    res.status(500).json({ 
+      success: false, 
+      error: "Database error: " + (err.sqlMessage || err.message) 
+    });
   }
 });
 
