@@ -275,6 +275,7 @@
   padding: 1.25rem;
   width: 100%;
   min-height: 140px;
+  min-width: 300px;
   background: #fefcfb;
   color: #7a4d2a;
   cursor: pointer;
