@@ -275,14 +275,13 @@
   padding: 1.25rem;
   width: 100%;
   min-height: 140px;
-  min-width: 300px;
-  max-height: 140px;
   background: #fefcfb;
   color: #7a4d2a;
   cursor: pointer;
   display: grid;
   place-items: center;
   transition: background 0.25s ease;
+  box-sizing: border-box; 
 }
 .upload-box:hover { background: #f8f2ec; }
 
@@ -398,4 +397,27 @@
   padding-bottom: 8px;
   border-bottom: 2px solid #e8d5c4;
   font-size: 1.1em;
+}
+
+@media (max-width: 600px) {
+  .recipes-page {
+    padding: 100px 1rem 60px;      /* less side padding */
+  }
+
+  .rp-card {
+    max-width: 100%;
+    padding: 1.4rem 1.1rem;        /* tighter card padding */
+  }
+
+  .upload-box {
+    padding: 1rem;
+    min-height: 120px;
+    width: 100%;
+  }
+
+  .preview-img {
+    width: 100%;
+    height: auto;                  /* let height adapt on mobile */
+    max-height: 220px;
+  }
 }
