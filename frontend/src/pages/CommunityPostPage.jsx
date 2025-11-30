@@ -593,46 +593,53 @@ export default function CommunityPost() {
 
   if (loading) {
     return (
+      <>
+      <Header />
       <div className="community-page">
-        <Header />
         <div className="loading">Loading...</div>
-        <Footer />
       </div>
+    <Footer />
+    </>
     );
   }
 
   if (error) {
     return (
+      <>
+      <Header />
       <div className="community-page">
-        <Header />
         <div className="error">
           <h2>Error loading post</h2>
           <p>{error}</p>
           <button onClick={fetchPost}>Try Again</button>
         </div>
-        <Footer />
       </div>
+    <Footer />
+    </>
     );
   }
 
   if (!post) {
     return (
+      <>
+      <Header />
       <div className="community-page">
-        <Header />
         <div className="not-found">
           <h2>Post not found</h2>
           <button onClick={() => navigate("/community")}>
             Back to Community
           </button>
         </div>
-        <Footer />
       </div>
+      <Footer />
+    </>
     );
   }
 
   return (
+    <>
+    <Header />
     <div className="community-page">
-      <Header />
       <div className="post-layout">
         {/* NEW BUTTON LOCATION: Moved to the top of the post-layout container */}
         <button 
@@ -743,7 +750,8 @@ export default function CommunityPost() {
         {dlg.message}
       </Modal>
 
-      <Footer />
     </div>
+    <Footer />
+    </>
   );
 }
