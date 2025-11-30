@@ -269,9 +269,15 @@ html, body {
   border: none;
   box-shadow: none;
   padding: 0;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.5rem;        
 }
 
+.result-card.has-result .analysis-container {
+  margin-bottom: 0;
+}
 
 .result-card .analysis-container {
   background: #fff;
