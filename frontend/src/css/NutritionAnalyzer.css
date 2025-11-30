@@ -60,8 +60,7 @@ html, body {
   gap: 1.5rem;
 }
 
-.food-input-card,
-.upload-card {
+.food-input-card {
   background: #fff;
   padding: clamp(1rem, 2vw, 1.5rem);
   border-radius: 12px;
@@ -115,8 +114,8 @@ html, body {
 .upload-box-wrapper {
   width: 100%;
   max-width: 100%;
+  margin-top: 0.5rem;
   box-sizing: border-box;
-  overflow: visible;
 }
 .upload-card {
   position: relative;
@@ -124,31 +123,36 @@ html, body {
   max-width: 100%;
   box-sizing: border-box;
   overflow: visible;
+  background: #fff;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid #e9c8a6;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
+  text-align: left;
 }
 
 .upload-card p {
   color: #555;
-  font-size: clamp(0.85rem, 1vw, 0.95rem);
-  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
 }
 
 .upload-box {
   position: relative;
-  border: 2px dashed #916848;
-  border-radius: 12px;
-  padding: clamp(1rem, 2vw, 1.5rem);
-  text-align: center;
-  cursor: pointer;
-  background-color: #fdfbf9;
-  transition: background 0.3s ease, transform 0.2s ease;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  border: 2px dashed #916848;
+  border-radius: 12px;
+  padding: 1.1rem;
+  text-align: center;
+  cursor: pointer;
+  background-color: #fdfbf9;
+  transition: background 0.3s ease;
 }
 
 .upload-box:hover {
   background: #faf3ef;
-  transform: scale(1.02);
 }
 
 .upload-box input[type="file"] {
@@ -177,10 +181,10 @@ html, body {
 
 .file-remove-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 28px;
-  height: 28px;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
   background: #f04242;
   color: white;
   border: none;
@@ -197,7 +201,7 @@ html, body {
 
 .file-remove-btn:hover {
   background: #ff4e4e;
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 /* BUTTON */
@@ -496,8 +500,7 @@ html, body {
   }
 
   .upload-card {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
+    padding: 0.9rem 1rem;
   }
 }
 
