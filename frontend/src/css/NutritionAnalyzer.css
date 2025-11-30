@@ -144,7 +144,7 @@ html, body {
   box-sizing: border-box;
   border: 2px dashed #916848;
   border-radius: 12px;
-  padding: 0;
+  padding: 1.1rem;
   text-align: center;
   cursor: pointer;
   background-color: #fdfbf9;
