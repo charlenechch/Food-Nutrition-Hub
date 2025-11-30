@@ -175,12 +175,16 @@
   border: 1px solid #c4b5a0;
   color: #5a4636;
   border-radius: 8px;
-  padding: 10px 18px;
+  padding: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 .cancel-btn:hover {
   background: #f3ede7;
+}
+.submit-btn,
+.cancel-btn {
+  flex: 1;
 }
 
 /* ===========================================
