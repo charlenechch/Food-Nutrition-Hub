@@ -274,8 +274,7 @@ html, body {
 }
 
 .left-column,
-.result-card,
-.upload-box {
+.result-card {
   min-width: 0;
 }
 
@@ -441,6 +440,7 @@ html, body {
   }
 
   .upload-box {
+    max-width: 550px;
     padding: 0.9rem;
   }
 
