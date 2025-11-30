@@ -173,9 +173,8 @@
 
 /* ===== Form Buttons ===== */
 .form-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
@@ -207,7 +206,9 @@
 }
 .submit-btn,
 .cancel-btn {
-  flex: 1;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
 }
 
 /* ===========================================
