@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "../css/UserProfilePage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -147,6 +148,7 @@ const getStatusClass = (status) => {
 export default function UserProfilePage() {
   const { userProfileID } = useParams();
   const navigate = useNavigate();
+  const { setBypassSessionCheck } = useAuth();
   //Controls view and edit mode
   const [isEditing, setIsEditing] = useState(false);
 
@@ -607,6 +609,9 @@ const savePrefs = async () => {
       onConfirm: () => {
         // Step 2: ask for password in controlled modal
         openPasswordModal(async (password) => {
+          // State to track error inside the password modal
+          setPwModal(m => ({ ...m, loading: true, error: null }));
+
           try {
             // Verify password with backend
             const verifyRes = await fetch(`${API_BASE_URL}/api/auth/verifyAccountDeletion`, {
@@ -619,10 +624,17 @@ const savePrefs = async () => {
             });
 
             if (!verifyRes.ok) {
-              const verifyData = await verifyRes.json().catch(() => ({}));
-              openAlert("Account Deletion Failed", verifyData.error || "Incorrect password. Account deletion cancelled.", <AlertTriangle />);
-              return;
-            }
+                  const verifyData = await verifyRes.json().catch(() => ({}));
+                
+                  closePasswordModal(); 
+
+                  openAlert(
+                      "Verification Failed",
+                      verifyData.error || "Incorrect password. Please try again.",
+                      <AlertTriangle />
+                  );
+                    return;
+                }
 
             console.log("Password verified");
 
@@ -650,7 +662,7 @@ const savePrefs = async () => {
             console.error('Error deleting account:', error);
             openAlert("Delete Failed", "Failed to delete account. Please try again.", <AlertTriangle />);
           }finally {
-                closePasswordModal();
+            closePasswordModal();
           }
         });
       },
@@ -1481,6 +1493,12 @@ const savePrefs = async () => {
                   placeholder="Enter your password"
                 />
               </label>
+
+              {pwModal.error && (
+                <p className="upp-error-inline">
+                  {pwModal.error} 
+                </p>
+              )}
             </div>
             <div className="upp-modal-footer">
               <button className="lrp-btn lrp-btn-outline" onClick={closePasswordModal}>

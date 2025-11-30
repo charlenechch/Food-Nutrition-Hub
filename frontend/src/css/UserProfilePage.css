@@ -658,3 +658,10 @@
     display: flex;
     gap: 12px;
 }
+
+.upp-error-inline {
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
