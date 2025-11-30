@@ -116,14 +116,14 @@ html, body {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  overflow: hidden; 
+  overflow: visible;
 }
 .upload-card {
   position: relative;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .upload-card p {
