@@ -376,7 +376,7 @@ export default function Community() {
               <button type="submit" className="submit-btn" disabled={submitting}>
                 {submitting ? "Submitting..." : "Submit Contribution"}
               </button>
-              <button type="button" className="cancel-btn" onClick={resetForm}>
+              <button type="button" className="rp-btn rp-btn-muted" onClick={resetForm}>
                 Cancel
               </button>
             </div>
