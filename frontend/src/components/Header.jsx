@@ -131,10 +131,9 @@ export default function Header() {
 
             <hr />
 
-            <div className="mobile-btn flex items-center gap-2">
-              <FaGlobe className="mobile-icon" />
-              <TranslateButton />
-            </div>
+            <button onClick={() => navigate("/language")} className="mobile-btn">
+              <FaGlobe className="mobile-icon" /> EN
+            </button>
 
             <button onClick={handleProfileClick} className="mobile-btn">
               <User className="mobile-icon" size={18} /> Profile
@@ -156,10 +155,9 @@ export default function Header() {
         {/* === Desktop Actions === */}
         <div className="navbar-actions">
           {/* 🌐 Language */}
-          <div className="lang-btn flex items-center gap-2">
-            <FaGlobe />
-            <TranslateButton />
-          </div>
+          <button className="lang-btn" onClick={() => navigate("/language")}>
+            <FaGlobe  /> EN
+          </button>
 
           
           {/* 👤 Profile */}
