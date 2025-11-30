@@ -44,7 +44,7 @@ html, body {
   grid-template-columns: 1fr 1fr;
   gap: clamp(1.5rem, 4vw, 2.5rem);
   max-width: 1200px;
-  width: 100%; 
+  width: 90%; 
   padding: 0 1rem;
   margin: 0 auto;
   align-items: flex-start;
