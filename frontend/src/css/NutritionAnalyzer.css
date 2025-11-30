@@ -112,8 +112,8 @@ html, body {
 
 /* UPLOAD SECTION */
 .upload-box-wrapper {
-  width: 60%;
-  max-width: 60%;
+  width: 100%;
+  max-width: 100%;
   margin-top: 0.5rem;
   box-sizing: border-box;
 }
@@ -465,6 +465,7 @@ html, body {
 
   .upload-box {
     padding: 0.9rem;
+    min-width: 0;
   }
 
   .upload-box:hover {
