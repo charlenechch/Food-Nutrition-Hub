@@ -141,7 +141,10 @@ const AddFoodPage = () => {
         Fat_g: Number(food.fat) || 0,
         Fiber_g: Number(food.fiber) || 0,
         VitaminC_mg: Number(food.vitaminc) || 0,
-        image: finalImageUrl, 
+        image: finalImageUrl,
+        difficulty: "Medium", 
+        foodType: "Dish",
+        prepTime: "0"
       };
 
       const response = await fetch(`${API_URL}/api/foods`, {

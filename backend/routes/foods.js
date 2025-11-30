@@ -181,7 +181,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       image || "",
       foodType || "",
       difficulty || "",
-      dietaryTags || "Medium",
+      dietaryTags || "",
       prepTime || "",
       commonIngredients || "",
       alternative || "",
