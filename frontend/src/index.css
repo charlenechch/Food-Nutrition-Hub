@@ -64,3 +64,62 @@ body {
 .goog-te-gadget-icon {
   display: none !important;
 }
+
+
+/* === FIX HEADER LAYOUT WHEN GOOGLE TRANSLATE LOADS === */
+
+/* Remove top margin Google forces */
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+/* Prevent Google Translate from resizing your page */
+html, body {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+/* Avoid wrong font changes */
+.goog-te-gadget {
+  font-size: 0 !important;
+}
+.goog-te-gadget span {
+  display: none !important;
+}
+
+/* Prevent Google from injecting weird spacing around navbar */
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+/* === REMOVE THE BLUE GOOGLE TRANSLATE STRIP COMPLETELY === */
+.goog-te-banner-frame {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.goog-te-banner {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+#goog-gt-tt, .goog-tooltip, .goog-tooltip:hover {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+.goog-te-balloon-frame {
+  display: none !important;
+}
+
+
+.goog-te-menu-frame {
+  display: none !important;
+}
