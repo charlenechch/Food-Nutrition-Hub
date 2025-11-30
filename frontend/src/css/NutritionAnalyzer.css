@@ -116,12 +116,14 @@ html, body {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  overflow: hidden; 
 }
 .upload-card {
   position: relative;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .upload-card p {
@@ -285,9 +287,14 @@ html, body {
   box-sizing: border-box;
 }
 
+.left-column {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .left-column,
-.result-card,
-.upload-box-wrapper {
+.result-card {
   min-width: 0;
 }
 
@@ -483,10 +490,14 @@ html, body {
   }
 
   .food-input-card,
-  .upload-card,
   .result-card .analysis-container {
     padding: 1rem;
     margin: 0;
+  }
+
+  .upload-card {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
 }
 
