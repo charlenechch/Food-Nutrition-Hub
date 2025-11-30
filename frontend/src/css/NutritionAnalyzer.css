@@ -273,7 +273,7 @@ html, body {
   border-radius: 14px;
   padding: 24px;
   text-align: left;
-  margin-bottom: 25px;      
+  margin-bottom: clamp(60px, 6vw, 100px);      
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
