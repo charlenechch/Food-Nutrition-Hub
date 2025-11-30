@@ -1,3 +1,15 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* safety against horizontal scroll */
+}
+
 /* ===============================
    PAGE LAYOUT
 =============================== */
@@ -32,9 +44,11 @@
   grid-template-columns: 1fr 1fr;
   gap: clamp(1.5rem, 4vw, 2.5rem);
   max-width: 1200px;
-  width: 90%;
+  width: 100%; 
+  padding: 0 1rem;
   margin: 0 auto;
   align-items: flex-start;
+  box-sizing: border-box;
 }
 
 /* FORM SECTION */
@@ -216,7 +230,7 @@
   border: 1px solid #e9c8a6;
   box-shadow: 0px 3px 6px rgba(0,0,0,0.06);
   margin-top: 20px;
-  min-height: 500px;
+  min-height: 320px;
   display: flex;
   flex-direction: column;
   justify-content: center;   /* vertical center */
@@ -242,6 +256,13 @@
   text-align: left;
   margin-bottom: 25px;      
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.result-card,
+.result-card.empty,
+.result-card.has-result {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Title */
@@ -373,26 +394,38 @@
 @media (max-width: 992px) {
   .analyzer-container {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .result-card {
-    margin-top: 1.5rem;
+    margin-top: 0.5rem;
   }
 }
 
 /* Mobile */
 @media (max-width: 600px) {
+  .nutrition-page {
+    padding-top: 80px;
+    padding-bottom: 40px;
+  }
+
   .page-title {
-    font-size: 1.8rem;
-    margin-top: 70px;
+    font-size: 1.7rem;
+    margin-top: 0; 
   }
 
   .page-subtitle {
     font-size: 0.95rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .analyzer-container {
+    padding: 0 0.75rem;
+    gap: 1.25rem;
   }
 
   .upload-box {
-    padding: 1rem;
+    padding: 0.9rem;
   }
 
   .food-input-card input,
@@ -403,6 +436,25 @@
   .analyze-btn {
     width: 100%;
     font-size: 0.95rem;
+    margin-bottom: 20px;
+  }
+
+  .nutrition-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .file-remove-btn {
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .food-input-card,
+  .upload-card,
+  .result-card .analysis-container {
+    padding: 1rem;
+    margin: 0;
   }
 }
 
