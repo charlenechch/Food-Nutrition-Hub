@@ -465,7 +465,6 @@ html, body {
 
   .upload-box {
     padding: 0.9rem;
-    min-width: 0;
   }
 
   .upload-box:hover {
