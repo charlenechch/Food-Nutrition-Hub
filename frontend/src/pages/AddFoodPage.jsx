@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import "../css/EditFoodPage.css"; // Reuse CSS for consistency
+import "../css/EditFoodPage.css"; 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { MdOutlineFileUpload } from "react-icons/md";
@@ -62,9 +62,8 @@ const AddFoodPage = () => {
     fat: "",
     fiber: "",
     vitaminc: "",
-    // Visible fields (no hidden defaults)
-    foodType: "Poultry", 
-    difficulty: "Medium", 
+    foodType: "", 
+    difficulty: "", 
     prepTime: "",
   });
 
@@ -164,10 +163,8 @@ const AddFoodPage = () => {
         Fiber_g: Number(food.fiber) || 0,
         VitaminC_mg: Number(food.vitaminc) || 0,
         image: finalImageUrl,
-        
-        // Pass values directly from the visible inputs
         difficulty: food.difficulty,
-        prepTime: food.prepTime || "0", // Default to 0 only if user leaves it empty
+        prepTime: food.prepTime || "0", 
         foodType: food.foodType
       };
 

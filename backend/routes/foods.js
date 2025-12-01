@@ -117,7 +117,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // ============================
-// ✅ FIXED CREATE NEW FOOD ROUTE
+// FIXED CREATE NEW FOOD ROUTE
 // ============================
 router.post("/", requireAuth, requireAdmin, async (req, res) => {
   console.log("📥 [POST] Received Add Food Request:", req.body);
@@ -137,8 +137,6 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     Fiber_g,
     VitaminC_mg,
     image,
-
-    // Database Fields (Hidden/Missing in Frontend)
     foodType,
     difficulty,
     dietaryTags,
