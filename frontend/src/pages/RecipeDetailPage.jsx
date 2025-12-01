@@ -377,8 +377,7 @@ useEffect(() => {
           ← Back
         </button>
 
-        <div className={`rdp-grid ${!hasSideNotes ? "rdp-grid--single" : ""}`}>
-          {/* LEFT: main column */}
+        <div className={`rdp-grid ${!hasSideNotes ? "rdp-grid--single" : ""}`}>          {/* LEFT: main column */}
           <div className="rdp-main">
             <div className="rdp-card">
               <div className="rdp-hero">

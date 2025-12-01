@@ -20,17 +20,22 @@
     gap: 1rem; 
 }
 
+.rdp-single {
+  display: block;
+}
+
 @media (min-width: 1024px) {
   .rdp-grid { 
     grid-template-columns: 2fr 1fr; 
     align-items: start; 
   }
-  .rdp-grid--single {
-    display: block;        /* still block on desktop */
-    max-width: 1100px;     /* make it wider */
-    margin: 0 auto;        /* center inside .rdp-wrap */
+
+  .rdp-single .rdp-main {
+    max-width: 1100px;
+    margin: 0 auto;
   }
 }
+
 
 .rdp-main { 
     display: grid; 
