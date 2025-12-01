@@ -26,19 +26,18 @@
 
 @media (min-width: 1024px) {
   .rdp-grid { 
-    grid-template-columns: 2fr 1fr;  /* main + sidebar */
+    grid-template-columns: 2fr 1fr;
     align-items: start; 
   }
 
-  /* When there are NO side notes → main takes full grid width */
   .rdp-grid.rdp-grid--single {
-    grid-template-columns: 1fr;      /* single full-width column */
+    grid-template-columns: 1fr;   
     justify-content: stretch;
   }
 
   .rdp-grid.rdp-grid--single .rdp-main {
-    max-width: 100%;                 /* remove the cap */
-    margin: 0;                       /* no centering shrink */
+    max-width: 80%;       
+    margin: 0; 
   }
 }
 
