@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import "../css/EditFoodPage.css"; 
+import "../css/EditFoodPage.css"; // Reuse CSS for consistency
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { MdOutlineFileUpload } from "react-icons/md";
@@ -14,10 +14,7 @@ const ORIGIN_OPTIONS = [
   "Malay", "Chinese", "Iban", "Melanau", "Kadazan", "Bidayuh", "Dayak",
 ];
 
-const CATEGORY_OPTIONS = [
-  "Poultry", "Seafood", "Vegetables", "Rice Dish", "Dessert", 
-  "Fermented", "Noodles", "Soup", "Meat"
-];
+// Removed CATEGORY_OPTIONS as we are using Food Type to handle this now
 
 const FOOD_TYPE_OPTIONS = [
   "Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", 
@@ -26,7 +23,7 @@ const FOOD_TYPE_OPTIONS = [
 
 const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"];
 
-// Predefined lists for Tags and Ingredients
+// NEW: Predefined lists for Tags and Ingredients
 const DIETARY_TAG_OPTIONS = [
   "Vegetarian", "Vegan", "Halal", "Gluten Free", 
   "Dairy Free", "Low Fat", "High Protein", "Spicy"
@@ -55,7 +52,7 @@ const AddFoodPage = () => {
   // Main Food State
   const [food, setFood] = useState({
     name: "",
-    category: "",
+    // category removed (derived from foodType)
     origin: "",
     description: "",
     culturalSignificance: "",
@@ -66,6 +63,7 @@ const AddFoodPage = () => {
     fat: "",
     fiber: "",
     vitaminc: "",
+    // Visible fields
     foodType: "Poultry", 
     customFoodType: "", 
     difficulty: "Medium", 
@@ -197,7 +195,8 @@ const AddFoodPage = () => {
       // 3. Prepare Data Object
       const newFoodData = {
         name: food.name,
-        category: food.category,
+        // Map "Category" to be the same as "Food Type" since they are redundant
+        category: finalFoodType,
         origin: food.origin,
         description: food.description,
         culturalSignificance: food.culturalSignificance,
@@ -348,18 +347,7 @@ const AddFoodPage = () => {
               placeholder="e.g. Laksa Sarawak"
             />
 
-            {/* Category Dropdown */}
-            <div className="food-category-field">
-              <label className="basic-info-label">Category</label>
-              <div className="custom-select-wrapper">
-                <select className="edit-food-select" name="category" value={food.category} onChange={handleChange}>
-                    <option value="">Select category</option>
-                    {CATEGORY_OPTIONS.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                </select>
-              </div>
-            </div>
+            {/* REMOVED: Redundant Category Dropdown */}
 
             {/* Origin Dropdown */}
             <div className="food-origin-field">
@@ -379,7 +367,7 @@ const AddFoodPage = () => {
               </div>
             </div>
 
-            {/* Food Type Dropdown */}
+            {/* Food Type Dropdown (Acts as Category) */}
             {food.foodType === "Other..." ? (
               <div className="edit-food-basic-info-two-col" style={{ marginTop: "1rem" }}>
                 <div>
