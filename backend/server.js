@@ -32,6 +32,7 @@ const userProfileRoutes = require("./routes/userProfile");
 const likeRoutes = require("./routes/likes");
 const aiRoutes = require("./routes/ai");
 const foodSearchRoutes = require("./routes/foodSearch");
+const gptRoutes = require("./routes/gpt");
 
 // Admin
 const adminRoutes = require("./routes/admin");
@@ -252,6 +253,14 @@ app.use(
   cors({ origin: allowedOrigins, credentials: true }),
   aiRoutes
 );
+
+// GPT AI 
+app.use(
+  "/api/ai/gpt",
+  cors({ origin: allowedOrigins, credentials: true }),
+  gptRoutes
+);
+
 
 // Recipe - BEFORE global HPP
 app.use(
