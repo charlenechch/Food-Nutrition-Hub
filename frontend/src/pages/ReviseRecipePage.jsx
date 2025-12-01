@@ -397,7 +397,7 @@ useEffect(() => {
           {/* ADMIN ALERT BOX */}
           <div className="rcp-admin-alert">
             <div className="rcp-alert-header">
-              <FaExclamationTriangle className="rcp-alert-icon" size={18} />
+              <FaExclamationTriangle className="rcp-alert-icon" size={24} />
               <h3>Revision Required - Admin Feedback</h3>
             </div>
             
