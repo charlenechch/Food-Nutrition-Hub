@@ -426,12 +426,12 @@ export default function NutritionAnalyzerPage() {
 
                     <div className="nutrition-grid">
                       {[
-                        ["Calories", result.nutrition.Energy_kcal ?? result.nutrition.calories_kcal, "kcal"],
-                        ["Protein", result.nutrition.Protein_g ?? result.nutrition.protein_g, "g"],
-                        ["Fat", result.nutrition.Fat_g ?? result.nutrition.fat_g, "g"],
-                        ["Carbs", result.nutrition.Carbohydrates_g ?? result.nutrition.carbs_g, "g"],
-                        ["Fiber", result.nutrition.Fiber_g ?? result.nutrition.fiber_g, "g"],
-                        ["Vitamin C", result.nutrition.VitaminC_mg ?? result.nutrition.vitaminC_mg, "mg"],
+                        ["Calories", result.nutrition.Energy_kcal, "kcal"],
+                        ["Protein", result.nutrition.Protein_g, "g"],
+                        ["Fat", result.nutrition.Fat_g, "g"],
+                        ["Carbs", result.nutrition.Carbohydrates_g, "g"],
+                        ["Fiber", result.nutrition.Fiber_g, "g"],
+                        ["Vitamin C", result.nutrition.VitaminC_mg, "mg"],
                       ].map(([label, val, unit], i) => (
                         <div className="nutri-card" key={i}>
                           <span className="nutri-value">
@@ -441,6 +441,7 @@ export default function NutritionAnalyzerPage() {
                         </div>
                       ))}
                     </div>
+
                   </div>
                 )}
               </div>
