@@ -203,14 +203,23 @@
   .rdp-note { order: 1; }
   .fdp-actions { order: 2; }
 }
+.rdp-main-actions.rdp-card3 {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
 .rdp-main-actions {
   display: flex;
   gap: 0.75rem;
   align-items: stretch;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 @media (max-width: 600px) {
+  .rdp-main-actions.rdp-card3 {
+    max-width: 100%;
+  }
+
   .rdp-main-actions {
     flex-direction: column;
   }
