@@ -176,7 +176,6 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       description || "",
       culturalSignificance || "",
       traditionalPreparation || "",
-      // Nutritional Info (Default to 0)
       Energy_kcal || 0,
       Protein_g || 0,
       Fat_g || 0,
@@ -184,13 +183,10 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       Fiber_g || 0,
       VitaminC_mg || 0,
       image || "",
-      
-      // --- ✅ SAFE DEFAULTS FOR HIDDEN COLUMNS ---
-      // These fix the "Data Truncated" errors
-      foodType || "Dish",       // Default to 'Dish'
-      difficulty || "Medium",   // Default to 'Medium' (Satisfies DB ENUM)
+      foodType || "Dish",       
+      difficulty || "",   
       dietaryTags || "",
-      prepTime || "0",          // Default to '0' (Satisfies DB INT)
+      prepTime || "0",          
       commonIngredients || "",
       alternative || "",
       altDescription || "",
