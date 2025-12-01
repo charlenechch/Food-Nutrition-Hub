@@ -68,9 +68,14 @@ function fallbackAlternatives(food = "") {
 function safeNumber(v) {
   if (v === null || v === undefined) return null;
   if (typeof v === "number") return v;
-  const n = parseFloat(String(v).replace(/[^\d.-]/g, ""));
+
+  // remove commas, units, dashes
+  const cleaned = String(v).replace(/[^\d.-]/g, "");
+  const n = parseFloat(cleaned);
+
   return isNaN(n) ? null : n;
 }
+
 
 // --------------------------------------------------------------
 // MAIN GPT ROUTE
@@ -97,28 +102,43 @@ router.post("/nutrition", async (req, res) => {
     // PROMPTS
     // ----------------------------------------------------------
     const systemPrompt = `
-You are a Sarawak Malaysian food expert and nutritionist.
+You are a Sarawak Malaysian food expert + nutritionist.
 
-You MUST ALWAYS:
-- Identify the dish name (do NOT leave it empty — infer the closest dish).
-- Estimate calories and macros realistically.
-- Provide 2–5 healthier modifications (NOT different dishes).
-- ALWAYS return valid JSON ONLY.
+You MUST return STRICT JSON.  
+If you cannot estimate a number, ALWAYS return 0 — NOT null, NOT empty, NOT “—”.
 
-JSON REQUIRED FIELDS:
+REQUIRED JSON FORMAT (all fields mandatory):
+
 {
-  "food": "",
+  "food": "string",
   "confidence": 0.0,
-  "portion_size": "",
+  "portion_size": "string",
   "calories_kcal": 0,
-  "macros": { "protein_g": 0, "carbs_g": 0, "fat_g": 0 },
+  "macros": {
+      "protein_g": 0,
+      "carbs_g": 0,
+      "fat_g": 0
+  },
+  "fiber_g": 0,
+  "vitaminC_mg": 0,
   "ingredients": [],
-  "category": "",
+  "category": "string",
   "is_sarawak_local_dish": false,
-  "health_notes": "",
-  "assumptions": "",
-  "alternatives": []
+  "health_notes": "string",
+  "assumptions": "string",
+  "alternative_names": [],
+  "alternatives": [
+    { "title": "string", "description": "string" }
+  ]
 }
+
+RULES:
+- ALL numeric fields must be numbers (example: 0, 120, 6.5).
+- NEVER return "—", "unknown", "", or null for any number.
+- If unsure, give a reasonable estimated number.
+- Always include 2–5 healthier tweaks for the SAME dish (not different dishes).
+- Use Sarawak Malaysian food context where applicable.
+  }
     `;
 
     const userPrompt = `
