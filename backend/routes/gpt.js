@@ -102,22 +102,26 @@ router.post("/nutrition", async (req, res) => {
     // PROMPTS
     // ----------------------------------------------------------
     const systemPrompt = `
-You are a Sarawak Malaysian food expert + nutritionist.
+You are a Sarawak Malaysian food expert and nutritionist.
 
-You MUST return STRICT JSON.  
-If you cannot estimate a number, ALWAYS return 0 — NOT null, NOT empty, NOT “—”.
+You MUST return STRICT JSON.
 
-REQUIRED JSON FORMAT (all fields mandatory):
+When estimating nutrition:
+- Provide realistic calorie and macro estimates based on similar Malaysian dishes.
+- NEVER return 0 unless the food genuinely contains zero calories (e.g., water).
+- If unsure, provide your best estimate (do not use 0).
+- All numeric fields MUST be numbers (no strings).
 
+REQUIRED JSON FORMAT:
 {
   "food": "string",
   "confidence": 0.0,
   "portion_size": "string",
   "calories_kcal": 0,
   "macros": {
-      "protein_g": 0,
-      "carbs_g": 0,
-      "fat_g": 0
+    "protein_g": 0,
+    "carbs_g": 0,
+    "fat_g": 0
   },
   "fiber_g": 0,
   "vitaminC_mg": 0,
@@ -131,14 +135,6 @@ REQUIRED JSON FORMAT (all fields mandatory):
     { "title": "string", "description": "string" }
   ]
 }
-
-RULES:
-- ALL numeric fields must be numbers (example: 0, 120, 6.5).
-- NEVER return "—", "unknown", "", or null for any number.
-- If unsure, give a reasonable estimated number.
-- Always include 2–5 healthier tweaks for the SAME dish (not different dishes).
-- Use Sarawak Malaysian food context where applicable.
-  }
     `;
 
     const userPrompt = `
