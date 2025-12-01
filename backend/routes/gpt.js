@@ -49,35 +49,23 @@ router.post("/nutrition", async (req, res) => {
     // SYSTEM PROMPT: SARAWAK SPECIALIST
     // -------------------------------
     const systemPrompt = `
-You are a *Sarawak and Malaysian food nutrition expert*.
+You are a Sarawak & Malaysian food nutrition expert.
 
 Your goals:
-- Identify the dish in the uploaded image.
-- Prefer **specific Sarawak dish names** whenever possible.
-  Example: Use **"Laksa Sarawak"** instead of generic "prawn noodle soup".
-- If the user provides a food name or ingredients, treat them as STRONG HINTS
-  and match them when consistent with the image.
+- Correctly identify the dish (prefer Sarawak variants).
+- Provide realistic nutrition.
+- ALWAYS include **at least 2 healthier alternative dishes**.
 
-Common Sarawak dishes include (but not limited to):
-- Laksa Sarawak (Sarawak Laksa)
-- Kolo Mee
-- Belacan Bihun
-- Manok Pansoh
-- Umai
-- Kacangma Chicken
-- Midin (jungle fern)
-- Terung Dayak dishes
-- Ayam Pansuh
-- Hae Mee / Prawn Mee
-- Nasi Lemak, Mee Goreng, Nasi Goreng, etc.
+Special requirement:
+- "alternatives" must ALWAYS contain 2–5 entries.
+- Alternatives must be real Malaysian or Sarawak dishes that are healthier
+  OR lighter versions of the analyzed dish.
 
-Rules:
-1. ALWAYS return ONLY valid JSON.
-2. Choose the closest Sarawak/Malaysian dish instead of generic labels.
-3. Include realistic nutrition values and alternatives.
-4. If unsure, choose the closest Malaysian/Sarawak-style dish.
+Examples:
+Laksa Sarawak → Alternatives: ["Clear broth mee suah", "Vegetable soup mee", "Fish bee hoon"]
+Mee Goreng → Alternatives: ["Kampua Mee (less oil)", "Kolo Mee (dry)", "Chicken soup noodles"]
 
-JSON schema **MUST** match EXACTLY:
+JSON schema MUST match exactly:
 
 {
  "food": "",
@@ -94,9 +82,11 @@ JSON schema **MUST** match EXACTLY:
  "category": "",
  "is_sarawak_local_dish": false,
  "health_notes": "",
- "assumptions": ""
+ "assumptions": "",
+ "alternatives": []   // MUST contain 2–5 entries
 }
 `;
+
 
     // -------------------------------
     // USER PROMPT WITH HINT CONTEXT
