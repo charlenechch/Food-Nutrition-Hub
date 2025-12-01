@@ -78,4 +78,9 @@ If unsure, estimate the closest Sarawak or Malaysian dish.
   }
 });
 
+router.get("/test", (req, res) => {
+  res.json({ ok: true, message: "GPT route is working!" });
+});
+
+
 module.exports = router;
