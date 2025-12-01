@@ -225,8 +225,8 @@ const csrfExclude = ['/api/ai/gpt/nutrition'];
 
 // Custom CSRF handler with skip logic
 app.use((req, res, next) => {
-  if (csrfExclude.includes(req.path)) {
-    return next(); // Skip CSRF only for GPT nutrition route
+  if (csrfExclude.some(p => req.originalUrl.startsWith(p))) {
+    return next(); // Skip CSRF for GPT nutrition
   }
   return csrfProtection(req, res, next);
 });
