@@ -33,7 +33,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
     setCurrentPage(1);
   }, [searchTerm, category, statusFilter]);
 
-  // --- Filtering Logic (UPDATED) ---
+  // --- Filtering Logic ---
   const filteredPosts = localPosts.filter((post) => {
     const term = searchTerm.toLowerCase();
     const title = (post.foodName || post.title || "").toLowerCase();
@@ -41,10 +41,8 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
     const matchesSearch = title.includes(term) || author.includes(term);
     const matchesCategory = category === "All Categories" || post.category === category;
     
-    // ✅ 1. Determine the required status based on the section type
+    // Determine the required status based on the section type
     const requiredStatus = sectionType === "approved" ? "Approved" : statusFilter;
-    
-    // Check if the post status matches the required status or if filter is "All"
     const matchesStatus = requiredStatus === "All" || post.status === requiredStatus;
 
     return matchesSearch && matchesCategory && matchesStatus;
@@ -237,7 +235,8 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             <tr>
               <th>Title</th>
               <th>Author</th>
-              <th>Date Posted</th>
+              {/* ✅ CHANGED 1: Dynamic Header */}
+              <th>{sectionType === "approved" ? "Date Approved" : "Date Posted"}</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -247,7 +246,17 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
               <tr key={p.id || i}>
                 <td>{p.foodName || p.title || "Untitled"}</td>
                 <td>{p.author || "Anonymous"}</td>
-                <td>{p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-GB') : "—"}</td>
+                
+                {/* ✅ CHANGED 2: Dynamic Date Logic */}
+                <td>
+                  {sectionType === "approved" && p.updatedAt
+                    ? new Date(p.updatedAt).toLocaleDateString('en-GB')
+                    : p.createdAt 
+                      ? new Date(p.createdAt).toLocaleDateString('en-GB') 
+                      : "—"
+                  }
+                </td>
+
                 <td>
                   <span className={`recipe-status-tag ${p.status === "Pending" ? "pending" : p.status === "Rejected" ? "rejected" : "approved"}`}>
                     {p.status}
