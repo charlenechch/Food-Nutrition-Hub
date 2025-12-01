@@ -9,7 +9,7 @@
     overflow-x: hidden;
 }
 .rdp-wrap { 
-    max-width: 1100px; 
+    max-width: 1300px; 
     margin: 0 auto; 
     padding: 1rem; 
     box-sizing: border-box;
@@ -19,12 +19,30 @@
     grid-template-columns: 1fr; 
     gap: 1rem; 
 }
+
+.rdp-single {
+  display: block;
+}
+
 @media (min-width: 1024px) {
   .rdp-grid { 
-    grid-template-columns: 2fr 1fr; 
+    grid-template-columns: 2fr 1fr;
     align-items: start; 
-    }
+  }
+
+  .rdp-grid.rdp-grid--single {
+    grid-template-columns: 1fr;
+    justify-content: center;
+  }
+
+  .rdp-grid.rdp-grid--single .rdp-main {
+    max-width: 900px; 
+    width: 100%;
+    margin: 0 auto;
+  }
 }
+
+
 .rdp-main { 
     display: grid; 
     gap: 1rem; 
@@ -202,4 +220,16 @@
   .rdp-aside { gap: 14px; }
   .rdp-note { order: 1; }
   .fdp-actions { order: 2; }
+}
+.rdp-main-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+@media (max-width: 600px) {
+  .rdp-main-actions {
+    flex-direction: column;
+  }
 }

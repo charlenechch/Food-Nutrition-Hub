@@ -75,15 +75,20 @@ router.get("/count", async (req, res) => {
   }
 });
 
-// Get all foods (with createdAt and updatedAt)
+// ✅ UPDATED: Get all foods (Filtered by Approval Status)
 router.get("/", async (req, res) => {
   try {
-    const [foods] = await db.query(`
-      SELECT foodID, name, origin, category, description, culturalSignificance, traditionalPreparation,
-             Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, image,
-             createdAt, updatedAt
-      FROM food
-    `);
+    // We join 'recipe' to check the status.
+    // Logic: Show the food IF (status is 'Approved') OR (status is NULL, meaning it's not a recipe)
+    const query = `
+      SELECT f.*, r.status
+      FROM food f
+      LEFT JOIN recipe r ON f.foodID = r.foodID
+      WHERE r.status = 'Approved' OR r.status IS NULL
+      ORDER BY f.name ASC
+    `;
+
+    const [foods] = await db.query(query);
     res.json({ success: true, data: foods });
   } catch (err) {
     console.error("❌ Get foods error:", err.message);

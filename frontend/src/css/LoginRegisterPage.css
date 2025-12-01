@@ -689,29 +689,34 @@ body, html, #root {
 /* Position wrapper for password input */
 .password-input-wrap {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  display: block;
+}
+
+.password-wrapper input {
+  width: 100%;
+  margin: 0 !important;
+  box-sizing: border-box;
+  padding-right: 40px;
 }
 
 /* Eye icon inside input (aligned right) */
 .password-eye-icon {
-  position: absolute;
+position: absolute;
   right: 12px;
-  top: 0;
-  bottom: 0;
-  margin: auto;
-  height: 18px;
+  z-index: 20;
   cursor: pointer;
   color: #8B4513;
-  font-size: 18px;
-  line-height: 1;
-  transition: color 0.2s ease;
-  z-index: 10;
+  bottom: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  top: 9px !important; 
+  height: 18px !important;
+  width: 18px !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  padding-top: 7%;
 }
 
 .password-eye-icon:hover {

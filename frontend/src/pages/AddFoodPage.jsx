@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import "../css/EditFoodPage.css"; // Reuse CSS for consistency
+import "../css/EditFoodPage.css"; 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { MdOutlineFileUpload } from "react-icons/md";
@@ -23,7 +23,7 @@ const FOOD_TYPE_OPTIONS = [
 
 const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"];
 
-// NEW: Predefined lists for Tags and Ingredients
+// Predefined lists for Tags and Ingredients
 const DIETARY_TAG_OPTIONS = [
   "Vegetarian", "Vegan", "Halal", "Gluten Free", 
   "Dairy Free", "Low Fat", "High Protein", "Spicy"

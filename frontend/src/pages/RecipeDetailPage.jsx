@@ -304,6 +304,17 @@ useEffect(() => {
     );
   }
 
+  const normalizeNote = (v) => {
+    if (v == null) return "";
+    const s = String(v).trim().toLowerCase();
+    if (s === "null" || s === "undefined") return "";
+    return s;
+  };
+
+  const hasSideNotes = Boolean(
+    normalizeNote(recipe.funFact) || normalizeNote(recipe.chefTips)
+  );
+
   // normalize lists (accept array or newline string)
   const toList = (v) =>
     Array.isArray(v)
@@ -366,8 +377,7 @@ useEffect(() => {
           ← Back
         </button>
 
-        <div className="rdp-grid">
-          {/* LEFT: main column */}
+        <div className={`rdp-grid ${!hasSideNotes ? "rdp-grid--single" : ""}`}>          {/* LEFT: main column */}
           <div className="rdp-main">
             <div className="rdp-card">
               <div className="rdp-hero">
@@ -412,6 +422,25 @@ useEffect(() => {
               </div>
             )}
 
+            {!hasSideNotes && (
+              <div className="rdp-card3 rdp-main-actions">
+                <button
+                  type="button"
+                  className="lrp-btn lrp-btn-primary fdp-save"
+                  onClick={handleSaveRecipe}
+                >
+                  {saved ? "✓ Saved" : "❤ Save Recipe"}
+                </button>
+                <button
+                  type="button"
+                  className="lrp-btn lrp-btn-outline fdp-share"
+                  onClick={handleShare}
+                >
+                  <Share2 className="rdp-sec-icon" />
+                </button>
+              </div>
+            )}
+
             <div className="rdp-card3">
               <h3 className="rdp-sec-title">
                 <Info className="rdp-sec-icon" color="#6a4a2f" /> Description
@@ -447,41 +476,43 @@ useEffect(() => {
           </div>
 
           {/* RIGHT: sidebar */}
-          <aside className="rdp-aside">
-            <div className="fdp-actions">
-              <button
-                type="button"
-                className="lrp-btn lrp-btn-primary fdp-save"
-                onClick={handleSaveRecipe}
-              >
-                {saved ? "✓ Saved" : "❤ Save Recipe"}
-              </button>
-              <button
-                type="button"
-                className="lrp-btn lrp-btn-outline fdp-share"
-                onClick={handleShare}
-              >
-                <Share2 className="rdp-sec-icon" />
-              </button>
-            </div>
-            {recipe.funFact && (
-              <div className="rdp-card3 rdp-note rdp-note-warm">
-                <div className="rdp-note-head">
-                  <Lightbulb className="rdp-sec-icon" color="#6a4a2f" /> <span>Did You Know?</span>
-                </div>
-                <p className="rdp-note-text">{recipe.funFact}</p>
+          {hasSideNotes && (
+            <aside className="rdp-aside">
+              <div className="fdp-actions">
+                <button
+                  type="button"
+                  className="lrp-btn lrp-btn-primary fdp-save"
+                  onClick={handleSaveRecipe}
+                >
+                  {saved ? "✓ Saved" : "❤ Save Recipe"}
+                </button>
+                <button
+                  type="button"
+                  className="lrp-btn lrp-btn-outline fdp-share"
+                  onClick={handleShare}
+                >
+                  <Share2 className="rdp-sec-icon" />
+                </button>
               </div>
-            )}
+              {recipe.funFact && (
+                <div className="rdp-card3 rdp-note rdp-note-warm">
+                  <div className="rdp-note-head">
+                    <Lightbulb className="rdp-sec-icon" color="#6a4a2f" /> <span>Did You Know?</span>
+                  </div>
+                  <p className="rdp-note-text">{recipe.funFact}</p>
+                </div>
+              )}
 
-            {recipe.chefTips && (
-              <div className="rdp-card3 rdp-note">
-                <div className="rdp-note-head">
-                  <ChefHat className="rdp-sec-icon" color="#6a4a2f" /> <span>Chef's Tips</span>
+              {recipe.chefTips && (
+                <div className="rdp-card3 rdp-note">
+                  <div className="rdp-note-head">
+                    <ChefHat className="rdp-sec-icon" color="#6a4a2f" /> <span>Chef's Tips</span>
+                  </div>
+                  <p className="rdp-note-text">{recipe.chefTips}</p>
                 </div>
-                <p className="rdp-note-text">{recipe.chefTips}</p>
-              </div>
-            )}
-          </aside>
+              )}
+            </aside>
+          )}
         </div>
       </div>
       <Footer />

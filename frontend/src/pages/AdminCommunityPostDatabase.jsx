@@ -16,6 +16,9 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("All Categories");
   const [statusFilter, setStatusFilter] = useState("All");
+  
+  // ✅ Origin Filter State
+  const [originFilter, setOriginFilter] = useState("All Origins");
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
@@ -23,15 +26,18 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 5;
 
+  // ✅ Define Origin Options
+  const originOptions = ["All Origins", "Malay", "Chinese", "Iban", "Melanau", "Bidayuh", "Dayak"];
+
   // --- Sync Props ---
   useEffect(() => {
     setLocalPosts(postsProp);
   }, [postsProp]);
 
-  // Reset page
+  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, category, statusFilter]);
+  }, [searchTerm, category, statusFilter, originFilter]);
 
   // --- Filtering Logic ---
   const filteredPosts = localPosts.filter((post) => {
@@ -41,11 +47,15 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
     const matchesSearch = title.includes(term) || author.includes(term);
     const matchesCategory = category === "All Categories" || post.category === category;
     
-    // Determine the required status based on the section type
+    // ✅ Origin Logic
+    const postOrigin = post.origin || post.culturalOrigin || "";
+    const matchesOrigin = originFilter === "All Origins" || postOrigin === originFilter;
+    
+    // Determine status
     const requiredStatus = sectionType === "approved" ? "Approved" : statusFilter;
     const matchesStatus = requiredStatus === "All" || post.status === requiredStatus;
 
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesCategory && matchesStatus && matchesOrigin;
   });
 
   // --- Pagination ---
@@ -183,6 +193,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          {/* Main Category Dropdown - This remains */}
           <div className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`} ref={dropdownRef}>
             <button className="admin-beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
               {category}
@@ -206,15 +217,21 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
           <div className="advanced-filters">
             <h4><CiFilter /> Advanced Filters</h4>
             <div className="filter-grid">
+              
+              {/* Cultural Origin Dropdown */}
               <div className="filter-item">
-                <label>Topic</label>
-                <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                  <option>All Categories</option>
-                  {postCategories.map((cat) => (
-                    <option key={cat}>{cat}</option>
+                <label>Cultural Origin</label>
+                <select 
+                  value={originFilter} 
+                  onChange={(e) => setOriginFilter(e.target.value)}
+                >
+                  {originOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
               </div>
+
+              {/* ❌ REMOVED: Redundant Topic Filter */}
               
               {sectionType !== "approved" && (
                 <div className="filter-item">
@@ -235,7 +252,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             <tr>
               <th>Title</th>
               <th>Author</th>
-              {/* ✅ CHANGED 1: Dynamic Header */}
               <th>{sectionType === "approved" ? "Date Approved" : "Date Posted"}</th>
               <th>Status</th>
               <th>Actions</th>
@@ -247,7 +263,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
                 <td>{p.foodName || p.title || "Untitled"}</td>
                 <td>{p.author || "Anonymous"}</td>
                 
-                {/* ✅ CHANGED 2: Dynamic Date Logic */}
                 <td>
                   {sectionType === "approved" && p.updatedAt
                     ? new Date(p.updatedAt).toLocaleDateString('en-GB')
