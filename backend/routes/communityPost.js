@@ -1,12 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const { pool: db } = require("../config/db");
+const multer = require('multer');
+// const path = require('path');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const { sendEmail } = require("../config/mailer");
 const { updateUserStats } = require('./userProfile');
 
-// Validation and sanitization imports
+//  Validation and sanitization imports
 const Joi = require("joi");
 const validator = require("validator");
 const sanitizeHtml = require("sanitize-html");
@@ -20,7 +22,7 @@ function sanitizeInput(value) {
   return value;
 }
 
-//  Joi Schemas for validation
+// NEW: Joi Schemas for validation
 const postSchema = Joi.object({
   foodName: Joi.string().max(100).required(),
   culturalOrigin: Joi.string().max(100).required(),
@@ -73,7 +75,7 @@ router.get("/session-debug", (req, res) => {
 });
 
 
-// Add database middleware to ensure req.db is available
+// ✅ Add database middleware to ensure req.db is available
 router.use((req, res, next) => {
   req.db = db;
   next();
