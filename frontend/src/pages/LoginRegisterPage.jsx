@@ -557,7 +557,7 @@ export default function LoginRegisterPage() {
                   <div className="password-input-wrap">
                     <label>Verification Code</label>
                     <input
-                      type="password"
+                      type="text"
                       className="otp-input-field"
                       value={otpCode}
                       onChange={(e) => {
@@ -800,8 +800,8 @@ export default function LoginRegisterPage() {
           Using Outlook, business or corporate email?
         </strong>
         <p className="verification-outlook-text">
-          Your email service may automatically scan links for security, which can verify your account before you click. 
-          If you see "Verification Failed" or "Link already used", your account might already be verified and you may to log in.
+          Your email service may automatically scan links for security, which can verify your account before you click.
+          If you see "Verification Failed" or "Link already used", your account might already be verified and you may try to log in.
         </p>
       </Modal>
     </div>
