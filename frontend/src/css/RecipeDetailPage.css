@@ -26,7 +26,7 @@
     align-items: start; 
   }
   .rdp-grid.rdp-grid--single {
-    grid-template-columns: 1fr;
+    grid-template-columns: 2fr;
     justify-content: center;
   }
 
