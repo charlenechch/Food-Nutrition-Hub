@@ -274,8 +274,6 @@ useEffect(() => {
     }
   };
 
-  const hasSideNotes = Boolean(recipe.funFact || recipe.chefTips);
-
   if (loading) {
     return (
       <div className="recipe-detail-page">
@@ -305,6 +303,8 @@ useEffect(() => {
       </div>
     );
   }
+
+  const hasSideNotes = Boolean(recipe.funFact || recipe.chefTips);
 
   // normalize lists (accept array or newline string)
   const toList = (v) =>
