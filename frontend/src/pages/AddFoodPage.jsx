@@ -5,7 +5,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { FaArrowLeftLong } from "react-icons/fa6";
-import { FiPlus } from "react-icons/fi"; 
+import { FiPlus, FiCheck } from "react-icons/fi"; 
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -14,24 +14,27 @@ const ORIGIN_OPTIONS = [
   "Malay", "Chinese", "Iban", "Melanau", "Kadazan", "Bidayuh", "Dayak",
 ];
 
-const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"];
 const CATEGORY_OPTIONS = [
   "Poultry", "Seafood", "Vegetables", "Rice Dish", "Dessert", 
   "Fermented", "Noodles", "Soup", "Meat"
 ];
 
-// Options for Food Type
 const FOOD_TYPE_OPTIONS = [
-  "Poultry", 
-  "Seafood", 
-  "Vegetables", 
-  "Fermented", 
-  "Dessert", 
-  "Rice Dish", 
-  "Noodles", 
-  "Soup", 
-  "Meat", 
-  "Other..."
+  "Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", 
+  "Rice Dish", "Noodles", "Soup", "Meat", "Other..."
+];
+
+const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"];
+
+// Predefined lists for Tags and Ingredients
+const DIETARY_TAG_OPTIONS = [
+  "Vegetarian", "Vegan", "Halal", "Gluten Free", 
+  "Dairy Free", "Low Fat", "High Protein", "Spicy"
+];
+
+const COMMON_INGREDIENTS_LIST = [
+  "Chicken", "Rice", "Garlic", "Onion", "Ginger", 
+  "Salt", "Sugar", "Chili", "Lemongrass", "Soy Sauce"
 ];
 
 const AddFoodPage = () => {
@@ -49,6 +52,7 @@ const AddFoodPage = () => {
     type: "",
   });
 
+  // Main Food State
   const [food, setFood] = useState({
     name: "",
     category: "",
@@ -62,10 +66,18 @@ const AddFoodPage = () => {
     fat: "",
     fiber: "",
     vitaminc: "",
-    foodType: "", 
-    difficulty: "", 
+    foodType: "Poultry", 
+    customFoodType: "", 
+    difficulty: "Medium", 
     prepTime: "",
+    healthTips: ""
   });
+
+  // --- Multi-Select States ---
+  const [selectedDietary, setSelectedDietary] = useState([]);
+  const [selectedIngredients, setSelectedIngredients] = useState([]);
+  const [showOtherIngredient, setShowOtherIngredient] = useState(false);
+  const [otherIngredientText, setOtherIngredientText] = useState("");
 
   // --- Fetch CSRF Token ---
   useEffect(() => {
@@ -84,6 +96,19 @@ const AddFoodPage = () => {
   // --- Input Change Handler ---
   const handleChange = (e) => {
     setFood({ ...food, [e.target.name]: e.target.value });
+  };
+
+  // --- Toggle Handlers for Multi-Select ---
+  const toggleDietary = (tag) => {
+    setSelectedDietary((prev) => 
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const toggleIngredient = (ing) => {
+    setSelectedIngredients((prev) => 
+      prev.includes(ing) ? prev.filter((i) => i !== ing) : [...prev, ing]
+    );
   };
 
   // --- Image Upload Logic ---
@@ -132,9 +157,17 @@ const AddFoodPage = () => {
         return;
     }
 
+    if (food.foodType === "Other..." && !food.customFoodType.trim()) {
+      setShowNotification({
+          visible: true,
+          message: "Please specify the food type.",
+          type: "error"
+      });
+      return;
+    }
+
     try {
       let finalImageUrl = "";
-      // 1. Upload Image First
       if (selectedImage) {
         try {
             finalImageUrl = await handleImageUpload(selectedImage);
@@ -148,7 +181,20 @@ const AddFoodPage = () => {
         }
       }
 
-      // 2. Prepare Data Object
+      // 1. Process Custom Food Type
+      const finalFoodType = food.foodType === "Other..." ? food.customFoodType : food.foodType;
+
+      // 2. Process Multi-Selects into Strings
+      const dietaryString = selectedDietary.join(", ");
+      
+      // Combine selected ingredients + custom "Other" text
+      let ingredientsString = selectedIngredients.join(", ");
+      if (showOtherIngredient && otherIngredientText.trim()) {
+        if (ingredientsString) ingredientsString += ", ";
+        ingredientsString += otherIngredientText.trim();
+      }
+
+      // 3. Prepare Data Object
       const newFoodData = {
         name: food.name,
         category: food.category,
@@ -163,12 +209,17 @@ const AddFoodPage = () => {
         Fiber_g: Number(food.fiber) || 0,
         VitaminC_mg: Number(food.vitaminc) || 0,
         image: finalImageUrl,
+        
         difficulty: food.difficulty,
-        prepTime: food.prepTime || "0", 
-        foodType: food.foodType
+        prepTime: food.prepTime || "0",
+        foodType: finalFoodType,
+
+        // Use our processed strings
+        commonIngredients: ingredientsString,
+        dietaryTags: dietaryString,
+        healthTips: food.healthTips
       };
 
-      // 3. Send to Backend
       const response = await fetch(`${API_URL}/api/foods`, {
         method: "POST", 
         headers: {
@@ -209,6 +260,30 @@ const AddFoodPage = () => {
   const handleCloseNotification = () => {
       setShowNotification({ visible: false, message: "", type: "" });
   };
+
+  // --- Inline Styles for Chip Selection ---
+  const chipContainerStyle = {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "10px",
+    marginTop: "8px",
+    marginBottom: "16px"
+  };
+
+  const getChipStyle = (isSelected) => ({
+    padding: "8px 16px",
+    borderRadius: "20px",
+    border: `1px solid ${isSelected ? "#d97706" : "#ddd"}`,
+    backgroundColor: isSelected ? "#fff7ed" : "white",
+    color: isSelected ? "#d97706" : "#555",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+    fontWeight: isSelected ? "600" : "400",
+    transition: "all 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
+  });
 
   return (
     <div className="edit-food-page">
@@ -304,31 +379,59 @@ const AddFoodPage = () => {
               </div>
             </div>
 
-            {/* Food Type Dropdown (Visible) */}
-            <div className="food-origin-field" style={{ marginTop: "1rem" }}>
-              <label className="basic-info-label">Food Type</label>
-              <div className="custom-select-wrapper">
-                <select
-                  className="edit-food-select"
-                  name="foodType"
-                  value={food.foodType}
-                  onChange={handleChange}
-                >
-                  {FOOD_TYPE_OPTIONS.map((type) => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
+            {/* Food Type Dropdown */}
+            {food.foodType === "Other..." ? (
+              <div className="edit-food-basic-info-two-col" style={{ marginTop: "1rem" }}>
+                <div>
+                  <label className="basic-info-label">Food Type</label>
+                  <div className="custom-select-wrapper">
+                    <select
+                      className="edit-food-select"
+                      name="foodType"
+                      value={food.foodType}
+                      onChange={handleChange}
+                    >
+                      {FOOD_TYPE_OPTIONS.map((type) => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="basic-info-label">Specify Food Type</label>
+                  <input
+                    className="edit-food-input"
+                    name="customFoodType"
+                    value={food.customFoodType}
+                    onChange={handleChange}
+                    placeholder="e.g. Beverage, Snack"
+                  />
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="food-origin-field" style={{ marginTop: "1rem" }}>
+                <label className="basic-info-label">Food Type</label>
+                <div className="custom-select-wrapper">
+                  <select
+                    className="edit-food-select"
+                    name="foodType"
+                    value={food.foodType}
+                    onChange={handleChange}
+                  >
+                    {FOOD_TYPE_OPTIONS.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* === Recipe Details (Visible Section) === */}
+        {/* === Recipe Details === */}
         <div className="edit-cultural-context-card">
           <h3>Recipe Details</h3>
           <div className="edit-food-basic-info-two-col">
-            
-            {/* Difficulty Dropdown (Visible) */}
             <div>
               <label className="basic-info-label">Difficulty Level</label>
               <div className="custom-select-wrapper">
@@ -344,8 +447,6 @@ const AddFoodPage = () => {
                 </select>
               </div>
             </div>
-
-            {/* Prep Time Input (Visible) */}
             <div>
               <label className="basic-info-label">Prep Time (minutes)</label>
               <input
@@ -357,7 +458,6 @@ const AddFoodPage = () => {
                 placeholder="e.g. 30"
               />
             </div>
-
           </div>
         </div>
 
@@ -421,6 +521,84 @@ const AddFoodPage = () => {
             ))}
           </div>
         </div>
+
+        {/* === NEW: Additional Details with Selection Chips === */}
+        <div className="edit-cultural-context-card">
+          <h3>Additional Details</h3>
+          
+          {/* Common Ingredients Selection */}
+          <label className="basic-info-label">Common Ingredients (Select all that apply)</label>
+          <div style={chipContainerStyle}>
+            {COMMON_INGREDIENTS_LIST.map((ing) => {
+              const isSelected = selectedIngredients.includes(ing);
+              return (
+                <button
+                  key={ing}
+                  type="button"
+                  style={getChipStyle(isSelected)}
+                  onClick={() => toggleIngredient(ing)}
+                >
+                  {ing}
+                  {isSelected && <FiPlus style={{transform: 'rotate(45deg)'}} />}
+                </button>
+              );
+            })}
+            {/* Other Option */}
+            <button
+              type="button"
+              style={getChipStyle(showOtherIngredient)}
+              onClick={() => setShowOtherIngredient(!showOtherIngredient)}
+            >
+              Other...
+              {showOtherIngredient && <FiCheck />}
+            </button>
+          </div>
+
+          {/* Conditional Input for Other Ingredients */}
+          {showOtherIngredient && (
+            <div style={{ marginBottom: "16px" }}>
+              <label className="basic-info-label" style={{fontSize: "0.9rem", color: "#666"}}>Specify other ingredients (comma separated)</label>
+              <textarea 
+                className="edit-food-textarea" 
+                value={otherIngredientText}
+                onChange={(e) => setOtherIngredientText(e.target.value)}
+                rows={2} 
+                placeholder="e.g. Turmeric leaves, Belacan, Black pepper..."
+              />
+            </div>
+          )}
+
+          {/* Dietary Tags Selection */}
+          <label className="basic-info-label">Dietary Preferences</label>
+          <div style={chipContainerStyle}>
+            {DIETARY_TAG_OPTIONS.map((tag) => {
+              const isSelected = selectedDietary.includes(tag);
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  style={getChipStyle(isSelected)}
+                  onClick={() => toggleDietary(tag)}
+                >
+                  {tag}
+                  {isSelected && <FiCheck />}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Health Tips */}
+          <label className="basic-info-label" style={{marginTop: "10px"}}>Health Tips</label>
+          <textarea 
+            className="edit-food-textarea" 
+            name="healthTips" 
+            value={food.healthTips} 
+            onChange={handleChange} 
+            rows={2} 
+            placeholder="e.g. Rich in fiber, good for digestion..."
+          />
+        </div>
+
       </div>
 
       {/* Confirmation Modal */}
