@@ -8,9 +8,9 @@ const client = new OpenAI({
 
 const ACCEPTED_FORMATS = ["png", "jpeg", "jpg", "gif", "webp"];
 
-// ------------------------------
-// Base64 Normalization
-// ------------------------------
+// --------------------------------------------------------------
+// NORMALIZE BASE64 INPUT
+// --------------------------------------------------------------
 function normalizeImageBase64(imageBase64) {
   if (!imageBase64) return null;
 
@@ -21,84 +21,118 @@ function normalizeImageBase64(imageBase64) {
     return {
       format: match[1],
       dataUrl: imageBase64,
-      pureBase64: imageBase64.split(",")[1]
+      pureBase64: imageBase64.split(",")[1],
     };
   }
 
   return {
     format: "png",
     pureBase64: imageBase64,
-    dataUrl: `data:image/png;base64,${imageBase64}`
+    dataUrl: `data:image/png;base64,${imageBase64}`,
   };
 }
 
-// --------------------------------------------
-// Fallback Alternatives (same dish tweaks)
-// --------------------------------------------
+// --------------------------------------------------------------
+// FALLBACK ALTERNATIVES (dish tweaks)
+// --------------------------------------------------------------
 function fallbackAlternatives(food = "") {
   const f = (food || "").toLowerCase();
 
   if (f.includes("laksa")) {
     return [
-      { title: "Vegetable oil", description: "Use vegetable oil instead of lard to reduce saturated fat." },
-      { title: "Chicken or shrimp", description: "Use lean proteins instead of fatty cuts." },
-      { title: "Extra vegetables", description: "Increase bean sprouts and greens for more fibre." }
+      { title: "Use whole grain noodles", description: "Swap vermicelli with whole grain noodles for added fibre." },
+      { title: "Low-fat coconut milk", description: "Use low-fat or diluted coconut milk to reduce calories." },
+      { title: "Add leafy vegetables", description: "Increase bok choy or spinach for added nutrients." },
+      { title: "Reduce oil", description: "Use less oil when preparing the broth." },
     ];
   }
 
   if (f.includes("mee") || f.includes("noodle")) {
     return [
-      { title: "Less oil", description: "Reduce frying oil or choose dry-style noodles." },
-      { title: "Lean protein", description: "Use chicken breast, tofu or fish." },
-      { title: "More vegetables", description: "Add leafy greens and non-starchy vegetables." }
+      { title: "Use less oil", description: "Reduce frying oil to lower fat content." },
+      { title: "Add vegetables", description: "Include more leafy greens for fibre." },
+      { title: "Switch to lean proteins", description: "Choose chicken breast, tofu, or shrimp." },
     ];
   }
 
   return [
-    { title: "Reduce oil", description: "Lower fat content by reducing oil used." },
-    { title: "Lean protein", description: "Choose chicken, tofu or fish." },
-    { title: "Add vegetables", description: "Increase fibre by adding vegetables." }
+    { title: "Reduce oil", description: "Cut down cooking oil to reduce calories." },
+    { title: "Add more vegetables", description: "Boost fibre with leafy greens and non-starchy vegetables." },
+    { title: "Switch to lean protein", description: "Use tofu, chicken breast, or fish." },
   ];
 }
 
-// ========================================
-//  GPT NUTRITION ROUTE
-// ========================================
+// --------------------------------------------------------------
+// SAFE NUMBER PARSER
+// --------------------------------------------------------------
+function safeNumber(v) {
+  if (v === null || v === undefined) return null;
+  if (typeof v === "number") return v;
+  const n = parseFloat(String(v).replace(/[^\d.-]/g, ""));
+  return isNaN(n) ? null : n;
+}
+
+// --------------------------------------------------------------
+// MAIN GPT ROUTE
+// --------------------------------------------------------------
 router.post("/nutrition", async (req, res) => {
   try {
     const { imageBase64, foodName, ingredients } = req.body;
 
-    if (!imageBase64) return res.status(400).json({ error: "Missing imageBase64" });
+    if (!imageBase64) {
+      return res.status(400).json({ error: "Missing imageBase64" });
+    }
 
     const normalized = normalizeImageBase64(imageBase64);
-    if (!normalized) return res.status(400).json({ error: "Invalid base64 image" });
+    if (!normalized) {
+      return res.status(400).json({ error: "Invalid base64 image" });
+    }
 
     const { dataUrl, format } = normalized;
     if (!ACCEPTED_FORMATS.includes(format)) {
       return res.status(400).json({ error: "Unsupported image format" });
     }
 
-    // ---------------- SYSTEM PROMPT ----------------
+    // ----------------------------------------------------------
+    // PROMPTS
+    // ----------------------------------------------------------
     const systemPrompt = `
-You are a Sarawak Malaysian food expert + nutritionist.
+You are a Sarawak Malaysian food expert and nutritionist.
 
-Return ONLY valid JSON that includes:
-- calories_kcal (number)
-- macros { protein_g, carbs_g, fat_g }
-- alternatives (2–5 healthier tweaks, not different dishes)
-- health notes
-`;
+You MUST ALWAYS:
+- Identify the dish name (do NOT leave it empty — infer the closest dish).
+- Estimate calories and macros realistically.
+- Provide 2–5 healthier modifications (NOT different dishes).
+- ALWAYS return valid JSON ONLY.
+
+JSON REQUIRED FIELDS:
+{
+  "food": "",
+  "confidence": 0.0,
+  "portion_size": "",
+  "calories_kcal": 0,
+  "macros": { "protein_g": 0, "carbs_g": 0, "fat_g": 0 },
+  "ingredients": [],
+  "category": "",
+  "is_sarawak_local_dish": false,
+  "health_notes": "",
+  "assumptions": "",
+  "alternatives": []
+}
+    `;
 
     const userPrompt = `
-Analyze this food image. Output ONLY JSON.
+Analyze this food image and return ONLY JSON.
 
-${foodName ? `User hint: ${foodName}\n` : ""}
-${ingredients ? `Ingredients: ${ingredients}\n` : ""}
+${foodName ? `User hint: ${foodName}` : ""}
+${ingredients ? `Ingredients: ${ingredients}` : ""}
 Prefer Sarawak interpretation.
-`;
+    `;
 
-    // ---------------- GPT CALL ----------------
-    const response = await client.chat.completions.create({
+    // ----------------------------------------------------------
+    // GPT CALL
+    // ----------------------------------------------------------
+    const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.1,
       messages: [
@@ -107,14 +141,16 @@ Prefer Sarawak interpretation.
           role: "user",
           content: [
             { type: "text", text: userPrompt },
-            { type: "image_url", image_url: { url: dataUrl } }
-          ]
-        }
-      ]
+            { type: "image_url", image_url: { url: dataUrl } },
+          ],
+        },
+      ],
     });
 
-    // CLEAN JSON
-    let raw = response.choices?.[0]?.message?.content || "";
+    // ----------------------------------------------------------
+    // CLEAN JSON OUTPUT
+    // ----------------------------------------------------------
+    let raw = completion.choices?.[0]?.message?.content || "";
     raw = raw.replace(/```json|```/g, "").trim();
     raw = raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1);
 
@@ -122,19 +158,12 @@ Prefer Sarawak interpretation.
     try {
       gpt = JSON.parse(raw);
     } catch (err) {
-      return res.status(500).json({ error: "Invalid JSON", raw });
+      return res.status(500).json({ error: "Invalid JSON returned by GPT", raw });
     }
 
-    // =======================================
-    // FIXED NUTRITION NORMALIZER
-    // =======================================
-    function safeNumber(v) {
-      if (v === null || v === undefined) return null;
-      if (typeof v === "number") return v;
-      const n = parseFloat(String(v).replace(/[^\d.-]/g, ""));
-      return isNaN(n) ? null : n;
-    }
-
+    // ----------------------------------------------------------
+    // FIX NUTRITION FIELDS
+    // ----------------------------------------------------------
     const calories =
       safeNumber(gpt.calories_kcal) ||
       safeNumber(gpt.calories) ||
@@ -144,58 +173,54 @@ Prefer Sarawak interpretation.
     const protein =
       safeNumber(gpt.macros?.protein_g) ||
       safeNumber(gpt.protein_g) ||
-      safeNumber(gpt.protein) ||
       null;
 
     const carbs =
       safeNumber(gpt.macros?.carbs_g) ||
       safeNumber(gpt.carbs_g) ||
-      safeNumber(gpt.carbohydrates_g) ||
       null;
 
     const fat =
       safeNumber(gpt.macros?.fat_g) ||
       safeNumber(gpt.fat_g) ||
-      safeNumber(gpt.fat) ||
       null;
 
     const fiber = safeNumber(gpt.fiber_g);
     const vitaminC = safeNumber(gpt.vitaminC_mg);
 
-    // =======================================
+    // ----------------------------------------------------------
     // NORMALIZE ALTERNATIVES
-    // =======================================
-    let merged = [
-      ...(gpt.alternatives || []),
-      ...(gpt.alternative_names || [])
-    ].filter(Boolean);
+    // ----------------------------------------------------------
+    let altList = [...(gpt.alternatives || [])].filter(Boolean);
 
-    if (merged.length < 2) merged = fallbackAlternatives(gpt.food);
+    if (altList.length < 2) {
+      altList = fallbackAlternatives(gpt.food);
+    }
 
-    merged = merged.map((alt) =>
+    altList = altList.map((alt) =>
       typeof alt === "string"
         ? { title: alt, description: "" }
         : {
             title: alt.title || alt.name || "",
-            description: alt.description || alt.details || alt.note || ""
+            description: alt.description || alt.details || alt.note || "",
           }
     );
 
-    // =======================================
-    // FINAL RESPONSE
-    // =======================================
+    // ----------------------------------------------------------
+    // BUILD FINAL RESPONSE OBJECT
+    // ----------------------------------------------------------
     const standard = {
-      food: gpt.food || "",
+      food: gpt.food || "Unknown Food",
       confidence: gpt.confidence || 0,
       portion_size: gpt.portion_size || "1 serving",
 
       nutrition: {
-        calories_kcal: calories,
-        protein_g: protein,
-        carbs_g: carbs,
-        fat_g: fat,
-        fiber_g: fiber,
-        vitaminC_mg: vitaminC
+        Energy_kcal: calories,
+        Protein_g: protein,
+        Carbohydrates_g: carbs,
+        Fat_g: fat,
+        Fiber_g: fiber,
+        VitaminC_mg: vitaminC,
       },
 
       ingredients: gpt.ingredients || [],
@@ -203,13 +228,14 @@ Prefer Sarawak interpretation.
       is_sarawak_local_dish: gpt.is_sarawak_local_dish || false,
       health_notes: gpt.health_notes || "",
       assumptions: gpt.assumptions || "",
+      alternatives: altList,
 
-      alternatives: merged,
-      meta: { imageUsed: true }
+      meta: {
+        imageUsed: true,
+      },
     };
 
     return res.json({ ok: true, data: standard });
-
   } catch (err) {
     console.error("GPT Nutrition Error:", err);
     res.status(500).json({ error: "GPT analysis failed", details: err.message });
