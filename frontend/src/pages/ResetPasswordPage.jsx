@@ -171,59 +171,64 @@ useEffect(() => {
         </p>
 
         <form onSubmit={handleSubmit} className="rpp-form" noValidate>
-          {/* 🔹 New Password */}
+          {/* New Password */}
           <label>New Password</label>
           <div className="password-input-wrap">
-            <input
-              type={showPwd ? "text" : "password"}
-              placeholder="Enter a new password"
-              value={pwd}
-              onChange={(e) => setPwd(e.target.value)}
-              onFocus={() => setShowHint(true)}
-              onBlur={() => setShowHint(false)}
-            />
-            <span
-              className="password-eye-icon"
-              onClick={() => setShowPwd((prev) => !prev)}
-            >
-              {showPwd ? <FaEyeSlash /> : <FaEye />}
-            </span>
+  
+            <div className="password-wrapper"> 
+              <input
+                type={showPwd ? "text" : "password"}
+                placeholder="Enter a new password"
+                value={pwd}
+                onChange={(e) => setPwd(e.target.value)}
+                onFocus={() => setShowHint(true)}
+                onBlur={() => setShowHint(false)}
+              />
+              <span
+                className="password-eye-icon"
+                onClick={() => setShowPwd((prev) => !prev)}
+              >
+                {showPwd ? <FaEyeSlash /> : <FaEye />}
+              </span>
 
-            {showHint && (
-              <div className="password-hint-box">
-                <div className="password-hints">
-                  {pwdStatus.map((rule, idx) => (
-                    <div
-                      key={idx}
-                      className={
-                        rule.passed
-                          ? "password-hint-row password-hint-valid"
-                          : "password-hint-row password-hint-invalid"
-                      }
-                    >
-                      {rule.passed ? "✔" : "✖"} {rule.label}
-                    </div>
-                  ))}
+              {showHint && (
+                <div className="password-hint-box">
+                  <div className="password-hints">
+                    {pwdStatus.map((rule, idx) => (
+                      <div
+                        key={idx}
+                        className={
+                          rule.passed
+                            ? "password-hint-row password-hint-valid"
+                            : "password-hint-row password-hint-invalid"
+                        }
+                      >
+                        {rule.passed ? "✔" : "✖"} {rule.label}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* 🔹 Confirm Password */}
           <label>Confirm New Password</label>
           <div className="password-input-wrap">
-            <input
-              type={showConfirm ? "text" : "password"}
-              placeholder="Re-enter your new password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-            />
-            <span
-              className="password-eye-icon"
-              onClick={() => setShowConfirm((prev) => !prev)}
-            >
-              {showConfirm ? <FaEyeSlash /> : <FaEye />}
-            </span>
+            <div className="password-wrapper">
+              <input
+                type={showConfirm ? "text" : "password"}
+                placeholder="Re-enter your new password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+              />
+              <span
+                className="password-eye-icon"
+                onClick={() => setShowConfirm((prev) => !prev)}
+              >
+                {showConfirm ? <FaEyeSlash /> : <FaEye />}
+              </span>
+            </div>
           </div>
 
           {error && <p className="rpp-error">{error}</p>}
