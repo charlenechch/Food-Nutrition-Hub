@@ -1,4 +1,7 @@
-/* ===== Reset & Full-Screen Setup ===== */
+/* =========================================================
+   GLOBAL RESET & BASE STYLES
+   ========================================================= */
+
 * {
   margin: 0;
   padding: 0;
@@ -8,8 +11,8 @@
 html, body, #root {
   height: 100%;
   width: 100%;
-  font-family: "Poppins", sans-serif;  /* ✅ use Poppins here */
-  background: #f9fafb; /* keep it neutral, your Main.css background will show */
+  font-family: "Poppins", sans-serif;
+  background: #f9fafb; 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -20,7 +23,7 @@ body {
   padding: 0;
 }
 
-/* ===== Optional link styles (if you still need them) ===== */
+/* ===== Default link style ===== */
 a {
   font-weight: 500;
   color: #646cff;
@@ -30,7 +33,7 @@ a:hover {
   color: #535bf2;
 }
 
-/* ===== Button base style (can be overridden in Main.css) ===== */
+/* ===== Button base style ===== */
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -47,79 +50,56 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-/* Hide Google top banner */
-.goog-te-banner-frame.skiptranslate {
+
+
+/* =========================================================
+   GOOGLE TRANSLATE CLEANUP (FINAL PRODUCTION SAFE)
+   ========================================================= */
+
+/* Hide the blue Google Translate top banner completely */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame {
   display: none !important;
-}
-body {
-  top: 0px !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
 }
 
-/* Hide the default dropdown */
+/* Prevent Google Translate from shifting your layout */
+body {
+  top: 0 !important;
+  position: relative !important;
+}
+
+/* Hide Google’s default widget container */
+#google_translate_element,
 #google_translate_element select {
   display: none !important;
 }
 
-/* Hide Google icon */
+/* Hide Google icon + extra text */
+.goog-te-gadget,
+.goog-te-gadget span,
 .goog-te-gadget-icon {
   display: none !important;
-}
-
-
-/* === FIX HEADER LAYOUT WHEN GOOGLE TRANSLATE LOADS === */
-
-/* Remove top margin Google forces */
-body {
-  top: 0 !important;
-  position: static !important;
-}
-
-/* Prevent Google Translate from resizing your page */
-html, body {
-  height: auto !important;
-  min-height: 0 !important;
-}
-
-/* Avoid wrong font changes */
-.goog-te-gadget {
   font-size: 0 !important;
 }
-.goog-te-gadget span {
-  display: none !important;
-}
 
-/* Prevent Google from injecting weird spacing around navbar */
-.goog-te-banner-frame.skiptranslate {
-  display: none !important;
-}
-.goog-te-banner-frame {
-  display: none !important;
-}
-
-/* === REMOVE THE BLUE GOOGLE TRANSLATE STRIP COMPLETELY === */
-.goog-te-banner-frame {
+/* Disable Google translate tooltip popup */
+#goog-gt-tt,
+.goog-tooltip,
+.goog-tooltip:hover,
+.goog-te-balloon-frame {
   display: none !important;
   visibility: hidden !important;
-  height: 0 !important;
-  opacity: 0 !important;
   pointer-events: none !important;
 }
 
-.goog-te-banner {
+/* Hide menu popup */
+.goog-te-menu-frame,
+.goog-te-menu2 {
   display: none !important;
   visibility: hidden !important;
-}
-
-#goog-gt-tt, .goog-tooltip, .goog-tooltip:hover {
-  display: none !important;
-  visibility: hidden !important;
-}
-
-.goog-te-balloon-frame {
-  display: none !important;
-}
-
-
-.goog-te-menu-frame {
-  display: none !important;
+  pointer-events: none !important;
 }
