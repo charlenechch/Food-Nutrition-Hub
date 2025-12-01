@@ -218,8 +218,20 @@ app.use(
 
 // CSRF PROTECTION
 const csrfProtection = csrf();
-app.use(csrfProtection);
+// app.use(csrfProtection);
 
+// ---- CSRF Skip Logic ----
+const csrfExclude = ['/api/ai/gpt/nutrition'];
+
+// Custom CSRF handler with skip logic
+app.use((req, res, next) => {
+  if (csrfExclude.includes(req.path)) {
+    return next(); // Skip CSRF only for GPT nutrition route
+  }
+  return csrfProtection(req, res, next);
+});
+
+// CSRF token endpoint (must run AFTER the CSRF wrapper)
 app.get("/api/csrf-token", (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
