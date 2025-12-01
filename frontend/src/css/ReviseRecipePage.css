@@ -209,4 +209,13 @@
   .revise-recipe-page .rcp-admin-alert {
     padding: 16px;
   }
+  .revise-recipe-page .rcp-alert-icon {
+    display: none;
+  }
+  .revise-recipe-page .rcp-alert-header {
+    gap: 0;
+  }
+  .revise-recipe-page .rcp-issues-title svg {
+    display: none;
+  }
 }
