@@ -203,3 +203,15 @@
   .rdp-note { order: 1; }
   .fdp-actions { order: 2; }
 }
+.rdp-main-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+@media (max-width: 600px) {
+  .rdp-main-actions {
+    flex-direction: column;
+  }
+}

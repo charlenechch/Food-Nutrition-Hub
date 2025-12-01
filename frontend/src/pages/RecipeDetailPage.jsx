@@ -274,6 +274,8 @@ useEffect(() => {
     }
   };
 
+  const hasSideNotes = Boolean(recipe.funFact || recipe.chefTips);
+
   if (loading) {
     return (
       <div className="recipe-detail-page">
@@ -412,6 +414,25 @@ useEffect(() => {
               </div>
             )}
 
+            {!hasSideNotes && (
+              <div className="rdp-card3 rdp-main-actions">
+                <button
+                  type="button"
+                  className="lrp-btn lrp-btn-primary fdp-save"
+                  onClick={handleSaveRecipe}
+                >
+                  {saved ? "✓ Saved" : "❤ Save Recipe"}
+                </button>
+                <button
+                  type="button"
+                  className="lrp-btn lrp-btn-outline fdp-share"
+                  onClick={handleShare}
+                >
+                  <Share2 className="rdp-sec-icon" />
+                </button>
+              </div>
+            )}
+
             <div className="rdp-card3">
               <h3 className="rdp-sec-title">
                 <Info className="rdp-sec-icon" color="#6a4a2f" /> Description
@@ -447,41 +468,43 @@ useEffect(() => {
           </div>
 
           {/* RIGHT: sidebar */}
-          <aside className="rdp-aside">
-            <div className="fdp-actions">
-              <button
-                type="button"
-                className="lrp-btn lrp-btn-primary fdp-save"
-                onClick={handleSaveRecipe}
-              >
-                {saved ? "✓ Saved" : "❤ Save Recipe"}
-              </button>
-              <button
-                type="button"
-                className="lrp-btn lrp-btn-outline fdp-share"
-                onClick={handleShare}
-              >
-                <Share2 className="rdp-sec-icon" />
-              </button>
-            </div>
-            {recipe.funFact && (
-              <div className="rdp-card3 rdp-note rdp-note-warm">
-                <div className="rdp-note-head">
-                  <Lightbulb className="rdp-sec-icon" color="#6a4a2f" /> <span>Did You Know?</span>
-                </div>
-                <p className="rdp-note-text">{recipe.funFact}</p>
+          {hasSideNotes && (
+            <aside className="rdp-aside">
+              <div className="fdp-actions">
+                <button
+                  type="button"
+                  className="lrp-btn lrp-btn-primary fdp-save"
+                  onClick={handleSaveRecipe}
+                >
+                  {saved ? "✓ Saved" : "❤ Save Recipe"}
+                </button>
+                <button
+                  type="button"
+                  className="lrp-btn lrp-btn-outline fdp-share"
+                  onClick={handleShare}
+                >
+                  <Share2 className="rdp-sec-icon" />
+                </button>
               </div>
-            )}
+              {recipe.funFact && (
+                <div className="rdp-card3 rdp-note rdp-note-warm">
+                  <div className="rdp-note-head">
+                    <Lightbulb className="rdp-sec-icon" color="#6a4a2f" /> <span>Did You Know?</span>
+                  </div>
+                  <p className="rdp-note-text">{recipe.funFact}</p>
+                </div>
+              )}
 
-            {recipe.chefTips && (
-              <div className="rdp-card3 rdp-note">
-                <div className="rdp-note-head">
-                  <ChefHat className="rdp-sec-icon" color="#6a4a2f" /> <span>Chef's Tips</span>
+              {recipe.chefTips && (
+                <div className="rdp-card3 rdp-note">
+                  <div className="rdp-note-head">
+                    <ChefHat className="rdp-sec-icon" color="#6a4a2f" /> <span>Chef's Tips</span>
+                  </div>
+                  <p className="rdp-note-text">{recipe.chefTips}</p>
                 </div>
-                <p className="rdp-note-text">{recipe.chefTips}</p>
-              </div>
-            )}
-          </aside>
+              )}
+            </aside>
+          )}
         </div>
       </div>
       <Footer />
