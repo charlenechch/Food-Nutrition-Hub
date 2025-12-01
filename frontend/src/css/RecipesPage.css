@@ -126,7 +126,10 @@
 }
 
 @media (max-width: 760px) {
-  .rp-grid-2, .rp-grid-3 { grid-template-columns: 1fr; }
+  .rp-grid-2, 
+  .rp-grid-3 { 
+    grid-template-columns: 1fr; 
+  }
 }
 
 .rp-field {
