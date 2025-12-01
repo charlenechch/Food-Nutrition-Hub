@@ -436,9 +436,16 @@ const EditFoodPage = () => {
 
         {/* Cultural Context */}
         <div className="edit-cultural-context-card">
-          <h3>Cultural Context (Not Saved)</h3>
+          <h3>Cultural Context</h3>
           <label className="basic-info-label">Description</label>
-          <textarea className="edit-food-textarea" name="description" value={food.description} onChange={handleChange} rows={5} />
+          <textarea
+            className="edit-food-textarea"
+            name="culturalContext"
+            value={food.traditionalPreparation}
+            onChange={handleChange}
+            placeholder="Describe the origin of this food culture"
+            rows={5}
+          />
           <label className="basic-info-label">Cultural Significance</label>
           <textarea
             className="edit-food-textarea"
