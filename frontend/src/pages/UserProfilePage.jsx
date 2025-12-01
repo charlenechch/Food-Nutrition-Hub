@@ -1292,7 +1292,7 @@ const savePrefs = async () => {
             {/* ===== Preferences ===== */}
             {tab === "prefs" && (
               <div className="upp-stack">
-                {/* Dietary */}
+                {/* Dietary Card */}
                 <div className="upp-card">
                   <h3 className="upp-card-title">Dietary Preferences</h3>
                   <div className="upp-choice-grid">
@@ -1302,15 +1302,16 @@ const savePrefs = async () => {
                           type="checkbox"
                           checked={prefs.dietary.includes(id)}
                           onChange={() => setPrefs((p) => ({ ...p, dietary: toggleInArray(p.dietary, id) }))}
+                          disabled={!isEditing} 
                         />
                         {id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                       </label>
                     ))}
+                    {prefs.dietary.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No dietary preferences selected</div>}
                   </div>
-                  {prefs.dietary.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No dietary preferences selected</div>}
                 </div>
 
-                {/* Allergies */}
+                {/* Allergies Card */}
                 <div className="upp-card">
                   <h3 className="upp-card-title">Allergies / Restrictions</h3>
                   <div className="upp-choice-grid">
@@ -1320,18 +1321,51 @@ const savePrefs = async () => {
                           type="checkbox"
                           checked={prefs.allergies.includes(id)}
                           onChange={() => setPrefs((p) => ({ ...p, allergies: toggleInArray(p.allergies, id) }))}
+                          disabled={!isEditing}
                         />
                         {id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                       </label>
                     ))}
+                    {prefs.allergies.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No allergies selected</div>}
                   </div>
-                  {prefs.allergies.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No allergies selected</div>}
                 </div>
 
-                <button className="lrp-btn lrp-btn-primary" onClick={savePrefs}>Save Preferences</button>
+                {/* ACTION BUTTONS  */}
+                <div style={{ marginTop: "24px" }}>
+                  {!isEditing ? (
+                    // VIEW MODE
+                    <button 
+                      className="lrp-btn lrp-btn-outline" 
+                      style={{ width: "100%", padding: "12px", fontWeight: "bold", border: "1px solid #ccc" }}
+                      onClick={() => setIsEditing(true)}
+                    >
+                      Edit Preferences
+                    </button>
+                  ) : (
+                    // EDIT MODE: Show Cancel + Save
+                    <div className="upp-edit-actions" style={{ display: "flex", gap: "12px" }}>
+                      <button 
+                        className="lrp-btn lrp-btn-outline" 
+                        style={{ flex: 1 }}
+                        onClick={() => setIsEditing(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        className="lrp-btn lrp-btn-primary" 
+                        style={{ flex: 1 }}
+                        onClick={async () => {
+                          await savePrefs();
+                          setIsEditing(false); // Exit edit mode on success
+                        }}
+                      >
+                        Save Preferences
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
-
             {/* ===== Settings ===== */}
             {tab === "settings" && (
               <div className="upp-stack">
