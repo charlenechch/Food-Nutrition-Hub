@@ -154,16 +154,6 @@ app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
 //   "https://food-nutrition-hub.vercel.app"
 // ];
 
-// // app.use(
-// //   cors({
-// //     origin: allowedOrigins,
-// //     credentials: true,
-// //     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-// //     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
-// //     optionsSuccessStatus: 204,
-// //   })
-// // );
-
 // app.use(cors({
 //   origin: function(origin, callback) {
 //     if (!origin || allowedOrigins.includes(origin)) {
