@@ -117,12 +117,13 @@ router.get("/:id", async (req, res) => {
 });
 
 // ============================
-//  CREATE FOOD ROUTE
+// ✅ FIXED CREATE NEW FOOD ROUTE
 // ============================
 router.post("/", requireAuth, requireAdmin, async (req, res) => {
   console.log("📥 [POST] Received Add Food Request:", req.body);
 
   const {
+    // Frontend Fields
     name,
     origin,
     category,
@@ -136,6 +137,8 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     Fiber_g,
     VitaminC_mg,
     image,
+
+    // Database Fields (Hidden/Missing in Frontend)
     foodType,
     difficulty,
     dietaryTags,
@@ -153,7 +156,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
   }
 
   try {
-    // 2. Prepare SQL
+    // 2. Prepare SQL with ALL Database Columns
     const sql = `
       INSERT INTO food 
       (
@@ -165,6 +168,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
+    // 3. Set Values & Safe Defaults for Hidden Columns
     const values = [
       name,
       origin,
@@ -172,6 +176,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       description || "",
       culturalSignificance || "",
       traditionalPreparation || "",
+      // Nutritional Info (Default to 0)
       Energy_kcal || 0,
       Protein_g || 0,
       Fat_g || 0,
@@ -179,17 +184,20 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       Fiber_g || 0,
       VitaminC_mg || 0,
       image || "",
-      foodType || "",
-      difficulty || "",
+      
+      // --- ✅ SAFE DEFAULTS FOR HIDDEN COLUMNS ---
+      // These fix the "Data Truncated" errors
+      foodType || "Dish",       // Default to 'Dish'
+      difficulty || "Medium",   // Default to 'Medium' (Satisfies DB ENUM)
       dietaryTags || "",
-      prepTime || "",
+      prepTime || "0",          // Default to '0' (Satisfies DB INT)
       commonIngredients || "",
       alternative || "",
       altDescription || "",
       healthTips || ""
     ];
 
-    // 3. Execute
+    // 4. Execute
     const [result] = await db.query(sql, values);
 
     console.log("✅ [POST] Food Created, ID:", result.insertId);
@@ -279,8 +287,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     // 3. Send Email if a user is found
     if (userResult.length > 0) {
       const { email, firstname, foodName } = userResult[0];
-      console.log(`📧 Sending update notification to ${email} for food: ${foodName}`);
-
+      
       const emailHTML = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
           <div style="background-color: #387346; padding: 20px; text-align: center;">
@@ -291,10 +298,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
             <p>This is a notification that an administrator has updated the details for the food item:</p>
             <h3 style="text-align:center; background:#f4f4f4; padding:10px;">${foodName}</h3>
             
-            <p>These changes were made to ensure the accuracy of our food database, such as nutritional info, cultural details, or categorization.</p>
-
-            <p>You can view the updated details on your profile or the recipes page.</p>
-            
+            <p>These changes were made to ensure the accuracy of our food database.</p>
             <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
               Best regards,<br>The SarawakEats Team
             </p>
@@ -306,13 +310,11 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
         to: email,
         subject: `Update: Your submission "${foodName}" has been modified`,
         html: emailHTML,
-        text: `Your food submission "${foodName}" has been updated by an admin to ensure database accuracy.`
+        text: `Your food submission "${foodName}" has been updated.`
       });
-    } else {
-      console.log("ℹ️ No user linked to this food item. Skipping email.");
     }
 
-    res.json({ success: true, message: "Food updated successfully and notification sent (if applicable)." });
+    res.json({ success: true, message: "Food updated successfully." });
   } catch (err) {
     console.error("❌ Update food error:", err.message);
     res.status(500).json({ success: false, error: "Failed to update food" });

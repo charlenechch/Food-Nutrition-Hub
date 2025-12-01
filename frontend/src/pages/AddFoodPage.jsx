@@ -9,15 +9,9 @@ import { FiPlus } from "react-icons/fi";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// --- 1. DEFINE ORIGIN OPTIONS (Matches EditFoodPage) ---
+// Standard options matching your database
 const ORIGIN_OPTIONS = [
-  "Malay",
-  "Chinese",
-  "Iban",
-  "Melanau",
-  "Kadazan",
-  "Bidayuh",
-  "Dayak",
+  "Malay", "Chinese", "Iban", "Melanau", "Kadazan", "Bidayuh", "Dayak",
 ];
 
 const AddFoodPage = () => {
@@ -64,11 +58,12 @@ const AddFoodPage = () => {
     fetchCsrfToken();
   }, []);
 
-  // --- Handlers ---
+  // --- Input Change Handler ---
   const handleChange = (e) => {
     setFood({ ...food, [e.target.name]: e.target.value });
   };
 
+  // --- Image Upload Logic ---
   const handleImageUpload = async (file) => {
     if (!file) return ""; 
     return new Promise((resolve, reject) => {
@@ -100,10 +95,11 @@ const AddFoodPage = () => {
     });
   };
 
+  // --- Main Add Logic ---
   const handleConfirmAdd = async () => {
     setShowSaveConfirm(false);
 
-    // Validation: Ensure Origin is selected
+    // Validation
     if (!food.origin) {
         setShowNotification({
             visible: true,
@@ -115,19 +111,22 @@ const AddFoodPage = () => {
 
     try {
       let finalImageUrl = "";
+      // 1. Upload Image First
       if (selectedImage) {
         try {
             finalImageUrl = await handleImageUpload(selectedImage);
         } catch (error) {
             setShowNotification({
                 visible: true, 
-                message: "Image upload failed.", 
+                message: "Image upload failed. Try a smaller image.", 
                 type: "error"
             });
             return;
         }
       }
 
+      // 2. Prepare Data Object
+      // We only send what the user sees. The backend fills in the rest (difficulty, etc.)
       const newFoodData = {
         name: food.name,
         category: food.category,
@@ -142,11 +141,9 @@ const AddFoodPage = () => {
         Fiber_g: Number(food.fiber) || 0,
         VitaminC_mg: Number(food.vitaminc) || 0,
         image: finalImageUrl,
-        difficulty: "Medium", 
-        foodType: "Dish",
-        prepTime: "0"
       };
 
+      // 3. Send to Backend
       const response = await fetch(`${API_URL}/api/foods`, {
         method: "POST", 
         headers: {
@@ -270,7 +267,7 @@ const AddFoodPage = () => {
               </div>
             </div>
 
-            {/* --- ORIGIN DROPDOWN --- */}
+            {/* Origin Dropdown */}
             <div className="food-origin-field">
               <label className="basic-info-label">Region of Origin</label>
               <div className="custom-select-wrapper">
@@ -282,18 +279,15 @@ const AddFoodPage = () => {
                 >
                     <option value="">Select an origin</option>
                     {ORIGIN_OPTIONS.map((origin) => (
-                        <option key={origin} value={origin}>
-                            {origin}
-                        </option>
+                        <option key={origin} value={origin}>{origin}</option>
                     ))}
                 </select>
               </div>
             </div>
-
           </div>
         </div>
 
-        {/* === Cultural Context (With Placeholders) === */}
+        {/* === Cultural Context === */}
         <div className="edit-cultural-context-card">
           <h3>Cultural Context</h3>
           <label className="basic-info-label">Description</label>
@@ -327,7 +321,7 @@ const AddFoodPage = () => {
           />
         </div>
 
-        {/* === Nutritional Info (With Placeholders) === */}
+        {/* === Nutritional Info === */}
         <div className="edit-cultural-context-card">
           <h3 className="edit-food-section-title">Nutritional Information <span className="serving-note">(per serving)</span></h3>
           <div className="nutrition-grid">
@@ -353,7 +347,6 @@ const AddFoodPage = () => {
             ))}
           </div>
         </div>
-
       </div>
 
       {/* Confirmation Modal */}
