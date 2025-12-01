@@ -185,28 +185,40 @@ Prefer Sarawak interpretation.
     // FIX NUTRITION FIELDS
     // ----------------------------------------------------------
     const calories =
-      safeNumber(gpt.calories_kcal) ||
-      safeNumber(gpt.calories) ||
-      safeNumber(gpt.energy_kcal) ||
-      null;
+    safeNumber(gpt.nutrition?.calories_kcal) ||
+    safeNumber(gpt.calories_kcal) ||
+    safeNumber(gpt.calories) ||
+    safeNumber(gpt.energy_kcal) ||
+    null;
 
-    const protein =
-      safeNumber(gpt.macros?.protein_g) ||
-      safeNumber(gpt.protein_g) ||
-      null;
+  const protein =
+    safeNumber(gpt.nutrition?.protein_g) ||
+    safeNumber(gpt.macros?.protein_g) ||
+    safeNumber(gpt.protein_g) ||
+    null;
 
-    const carbs =
-      safeNumber(gpt.macros?.carbs_g) ||
-      safeNumber(gpt.carbs_g) ||
-      null;
+  const carbs =
+    safeNumber(gpt.nutrition?.carbs_g) ||
+    safeNumber(gpt.macros?.carbs_g) ||
+    safeNumber(gpt.carbs_g) ||
+    null;
 
-    const fat =
-      safeNumber(gpt.macros?.fat_g) ||
-      safeNumber(gpt.fat_g) ||
-      null;
+  const fat =
+    safeNumber(gpt.nutrition?.fat_g) ||
+    safeNumber(gpt.macros?.fat_g) ||
+    safeNumber(gpt.fat_g) ||
+    null;
 
-    const fiber = safeNumber(gpt.fiber_g);
-    const vitaminC = safeNumber(gpt.vitaminC_mg);
+  const fiber =
+    safeNumber(gpt.nutrition?.fiber_g) ||
+    safeNumber(gpt.fiber_g) ||
+    null;
+
+  const vitaminC =
+    safeNumber(gpt.nutrition?.vitaminC_mg) ||
+    safeNumber(gpt.vitaminC_mg) ||
+    null;
+
 
     // ----------------------------------------------------------
     // NORMALIZE ALTERNATIVES
