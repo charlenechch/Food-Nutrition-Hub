@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { FaGlobe, FaSignOutAlt, FaUser, FaCrown } from "react-icons/fa"; // 👑 Added icons
+import { FaGlobe, FaSignOutAlt, FaUser, FaCrown } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { User } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal";
@@ -11,10 +11,23 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [currentLang, setCurrentLang] = useState("EN");
+
+  const getCsrfToken = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
+      if (!res.ok) return "";
+      const data = await res.json();
+      return data.csrfToken;
+    } catch (err) {
+      console.error("Failed to fetch CSRF token", err);
+      return "";
+    }
+  };
 
     React.useEffect(() => {
     if (user?.role === "admin" && location.pathname === "/home") {
@@ -25,17 +38,29 @@ export default function Header() {
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
 
-  const handleLogout = async () => {
+const handleLogout = async () => {
+    setIsLoggingOut(true);
+    window.isLoggingOut = true;
+
     try {
+      const csrfToken = await getCsrfToken();
+      localStorage.removeItem("user");
+
       await fetch(`${API_URL}/api/logout`, {
         method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken 
+        },
         credentials: "include",
+        keepalive: true
       });
+
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error("Logout error:", error);
     } finally {
-      logout();
-      navigate("/loginregister");
+      // Hard Redirect
+      window.location.href = "/loginregister";
     }
   };
 
@@ -94,6 +119,22 @@ export default function Header() {
 
   return (
     <>
+    {isLoggingOut && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: '#ffffff',
+          zIndex: 999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+           <h3 style={{ color: '#8B4513', fontFamily: 'sans-serif' }}>Logging out...</h3>
+        </div>
+      )}
       <nav className="navbar">
         {/* === Logo === */}
         <div
