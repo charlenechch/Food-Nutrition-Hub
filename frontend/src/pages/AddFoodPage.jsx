@@ -14,6 +14,26 @@ const ORIGIN_OPTIONS = [
   "Malay", "Chinese", "Iban", "Melanau", "Kadazan", "Bidayuh", "Dayak",
 ];
 
+const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"];
+const CATEGORY_OPTIONS = [
+  "Poultry", "Seafood", "Vegetables", "Rice Dish", "Dessert", 
+  "Fermented", "Noodles", "Soup", "Meat"
+];
+
+// Options for Food Type
+const FOOD_TYPE_OPTIONS = [
+  "Poultry", 
+  "Seafood", 
+  "Vegetables", 
+  "Fermented", 
+  "Dessert", 
+  "Rice Dish", 
+  "Noodles", 
+  "Soup", 
+  "Meat", 
+  "Other..."
+];
+
 const AddFoodPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -42,6 +62,10 @@ const AddFoodPage = () => {
     fat: "",
     fiber: "",
     vitaminc: "",
+    // Visible fields (no hidden defaults)
+    foodType: "Poultry", 
+    difficulty: "Medium", 
+    prepTime: "",
   });
 
   // --- Fetch CSRF Token ---
@@ -126,7 +150,6 @@ const AddFoodPage = () => {
       }
 
       // 2. Prepare Data Object
-      // We only send what the user sees. The backend fills in the rest (difficulty, etc.)
       const newFoodData = {
         name: food.name,
         category: food.category,
@@ -141,6 +164,11 @@ const AddFoodPage = () => {
         Fiber_g: Number(food.fiber) || 0,
         VitaminC_mg: Number(food.vitaminc) || 0,
         image: finalImageUrl,
+        
+        // Pass values directly from the visible inputs
+        difficulty: food.difficulty,
+        prepTime: food.prepTime || "0", // Default to 0 only if user leaves it empty
+        foodType: food.foodType
       };
 
       // 3. Send to Backend
@@ -254,15 +282,9 @@ const AddFoodPage = () => {
               <div className="custom-select-wrapper">
                 <select className="edit-food-select" name="category" value={food.category} onChange={handleChange}>
                     <option value="">Select category</option>
-                    <option value="Poultry">Poultry</option>
-                    <option value="Seafood">Seafood</option>
-                    <option value="Vegetables">Vegetables</option>
-                    <option value="Rice Dish">Rice Dish</option>
-                    <option value="Dessert">Dessert</option>
-                    <option value="Fermented">Fermented</option>
-                    <option value="Noodles">Noodles</option>
-                    <option value="Soup">Soup</option>
-                    <option value="Meat">Meat</option>
+                    {CATEGORY_OPTIONS.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                 </select>
               </div>
             </div>
@@ -284,6 +306,61 @@ const AddFoodPage = () => {
                 </select>
               </div>
             </div>
+
+            {/* Food Type Dropdown (Visible) */}
+            <div className="food-origin-field" style={{ marginTop: "1rem" }}>
+              <label className="basic-info-label">Food Type</label>
+              <div className="custom-select-wrapper">
+                <select
+                  className="edit-food-select"
+                  name="foodType"
+                  value={food.foodType}
+                  onChange={handleChange}
+                >
+                  {FOOD_TYPE_OPTIONS.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* === Recipe Details (Visible Section) === */}
+        <div className="edit-cultural-context-card">
+          <h3>Recipe Details</h3>
+          <div className="edit-food-basic-info-two-col">
+            
+            {/* Difficulty Dropdown (Visible) */}
+            <div>
+              <label className="basic-info-label">Difficulty Level</label>
+              <div className="custom-select-wrapper">
+                <select 
+                  className="edit-food-select" 
+                  name="difficulty" 
+                  value={food.difficulty} 
+                  onChange={handleChange}
+                >
+                  {DIFFICULTY_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Prep Time Input (Visible) */}
+            <div>
+              <label className="basic-info-label">Prep Time (minutes)</label>
+              <input
+                type="number"
+                className="edit-food-input"
+                name="prepTime"
+                value={food.prepTime}
+                onChange={handleChange}
+                placeholder="e.g. 30"
+              />
+            </div>
+
           </div>
         </div>
 
