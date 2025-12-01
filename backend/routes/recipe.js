@@ -79,6 +79,7 @@ SELECT
       r.chefTips,
       r.status,
       r.createdAt AS date,
+      r.updatedAt,
       CONCAT(u.firstname, ' ', u.lastname) AS author
       FROM recipe r
       INNER JOIN food f ON r.foodID = f.foodID
@@ -145,8 +146,9 @@ SELECT
       return {
       id: getSafe(data, 'id') || 0,
       name: getSafe(data, 'name') || 'Unknown Recipe',
-      author: getSafe(data, 'author') || 'Unknown Author', // ✅ FIXED
-      date: getSafe(data, 'date') ? new Date(data.date).toLocaleDateString() : '—', // ✅ ADDED
+      author: getSafe(data, 'author') || 'Unknown Author', 
+      date: getSafe(data, 'date') ? new Date(data.date).toLocaleDateString() : '—', 
+      updatedAt: getSafe(data, 'updatedAt') ? new Date(data.updatedAt).toISOString() : null,
       origin: getSafe(data, 'origin') || 'Unknown',
       difficulty: getSafe(data, 'difficulty') || 'Easy',
       prepTime: Number(getSafe(data, 'prepTime')) || 0,
