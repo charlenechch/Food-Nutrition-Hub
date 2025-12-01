@@ -283,7 +283,8 @@ app.use(
       "prepTime", "cookTime", "servings", "image", "description",
       "foodType", "dietaryTags", "ingredients", "instructions",
       "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory",
-      "recipe", "content", "image", "userProfileID", "status", "comment", "feedback"
+      "recipe", "content", "image", "userProfileID", "status", "comment", "feedback",
+      "difficulty", "prepTime", "commonIngredients", "alternative", "altDescription", "healthTips"
     ],
   }),
   recipeRoutes
