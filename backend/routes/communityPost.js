@@ -1,19 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const { pool: db } = require("../config/db");
-const multer = require('multer');
-// const path = require('path');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const { sendEmail } = require("../config/mailer");
 const { updateUserStats } = require('./userProfile');
 
-// ✅ NEW: Validation and sanitization imports
+// Validation and sanitization imports
 const Joi = require("joi");
 const validator = require("validator");
 const sanitizeHtml = require("sanitize-html");
 
-// ✅ Helper to sanitize strings
+// Helper to sanitize strings
 function sanitizeInput(value) {
   if (typeof value === "string") {
     value = sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} });
@@ -22,7 +20,7 @@ function sanitizeInput(value) {
   return value;
 }
 
-// ✅ NEW: Joi Schemas for validation
+//  Joi Schemas for validation
 const postSchema = Joi.object({
   foodName: Joi.string().max(100).required(),
   culturalOrigin: Joi.string().max(100).required(),
@@ -75,7 +73,7 @@ router.get("/session-debug", (req, res) => {
 });
 
 
-// ✅ Add database middleware to ensure req.db is available
+// Add database middleware to ensure req.db is available
 router.use((req, res, next) => {
   req.db = db;
   next();
@@ -354,7 +352,7 @@ router.post('/comments', async (req, res) => {
     console.log('✅ Validated input:', { 
       postId, 
       userProfileID, 
-      contentLength: content.length,
+      contentLength: content.length, 
       userRole 
     });
 
@@ -983,7 +981,7 @@ router.get("/admin/pending", checkIsAdmin, async (req, res) => {
     FROM posts p
     JOIN userProfile up ON p.userProfileID = up.userProfileID
     JOIN user u ON up.userID = u.userID
-    WHERE p.status = 'Pending' OR p.status = 'Rejected'
+    WHERE p.status = 'Pending'
     ORDER BY p.created_at ASC;
   `;
 
@@ -1005,6 +1003,48 @@ router.get("/admin/pending", checkIsAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Internal server error while fetching pending posts.",
+    });
+  }
+});
+
+// 2 GET ALL REJECTED POSTS (For Admin Dashboard)
+router.get("/admin/rejected", checkIsAdmin, async (req, res) => {
+  console.log("📥 [ADMIN] Fetching all rejected community posts...");
+
+  const query = `
+    SELECT 
+      p.postID,
+      p.foodName,
+      p.status,
+      p.created_at,
+      p.admin_feedback,
+      CONCAT(u.firstname, ' ', u.lastname) AS author
+    FROM posts p
+    JOIN userProfile up ON p.userProfileID = up.userProfileID
+    JOIN user u ON up.userID = u.userID
+    WHERE p.status = 'Rejected'
+    ORDER BY p.created_at DESC;
+  `;
+
+  try {
+    const [rows] = await db.execute(query);
+    console.log(`✅ [ADMIN] Found ${rows.length} rejected post(s).`);
+
+    const formatted = rows.map((post) => ({
+      id: post.postID,
+      title: post.foodName,
+      author: post.author,
+      createdAt: post.created_at,
+      status: post.status,
+      adminFeedback: post.admin_feedback
+    }));
+
+    res.json({ success: true, data: formatted });
+  } catch (err) {
+    console.error("❌ [ADMIN] Error fetching rejected posts:", err);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while fetching rejected posts.",
     });
   }
 });
