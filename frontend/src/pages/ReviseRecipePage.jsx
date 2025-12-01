@@ -397,7 +397,7 @@ useEffect(() => {
           {/* ADMIN ALERT BOX */}
           <div className="rcp-admin-alert">
             <div className="rcp-alert-header">
-              <FaExclamationTriangle className="rcp-alert-icon" />
+              <FaExclamationTriangle className="rcp-alert-icon" size={24} />
               <h3>Revision Required - Admin Feedback</h3>
             </div>
             
@@ -413,7 +413,7 @@ useEffect(() => {
               {needsFix.size > 0 && (
                 <div className="rcp-issues-list">
                   <p className="rcp-issues-title">
-                    <FaInfoCircle /> Fields that need attention:
+                    <FaInfoCircle size={14} /> Fields that need attention:
                   </p>
                   <ul>
                     {Array.from(needsFix).map(field => (
