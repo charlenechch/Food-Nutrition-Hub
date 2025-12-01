@@ -683,29 +683,31 @@ body, html, #root {
   }
 }
 
-/* ✅ Position wrapper for password input */
+/* Position wrapper for password input */
 .password-input-wrap {
   position: relative;
   display: flex;
   flex-direction: column;
 }
 
-/* ✅ Eye icon inside input (aligned right) */
+/* Eye icon inside input (aligned right) */
 .password-eye-icon {
   position: absolute;
   right: 12px;
-  bottom: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
-  color: #8B4513; /* your brown theme */
+  color: #8B4513;
   font-size: 18px;
   transition: color 0.2s ease;
+  z-index: 10;
 }
 
 .password-eye-icon:hover {
   color: #A0522D;
 }
 
-/* ✅ Hint box (now matches theme, placed below input) */
+/* Hint box */
 .password-hint-box {
   position: absolute;
   top: 100%; /* below input */
@@ -722,7 +724,7 @@ body, html, #root {
   z-index: 20;
 }
 
-/* ✅ Styling for each hint row */
+/* Styling for each hint row */
 .password-hints {
   display: flex;
   flex-direction: column;
@@ -735,13 +737,13 @@ body, html, #root {
   gap: 8px;
 }
 
-/* ✅ Tick/valid colors */
+/* Tick/valid colors */
 .password-hint-valid {
   color: #2e7d32; /* green */
   font-weight: 500;
 }
 
-/* ❌ Invalid colors */
+/* Invalid colors */
 .password-hint-invalid {
   color: #b71c1c; /* red */
   font-weight: 400;

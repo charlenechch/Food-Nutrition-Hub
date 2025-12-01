@@ -613,21 +613,23 @@ export default function LoginRegisterPage() {
 
                   <div className="password-input-wrap">
                     <label>Password</label>
-                    <input
-                      type={showLoginPassword ? "text" : "password"}
-                      value={password}
-                      placeholder="e.g. John123!"
-                      onChange={(e) => setPassword(e.target.value)}
-                      aria-label="Login password"
-                    />
-                    <span
-                      onClick={() => setShowLoginPassword(!showLoginPassword)}
-                      className="password-eye-icon"
-                      role="button"
-                      aria-label={showLoginPassword ? "Hide password" : "Show password"}
-                    >
-                      {showLoginPassword ? <FaEyeSlash /> : <FaEye />}
-                    </span>
+                    <div className="password-wrapper">
+                      <input
+                        type={showLoginPassword ? "text" : "password"}
+                        value={password}
+                        placeholder="e.g. John123!"
+                        onChange={(e) => setPassword(e.target.value)}
+                        aria-label="Login password"
+                      />
+                      <span
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="password-eye-icon"
+                        role="button"
+                        aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                      >
+                        {showLoginPassword ? <FaEyeSlash /> : <FaEye />}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="otp-remember">
@@ -692,6 +694,7 @@ export default function LoginRegisterPage() {
               <div ref={passwordHintRef} className="password-input-wrap">
                 <label>Password</label>
 
+                <div className="password-wrapper">
                 <input
                   type={showRegPassword ? "text" : "password"}
                   value={regPassword}
@@ -765,6 +768,7 @@ export default function LoginRegisterPage() {
                     </div>
                   </div>
                 )}
+              </div>
               </div>
 
               <button onClick={handleRegister} className="lrp-btn lrp-btn-primary">
