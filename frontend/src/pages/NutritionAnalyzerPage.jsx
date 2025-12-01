@@ -220,7 +220,7 @@ export default function NutritionAnalyzerPage() {
               VitaminC_mg: gpt.vitaminC_mg ?? null,
             },
             tips: gpt.health_notes ? [gpt.health_notes] : [],
-            alternatives: gpt.alternative_names || [],
+            alternatives: gpt.alternative || [],
             altDescription: gpt.assumptions || "",
             meta: {
               origin: "",
