@@ -33,24 +33,23 @@ export default function NutritionAnalyzerPage() {
     }
     return false;
   };
-//====================
-  //CSRF
-  //======================
-const [csrfToken, setCsrfToken] = useState("");
 
-useEffect(() => {
-  const fetchCsrfToken = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-      const data = await res.json();
-      setCsrfToken(data.csrfToken);
-    } catch (err) {
-      console.error("Failed to fetch CSRF token", err);
-    }
-  };
-  fetchCsrfToken();
-}, []);
+  //CSRF
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   // ---- Debounced lookup to backend (DB) when typing food name ----
   const debouncedName = useMemo(() => foodName.trim(), [foodName]);
@@ -120,6 +119,43 @@ useEffect(() => {
     };
   }
 
+  const analyzeWithGPT = async (file) => {
+    try {
+      // Convert file → base64
+      const toBase64 = (file) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(",")[1]); 
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+      const imageBase64 = await toBase64(file);
+
+      const r = await fetch(`${API_URL}/api/ai/gpt/nutrition`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ imageBase64 }),
+      });
+
+      const data = await r.json();
+
+      if (!data.ok) {
+        throw new Error(data.error || "GPT failed");
+      }
+
+      return data.data;
+
+    } catch (err) {
+      console.error("GPT error:", err);
+      throw err;
+    }
+  };
+
+
   const handleSuggestionClick = async (name) => {
     setFoodName(name);
     setSelectedFile(null);
@@ -168,63 +204,45 @@ useEffect(() => {
     try {
       // 1) If file provided -> call FastAPI /predict (image route)
       if (selectedFile) {
-        const fd = new FormData();
-        fd.append("file", selectedFile);
-        // you *can* send food_name if you want, but it's optional now
-        if (foodName) fd.append("food_name", foodName);
-        if (ingredients) fd.append("ingredients", ingredients);
+        try {
+          const gpt = await analyzeWithGPT(selectedFile);
 
-        const r = await fetch(`${AI_URL}/predict`, {
-          method: "POST",
-          body: fd,
-        });
+          const shaped = {
+            source: "gpt",
+            food_name: gpt.food,
+            confidence: gpt.confidence,
+            nutrition: {
+              Energy_kcal: gpt.calories_kcal,
+              Protein_g: gpt.macros.protein_g,
+              Fat_g: gpt.macros.fat_g,
+              Carbohydrates_g: gpt.macros.carbs_g,
+              Fiber_g: gpt.fiber_g ?? null,
+              VitaminC_mg: gpt.vitaminC_mg ?? null,
+            },
+            tips: gpt.health_notes ? [gpt.health_notes] : [],
+            alternatives: gpt.alternative_names || [],
+            altDescription: gpt.assumptions || "",
+            meta: {
+              origin: "",
+              category: gpt.category,
+              foodType: "",
+              difficulty: "",
+              image: null,
+              commonIngredients: gpt.ingredients || [],
+              portion: gpt.portion_size,
+              imageUsed: true,
+            },
+          };
 
-        const data = await r.json();
+          setResult(shaped);
+          return;
 
-        const shaped = {
-          source: "ai",
-          food_name:
-            data.pred_class ||
-            data.food_name ||
-            foodName ||
-            "Detected Food",
-
-          confidence: data.confidence,
-
-          nutrition: data.nutrition
-            ? {
-                Energy_kcal: data.nutrition.calories,
-                Protein_g: data.nutrition.protein_g,
-                Fat_g: data.nutrition.fat_g,
-                Carbohydrates_g: data.nutrition.carbs_g,
-                Fiber_g: data.nutrition.fiber_g,
-                VitaminC_mg: data.nutrition.vitaminC_mg,
-              }
-            : null,
-
-          tips: data.tips ? [data.tips] : [],
-
-          alternatives: data.alternative
-            ? data.alternative.split(",").map((s) => s.trim()).filter(Boolean)
-            : [],
-
-          altDescription: data.altDescription || "",
-
-          meta: {
-            origin: data.origin,
-            category: data.category,
-            foodType: data.foodType,
-            difficulty: data.difficulty,
-            image: data.image,
-            commonIngredients: data.commonIngredients,
-            portion: "1 serving",
-            imageUsed: true,
-          },
-        };
-
-        setResult(shaped);
-        return;
+        } catch (err) {
+          setError("GPT failed to analyze the image.");
+          return;
+        }
       }
+
 
       // 2) Else (no file) -> ask backend to return DB row or synthesize
       const r2 = await fetch(`${API_URL}/api/ai/analyze`, {
