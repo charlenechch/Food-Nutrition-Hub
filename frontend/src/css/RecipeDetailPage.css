@@ -30,17 +30,18 @@
     align-items: start; 
   }
 
-  /* When there are NO side notes → single wide column centered */
+  /* When there are NO side notes → main takes full grid width */
   .rdp-grid.rdp-grid--single {
-    grid-template-columns: 1fr;
-    justify-content: center;
+    grid-template-columns: 1fr;      /* single full-width column */
+    justify-content: stretch;
   }
 
   .rdp-grid.rdp-grid--single .rdp-main {
-    max-width: 1150px;   /* adjust width as you like */
-    margin: 0 auto;
+    max-width: 100%;                 /* remove the cap */
+    margin: 0;                       /* no centering shrink */
   }
 }
+
 
 .rdp-main { 
     display: grid; 
