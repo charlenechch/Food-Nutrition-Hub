@@ -557,14 +557,14 @@ export default function LoginRegisterPage() {
                   <div className="password-input-wrap">
                     <label>Verification Code</label>
                     <input
-                      type="text"
+                      type="password"
                       className="otp-input-field"
                       value={otpCode}
                       onChange={(e) => {
                         const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
                         setOtpCode(val);
                       }}
-                      placeholder="123456"
+                      placeholder="••••••"
                       maxLength={6}
                       autoFocus
                     />

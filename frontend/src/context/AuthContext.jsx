@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [bypassSessionCheck, setBypassSessionCheck] = useState(false);
 
-  // ✅ Helper to fetch CSRF token on demand
+  // Helper to fetch CSRF token on demand
   const getCsrfToken = async () => {
     try {
       const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
@@ -115,16 +115,16 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
-  // ✅ UPDATED: Login with CSRF Token
+  // Login with CSRF Token
   const login = async (email, password) => {
     try {
-      const csrfToken = await getCsrfToken(); // 1. Get Token
+      const csrfToken = await getCsrfToken(); // Get Token
 
       const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken // 2. Send Token
+          "X-CSRF-Token": csrfToken // Send Token
         },
         credentials: "include",
         body: JSON.stringify({ email, password }),
@@ -140,20 +140,25 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ✅ UPDATED: Logout with CSRF Token
+  // Logout with CSRF Token
   const logout = async () => {
+    window.isLoggingOut = true;
+    
     try {
-      const csrfToken = await getCsrfToken(); // 1. Get Token
+      const csrfToken = await getCsrfToken(); // Get Token
+
+      localStorage.removeItem("user");
 
       await fetch(`${API_URL}/api/logout`, {
         method: "POST",
         headers: { 
-          "X-CSRF-Token": csrfToken // 2. Send Token
+          "X-CSRF-Token": csrfToken // Send Token
         },
         credentials: "include",
+        keepalive: true
       });
     } finally {
-      forceLogout(true);
+      window.location.href = "/loginregister";
     }
   };
 
