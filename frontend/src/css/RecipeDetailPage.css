@@ -31,14 +31,13 @@
   }
 
   .rdp-grid.rdp-grid--single {
-    grid-template-columns: 1fr;
-    justify-content: center;
+    grid-template-columns: 1fr;   
+    justify-content: stretch;
   }
 
   .rdp-grid.rdp-grid--single .rdp-main {
-    max-width: 900px; 
-    width: 100%;
-    margin: 0 auto;
+    max-width: 100%;       
+    margin: 0; 
   }
 }
 
