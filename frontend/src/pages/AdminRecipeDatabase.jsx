@@ -34,14 +34,13 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
     setCurrentPage(1);
   }, [searchTerm, category, difficulty, statusFilter]);
 
-  // --- Helper: Format Date (assuming user wanted original creation date in previous turn) ---
+  // --- Helper: Format Date ---
   const formatDate = (dateString) => {
     if (!dateString) return "—";
     const date = new Date(dateString);
     // Formats as DD/MM/YYYY (e.g. 11/06/2025)
     return date.toLocaleDateString("en-GB"); 
   };
-
 
   // --- Filtering Logic ---
   const filteredRecipes = localRecipes.filter((r) => {
@@ -55,7 +54,6 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
     // Status Filter: Only apply if sectionType is NOT 'approved' OR if filter is set to something specific
     const statusToCheck = sectionType === "approved" ? "Approved" : statusFilter;
     const matchesStatus = statusToCheck === "All" || r.status === statusToCheck;
-
 
     return matchesSearch && matchesCategory && matchesDifficulty && matchesStatus;
   });
@@ -232,7 +230,6 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                 </select>
               </div>
               
-              {/* ✅ CONDITIONAL STATUS FILTER: Only show for Moderation section */}
               {sectionType !== "approved" && (
                 <div className="filter-item">
                   <label>Status</label>
@@ -253,8 +250,10 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
               <th>Recipe Name</th>
               <th>Food Item</th>
               <th>Author</th>
-              {/* Using Date Created as requested */}
-              <th>Date Created</th> 
+              
+              {/* ✅ CHANGED 1: Dynamic Header */}
+              <th>{sectionType === "approved" ? "Date Approved" : "Date Created"}</th> 
+              
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -270,8 +269,15 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                 <td><span className="category-tag">{r.foodType || r.category || "N/A"}</span></td>
                 <td>{r.author || "Unknown"}</td>
                 
-                {/* Date Created */}
-                <td>{formatDate(r.createdAt || r.date)}</td>
+                {/* ✅ CHANGED 2: Dynamic Date Logic */}
+                {/* Shows 'updatedAt' if Approved, otherwise shows 'date/createdAt' */}
+                <td>
+                  {formatDate(
+                    sectionType === "approved" 
+                      ? (r.updatedAt || r.date) 
+                      : (r.date || r.createdAt)
+                  )}
+                </td>
                 
                 <td>
                   <span className={`recipe-status-tag ${r.status === "Pending" ? "pending" : r.status === "Rejected" ? "rejected" : "approved"}`}>
