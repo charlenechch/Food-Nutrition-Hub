@@ -214,12 +214,43 @@ export default function NutritionAnalyzerPage() {
           food_name: gpt.food || gpt.food_name || "Unknown Food",
           confidence: gpt.confidence,
           nutrition: {
-            Energy_kcal: gpt.calories_kcal ?? gpt.calories ?? gpt.energy_kcal ?? null,
-            Protein_g: gpt.macros?.protein_g ?? gpt.protein_g ?? gpt.protein ?? null,
-            Fat_g: gpt.macros?.fat_g ?? gpt.fat_g ?? gpt.fat ?? null,
-            Carbohydrates_g: gpt.macros?.carbs_g ?? gpt.carbs_g ?? gpt.carbohydrates_g ?? null,
-            Fiber_g: gpt.fiber_g ?? null,
-            VitaminC_mg: gpt.vitaminC_mg ?? null,
+            Energy_kcal:
+              gpt.calories_kcal ??
+              gpt.calories ??
+              gpt.energy_kcal ??
+              gpt.nutrition?.calories_kcal ??
+              null,
+
+            Protein_g:
+              gpt.macros?.protein_g ??
+              gpt.protein_g ??
+              gpt.protein ??
+              gpt.nutrition?.protein_g ??
+              null,
+
+            Fat_g:
+              gpt.macros?.fat_g ??
+              gpt.fat_g ??
+              gpt.fat ??
+              gpt.nutrition?.fat_g ??
+              null,
+
+            Carbohydrates_g:
+              gpt.macros?.carbs_g ??
+              gpt.carbs_g ??
+              gpt.carbohydrates_g ??
+              gpt.nutrition?.carbs_g ??
+              null,
+
+            Fiber_g:
+              gpt.fiber_g ??
+              gpt.nutrition?.fiber_g ??
+              null,
+
+            VitaminC_mg:
+              gpt.vitaminC_mg ??
+              gpt.nutrition?.vitaminC_mg ??
+              null,
           },
           tips: gpt.health_notes ? [gpt.health_notes] : [],
           alternatives: normalisedAlts,
