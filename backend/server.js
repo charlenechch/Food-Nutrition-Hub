@@ -42,29 +42,6 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const IS_PROD = process.env.NODE_ENV === "production";
 
-// ---------- Trust Proxy (Required for Railway Cookies) ----------
-app.set("trust proxy", 1);
-
-// ---------- CORS (Must be before Helmet & Sessions) ----------
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://food-nutrition-hub.vercel.app",
-];
-
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log("❌ CORS blocked:", origin);
-      callback(new Error("CORS not allowed for this origin"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
-}));
-
 // ---------- Environment Validation ----------
 const requiredEnvVars = ["MYSQLHOST", "MYSQLUSER", "MYSQLPASSWORD", "MYSQLDATABASE"];
 const missingEnvVars = requiredEnvVars.filter((v) => !process.env[v]);
@@ -149,23 +126,20 @@ app.use(helmet.noSniff());
 app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
 
 // ---------- CORS ----------
-// const allowedOrigins = [
-//   "http://localhost:5173",
-//   "https://food-nutrition-hub.vercel.app"
-// ];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://food-nutrition-hub.vercel.app"
+];
 
-// app.use(cors({
-//   origin: function(origin, callback) {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("CORS not allowed for this origin: " + origin));
-//     }
-//   },
-//   credentials: true,
-//   methods: ["GET", "POST", "PUT", "DELETE"],
-//   allowedHeaders: ["Content-Type", "Authorization"],
-// }));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+    optionsSuccessStatus: 204,
+  })
+);
 
 // ---------- Body Parsers ----------
 app.use(express.json({ limit: "10mb" }));
