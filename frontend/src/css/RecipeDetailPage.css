@@ -25,13 +25,13 @@
     grid-template-columns: 2fr 1fr; 
     align-items: start; 
   }
-  .rdp-grid--single {
+  .rdp-grid.rdp-grid--single {
     grid-template-columns: 1fr;
     justify-content: center;
   }
 
-  .rdp-grid--single .rdp-main {
-    max-width: 1100px;
+  .rdp-grid.rdp-grid--single .rdp-main {
+    max-width: 1150px;
     margin: 0 auto;
   }
 }

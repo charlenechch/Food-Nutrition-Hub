@@ -304,7 +304,16 @@ useEffect(() => {
     );
   }
 
-  const hasSideNotes = Boolean(recipe.funFact || recipe.chefTips);
+  const normalizeNote = (v) => {
+    if (v == null) return "";
+    const s = String(v).trim().toLowerCase();
+    if (s === "null" || s === "undefined") return "";
+    return s;
+  };
+
+  const hasSideNotes = Boolean(
+    normalizeNote(recipe.funFact) || normalizeNote(recipe.chefTips)
+  );
 
   // normalize lists (accept array or newline string)
   const toList = (v) =>
