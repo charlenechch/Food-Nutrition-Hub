@@ -25,17 +25,14 @@
     grid-template-columns: 2fr 1fr; 
     align-items: start; 
   }
-}
-
-@media (min-width: 1024px) {
   .rdp-grid.rdp-grid--single {
-    grid-template-columns: 1fr;
-    justify-content: center;
+    display: block;
+    max-width: 1100px;
+    margin: 0 auto;
   }
 
   .rdp-grid.rdp-grid--single .rdp-main {
-    max-width: 1100px;
-    margin: 0 auto;
+    max-width: 100%;
   }
 }
 
