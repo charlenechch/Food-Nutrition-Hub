@@ -284,7 +284,6 @@ app.use(
       "foodType", "dietaryTags", "ingredients", "instructions",
       "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory",
       "recipe", "content", "image", "userProfileID", "status", "comment", "feedback",
-      "difficulty", "prepTime", "commonIngredients", "alternative", "altDescription", "healthTips"
     ],
   }),
   recipeRoutes
@@ -299,7 +298,8 @@ app.use(
       "name", "category", "culturalSignificance",
       "traditionalPreparation", "origin", "description",
       "image", "foodType", "dietaryTags", "ingredients",
-      "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg"
+      "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg",
+      "difficulty", "prepTime", "commonIngredients", "alternative", "altDescription", "healthTips"
     ],
   }),
   foodRoutes
