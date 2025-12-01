@@ -9,9 +9,13 @@ const client = new OpenAI({
 // Accepted image formats
 const ACCEPTED_FORMATS = ["png", "jpeg", "jpg", "gif", "webp"];
 
+// ------------------------------------------
+// Base64 Normalization
+// ------------------------------------------
 function normalizeImageBase64(imageBase64) {
   if (!imageBase64) return null;
 
+  // Case 1: already data URL
   if (imageBase64.startsWith("data:")) {
     const match = imageBase64.match(/^data:image\/(png|jpe?g|gif|webp);base64,/i);
     if (!match) return null;
@@ -23,7 +27,7 @@ function normalizeImageBase64(imageBase64) {
     };
   }
 
-  // raw base64
+  // Case 2: raw base64 string
   return {
     format: "png",
     pureBase64: imageBase64,
@@ -31,16 +35,60 @@ function normalizeImageBase64(imageBase64) {
   };
 }
 
-// fallback alternatives
+// ------------------------------------------
+// Fallback Alternatives (dish tweaks)
+// ------------------------------------------
 function fallbackAlternatives(food = "") {
-  const f = food.toLowerCase();
+  const f = (food || "").toLowerCase();
+
   if (f.includes("laksa")) {
-    return ["Clear broth mee suah", "Vegetable soup noodles", "Fish bee hoon"];
+    return [
+      {
+        title: "Vegetable oil",
+        description: "Use vegetable oil instead of lard and reduce oil in the broth."
+      },
+      {
+        title: "Chicken or shrimp",
+        description: "Use lean chicken or shrimp instead of pork belly or processed meats."
+      },
+      {
+        title: "Add more vegetables",
+        description: "Increase bean sprouts, herbs and greens to improve fibre."
+      }
+    ];
   }
-  if (f.includes("mee")) {
-    return ["Kolo Mee (less oil)", "Kampua Mee (dry)", "Chicken soup mee suah"];
+
+  if (f.includes("mee") || f.includes("noodle")) {
+    return [
+      {
+        title: "Less oil",
+        description: "Reduce frying oil or choose a dry-style noodle with minimal grease."
+      },
+      {
+        title: "Lean protein",
+        description: "Replace fatty meats with chicken breast, fish, or tofu."
+      },
+      {
+        title: "More vegetables",
+        description: "Increase leafy greens and non-starchy veggies."
+      }
+    ];
   }
-  return ["Vegetable soup", "Grilled fish with ulam"];
+
+  return [
+    {
+      title: "Reduce oil",
+      description: "Lower the oil used in cooking to reduce total fat."
+    },
+    {
+      title: "Lean protein",
+      description: "Switch to lean chicken, fish, tofu, or legumes."
+    },
+    {
+      title: "Add vegetables",
+      description: "Increase vegetables to boost fibre and micronutrients."
+    }
+  ];
 }
 
 // ======================================================
@@ -49,23 +97,21 @@ function fallbackAlternatives(food = "") {
 router.post("/nutrition", async (req, res) => {
   try {
     const { imageBase64, foodName, ingredients } = req.body;
-
     if (!imageBase64) return res.status(400).json({ error: "Missing imageBase64" });
 
     const normalized = normalizeImageBase64(imageBase64);
     if (!normalized) return res.status(400).json({ error: "Invalid base64 image" });
 
     const { dataUrl, format } = normalized;
-
     if (!ACCEPTED_FORMATS.includes(format)) {
-      return res.status(400).json({ error: "Unsupported format" });
+      return res.status(400).json({ error: "Unsupported image format" });
     }
 
     // ---------------- SYSTEM PROMPT ----------------
     const systemPrompt = `
 You are a Sarawak Malaysian food expert + nutritionist.
 
-Return ONLY VALID JSON matching EXACTLY this structure:
+Return ONLY VALID JSON that matches EXACTLY:
 
 {
   "food": "",
@@ -79,24 +125,31 @@ Return ONLY VALID JSON matching EXACTLY this structure:
   "health_notes": "",
   "assumptions": "",
   "alternative_names": [],
-  "alternatives": []
+  "alternatives": [
+    {
+      "title": "Vegetable oil",
+      "description": "For a healthier version, use vegetable oil instead of lard and add more vegetables."
+    }
+  ]
 }
 
-Rules:
-- ALWAYS fill alternatives with 2–5 healthier Malaysian/Sarawak dishes.
-- Prefer Sarawak dishes where relevant.
-- If unsure, guess but remain realistic.
+RULES:
+- ONLY return JSON.
+- ALWAYS include 2–5 healthier tweaks for the SAME dish.
+- Alternatives are ingredient substitutions or healthy modifications.
+- Not different dishes.
+- Prefer Sarawak context when relevant.
 `;
 
-    // ------------ USER PROMPT --------------
     const userPrompt = `
-Analyze this food image. Output ONLY JSON, nothing else.
+Analyze this food image. Output ONLY JSON.
 
 ${foodName ? `User hint: ${foodName}\n` : ""}
-${ingredients ? `Ingredients provided: ${ingredients}\n` : ""}
-Prefer Sarawak dish names whenever applicable.
+${ingredients ? `Ingredients: ${ingredients}\n` : ""}
+Prefer Sarawak interpretation.
 `;
 
+    // GPT REQUEST
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.1,
@@ -131,9 +184,28 @@ Prefer Sarawak dish names whenever applicable.
       ...(gpt.alternative_names || [])
     ].filter(Boolean);
 
+    let altList =
+      mergedAlternatives.length >= 2
+        ? mergedAlternatives.slice(0, 5)
+        : fallbackAlternatives(gpt.food);
+
+    // ----------------------------------------
+    // NORMALIZE EVERY ALTERNATIVE INTO OBJECTS
+    // ----------------------------------------
+    altList = altList.map((alt) => {
+      if (typeof alt === "string") {
+        return { title: alt, description: "" };
+      }
+      return {
+        title: alt.title || alt.name || "",
+        description: alt.description || alt.note || alt.details || ""
+      };
+    });
+
+    // FINAL CLEAN OBJECT
     const standard = {
       food: gpt.food || "",
-      confidence: gpt.confidence || 0.0,
+      confidence: gpt.confidence || 0,
       portion_size: gpt.portion_size || "1 serving",
 
       nutrition: {
@@ -151,16 +223,13 @@ Prefer Sarawak dish names whenever applicable.
       health_notes: gpt.health_notes || "",
       assumptions: gpt.assumptions || "",
 
-      alternatives:
-        mergedAlternatives.length >= 2
-          ? mergedAlternatives.slice(0, 5)
-          : fallbackAlternatives(gpt.food),
+      alternatives: altList,
 
       meta: {
         origin: gpt.origin || "",
         foodType: gpt.foodType || "",
         difficulty: gpt.difficulty || "",
-        imageUsed: true,
+        imageUsed: true
       }
     };
 
