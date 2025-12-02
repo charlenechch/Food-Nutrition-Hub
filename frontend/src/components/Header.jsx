@@ -186,20 +186,20 @@ const handleLogout = async () => {
             <NavLink to="/community" onClick={closeMenu}>Community</NavLink>
 
             <button onClick={toggleLanguage} className="mobile-btn">
-              <FaGlobe className="mobile-icon" /> {currentLang}
+              {/* <FaGlobe className="mobile-icon" /> {currentLang} */}
             </button>
 
             <button onClick={handleProfileClick} className="mobile-btn">
-              <User className="mobile-icon" size={18} /> Profile
+              {/* <User className="mobile-icon" size={18} /> Profile */}
             </button>
 
             {user && user.role !== "guest" ? (
               <button onClick={handleLogout} className="mobile-btn logout">
-                <FaSignOutAlt className="mobile-icon"/> Logout
+                {/* <FaSignOutAlt className="mobile-icon"/> Logout */}
               </button>
             ) : (
               <button onClick={() => navigate("/loginregister")} className="mobile-btn">
-                <User size={16} /> Login / Register
+                {/* <User size={16} /> Login / Register */}
               </button>
             )}
           </div>
