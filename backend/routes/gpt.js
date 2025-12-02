@@ -361,25 +361,56 @@ Prefer Sarawak interpretation.
 
 
     // Normalizing structure to match image endpoint return format
+    // ---- SAFE NORMALIZATION FOR GPT TEXT OUTPUT ----
     const standard = {
       food: gpt.food || foodName,
       confidence: gpt.confidence || 0.8,
       portion_size: gpt.portion_size || "1 serving",
+
       nutrition: {
-        Energy_kcal: gpt.calories_kcal,
-        Protein_g: gpt.macros?.protein_g,
-        Carbohydrates_g: gpt.macros?.carbs_g,
-        Fat_g: gpt.macros?.fat_g,
-        Fiber_g: gpt.fiber_g,
-        VitaminC_mg: gpt.vitaminC_mg,
+        Energy_kcal:
+          safeNumber(gpt.calories_kcal) ??
+          safeNumber(gpt.calories) ??
+          safeNumber(gpt.energy) ??
+          null,
+
+        Protein_g:
+          safeNumber(gpt.macros?.protein_g) ??
+          safeNumber(gpt.protein_g) ??
+          safeNumber(gpt.protein) ??
+          null,
+
+        Carbohydrates_g:
+          safeNumber(gpt.macros?.carbs_g) ??
+          safeNumber(gpt.carbs_g) ??
+          safeNumber(gpt.carbs) ??
+          null,
+
+        Fat_g:
+          safeNumber(gpt.macros?.fat_g) ??
+          safeNumber(gpt.fat_g) ??
+          safeNumber(gpt.fat) ??
+          null,
+
+        Fiber_g:
+          safeNumber(gpt.fiber_g) ??
+          safeNumber(gpt.fiber) ??
+          null,
+
+        VitaminC_mg:
+          safeNumber(gpt.vitaminC_mg) ??
+          safeNumber(gpt.vitamin_c) ??
+          null,
       },
+
       ingredients: gpt.ingredients || [],
       category: gpt.category || "",
       is_sarawak_local_dish: gpt.is_sarawak_local_dish || false,
       health_notes: gpt.health_notes || "",
       assumptions: gpt.assumptions || "",
-      alternatives: gpt.alternatives || [],
+      alternatives: gpt.alternatives || fallbackAlternatives(foodName),
     };
+
 
     return res.json({ ok: true, data: standard });
 
