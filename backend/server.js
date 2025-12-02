@@ -259,11 +259,11 @@ app.use(
 );
 
 // GPT AI 
-app.use(
-  "/api/ai/gpt",
-  cors({ origin: allowedOrigins, credentials: true }),
-  gptRoutes
-);
+// app.use(
+//   "/api/ai/gpt",
+//   cors({ origin: allowedOrigins, credentials: true }),
+//   gptRoutes
+// );
 
 // AI
 app.use(
