@@ -702,22 +702,20 @@ body, html, #root {
 
 /* Eye icon inside input (aligned right) */
 .password-eye-icon {
-position: absolute;
+  position: absolute;
   right: 12px;
-  z-index: 20;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
   color: #8B4513;
-  bottom: auto !important;
-  transform: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  top: 9px !important; 
-  height: 18px !important;
-  width: 18px !important;
+  z-index: 20;
+  height: 18px;
+  width: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 
 .password-eye-icon:hover {
   color: #A0522D;
