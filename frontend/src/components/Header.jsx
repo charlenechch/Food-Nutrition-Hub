@@ -185,8 +185,6 @@ const handleLogout = async () => {
             <NavLink to="/recipes" onClick={closeMenu}>Recipes</NavLink>
             <NavLink to="/community" onClick={closeMenu}>Community</NavLink>
 
-            <hr />
-
             <button onClick={toggleLanguage} className="mobile-btn">
               <FaGlobe className="mobile-icon" /> {currentLang}
             </button>
