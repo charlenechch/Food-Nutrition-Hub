@@ -215,43 +215,36 @@ export default function NutritionAnalyzerPage() {
           confidence: gpt.confidence,
           nutrition: {
             Energy_kcal:
-              gpt.nutrition?.calories_kcal ??
-              gpt.calories_kcal ??
-              gpt.calories ??
-              gpt.energy_kcal ??
+              gpt.nutrition?.Energy_kcal ??
+              gpt.Energy_kcal ??
               null,
 
             Protein_g:
-              gpt.nutrition?.protein_g ??
-              gpt.macros?.protein_g ??
-              gpt.protein_g ??
-              gpt.protein ??
+              gpt.nutrition?.Protein_g ??
+              gpt.Protein_g ??
               null,
 
             Fat_g:
-              gpt.nutrition?.fat_g ??
-              gpt.macros?.fat_g ??
-              gpt.fat_g ??
-              gpt.fat ??
+              gpt.nutrition?.Fat_g ??
+              gpt.Fat_g ??
               null,
 
             Carbohydrates_g:
-              gpt.nutrition?.carbs_g ??
-              gpt.macros?.carbs_g ??
-              gpt.carbs_g ??
-              gpt.carbohydrates_g ??
+              gpt.nutrition?.Carbohydrates_g ??
+              gpt.Carbohydrates_g ??
               null,
 
             Fiber_g:
-              gpt.nutrition?.fiber_g ??
-              gpt.fiber_g ??
+              gpt.nutrition?.Fiber_g ??
+              gpt.Fiber_g ??
               null,
 
             VitaminC_mg:
-              gpt.nutrition?.vitaminC_mg ??
-              gpt.vitaminC_mg ??
+              gpt.nutrition?.VitaminC_mg ??
+              gpt.VitaminC_mg ??
               null,
           },
+
 
           tips: gpt.health_notes ? [gpt.health_notes] : [],
           alternatives: normalisedAlts,
