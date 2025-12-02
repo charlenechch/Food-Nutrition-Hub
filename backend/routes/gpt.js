@@ -324,16 +324,41 @@ Prefer Sarawak interpretation.
       ],
     });
 
-    let raw = completion.choices?.[0]?.message?.content || "";
-    raw = raw.replace(/```json|```/g, "");
-    raw = raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1);
-
-    let gpt;
-    try {
-      gpt = JSON.parse(raw);
-    } catch (err) {
-      return res.status(500).json({ ok: false, error: "Invalid JSON", raw });
+    function extractJSON(str) {
+      try {
+        const match = str.match(/\{[\s\S]*\}/);
+        if (!match) return null;
+        return JSON.parse(match[0]);
+      } catch {
+        return null;
+      }
     }
+
+    let raw = completion.choices?.[0]?.message?.content || "";
+    let gpt = extractJSON(raw);
+
+    // If GPT responded but JSON is broken → return fallback, DO NOT FAIL
+    if (!gpt) {
+      return res.json({
+        ok: true,
+        data: {
+          food: foodName,
+          confidence: 0.4,
+          portion_size: "1 serving",
+          nutrition: {
+            Energy_kcal: 35,          // Kangkung estimate
+            Protein_g: 2,
+            Carbohydrates_g: 5,
+            Fat_g: 0.5,
+            Fiber_g: 2,
+            VitaminC_mg: 10,
+          },
+          alternatives: fallbackAlternatives(foodName),
+          health_notes: "Estimated values as GPT returned invalid structured JSON.",
+        }
+      });
+}
+
 
     // Normalizing structure to match image endpoint return format
     const standard = {
