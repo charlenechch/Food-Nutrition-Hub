@@ -8,11 +8,9 @@ import { LuSparkles } from "react-icons/lu";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;        // Node backend (Railway)
+const AI_URL  = import.meta.env.VITE_AI_API_URL;     // FastAPI (Railway: ai-...up.railway.app)
 
-/* ----------------------------------------------------------
-   MAIN COMPONENT
----------------------------------------------------------- */
 export default function NutritionAnalyzerPage() {
   const { user } = useAuth();
   const isGuest = !user || user?.role === "guest";
@@ -22,77 +20,74 @@ export default function NutritionAnalyzerPage() {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const [loading, setLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
-  const [result, setResult] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);     // ["Kolo Mee", ...]
+  const [result, setResult] = useState(null);             // object with nutrition, tips, alternatives
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  /* ----------------------------------------------------------
-      LOGIN BLOCK
-  ---------------------------------------------------------- */
-  const requireLogin = () => {
+  const requireLogin = (msg) => {
     if (isGuest) {
+      console.log("Blocked:", msg);
       setShowModal(true);
       return true;
     }
     return false;
   };
 
-  /* ----------------------------------------------------------
-      CSRF TOKEN
-  ---------------------------------------------------------- */
+  //CSRF
   const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
     const fetchCsrfToken = async () => {
       try {
-        const r = await fetch(`${API_URL}/api/csrf-token`, {
-          credentials: "include",
-        });
-        const data = await r.json();
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
         setCsrfToken(data.csrfToken);
       } catch (err) {
-        console.error("CSRF fetch failed", err);
+        console.error("Failed to fetch CSRF token", err);
       }
     };
     fetchCsrfToken();
   }, []);
 
-  /* ----------------------------------------------------------
-      LOOKUP SUGGESTIONS (DB fuzzy)
-  ---------------------------------------------------------- */
-  const debounced = useMemo(() => foodName.trim(), [foodName]);
-
-  useEffect(() => {
-    if (!debounced) {
+  // ---- Debounced lookup to backend (DB) when typing food name ----
+  const debouncedName = useMemo(() => foodName.trim(), [foodName]);
+      useEffect(() => {
+    if (!debouncedName) {
       setSuggestions([]);
       return;
     }
 
-    const timeout = setTimeout(async () => {
+    const t = setTimeout(async () => {
       try {
+        setError("");
+
         const r = await fetch(
-          `${API_URL}/api/ai/lookup?name=${encodeURIComponent(debounced)}`,
+          `${API_URL}/api/ai/lookup?name=${encodeURIComponent(debouncedName)}`,
           { credentials: "include" }
         );
         const data = await r.json();
 
-        if (data.found) {
+        if (data.found && data.item) {
+          // Only clear suggestions so it doesn’t list similar names
           setSuggestions([]);
         } else {
-          setSuggestions(data.suggestions || []);
+          // ✔ Show suggestions if fuzzy match found
+          setSuggestions(Array.isArray(data.suggestions) ? data.suggestions : []);
         }
-      } catch {
+
+      } catch (e) {
+        console.error(e);
         setSuggestions([]);
       }
     }, 300);
 
-    return () => clearTimeout(timeout);
-  }, [debounced]);
+    return () => clearTimeout(t);
+  }, [debouncedName]);
 
-  /* ----------------------------------------------------------
-      SHAPE DB RESULT
-  ---------------------------------------------------------- */
+
+  // ---- Helpers ----
   function shapeResultFromDB(row) {
     return {
       source: "db",
@@ -107,7 +102,7 @@ export default function NutritionAnalyzerPage() {
       },
       tips: row.healthTips ? [row.healthTips] : [],
       alternatives: row.alternative
-        ? row.alternative.split(",").map((x) => x.trim())
+        ? row.alternative.split(",").map((s) => s.trim()).filter(Boolean)
         : [],
       altDescription: row.altDescription || "",
       meta: {
@@ -116,170 +111,168 @@ export default function NutritionAnalyzerPage() {
         foodType: row.foodType,
         difficulty: row.difficulty,
         image: row.image,
+        commonIngredients: row.commonIngredients,
+        culturalSignificance: row.culturalSignificance,
+        traditionalPreparation: row.traditionalPreparation,
         description: row.description,
       },
     };
   }
 
-  /* ----------------------------------------------------------
-      CALL BACKEND GPT IMAGE ROUTE
-  ---------------------------------------------------------- */
   const analyzeWithGPT = async (file) => {
-    const toBase64 = (file) =>
-      new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(",")[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+    try {
+      // Convert file → base64
+      const toBase64 = (file) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(",")[1]); 
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+      const imageBase64 = await toBase64(file);
+
+      const r = await fetch(`${API_URL}/api/ai/gpt/nutrition`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ imageBase64 }),
       });
 
-    const base64 = await toBase64(file);
+      const data = await r.json();
 
-    const r = await fetch(`${API_URL}/api/ai/gpt/nutrition`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ imageBase64: base64 }),
-    });
+      if (!data.ok) {
+        throw new Error(data.error || "GPT failed");
+      }
 
-    const json = await r.json();
-    if (!json.ok) throw new Error(json.error || "GPT failed");
+      return data.data;
 
-    return json; // ← backend returns { ok, source, data }
+    } catch (err) {
+      console.error("GPT error:", err);
+      throw err;
+    }
   };
 
-  /* ----------------------------------------------------------
-      SUGGESTION CLICK
-  ---------------------------------------------------------- */
+
   const handleSuggestionClick = async (name) => {
     setFoodName(name);
     setSelectedFile(null);
-    setError("");
     setLoading(true);
-
+    setError("");
     try {
-      const r = await fetch(
-        `${API_URL}/api/ai/lookup?name=${encodeURIComponent(name)}`,
-        { credentials: "include" }
-      );
+      const r = await fetch(`${API_URL}/api/ai/lookup?name=${encodeURIComponent(name)}`, {
+        credentials: "include",
+      });
       const data = await r.json();
-
       if (data.found && data.item) {
         setResult(shapeResultFromDB(data.item));
+        setSuggestions([]);
       }
-    } catch {
+    } catch (e) {
       setError("Failed to fetch item.");
     } finally {
       setLoading(false);
     }
   };
 
-  /* ----------------------------------------------------------
-      FILE HANDLING
-  ---------------------------------------------------------- */
   const handleFileChange = (e) => {
-    if (requireLogin()) return;
-    const f = e.target.files?.[0];
-    if (f) {
-      setSelectedFile(f);
-      setResult(null);
+    if (requireLogin("upload image")) return;
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setResult(null); // clear any DB preview to avoid confusion
     }
   };
-
+  
   const handleRemoveFile = () => {
-    setSelectedFile(null);
-    setResult(null);
+    setSelectedFile(null);   // remove the file
+    setResult(null);         // clear any preview
   };
 
-  /* ----------------------------------------------------------
-      MAIN ANALYZE ACTION (IMAGE → GPT or TEXT → DB/GPT)
-  ---------------------------------------------------------- */
+
+  // ---- Analyze button ----
   const handleAnalyze = async (e) => {
     e.preventDefault();
-    if (requireLogin()) return;
+    if (requireLogin("analyze")) return;
 
     setError("");
     setResult(null);
     setLoading(true);
 
     try {
-      /* --------------------------------------------------
-          1) IMAGE MODE
-      -------------------------------------------------- */
+      // 1) If file provided -> call FastAPI /predict (image route)
       if (selectedFile) {
-        const resp = await analyzeWithGPT(selectedFile);
-        const src = resp.source; // "database" | "gpt_fallback"
-        const d = resp.data;
+        try {
+          const gpt = await analyzeWithGPT(selectedFile);
 
-        if (src === "database") {
-          setResult(shapeResultFromDB(d));
-          return;
-        }
-
-        if (src === "gpt_fallback") {
-          setResult({
+          const shaped = {
             source: "gpt",
-            food_name: d.food,
-            nutrition: d.nutrition,
-            tips: d.health_notes ? [d.health_notes] : [],
-            alternatives: d.alternatives || [],
-            altDescription: d.assumptions || "",
-            meta: d.meta || { imageUsed: true },
-          });
+            food_name: gpt.food,
+            confidence: gpt.confidence,
+            nutrition: {
+              Energy_kcal: gpt.calories_kcal,
+              Protein_g: gpt.macros.protein_g,
+              Fat_g: gpt.macros.fat_g,
+              Carbohydrates_g: gpt.macros.carbs_g,
+              Fiber_g: gpt.fiber_g ?? null,
+              VitaminC_mg: gpt.vitaminC_mg ?? null,
+            },
+            tips: gpt.health_notes ? [gpt.health_notes] : [],
+            alternatives: gpt.alternative_names || [],
+            altDescription: gpt.assumptions || "",
+            meta: {
+              origin: "",
+              category: gpt.category,
+              foodType: "",
+              difficulty: "",
+              image: null,
+              commonIngredients: gpt.ingredients || [],
+              portion: gpt.portion_size,
+              imageUsed: true,
+            },
+          };
+
+          setResult(shaped);
+          return;
+
+        } catch (err) {
+          setError("GPT failed to analyze the image.");
           return;
         }
-
-        setError("AI could not analyze the image.");
-        return;
       }
 
-      /* --------------------------------------------------
-          2) TEXT MODE
-      -------------------------------------------------- */
-      const r = await fetch(`${API_URL}/api/ai/analyze`, {
+
+      // 2) Else (no file) -> ask backend to return DB row or synthesize
+      const r2 = await fetch(`${API_URL}/api/ai/analyze`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken,
-        },
-        body: JSON.stringify({ food_name: foodName, ingredients }),
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
+        body: JSON.stringify({
+          food_name: foodName || "",
+          ingredients: ingredients || "",
+        }),
       });
-
-      const txt = await r.json();
-
-      // DB
-      if (txt.found && txt.item) {
-        setResult(shapeResultFromDB(txt.item));
-        return;
+      const data2 = await r2.json();
+      if (data2.found && data2.item) {
+        setResult(shapeResultFromDB(data2.item));
+      } else if (data2.message) {
+        setError(data2.message);
+      } else {
+        setError("No result.");
       }
-
-      // GPT fallback
-      if (txt.ok && txt.data) {
-        const d = txt.data;
-        setResult({
-          source: "gpt",
-          food_name: d.food,
-          nutrition: d.nutrition,
-          tips: d.health_notes ? [d.health_notes] : [],
-          alternatives: d.alternatives || [],
-          altDescription: d.assumptions || "",
-        });
-        return;
-      }
-
-      setError("Could not analyze this food.");
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
       setError("Something went wrong.");
     } finally {
       setLoading(false);
     }
   };
 
-  /* ----------------------------------------------------------
-      UI RENDER
-  ---------------------------------------------------------- */
+  // ---- UI ----
   return (
     <div className="nutrition-page">
       <Header />
@@ -288,40 +281,59 @@ export default function NutritionAnalyzerPage() {
       <p className="page-subtitle">Get instant nutrition analysis and healthier alternatives</p>
 
       <div className="analyzer-container">
-        {/* LEFT PANEL */}
+        {/* LEFT */}
         <div className="left-column">
           <form className="food-form" onSubmit={handleAnalyze}>
-
+            {/* Food Info */}
             <div className="food-input-card">
-              <h3 className="section-title"><LuSparkles /> Enter Food Information</h3>
+              <h3 className="section-title"><LuSparkles/> Enter Food Information</h3>
 
-              <label>Food Name</label>
+              <label htmlFor="food-name">Food Name</label>
               <input
+                id="food-name"
                 type="text"
-                placeholder="e.g., Laksa, Manok Pansoh…"
+                placeholder="e.g., Laksa, Manok Pansoh, Umai..."
                 value={foodName}
-                onChange={(e) => setFoodName(e.target.value)}
+                onChange={(e) => {
+                  if (requireLogin("typing in food name")) return;
+                   setFoodName(e.target.value);
+                }}
               />
 
-              <label>Ingredients</label>
+              <label htmlFor="ingredients">Ingredients</label>
               <textarea
-                placeholder="Ingredients (optional)…"
+                id="ingredients"
+                placeholder="List ingredients (optional)…"
                 value={ingredients}
-                onChange={(e) => setIngredients(e.target.value)}
+                onChange={(e) => {
+                  if (requireLogin("typing in ingredients")) return;
+                  setIngredients(e.target.value);
+                }}
               />
             </div>
 
-            {/* IMAGE UPLOAD */}
+              {/* Upload */}
             <div className="upload-card">
-              <h3 className="section-title"><IoCameraOutline /> Or Upload Food Photo</h3>
+              <h3 className="section-title">
+                <IoCameraOutline /> Or Upload Food Photo
+              </h3>
+              <p>Take a photo or upload an image for AI analysis</p>
 
+              {/* Wrapper allows button to attach to dashed box */}
               <div className="upload-box-wrapper">
                 <div
                   className="upload-box"
-                  onClick={() => document.getElementById("fileInput").click()}
+                  onClick={() => {
+                    if (requireLogin("open file picker")) return;
+                    document.getElementById("fileInput").click();
+                  }}
                 >
                   <FaCamera size={28} />
-                  <p>{selectedFile ? selectedFile.name : "Click to upload image"}</p>
+                  <p>
+                    {selectedFile
+                      ? selectedFile.name
+                      : "Drag & drop an image or click to upload"}
+                  </p>
 
                   <input
                     id="fileInput"
@@ -332,94 +344,196 @@ export default function NutritionAnalyzerPage() {
                   />
                 </div>
 
+                {/* Remove button ATTACHED TO BOX */}
                 {selectedFile && (
                   <button type="button" className="file-remove-btn" onClick={handleRemoveFile}>
                     ✕
                   </button>
                 )}
               </div>
+
             </div>
 
-            <button type="submit" className="analyze-btn" disabled={loading}>
-              <FaWandMagicSparkles /> {loading ? "Analyzing…" : "Analyze Nutrition"}
+            {/* Analyze */}
+            <button
+              type="submit"
+              className="analyze-btn"
+              disabled={loading}
+              style={{
+                backgroundColor: "#b8926a",
+                color: "#fff",
+                border: "none",
+                borderRadius: "10px",
+                padding: "10px 18px",
+                fontWeight: "500",
+                cursor: loading ? "not-allowed" : "pointer",
+                marginTop: "10px",
+              }}
+            >
+              <FaWandMagicSparkles size={18} />
+              {loading ? " Analyzing…" : " Analyze Nutrition"}
             </button>
           </form>
         </div>
 
-        {/* RIGHT PANEL: RESULTS */}
+        {/* RIGHT: Suggestions + Results */}
         <div className={`result-card ${result ? "has-result" : "empty"}`}>
+          {/* Suggestions (chips) */}
           {suggestions.length > 0 && (
             <>
-              <p>Did you mean:</p>
-              <div className="suggestion-chips">
-                {suggestions.map((s) => (
-                  <button key={s} onClick={() => handleSuggestionClick(s)}>{s}</button>
+              <p style={{ marginBottom: 8 }}>Did you mean:</p>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+                {suggestions.map((name) => (
+                  <button
+                    type="button"
+                    key={name}
+                    onClick={() => handleSuggestionClick(name)}
+                    style={{
+                      border: "1px solid #d8c7b2",
+                      background: "#f9f6f2",
+                      padding: "6px 10px",
+                      borderRadius: 12,
+                      fontSize: 13,
+                    }}
+                  >
+                    {name}
+                  </button>
                 ))}
               </div>
             </>
           )}
 
-          {error && <div className="error-text">{error}</div>}
+          {/* Errors */}
+          {error && (
+            <div style={{ color: "#b04d4d", marginBottom: 10 }}>
+              {error}
+            </div>
+          )}
 
-          {!result && !error && !loading && <p>Enter a food name or upload an image.</p>}
+          {/* Result */}
+          {!result && !error && !loading && (
+            <p>Enter a food name or upload an image to get started.</p>
+          )}
 
           {result && (
-            <div className="nap-results">
-              <h2 className="analysis-title">{result.food_name}</h2>
+            <div className = "nap-results">
+              {/* MAIN ANALYSIS CARD */}
+              <div className="analysis-container">
+                {/* Food Name */}
+                <h2 className="analysis-title">{result.food_name}</h2>
 
-              {/* Nutrition */}
-              {result.nutrition && (
-                <div className="nutrition-section">
-                  <h3 className="section-header">Nutrition (per portion)</h3>
+                {/* Food Meta */}
+                {(result.meta?.origin || result.meta?.foodType || result.meta?.difficulty) && (
+                  <p className="analysis-meta">
+                    {result.meta.origin && `${result.meta.origin} · `}
+                    {result.meta.foodType && `${result.meta.foodType} · `}
+                    {result.meta.difficulty && result.meta.difficulty}
+                  </p>
+                )}
 
-                  <div className="nutrition-grid">
-                    {[
-                      ["Calories", result.nutrition.Energy_kcal, "kcal"],
-                      ["Protein", result.nutrition.Protein_g, "g"],
-                      ["Fat", result.nutrition.Fat_g, "g"],
-                      ["Carbs", result.nutrition.Carbohydrates_g, "g"],
-                      ["Fiber", result.nutrition.Fiber_g, "g"],
-                      ["Vitamin C", result.nutrition.VitaminC_mg, "mg"],
-                    ].map(([label, val, unit], i) => (
-                      <div className="nutri-card" key={i}>
+                {/* IMAGE */}
+                {result.meta?.image && (
+                  <div className="analysis-image-wrapper">
+                    <img
+                      src={result.meta.image}
+                      alt={result.food_name}
+                      className="analysis-image"
+                    />
+                  </div>
+                )}
+
+                {/* Nutrition Section */}
+                {result.nutrition && (
+                  <div className="nutrition-section">
+                    <h3 className="section-header">Nutrition (per portion)</h3>
+
+                    <div className="nutrition-grid">
+                      <div className="nutri-card">
                         <span className="nutri-value">
-                          {val ?? "—"} {val != null ? unit : ""}
+                          {result.nutrition.Energy_kcal ?? "—"} kcal
                         </span>
-                        <span className="nutri-label">{label}</span>
+                        <span className="nutri-label">Calories</span>
+                      </div>
+
+                      <div className="nutri-card">
+                        <span className="nutri-value">
+                          {result.nutrition.Protein_g ?? "—"} g
+                        </span>
+                        <span className="nutri-label">Protein</span>
+                      </div>
+
+                      <div className="nutri-card">
+                        <span className="nutri-value">
+                          {result.nutrition.Fat_g ?? "—"} g
+                        </span>
+                        <span className="nutri-label">Fat</span>
+                      </div>
+
+                      <div className="nutri-card">
+                        <span className="nutri-value">
+                          {result.nutrition.Carbohydrates_g ?? "—"} g
+                        </span>
+                        <span className="nutri-label">Carbs</span>
+                      </div>
+
+                      <div className="nutri-card">
+                        <span className="nutri-value">
+                          {result.nutrition.Fiber_g ?? "—"} g
+                        </span>
+                        <span className="nutri-label">Fiber</span>
+                      </div>
+
+                      <div className="nutri-card">
+                        <span className="nutri-value">
+                          {result.nutrition.VitaminC_mg ?? "—"} mg
+                        </span>
+                        <span className="nutri-label">Vitamin C</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* HEALTHIER ALTERNATIVES CARD */}
+              {!!result.alternatives?.length && (
+                <div className="analysis-container">
+                  <div className="alternatives-section">
+                    <h3 className="section-header">Healthier Alternatives</h3>
+
+                    {result.alternatives.map((alt, index) => (
+                      <div className="alternative-card" key={index}>
+                        <div className="alt-main">{alt}</div>
+                        {result.altDescription && (
+                          <div className="alt-desc">{result.altDescription}</div>
+                        )}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Alternatives */}
-              {!!result.alternatives?.length && (
-                <div className="alternatives-section">
-                  <h3 className="section-header">Healthier Alternatives</h3>
-                  {result.alternatives.map((alt, i) => (
-                    <div className="alternative-card" key={i}>
-                      <div className="alt-main">{alt}</div>
-                      {result.altDescription && (
-                        <div className="alt-desc">{result.altDescription}</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Health Tips */}
+              {/* HEALTH TIPS CARD */}
               {!!result.tips?.length && (
-                <div className="tips-section">
-                  <h3 className="section-header">Health Tips</h3>
-                  {result.tips.map((t, i) => (
-                    <div className="tip-card tip-info" key={i}>
-                      {t}
-                    </div>
-                  ))}
+                <div className="analysis-container">
+                  <div className="tips-section">
+                    <h3 className="section-header">Health Tips</h3>
+
+                    {result.tips.map((tip, index) => (
+                      <div
+                        key={index}
+                        className={`tip-card ${
+                          tip.toLowerCase().includes("sodium") ? "tip-warning" : "tip-info"
+                        }`}
+                      >
+                        {tip}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
           )}
+
         </div>
       </div>
 
