@@ -258,6 +258,13 @@ app.use(
   loginRoutes
 );
 
+// GPT AI 
+app.use(
+  "/api/ai/gpt",
+  cors({ origin: allowedOrigins, credentials: true }),
+  gptRoutes
+);
+
 // AI
 app.use(
   "/api/ai",
@@ -265,12 +272,7 @@ app.use(
   aiRoutes
 );
 
-// GPT AI 
-app.use(
-  "/api/ai/gpt",
-  cors({ origin: allowedOrigins, credentials: true }),
-  gptRoutes
-);
+
 
 
 // Recipe - BEFORE global HPP
