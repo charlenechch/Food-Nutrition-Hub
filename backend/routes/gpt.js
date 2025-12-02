@@ -262,4 +262,107 @@ Prefer Sarawak interpretation.
   }
 });
 
+// --------------------------------------------------------------
+// GPT TEXT-ONLY NUTRITION ANALYSIS
+// --------------------------------------------------------------
+router.post("/text-nutrition", async (req, res) => {
+  try {
+    const { foodName, ingredients } = req.body;
+
+    if (!foodName) {
+      return res.status(400).json({ ok: false, error: "Food name required." });
+    }
+
+    const systemPrompt = `
+You are a Sarawak Malaysian food expert and nutritionist.
+
+You MUST return STRICT JSON.  
+Never return 0 unless the food genuinely has 0.  
+If unsure, estimate realistically.
+
+JSON FORMAT:
+{
+  "food": "string",
+  "confidence": 0.0,
+  "portion_size": "string",
+  "calories_kcal": 0,
+  "macros": {
+      "protein_g": 0,
+      "carbs_g": 0,
+      "fat_g": 0
+  },
+  "fiber_g": 0,
+  "vitaminC_mg": 0,
+  "ingredients": [],
+  "category": "string",
+  "is_sarawak_local_dish": false,
+  "health_notes": "string",
+  "assumptions": "string",
+  "alternative_names": [],
+  "alternatives": [
+    { "title": "string", "description": "string" }
+  ]
+}
+    `;
+
+    const userPrompt = `
+Analyze this food based on the name and optional ingredients.  
+Return ONLY JSON.
+
+Food: ${foodName}
+Ingredients: ${ingredients || "Not provided"}
+
+Prefer Sarawak interpretation.
+    `;
+
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.2,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+    });
+
+    let raw = completion.choices?.[0]?.message?.content || "";
+    raw = raw.replace(/```json|```/g, "");
+    raw = raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1);
+
+    let gpt;
+    try {
+      gpt = JSON.parse(raw);
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: "Invalid JSON", raw });
+    }
+
+    // Normalizing structure to match image endpoint return format
+    const standard = {
+      food: gpt.food || foodName,
+      confidence: gpt.confidence || 0.8,
+      portion_size: gpt.portion_size || "1 serving",
+      nutrition: {
+        Energy_kcal: gpt.calories_kcal,
+        Protein_g: gpt.macros?.protein_g,
+        Carbohydrates_g: gpt.macros?.carbs_g,
+        Fat_g: gpt.macros?.fat_g,
+        Fiber_g: gpt.fiber_g,
+        VitaminC_mg: gpt.vitaminC_mg,
+      },
+      ingredients: gpt.ingredients || [],
+      category: gpt.category || "",
+      is_sarawak_local_dish: gpt.is_sarawak_local_dish || false,
+      health_notes: gpt.health_notes || "",
+      assumptions: gpt.assumptions || "",
+      alternatives: gpt.alternatives || [],
+    };
+
+    return res.json({ ok: true, data: standard });
+
+  } catch (err) {
+    console.error("GPT TEXT Nutrition Error:", err);
+    res.status(500).json({ ok: false, error: "GPT text analysis failed" });
+  }
+});
+
+
 module.exports = router;
