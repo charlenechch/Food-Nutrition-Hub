@@ -529,32 +529,31 @@ router.patch('/:commentId/vote', async (req, res) => {
   }
 });
 
-// ✅ Delete a comment (with admin support) - SECURE VERSION
+// ✅ Delete a comment (with admin support)
 router.delete('/:commentId', async (req, res) => {
   try {
     const { commentId } = req.params;
+    const { isAdminAction, adminRole } = req.body;
 
     if (!req.session || !req.session.user) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
     
     const userID = req.session.user.userID;
-    
-    // Get user profile and role in ONE query
-    const [userResult] = await db.query(
-      `SELECT up.userProfileID, u.role 
-       FROM userProfile up 
-       JOIN users u ON up.userID = u.userID 
-       WHERE up.userID = ?`,
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
     );
     
-    if (userResult.length === 0) {
+    if (profileResult.length === 0) {
       return res.status(400).json({ error: 'User profile not found' });
     }
     
-    const userProfileID = userResult[0].userProfileID;
-    const userRole = userResult[0].role; // Get role from database, NOT from req.body
+    const userProfileID = profileResult[0].userProfileID;
+
+    if (!userProfileID) {
+      return res.status(400).json({ success: false, message: 'userProfileID is required' });
+    }
 
     // check if the comment exists
     const commentCheckSql = 'SELECT userProfileID FROM discussion WHERE discussionID = ?';
@@ -569,13 +568,14 @@ router.delete('/:commentId', async (req, res) => {
     const commentOwnerStr = commentOwnerID?.toString();
     const userProfileStr = userProfileID.toString();
     const isOwner = commentOwnerStr === userProfileStr;
-    const isAdmin = userRole === 'admin'; // Check database role
+    const isAdmin = Boolean(isAdminAction) && adminRole === 'admin';
 
     console.log('Permission check:', { 
       commentOwnerID, 
       userProfileID, 
       isOwner, 
-      userRole, // Log from database
+      isAdminAction, 
+      adminRole, 
       isAdmin 
     });
 
@@ -611,64 +611,79 @@ router.delete('/:commentId', async (req, res) => {
   }
 });
 
-// ✅ Delete a reply 
+// ✅ Delete a reply (with admin support)
 router.delete('/:commentId/replies/:replyId', async (req, res) => {
   try {
     const { commentId, replyId } = req.params;
+    const { isAdminAction, adminRole } = req.body;
+
+    console.log('🔍 DELETE REPLY DEBUG START ====================');
+    console.log('🔍 Request params:', { commentId, replyId });
+    console.log('🔍 Request body:', req.body);
+    console.log('🔍 Session user:', req.session?.user);
 
     if (!req.session || !req.session.user) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
     
     const userID = req.session.user.userID;
-    
-    // Get user profile and role in ONE query
-    const [userResult] = await db.query(
-      `SELECT up.userProfileID, u.role 
-       FROM userProfile up 
-       JOIN users u ON up.userID = u.userID 
-       WHERE up.userID = ?`,
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
     );
     
-    if (userResult.length === 0) {
+    if (profileResult.length === 0) {
       return res.status(400).json({ error: 'User profile not found' });
     }
     
-    const userProfileID = userResult[0].userProfileID;
-    const userRole = userResult[0].role; 
+    const userProfileID = profileResult[0].userProfileID;
+
+    if (!userProfileID) {
+      return res.status(400).json({ success: false, message: 'userProfileID is required' });
+    }
 
     console.log('🔧 DELETE REPLY REQUEST:', { 
       commentId, 
       replyId, 
       userProfileID, 
-      userRole // Log from database
+      isAdminAction, 
+      adminRole 
     });
 
-    let replyCheckSql = 'SELECT userProfileID FROM reply WHERE replyID = ?';
-    let replyCheckRes = await db.query(replyCheckSql, [replyId]);
+    let replyCheckSql = 'SELECT userProfileID FROM reply WHERE replyID = ? AND discussionID = ?';
+    let replyCheckRes = await db.query(replyCheckSql, [replyId, commentId]);
     let replyRows = firstRows(replyCheckRes);
-    let foundTable = 'reply';
+
+    console.log('🔧 REPLY CHECK (first attempt - reply table):', {
+      replyId,
+      commentId,
+      rowsFound: replyRows.length,
+      replyData: replyRows[0]
+    });
 
     if (!replyRows.length) {
       try {
-        replyCheckSql = 'SELECT userProfileID FROM discussion_reply WHERE replyID = ?';
-        replyCheckRes = await db.query(replyCheckSql, [replyId]);
+        replyCheckSql = 'SELECT userProfileID FROM discussion_reply WHERE replyID = ? AND discussionID = ?';
+        replyCheckRes = await db.query(replyCheckSql, [replyId, commentId]);
         replyRows = firstRows(replyCheckRes);
-        foundTable = 'discussion_reply';
+        console.log('🔧 REPLY CHECK (second attempt - discussion_reply table):', {
+          rowsFound: replyRows.length
+        });
       } catch (tableError) {
-        console.log('❌ discussion_reply table error:', tableError.message);
+        console.log('❌ discussion_reply table also failed:', tableError.message);
       }
     }
 
     if (!replyRows.length) {
       try {
-        replyCheckSql = 'SELECT userProfileID FROM discussion_replies WHERE replyID = ?';
-        replyCheckRes = await db.query(replyCheckSql, [replyId]);
+        replyCheckSql = 'SELECT userProfileID FROM discussion_replies WHERE replyID = ? AND discussionID = ?';
+        replyCheckRes = await db.query(replyCheckSql, [replyId, commentId]);
         replyRows = firstRows(replyCheckRes);
-        foundTable = 'discussion_replies';
+        console.log('🔧 REPLY CHECK (third attempt - discussion_replies table):', {
+          rowsFound: replyRows.length
+        });
       } catch (tableError) {
-        console.log('❌ discussion_replies table error:', tableError.message);
+        console.log('❌ discussion_replies table also failed:', tableError.message);
       }
     }
     
@@ -681,20 +696,19 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
       });
     }
 
-    console.log(`✅ Reply found in table: ${foundTable}`);
-
     const replyOwnerID = replyRows[0].userProfileID;
     const replyOwnerStr = replyOwnerID?.toString();
     const userProfileStr = userProfileID.toString();
     
     const isOwner = replyOwnerStr === userProfileStr;
-    const isAdmin = userRole === 'admin'; // Check database role
+    const isAdmin = Boolean(isAdminAction) && adminRole === 'admin';
 
     console.log('🔧 REPLY PERMISSION CHECK:', { 
       replyOwnerID, 
       userProfileID, 
       isOwner, 
-      userRole, // Log from database
+      isAdminAction, 
+      adminRole, 
       isAdmin 
     });
 
@@ -706,40 +720,37 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
       });
     }
 
+    // ✅ Delete the reply 
     let deleteSuccess = false;
-    let deleteTable = '';
- 
-    const deleteQueries = [
-      { table: 'reply', sql: 'DELETE FROM reply WHERE replyID = ?' },
-      { table: 'discussion_reply', sql: 'DELETE FROM discussion_reply WHERE replyID = ?' },
-      { table: 'discussion_replies', sql: 'DELETE FROM discussion_replies WHERE replyID = ?' }
-    ];
+    
+    try {
+      const deleteReplySql = 'DELETE FROM reply WHERE replyID = ? AND discussionID = ?';
+      await db.query(deleteReplySql, [replyId, commentId]);
+      console.log('✅ Reply deleted from "reply" table');
+      deleteSuccess = true;
+    } catch (deleteError) {
+      console.log('❌ Failed to delete from "reply" table:', deleteError.message);
+    }
 
-    for (const query of deleteQueries) {
-      if (query.table === foundTable) {
-        try {
-          await db.query(query.sql, [replyId]);
-          deleteSuccess = true;
-          deleteTable = query.table;
-          console.log(`✅ Reply deleted from "${query.table}" table`);
-          break;
-        } catch (deleteError) {
-          console.log(`❌ Failed to delete from "${query.table}" table:`, deleteError.message);
-        }
+    if (!deleteSuccess) {
+      try {
+        const deleteReplySql = 'DELETE FROM discussion_reply WHERE replyID = ? AND discussionID = ?';
+        await db.query(deleteReplySql, [replyId, commentId]);
+        console.log('✅ Reply deleted from "discussion_reply" table');
+        deleteSuccess = true;
+      } catch (deleteError) {
+        console.log('❌ Failed to delete from "discussion_reply" table:', deleteError.message);
       }
     }
 
     if (!deleteSuccess) {
-      for (const query of deleteQueries) {
-        try {
-          await db.query(query.sql, [replyId]);
-          deleteSuccess = true;
-          deleteTable = query.table;
-          console.log(`✅ Reply deleted from "${query.table}" table`);
-          break;
-        } catch (deleteError) {
-          console.log(`❌ Failed to delete from "${query.table}" table:`, deleteError.message);
-        }
+      try {
+        const deleteReplySql = 'DELETE FROM discussion_replies WHERE replyID = ? AND discussionID = ?';
+        await db.query(deleteReplySql, [replyId, commentId]);
+        console.log('✅ Reply deleted from "discussion_replies" table');
+        deleteSuccess = true;
+      } catch (deleteError) {
+        console.log('❌ Failed to delete from "discussion_replies" table:', deleteError.message);
       }
     }
 
@@ -753,8 +764,7 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
     res.json({ 
       success: true, 
       message: isAdmin ? 'Reply deleted by admin' : 'Reply deleted successfully',
-      deletedByAdmin: isAdmin,
-      deletedFrom: deleteTable
+      deletedByAdmin: isAdmin 
     });
 
   } catch (error) {

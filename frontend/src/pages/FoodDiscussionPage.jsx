@@ -1003,6 +1003,10 @@ const postReply = async (discussionId) => {
       adminId: user?.id || user?.userID
       };
 
+      console.log('🔍 FRONTEND - Deleting reply...');
+      console.log('URL:', `${API}/api/foodDiscussion/${commentId}/replies/${replyId}`);
+      console.log('Request body:', requestBody);
+
       const res = await fetch(`${API}/api/foodDiscussion/${commentId}/replies/${replyId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
