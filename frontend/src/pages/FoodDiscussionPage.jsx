@@ -1011,7 +1011,10 @@ const postReply = async (discussionId) => {
 
       const res = await fetch(`${API}/api/foodDiscussion/${commentId}/replies/${replyId}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken  
+        },
         credentials: "include",
         body: JSON.stringify(requestBody),
       });
