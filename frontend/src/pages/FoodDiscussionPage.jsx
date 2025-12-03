@@ -1003,8 +1003,10 @@ const postReply = async (discussionId) => {
       adminId: user?.id || user?.userID
       };
 
-      console.log('🔍 FRONTEND - Deleting reply...');
+      console.log('🔍 FRONTEND - DELETE REQUEST DETAILS:');
       console.log('URL:', `${API}/api/foodDiscussion/${commentId}/replies/${replyId}`);
+      console.log('User role:', user?.role);
+      console.log('isAdminAction:', isAdminAction);
       console.log('Request body:', requestBody);
 
       const res = await fetch(`${API}/api/foodDiscussion/${commentId}/replies/${replyId}`, {
@@ -1014,7 +1016,22 @@ const postReply = async (discussionId) => {
         body: JSON.stringify(requestBody),
       });
 
-      const data = await res.json();
+      console.log('🔍 FRONTEND - RESPONSE:');
+      console.log('Status:', res.status);
+      console.log('Status Text:', res.statusText);
+
+      const responseText = await res.text();
+      console.log('Raw response text:', responseText);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse response as JSON:', parseError);
+        data = { message: 'Invalid server response' };
+      }
+      
+      console.log('Parsed response data:', data);
 
       if (res.ok && data.success) {
         // Remove reply from state
