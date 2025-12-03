@@ -49,6 +49,74 @@ function getStableProfileId(user) {
   return user?.userProfileID || user?.userID || user?.id || null;
 }
 
+// Format text function for recipe display
+const formatTextForDisplay = (text) => {
+  if (!text) return '';
+  
+  // First clean the text
+  let cleanedText = text
+    .replace(/\\t/g, ' ')          // Replace literal \t with space
+    .replace(/\t/g, ' ')           // Replace actual tabs with space
+    .replace(/\\n/g, '\n')         // Replace literal \n with actual newline
+    .replace(/\n\s*\n/g, '\n\n')   // Preserve paragraph breaks
+    .trim();
+
+  const lines = cleanedText.split('\n').filter(line => line.trim());
+  let html = '';
+  let inList = false;
+  
+  lines.forEach((line, index) => {
+    const trimmedLine = line.trim();
+    
+    // Check for section headers (lines that are bolded or have ** **)
+    const boldMatch = trimmedLine.match(/\*\*(.*?)\*\*/);
+    if (boldMatch) {
+      const headerText = boldMatch[1];
+      html += `<div class="rdp-section-header">${headerText}</div>`;
+      inList = false;
+      return;
+    }
+    
+    // Check for numbered steps (like "1.", "2.", etc.)
+    const numberedMatch = trimmedLine.match(/^(\d+)\.\s*(.*)/);
+    if (numberedMatch) {
+      const [, number, content] = numberedMatch;
+      html += `<div class="rdp-step">
+                <span class="rdp-step-number">${number}.</span>
+                <span class="rdp-step-text">${content}</span>
+              </div>`;
+      inList = false;
+      return;
+    }
+    
+    // Check for bullet points (starting with -, *, •, etc.)
+    const bulletMatch = trimmedLine.match(/^[-•*]\s+(.*)/);
+    if (bulletMatch) {
+      const content = bulletMatch[1];
+      html += `<div class="rdp-bullet-item">${content}</div>`;
+      inList = true;
+      return;
+    }
+    
+    // Check for regular section headers (lines ending with colon)
+    if (trimmedLine.endsWith(':') && !trimmedLine.match(/^\d/)) {
+      html += `<div class="rdp-section-header">${trimmedLine}</div>`;
+      inList = false;
+      return;
+    }
+    
+    // Regular text line - if previous line was a list item, add a small spacer
+    if (trimmedLine) {
+      if (inList && !trimmedLine.match(/^[-•*]/)) {
+        inList = false;
+      }
+      html += `<div class="rdp-text-line">${trimmedLine}</div>`;
+    }
+  });
+  
+  return html;
+};
+
 // ------------ Like Button Component -------------
 const LikeButton = ({ postId, initialLikes, user, onAlert  }) => {
   const [likes, setLikes] = useState(initialLikes || 0);
@@ -715,9 +783,12 @@ export default function CommunityPost() {
             {post.recipe && (
               <div className="recipe-box">
                 <h3>Recipe</h3>
-                {post.recipe.split("\n").map((line, i) => (
-                  <p key={i}>{line}</p>
-                ))}
+                <div 
+                  className="recipe-content"
+                  dangerouslySetInnerHTML={{ 
+                    __html: formatTextForDisplay(post.recipe) 
+                  }}
+                />
               </div>
             )}
 

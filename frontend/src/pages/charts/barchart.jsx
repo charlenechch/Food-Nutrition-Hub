@@ -35,7 +35,7 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
     const tooltip = d3.select('body')
       .append('div')
       .attr('class', 'tooltip')
-      .style('position', 'absolute')
+      .style('position', 'fixed')
       .style('background', 'white')
       .style('padding', '12px')
       .style('border', '1px solid #ccc')

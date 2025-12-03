@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-const PieChart = ({ data, width = 280, height = 280 }) => {
+const PieChart = ({ data, width = 500, height = 350 }) => {
   const svgRef = useRef();
 
   useEffect(() => {
@@ -63,7 +63,7 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
         const tooltip = d3.select('body')
           .append('div')
           .attr('class', 'pie-tooltip')
-          .style('position', 'absolute')
+          .style('position', 'fixed')
           .style('background', 'rgba(255, 255, 255, 0.95)')
           .style('padding', '12px')
           .style('border-radius', '6px')
@@ -84,7 +84,7 @@ const PieChart = ({ data, width = 280, height = 280 }) => {
       .on('mousemove', function(event) {
         d3.select('.pie-tooltip')
           .style('left', (event.pageX + 15) + 'px')
-          .style('top', (event.pageY - 15) + 'px');
+          .style('top', (event.pageY - 80) + 'px');
       })
       .on('mouseout', function() {
         d3.select(this)

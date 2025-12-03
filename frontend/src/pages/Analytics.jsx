@@ -358,7 +358,7 @@ const Analytics = () => {
             <div className="chart-card">
               <div className="pie-chart-container">
                 <h3 className="chart-title">Food Submissions by Cultural Origin</h3>
-                <PieChart data={culturalOriginData} width={500} height={350} />
+                <PieChart data={culturalOriginData} />
               </div>
             </div>
 
