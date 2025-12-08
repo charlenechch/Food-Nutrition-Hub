@@ -1,91 +1,99 @@
 import React, { useState } from "react";
-import "../css/SystemAlertPage.css";
-import { IoEyeOutline } from "react-icons/io5";
-import { AiOutlineExclamationCircle } from "react-icons/ai";
-import { TriangleAlert } from "lucide-react";
-import { SiTicktick } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import "../css/SystemAlertPage.css";
+import { IoEyeOutline } from "react-icons/io5";
+import { TriangleAlert, OctagonAlert, CircleCheckBig, CircleAlert } from "lucide-react";
+import { FaLongArrowAltLeft } from "react-icons/fa";
+import { LuRefreshCw } from "react-icons/lu";
+import { TbPackageExport } from "react-icons/tb";
 
 
-export default function SystemAlertsPage() {
+export default function SystemErrorLogsPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [severityFilter, setSeverityFilter] = useState("All Severities");
-  const [statusFilter, setStatusFilter] = useState("All Statuses");
+  const [logsSeverityFilter, setLogsSeverityFilter] = useState("All Severities");
+  const [logsSourceFilter, setLogsSourceFilter] = useState("All Sources");
 
-  const alerts = [
+  const logs = [
     {
       severity: "Critical",
-      type: "System Overload Detected",
-      category: "System Monitor",
-      message:
-        "CPU usage has exceeded 95% for the past 15 minutes. Immediate attention required.",
-      tags: ["Web Server", "API Gateway"],
-      timestamp: "2024-01-16 14:30:25",
-      status: "Active",
-    },
-    {
-      severity: "Warning",
+      source: "Backend",
       type: "Database Connection Issues",
-      category: "Database Monitor",
       message:
-        "Connection pool showing signs of stress. Consider scaling database connections.",
-      tags: ["User Service", "Food Database"],
-      timestamp: "2024-01-16 13:15:42",
-      status: "Acknowledged",
-    },
-    {
-      severity: "Critical",
-      type: "User Authentication Failures",
-      category: "Security Monitor",
-      message:
-        "Multiple failed login attempts detected. Possible brute force attack.",
-      tags: ["Authentication Service"],
-      timestamp: "2024-01-16 12:45:18",
-      status: "Active",
+        "Connection to primary database failed after 3 retry attempts.",
+      timestamp: "2024-01-16 14:30:25",
     },
     {
       severity: "Warning",
-      type: "Low Disk Space Warning",
-      category: "Storage Monitor",
+      source: "Database",
+      type: "Database Corruption Detected",
       message:
-        "Server disk usage at 87%. Consider cleaning up old logs or expanding storage.",
-      tags: ["File System", "Log Storage"],
+        "Table 'nutrition_data' shows signs of corruption.",
+      timestamp: "2024-01-16 13:15:42",
+    },
+    {
+      severity: "Critical",
+      source: "Frontend",
+      type: "JavaScript Runtime Error",
+      message:
+        "Cannot read property 'nutritionData' of undefined",
+      timestamp: "2024-01-16 12:45:18",
+    },
+    {
+      severity: "Warning",
+      source: "API",
+      type: "API Rate Limit Warning",
+      message:
+        "User approaching API rate limit threshold (90% of 1000 requests/hour)",
       timestamp: "2024-01-16 11:22:33",
-      status: "Active",
     }
   ];
 
-  const filteredAlerts = alerts.filter((a) =>
-    a.type.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredLogs = logs.filter((a) => {
+  const logsMatchesSearch =
+    a.type.toLowerCase().includes(search.toLowerCase()) ||
+    a.message.toLowerCase().includes(search.toLowerCase()) ||
+    a.source.toLowerCase().includes(search.toLowerCase()) ||
+    a.severity.toLowerCase().includes(search.toLowerCase());
+
+  const logsMatchesSeverity =
+    logsSeverityFilter === "All Severities" ||
+    a.severity === logsSeverityFilter;
+
+  const logsMatchesSource =
+    logsSourceFilter === "All Sources" ||
+    a.source === logsSourceFilter;
+
+  return logsMatchesSearch && logsMatchesSeverity && logsMatchesSource;
+  });
+
 
   return (
     <>
       <Header />
-      <div className="admin-alerts-container">
+      <div className="admin-error-container">
         {/* ----- Header Section ----- */}
-        <div className="admin-alerts-header">
+        <div className="admin-error-header">
           <button
-              className="admin-system-alert-back-btn-minimal"
+              className="admin-system-error-back-btn-minimal"
             onClick={() => navigate("/admin")}
             >
-            <strong>← Back to Dashboard</strong>
+            <strong><FaLongArrowAltLeft className="admin-system-settings-btn-icon"/> Back to Dashboard</strong>
         </button>
 
-        <div className="admin-system-alerts-title-block">
-            <h1 className="admin-system-alerts-title">System Alerts & Notifications</h1>
-            <p className="admin-system-alerts-subtitle">Monitor system health and critical events</p>
+        <div className="admin-system-error-title-block">
+            <h1 className="admin-system-error-title">System Error Logs</h1>
+            <p className="admin-system-error-subtitle">Monitor and Troubleshoot System Errors</p>
         </div>
 
-        <div className="admin-alerts-actions">
-            <button className="admin-alerts-refresh-action-btn">
-                <strong>↻ Refresh Alerts</strong>
+        <div className="admin-error-actions">
+            <button className="admin-error-refresh-action-btn">
+                <strong><LuRefreshCw className="admin-system-settings-btn-refresh-icon"/> Refresh Logs</strong>
             </button>
-            <button className="admin-alerts-export-action-btn">
-                <strong>⬇ Export Alerts</strong>
+            <button className="admin-error-export-action-btn">
+                <strong><TbPackageExport className="admin-system-settings-btn-icon"/> Export Logs</strong>
             </button>
         </div>
       </div>
@@ -96,19 +104,19 @@ export default function SystemAlertsPage() {
         {/* Total Alerts */}
         <div className="admin-system-alerts-summary-card">
             <div className="summary-left">
-            <h3>Total Alerts</h3>
+            <h3>Total Errors</h3>
             <p className="number">12</p>
             </div>
-            <AiOutlineExclamationCircle className="summary-icon right alert" />
+            <OctagonAlert className="admin-system-alerts-summary-icon alert" />
         </div>
 
         {/* Critical Alerts */}
         <div className="admin-system-alerts-summary-card critical">
-            <div className="summary-left">
+            <div className="summary-left"> 
             <h3>Critical Alerts</h3>
             <p className="number">3</p>
             </div>
-            <TriangleAlert className="admin-system-alerts-summary-icon right critical" />
+            <TriangleAlert className="admin-system-alerts-summary-icon critical" />
         </div>
 
         {/* Warning Alerts */}
@@ -117,37 +125,37 @@ export default function SystemAlertsPage() {
             <h3>Warning Alerts</h3>
             <p className="number">5</p>
             </div>
-            <AiOutlineExclamationCircle className="summary-icon right warning" />
+            <CircleAlert className="admin-system-alerts-summary-icon warning" />
         </div>
 
-        {/* Resolved Today */}
+        {/* Resolved Today */}  
         <div className="admin-system-alerts-summary-card success">
             <div className="summary-left">
             <h3>Resolved Today</h3>
             <p className="number">1</p>
             </div>
-            <SiTicktick className="summary-icon right success" />
+            <CircleCheckBig  className="admin-system-alerts-summary-icon success" />
         </div>
       </div>
 
 
       {/* ----- Filters Row ----- */}
-      <div className="admin-system-alerts-filter-wrapper">
-        <div className="admin-system-alerts-filter-row">
+      <div className="admin-system-error-filter-wrapper">
+        <div className="admin-system-error-filter-row">
             
-            <div className="admin-system-alerts-search-box">
+            <div className="admin-system-error-search-box">
                 <input
                     type="text"
-                    placeholder="Search alerts..."
+                    placeholder="Search errors..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
             </div>
 
             <select
-                className="admin-system-alerts-select"
-                value={severityFilter}
-                onChange={(e) => setSeverityFilter(e.target.value)}
+                className="admin-system-error-select"
+                value={logsSeverityFilter}
+                onChange={(e) => setLogsSeverityFilter(e.target.value)}
             >
             <option>All Severities</option>
             <option>Critical</option>
@@ -156,14 +164,15 @@ export default function SystemAlertsPage() {
             </select>
 
             <select
-                className="admin-system-alerts-select"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                className="admin-system-error-select"
+                value={logsSourceFilter}
+                onChange={(e) => setLogsSourceFilter(e.target.value)}
             >
-            <option>All Statuses</option>
-            <option>Active</option>
-            <option>Acknowledged</option>
-            <option>Resolved</option>
+            <option>All Sources</option>
+            <option>Frontend</option>
+            <option>Backend</option>
+            <option>Database</option>
+            <option>API</option>
             </select>
 
             </div>
@@ -171,57 +180,48 @@ export default function SystemAlertsPage() {
 
 
       {/* ----- Alerts Table ----- */}
-      <div className="admin-system-alerts-table-box">
-        <h3 className="admin-system-alerts-table-title">System Alerts ({filteredAlerts.length})</h3>
+      <div className="admin-system-error-table-box">
+        <h3 className="admin-system-error-table-title">Error Logs ({filteredLogs.length})</h3>
 
-        <table className="admin-system-alerts-table">
+        <table className="admin-system-error-table">
           <thead>
             <tr>
               <th>Severity</th>
-              <th>Alert Type</th>
+              <th>Source</th> 
+              <th>Error Type</th>
               <th>Message</th>
               <th>Timestamp</th>
-              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {filteredAlerts.map((alert, index) => (
+            {filteredLogs.map((logs, index) => (
               <tr key={index}>
                 <td>
-                  <span className={`admin-system-alerts-sev-badge ${alert.severity.toLowerCase()}`}>
-                    {alert.severity}
+                  <span className={`admin-system-error-sev-badge ${logs.severity.toLowerCase()}`}>
+                    {logs.severity}
                   </span>
                 </td>
 
                 <td>
-                  <div className="admin-system-alert-title">{alert.type}</div>
-                  <div className="admin-system-alert-category">{alert.category}</div>
+                  <div className="admin-system-error-source">{logs.source}</div>
                 </td>
 
                 <td>
-                  {alert.message}
-                  <div className="admin-system-alerts-tag-list">
-                    {alert.tags.map((tag, i) => (
-                      <span key={i} className="admin-system-alerts-tag-chip">{tag}</span>
-                    ))}
-                  </div>
+                  <div className="admin-system-error-title">{logs.type}</div>
                 </td>
-
-                <td className="admin-system-alerts-timestamp">{alert.timestamp}</td>
 
                 <td>
-                  <span className={`admin-system-alerts-status-badge ${alert.status.toLowerCase()}`}>
-                    {alert.status}
-                  </span>
+                  <div className="admin-system-error-message">{logs.message}</div>
                 </td>
 
-                <td className="admin-system-alerts-action-icons">
-                    <div className="action-wrapper">
-                        <button className="admin-system-alerts-preview-btn"><IoEyeOutline /></button>
-                        <button>↻</button>
-                        <button className="admin-system-alerts-delete-btn">✖</button>
+                <td className="admin-system-error-timestamp">{logs.timestamp}</td>
+
+              
+                <td className="admin-system-error-action-icons">
+                    <div className="admin-system-error-action-wrapper">
+                        <button className="admin-system-error-preview-btn"><IoEyeOutline /></button>
                     </div>
                 </td>
               </tr>

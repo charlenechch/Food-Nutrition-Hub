@@ -215,7 +215,7 @@ export default function AdminSystemSettings({
 
                                 <button
                                     className="admset-btn admset-btn-outline justify-start relative"
-                                    onClick={() => onPageChange("error-logs")}
+                                    onClick={() => navigate("/admin/systemerrorlogs")}
                                 >
                                     <AlertTriangle className="admset-ic-sm" />
                                     Error Logs

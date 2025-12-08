@@ -1,5 +1,5 @@
 /* Container */
-.admin-alerts-container {
+.admin-alerts-container, .admin-error-container {
   margin-top: 50px;
   padding: 30px 40px;
   font-family: "Poppins", sans-serif;
@@ -8,26 +8,26 @@
 }
 
 /* Header Section */
-.admin-alerts-header {
+.admin-alerts-header, .admin-error-header {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   padding: 20px 0;
 }
 
-.admin-alerts-header h1 {
+.admin-alerts-header h1, .admin-error-header h1 {
   font-size: 28px;
   font-weight: 600;
   margin-top: 5px;
   color: #5f3a1a;
 }
 
-.admin-alerts-header p {
+.admin-alerts-header p, .admin-error-header p {
   color: #9b855f;
   margin-bottom: 20px;
 }
 
-.admin-system-alert-back-btn-minimal {
+.admin-system-alert-back-btn-minimal, .admin-system-error-back-btn-minimal {
   justify-self: start;
   background: none;
   border: none;
@@ -39,29 +39,46 @@
   cursor: pointer;
 }
 
-.admin-system-alerts-title-block {
+.admin-system-alerts-title-block, .admin-system-error-title-block {
   text-align: center;
 }
 
-.admin-system-alerts-title {
+.admin-system-alerts-title, .admin-system-error-title {
   font-size: 26px;
   font-weight: 600;
   color: #7c5c3a;
 }
 
-.admin-system-alerts-subtitle {
+.admin-system-alerts-subtitle, .admin-system-error-subtitle {
   margin-top: 4px;
   font-size: 14px;
   color: #9c866a;
 }
 
-.admin-alerts-actions {
+.admin-alerts-actions, .admin-error-actions {
   justify-self: end;
   display: flex;
   gap: 10px;
 }
 
-.admin-alerts-refresh-action-btn, .admin-alerts-export-action-btn {
+.admin-system-settings-btn-icon {
+  vertical-align: middle;
+  position: relative;
+  top: -1.5px;       
+  font-size: 18px; 
+  right: 2px;
+}
+
+.admin-system-settings-btn-refresh-icon {
+  vertical-align: middle;
+  position: relative;
+  top: -1.5px;       
+  font-size: 16px; 
+  right: 2px;
+}
+
+.admin-alerts-refresh-action-btn, .admin-alerts-export-action-btn,
+.admin-error-refresh-action-btn, .admin-error-export-action-btn {
   padding: 8px 14px;
   font-size: 15px;
   background: none;
@@ -71,13 +88,17 @@
   cursor: pointer;
 }
 
-.admin-system-alert-back-btn-minimal:hover, .admin-alerts-refresh-action-btn:hover, .admin-alerts-export-action-btn:hover {
+.admin-system-alert-back-btn-minimal:hover, .admin-alerts-refresh-action-btn:hover, .admin-alerts-export-action-btn:hover,
+.admin-error-back-btn-minimal:hover, .admin-error-refresh-action-btn:hover, .admin-error-export-action-btn:hover {
   background: #f5e8d8;
 }
 
 .admin-system-alert-back-btn-minimal:active, .admin-alerts-refresh-action-btn:active, .admin-alerts-export-action-btn:active,
 .admin-system-alert-back-btn-minimal:focus, .admin-alerts-refresh-action-btn:focus, .admin-alerts-export-action-btn:focus,
-.admin-system-alert-back-btn-minimal:focus-visible, .admin-alerts-refresh-action-btn:focus-visible, .admin-alerts-export-action-btn:focus-visible {
+.admin-system-alert-back-btn-minimal:focus-visible, .admin-alerts-refresh-action-btn:focus-visible, .admin-alerts-export-action-btn:focus-visible, 
+.admin-error-back-btn-minimal:active, .admin-error-refresh-action-btn:active, .admin-error-export-action-btn:active,
+.admin-error-back-btn-minimal:focus, .admin-error-refresh-action-btn:focus, .admin-error-export-action-btn:focus,
+.admin-error-back-btn-minimal:focus-visible, .admin-error-refresh-action-btn:focus-visible{
     outline: none;
     box-shadow: none;
 }
@@ -110,7 +131,7 @@
 
 .admin-system-alerts-summary-card h3 {
   color: #7c5c3a;
-  font-size: 14px;             
+  font-size: 15px;             
   font-weight: 600;
   margin: 0;
 }
@@ -133,29 +154,30 @@
   border-left: 5px solid #5cb85c;
 }
 
-.admin-system-alerts-summary-icon.right {
-  font-size: 28px;
+.admin-system-alerts-summary-icon {
+  width: 36px !important;
+  height: 36px !important;
   opacity: 0.9;
 }
 
-.admin-system-alerts-summary-icon.right.alert {
+.admin-system-alerts-summary-icon.alert {
   color: #b78a56;
 }
 
-.admin-system-alerts-summary-icon.right.critical {
-  color: #d9534f;
+.admin-system-alerts-summary-icon.critical {
+  color: #e6443e;
 }
 
-.admin-system-alerts-summary-icon.right.warning {
-  color: #f0ad4e;
+.admin-system-alerts-summary-icon.warning {
+  color: #ffb44b;
 }
 
-.admin-system-alerts-summary-icon.right.success {
-  color: #5cb85c;
+.admin-system-alerts-summary-icon.success {
+  color: #60c960;
 }
 
 /* Filters Row */
-.admin-system-alerts-filter-wrapper {
+.admin-system-alerts-filter-wrapper, .admin-system-error-filter-wrapper {
   background: white;
   border: 1px solid #eadfc9;
   padding: 16px;
@@ -164,13 +186,13 @@
   margin-bottom: 10px;
 }
 
-.admin-system-alerts-filter-row {
+.admin-system-alerts-filter-row, .admin-system-error-filter-row {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.admin-system-alerts-search-box {
+.admin-system-alerts-search-box, .admin-system-error-search-box {
   flex: 1;
   display: flex;
   align-items: center;
@@ -180,7 +202,7 @@
   border: 1px solid #eee2d1;
 }
 
-.admin-system-alerts-search-box input {
+.admin-system-alerts-search-box input, .admin-system-error-search-box input {
   border: none;
   background: transparent;
   width: 100%;
@@ -190,7 +212,7 @@
   color: #7c5c3a;
 }
 
-.admin-system-alerts-select {
+.admin-system-alerts-select, .admin-system-error-select {
   min-width: 150px;
   padding: 10px 14px;
   background: #f6f1e8;
@@ -207,7 +229,7 @@
 }
 
 /* Table Box */
-.admin-system-alerts-table-box {
+.admin-system-alerts-table-box, .admin-system-error-table-box {
   background: white;
   padding: 22px;
   border-radius: 12px;
@@ -215,56 +237,63 @@
   box-shadow: 0 0 6px rgba(0,0,0,0.05);
 }
 
-.admin-system-alerts-table-title {
+.admin-system-alerts-table-title, .admin-system-error-table-title {
   font-size: 18px;
   margin-bottom: 15px;
   color: #5a3c1e;
 }
 
 /* Table */
-.admin-system-alerts-table {
+.admin-system-alerts-table, .admin-system-error-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.admin-system-alerts-table th,
-.admin-system-alerts-table td {
+.admin-system-alerts-table th, .admin-system-alerts-table td,
+.admin-system-error-table th, .admin-system-error-table td {
   font-size: 14px;         
   padding: 10px 10px;
   vertical-align: middle;
 }
 
-.admin-system-alerts-table th {
+.admin-system-alerts-table th, .admin-system-error-table th {
   font-weight: 600;
   padding: 12px 10px;
   border-bottom: 2px solid #e2d6c0;
 }
 
-.admin-system-alerts-table td {
+.admin-system-alerts-table td, .admin-system-error-table td {
   border-bottom: 1px solid #eee2cc;
 }
 
-.admin-system-alerts-table td:nth-child(5) {
+
+.admin-system-alerts-table td:nth-child(5), .admin-system-error-table td:nth-child(5) {
   text-align: center;
 }
 
+.admin-system-alerts-table td:nth-child(1), .admin-system-error-table td:nth-child(1),
+.admin-system-error-table td:nth-child(2),
+.admin-system-error-table td:nth-child(3){
+  text-align: center; 
+}
+
 /* Severity Badge */
-.admin-system-alerts-sev-badge {
+.admin-system-alerts-sev-badge, .admin-system-error-sev-badge {
   padding: 5px 10px;
   border-radius: 6px;
   color: white;
   font-size: 12px;
 }
 
-.admin-system-alerts-sev-badge.critical {
+.admin-system-alerts-sev-badge.critical, .admin-system-error-sev-badge.critical {
   background: #d9534f;
 }
 
-.admin-system-alerts-sev-badge.warning {
+.admin-system-alerts-sev-badge.warning, .admin-system-error-sev-badge.warning {
   background: #eaad57;
 }
 
-.admin-system-alerts-sev-badge.info {
+.admin-system-alerts-sev-badge.info, .admin-system-error-sev-badge.info {
   background: #5bc0de;
 }
 
@@ -289,7 +318,7 @@
 }
 
 /* Tags  */
-.admin-system-alert-title {
+.admin-system-alert-title, .admin-system-error-source, .admin-system-error-title{
   font-size: 13px;
   font-weight: 600;
   color: #5a3c1e;
@@ -317,18 +346,19 @@
 }
 
 /* Actions Icons */
-.admin-system-alerts-table td.admin-system-alerts-action-icons {
-  vertical-align: middle !important;
+.admin-system-alerts-table td.admin-system-alerts-action-icons, 
+.admin-system-error-table td.admin-system-error-action-icons {
+  vertical-align: middle !important
 }
 
-.action-wrapper {
+.admin-system-alerts-action-wrapper, .admin-system-error-action-wrapper {
   display: flex;
   gap: 10px;
   align-items: center;
   justify-content: center;
 }
 
-.admin-system-alerts-action-icons button {
+.admin-system-alerts-action-icons button, .admin-system-error-action-icons button {
   border: none;
   background: none;
   font-size: 18px;   
@@ -339,11 +369,11 @@
   transition: 0.15s ease;
 }
 
-.admin-system-alerts-preview-btn {
+.admin-system-alerts-preview-btn, .admin-system-error-preview-btn {
   margin-top: 5px;
 }
 
-.admin-system-alerts-action-icons button:hover {
+.admin-system-alerts-action-icons button:hover, .admin-system-error-action-icons button:hover {
   opacity: 1;
   transform: scale(1.1);
 }
@@ -353,13 +383,16 @@
   opacity: 0.85;
 }
 
-.admin-system-alerts-delete-btn:hover {
+.admin-system-alerts-delete-btn:hover{
   opacity: 1;
 }
 
 .admin-system-alerts-action-icons button:active, .admin-system-alerts-delete-btn:active,
 .admin-system-alerts-action-icons button:focus, .admin-system-alerts-delete-btn:focus,
-.admin-system-alerts-action-icons button:focus-visible, .admin-system-alerts-delete-btn:focus-visible {
+.admin-system-alerts-action-icons button:focus-visible, .admin-system-alerts-delete-btn:focus-visible,
+.admin-system-error-action-icons button:active,
+.admin-system-error-action-icons button:focus,
+.admin-system-error-action-icons button:focus-visible {
     outline: none;
     box-shadow: none;
 }

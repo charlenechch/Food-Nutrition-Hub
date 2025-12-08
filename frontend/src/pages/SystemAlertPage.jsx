@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import "../css/SystemAlertPage.css";
-import { IoEyeOutline } from "react-icons/io5";
-import { AiOutlineExclamationCircle } from "react-icons/ai";
-import { TriangleAlert } from "lucide-react";
-import { SiTicktick } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { IoEyeOutline } from "react-icons/io5";
+import { AiOutlineExclamationCircle } from "react-icons/ai";
+import { TriangleAlert, OctagonAlert, CircleCheckBig, CircleAlert } from "lucide-react";
+import { FaLongArrowAltLeft } from "react-icons/fa";
+import { LuRefreshCw } from "react-icons/lu";
+import { TbPackageExport } from "react-icons/tb";
 
 
 export default function SystemAlertsPage() {
@@ -58,9 +60,28 @@ export default function SystemAlertsPage() {
     }
   ];
 
-  const filteredAlerts = alerts.filter((a) =>
-    a.type.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredAlerts = alerts.filter((a) => {
+  const searchText = search.toLowerCase();
+
+  const matchesSearch =
+    a.type.toLowerCase().includes(searchText) ||
+    a.message.toLowerCase().includes(searchText) ||
+    a.category.toLowerCase().includes(searchText) ||
+    a.severity.toLowerCase().includes(searchText) ||
+    a.status.toLowerCase().includes(searchText) ||
+    a.tags.some(tag => tag.toLowerCase().includes(searchText));
+
+  const matchesSeverity =
+    severityFilter === "All Severities" ||
+    a.severity === severityFilter;
+
+  const matchesStatus =
+    statusFilter === "All Statuses" ||
+    a.status === statusFilter;
+
+  return matchesSearch && matchesSeverity && matchesStatus;
+});
+
 
   return (
     <>
@@ -72,20 +93,20 @@ export default function SystemAlertsPage() {
               className="admin-system-alert-back-btn-minimal"
             onClick={() => navigate("/admin")}
             >
-            <strong>← Back to Dashboard</strong>
+            <strong><FaLongArrowAltLeft className="admin-system-settings-btn-icon"/> Back to Dashboard</strong>
         </button>
 
         <div className="admin-system-alerts-title-block">
             <h1 className="admin-system-alerts-title">System Alerts & Notifications</h1>
-            <p className="admin-system-alerts-subtitle">Monitor system health and critical events</p>
+            <p className="admin-system-alerts-subtitle">Monitor System Health and Critical Events</p>
         </div>
 
         <div className="admin-alerts-actions">
             <button className="admin-alerts-refresh-action-btn">
-                <strong>↻ Refresh Alerts</strong>
+                <strong><LuRefreshCw className="admin-system-settings-btn-refresh-icon"/> Refresh Alerts</strong>
             </button>
             <button className="admin-alerts-export-action-btn">
-                <strong>⬇ Export Alerts</strong>
+                <strong><TbPackageExport className="admin-system-settings-btn-icon"/> Export Alerts</strong>
             </button>
         </div>
       </div>
@@ -99,7 +120,7 @@ export default function SystemAlertsPage() {
             <h3>Total Alerts</h3>
             <p className="number">12</p>
             </div>
-            <AiOutlineExclamationCircle className="summary-icon right alert" />
+            <OctagonAlert className="admin-system-alerts-summary-icon alert" />
         </div>
 
         {/* Critical Alerts */}
@@ -108,7 +129,7 @@ export default function SystemAlertsPage() {
             <h3>Critical Alerts</h3>
             <p className="number">3</p>
             </div>
-            <TriangleAlert className="admin-system-alerts-summary-icon right critical" />
+            <TriangleAlert className="admin-system-alerts-summary-icon critical" />
         </div>
 
         {/* Warning Alerts */}
@@ -117,7 +138,7 @@ export default function SystemAlertsPage() {
             <h3>Warning Alerts</h3>
             <p className="number">5</p>
             </div>
-            <AiOutlineExclamationCircle className="summary-icon right warning" />
+            <CircleAlert className="admin-system-alerts-summary-icon warning" />
         </div>
 
         {/* Resolved Today */}
@@ -126,7 +147,7 @@ export default function SystemAlertsPage() {
             <h3>Resolved Today</h3>
             <p className="number">1</p>
             </div>
-            <SiTicktick className="summary-icon right success" />
+            <CircleCheckBig className="admin-system-alerts-summary-icon success" />
         </div>
       </div>
 
@@ -218,7 +239,7 @@ export default function SystemAlertsPage() {
                 </td>
 
                 <td className="admin-system-alerts-action-icons">
-                    <div className="action-wrapper">
+                    <div className="admin-system-alerts-action-wrapper">
                         <button className="admin-system-alerts-preview-btn"><IoEyeOutline /></button>
                         <button>↻</button>
                         <button className="admin-system-alerts-delete-btn">✖</button>

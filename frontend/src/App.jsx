@@ -36,6 +36,7 @@ import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
 import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
 import EditCommunityPostPage from "./pages/EditCommunityPostPage";
 import SystemAlertsPage from "./pages/SystemAlertPage";
+import SystemErrorLogsPage from "./pages/SystemErrorLogsPage";
 
 // === Auth & Verification ===
 import AuthActionRouter from "./pages/AuthActionRouter";
@@ -228,6 +229,7 @@ function AppRoutes() {
         <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />
         <Route path="/admin/reviewcontent/:id" element={<ReviewContentPage />} />
         <Route path="/admin/systemalerts" element={<SystemAlertsPage />} />
+        <Route path="/admin/systemerrorlogs" element={<SystemErrorLogsPage />} />
 
         {/* Community Review Routes */}
         <Route
