@@ -36,7 +36,7 @@ import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
 import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
 import EditCommunityPostPage from "./pages/EditCommunityPostPage";
 import SystemAlertsPage from "./pages/SystemAlertPage";
-import SystemErrorLogsPage from "./pages/SystemErrorLogsPage";
+import SystemErrorLogsPage from "./pages/SystemErrorLogs;
 
 // === Auth & Verification ===
 import AuthActionRouter from "./pages/AuthActionRouter";
