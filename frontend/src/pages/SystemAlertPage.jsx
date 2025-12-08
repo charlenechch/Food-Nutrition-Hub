@@ -72,7 +72,7 @@ export default function SystemAlertsPage() {
               className="admin-system-alert-back-btn-minimal"
             onClick={() => navigate("/admin")}
             >
-            ← Back to Dashboard
+            <strong>← Back to Dashboard</strong>
         </button>
 
         <div className="admin-system-alerts-title-block">
@@ -82,10 +82,10 @@ export default function SystemAlertsPage() {
 
         <div className="admin-alerts-actions">
             <button className="admin-alerts-refresh-action-btn">
-                ↻ Refresh Alerts
+                <strong>↻ Refresh Alerts</strong>
             </button>
             <button className="admin-alerts-export-action-btn">
-                ⬇ Export Alerts
+                <strong>⬇ Export Alerts</strong>
             </button>
         </div>
       </div>
