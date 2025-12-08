@@ -1,9 +1,10 @@
 /* Container */
 .admin-alerts-container {
-  margin-top: 40px;
+  margin-top: 50px;
   padding: 30px 40px;
   font-family: "Poppins", sans-serif;
   margin-bottom: 40px;
+  background: #fdfbf9;
 }
 
 /* Header Section */
