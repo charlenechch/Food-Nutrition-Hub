@@ -12,7 +12,6 @@ import {
     FiCheckCircle as CheckIcon
 } from "react-icons/fi";
 import Modal from "../components/Modal";
-import SystemAlertsPage from "./SystemAlertPage";
 import { useNavigate } from "react-router-dom";
 
 

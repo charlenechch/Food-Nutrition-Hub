@@ -5,6 +5,8 @@ import { AiOutlineExclamationCircle } from "react-icons/ai";
 import { TriangleAlert } from "lucide-react";
 import { SiTicktick } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 
 
 export default function SystemAlertsPage() {
@@ -61,11 +63,13 @@ export default function SystemAlertsPage() {
   );
 
   return (
-    <div className="admin-alerts-container">
-      {/* ----- Header Section ----- */}
-      <div className="admin-alerts-header">
-        <button
-            className="admin-system-alert-back-btn-minimal"
+    <>
+      <Header />
+      <div className="admin-alerts-container">
+        {/* ----- Header Section ----- */}
+        <div className="admin-alerts-header">
+          <button
+              className="admin-system-alert-back-btn-minimal"
             onClick={() => navigate("/admin")}
             >
             ← Back to Dashboard
@@ -226,5 +230,7 @@ export default function SystemAlertsPage() {
         </table>
       </div>
     </div>
+    <Footer />
+    </>
   );
 }
