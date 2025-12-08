@@ -4,10 +4,11 @@ import { IoEyeOutline } from "react-icons/io5";
 import { AiOutlineExclamationCircle } from "react-icons/ai";
 import { TriangleAlert } from "lucide-react";
 import { SiTicktick } from "react-icons/si";
-import { FiRefreshCcw } from "react-icons/fi";
-import { AiOutlineDownload } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
 
-export default function SystemAlertsPage({ onBack }) {
+
+export default function SystemAlertsPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("All Severities");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
@@ -63,7 +64,10 @@ export default function SystemAlertsPage({ onBack }) {
     <div className="admin-alerts-container">
       {/* ----- Header Section ----- */}
       <div className="admin-alerts-header">
-        <button className="admin-system-alert-back-btn-minimal" onClick={onBack}>
+        <button
+            className="admin-system-alert-back-btn-minimal"
+            onClick={() => navigate("/admin")}
+            >
             ← Back to Dashboard
         </button>
 

@@ -35,6 +35,7 @@ import ReviseRecipePage from "./pages/ReviseRecipePage";
 import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
 import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
 import EditCommunityPostPage from "./pages/EditCommunityPostPage";
+import SystemAlertsPage from "./pages/SystemAlertPage";
 
 // === Auth & Verification ===
 import AuthActionRouter from "./pages/AuthActionRouter";
@@ -226,6 +227,7 @@ function AppRoutes() {
         <Route path="/admin/editfood/:id" element={<EditFoodPage />} />
         <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />
         <Route path="/admin/reviewcontent/:id" element={<ReviewContentPage />} />
+        <Route path="/admin/systemalerts" element={<SystemAlertsPage />} />
 
         {/* Community Review Routes */}
         <Route
