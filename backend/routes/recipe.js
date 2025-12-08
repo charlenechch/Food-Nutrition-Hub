@@ -281,6 +281,7 @@ try {
       r.chefTips,
       r.status,
       r.admin_feedback,
+      r.fieldsWithIssues,
       CONCAT(u.firstname, ' ', u.lastname) AS authorName,
       u.email AS authorEmail
     FROM food f
@@ -325,6 +326,11 @@ try {
     chefTips: row.chefTips || '',
     status: row.status || 'Unknown',
     adminFeedback: row.admin_feedback || '',
+    fieldsWithIssues: row.fieldsWithIssues 
+      ? (typeof row.fieldsWithIssues === 'string' 
+          ? JSON.parse(row.fieldsWithIssues) 
+          : row.fieldsWithIssues) 
+      : [],
     authorName: row.authorName || 'Unknown Author',
     authorEmail: row.authorEmail || 'N/A',
     createdAt: row.createdAt
