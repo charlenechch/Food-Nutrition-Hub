@@ -1,7 +1,9 @@
 /* Container */
 .admin-alerts-container {
+  margin-top: 40px;
   padding: 30px 40px;
   font-family: "Poppins", sans-serif;
+  margin-bottom: 40px;
 }
 
 /* Header Section */
