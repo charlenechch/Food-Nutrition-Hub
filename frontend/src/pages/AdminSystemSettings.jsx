@@ -13,6 +13,8 @@ import {
 } from "react-icons/fi";
 import Modal from "../components/Modal";
 import SystemAlertsPage from "./SystemAlertPage";
+import { useNavigate } from "react-router-dom";
+
 
 
 export default function AdminSystemSettings({
@@ -20,10 +22,10 @@ export default function AdminSystemSettings({
     language = "en",
     users = [],
 }) {
+    const navigate = useNavigate();
     const [emailEnabled, setEmailEnabled] = useState(true);
     const platformName = "SarawakEats";
     const platformemail = "info@sarawakeats.com";
-    const [subPage, setSubPage] = useState(null);
 
     const t = {
         platform: "SarawakEats",
@@ -150,10 +152,6 @@ export default function AdminSystemSettings({
         }
     })();
 
-    if (subPage === "alerts") {
-        return <SystemAlertsPage onBack={() => setSubPage(null)} />;
-    }
-
     return (
         <div className="admset-wrap">
             <div className="admset-grid">
@@ -209,7 +207,7 @@ export default function AdminSystemSettings({
                             <div className="admset-grid-2">
                                 <button
                                     className="admset-btn admset-btn-outline justify-start relative"
-                                    onClick={() => setSubPage("alerts")}
+                                    onClick={() => navigate("/admin/systemalerts")}
                                 >
                                     <Bell className="admset-ic-sm" />
                                     View Alerts
