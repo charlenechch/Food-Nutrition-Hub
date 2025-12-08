@@ -128,8 +128,8 @@ app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
 // ---------- CORS ----------
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://food-nutrition-hub.vercel.app"
-];
+  process.env.FRONTEND_URL
+].filter(Boolean);
 
 app.use(
   cors({
