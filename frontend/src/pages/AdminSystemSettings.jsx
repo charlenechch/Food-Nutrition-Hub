@@ -12,11 +12,19 @@ import {
     FiCheckCircle as CheckIcon
 } from "react-icons/fi";
 import Modal from "../components/Modal";
+import SystemAlertsPage from "./SystemAlertPage";
+
+
 export default function AdminSystemSettings({
     onPageChange = () => { },
     language = "en",
     users = [],
 }) {
+    const [emailEnabled, setEmailEnabled] = useState(true);
+    const platformName = "SarawakEats";
+    const platformemail = "info@sarawakeats.com";
+    const [subPage, setSubPage] = useState(null);
+
     const t = {
         platform: "SarawakEats",
         backupRestore: "Backup/Restore",
@@ -24,7 +32,7 @@ export default function AdminSystemSettings({
         backup: "Backup",
         restore: "Restore",
     };
-    const [emailEnabled, setEmailEnabled] = useState(true);
+    
 
     function formatNowKuching() {
         return new Intl.DateTimeFormat("en-MY", {
@@ -40,8 +48,7 @@ export default function AdminSystemSettings({
         return str.replaceAll("{DATE}", now);
     }
 
-    const platformName = "SarawakEats";
-    const platformemail = "info@sarawakeats.com";
+    
     const SYSTEM_EMAIL_TEMPLATES = {
         "Custom message": { subject: "", message: "" },
         "Maintenance Notice": {
@@ -65,6 +72,7 @@ export default function AdminSystemSettings({
                 `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on {DATE}.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSystem Admin`,
         },
     };
+
     const allUsers = useMemo(
         () => (users && users.length ? users : [
             { id: 1, name: "Admin A", email: "admin.a@example.com", role: "Admin" },
@@ -72,6 +80,7 @@ export default function AdminSystemSettings({
         ]),
         [users]
     );
+
     const adminIds = allUsers.filter(u => u.role === "Admin").map(u => u.id);
 
     const parseCustomEmails = (text) => {
@@ -95,6 +104,7 @@ export default function AdminSystemSettings({
         message: SYSTEM_EMAIL_TEMPLATES["Custom message"].message,
         markAnnouncement: true,
     });
+
     const [sysDialog, setSysDialog] = useState({
         open: false,
         title: "",
@@ -103,6 +113,7 @@ export default function AdminSystemSettings({
         primaryText: "OK",
         onPrimary: null,
     });
+
     const closeSysDialog = () => setSysDialog((m) => ({ ...m, open: false, onPrimary: null }));
 
 
@@ -138,6 +149,10 @@ export default function AdminSystemSettings({
             default: return 0;
         }
     })();
+
+    if (subPage === "alerts") {
+        return <SystemAlertsPage onBack={() => setSubPage(null)} />;
+    }
 
     return (
         <div className="admset-wrap">
@@ -194,7 +209,7 @@ export default function AdminSystemSettings({
                             <div className="admset-grid-2">
                                 <button
                                     className="admset-btn admset-btn-outline justify-start relative"
-                                    onClick={() => onPageChange("system-alerts")}
+                                    onClick={() => setSubPage("alerts")}
                                 >
                                     <Bell className="admset-ic-sm" />
                                     View Alerts
