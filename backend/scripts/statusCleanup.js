@@ -1,3 +1,7 @@
+const RAILWAY_INTERNAL_HOST = 'mysql.railway.internal';
+process.env.DB_HOST = process.env.DB_HOST || RAILWAY_INTERNAL_HOST;
+process.env.MYSQLHOST = process.env.DB_HOST;
+
 const { pool: db } = require("../config/db");
 const { sendEmail } = require("../config/mailer");
 
