@@ -7,10 +7,8 @@ const helmet = require("helmet");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
 const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
-// 🛠️ REPLACEMENT START: Use csrf-csrf and cookie-parser instead of csurf
 const cookieParser = require("cookie-parser");
 const { doubleCsrf } = require("csrf-csrf");
-// 🛠️ REPLACEMENT END
 const mysql = require("mysql2");
 const path = require("path");
 const hppProtect = require("./middleware/hpp-protect");
@@ -147,12 +145,9 @@ app.use(
 // ---------- Body Parsers ----------
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
-// 🛠️ ADDED: Cookie Parser is required for csrf-csrf
 app.use(cookieParser());
 
-// ---------- Rate Limiting (UPDATED) ----------
-
-// 1. Global Limiter (Prevents general spam)
+// ---------- Rate Limiting ----------
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   limit: 1000,
@@ -165,7 +160,6 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// 2. Auth Limiter (Prevents login spam)
 const authLimiter = rateLimit({
   windowMs: 30 * 1000,
   limit: 5,
@@ -212,11 +206,8 @@ app.use(
   })
 );
 
-// ---------- CSRF PROTECTION (Updated for csrf-csrf) ----------
-const {
-  doubleCsrfProtection,
-  generateToken
-} = doubleCsrf({
+// ---------- CSRF PROTECTION (Robust Setup) ----------
+const csrfOptions = {
   getSecret: () => process.env.SESSION_SECRET || "s0m3-r4nd0m-s3cr3t-k3y",
   cookieName: "x-csrf-token",
   cookieOptions: {
@@ -225,9 +216,15 @@ const {
     signed: false, // csrf-csrf handles its own signature verification
   },
   size: 64,
-  ignoredMethods: ["GET", "HEAD", "OPTIONS"], 
+  ignoredMethods: ["GET", "HEAD", "OPTIONS"],
   getTokenFromRequest: (req) => req.headers["x-csrf-token"],
-});
+};
+
+// Initialize the library and log the result (Helps debugging)
+const csrfUtilities = doubleCsrf(csrfOptions);
+console.log("🔍 CSRF Utilities Loaded Keys:", Object.keys(csrfUtilities));
+
+const { doubleCsrfProtection, generateToken } = csrfUtilities;
 
 // ---- CSRF Skip Logic ----
 const csrfExclude = ['/api/ai/gpt/nutrition'];
@@ -240,10 +237,20 @@ app.use((req, res, next) => {
   return doubleCsrfProtection(req, res, next);
 });
 
-// CSRF token endpoint (Frontend calls this to get the token)
+// CSRF token endpoint (Protected against crashes)
 app.get("/api/csrf-token", (req, res) => {
-  const token = generateToken(req, res);
-  res.json({ csrfToken: token });
+  try {
+    if (typeof generateToken !== 'function') {
+      console.error("❌ Critical Error: generateToken is not a function. Library failed to load correctly.");
+      // Return 500 but don't crash the server
+      return res.status(500).json({ error: "CSRF configuration error" });
+    }
+    const token = generateToken(req, res);
+    res.json({ csrfToken: token });
+  } catch (err) {
+    console.error("❌ Error generating CSRF token:", err);
+    res.status(500).json({ error: "Token generation failed" });
+  }
 });
 
 // ---------- Routes BEFORE global HPP ----------
