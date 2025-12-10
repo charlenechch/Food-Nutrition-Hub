@@ -4,7 +4,6 @@ const { sendEmail } = require("../config/mailer");
 // Finds and updates user statuses based on expired suspensions and inactivity.
 async function updateStaleAndExpiredUsers() {
     console.log("🕒 Starting Status Cleanup...");
-    return;
     
     try {
         const now = new Date();
@@ -110,9 +109,19 @@ async function updateStaleAndExpiredUsers() {
     }
 }
 
+// Force exit after 30 seconds if script doesn't complete
+const forceExitTimer = setTimeout(() => {
+    console.log("⚠️ Force exiting after timeout");
+    process.exit(1);
+}, 30000);
+
 // Run the script and exit
 updateStaleAndExpiredUsers()
     .then(() => {
+        clearTimeout(forceExitTimer);
         setTimeout(() => process.exit(0), 100); 
     })
-    .catch(() => process.exit(1));
+    .catch(() => {
+        clearTimeout(forceExitTimer);
+        process.exit(1);
+    });
