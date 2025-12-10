@@ -1,4 +1,3 @@
-// src/pages/ReviseCommunityPostPage.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
@@ -25,24 +24,23 @@ export default function ReviseCommunityPostPage() {
   const navigate = useNavigate();
   const location = useLocation();
   
-//====================
-  //CSRF
-  //======================
-const [csrfToken, setCsrfToken] = useState("");
+  //====================
+  // CSRF
+  //====================
+  const [csrfToken, setCsrfToken] = useState("");
 
-useEffect(() => {
-  const fetchCsrfToken = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-      const data = await res.json();
-      setCsrfToken(data.csrfToken);
-    } catch (err) {
-      console.error("Failed to fetch CSRF token", err);
-    }
-  };
-  fetchCsrfToken();
-}, []);
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
 
   // 1. Get initial data from navigation state (if available)
@@ -81,7 +79,6 @@ useEffect(() => {
 
   // 4. Effect: Initialize form (Handle both Navigation State AND API Fetch)
   useEffect(() => {
-    // A: We have data from the Profile page (Navigation State)
     if (stateData.contribution) {
       console.log("📝 Initializing form with navigation state:", stateData.contribution);
       setForm({
@@ -93,13 +90,12 @@ useEffect(() => {
       });
       setIsLoading(false);
     } 
-    // B: We have NO data (Link from Email) -> Fetch from Backend
     else {
       console.log("🌍 No state found. Fetching from API for ID:", id);
       const fetchPost = async () => {
         try {
           const res = await fetch(`${API_BASE_URL}/api/communityPost/${id}`, {
-            credentials: "include", // Important for session check
+            credentials: "include", 
           });
           
           if (!res.ok) throw new Error("Failed to load post data.");
@@ -110,18 +106,14 @@ useEffect(() => {
           const data = result.data;
           console.log("✅ Fetched API Data:", data);
 
-          // Populate form with fetched data
           setForm({
             title: data.foodName || "",
             culturalOrigin: data.culturalOrigin || "",
             content: data.culturalStory || "",
             recipe: data.recipe || "",
-            // Handle image array or single string
             image: Array.isArray(data.images) ? data.images[0] : (data.images || "")
           });
 
-          // Note: Standard GET /:id might not return admin_feedback depending on your backend.
-          // If you see "No feedback" after this fix, we might need to update the backend query too.
           if (data.admin_feedback || data.adminFeedback) {
              setAdminFeedback(data.admin_feedback || data.adminFeedback);
           }
@@ -212,7 +204,8 @@ useEffect(() => {
            icon: <CheckCircle2 />,
          });
         setTimeout(() => {
-          navigate("/profile"); 
+          // 🛠️ FIX: Navigate explicitly to contributions tab
+          navigate("/profile?tab=status"); 
         }, 2000);      
       } else {
         throw new Error(result.error || "Update failed");
@@ -225,7 +218,6 @@ useEffect(() => {
     }
   };
 
-  // Check which fields need fixing (Optional chaining for safety)
   const needsFix = new Set(fieldsWithIssues || []);
 
   if (isLoading) {
@@ -252,9 +244,10 @@ useEffect(() => {
             <div className="rcp-error">
               <h2>Error</h2>
               <p>{error}</p>
+              {/* 🛠️ FIX: Navigate explicitly to contributions tab */}
               <button 
                 className="lrp-btn lrp-btn-primary"
-                onClick={() => navigate("/profile")}
+                onClick={() => navigate("/profile?tab=status")}
               >
                 Back to Profile
               </button>
@@ -272,11 +265,12 @@ useEffect(() => {
 
       <div className="upp-page">
         <div className="upp-wrap">
+          {/* 🛠️ FIX: Navigate explicitly to contributions tab */}
           <button
             className="lrp-btn lrp-btn-outline rcp-back"
-            onClick={() => navigate("/profile")}
+            onClick={() => navigate("/profile?tab=status")}
           >
-            ← Back to Profile
+            ← Back to Contributions
           </button>
 
           <div className="rcp-wrap">
@@ -406,10 +400,12 @@ useEffect(() => {
                 >
                   {isSubmitting ? "Submitting..." : "Submit Revision"}
                 </button>
+                
+                {/* 🛠️ FIX: Navigate explicitly to contributions tab */}
                 <button
                   className="rp-btn rp-btn-muted"
                   type="button"
-                  onClick={() => navigate("/profile")}
+                  onClick={() => navigate("/profile?tab=status")}
                   disabled={isSubmitting}
                 >
                   Cancel

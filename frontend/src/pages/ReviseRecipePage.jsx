@@ -4,13 +4,13 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { FaCamera, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa"; 
 import LS_KEY from "./UserProfilePage"; 
-import "../css/ReviseRecipePage.css"; // Import the CSS
+import "../css/ReviseRecipePage.css"; 
 import Modal from "../components/Modal";
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// Helper to load users from localStorage (same shape as your profile page)
+// Helper to load users from localStorage
 function loadUsers() {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -25,7 +25,6 @@ function saveUsers(obj) {
   } catch {}
 }
 
-// You can keep these in a shared constants file if you like
 const DIET_OPTIONS = [
   "gluten-free",
   "dairy-free",
@@ -44,7 +43,7 @@ export default function ReviseRecipePage() {
   const { contribution, adminFeedback, fieldsWithIssues } = state || {};
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [item, setItem] = useState(contribution); // Make item stateful
+  const [item, setItem] = useState(contribution); 
   const [form, setForm] = useState({
     name: "",
     origin: "",
@@ -81,32 +80,35 @@ export default function ReviseRecipePage() {
 
   const needsFix = new Set(item?.fieldsWithIssues || []);
 
-//====================
-  //CSRF
-  //======================
-const [csrfToken, setCsrfToken] = useState("");
+  //====================
+  // CSRF
+  //====================
+  const [csrfToken, setCsrfToken] = useState("");
 
-useEffect(() => {
-  const fetchCsrfToken = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-      const data = await res.json();
-      setCsrfToken(data.csrfToken);
-    } catch (err) {
-      console.error("Failed to fetch CSRF token", err);
-    }
-  };
-  fetchCsrfToken();
-}, []);
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   useEffect(() => {
     const initializeForm = () => {
       // Use the contribution from state if available
       if (contribution) {
         console.log("📝 Using state contribution:", contribution);
-        setItem(contribution);
         
+        setItem({
+          ...contribution,
+          feedback: contribution.adminFeedback || contribution.feedback || "" 
+        });
+
         const p = contribution.payload || contribution;
         const initialForm = {
           name: p.name || p.title || "",
@@ -115,10 +117,10 @@ useEffect(() => {
           prepTime: p.prepTime ?? "",
           cookTime: p.cookTime ?? "",
           servings: p.servings ?? "",
-          imageData: p.imageData || p.image || "",
+          imageData: p.imageData || p.image || "", 
           description: p.description || "",
-          ingredients: p.ingredients || "",
-          instructions: p.instructions || p.steps || "",
+          ingredients: Array.isArray(p.ingredients) ? p.ingredients.join('\n') : (p.ingredients || ""),
+          instructions: Array.isArray(p.instructions) ? p.instructions.join('\n') : (p.instructions || ""),
           funFact: p.funFact || p.DidYouKnow || "",
           chefTips: p.chefTips || "",
           dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
@@ -138,11 +140,6 @@ useEffect(() => {
       try {
         const recipeId = id;
         console.log("🎯 Using recipe ID from URL:", recipeId);
-        console.log("🔍 Available IDs:", { 
-          urlId: id, 
-          contributionId: contribution?.id, 
-          itemId: item?.id 
-        });
 
         if (!recipeId) {
           throw new Error("No recipe ID provided in URL");
@@ -150,24 +147,19 @@ useEffect(() => {
 
         const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${recipeId}`);
         
-        console.log("📡 Response status:", response.status);
-
         if (!response.ok) {
           throw new Error(`Failed to fetch recipe: ${response.status}`);
         }
 
         const recipeData = await response.json();
-        console.log("✅ Recipe data received:", {
-          id: recipeData.id,
-          name: recipeData.name,
-          origin: recipeData.origin
-        });
+        console.log("✅ Recipe data received:", recipeData);
 
-        // ✅ FIX: Use the actual recipeData variable (not p)
         setItem(prev => ({
           ...prev,
-          ...recipeData, // Use recipeData, not p
-          id: recipeId
+          ...recipeData,
+          id: recipeId,
+          feedback: recipeData.adminFeedback || recipeData.feedback || prev?.feedback || "", 
+          fieldsWithIssues: recipeData.fieldsWithIssues || prev?.fieldsWithIssues || [] 
         }));
 
         setForm(prev => ({
@@ -190,17 +182,8 @@ useEffect(() => {
           status: recipeData.status || "Pending"
         }));
 
-        console.log("🧾 Form state after mapping:", {
-          name: recipeData.name,
-          imageData: recipeData.image,
-          description: recipeData.description,
-          ingredients: recipeData.ingredients,
-          instructions: recipeData.instructions
-        });
-
       } catch (error) {
         console.error("❌ Error fetching from API, using state data:", error);
-        // Fall back to state data
         initializeForm();
       } finally {
         setIsLoading(false);
@@ -208,10 +191,9 @@ useEffect(() => {
     };
 
     if (contribution) {
-      fetchRecipeData();
+      initializeForm();
     } else {
-      // If no state data, we can't proceed
-      setIsLoading(false);
+      fetchRecipeData();
     }
   }, [id, contribution]);
   
@@ -245,20 +227,20 @@ useEffect(() => {
     setIsSubmitting(true);
 
     try {
-      console.log('🚀 Starting recipe revision for ID:', id); // ✅ FIX: Use id
+      console.log('🚀 Starting recipe revision for ID:', id); 
 
       // Build the data in the same format as your create endpoint
       const revisedData = {
         name: form.name,
         origin: form.origin,
         difficulty: form.difficulty,
-        prepTime: parseInt(form.prepTime) || 0, // ✅ Convert to number
-        cookTime: parseInt(form.cookTime) || 0, // ✅ Convert to number
-        servings: parseInt(form.servings) || 1, // ✅ Convert to number
+        prepTime: parseInt(form.prepTime) || 0, 
+        cookTime: parseInt(form.cookTime) || 0, 
+        servings: parseInt(form.servings) || 1, 
         image: form.imageData,
         description: form.description,
         foodType: form.foodType,
-        //dietaryTags: form.dietaryTags,
+        dietaryTags: form.dietaryTags,
         ingredients: form.ingredients,
         instructions: form.instructions,
         funFact: form.funFact,
@@ -267,9 +249,6 @@ useEffect(() => {
       };
 
       console.log('📤 Sending update request with data:', revisedData);
-
-      const users = loadUsers();
-      const ownerUsername = "currentUser";
 
       const response = await fetch(`${API_BASE_URL}/api/recipe/revise/recipes/${id}`, {
         method: "PUT",
@@ -281,73 +260,34 @@ useEffect(() => {
         body: JSON.stringify(revisedData),
       });
 
-      console.log('📥 Response status:', response.status);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Server error response:', errorText);
-        throw new Error(`Failed to update recipe (${response.status}): ${errorText}`);
+        throw new Error(`Failed to update recipe: ${errorText}`);
       }
 
-      let result;
-      try {
-        result = await response.json();
-        console.log('✅ Update successful:', result);
-      } catch (parseError) {
-        console.error('❌ JSON parse error:', parseError);
-        throw new Error('Invalid response from server');
-      }
-
-      if (result.success || result.message || result.id) {
-      // Only update localStorage if user exists and has pending array
-      try {
-        const users = loadUsers();
-        const ownerUsername = "currentUser";
-        
-        if (users[ownerUsername] && Array.isArray(users[ownerUsername].pending)) {
-          const list = users[ownerUsername].pending.map(p => {
-            if (String(p.id) !== String(id)) return p;
-            return {
-              ...p,
-              status: "Pending",
-              feedback: "",
-              fieldsWithIssues: [],
-              payload: revisedData,
-              resubmittedDate: new Date().toISOString(),
-            };
-          });
-          nextUsers[ownerUsername] = { ...nextUsers[ownerUsername], pending: list };
-          saveUsers(nextUsers);
-          console.log('✅ localStorage updated successfully');
-        } else {
-          console.log('⚠️ User or pending array not found in localStorage, skipping update');
-        }
-      } catch (localStorageError) {
-        console.warn('⚠️ localStorage update failed:', localStorageError);
-      }
-
+      const result = await response.json();
+      
       openInfo({
         title: "Recipe revised successfully!",
         message: "Your recipe contribution has been resubmitted and is awaiting admin review.",
         icon: <CheckCircle2 />,
       });
       setTimeout(() => {
-        navigate(-1);
+        // 🛠️ FIX: Navigate explicitly to contributions tab
+        navigate("/profile?tab=status");
       }, 2000); 
-    } else {
-      throw new Error(result.error || "Update failed");
+
+    } catch (error) {
+      console.error("❌ Update error:", error);
+      openInfo({
+        title: "Failed to update recipe.",
+        message: error?.message || "Please try again.",
+        icon: <AlertTriangle />,
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-  } catch (error) {
-    console.error("❌ Update error:", error);
-    openInfo({
-      title: "Failed to update recipe.",
-      message: error?.message || "Please try again.",
-      icon: <AlertTriangle />,
-    });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   const fieldLabels = {
     name: "Recipe Name",
@@ -376,7 +316,8 @@ useEffect(() => {
   if (!item) {
     return (
       <div className="upp-wrap">
-        <button className="lrp-btn lrp-btn-outline rcp-back" onClick={() => navigate(-1)}>← Back</button>
+        {/* 🛠️ FIX: Navigate explicitly to contributions tab */}
+        <button className="lrp-btn lrp-btn-outline rcp-back" onClick={() => navigate("/profile?tab=status")}>← Back</button>
         <h2 className="upp-404-h2">This contribution isn't available to revise.</h2>
         <p className="upp-muted">
             It may have been re-submitted or reviewed already. Try refreshing your profile's "Pending" tab.
@@ -390,7 +331,8 @@ useEffect(() => {
       <Header />
       <div className="upp-page">
         <div className="upp-wrap">
-          <button className="lrp-btn lrp-btn-outline rcp-back" onClick={() => navigate(-1)}>← Back</button>
+          {/* 🛠️ FIX: Navigate explicitly to contributions tab */}
+          <button className="lrp-btn lrp-btn-outline rcp-back" onClick={() => navigate("/profile?tab=status")}>← Back to Contributions</button>
           <div className="rcp-wrap">
           <h2 className="rp-title">Revise Recipe</h2>
           
@@ -426,7 +368,7 @@ useEffect(() => {
           </div>
 
           <p className="upp-muted" style={{ marginBottom: 16 }}>
-            Fix the highlighted fields and resubmit. Your original submission date: {new Date(item.submittedDate).toLocaleDateString()}
+            Fix the highlighted fields and resubmit. Your original submission date: {item.submittedDate ? new Date(item.submittedDate).toLocaleDateString() : 'Unknown'}
           </p>
 
           <form className="rp-form" onSubmit={addRecipe}>
@@ -443,6 +385,7 @@ useEffect(() => {
               </div>
             </div>
 
+            {/* ... (The rest of your form fields remain unchanged) ... */}
             <div className="rp-grid-3">
               <div className="rp-field">
                 <label>Difficulty *</label>
@@ -628,6 +571,7 @@ useEffect(() => {
                 />
               </div>
             </div>
+            {/* ... (End of form fields) ... */}
 
             <div className="rp-actions">
               <button 
@@ -637,10 +581,12 @@ useEffect(() => {
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Revision'}
               </button>
+              
+              {/* 🛠️ FIX: Navigate explicitly to contributions tab */}
               <button
                 className="rp-btn rp-btn-muted"
                 type="button"
-                onClick={() => navigate(-1)}
+                onClick={() => navigate("/profile?tab=status")}
               >
                 Cancel
               </button>
