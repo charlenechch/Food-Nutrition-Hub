@@ -163,14 +163,11 @@ useEffect(() => {
           origin: recipeData.origin
         });
 
+        // ✅ FIX: Use the actual recipeData variable (not p)
         setItem(prev => ({
           ...prev,
-          ...recipeData,
-          id: recipeId,
-          // 1. Map backend 'adminFeedback' to frontend 'feedback'
-          feedback: recipeData.adminFeedback || prev?.feedback || "", 
-          // 2. Ensure fieldsWithIssues is preserved/loaded
-          fieldsWithIssues: recipeData.fieldsWithIssues || prev?.fieldsWithIssues || [] 
+          ...recipeData, // Use recipeData, not p
+          id: recipeId
         }));
 
         setForm(prev => ({
