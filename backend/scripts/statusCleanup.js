@@ -109,19 +109,10 @@ async function updateStaleAndExpiredUsers() {
     }
 }
 
-// Force exit after 30 seconds if script doesn't complete
-const forceExitTimer = setTimeout(() => {
-    console.log("⚠️ Force exiting after timeout");
-    process.exit(1);
-}, 30000);
-
 // Run the script and exit
 updateStaleAndExpiredUsers()
     .then(() => {
-        clearTimeout(forceExitTimer);
+        // Use a small delay to ensure all console output is flushed before exiting the Node process
         setTimeout(() => process.exit(0), 100); 
     })
-    .catch(() => {
-        clearTimeout(forceExitTimer);
-        process.exit(1);
-    });
+    .catch(() => process.exit(1));
