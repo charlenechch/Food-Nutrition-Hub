@@ -4,6 +4,7 @@ const { sendEmail } = require("../config/mailer");
 // Finds and updates user statuses based on expired suspensions and inactivity.
 async function updateStaleAndExpiredUsers() {
     console.log("🕒 Starting Status Cleanup...");
+    return;
     
     try {
         const now = new Date();
