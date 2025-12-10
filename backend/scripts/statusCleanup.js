@@ -112,8 +112,6 @@ async function updateStaleAndExpiredUsers() {
 // Run the script and exit
 updateStaleAndExpiredUsers()
     .then(() => {
-        setTimeout(() => process.exit(0), 500);
+        setTimeout(() => process.exit(0), 100); 
     })
-    .catch(() => {
-        process.exit(1);
-    });
+    .catch(() => process.exit(1));
