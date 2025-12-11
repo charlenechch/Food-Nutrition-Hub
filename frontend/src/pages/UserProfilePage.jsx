@@ -262,118 +262,100 @@ useEffect(() => {
   const closePasswordModal = () =>
     setPwModal(m => ({ ...m, open: false, onSubmit: null, password: "" }));
 
-  // ✅ HELPER: Always get a fresh token before saving
-  const getFreshCsrfToken = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-      const data = await res.json();
-      return data.csrfToken;
-    } catch (err) {
-      console.error("Failed to refresh CSRF token", err);
-      return csrfToken; // Fallback to state if fetch fails
+  // ===== Save: Personal Info =====
+const savePersonal = async () => {
+  try {
+    const updateData = { 
+      location: form.location, 
+      bio: bio,
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language,
+      dietary: prefs.dietary,
+      allergies: prefs.allergies
+    };
+    
+    console.log("📤 Saving personal info:", updateData);
+    
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken
+       },
+      credentials: "include",
+      body: JSON.stringify(updateData),
+    });
+    
+    console.log("📥 Personal info response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Personal info update error:", errorText);
+      throw new Error(`Failed to update profile (${res.status}): ${errorText}`);
     }
-  };
-
-  // ===== Save: Personal Info (Updated) =====
-  const savePersonal = async () => {
-    try {
-      // 1. Get a fresh token immediately before the request
-      const freshToken = await getFreshCsrfToken();
-      
-      const updateData = { 
-        location: form.location, 
-        bio: bio,
-        emailNotifications: prefs.emailNotifications,
-        pushNotifications: prefs.pushNotifications,
-        profileVisibility: prefs.profileVisibility,
-        language: prefs.language,
-        dietary: prefs.dietary,
-        allergies: prefs.allergies
-      };
-      
-      console.log("📤 Saving personal info:", updateData);
-      
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          "X-CSRF-Token": freshToken // ✅ Use freshToken here
-        },
-        credentials: "include",
-        body: JSON.stringify(updateData),
-      });
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText); 
-      }
-      
-      const result = await res.json();
-      
-      if (result.success) {
-        openAlert("Saved", "Profile updated successfully!", <CheckCircle2 />);
-        setUser(prev => ({ ...prev, location: form.location, bio: bio }));
-        setCsrfToken(freshToken); // Update state
-      } else {
-        throw new Error(result.error || "Update failed");
-      }
-    } catch (e) {
-      console.error("Personal info update error:", e);
-      let msg = e.message;
-      try { msg = JSON.parse(e.message).error; } catch {}
-      openAlert("Update Failed", msg || "Failed to update profile", <AlertTriangle />);
+    
+    const result = await res.json();
+    console.log("✅ Personal info update result:", result);
+    
+    if (result.success) {
+      openAlert("Saved", "Profile updated successfully!", <CheckCircle2 />);
+      setUser(prev => ({ ...prev, location: form.location, bio: bio }));
+    } else {
+      throw new Error(result.error || "Update failed");
     }
-  };
+  } catch (e) {
+    console.error("Personal info update error:", e);
+    openAlert("Update Failed", e.message || "Failed to update profile", <AlertTriangle />);
+  }
+};
 
-  // ===== Save: Preferences (Updated) =====
-  const savePrefs = async () => {
-    try {
-      // 1. Get a fresh token immediately before the request
-      const freshToken = await getFreshCsrfToken();
+// ===== Save: Preferences =====
+const savePrefs = async () => {
+  try {
+    const preferencesPayload = {
+      dietary: prefs.dietary,
+      allergies: prefs.allergies,
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language,
+      location: user?.location || "",
+      bio: user?.bio || ""
+    };
+    
+    console.log("📤 Saving preferences:", preferencesPayload);
 
-      const preferencesPayload = {
-        dietary: prefs.dietary,
-        allergies: prefs.allergies,
-        emailNotifications: prefs.emailNotifications,
-        pushNotifications: prefs.pushNotifications,
-        profileVisibility: prefs.profileVisibility,
-        language: prefs.language,
-        location: user?.location || "",
-        bio: user?.bio || ""
-      };
-      
-      console.log("📤 Saving preferences:", preferencesPayload);
-
-      const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          "X-CSRF-Token": freshToken // ✅ Use freshToken here
-        },
-        credentials: "include",
-        body: JSON.stringify(preferencesPayload),
-      });
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText);
-      }
-      
-      const result = await res.json();
-      
-      if (result.success) {
-        openAlert("Saved", "Preferences updated successfully!", <CheckCircle2 />);
-        setCsrfToken(freshToken); 
-      } else {
-        throw new Error(result.error || "Update failed");
-      }
-    } catch (e) {
-      console.error("Preferences update error:", e);
-      let msg = e.message;
-      try { msg = JSON.parse(e.message).error; } catch {}
-      openAlert("Update Failed", msg || "Failed to update preferences", <AlertTriangle />);
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken
+       },
+      credentials: "include",
+      body: JSON.stringify(preferencesPayload),
+    });
+    
+    console.log("📥 Preferences response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Preferences update error:", errorText);
+      throw new Error(`Failed to update preferences (${res.status}): ${errorText}`);
     }
-  };
+    
+    const result = await res.json();
+    console.log("✅ Preferences update result:", result);
+    
+    if (result.success) {
+      openAlert("Saved", "Preferences updated successfully!", <CheckCircle2 />);
+    } else {
+      throw new Error(result.error || "Update failed");
+    }
+  } catch (e) {
+    console.error("Preferences update error:", e);
+    openAlert("Update Failed", e.message || "Failed to update preferences", <AlertTriangle />);
+  }
+};
 
   const ContributionRow = ({ c }) => {
     const navigate = useNavigate();
