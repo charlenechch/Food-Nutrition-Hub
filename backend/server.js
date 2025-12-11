@@ -7,10 +7,7 @@ const helmet = require("helmet");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
 const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
-// 🛠️ REPLACEMENT START: Use csrf-csrf and cookie-parser instead of csurf
-const cookieParser = require("cookie-parser");
-const { doubleCsrf } = require("csrf-csrf");
-// 🛠️ REPLACEMENT END
+const csrf = require("csurf");
 const mysql = require("mysql2");
 const path = require("path");
 const hppProtect = require("./middleware/hpp-protect");
@@ -147,8 +144,6 @@ app.use(
 // ---------- Body Parsers ----------
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
-// 🛠️ ADDED: Cookie Parser is required for csrf-csrf
-app.use(cookieParser());
 
 // ---------- Rate Limiting (UPDATED) ----------
 
@@ -158,6 +153,7 @@ const globalLimiter = rateLimit({
   limit: 1000,
   standardHeaders: true,
   legacyHeaders: false,
+  // Send JSON error instead of text to prevent frontend crash
   message: {
     success: false,
     message: "Too many requests, please try again later."
@@ -167,14 +163,21 @@ app.use(globalLimiter);
 
 // 2. Auth Limiter (Prevents login spam)
 const authLimiter = rateLimit({
-  windowMs: 30 * 1000,
-  limit: 5,
+  //  Short cooldown (30 seconds) instead of 30 minutes
+  windowMs: 30 * 1000, 
+  
+  // Limit to 5 attempts per 30 seconds
+  limit: 5, 
+  
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    success: false,
-    message: "You are doing that too fast! Please wait 30 seconds and try again."
+  
+  // JSON response + Friendly message
+  message: { 
+    success: false, 
+    message: "You are doing that too fast! Please wait 30 seconds and try again." 
   },
+  
   keyGenerator: (req, res) => {
     const ipKey = ipKeyGenerator(req, res);
     const emailKey = req.body?.email || "guest";
@@ -212,22 +215,9 @@ app.use(
   })
 );
 
-// ---------- CSRF PROTECTION (Updated for csrf-csrf) ----------
-const {
-  doubleCsrfProtection,
-  generateToken
-} = doubleCsrf({
-  getSecret: () => process.env.SESSION_SECRET || "s0m3-r4nd0m-s3cr3t-k3y",
-  cookieName: "x-csrf-token",
-  cookieOptions: {
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    secure: process.env.NODE_ENV === "production",
-    signed: false, // csrf-csrf handles its own signature verification
-  },
-  size: 64,
-  ignoredMethods: ["GET", "HEAD", "OPTIONS"], 
-  getTokenFromRequest: (req) => req.headers["x-csrf-token"],
-});
+// CSRF PROTECTION
+const csrfProtection = csrf();
+// app.use(csrfProtection);
 
 // ---- CSRF Skip Logic ----
 const csrfExclude = ['/api/ai/gpt/nutrition'];
@@ -235,15 +225,14 @@ const csrfExclude = ['/api/ai/gpt/nutrition'];
 // Custom CSRF handler with skip logic
 app.use((req, res, next) => {
   if (csrfExclude.some(p => req.originalUrl.startsWith(p))) {
-    return next(); // Skip CSRF for excluded routes
+    return next(); // Skip CSRF for GPT nutrition
   }
-  return doubleCsrfProtection(req, res, next);
+  return csrfProtection(req, res, next);
 });
 
-// CSRF token endpoint (Frontend calls this to get the token)
+// CSRF token endpoint (must run AFTER the CSRF wrapper)
 app.get("/api/csrf-token", (req, res) => {
-  const token = generateToken(req, res);
-  res.json({ csrfToken: token });
+  res.json({ csrfToken: req.csrfToken() });
 });
 
 // ---------- Routes BEFORE global HPP ----------
@@ -269,7 +258,7 @@ app.use(
   loginRoutes
 );
 
-// GPT AI
+// GPT AI 
 app.use(
   "/api/ai/gpt",
   cors({ origin: allowedOrigins, credentials: true }),
@@ -282,6 +271,9 @@ app.use(
   cors({ origin: allowedOrigins, credentials: true }),
   aiRoutes
 );
+
+
+
 
 // Recipe - BEFORE global HPP
 app.use(
@@ -315,6 +307,7 @@ app.use(
   foodRoutes
 );
 
+
 // Search
 app.use("/api/foodSearch", foodSearchRoutes);
 
@@ -329,11 +322,11 @@ app.use(
       "avatar", "allergies", "dietary", "emailNotifications", "prefs",
       "pushNotifications", "profileVisibility", "language", "recipes",
       "status", "stats", "saveFoods", "likes", "type", "postId", "postID",
-      "content", "title", "culturalOrigin", "recipe", "reply", "comment",
-      "foodID", "likeID", "name", "difficulty",
-      "prepTime", "cookTime", "servings", "image", "description",
-      "foodType", "dietaryTags", "ingredients", "instructions",
-      "funFact", "chefTips", "category",
+      "content", "title", "culturalOrigin", "recipe", "reply", "comment", 
+      "foodID", "likeID", "name", "difficulty", 
+      "prepTime", "cookTime", "servings", "image", "description", 
+      "foodType", "dietaryTags", "ingredients", "instructions", 
+      "funFact", "chefTips", "category", 
       "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll",
       "view", "year", "feedback"
     ],
@@ -380,10 +373,7 @@ app.get("/", (req, res) => {
 app.use((req, res) => res.status(404).json({ error: "Not Found" }));
 
 app.use((err, req, res, next) => {
-  // Handle CSRF errors specifically
-  if (err.code === "EBADCSRFTOKEN") {
-    return res.status(403).json({ error: "Invalid CSRF token" });
-  }
+  if (err.code === "EBADCSRFTOKEN") return res.status(403).json({ error: "Invalid CSRF token" });
   console.error("❌ Server error:", err);
   res.status(err.status || 500).json({ error: err.status === 500 ? "Internal Server Error" : err.message });
 });
