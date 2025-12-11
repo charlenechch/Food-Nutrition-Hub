@@ -436,11 +436,7 @@ const savePrefs = async () => {
               borderRadius: "4px",
               fontSize: "0.9rem",
               color: styles.text,
-              marginBottom: "5px",
-              // THESE 3 LINES FIX THE OVERFLOW:
-              whiteSpace: "pre-wrap",    
-              wordBreak: "break-word",   
-              overflowWrap: "break-word" 
+              marginBottom: "5px"
             }}>
               <strong>Admin Feedback:</strong> {feedbackText}
             </div>
