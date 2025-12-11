@@ -345,12 +345,7 @@ export default function ReviseRecipePage() {
             
             <div className="rcp-alert-content">
               {item.feedback ? (
-                <p 
-                  className="rcp-feedback-message" 
-                  style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "break-word" }}
-                >
-                  {item.feedback}
-                </p>
+                <p className="rcp-feedback-message">{item.feedback}</p>
               ) : (
                 <p className="rcp-feedback-message">
                   Your recipe requires revisions before it can be approved. Please address the issues highlighted below.
