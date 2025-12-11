@@ -288,7 +288,9 @@ export default function ReviseCommunityPostPage() {
                 <div className="upp-strong" style={{ marginBottom: 6 }}>
                   Admin Feedback
                 </div>
-                <div>{adminFeedback}</div>
+                <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "break-word" }}>
+                  {adminFeedback}
+                </div>
                 {fieldsWithIssues.length > 0 && (
                   <div style={{ marginTop: "10px" }}>
                     <div className="upp-strong">Areas needing improvement:</div>
