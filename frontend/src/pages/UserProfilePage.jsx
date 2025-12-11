@@ -3,6 +3,7 @@
 // - Supports /profile & /profile/:userProfileID
 // - Keeps saved foods, contributions, preferences, settings, stats
 // - ✅ Added avatar upload functionality
+// - ✅ Fixed CSRF Header usage
 
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -11,7 +12,7 @@ import "../css/UserProfilePage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Bell, Eye, Globe, Shield, ExternalLink, OctagonX, Camera, X, AlertTriangle, CheckCircle2, Trash2 } from "lucide-react";
-import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
+import LoginPromptModal from "../components/LoginPromptModal";
 import Modal from "../components/Modal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -33,23 +34,17 @@ const DEFAULT_PREFS = {
   language: "en"
 };
 
-// ✅ FIXED: Better normalization that ensures clean string arrays
 const normalizePrefs = (data = {}) => {
   const prefsData = data.prefs || data;
 
-  // Enhanced array normalizer
   const ensureCleanArray = (value) => {
-    console.log("🔄 Raw value to normalize:", value);
-    
     let resultArray = [];
-    
     if (Array.isArray(value)) {
       resultArray = value.map(item => 
         typeof item === 'string' ? item.trim() : String(item).trim()
       );
     } else if (typeof value === 'string') {
       try {
-        // Try to parse as JSON first
         const parsed = JSON.parse(value);
         if (Array.isArray(parsed)) {
           resultArray = parsed.map(item => 
@@ -59,26 +54,20 @@ const normalizePrefs = (data = {}) => {
           resultArray = [String(parsed).trim()];
         }
       } catch (e) {
-        // If not JSON, use as is
         resultArray = value.trim() ? [value.trim()] : [];
       }
     } else if (value && typeof value === 'object') {
-      // Convert object to array (handle the case where it's object-like)
       resultArray = Object.values(value)
         .map(item => typeof item === 'string' ? item.trim() : String(item).trim())
         .filter(item => item !== '' && item !== 'null' && item !== 'undefined');
     }
     
-    // Final cleanup - ensure all values are valid strings
-    const finalArray = resultArray
+    return resultArray
       .filter(item => item && typeof item === 'string')
-      .map(item => item.substring(0, 60)); // Enforce max length like backend
-    
-    console.log("✅ Normalized array result:", finalArray);
-    return finalArray;
+      .map(item => item.substring(0, 60));
   };
 
-  const normalized = {
+  return {
     dietary: ensureCleanArray(prefsData.dietary),
     allergies: ensureCleanArray(prefsData.allergies),
     emailNotifications: Boolean(prefsData.emailNotifications ?? true),
@@ -86,9 +75,6 @@ const normalizePrefs = (data = {}) => {
     profileVisibility: Boolean(prefsData.profileVisibility ?? true),
     language: prefsData.language || "en"
   };
-
-  console.log("🎯 Final normalized prefs:", normalized);
-  return normalized;
 };
 
 const toggleInArray = (arr, value) =>
@@ -96,7 +82,6 @@ const toggleInArray = (arr, value) =>
 
 const fmtStatus = (s) => {
   if (!s) return "Unknown";
-  
   const statusMap = {
     "approved": "Approved",
     "pending": "Pending Review", 
@@ -105,7 +90,6 @@ const fmtStatus = (s) => {
     "Pending": "Pending Review",
     "Rejected": "Rejected"
   };
-  
   return statusMap[s] || "Unknown";
 };
 
@@ -124,7 +108,7 @@ const isCommunity = (c) => {
 
 const isRecipe = (c) => {
     return c && c.foodName !== undefined;
-  };
+};
 
 const byDateDesc = (a, b) => {
   const dateA = new Date(a?.submittedDate || a?.created_at || 0);
@@ -132,7 +116,6 @@ const byDateDesc = (a, b) => {
   return dateB - dateA;
 };
 
-// Helper function for status classes
 const getStatusClass = (status) => {
   const statusMap = {
     "approved": "chip-blue",
@@ -149,118 +132,64 @@ export default function UserProfilePage() {
   const { userProfileID } = useParams();
   const navigate = useNavigate();
   const { setBypassSessionCheck } = useAuth();
-  //Controls view and edit mode
   const [isEditing, setIsEditing] = useState(false);
+  const [csrfToken, setCsrfToken] = useState("");
 
-//====================
-  //CSRF
-  //======================
-const [csrfToken, setCsrfToken] = useState("");
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
-useEffect(() => {
-  const fetchCsrfToken = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-      const data = await res.json();
-      setCsrfToken(data.csrfToken);
-    } catch (err) {
-      console.error("Failed to fetch CSRF token", err);
-    }
-  };
-  fetchCsrfToken();
-}, []);
-
-  // State
   const [user, setUser] = useState(null);
   const [prefs, setPrefs] = useState(DEFAULT_PREFS);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", location: "" });
   const [bio, setBio] = useState("");
 
   const [tab, setTab] = useState(() => {
-  // ✅ Read URL param immediately on first load
-  const params = new URLSearchParams(window.location.search);
-  const requestedTab = params.get("tab");
-  const validTabs = ["info", "saved", "status", "prefs", "settings"];
+    const params = new URLSearchParams(window.location.search);
+    const requestedTab = params.get("tab");
+    const validTabs = ["info", "saved", "status", "prefs", "settings"];
+    return validTabs.includes(requestedTab) ? requestedTab : "info";
+  });
   
-  return validTabs.includes(requestedTab) ? requestedTab : "info";
-});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false); // ✅ Guest popup control
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  // ✅ Avatar Upload State
+  // Avatar Upload State
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
 
-  // Saved Foods Pagination
   const [savedPage, setSavedPage] = useState(1);
   const [currentSaved, setCurrentSaved] = useState([]);
   const [totalSavedPages, setTotalSavedPages] = useState(1);
 
-  //recipe contributions
   const [recipeContributions, setRecipeContributions] = useState([]);
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(false);
-
-  // Community Posts State
   const [communityPosts, setCommunityPosts] = useState([]);
   const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
 
-  // Generic alert dialog
-  const [dlg, setDlg] = useState({
-    open: false,
-    title: "",
-    message: "",
-    icon: null,
-    primaryText: "OK",
-    onPrimary: null,
-  });
-  const closeDlg = () =>
-    setDlg(m => ({ ...m, open: false, onPrimary: null }));
+  const [dlg, setDlg] = useState({ open: false, title: "", message: "", icon: null, primaryText: "OK", onPrimary: null });
+  const closeDlg = () => setDlg(m => ({ ...m, open: false, onPrimary: null }));
+  const openAlert = (title, message, icon, onPrimary) => setDlg({ open: true, title, message, icon, primaryText: "OK", onPrimary: () => { try { onPrimary?.(); } finally { closeDlg(); }},});
 
-  const openAlert = (title, message, icon, onPrimary) =>
-    setDlg({ open: true, title, message, icon, primaryText: "OK", onPrimary: () => {try { onPrimary?.(); } finally { closeDlg(); }},});
+  const [confirm, setConfirm] = useState({ open: false, title: "", message: "", icon: null, confirmText: "Confirm", cancelText: "Cancel", onConfirm: null });
+  const closeConfirm = () => setConfirm(m => ({ ...m, open: false, onConfirm: null }));
+  const openConfirm = (opts) => setConfirm({ open: true, title: opts.title || "Confirm", message: opts.message || "", confirmText: opts.confirmText || "Confirm", cancelText: opts.cancelText || "Cancel", onConfirm: async () => { closeConfirm(); await opts.onConfirm?.(); },});
 
-  // Confirm dialog
-  const [confirm, setConfirm] = useState({
-    open: false,
-    title: "",
-    message: "",
-    icon: null,
-    confirmText: "Confirm",
-    cancelText: "Cancel",
-    onConfirm: null,
-  });
-  const closeConfirm = () =>
-    setConfirm(m => ({ ...m, open: false, onConfirm: null }));
-
-  const openConfirm = (opts) =>
-    setConfirm({
-      open: true,
-      title: opts.title || "Confirm",
-      message: opts.message || "",
-      confirmText: opts.confirmText || "Confirm",
-      cancelText: opts.cancelText || "Cancel",
-      onConfirm: async () => {
-        closeConfirm();
-        await opts.onConfirm?.();
-      },
-    });
-
-  // Password modal (for account deletion)
-  const [pwModal, setPwModal] = useState({
-    open: false,
-    title: "Confirm Account Deletion",
-    message: "For security, please enter your password to confirm.",
-    password: "",
-    onSubmit: null,
-  });
-  const openPasswordModal = (onSubmit) =>
-    setPwModal({ open: true, title: "Confirm Account Deletion", message: "For security, please enter your password to confirm.", password: "", onSubmit });
-  const closePasswordModal = () =>
-    setPwModal(m => ({ ...m, open: false, onSubmit: null, password: "" }));
+  const [pwModal, setPwModal] = useState({ open: false, title: "Confirm Account Deletion", message: "For security, please enter your password to confirm.", password: "", onSubmit: null });
+  const openPasswordModal = (onSubmit) => setPwModal({ open: true, title: "Confirm Account Deletion", message: "For security, please enter your password to confirm.", password: "", onSubmit });
+  const closePasswordModal = () => setPwModal(m => ({ ...m, open: false, onSubmit: null, password: "" }));
 
   // ✅ HELPER: Always get a fresh token before saving
   const getFreshCsrfToken = async () => {
@@ -270,14 +199,13 @@ useEffect(() => {
       return data.csrfToken;
     } catch (err) {
       console.error("Failed to refresh CSRF token", err);
-      return csrfToken; // Fallback to state if fetch fails
+      return csrfToken; 
     }
   };
 
-  // ===== Save: Personal Info (Updated) =====
+  // ===== Save: Personal Info =====
   const savePersonal = async () => {
     try {
-      // 1. Get a fresh token immediately before the request
       const freshToken = await getFreshCsrfToken();
       
       const updateData = { 
@@ -291,13 +219,11 @@ useEffect(() => {
         allergies: prefs.allergies
       };
       
-      console.log("📤 Saving personal info:", updateData);
-      
       const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": freshToken // ✅ Use freshToken here
+          "x-csrf-token": freshToken 
         },
         credentials: "include",
         body: JSON.stringify(updateData),
@@ -313,7 +239,7 @@ useEffect(() => {
       if (result.success) {
         openAlert("Saved", "Profile updated successfully!", <CheckCircle2 />);
         setUser(prev => ({ ...prev, location: form.location, bio: bio }));
-        setCsrfToken(freshToken); // Update state
+        setCsrfToken(freshToken); 
       } else {
         throw new Error(result.error || "Update failed");
       }
@@ -325,10 +251,9 @@ useEffect(() => {
     }
   };
 
-  // ===== Save: Preferences (Updated) =====
+  // ===== Save: Preferences =====
   const savePrefs = async () => {
     try {
-      // 1. Get a fresh token immediately before the request
       const freshToken = await getFreshCsrfToken();
 
       const preferencesPayload = {
@@ -342,13 +267,11 @@ useEffect(() => {
         bio: user?.bio || ""
       };
       
-      console.log("📤 Saving preferences:", preferencesPayload);
-
       const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": freshToken // ✅ Use freshToken here
+          "x-csrf-token": freshToken 
         },
         credentials: "include",
         body: JSON.stringify(preferencesPayload),
@@ -377,8 +300,6 @@ useEffect(() => {
 
   const ContributionRow = ({ c }) => {
     const navigate = useNavigate();
-
-    // 1. Logic to determine if item is Recipe or Community Post
     const isRecipeItem = c?.foodName !== undefined;
     const isCommunityItem = ["community", "post", "story", "community_post"].includes((c?.type || "").toLowerCase());
 
@@ -408,18 +329,15 @@ useEffect(() => {
       }
     };
 
-    // 2. Get Feedback Text Safely
     const feedbackText = c.adminFeedback || c.feedback;
-
-    // 3. Helper to pick color based on status
     const getFeedbackStyle = (status) => {
       const s = (status || "").toLowerCase();
       if (s === "approved") {
-        return { bg: "#F0FFF4", border: "#48BB78", text: "#2F855A" }; // Green
+        return { bg: "#F0FFF4", border: "#48BB78", text: "#2F855A" };
       } else if (s === "rejected") {
-        return { bg: "#FFF5F5", border: "#E53E3E", text: "#C53030" }; // Red
+        return { bg: "#FFF5F5", border: "#E53E3E", text: "#C53030" };
       } else {
-        return { bg: "#EBF8FF", border: "#4299E1", text: "#2B6CB0" }; // Blue (Pending/Default)
+        return { bg: "#EBF8FF", border: "#4299E1", text: "#2B6CB0" };
       }
     };
 
@@ -444,7 +362,6 @@ useEffect(() => {
             </span>
           </div>
 
-          {/* 👇 MODIFIED: Show Feedback for ALL statuses if text exists 👇 */}
           {feedbackText && (
             <div style={{
               marginTop: "10px",
@@ -455,7 +372,6 @@ useEffect(() => {
               fontSize: "0.9rem",
               color: styles.text,
               marginBottom: "5px",
-              // THESE 3 LINES FIX THE OVERFLOW:
               whiteSpace: "pre-wrap",    
               wordBreak: "break-word",   
               overflowWrap: "break-word" 
@@ -463,7 +379,6 @@ useEffect(() => {
               <strong>Admin Feedback:</strong> {feedbackText}
             </div>
           )}
-          {/* 👆 END MODIFIED BLOCK 👆 */}
 
           <div className="upp-row-meta">
             <div className="upp-muted">
@@ -473,7 +388,6 @@ useEffect(() => {
                   'Date not available'}
             </div>
 
-            {/* Revise Button - Keep only for Rejected/Needs Revision */}
             {(c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected") && (
               <button
                 className="lrp-btn lrp-btn-outline upp-revise-btn"
@@ -489,7 +403,6 @@ useEffect(() => {
     );
   };
 
-  // ✅ Fetch Profile Data
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -500,39 +413,23 @@ useEffect(() => {
           ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
           : `${API_BASE_URL}/api/userProfile`;
 
-        console.log("🔍 Fetching profile from:", endpoint);
-      
         const res = await fetch(endpoint, { 
           credentials: "include",
-          headers: {
-            'Content-Type': 'application/json',
-          }
+          headers: { 'Content-Type': 'application/json' }
         });
 
-        console.log("🔍 Response status:", res.status);
-
         if (res.status === 401) {
-          // ✅ Show login popup instead of redirect/logout
           setShowLoginPrompt(true);
           setIsLoading(false);
           return;
         }
 
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("❌ Server response not OK:", errorText);
-          throw new Error(`Failed to load profile (status ${res.status})`);
-        }
+        if (!res.ok) throw new Error(`Failed to load profile (status ${res.status})`);
 
         const data = await res.json();
-        console.log("🔍 Profile data received:", data);
-
-        console.log("🔍 Does data have savedFoods?", 'savedFoods' in data);
-        console.log("🔍 All keys in data:", Object.keys(data));
         
-        if (!data || !data.userID) {
-          throw new Error(data?.error || "Profile not found or server error");
-        }
+        if (!data || !data.userID) throw new Error(data?.error || "Profile not found or server error");
+        
         setUser(data);
         setForm({
           firstName: data.firstName || "",
@@ -548,7 +445,6 @@ useEffect(() => {
         setIsLoading(false);
       }
     };
-
     loadProfile();
   }, [userProfileID]);
 
@@ -557,22 +453,10 @@ useEffect(() => {
       if (tab === 'status' && user) {
         try {
           setIsLoadingRecipes(true);
-          console.log("🔄 Fetching recipe contributions for user:", user.userID);
-          
-          const res = await fetch(`${API_BASE_URL}/api/recipe/user/${user.userID}`, {
-            credentials: "include"
-          });
-
-          console.log("📥 Recipe contributions response status:", res.status);
-          
+          const res = await fetch(`${API_BASE_URL}/api/recipe/user/${user.userID}`, { credentials: "include" });
           if (res.ok) {
             const data = await res.json();
-            console.log("✅ Recipe contributions data received:", data);
             setRecipeContributions(data.data || []);
-          } else {
-            console.error("❌ Failed to fetch recipe contributions");
-            const errorText = await res.text();
-            console.error("❌ Error response:", errorText);
           }
         } catch (error) {
           console.error('❌ Error fetching recipe contributions:', error);
@@ -581,47 +465,29 @@ useEffect(() => {
         }
       }
     };
-
     fetchRecipeContributions();
   }, [tab, user]);
 
-  // ✅ Fetch Community Posts separately
   useEffect(() => {
     const fetchCommunityPosts = async () => {
       if (tab === 'status' && user) {
         try {
           setIsLoadingCommunity(true);
-          console.log("🔄 Fetching community posts for user:", user.userID);
-          const res = await fetch(`${API_BASE_URL}/api/communityPost/user/${user.userID}`, {
-            credentials: "include"
-          });
-
-        console.log("📥 Community posts response status:", res.status);
-        console.log("📥 Community posts response ok:", res.ok);
-        console.log("📥 Community posts response headers:", res.headers);
-          
+          const res = await fetch(`${API_BASE_URL}/api/communityPost/user/${user.userID}`, { credentials: "include" });
           if (res.ok) {
             const data = await res.json();
-            console.log("✅ Community posts data received:", data);
             setCommunityPosts(data);
-          }else {
-          console.error("❌ Failed to fetch community posts - response not ok");
-          const errorText = await res.text();
-          console.error("❌ Error response:", errorText);
           }
         } catch (error) {
           console.error('Failed to fetch community posts:', error);
-          console.error('❌ Error fetching community posts:', error);
         } finally {
           setIsLoadingCommunity(false);
         }
       }
     };
-
     fetchCommunityPosts();
   }, [tab, user]);
 
-  // Delete account handler - Backend password verification
   const handleDeleteAccount = async () => {
     openConfirm({
       title: "Delete Account",
@@ -629,43 +495,33 @@ useEffect(() => {
       confirmText: "Delete",
       cancelText: "Cancel",
       onConfirm: () => {
-        // Step 2: ask for password in controlled modal
         openPasswordModal(async (password) => {
-          // State to track error inside the password modal
           setPwModal(m => ({ ...m, loading: true, error: null }));
-
           try {
-            // Verify password with backend
+            const freshToken = await getFreshCsrfToken();
             const verifyRes = await fetch(`${API_BASE_URL}/api/auth/verifyAccountDeletion`, {
               method: "POST",
               credentials: "include",
-              headers: { "Content-Type": "application/json",
-              "X-CSRF-Token": csrfToken
-            },
+              headers: { 
+                "Content-Type": "application/json",
+                "x-csrf-token": freshToken 
+              },
               body: JSON.stringify({ password })
             });
 
             if (!verifyRes.ok) {
                   const verifyData = await verifyRes.json().catch(() => ({}));
-                
                   closePasswordModal(); 
+                  openAlert("Verification Failed", verifyData.error || "Incorrect password.", <AlertTriangle />);
+                  return;
+            }
 
-                  openAlert(
-                      "Verification Failed",
-                      verifyData.error || "Incorrect password. Please try again.",
-                      <AlertTriangle />
-                  );
-                    return;
-                }
-
-            console.log("Password verified");
-
-            // Delete account (backend handles both MySQL and Firebase)
             const res = await fetch(`${API_BASE_URL}/api/userProfile/delete`, {
               method: 'DELETE',
               credentials: 'include',
-              headers: { 'Content-Type': 'application/json',
-              "X-CSRF-Token": csrfToken
+              headers: { 
+                'Content-Type': 'application/json',
+                "x-csrf-token": freshToken
                }
             });
             
@@ -677,9 +533,8 @@ useEffect(() => {
                   window.location.href = '/';
                 });
             } else {
-              openAlert("Delete Failed", data.error || "Failed to delete account. ", <AlertTriangle />);
+              openAlert("Delete Failed", data.error || "Failed to delete account.", <AlertTriangle />);
             }
-            
           } catch (error) {
             console.error('Error deleting account:', error);
             openAlert("Delete Failed", "Failed to delete account. Please try again.", <AlertTriangle />);
@@ -691,7 +546,6 @@ useEffect(() => {
     });
   };
 
-  // ✅ Pagination for saved foods
   useEffect(() => {
     const savedFoodsArray = user?.savedFoods || [];
     if (Array.isArray(savedFoodsArray)) {
@@ -706,7 +560,7 @@ useEffect(() => {
     }
   }, [user, user?.savedFoods, savedPage]);
 
-  // ===== ✅ Avatar Upload Functions =====
+  // ===== Avatar Upload Functions =====
   const handleAvatarClick = () => {
     setShowAvatarModal(true);
   };
@@ -716,7 +570,6 @@ useEffect(() => {
     const file = input.files[0];
     if (!file) return;
 
-    // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     
     const resetPicker = () => {
@@ -726,12 +579,11 @@ useEffect(() => {
     };
 
     if (!validTypes.includes(file.type)) {
-      openAlert("Invalid File", "Please select a valid image file (JPEG, PNG, GIF, WebP)", <AlertTriangle />, resetPicker);
+      openAlert("Invalid File", "Please select a valid image file", <AlertTriangle />, resetPicker);
       resetPicker();
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       openAlert("File Too Large", "Image size should be less than 5MB", <AlertTriangle />, resetPicker);
       resetPicker();
@@ -739,8 +591,6 @@ useEffect(() => {
     }
 
     setAvatarFile(file);
-    
-    // Create preview
     const reader = new FileReader();
     reader.onload = (ev) => setAvatarPreview(ev.target.result);
     reader.readAsDataURL(file);
@@ -754,6 +604,7 @@ useEffect(() => {
 
     try {
       setIsUploadingAvatar(true);
+      const freshToken = await getFreshCsrfToken();
       
       const formData = new FormData();
       formData.append('avatar', avatarFile);
@@ -762,27 +613,20 @@ useEffect(() => {
         method: 'POST',
         credentials: 'include',
         headers: {
-        'X-CSRF-Token': csrfToken 
+        'x-csrf-token': freshToken 
         },
         body: formData,
       });
 
-      if (!res.ok) {
-        throw new Error(`Failed to upload avatar (${res.status})`);
-      }
-
+      if (!res.ok) throw new Error(`Failed to upload avatar (${res.status})`);
       const result = await res.json();
       
       if (result.success) {
-        // Update user state with new avatar
         setUser(prev => ({ ...prev, avatar: result.avatarUrl }));
         openAlert("Avatar Updated", "Your avatar was updated successfully.", <CheckCircle2 />);
         closeAvatarModal();
         
-        // Reload the profile to get updated data
-        const endpoint = userProfileID
-          ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
-          : `${API_BASE_URL}/api/userProfile`;
+        const endpoint = userProfileID ? `${API_BASE_URL}/api/userProfile/${userProfileID}` : `${API_BASE_URL}/api/userProfile`;
         const r2 = await fetch(endpoint, { credentials: "include" });
         if (r2.ok) {
           const updatedUser = await r2.json();
@@ -807,31 +651,25 @@ useEffect(() => {
       cancelText: "Cancel",
       onConfirm: async () => {
         try {
+          const freshToken = await getFreshCsrfToken();
           const res = await fetch(`${API_BASE_URL}/api/userProfile/avatar`, {
             method: 'DELETE',
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
-              'X-CSRF-Token': csrfToken
+              'x-csrf-token': freshToken
             },
           });
 
-          if (!res.ok) {
-            throw new Error(`Failed to remove avatar (${res.status})`);
-          }
-
+          if (!res.ok) throw new Error(`Failed to remove avatar (${res.status})`);
           const result = await res.json();
           
           if (result.success) {
-            // Update user state to remove avatar
             setUser(prev => ({ ...prev, avatar: null }));
             openAlert("Avatar Removed", "Your avatar was removed successfully.", <CheckCircle2 />);
             closeAvatarModal();
             
-            // Reload the profile
-            const endpoint = userProfileID
-              ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
-              : `${API_BASE_URL}/api/userProfile`;
+            const endpoint = userProfileID ? `${API_BASE_URL}/api/userProfile/${userProfileID}` : `${API_BASE_URL}/api/userProfile`;
             const r2 = await fetch(endpoint, { credentials: "include" });
             if (r2.ok) {
               const updatedUser = await r2.json();
@@ -852,12 +690,10 @@ useEffect(() => {
     setShowAvatarModal(false);
     setAvatarPreview(null);
     setAvatarFile(null);
-    // Clear file input
     const fileInput = document.getElementById('avatar-upload');
     if (fileInput) fileInput.value = '';
   };
 
-  // ===== LOADING STATE =====
   if (isLoading) {
     return (
       <div className="user-profile-page">
@@ -868,7 +704,6 @@ useEffect(() => {
     );
   }
 
-  // ===== ERROR STATE =====
   if (error && !showLoginPrompt) {
     return (
       <div className="user-profile-page">
@@ -885,12 +720,10 @@ useEffect(() => {
     );
   }
 
-  // ===== MAIN UI START =====
   return (
     <div className="user-profile-page">
       <Header />
 
-      {/* ✅ If guest, show pop-up modal instead of redirect */}
       {showLoginPrompt && (
         <LoginPromptModal
           message="Please login or register to view your profile."
@@ -899,7 +732,6 @@ useEffect(() => {
         />
       )}
 
-      {/* ✅ Avatar Upload Modal */}
       {showAvatarModal && (
         <div className="upp-modal-overlay">
           <div className="upp-modal">
@@ -973,10 +805,8 @@ useEffect(() => {
         </div>
       )}
 
-      {/* ✅ Only render profile if user exists & not guest */}
       {!showLoginPrompt && user && (
         <div className="upp-page">
-          {/* ===== USER HEADER ===== */}
           <div className="upp-header">
             <div 
               className="upp-avatar upp-avatar-editable" 
@@ -1014,7 +844,6 @@ useEffect(() => {
             </p>
           </div>
 
-          {/* ===== TABS ===== */}
           <div className="upp-tabs lrp-tabs">
             {[
               ["info", "Personal Information"],
@@ -1036,16 +865,12 @@ useEffect(() => {
             ))}
           </div>
 
-          {/* ===== TAB CONTENT ===== */}
           <div className="upp-tab-content">
-            {/* ===== Personal Information ===== */}
             {tab === "info" && (
               <div className="upp-grid">
                 <div className="upp-main">
                   <div className="upp-card">
                     <h3 className="upp-card-title">Personal Information</h3>
-
-                    {/* --- First Name & Last Name --- */}
                     <div className="upp-form-grid">
                       <label>
                         <span>First Name</span>
@@ -1073,11 +898,9 @@ useEffect(() => {
                       </label>
                     </div>
 
-                    {/* --- Email & Location --- */}
                     <div className="upp-form-grid">
                       <label>
                         <span>Email</span>
-                        {/* Email usually stays disabled for security */}
                         <input 
                           type="email" 
                           value={form.email} 
@@ -1099,7 +922,6 @@ useEffect(() => {
                       </label>
                     </div>
 
-                    {/* --- Bio --- */}
                     <label className="upp-block">
                       <span>Bio</span>
                       {isEditing ? (
@@ -1120,10 +942,8 @@ useEffect(() => {
                       )}
                     </label>
 
-                    {/* --- ACTION BUTTONS (Instagram Style) --- */}
                     <div style={{ marginTop: "24px" }}>
                       {!isEditing ? (
-                        // VIEW MODE: Big Edit Button
                         <button 
                           className="lrp-btn lrp-btn-outline" 
                           style={{ width: "100%", padding: "12px", fontWeight: "bold", border: "1px solid #ccc" }}
@@ -1132,7 +952,6 @@ useEffect(() => {
                           Edit Profile
                         </button>
                       ) : (
-                        // EDIT MODE: Cancel + Save
                         <div style={{ display: "flex", gap: "12px" }}>
                           <button 
                             className="lrp-btn lrp-btn-outline" 
@@ -1158,7 +977,6 @@ useEffect(() => {
                   </div>
                 </div>
 
-                {/* Sidebar Stats (Unchanged) */}
                 <aside className="upp-sticky">
                   <div className="upp-card">
                     <h3 className="upp-card-title">My Contributions</h3>
@@ -1179,7 +997,6 @@ useEffect(() => {
               </div>
             )}
 
-            {/* ===== Saved Foods ===== */}
             {tab === "saved" && (
               <>
                 {currentSaved?.length ? (
@@ -1211,7 +1028,6 @@ useEffect(() => {
                       ))}
                     </div>
 
-                    {/* Pagination */}
                     {totalSavedPages > 1 && (
                       <div className="efp-pagination">
                         <button
@@ -1221,7 +1037,6 @@ useEffect(() => {
                         >
                           ‹ Prev
                         </button>
-
                         {Array.from({ length: totalSavedPages }, (_, i) => (
                           <button
                             key={i}
@@ -1231,7 +1046,6 @@ useEffect(() => {
                             {i + 1}
                           </button>
                         ))}
-
                         <button
                           className="efp-btn"
                           disabled={savedPage === totalSavedPages}
@@ -1251,14 +1065,12 @@ useEffect(() => {
               </>
             )}
 
-            {/*// ===== Contributions (Status) =====*/}
             {tab === "status" && (
               <>
                 {(() => {
                   const recipeData = Array.isArray(recipeContributions) 
                     ? recipeContributions.filter(item => {
                         const result = isRecipe(item);
-                        console.log("🔍 Filtering - ID:", item?.id, "foodName:", item?.foodName, "isRecipe:", result);
                         return result;
                       }).sort(byDateDesc)
                     : [];
@@ -1266,15 +1078,9 @@ useEffect(() => {
                   const communityData = Array.isArray(communityPosts)
                     ? communityPosts.filter(isCommunity).sort(byDateDesc)
                     : [];
-
-                  console.log("📊 Recipe data:", recipeData);
-                  console.log("📊 Community data:", communityData);
                   
-                  const hasAnyContributions = recipeData.length > 0 || communityData.length > 0;
-
                   return (
                     <div className="upp-stack">
-                      {/* Recipes Section */}
                       <div className="upp-card">
                         <h3 className="upp-card-title">Recipes ({recipeData.length})</h3>
                         {isLoadingRecipes ? (
@@ -1290,7 +1096,6 @@ useEffect(() => {
                         )}
                       </div>
 
-                      {/* Community Posts Section (REAL) */}
                       <div className="upp-card">
                         <h3 className="upp-card-title">Community Posts ({communityData.length})</h3>
                         {isLoadingCommunity ? (
@@ -1311,10 +1116,8 @@ useEffect(() => {
               </>
             )}
 
-            {/* ===== Preferences ===== */}
             {tab === "prefs" && (
               <div className="upp-stack">
-                {/* Dietary Card */}
                 <div className="upp-card">
                   <h3 className="upp-card-title">Dietary Preferences</h3>
                   <div className="upp-choice-grid">
@@ -1333,7 +1136,6 @@ useEffect(() => {
                   </div>
                 </div>
 
-                {/* Allergies Card */}
                 <div className="upp-card">
                   <h3 className="upp-card-title">Allergies / Restrictions</h3>
                   <div className="upp-choice-grid">
@@ -1352,10 +1154,8 @@ useEffect(() => {
                   </div>
                 </div>
 
-                {/* ACTION BUTTONS  */}
                 <div style={{ marginTop: "24px" }}>
                   {!isEditing ? (
-                    // VIEW MODE
                     <button 
                       className="lrp-btn lrp-btn-outline" 
                       style={{ width: "100%", padding: "12px", fontWeight: "bold", border: "1px solid #ccc" }}
@@ -1364,7 +1164,6 @@ useEffect(() => {
                       Edit Preferences
                     </button>
                   ) : (
-                    // EDIT MODE: Show Cancel + Save
                     <div className="upp-edit-actions" style={{ display: "flex", gap: "12px" }}>
                       <button 
                         className="lrp-btn lrp-btn-outline" 
@@ -1378,7 +1177,7 @@ useEffect(() => {
                         style={{ flex: 1 }}
                         onClick={async () => {
                           await savePrefs();
-                          setIsEditing(false); // Exit edit mode on success
+                          setIsEditing(false); 
                         }}
                       >
                         Save Preferences
@@ -1388,7 +1187,7 @@ useEffect(() => {
                 </div>
               </div>
             )}
-            {/* ===== Settings ===== */}
+            
             {tab === "settings" && (
               <div className="upp-stack">
                 <div className="upp-card">
