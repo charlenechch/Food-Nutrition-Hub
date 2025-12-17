@@ -170,6 +170,13 @@ Special thanks to:
 * Development team members
 * Community contributors and testers
 
+Team Members: 
+1. Charlene Chai - Team Lead + Frontend Developement + AI Integration
+2. Sherman Tan - Co Team Lead + Frontend Developement
+3. Joey Thien - Data Science Components
+4. Yong Cia Chean - Cybersecurity Components
+5. Brian Chong - Cybersecurity Componenets 
+
 ---
 
 ## 📄 License
