@@ -186,7 +186,7 @@ const authLimiter = rateLimit({
   },
 });
 
-// ---------- Sessions ----------
+// ---------- Sessions (MODIFIED FOR IOS FIX) ----------
 const dbOptions = {
   host: process.env.MYSQLHOST,
   port: Number(process.env.MYSQLPORT) || 3306,
@@ -207,8 +207,12 @@ app.use(
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    // REQUIRED: Tells express-session to trust the Railway proxy for Secure cookies
+    proxy: true, 
     cookie: {
       httpOnly: true,
+      // On Production (Railway), use 'none' (Cross-Site) and Secure: true
+      // On Dev (Localhost), use 'lax' and Secure: false
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
