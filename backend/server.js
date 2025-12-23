@@ -33,6 +33,7 @@ const likeRoutes = require("./routes/likes");
 const aiRoutes = require("./routes/ai");
 const foodSearchRoutes = require("./routes/foodSearch");
 const gptRoutes = require("./routes/gpt");
+const exportRoutes = require("./routes/export");
 
 // Admin
 const adminRoutes = require("./routes/admin");
@@ -353,6 +354,7 @@ app.use("/api/likes", likeRoutes);
 // Admin
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/export", exportRoutes);
 
 // ---------- Static Files ----------
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

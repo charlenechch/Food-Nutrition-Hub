@@ -14,7 +14,7 @@ import {
 import Modal from "../components/Modal";
 import { useNavigate } from "react-router-dom";
 
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function AdminSystemSettings({
     onPageChange = () => { },
@@ -117,6 +117,71 @@ export default function AdminSystemSettings({
 
     const closeSysDialog = () => setSysDialog((m) => ({ ...m, open: false, onPrimary: null }));
 
+    const [exportLoading, setExportLoading] = useState({
+        csv: false,
+        report: false
+    });
+
+    const handleExport = async (type, format = 'csv') => {
+        try {
+            // Set loading state
+            const loadingKey = type === 'food-csv' ? 'csv' : 'report';
+            setExportLoading(prev => ({ ...prev, [loadingKey]: true }));
+
+            let endpoint, filename;
+            
+            if (type === 'food-csv') {
+                endpoint = `${API_URL}/api/export/food-csv`;
+                filename = `food-database-${new Date().toISOString().split('T')[0]}.csv`;
+            } else {
+                endpoint = `${API_URL}/api/export/analytics-report?format=${format}`;
+                
+                const extension = format === 'pdf' ? 'pdf' : 
+                                format === 'excel' ? 'xlsx' : 'csv';
+                filename = `analytics-report-${new Date().toISOString().split('T')[0]}.${extension}`;
+            }
+
+            console.log('Exporting from:', endpoint); // Debug log
+
+            const response = await fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Accept': format === 'excel' 
+                        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                        : format === 'pdf' 
+                        ? 'application/pdf'
+                        : 'text/csv'
+                }
+            });
+
+            console.log('Response status:', response.status); // Debug log
+
+            if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Export error response:', errorText);
+            throw new Error(`Export failed: ${response.status} ${response.statusText}`);
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error('Export error:', error);
+            alert(`Failed to export: ${error.message}`);
+        } finally {
+            setExportLoading(prev => ({ ...prev, [type === 'food-csv' ? 'csv' : 'report']: false }));
+        }
+    };
 
     // lock scroll like UM
     useEffect(() => {
@@ -260,19 +325,46 @@ export default function AdminSystemSettings({
 
                         <hr className="admset-sep" />
 
-                        {/* Export */}
+                        {/* Export with format selection */}
                         <div className="admset-block">
                             <div className="admset-label mb-6">Data Export Options</div>
 
-                            <button className="admset-btn admset-btn-outline w-full justify-start">
+                            <button 
+                                className="admset-btn admset-btn-outline w-full justify-start"
+                                onClick={() => handleExport('food-csv')}
+                                disabled={exportLoading.csv}
+                            >
                                 <Download className="admset-ic-sm" />
-                                Export Food Database (CSV)
+                                {exportLoading.csv ? 'Exporting...' : 'Export Food Database (CSV)'}
                             </button>
 
-                            <button className="admset-btn admset-btn-outline w-full justify-start mt-8">
-                                <FileText className="admset-ic-sm" />
-                                Export Analytics Report
-                            </button>
+                            <div className="mt-8">
+                                <div className="admset-label-sm mb-4">Export Analytics Report</div>
+                                <div className="flex gap-2">
+                                    <button 
+                                        className="admset-btn admset-btn-outline flex-1 justify-start"
+                                        onClick={() => handleExport('analytics-report', 'csv')}
+                                        disabled={exportLoading.report}
+                                    >
+                                        <FileText className="admset-ic-sm" />
+                                        CSV
+                                    </button>
+                                    <button 
+                                        className="admset-btn admset-btn-outline flex-1 justify-start"
+                                        onClick={() => handleExport('analytics-report', 'excel')}
+                                        disabled={exportLoading.report}
+                                    >
+                                        📊 Excel
+                                    </button>
+                                    <button 
+                                        className="admset-btn admset-btn-outline flex-1 justify-start"
+                                        onClick={() => handleExport('analytics-report', 'pdf')}
+                                        disabled={exportLoading.report}
+                                    >
+                                        📄 PDF
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
