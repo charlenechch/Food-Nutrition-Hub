@@ -273,9 +273,6 @@ app.use(
   aiRoutes
 );
 
-
-
-
 // Recipe - BEFORE global HPP
 app.use(
   "/api/recipe",
@@ -308,6 +305,16 @@ app.use(
   foodRoutes
 );
 
+app.use("/api/export", 
+  hppProtect({
+    policy: "first",
+    allowlist: [
+      "format",    
+      "year"       
+    ]
+  }),
+  exportRoutes
+);
 
 // Search
 app.use("/api/foodSearch", foodSearchRoutes);
@@ -329,7 +336,7 @@ app.use(
       "foodType", "dietaryTags", "ingredients", "instructions", 
       "funFact", "chefTips", "category", 
       "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll",
-      "view", "year", "feedback"
+      "view", "year", "feedback", "format"
     ],
     logger: (tag, meta) => {
       console.warn(`[${tag}]`, JSON.stringify(meta));

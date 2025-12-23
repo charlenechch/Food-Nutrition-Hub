@@ -21,7 +21,7 @@ router.get('/food-csv', async (req, res) => {
     const query = `
       SELECT 
         f.foodID,
-        f.foodName,
+        f.name as foodName,
         f.category,
         f.origin,
         f.description,
@@ -33,7 +33,7 @@ router.get('/food-csv', async (req, res) => {
       LEFT JOIN recipe r ON f.foodID = r.foodID
       LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
-      GROUP BY f.foodID, f.foodName, f.category, f.origin, f.description, 
+      GROUP BY f.foodID, f.name, f.category, f.origin, f.description, 
                f.servings, f.difficulty, f.createdAt
       ORDER BY f.createdAt DESC
     `;
