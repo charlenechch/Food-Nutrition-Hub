@@ -109,13 +109,17 @@ async function updateStaleAndExpiredUsers() {
 
     } catch (error) {
         console.error("❌ Error during status cleanup script:", error);
+        throw error;
     }
 }
 
 // Run the script and exit
 updateStaleAndExpiredUsers()
-    .then(() => {
-        // Use a small delay to ensure all console output is flushed before exiting the Node process
-        setTimeout(() => process.exit(0), 100); 
+    .then(async () => {
+        await db.end();
+        process.exit(0);
     })
-    .catch(() => process.exit(1));
+    .catch(async (err) => {
+        if (db) await db.end();
+        process.exit(1);
+    });
