@@ -147,12 +147,14 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
 // ---------- 🕵️‍♀️ DEBUG LOGGING MIDDLEWARE ----------
+// This will tell you EXACTLY what Safari is sending
 app.use((req, res, next) => {
   if (['/api/login', '/api/register'].includes(req.path)) {
     console.log(`\n🔍 DEBUG REQUEST: ${req.path}`);
     console.log(`📱 User-Agent: ${req.headers['user-agent']}`);
     console.log(`🌐 Origin: ${req.headers.origin}`);
-    console.log(`🍪 Cookies Received:`, req.headers.cookie ? "YES" : "❌ NO COOKIES FOUND");
+    // Check if we received ANY cookies
+    console.log(`🍪 Cookies Received:`, req.headers.cookie ? "YES (Check session below)" : "❌ NO COOKIES FOUND");
   }
   next();
 });
@@ -210,12 +212,12 @@ app.use(
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    // ✅ PROXY FIX: Required for Railway + iOS
     proxy: true, 
     cookie: {
       httpOnly: true,
-      // ✅ PROXY FIX: Use 'lax'. 
-      // Because Vercel proxies the request, Safari thinks it's the "Same Site".
-      sameSite: "lax", 
+      // ✅ IOS FIX: Force 'none' and 'secure' in production
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
@@ -393,6 +395,7 @@ app.get("/", (req, res) => {
 app.use((req, res) => res.status(404).json({ error: "Not Found" }));
 
 app.use((err, req, res, next) => {
+  // 🔍 DEBUG: Pinpoint CSRF Block
   if (err.code === "EBADCSRFTOKEN") {
     console.error("❌ BLOCKED BY CSRF!");
     console.error("   Reason: Session secret missing or token mismatch.");
@@ -404,6 +407,7 @@ app.use((err, req, res, next) => {
     });
   }
 
+  // Pinpoint other errors
   console.error("❌ SERVER ERROR:", err);
   res.status(err.status || 500).json({ 
     error: err.message,
