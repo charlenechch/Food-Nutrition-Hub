@@ -203,8 +203,6 @@ app.use(
     proxy: true, 
     cookie: {
       httpOnly: true,
-      // --- CRITICAL SETTINGS FOR iOS ---
-      // Hardcoded to 'none' and 'true' to ensure Safari accepts the cookie
       sameSite: 'none', 
       secure: true, 
       maxAge: 24 * 60 * 60 * 1000, // 1 day
@@ -215,12 +213,13 @@ app.use(
 // ---------- CSRF PROTECTION ----------
 const csrfProtection = csrf();
 
-// ---- CSRF Skip Logic (UPDATED FOR iOS FIX) ----
-// We must skip CSRF for login/register because iOS blocks the initial token exchange
+// ---- CSRF Skip Logic (UPDATED) ----
+// Added '/api/otp/verifyLogin' because OTP check is part of the login flow
 const csrfExclude = [
   '/api/ai/gpt/nutrition',
-  '/api/login',     // <--- Added to fix 403 error
-  '/api/register'   // <--- Added to fix 403 error
+  '/api/login',     
+  '/api/register',
+  '/api/otp/verifyLogin' // <--- Added to fix 403 error on OTP
 ];
 
 // Custom CSRF handler with skip logic
@@ -233,9 +232,6 @@ app.use((req, res, next) => {
 
 // CSRF token endpoint (must run AFTER the CSRF wrapper)
 app.get("/api/csrf-token", (req, res) => {
-  // If the request was skipped above, req.csrfToken might not exist
-  // We handle that gracefully or ensure csrfProtection is called if needed
-  // But typically for this endpoint, we WANT a token, so we can wrap it:
   csrfProtection(req, res, () => {
      res.json({ csrfToken: req.csrfToken() });
   });
