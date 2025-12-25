@@ -148,48 +148,58 @@ router.post("/verifyLogin", async (req, res) => {
     
     const user = users[0];
 
-    // Create Session (Same logic as original login)
-    req.session.user = {
-        userID: user.userID,
-        email: user.email,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        role: user.role,
-    };
-
-    // Apply Remember Me Logic (Same as login.js)
-    if (rememberDevice) {
-        const sevenDays = 7 * 24 * 60 * 60 * 1000;
-        req.session.cookie.maxAge = sevenDays;
-        req.session.cookie.expires = new Date(Date.now() + sevenDays);
-        req.session.rememberMe = true;
-        console.log("🕒 OTP Login: Remember Me active → 7 Days");
-    } else {
-        req.session.cookie.maxAge = null;
-        req.session.cookie.expires = false;
-        req.session.rememberMe = false;
-    }
-
-    // Update Last Login
-    await db.query("UPDATE user SET lastLogin = ? WHERE userID = ?", [new Date(), user.userID]);
-
-    console.log(`✅ 2FA Verification successful for user: ${user.email}`);
-
-    // --- FIX FOR IOS RACE CONDITION ---
-    // We force the session to save *before* sending the response.
-    req.session.save((err) => {
-        if (err) {
-            console.error("❌ Session save error in OTP:", err);
-            return res.status(500).json({ error: "Session save failed" });
+    // --- CRITICAL FIX START: REGENERATE SESSION ---
+    // This creates a brand new session ID and ensures a fresh database write.
+    req.session.regenerate(async (regenErr) => {
+        if (regenErr) {
+            console.error("❌ Session regeneration failed:", regenErr);
+            return res.status(500).json({ error: "Login failed (Session Error)" });
         }
-        
-        // Response is sent ONLY after the database confirms the session is saved
-        return res.json({
-            success: true,
-            message: "Login successful",
-            user: req.session.user
+
+        // Now inside the new session, set the user data
+        req.session.user = {
+            userID: user.userID,
+            email: user.email,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            role: user.role,
+        };
+
+        // Apply Remember Me Logic
+        if (rememberDevice) {
+            const sevenDays = 7 * 24 * 60 * 60 * 1000;
+            req.session.cookie.maxAge = sevenDays;
+            req.session.cookie.expires = new Date(Date.now() + sevenDays);
+            req.session.rememberMe = true;
+            console.log("🕒 OTP Login: Remember Me active → 7 Days");
+        } else {
+            req.session.cookie.maxAge = null;
+            req.session.cookie.expires = false;
+            req.session.rememberMe = false;
+        }
+
+        // Update Last Login in DB
+        await db.query("UPDATE user SET lastLogin = ? WHERE userID = ?", [new Date(), user.userID]);
+
+        console.log(`✅ 2FA Verification successful for user: ${user.email}`);
+
+        // --- FORCE SAVE ---
+        // Ensure the new session is written to DB before replying to the user
+        req.session.save((saveErr) => {
+            if (saveErr) {
+                console.error("❌ Session save error in OTP:", saveErr);
+                return res.status(500).json({ error: "Session save failed" });
+            }
+            
+            // Only send response after everything is secure and saved
+            return res.json({
+                success: true,
+                message: "Login successful",
+                user: req.session.user
+            });
         });
     });
+    // --- CRITICAL FIX END ---
 
   } catch (err) {
     console.error("Login OTP verify error:", err);
