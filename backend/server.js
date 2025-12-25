@@ -164,21 +164,14 @@ app.use(globalLimiter);
 
 // 2. Auth Limiter (Prevents login spam)
 const authLimiter = rateLimit({
-  //  Short cooldown (30 seconds) instead of 30 minutes
   windowMs: 30 * 1000, 
-  
-  // Limit to 5 attempts per 30 seconds
   limit: 5, 
-  
   standardHeaders: true,
   legacyHeaders: false,
-  
-  // JSON response + Friendly message
   message: { 
     success: false, 
     message: "You are doing that too fast! Please wait 30 seconds and try again." 
   },
-  
   keyGenerator: (req, res) => {
     const ipKey = ipKeyGenerator(req, res);
     const emailKey = req.body?.email || "guest";
@@ -186,7 +179,7 @@ const authLimiter = rateLimit({
   },
 });
 
-// ---------- Sessions (MODIFIED FOR IOS FIX) ----------
+// ---------- Sessions ----------
 const dbOptions = {
   host: process.env.MYSQLHOST,
   port: Number(process.env.MYSQLPORT) || 3306,
@@ -207,40 +200,45 @@ app.use(
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    // REQUIRED: Tells express-session to trust the Railway proxy for Secure cookies
     proxy: true, 
     cookie: {
       httpOnly: true,
-      
-      // --- FIX FOR iOS 403 ERROR ---
-      // We are forcing these settings for your Railway deployment.
-      // If you are testing on Localhost (HTTP), set secure: false.
+      // --- CRITICAL SETTINGS FOR iOS ---
+      // Hardcoded to 'none' and 'true' to ensure Safari accepts the cookie
       sameSite: 'none', 
       secure: true, 
-      
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
 );
 
-// CSRF PROTECTION
+// ---------- CSRF PROTECTION ----------
 const csrfProtection = csrf();
-// app.use(csrfProtection);
 
-// ---- CSRF Skip Logic ----
-const csrfExclude = ['/api/ai/gpt/nutrition'];
+// ---- CSRF Skip Logic (UPDATED FOR iOS FIX) ----
+// We must skip CSRF for login/register because iOS blocks the initial token exchange
+const csrfExclude = [
+  '/api/ai/gpt/nutrition',
+  '/api/login',     // <--- Added to fix 403 error
+  '/api/register'   // <--- Added to fix 403 error
+];
 
 // Custom CSRF handler with skip logic
 app.use((req, res, next) => {
   if (csrfExclude.some(p => req.originalUrl.startsWith(p))) {
-    return next(); // Skip CSRF for GPT nutrition
+    return next(); // Skip CSRF
   }
   return csrfProtection(req, res, next);
 });
 
 // CSRF token endpoint (must run AFTER the CSRF wrapper)
 app.get("/api/csrf-token", (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
+  // If the request was skipped above, req.csrfToken might not exist
+  // We handle that gracefully or ensure csrfProtection is called if needed
+  // But typically for this endpoint, we WANT a token, so we can wrap it:
+  csrfProtection(req, res, () => {
+     res.json({ csrfToken: req.csrfToken() });
+  });
 });
 
 // ---------- Routes BEFORE global HPP ----------
