@@ -146,27 +146,15 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
-// ---------- 🕵️‍♀️ DEBUG LOGGING MIDDLEWARE ----------
-// This will tell you EXACTLY what Safari is sending
-app.use((req, res, next) => {
-  if (['/api/login', '/api/register'].includes(req.path)) {
-    console.log(`\n🔍 DEBUG REQUEST: ${req.path}`);
-    console.log(`📱 User-Agent: ${req.headers['user-agent']}`);
-    console.log(`🌐 Origin: ${req.headers.origin}`);
-    // Check if we received ANY cookies
-    console.log(`🍪 Cookies Received:`, req.headers.cookie ? "YES (Check session below)" : "❌ NO COOKIES FOUND");
-  }
-  next();
-});
+// ---------- Rate Limiting (UPDATED) ----------
 
-// ---------- Rate Limiting ----------
-
-// 1. Global Limiter
+// 1. Global Limiter (Prevents general spam)
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
+  windowMs: 15 * 60 * 1000, // 15 minutes
   limit: 1000,
   standardHeaders: true,
   legacyHeaders: false,
+  // Send JSON error instead of text to prevent frontend crash
   message: {
     success: false,
     message: "Too many requests, please try again later."
@@ -174,16 +162,23 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// 2. Auth Limiter
+// 2. Auth Limiter (Prevents login spam)
 const authLimiter = rateLimit({
+  //  Short cooldown (30 seconds) instead of 30 minutes
   windowMs: 30 * 1000, 
+  
+  // Limit to 5 attempts per 30 seconds
   limit: 5, 
+  
   standardHeaders: true,
   legacyHeaders: false,
+  
+  // JSON response + Friendly message
   message: { 
     success: false, 
     message: "You are doing that too fast! Please wait 30 seconds and try again." 
   },
+  
   keyGenerator: (req, res) => {
     const ipKey = ipKeyGenerator(req, res);
     const emailKey = req.body?.email || "guest";
@@ -191,7 +186,7 @@ const authLimiter = rateLimit({
   },
 });
 
-// ---------- Sessions ----------
+// ---------- Sessions (MODIFIED FOR IOS FIX) ----------
 const dbOptions = {
   host: process.env.MYSQLHOST,
   port: Number(process.env.MYSQLPORT) || 3306,
@@ -212,11 +207,12 @@ app.use(
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    // ✅ PROXY FIX: Required for Railway + iOS
+    // REQUIRED: Tells express-session to trust the Railway proxy for Secure cookies
     proxy: true, 
     cookie: {
       httpOnly: true,
-      // ✅ IOS FIX: Force 'none' and 'secure' in production
+      // On Production (Railway), use 'none' (Cross-Site) and Secure: true
+      // On Dev (Localhost), use 'lax' and Secure: false
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
@@ -226,30 +222,25 @@ app.use(
 
 // CSRF PROTECTION
 const csrfProtection = csrf();
+// app.use(csrfProtection);
 
 // ---- CSRF Skip Logic ----
-// We exclude login/register to prevent Safari blocking the initial handshake
-const csrfExclude = [
-  '/api/ai/gpt/nutrition',
-  '/api/login',
-  '/api/register',
-  '/api/verifyEmail'
-];
+const csrfExclude = ['/api/ai/gpt/nutrition'];
 
 // Custom CSRF handler with skip logic
 app.use((req, res, next) => {
   if (csrfExclude.some(p => req.originalUrl.startsWith(p))) {
-    return next(); // Skip CSRF
+    return next(); // Skip CSRF for GPT nutrition
   }
   return csrfProtection(req, res, next);
 });
 
-// CSRF token endpoint
+// CSRF token endpoint (must run AFTER the CSRF wrapper)
 app.get("/api/csrf-token", (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
-// ---------- Routes ----------
+// ---------- Routes BEFORE global HPP ----------
 
 // Register & Login
 app.use(
@@ -286,7 +277,7 @@ app.use(
   aiRoutes
 );
 
-// Recipe
+// Recipe - BEFORE global HPP
 app.use(
   "/api/recipe",
   hppProtect({
@@ -302,7 +293,7 @@ app.use(
   recipeRoutes
 );
 
-// Foods
+// Foods - BEFORE global HPP
 app.use(
   "/api/foods",
   hppProtect({
@@ -332,7 +323,7 @@ app.use("/api/export",
 // Search
 app.use("/api/foodSearch", foodSearchRoutes);
 
-// Global HPP for others
+// ---------- Global HPP for everything else ----------
 app.use(
   hppProtect({
     policy: "first",
@@ -357,7 +348,7 @@ app.use(
   })
 );
 
-// Other Routes
+// ---------- Other Routes ----------
 app.use("/api/logout", logoutRoutes);
 app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
@@ -376,10 +367,10 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/export", exportRoutes);
 
-// Static Files
+// ---------- Static Files ----------
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Health & Session
+// ---------- Health & Session ----------
 app.get("/api/auth/session", (req, res) => {
   if (req.session && req.session.user) {
     return res.status(200).json({ authenticated: true, user: req.session.user });
@@ -391,28 +382,13 @@ app.get("/", (req, res) => {
   res.send("🚀 Backend running with advanced security, MySQL & sessions!");
 });
 
-// ---------- 404 + ENHANCED ERROR HANDLER ----------
+// ---------- 404 + Error Handler ----------
 app.use((req, res) => res.status(404).json({ error: "Not Found" }));
 
 app.use((err, req, res, next) => {
-  // 🔍 DEBUG: Pinpoint CSRF Block
-  if (err.code === "EBADCSRFTOKEN") {
-    console.error("❌ BLOCKED BY CSRF!");
-    console.error("   Reason: Session secret missing or token mismatch.");
-    console.error("   Session Exists?", req.session ? "YES" : "NO");
-    console.error("   Headers:", req.headers); 
-    return res.status(403).json({ 
-      error: "Invalid CSRF token", 
-      debug: "Your browser did not send the session cookie required for CSRF check." 
-    });
-  }
-
-  // Pinpoint other errors
-  console.error("❌ SERVER ERROR:", err);
-  res.status(err.status || 500).json({ 
-    error: err.message,
-    code: err.code || "UNKNOWN_ERROR"
-  });
+  if (err.code === "EBADCSRFTOKEN") return res.status(403).json({ error: "Invalid CSRF token" });
+  console.error("❌ Server error:", err);
+  res.status(err.status || 500).json({ error: err.status === 500 ? "Internal Server Error" : err.message });
 });
 
 // ---------- Start Server ----------
