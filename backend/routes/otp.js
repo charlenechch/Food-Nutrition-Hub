@@ -170,17 +170,25 @@ router.post("/verifyLogin", async (req, res) => {
         req.session.rememberMe = false;
     }
 
-    req.session.save();
-
     // Update Last Login
     await db.query("UPDATE user SET lastLogin = ? WHERE userID = ?", [new Date(), user.userID]);
 
     console.log(`✅ 2FA Verification successful for user: ${user.email}`);
 
-    return res.json({
-        success: true,
-        message: "Login successful",
-        user: req.session.user
+    // --- FIX FOR IOS RACE CONDITION ---
+    // We force the session to save *before* sending the response.
+    req.session.save((err) => {
+        if (err) {
+            console.error("❌ Session save error in OTP:", err);
+            return res.status(500).json({ error: "Session save failed" });
+        }
+        
+        // Response is sent ONLY after the database confirms the session is saved
+        return res.json({
+            success: true,
+            message: "Login successful",
+            user: req.session.user
+        });
     });
 
   } catch (err) {
