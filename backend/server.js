@@ -211,10 +211,13 @@ app.use(
     proxy: true, 
     cookie: {
       httpOnly: true,
-      // On Production (Railway), use 'none' (Cross-Site) and Secure: true
-      // On Dev (Localhost), use 'lax' and Secure: false
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      secure: process.env.NODE_ENV === "production",
+      
+      // --- FIX FOR iOS 403 ERROR ---
+      // We are forcing these settings for your Railway deployment.
+      // If you are testing on Localhost (HTTP), set secure: false.
+      sameSite: 'none', 
+      secure: true, 
+      
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
