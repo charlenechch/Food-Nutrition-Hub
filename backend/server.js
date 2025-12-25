@@ -127,11 +127,10 @@ app.use(helmet.noSniff());
 app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
 
 // ---------- CORS ----------
-// Even with Proxy, we keep this for safety
 const allowedOrigins = [
   "http://localhost:5173",
-  process.env.FRONTEND_URL || "https://food-nutrition-hub.vercel.app"
-];
+  process.env.FRONTEND_URL
+].filter(Boolean);
 
 app.use(
   cors({
@@ -147,8 +146,20 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
+// ---------- 🕵️‍♀️ DEBUG LOGGING MIDDLEWARE ----------
+app.use((req, res, next) => {
+  if (['/api/login', '/api/register'].includes(req.path)) {
+    console.log(`\n🔍 DEBUG REQUEST: ${req.path}`);
+    console.log(`📱 User-Agent: ${req.headers['user-agent']}`);
+    console.log(`🌐 Origin: ${req.headers.origin}`);
+    console.log(`🍪 Cookies Received:`, req.headers.cookie ? "YES" : "❌ NO COOKIES FOUND");
+  }
+  next();
+});
+
 // ---------- Rate Limiting ----------
 
+// 1. Global Limiter
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
   limit: 1000,
@@ -161,6 +172,7 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
+// 2. Auth Limiter
 const authLimiter = rateLimit({
   windowMs: 30 * 1000, 
   limit: 5, 
@@ -191,7 +203,6 @@ const dbOptions = {
 
 const sessionStore = new MySQLStore(dbOptions);
 
-// ✅ CRITICAL IPHONE FIX HERE
 app.use(
   session({
     name: "sid",
@@ -202,12 +213,11 @@ app.use(
     proxy: true, 
     cookie: {
       httpOnly: true,
-      // CHANGE: Use 'lax' instead of 'none'. 
-      // Since we proxy via Vercel, the browser sees this as a First-Party cookie.
-      // Safari trusts 'lax' cookies much more than 'none'.
+      // ✅ PROXY FIX: Use 'lax'. 
+      // Because Vercel proxies the request, Safari thinks it's the "Same Site".
       sameSite: "lax", 
       secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000, 
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     },
   })
 );
@@ -215,6 +225,8 @@ app.use(
 // CSRF PROTECTION
 const csrfProtection = csrf();
 
+// ---- CSRF Skip Logic ----
+// We exclude login/register to prevent Safari blocking the initial handshake
 const csrfExclude = [
   '/api/ai/gpt/nutrition',
   '/api/login',
@@ -222,6 +234,7 @@ const csrfExclude = [
   '/api/verifyEmail'
 ];
 
+// Custom CSRF handler with skip logic
 app.use((req, res, next) => {
   if (csrfExclude.some(p => req.originalUrl.startsWith(p))) {
     return next(); // Skip CSRF
@@ -229,12 +242,14 @@ app.use((req, res, next) => {
   return csrfProtection(req, res, next);
 });
 
+// CSRF token endpoint
 app.get("/api/csrf-token", (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
 // ---------- Routes ----------
 
+// Register & Login
 app.use(
   "/api/register",
   authLimiter,
@@ -255,18 +270,21 @@ app.use(
   loginRoutes
 );
 
+// GPT AI 
 app.use(
   "/api/ai/gpt",
   cors({ origin: allowedOrigins, credentials: true }),
   gptRoutes
 );
 
+// AI
 app.use(
   "/api/ai",
   cors({ origin: allowedOrigins, credentials: true }),
   aiRoutes
 );
 
+// Recipe
 app.use(
   "/api/recipe",
   hppProtect({
@@ -282,6 +300,7 @@ app.use(
   recipeRoutes
 );
 
+// Foods
 app.use(
   "/api/foods",
   hppProtect({
@@ -308,8 +327,10 @@ app.use("/api/export",
   exportRoutes
 );
 
+// Search
 app.use("/api/foodSearch", foodSearchRoutes);
 
+// Global HPP for others
 app.use(
   hppProtect({
     policy: "first",
@@ -334,6 +355,7 @@ app.use(
   })
 );
 
+// Other Routes
 app.use("/api/logout", logoutRoutes);
 app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
@@ -347,12 +369,15 @@ app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/userProfile", userProfileRoutes);
 app.use("/api/likes", likeRoutes);
 
+// Admin
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/export", exportRoutes);
 
+// Static Files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Health & Session
 app.get("/api/auth/session", (req, res) => {
   if (req.session && req.session.user) {
     return res.status(200).json({ authenticated: true, user: req.session.user });
@@ -364,15 +389,18 @@ app.get("/", (req, res) => {
   res.send("🚀 Backend running with advanced security, MySQL & sessions!");
 });
 
+// ---------- 404 + ENHANCED ERROR HANDLER ----------
 app.use((req, res) => res.status(404).json({ error: "Not Found" }));
 
 app.use((err, req, res, next) => {
   if (err.code === "EBADCSRFTOKEN") {
     console.error("❌ BLOCKED BY CSRF!");
     console.error("   Reason: Session secret missing or token mismatch.");
+    console.error("   Session Exists?", req.session ? "YES" : "NO");
+    console.error("   Headers:", req.headers); 
     return res.status(403).json({ 
       error: "Invalid CSRF token", 
-      debug: "Session cookie missing. Ensure your browser allows cookies from this domain." 
+      debug: "Your browser did not send the session cookie required for CSRF check." 
     });
   }
 
@@ -383,6 +411,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// ---------- Start Server ----------
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT} (mode: ${process.env.NODE_ENV || "dev"})`);
 });
