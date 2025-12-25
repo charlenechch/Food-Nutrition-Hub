@@ -1,49 +1,70 @@
 // frontend/src/config/api.js
 
-// ✅ Base URL — do NOT include "/api" here
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// ✅ UNIVERSAL URL:
+// We set this to "" (Empty String) for EVERYONE.
+// - On PC: Vite config (above) forwards "/api" -> localhost:5000
+// - On iPhone: Vercel config forwards "/api" -> Railway
+const API_URL = ""; 
 
 let csrfToken = null;
 
-// ✅ Fetch CSRF token (used for secure state-changing requests)
+// ✅ CSRF Token Fetcher
 async function getCsrfToken() {
-  const res = await fetch(`${API_URL}/api/csrf-token`, {
-    credentials: "include",
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to fetch CSRF token (status ${res.status})`);
+  try {
+    const res = await fetch(`${API_URL}/api/csrf-token`, {
+      credentials: "include",
+    });
+    
+    if (!res.ok) {
+      console.warn(`Failed to fetch CSRF token (status ${res.status})`);
+      return null;
+    }
+    
+    const data = await res.json();
+    csrfToken = data.csrfToken;
+    return csrfToken;
+  } catch (error) {
+    console.error("Error fetching CSRF token:", error);
+    return null;
   }
-  const data = await res.json();
-  csrfToken = data.csrfToken;
-  return csrfToken;
 }
 
-// ✅ Wrapper that automatically attaches CSRF + cookies
+// ✅ Main Fetch Wrapper
 export async function fetchWithCredentials(endpoint, options = {}) {
   const method = (options.method || "GET").toUpperCase();
   const needsCsrf = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+  
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {}),
   };
 
-  // Automatically attach CSRF for state-changing requests
+  // Attach CSRF if needed
   if (needsCsrf) {
     if (!csrfToken) await getCsrfToken();
-    headers["X-CSRF-Token"] = csrfToken;
+    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
   }
 
-  // ✅ Always prefix endpoints with "/api"
-  const res = await fetch(`${API_URL}/api${endpoint}`, {
+  // Build the URL: "" + "/api" + "/endpoint"
+  const url = `${API_URL}/api${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+
+  let res = await fetch(url, {
     ...options,
     credentials: "include",
     headers,
   });
 
-  // Optional auto-refresh if CSRF token expired (403)
-  if (res.status === 403 && csrfToken) {
-    csrfToken = await getCsrfToken();
-    return fetchWithCredentials(endpoint, options);
+  // Retry logic: If backend says "Invalid CSRF" (403), get a new token and retry
+  if (res.status === 403 && needsCsrf) {
+    console.log("CSRF token invalid or expired. Retrying...");
+    await getCsrfToken();
+    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+    
+    res = await fetch(url, {
+      ...options,
+      credentials: "include",
+      headers,
+    });
   }
 
   return res;
