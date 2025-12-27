@@ -31,14 +31,14 @@ router.get('/food-csv', async (req, res) => {
         f.Protein_g,
         f.Fat_g,
         f.Carbohydrates_g,
-        f.Fibre_g,
+        f.Fiber_g,
         DATE_FORMAT(f.createdAt, '%Y-%m-%d %H:%i:%s') as createdAt,
         GROUP_CONCAT(DISTINCT CONCAT(u.firstname, ' ', u.lastname)) as contributors
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
       LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
-      GROUP BY f.foodID, f.name, f.category, f.origin, f.description, f.Energy_kcal, f.Protein_g, f.Fat_g, f.Carbohydrates_g, f.Fibre_g,
+      GROUP BY f.foodID, f.name, f.category, f.origin, f.description, f.Energy_kcal, f.Protein_g, f.Fat_g, f.Carbohydrates_g, f.Fiber_g,
                r.servings, f.difficulty, f.createdAt
       ORDER BY f.createdAt DESC
     `;
@@ -377,6 +377,7 @@ async function exportAsPDF(res, data, year) {
     doc.moveDown(0.5);
     
     data.culturalOrigins.forEach((item, index) => {
+      doc.fontSize(12);
       const percentage = ((item.count / data.culturalOrigins.reduce((sum, i) => sum + i.count, 0)) * 100).toFixed(1);
       doc.text(`${index + 1}. ${item.origin}: ${item.count} items (${percentage}%)`);
     });
@@ -395,54 +396,88 @@ async function exportAsPDF(res, data, year) {
     // 4. Monthly Overview Table
     doc.fontSize(16).text('4. Monthly Contributions Overview', { underline: true });
     doc.moveDown(0.5);
-    
+
     // Table header
     doc.fontSize(12);
     const startX = 50;
     const colWidths = [80, 100, 100];
+    const rowHeight = 25; // Fixed row height for consistency
     let currentY = doc.y;
 
     doc.lineWidth(0.5);
     doc.strokeColor('#333333');
-    
-    // Draw header line
+
+    // Draw top border of table
     doc.moveTo(startX, currentY)
-       .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
-       .stroke();
-    currentY += 2; // Small gap
-    
-    // Draw table rows with lines
+    .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
+    .stroke();
+
+    // Draw vertical lines for columns
+    doc.moveTo(startX, currentY)
+    .lineTo(startX, currentY + (Object.values(data.monthlyData).length + 1) * rowHeight)
+    .stroke();
+
+    doc.moveTo(startX + colWidths[0], currentY)
+    .lineTo(startX + colWidths[0], currentY + (Object.values(data.monthlyData).length + 1) * rowHeight)
+    .stroke();
+
+    doc.moveTo(startX + colWidths[0] + colWidths[1], currentY)
+    .lineTo(startX + colWidths[0] + colWidths[1], currentY + (Object.values(data.monthlyData).length + 1) * rowHeight)
+    .stroke();
+
+    doc.moveTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
+    .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY + (Object.values(data.monthlyData).length + 1) * rowHeight)
+    .stroke();
+
+    // Add header row
+    currentY += 5;
+    doc.text('Month', startX + 5, currentY);
+    doc.text('Posts', startX + colWidths[0] + 5, currentY);
+    doc.text('Recipes', startX + colWidths[0] + colWidths[1] + 5, currentY);
+
+    currentY += rowHeight - 10;
+
+    // Draw horizontal line after header
+    doc.moveTo(startX, currentY)
+    .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
+    .stroke();
+
+    // Draw table rows
     Object.values(data.monthlyData).forEach((month, index) => {
-      if (doc.y > 700) { // New page if needed
+    if (currentY > 700) { // New page if needed
         doc.addPage();
         currentY = 50;
+        
+        // Redraw table borders on new page
+        // (You'd need to add border drawing logic here too)
     }
-      
-    // Draw row line before content
-    doc.moveTo(startX, currentY)
-        .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
-        .stroke();
+    
     currentY += 5;
-      
+    
     // Month column
     doc.text(month.month, startX + 5, currentY);
-      
+    
     // Posts column
     const postsTotal = (month.posts.Approved || 0) + (month.posts.Pending || 0) + (month.posts.Rejected || 0);
     doc.text(`Posts: ${postsTotal}`, startX + colWidths[0] + 5, currentY);
-      
+    
     // Recipes column
     const recipesTotal = (month.recipes.Approved || 0) + (month.recipes.Pending || 0) + (month.recipes.Rejected || 0);
     doc.text(`Recipes: ${recipesTotal}`, startX + colWidths[0] + colWidths[1] + 5, currentY);
-      
-    currentY += 20;
-      
-    // Draw bottom line after content
-    doc.moveTo(startX, currentY - 10)
-        .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY - 10)
+    
+    currentY += rowHeight - 10;
+    
+    // Draw horizontal line after row
+    doc.moveTo(startX, currentY)
+        .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
         .stroke();
     });
-    
+
+    // Draw final bottom border
+    doc.moveTo(startX, currentY)
+    .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
+    .stroke();
+
     doc.moveDown(2);
     
     // 5. Top Contributors
@@ -458,7 +493,7 @@ async function exportAsPDF(res, data, year) {
     });
     
     // Footer
-    doc.addPage();
+    //doc.addPage();
     doc.fontSize(10).text('--- End of Report ---', { align: 'center' });
     
     // Finalize PDF

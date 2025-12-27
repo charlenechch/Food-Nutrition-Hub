@@ -332,36 +332,37 @@ export default function AdminSystemSettings({
                         {/* Export with format selection */}
                         <div className="admset-block">
                             <div className="admset-label mb-6">Data Export Options</div>
+                            <div className="space-y-4"> {/* Vertical spacing */}
+                                {/* Food Database */}
+                                <button 
+                                    className="admset-btn admset-btn-outline w-full justify-start"
+                                    onClick={() => handleExport('food-csv')}
+                                    disabled={exportLoading.csv}
+                                >
+                                    <Download className="admset-ic-sm" />
+                                    {exportLoading.csv ? 'Exporting...' : 'Export Food Database (CSV)'}
+                                </button>
 
-                            <button 
-                                className="admset-btn admset-btn-outline w-full justify-start"
-                                onClick={() => handleExport('food-csv')}
-                                disabled={exportLoading.csv}
-                            >
-                                <Download className="admset-ic-sm" />
-                                {exportLoading.csv ? 'Exporting...' : 'Export Food Database (CSV)'}
-                            </button>
+                                {/* Analytics - Excel */}
+                                <button 
+                                    className="admset-btn admset-btn-outline w-full justify-start"
+                                    onClick={() => handleExport('analytics-report', 'excel')}
+                                    disabled={exportLoading.report}
+                                >
+                                    <Download className="admset-ic-sm" />
+                                    {exportLoading.report ? 'Exporting...' : 'Export Analytics Report (Excel)'}
+                                </button> 
 
-                            <div className="mt-8">
-                                <div className="admset-label-sm mb-4">Export Analytics Report</div>
-                                <div className="flex gap-2">
-                                    <button 
-                                        className="admset-btn admset-btn-outline flex-1 justify-start mr-2"
-                                        onClick={() => handleExport('analytics-report', 'excel')}
-                                        disabled={exportLoading.report}
-                                    >
-                                        📊 Excel
-                                    </button>
-                                    <button 
-                                        className="admset-btn admset-btn-outline flex-1 justify-start mr-2"
-                                        onClick={() => handleExport('analytics-report', 'pdf')}
-                                        disabled={exportLoading.report}
-                                    >
-                                        <FileText className="admset-ic-sm" />
-                                        PDF
-                                    </button>
-                                </div>
-                            </div>
+                                {/* Analytics - PDF */}
+                                <button 
+                                    className="admset-btn admset-btn-outline w-full justify-start"
+                                    onClick={() => handleExport('analytics-report', 'pdf')}
+                                    disabled={exportLoading.report}
+                                >
+                                    <Download className="admset-ic-sm" />
+                                    {exportLoading.report ? 'Exporting...' : 'Export Analytics Report (PDF)'}
+                                </button>                
+                            </div>        
                         </div>
                     </div>
                 </div>
