@@ -346,19 +346,19 @@ export default function AdminSystemSettings({
                                 <div className="admset-label-sm mb-4">Export Analytics Report</div>
                                 <div className="flex gap-2">
                                     <button 
-                                        className="admset-btn admset-btn-outline flex-1 justify-start"
+                                        className="admset-btn admset-btn-outline flex-1 justify-start mr-2"
                                         onClick={() => handleExport('analytics-report', 'excel')}
                                         disabled={exportLoading.report}
                                     >
-                                        <FileText className="admset-ic-sm" />
                                         📊 Excel
                                     </button>
                                     <button 
-                                        className="admset-btn admset-btn-outline flex-1 justify-start"
+                                        className="admset-btn admset-btn-outline flex-1 justify-start mr-2"
                                         onClick={() => handleExport('analytics-report', 'pdf')}
                                         disabled={exportLoading.report}
                                     >
-                                        📄 PDF
+                                        <FileText className="admset-ic-sm" />
+                                        PDF
                                     </button>
                                 </div>
                             </div>

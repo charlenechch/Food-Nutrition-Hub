@@ -27,13 +27,18 @@ router.get('/food-csv', async (req, res) => {
         f.description,
         r.servings,
         f.difficulty,
-        f.createdAt,
+        f.Energy_kcal,
+        f.Protein_g,
+        f.Fat_g,
+        f.Carbohydrates_g,
+        f.Fibre_g,
+        DATE_FORMAT(f.createdAt, '%Y-%m-%d %H:%i:%s') as createdAt,
         GROUP_CONCAT(DISTINCT CONCAT(u.firstname, ' ', u.lastname)) as contributors
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
       LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
-      GROUP BY f.foodID, f.name, f.category, f.origin, f.description, 
+      GROUP BY f.foodID, f.name, f.category, f.origin, f.description, f.Energy_kcal, f.Protein_g, f.Fat_g, f.Carbohydrates_g, f.Fibre_g,
                r.servings, f.difficulty, f.createdAt
       ORDER BY f.createdAt DESC
     `;
@@ -324,24 +329,6 @@ async function exportAsExcel(res, data, year) {
       };
     });
     
-    // Add charts for better visualization
-    // Chart for Cultural Origins
-    if (data.culturalOrigins.length > 0) {
-      originsSheet.addRow({}); // Empty row
-      originsSheet.addRow({ origin: 'Chart: Cultural Origins Distribution' });
-      
-      const chart = originsSheet.addChart({
-        type: 'pie',
-        data: {
-          categories: [`=Cultural Origins!$A$2:$A$${data.culturalOrigins.length + 1}`],
-          values: [`=Cultural Origins!$B$2:$B$${data.culturalOrigins.length + 1}`]
-        }
-      });
-      
-      chart.setPosition('E2', 'M20');
-      chart.title = 'Cultural Origins Distribution';
-    }
-    
     // Write to buffer and send
     const buffer = await workbook.xlsx.writeBuffer();
     
@@ -377,7 +364,7 @@ async function exportAsPDF(res, data, year) {
     doc.fontSize(16).text('1. Summary', { underline: true });
     doc.moveDown(0.5);
     
-    doc.fontSize(11);
+    doc.fontSize(12);
     doc.text(`Total Recipes: ${data.summary.totalRecipes}`);
     doc.text(`Total Stories: ${data.summary.totalStories}`);
     doc.text(`Pending Recipes: ${data.summary.pendingRecipes}`);
@@ -400,6 +387,7 @@ async function exportAsPDF(res, data, year) {
     doc.moveDown(0.5);
     
     data.categories.slice(0, 10).forEach((item, index) => {
+      doc.fontSize(12);
       doc.text(`${index + 1}. ${item.category}: ${item.submissions} submissions`);
     });
     doc.moveDown(2);
@@ -409,22 +397,50 @@ async function exportAsPDF(res, data, year) {
     doc.moveDown(0.5);
     
     // Table header
-    doc.fontSize(10);
+    doc.fontSize(12);
     const startX = 50;
+    const colWidths = [80, 100, 100];
     let currentY = doc.y;
+
+    doc.lineWidth(0.5);
+    doc.strokeColor('#333333');
     
-    // Draw table
+    // Draw header line
+    doc.moveTo(startX, currentY)
+       .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
+       .stroke();
+    currentY += 2; // Small gap
+    
+    // Draw table rows with lines
     Object.values(data.monthlyData).forEach((month, index) => {
       if (doc.y > 700) { // New page if needed
         doc.addPage();
         currentY = 50;
-      }
+    }
       
-      doc.text(month.month, startX, currentY);
-      doc.text(`Posts: ${(month.posts.Approved || 0) + (month.posts.Pending || 0) + (month.posts.Rejected || 0)}`, startX + 100, currentY);
-      doc.text(`Recipes: ${(month.recipes.Approved || 0) + (month.recipes.Pending || 0) + (month.recipes.Rejected || 0)}`, startX + 200, currentY);
+    // Draw row line before content
+    doc.moveTo(startX, currentY)
+        .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
+        .stroke();
+    currentY += 5;
       
-      currentY += 20;
+    // Month column
+    doc.text(month.month, startX + 5, currentY);
+      
+    // Posts column
+    const postsTotal = (month.posts.Approved || 0) + (month.posts.Pending || 0) + (month.posts.Rejected || 0);
+    doc.text(`Posts: ${postsTotal}`, startX + colWidths[0] + 5, currentY);
+      
+    // Recipes column
+    const recipesTotal = (month.recipes.Approved || 0) + (month.recipes.Pending || 0) + (month.recipes.Rejected || 0);
+    doc.text(`Recipes: ${recipesTotal}`, startX + colWidths[0] + colWidths[1] + 5, currentY);
+      
+    currentY += 20;
+      
+    // Draw bottom line after content
+    doc.moveTo(startX, currentY - 10)
+        .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY - 10)
+        .stroke();
     });
     
     doc.moveDown(2);
@@ -434,7 +450,8 @@ async function exportAsPDF(res, data, year) {
     doc.moveDown(0.5);
     
     data.topContributors.forEach((contributor, index) => {
-      doc.text(`${index + 1}. ${contributor.name} (${contributor.email})`);
+      doc.fontSize(12);
+      doc.text(`${index + 1}. ${contributor.name} (${contributor.email})`, { indent: 0, align: 'left' });
       doc.moveDown(0.3);
       doc.text(`   Recipes: ${contributor.recipes}, Stories: ${contributor.stories}, Total: ${contributor.totalContributions}`);
       doc.moveDown(0.5);
