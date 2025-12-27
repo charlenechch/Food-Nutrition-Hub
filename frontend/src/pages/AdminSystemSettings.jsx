@@ -122,7 +122,7 @@ export default function AdminSystemSettings({
         report: false
     });
 
-    const handleExport = async (type, format = 'csv') => {
+    const handleExport = async (type, format = 'excel') => { // Changed default to 'excel'
         try {
             // Set loading state
             const loadingKey = type === 'food-csv' ? 'csv' : 'report';
@@ -131,14 +131,20 @@ export default function AdminSystemSettings({
             let endpoint, filename;
             
             if (type === 'food-csv') {
+                // Food database export (only CSV)
                 endpoint = `${API_URL}/api/export/food-csv`;
                 filename = `food-database-${new Date().toISOString().split('T')[0]}.csv`;
             } else {
+                // Analytics report export (Excel or PDF only)
+                if (format !== 'excel' && format !== 'pdf') {
+                    format = 'excel'; // Default to excel if invalid format
+                }
+                
                 endpoint = `${API_URL}/api/export/analytics-report?format=${format}`;
                 
-                const extension = format === 'pdf' ? 'pdf' : 
-                                format === 'excel' ? 'xlsx' : 'csv';
-                filename = `analytics-report-${new Date().toISOString().split('T')[0]}.${extension}`;
+                // Simplified filename logic
+                const extension = format === 'pdf' ? 'pdf' : 'xlsx';
+                filename = `sarawakeats-analytics-report-${new Date().toISOString().split('T')[0]}.${extension}`;
             }
 
             console.log('Exporting from:', endpoint); // Debug log
@@ -149,18 +155,16 @@ export default function AdminSystemSettings({
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Accept': format === 'excel' 
                         ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                        : format === 'pdf' 
-                        ? 'application/pdf'
-                        : 'text/csv'
+                        : 'application/pdf' 
                 }
             });
 
             console.log('Response status:', response.status); // Debug log
 
             if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Export error response:', errorText);
-            throw new Error(`Export failed: ${response.status} ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('Export error response:', errorText);
+                throw new Error(`Export failed: ${response.status} ${response.statusText}`);
             }
 
             const blob = await response.blob();
@@ -177,7 +181,7 @@ export default function AdminSystemSettings({
 
         } catch (error) {
             console.error('Export error:', error);
-            alert(`Failed to export: ${error.message}`);
+            toast.error(`Failed to export: ${error.message}`);
         } finally {
             setExportLoading(prev => ({ ...prev, [type === 'food-csv' ? 'csv' : 'report']: false }));
         }
@@ -343,17 +347,10 @@ export default function AdminSystemSettings({
                                 <div className="flex gap-2">
                                     <button 
                                         className="admset-btn admset-btn-outline flex-1 justify-start"
-                                        onClick={() => handleExport('analytics-report', 'csv')}
-                                        disabled={exportLoading.report}
-                                    >
-                                        <FileText className="admset-ic-sm" />
-                                        CSV
-                                    </button>
-                                    <button 
-                                        className="admset-btn admset-btn-outline flex-1 justify-start"
                                         onClick={() => handleExport('analytics-report', 'excel')}
                                         disabled={exportLoading.report}
                                     >
+                                        <FileText className="admset-ic-sm" />
                                         📊 Excel
                                     </button>
                                     <button 

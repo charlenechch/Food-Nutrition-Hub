@@ -25,7 +25,7 @@ router.get('/food-csv', async (req, res) => {
         f.category,
         f.origin,
         f.description,
-        f.servings,
+        r.servings,
         f.difficulty,
         f.createdAt,
         GROUP_CONCAT(DISTINCT CONCAT(u.firstname, ' ', u.lastname)) as contributors
@@ -34,7 +34,7 @@ router.get('/food-csv', async (req, res) => {
       LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
       GROUP BY f.foodID, f.name, f.category, f.origin, f.description, 
-               f.servings, f.difficulty, f.createdAt
+               r.servings, f.difficulty, f.createdAt
       ORDER BY f.createdAt DESC
     `;
     
@@ -59,10 +59,10 @@ router.get('/food-csv', async (req, res) => {
   }
 });
 
-// 2. ANALYTICS REPORT EXPORT (CSV/Excel/PDF)
+// 2. ANALYTICS REPORT EXPORT (Excel/PDF)
 router.get('/analytics-report', async (req, res) => {
   try {
-    const format = req.query.format || 'csv'; // 'csv', 'excel', 'pdf'
+    const format = req.query.format || 'excel'; // 'excel' or 'pdf'
     const year = parseInt(req.query.year) || new Date().getFullYear();
 
     // Fetch all analytics data
@@ -187,15 +187,11 @@ router.get('/analytics-report', async (req, res) => {
     };
 
     // Export based on requested format
-    switch(format.toLowerCase()) {
-      case 'csv':
-        return exportAsCSV(res, analyticsData, year);
-      case 'excel':
-        return exportAsExcel(res, analyticsData, year);
-      case 'pdf':
-        return exportAsPDF(res, analyticsData, year);
-      default:
-        return exportAsCSV(res, analyticsData, year);
+    if (format.toLowerCase() === 'pdf') {
+      return exportAsPDF(res, analyticsData, year);
+    } else {
+      // Default to Excel
+      return exportAsExcel(res, analyticsData, year);
     }
 
   } catch (error) {
@@ -207,84 +203,6 @@ router.get('/analytics-report', async (req, res) => {
     });
   }
 });
-
-// CSV Export Function
-async function exportAsCSV(res, data, year) {
-  try {
-    const sections = [];
-    
-    // Section 1: Summary
-    sections.push('SUMMARY');
-    sections.push('Metric,Value');
-    sections.push(`Total Recipes,${data.summary.totalRecipes}`);
-    sections.push(`Total Stories,${data.summary.totalStories}`);
-    sections.push(`Pending Recipes,${data.summary.pendingRecipes}`);
-    sections.push(`Pending Stories,${data.summary.pendingStories}`);
-    sections.push(`Total Content,${data.summary.totalContent}`);
-    sections.push('');
-    
-    // Section 2: Cultural Origins
-    sections.push('CULTURAL ORIGINS');
-    sections.push('Origin,Count,Percentage');
-    const originTotal = data.culturalOrigins.reduce((sum, item) => sum + item.count, 0);
-    data.culturalOrigins.forEach(item => {
-      const percentage = ((item.count / originTotal) * 100).toFixed(2);
-      sections.push(`${item.origin},${item.count},${percentage}%`);
-    });
-    sections.push('');
-    
-    // Section 3: Categories
-    sections.push('POPULAR CATEGORIES');
-    sections.push('Category,Submissions');
-    data.categories.forEach(item => {
-      sections.push(`${item.category},${item.submissions}`);
-    });
-    sections.push('');
-    
-    // Section 4: Monthly Data
-    sections.push('MONTHLY CONTRIBUTIONS');
-    sections.push('Month,Posts Approved,Posts Pending,Posts Rejected,Recipes Approved,Recipes Pending,Recipes Rejected,Total');
-    Object.values(data.monthlyData).forEach(month => {
-      const row = [
-        month.month,
-        month.posts.Approved || 0,
-        month.posts.Pending || 0,
-        month.posts.Rejected || 0,
-        month.recipes.Approved || 0,
-        month.recipes.Pending || 0,
-        month.recipes.Rejected || 0,
-        (month.posts.Approved || 0) + (month.posts.Pending || 0) + (month.posts.Rejected || 0) +
-        (month.recipes.Approved || 0) + (month.recipes.Pending || 0) + (month.recipes.Rejected || 0)
-      ];
-      sections.push(row.join(','));
-    });
-    sections.push('');
-    
-    // Section 5: Top Contributors
-    sections.push('TOP CONTRIBUTORS');
-    sections.push('Rank,Name,Email,Recipes,Stories,Total Contributions');
-    data.topContributors.forEach((contributor, index) => {
-      sections.push([
-        index + 1,
-        contributor.name,
-        contributor.email,
-        contributor.recipes,
-        contributor.stories,
-        contributor.totalContributions
-      ].join(','));
-    });
-    
-    const csvContent = sections.join('\n');
-    
-    // Send CSV
-    res.header('Content-Type', 'text/csv');
-    res.attachment(`sarawakeats-analytics-${year}-${Date.now()}.csv`);
-    res.send(csvContent);
-    
-  } catch (error) {
-    throw error;
-  }
-}
 
 // Excel Export Function
 async function exportAsExcel(res, data, year) {
@@ -405,6 +323,24 @@ async function exportAsExcel(res, data, year) {
         fgColor: { argb: 'FFE0E0E0' }
       };
     });
+    
+    // Add charts for better visualization
+    // Chart for Cultural Origins
+    if (data.culturalOrigins.length > 0) {
+      originsSheet.addRow({}); // Empty row
+      originsSheet.addRow({ origin: 'Chart: Cultural Origins Distribution' });
+      
+      const chart = originsSheet.addChart({
+        type: 'pie',
+        data: {
+          categories: [`=Cultural Origins!$A$2:$A$${data.culturalOrigins.length + 1}`],
+          values: [`=Cultural Origins!$B$2:$B$${data.culturalOrigins.length + 1}`]
+        }
+      });
+      
+      chart.setPosition('E2', 'M20');
+      chart.title = 'Cultural Origins Distribution';
+    }
     
     // Write to buffer and send
     const buffer = await workbook.xlsx.writeBuffer();
