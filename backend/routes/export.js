@@ -404,30 +404,56 @@ async function exportAsPDF(res, data, year) {
     const rowHeight = 25; // Fixed row height for consistency
     let currentY = doc.y;
 
-    doc.lineWidth(0.5);
-    doc.strokeColor('#333333');
+    // Store the monthly data array for reuse
+    const monthlyDataArray = Object.values(data.monthlyData);
+    const totalRows = monthlyDataArray.length + 1; // +1 for header row
 
-    // Draw top border of table
-    doc.moveTo(startX, currentY)
-    .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
-    .stroke();
+    // Function to draw table borders for a specific page
+    const drawPageBorders = (startY, rowsOnThisPage) => {
+        doc.lineWidth(0.5);
+        doc.strokeColor('#333333');
+        
+        const tableWidth = colWidths[0] + colWidths[1] + colWidths[2];
+        const tableHeight = rowsOnThisPage * rowHeight;
+        
+        // Draw top border
+        doc.moveTo(startX, startY)
+            .lineTo(startX + tableWidth, startY)
+            .stroke();
+        
+        // Draw bottom border
+        doc.moveTo(startX, startY + tableHeight)
+            .lineTo(startX + tableWidth, startY + tableHeight)
+            .stroke();
+        
+        // Draw vertical lines for columns
+        doc.moveTo(startX, startY)
+            .lineTo(startX, startY + tableHeight)
+            .stroke();
+        
+        doc.moveTo(startX + colWidths[0], startY)
+            .lineTo(startX + colWidths[0], startY + tableHeight)
+            .stroke();
+        
+        doc.moveTo(startX + colWidths[0] + colWidths[1], startY)
+            .lineTo(startX + colWidths[0] + colWidths[1], startY + tableHeight)
+            .stroke();
+        
+        doc.moveTo(startX + tableWidth, startY)
+            .lineTo(startX + tableWidth, startY + tableHeight)
+            .stroke();
+        
+        // Draw horizontal lines between rows
+        for (let i = 1; i < rowsOnThisPage; i++) {
+            const lineY = startY + (i * rowHeight);
+            doc.moveTo(startX, lineY)
+                .lineTo(startX + tableWidth, lineY)
+                .stroke();
+        }
+    };
 
-    // Draw vertical lines for columns
-    doc.moveTo(startX, currentY)
-    .lineTo(startX, currentY + (Object.values(data.monthlyData).length + 1) * rowHeight)
-    .stroke();
-
-    doc.moveTo(startX + colWidths[0], currentY)
-    .lineTo(startX + colWidths[0], currentY + (Object.values(data.monthlyData).length + 1) * rowHeight)
-    .stroke();
-
-    doc.moveTo(startX + colWidths[0] + colWidths[1], currentY)
-    .lineTo(startX + colWidths[0] + colWidths[1], currentY + (Object.values(data.monthlyData).length + 1) * rowHeight)
-    .stroke();
-
-    doc.moveTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
-    .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY + (Object.values(data.monthlyData).length + 1) * rowHeight)
-    .stroke();
+    // Draw initial borders for first page
+    drawPageBorders(currentY, Math.min(totalRows, Math.floor((700 - currentY) / rowHeight)));
 
     // Add header row
     currentY += 5;
@@ -437,59 +463,77 @@ async function exportAsPDF(res, data, year) {
 
     currentY += rowHeight - 10;
 
-    // Draw horizontal line after header
-    doc.moveTo(startX, currentY)
-    .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
-    .stroke();
+    // Track pagination
+    let rowsDrawn = 1; // Start with 1 for the header row
+    const maxRowsOnFirstPage = Math.floor((700 - doc.y) / rowHeight);
+    let currentPageStartY = doc.y - rowHeight; // Starting Y position of current page
 
     // Draw table rows
-    Object.values(data.monthlyData).forEach((month, index) => {
-    if (currentY > 700) { // New page if needed
-        doc.addPage();
-        currentY = 50;
+    monthlyDataArray.forEach((month, index) => {
+        // Check if we need a new page (leaving some margin)
+        if (currentY + rowHeight > 700) {
+            doc.addPage();
+            currentY = 50;
+            rowsDrawn = 0;
+            currentPageStartY = currentY;
+            
+            // Calculate how many rows will fit on this new page
+            const remainingRows = totalRows - index; // +1 would include current row
+            const rowsThisPage = Math.min(remainingRows, Math.floor((700 - 50) / rowHeight));
+            
+            // Draw borders for the new page
+            drawPageBorders(currentY, rowsThisPage);
+            
+            // Add header row on new page
+            currentY += 5;
+            doc.text('Month', startX + 5, currentY);
+            doc.text('Posts', startX + colWidths[0] + 5, currentY);
+            doc.text('Recipes', startX + colWidths[0] + colWidths[1] + 5, currentY);
+            currentY += rowHeight - 10;
+            rowsDrawn = 1;
+        }
         
-        // Redraw table borders on new page
-        // (You'd need to add border drawing logic here too)
-    }
-    
-    currentY += 5;
-    
-    // Month column
-    doc.text(month.month, startX + 5, currentY);
-    
-    // Posts column
-    const postsTotal = (month.posts.Approved || 0) + (month.posts.Pending || 0) + (month.posts.Rejected || 0);
-    doc.text(`Posts: ${postsTotal}`, startX + colWidths[0] + 5, currentY);
-    
-    // Recipes column
-    const recipesTotal = (month.recipes.Approved || 0) + (month.recipes.Pending || 0) + (month.recipes.Rejected || 0);
-    doc.text(`Recipes: ${recipesTotal}`, startX + colWidths[0] + colWidths[1] + 5, currentY);
-    
-    currentY += rowHeight - 10;
-    
-    // Draw horizontal line after row
-    doc.moveTo(startX, currentY)
-        .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
-        .stroke();
+        // Draw row content
+        currentY += 5;
+        
+        // Month column
+        doc.text(month.month, startX + 5, currentY);
+        
+        // Posts column
+        const postsTotal = (month.posts.Approved || 0) + (month.posts.Pending || 0) + (month.posts.Rejected || 0);
+        doc.text(`Posts: ${postsTotal}`, startX + colWidths[0] + 5, currentY);
+        
+        // Recipes column
+        const recipesTotal = (month.recipes.Approved || 0) + (month.recipes.Pending || 0) + (month.recipes.Rejected || 0);
+        doc.text(`Recipes: ${recipesTotal}`, startX + colWidths[0] + colWidths[1] + 5, currentY);
+        
+        currentY += rowHeight - 10;
+        rowsDrawn++;
     });
 
-    // Draw final bottom border
-    doc.moveTo(startX, currentY)
-    .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentY)
-    .stroke();
+    // Draw final bottom border (in case the last page wasn't fully filled)
+    const lastPageRows = rowsDrawn;
+    const lastPageHeight = lastPageRows * rowHeight;
+    doc.moveTo(startX, currentPageStartY + lastPageHeight)
+        .lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], currentPageStartY + lastPageHeight)
+        .stroke();
 
     doc.moveDown(2);
     
     // 5. Top Contributors
-    doc.fontSize(16).text('5. Top Contributors', { underline: true });
+    const leftMargin = 50; 
+
+    doc.fontSize(16).text('5. Top Contributors', leftMargin, doc.y, { 
+    underline: true 
+    });
     doc.moveDown(0.5);
-    
+
     data.topContributors.forEach((contributor, index) => {
-      doc.fontSize(12);
-      doc.text(`${index + 1}. ${contributor.name} (${contributor.email})`, { indent: 0, align: 'left' });
-      doc.moveDown(0.3);
-      doc.text(`   Recipes: ${contributor.recipes}, Stories: ${contributor.stories}, Total: ${contributor.totalContributions}`);
-      doc.moveDown(0.5);
+    doc.fontSize(12);
+    doc.text(`${index + 1}. ${contributor.name} (${contributor.email})`, leftMargin);
+    doc.moveDown(0.3);
+    doc.text(`   Recipes: ${contributor.recipes}, Stories: ${contributor.stories}, Total: ${contributor.totalContributions}`, leftMargin);
+    doc.moveDown(0.5);
     });
     
     // Footer

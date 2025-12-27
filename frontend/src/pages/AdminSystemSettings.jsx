@@ -117,15 +117,23 @@ export default function AdminSystemSettings({
 
     const closeSysDialog = () => setSysDialog((m) => ({ ...m, open: false, onPrimary: null }));
 
-    const [exportLoading, setExportLoading] = useState({
-        csv: false,
-        report: false
+    const [exportLoading, setExportLoading] = useState({ 
+        csv: false, 
+        reportExcel: false,
+        reportPdf: false 
     });
 
-    const handleExport = async (type, format = 'excel') => { // Changed default to 'excel'
+    const handleExport = async (type, format = 'excel') => {
         try {
-            // Set loading state
-            const loadingKey = type === 'food-csv' ? 'csv' : 'report';
+            // Set loading state - need separate keys for Excel and PDF
+            let loadingKey;
+            if (type === 'food-csv') {
+                loadingKey = 'csv';
+            } else if (type === 'analytics-report') {
+                // Use different keys for Excel and PDF
+                loadingKey = format === 'pdf' ? 'reportPdf' : 'reportExcel';
+            }
+            
             setExportLoading(prev => ({ ...prev, [loadingKey]: true }));
 
             let endpoint, filename;
@@ -183,7 +191,15 @@ export default function AdminSystemSettings({
             console.error('Export error:', error);
             toast.error(`Failed to export: ${error.message}`);
         } finally {
-            setExportLoading(prev => ({ ...prev, [type === 'food-csv' ? 'csv' : 'report']: false }));
+            // Reset the correct loading state
+            let loadingKey;
+            if (type === 'food-csv') {
+                loadingKey = 'csv';
+            } else if (type === 'analytics-report') {
+                loadingKey = format === 'pdf' ? 'reportPdf' : 'reportExcel';
+            }
+            
+            setExportLoading(prev => ({ ...prev, [loadingKey]: false }));
         }
     };
 
@@ -350,7 +366,7 @@ export default function AdminSystemSettings({
                                     disabled={exportLoading.report}
                                 >
                                     <Download className="admset-ic-sm" />
-                                    {exportLoading.report ? 'Exporting...' : 'Export Analytics Report (Excel)'}
+                                    {exportLoading.report ? 'Exporting...' : 'Export Analytics Report (CSV)'}
                                 </button> 
 
                                 {/* Analytics - PDF */}
