@@ -474,8 +474,9 @@ async function exportAsPDF(res, data, year) {
     doc.text(`${index + 1}. ${contributor.name} (${contributor.email})`, leftMargin);
     doc.moveDown(0.3);
     doc.text(`   Recipes: ${contributor.recipes}, Stories: ${contributor.stories}, Total: ${contributor.totalContributions}`, leftMargin);
-    doc.moveDown(2);
+    doc.moveDown(0.5);
     });
+    doc.moveDown(2);
     
     // Footer
     //doc.addPage();
