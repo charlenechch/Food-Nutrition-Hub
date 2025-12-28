@@ -11,7 +11,7 @@ const csrf = require("csurf");
 const mysql = require("mysql2");
 const path = require("path");
 const hppProtect = require("./middleware/hpp-protect");
-const logger = require("./config/logger"); // Added structured logger
+const logger = require("./config/logger"); 
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 // ---------- Routes ----------
@@ -109,6 +109,7 @@ app.use(
         "'self'",
         "http://localhost:5173",
         "https://food-nutrition-hub.vercel.app",
+        "https://food-nutrition-hub-production.up.railway.app", // Added Railway backend URL
         process.env.INFERENCE_URL?.replace(/(https?:\/\/[^/]+).*/, "$1"),
       ],
       "frame-ancestors": ["'none'"],
@@ -131,12 +132,21 @@ app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
 // ---------- CORS ----------
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://food-nutrition-hub.vercel.app", 
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        logger.warn("CORS Blocked Origin:", { origin });
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
@@ -148,11 +158,9 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
-// ---------- Rate Limiting (UPDATED) ----------
-
-// 1. Global Limiter (Prevents general spam)
+// ---------- Rate Limiting ----------
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   limit: 1000,
   standardHeaders: true,
   legacyHeaders: false,
@@ -163,7 +171,6 @@ const globalLimiter = rateLimit({
 });
 app.use(globalLimiter);
 
-// 2. Auth Limiter (Prevents login spam)
 const authLimiter = rateLimit({
   windowMs: 30 * 1000, 
   limit: 5, 
@@ -184,7 +191,7 @@ const authLimiter = rateLimit({
   }
 });
 
-// ---------- Sessions ----------
+// ---------- Sessions  ----------
 const dbOptions = {
   host: process.env.MYSQLHOST,
   port: Number(process.env.MYSQLPORT) || 3306,
@@ -209,16 +216,14 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: 'none', 
-      secure: true, 
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      secure: true,     
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
 
 // ---------- CSRF PROTECTION ----------
 const csrfProtection = csrf();
-
-// ---- CSRF Skip Logic (UPDATED) ----
 const csrfExclude = [
   '/api/ai/gpt/nutrition',
   '/api/login',     
@@ -226,133 +231,34 @@ const csrfExclude = [
   '/api/otp/verifyLogin' 
 ];
 
-// Custom CSRF handler with skip logic
 app.use((req, res, next) => {
   if (csrfExclude.some(p => req.originalUrl.startsWith(p))) {
-    return next(); // Skip CSRF
+    return next(); 
   }
   return csrfProtection(req, res, next);
 });
 
-// CSRF token endpoint (must run AFTER the CSRF wrapper)
 app.get("/api/csrf-token", (req, res) => {
   csrfProtection(req, res, () => {
      res.json({ csrfToken: req.csrfToken() });
   });
 });
 
-// ---------- Routes BEFORE global HPP ----------
+// ---------- Routes BEFORE global HPP (UNTOUCHED) ----------
+app.use("/api/register", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password", "firstname", "lastname", "firebaseUID"], logger: (tag, meta) => logger.warn(`HPP Registration Blocked: ${tag}`, meta) }), registerRoutes);
+app.use("/api/login", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password", "rememberDevice"], logger: (tag, meta) => logger.warn(`HPP Login Blocked: ${tag}`, meta) }), loginRoutes);
+app.use("/api/ai/gpt", cors({ origin: allowedOrigins, credentials: true }), gptRoutes);
+app.use("/api/ai", cors({ origin: allowedOrigins, credentials: true }), aiRoutes);
 
-// Register & Login
-app.use(
-  "/api/register",
-  authLimiter,
-  hppProtect({
-    policy: "reject",
-    allowlist: ["email", "password", "firstname", "lastname", "firebaseUID"],
-    logger: (tag, meta) => logger.warn(`HPP Registration Blocked: ${tag}`, meta)
-  }),
-  registerRoutes
-);
+app.use("/api/recipe", hppProtect({ policy: "first", allowlist: ["includeAll", "status", "foodID", "name", "origin", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "foodType", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory", "recipe", "content", "image", "userProfileID", "status", "comment", "feedback"], logger: (tag, meta) => logger.warn(`HPP Recipe Parameter: ${tag}`, meta) }), recipeRoutes);
 
-app.use(
-  "/api/login",
-  authLimiter,
-  hppProtect({
-    policy: "reject",
-    allowlist: ["email", "password", "rememberDevice"],
-    logger: (tag, meta) => logger.warn(`HPP Login Blocked: ${tag}`, meta)
-  }),
-  loginRoutes
-);
+app.use("/api/foods", hppProtect({ policy: "first", allowlist: ["name", "category", "culturalSignificance", "traditionalPreparation", "origin", "description", "image", "foodType", "dietaryTags", "ingredients", "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg", "difficulty", "prepTime", "commonIngredients", "alternative", "altDescription", "healthTips"], logger: (tag, meta) => logger.warn(`HPP Foods Parameter: ${tag}`, meta) }), foodRoutes);
 
-// GPT AI 
-app.use(
-  "/api/ai/gpt",
-  cors({ origin: allowedOrigins, credentials: true }),
-  gptRoutes
-);
-
-// AI
-app.use(
-  "/api/ai",
-  cors({ origin: allowedOrigins, credentials: true }),
-  aiRoutes
-);
-
-// Recipe - BEFORE global HPP
-app.use(
-  "/api/recipe",
-  hppProtect({
-    policy: "first",
-    allowlist: [
-      "includeAll", "status", "foodID", "name", "origin", "difficulty",
-      "prepTime", "cookTime", "servings", "image", "description",
-      "foodType", "dietaryTags", "ingredients", "instructions",
-      "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory",
-      "recipe", "content", "image", "userProfileID", "status", "comment", "feedback",
-    ],
-    logger: (tag, meta) => logger.warn(`HPP Recipe Parameter: ${tag}`, meta)
-  }),
-  recipeRoutes
-);
-
-// Foods - BEFORE global HPP
-app.use(
-  "/api/foods",
-  hppProtect({
-    policy: "first",
-    allowlist: [
-      "name", "category", "culturalSignificance",
-      "traditionalPreparation", "origin", "description",
-      "image", "foodType", "dietaryTags", "ingredients",
-      "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg",
-      "difficulty", "prepTime", "commonIngredients", "alternative", "altDescription", "healthTips"
-    ],
-    logger: (tag, meta) => logger.warn(`HPP Foods Parameter: ${tag}`, meta)
-  }),
-  foodRoutes
-);
-
-app.use("/api/export", 
-  hppProtect({
-    policy: "first",
-    allowlist: [
-      "format",    
-      "year"       
-    ],
-    logger: (tag, meta) => logger.warn(`HPP Export Parameter: ${tag}`, meta)
-  }),
-  exportRoutes
-);
-
-// Search
+app.use("/api/export", hppProtect({ policy: "first", allowlist: ["format", "year"], logger: (tag, meta) => logger.warn(`HPP Export Parameter: ${tag}`, meta) }), exportRoutes);
 app.use("/api/foodSearch", foodSearchRoutes);
 
-// ---------- Global HPP for everything else ----------
-app.use(
-  hppProtect({
-    policy: "first",
-    allowlist: [
-      "id", "page", "q", "sort", "email", "password", "newPassword", "userID", "code", "rememberDevice",
-      "token", "role", "userProfileID", "firebase_uid", "bio", "location",
-      "firstname", "lastname", "city", "suspendedUntil", "suspensionReason",
-      "avatar", "allergies", "dietary", "emailNotifications", "prefs",
-      "pushNotifications", "profileVisibility", "language", "recipes",
-      "status", "stats", "saveFoods", "likes", "type", "postId", "postID",
-      "content", "title", "culturalOrigin", "recipe", "reply", "comment", 
-      "foodID", "likeID", "name", "difficulty", 
-      "prepTime", "cookTime", "servings", "image", "description", 
-      "foodType", "dietaryTags", "ingredients", "instructions", 
-      "funFact", "chefTips", "category", 
-      "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll",
-      "view", "year", "feedback", "format"
-    ],
-    logger: (tag, meta) => {
-      logger.warn(`[GLOBAL HPP] ${tag}`, meta);
-    },
-  })
-);
+// ---------- Global HPP for everything else (UNTOUCHED) ----------
+app.use(hppProtect({ policy: "first", allowlist: ["id", "page", "q", "sort", "email", "password", "newPassword", "userID", "code", "rememberDevice", "token", "role", "userProfileID", "firebase_uid", "bio", "location", "firstname", "lastname", "city", "suspendedUntil", "suspensionReason", "avatar", "allergies", "dietary", "emailNotifications", "prefs", "pushNotifications", "profileVisibility", "language", "recipes", "status", "stats", "saveFoods", "likes", "type", "postId", "postID", "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID", "likeID", "name", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "foodType", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "category", "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll", "view", "year", "feedback", "format"], logger: (tag, meta) => { logger.warn(`[GLOBAL HPP] ${tag}`, meta); }, }));
 
 // ---------- Other Routes ----------
 app.use("/api/logout", logoutRoutes);
@@ -367,11 +273,8 @@ app.use("/api/saveFood", saveFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/userProfile", userProfileRoutes);
 app.use("/api/likes", likeRoutes);
-
-// Admin
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
-app.use("/api/export", exportRoutes);
 
 // ---------- Static Files ----------
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -391,24 +294,15 @@ app.get("/", (req, res) => {
 // ---------- 404 + Error Handler ----------
 app.use((req, res) => res.status(404).json({ error: "Not Found" }));
 
-// Upgraded Error Handler for Structured Logging
 app.use((err, req, res, next) => {
   if (err.code === "EBADCSRFTOKEN") {
     logger.warn("CSRF Attack Blocked", { ip: req.ip, path: req.originalUrl });
     return res.status(403).json({ error: "Invalid CSRF token" });
   }
-  
-  logger.error("Internal Server Error", { 
-    message: err.message, 
-    stack: err.stack, 
-    path: req.path,
-    method: req.method 
-  });
-
+  logger.error("Internal Server Error", { message: err.message, stack: err.stack, path: req.path, method: req.method });
   res.status(err.status || 500).json({ error: err.status === 500 ? "Internal Server Error" : err.message });
 });
 
-// ---------- Start Server ----------
 app.listen(PORT, () => {
   logger.info(`✅ Server running on port ${PORT}`, { mode: process.env.NODE_ENV || "dev" });
 });
