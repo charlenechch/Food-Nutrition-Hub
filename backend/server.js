@@ -11,6 +11,7 @@ const csrf = require("csurf");
 const mysql = require("mysql2");
 const path = require("path");
 const hppProtect = require("./middleware/hpp-protect");
+const logger = require("./config/logger"); // Added structured logger
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 // ---------- Routes ----------
@@ -47,7 +48,7 @@ const IS_PROD = process.env.NODE_ENV === "production";
 const requiredEnvVars = ["MYSQLHOST", "MYSQLUSER", "MYSQLPASSWORD", "MYSQLDATABASE"];
 const missingEnvVars = requiredEnvVars.filter((v) => !process.env[v]);
 if (missingEnvVars.length > 0) {
-  console.error("❌ Missing required environment variables:", missingEnvVars);
+  logger.error("❌ Missing required environment variables", { missing: missingEnvVars });
   process.exit(1);
 }
 
@@ -63,7 +64,8 @@ const dbConfig = {
   queueLimit: 0,
 };
 
-console.log("🔧 Database Config:", {
+// Logging database config using structured logger
+logger.info("🔧 Database Config details initialized", {
   host: dbConfig.host,
   port: dbConfig.port,
   user: dbConfig.user,
@@ -76,8 +78,8 @@ app.set("dbPool", promiseDb);
 
 promiseDb
   .execute("SELECT 1 as test")
-  .then(() => console.log("✅ Database connection test successful"))
-  .catch((err) => console.error("❌ Database connection failed:", err.message));
+  .then(() => logger.info("✅ Database connection test successful"))
+  .catch((err) => logger.error("❌ Database connection failed", { error: err.message }));
 
 // ---------- Security & Proxy ----------
 app.set("trust proxy", 1);
@@ -154,7 +156,6 @@ const globalLimiter = rateLimit({
   limit: 1000,
   standardHeaders: true,
   legacyHeaders: false,
-  // Send JSON error instead of text to prevent frontend crash
   message: {
     success: false,
     message: "Too many requests, please try again later."
@@ -177,6 +178,10 @@ const authLimiter = rateLimit({
     const emailKey = req.body?.email || "guest";
     return `${ipKey}-${emailKey}`;
   },
+  handler: (req, res, next, options) => {
+    logger.warn("Auth Rate Limit Triggered", { ip: req.ip, email: req.body?.email });
+    res.status(options.statusCode).send(options.message);
+  }
 });
 
 // ---------- Sessions ----------
@@ -214,12 +219,11 @@ app.use(
 const csrfProtection = csrf();
 
 // ---- CSRF Skip Logic (UPDATED) ----
-// Added '/api/otp/verifyLogin' because OTP check is part of the login flow
 const csrfExclude = [
   '/api/ai/gpt/nutrition',
   '/api/login',     
   '/api/register',
-  '/api/otp/verifyLogin' // <--- Added to fix 403 error on OTP
+  '/api/otp/verifyLogin' 
 ];
 
 // Custom CSRF handler with skip logic
@@ -246,6 +250,7 @@ app.use(
   hppProtect({
     policy: "reject",
     allowlist: ["email", "password", "firstname", "lastname", "firebaseUID"],
+    logger: (tag, meta) => logger.warn(`HPP Registration Blocked: ${tag}`, meta)
   }),
   registerRoutes
 );
@@ -256,6 +261,7 @@ app.use(
   hppProtect({
     policy: "reject",
     allowlist: ["email", "password", "rememberDevice"],
+    logger: (tag, meta) => logger.warn(`HPP Login Blocked: ${tag}`, meta)
   }),
   loginRoutes
 );
@@ -286,6 +292,7 @@ app.use(
       "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory",
       "recipe", "content", "image", "userProfileID", "status", "comment", "feedback",
     ],
+    logger: (tag, meta) => logger.warn(`HPP Recipe Parameter: ${tag}`, meta)
   }),
   recipeRoutes
 );
@@ -302,6 +309,7 @@ app.use(
       "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg",
       "difficulty", "prepTime", "commonIngredients", "alternative", "altDescription", "healthTips"
     ],
+    logger: (tag, meta) => logger.warn(`HPP Foods Parameter: ${tag}`, meta)
   }),
   foodRoutes
 );
@@ -312,7 +320,8 @@ app.use("/api/export",
     allowlist: [
       "format",    
       "year"       
-    ]
+    ],
+    logger: (tag, meta) => logger.warn(`HPP Export Parameter: ${tag}`, meta)
   }),
   exportRoutes
 );
@@ -340,7 +349,7 @@ app.use(
       "view", "year", "feedback", "format"
     ],
     logger: (tag, meta) => {
-      console.warn(`[${tag}]`, JSON.stringify(meta));
+      logger.warn(`[GLOBAL HPP] ${tag}`, meta);
     },
   })
 );
@@ -382,13 +391,24 @@ app.get("/", (req, res) => {
 // ---------- 404 + Error Handler ----------
 app.use((req, res) => res.status(404).json({ error: "Not Found" }));
 
+// Upgraded Error Handler for Structured Logging
 app.use((err, req, res, next) => {
-  if (err.code === "EBADCSRFTOKEN") return res.status(403).json({ error: "Invalid CSRF token" });
-  console.error("❌ Server error:", err);
+  if (err.code === "EBADCSRFTOKEN") {
+    logger.warn("CSRF Attack Blocked", { ip: req.ip, path: req.originalUrl });
+    return res.status(403).json({ error: "Invalid CSRF token" });
+  }
+  
+  logger.error("Internal Server Error", { 
+    message: err.message, 
+    stack: err.stack, 
+    path: req.path,
+    method: req.method 
+  });
+
   res.status(err.status || 500).json({ error: err.status === 500 ? "Internal Server Error" : err.message });
 });
 
 // ---------- Start Server ----------
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT} (mode: ${process.env.NODE_ENV || "dev"})`);
+  logger.info(`✅ Server running on port ${PORT}`, { mode: process.env.NODE_ENV || "dev" });
 });
