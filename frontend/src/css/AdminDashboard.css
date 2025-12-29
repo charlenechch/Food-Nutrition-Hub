@@ -101,15 +101,16 @@
 @media (max-width: 640px) {
   .dashboard-tabs {
     flex-direction: column;
-    align-items: stretch; /* make buttons full width */
+    align-items: center; 
+    border-radius: 9px;
   }
 
   .dashboard-tabs button {
-    flex: unset; /* remove flex-grow */
+    flex: unset;
     width: 100%;
-    margin: 4px 0; /* vertical spacing between tabs */
-    justify-content: flex-start; /* optional: align icon+text left */
-    padding-left: 16px; /* optional: add left padding for alignment */
+    margin: 4px 0; 
+    justify-content: flex-start; 
+    padding-left: 16px; 
   }
 }
 
