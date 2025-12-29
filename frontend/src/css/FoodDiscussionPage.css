@@ -32,13 +32,34 @@
 .fd-right { display: flex; justify-content: flex-end; }
 
 /* Summary */
-.fd-summary { display: flex; align-items: center; }
-.fd-sum-left { display: flex; align-items: center; gap: .75rem; }
-.fd-sum-thumb {
-  width: 56px; height: 56px; border-radius: 12px;
-  background: #8B4513; color: #fff; display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem;
+.fd-summary {
+  display: flex;
+  justify-content: center;
 }
+.fd-sum-left {
+  display: flex;
+  flex-direction: column;   /* <--- IMPORTANT */
+  align-items: center;       /* center align */
+  gap: .6rem;
+  text-align: center;        /* optional, but looks nice */
+}
+.fd-sum-thumb {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f4ebe2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: .5rem;
+}
+.fd-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .fd-sum-stats { display: flex; gap: 1rem; margin-top: .35rem; color: #555; font-size: .9rem; }
 
 /* Inputs */
@@ -297,9 +318,3 @@
   .fd-sum-thumb { width: 48px; height: 48px; font-size: 1.4rem; }
 }
 
-.fd-thumb-img {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 10px;
-}
