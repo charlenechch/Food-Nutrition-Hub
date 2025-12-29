@@ -1117,18 +1117,13 @@ const postReply = async (discussionId) => {
 
         <div className="fd-card fd-summary">
           <div className="fd-sum-left">
-              <div className="fd-sum-thumb">
-                {food?.image ? (
-                  <img
-                    src={food.image}
-                    alt={food.name}
-                    className="fd-sum-img"
-                    onError={(e) => e.target.style.display = "none"}
-                  />
-                ) : (
-                  "🍽️"
-                )}
-              </div>
+            <div className="fd-sum-thumb">
+              <img 
+                src={food?.image} 
+                alt={food?.name} 
+                className="fd-thumb-img"
+              />
+            </div>
             <div>
               <h2 className="fd-title">{food?.name || "Food Discussion"}</h2>
               <p className="fd-muted">{food?.description}</p>

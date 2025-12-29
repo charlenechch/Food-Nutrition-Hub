@@ -296,3 +296,10 @@
   .fdp-disc-container { padding: .75rem; }
   .fd-sum-thumb { width: 48px; height: 48px; font-size: 1.4rem; }
 }
+
+.fd-thumb-img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 10px;
+}
