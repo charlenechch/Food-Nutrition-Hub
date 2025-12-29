@@ -101,8 +101,8 @@
 @media (max-width: 640px) {
   .dashboard-tabs {
     flex-direction: column;
-    align-items: center; 
-    border-radius: 9px;
+    align-items: stretch; 
+    border-radius: 19px;
   }
 
   .dashboard-tabs button {
@@ -111,6 +111,8 @@
     margin: 4px 0; 
     justify-content: flex-start; 
     padding-left: 16px; 
+    padding-right: 16px; 
+    border-radius: 19px;
   }
 }
 
