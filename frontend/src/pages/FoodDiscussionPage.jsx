@@ -1116,32 +1116,31 @@ const postReply = async (discussionId) => {
         </div>
 
         <div className="fd-card fd-summary">
-          <div className="fd-sum-left">
-            <div className="fd-sum-thumb">
-              <img 
-                src={food?.image} 
-                alt={food?.name} 
-                className="fd-thumb-img"
-              />
+          <div className="fd-hero">
+            <img 
+              src={food?.image}
+              alt={food?.name}
+              className="fd-hero-img"
+            />
+
+            <div className="fd-hero-title">
+              {food?.name || "Food Discussion"}
             </div>
-            <div>
-              <h2 className="fd-title">{food?.name || "Food Discussion"}</h2>
-              <p className="fd-muted">{food?.description}</p>
-              <div className="fd-sum-stats">
-                <span>💬 {totalComments} comments</span>
-                <span 
-                  className={`fd-food-like-btn ${foodLike.isLiked ? 'liked' : ''}`}
-                  onClick={toggleFoodLike}
-                  style={{
-                    cursor: foodLike.loading ? 'not-allowed' : 'pointer',
-                    opacity: foodLike.loading ? 0.6 : 1
-                  }}
-                  title={foodLike.isLiked ? "Unlike this food" : "Like this food"}
-                >
-                  {foodLike.loading ? '⏳' : (foodLike.isLiked ? "♥" : "♡")} {foodLike.likesCount} likes
-                </span>
-              </div>
-            </div>
+          </div>
+          <p className="fd-muted">{food?.description}</p>
+          <div className="fd-sum-stats">
+            <span>💬 {totalComments} comments</span>
+            <span 
+              className={`fd-food-like-btn ${foodLike.isLiked ? 'liked' : ''}`}
+              onClick={toggleFoodLike}
+              style={{
+                cursor: foodLike.loading ? 'not-allowed' : 'pointer',
+                opacity: foodLike.loading ? 0.6 : 1
+              }}
+              title={foodLike.isLiked ? "Unlike this food" : "Like this food"}
+            >
+              {foodLike.loading ? '⏳' : (foodLike.isLiked ? "♥" : "♡")} {foodLike.likesCount} likes
+            </span>
           </div>
         </div>
 

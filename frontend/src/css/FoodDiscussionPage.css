@@ -32,32 +32,31 @@
 .fd-right { display: flex; justify-content: flex-end; }
 
 /* Summary */
-.fd-summary {
-  display: flex;
-  justify-content: center;
-}
-.fd-sum-left {
-  display: flex;
-  flex-direction: column;   /* <--- IMPORTANT */
-  align-items: center;       /* center align */
-  gap: .6rem;
-  text-align: center;        /* optional, but looks nice */
-}
-.fd-sum-thumb {
-  width: 120px;
-  height: 120px;
+.fd-hero {
+  position: relative;
+  width: 100%;
+  height: 260px;     
   border-radius: 16px;
   overflow: hidden;
-  background: #f4ebe2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: .5rem;
 }
-.fd-thumb-img {
+
+.fd-hero-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.fd-hero-title {
+  position: absolute;
+  bottom: 14px;
+  left: 16px;
+  right: 16px;
+
+  color: white;
+  font-size: 1.8rem;
+  font-weight: 700;
+
+  text-shadow: 0 3px 12px rgba(0,0,0,0.45);
 }
 
 .fd-sum-stats { display: flex; gap: 1rem; margin-top: .35rem; color: #555; font-size: .9rem; }
@@ -315,6 +314,5 @@
 
 @media (max-width: 520px) {
   .fdp-disc-container { padding: .75rem; }
-  .fd-sum-thumb { width: 48px; height: 48px; font-size: 1.4rem; }
 }
 
