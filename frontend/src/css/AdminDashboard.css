@@ -54,17 +54,20 @@
 }
 
 /* Tabs */
+/* Dashboard Tabs - general styling */
 .dashboard-tabs {
   display: flex;
-  flex-wrap: wrap;
+  overflow-x: auto; /* allow horizontal scrolling */
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
   background: #f7f2ec;
   border-radius: 99px;
-  overflow: hidden;
   margin-bottom: 30px;
+  padding: 4px; /* optional for spacing around tabs */
 }
 
+/* Tabs buttons */
 .dashboard-tabs button {
-  flex: 1;
+  flex: 0 0 auto;
   border: none;
   border-radius: 99px;
   background: transparent;
@@ -73,23 +76,32 @@
   color: #5f5040;
   font-weight: 500;
   transition: all 0.2s ease;
-  display: flex;                 
-  align-items: center;           
-  justify-content: center;       
-  gap: 8px;                     
-  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .dashboard-tabs button.active {
   background: white;
-  margin: .2rem;
+  margin: 0 4px; 
   border-radius: 99px;
   color: #3d2b1f;
   font-weight: 600;
-  outline: none;
 }
+
 .dashboard-tabs button:focus {
   outline: none;
+}
+
+@media (max-width: 480px) {
+  .dashboard-tabs button {
+    font-size: 13px;
+    padding: 6px 10px;
+    gap: 4px;
+  }
 }
 
 /* Food Database Section */
