@@ -20,8 +20,7 @@
   background: #fff;
   border: 1px solid #dbcebc;
   border-radius: 14px;
-  padding: 1rem;
-  margin-bottom: 0.75rem;
+  overflow: hidden;
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
 
@@ -35,28 +34,45 @@
 .fd-hero {
   position: relative;
   width: 100%;
-  height: 260px;     
-  border-radius: 16px;
+  height: 14rem; 
   overflow: hidden;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
 }
 
 .fd-hero-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .fd-hero-title {
   position: absolute;
-  bottom: 14px;
-  left: 16px;
-  right: 16px;
-
-  color: white;
-  font-size: 1.8rem;
+  bottom: 1rem;
+  left: 1rem;
+  color: #fff;
+  font-size: 1.5rem;
   font-weight: 700;
-
   text-shadow: 0 3px 12px rgba(0,0,0,0.45);
+  z-index: 2;
+}
+
+.fd-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    rgba(0,0,0,0) 50%, 
+    rgba(0,0,0,0.4) 100%
+  );
+  z-index: 1;
+}
+.fd-summary-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .fd-sum-stats { display: flex; gap: 1rem; margin-top: .35rem; color: #555; font-size: .9rem; }
