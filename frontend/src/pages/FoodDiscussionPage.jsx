@@ -1115,7 +1115,7 @@ const postReply = async (discussionId) => {
           </button>
         </div>
 
-        <div className="fd-card fd-summary">
+        <div className="fd-card-2 fd-summary">
           {/* Hero Image */}
           <div className="fd-hero">
             <img 

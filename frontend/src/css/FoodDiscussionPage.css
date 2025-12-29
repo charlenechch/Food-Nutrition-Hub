@@ -16,12 +16,21 @@
 }
 
 /* Cards */
-.fd-card {
+.fd-card-2 {
   background: #fff;
   border: 1px solid #dbcebc;
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.fd-card { 
+  background: #fff; 
+  border: 1px solid #dbcebc; 
+  border-radius: 14px; 
+  padding: 1rem; 
+  margin-bottom: 0.75rem; 
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06); 
 }
 
 .fd-title { margin: 0 0 0.25rem 0; font-size: 1.25rem; }
