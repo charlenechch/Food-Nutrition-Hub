@@ -335,11 +335,11 @@ const AdminFoodDatabase = ({ categories = [] }) => {
           <tbody>
             {currentFoods.map((food) => (
               <tr key={food.foodID}>
-                <td>{food.name}</td>
-                <td><span className="category-tag">{food.category}</span></td>
-                <td>{food.origin}</td>
-                <td>{food.lastUpdated ? new Date(food.lastUpdated).toLocaleString() : "—"}</td>
-                <td>
+                <td data-label="Name">{food.name}</td>
+                <td data-label="Category"><span className="category-tag">{food.category}</span></td>
+                <td data-label="Origin">{food.origin}</td>
+                <td data-label="Last Updated">{food.lastUpdated ? new Date(food.lastUpdated).toLocaleString() : "—"}</td>
+                <td data-label="Actions">
                   <button className="food-database-btn-edit" onClick={() => navigate(`/admin/editfood/${food.foodID}`)}><HiOutlinePencilAlt /></button>
                   <button className="food-database-btn-delete" onClick={() => handleDeleteClick(food)}><RiDeleteBin5Line /></button>
                 </td>

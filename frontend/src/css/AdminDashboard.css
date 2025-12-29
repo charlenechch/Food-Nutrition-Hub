@@ -734,7 +734,79 @@
   border-color: #d5c2ac !important;
 }
 
+/* ===========================
+   📱 Mobile Responsive Layout
+   =========================== */
+@media (max-width: 720px) {
 
+  /* Filter bar becomes vertical */
+  .food-search-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .food-search-bar input,
+  .food-filter,
+  .lrp-btn {
+    width: 100%;
+  }
+
+
+  /* ===========================
+     Table → Card layout
+     =========================== */
+  .food-table {
+    border: none;
+  }
+
+  .food-table thead {
+    display: none; /* hide column headers */
+  }
+
+  .food-table tbody tr {
+    display: block;
+    background: white;
+    border: 1px solid #e6e6e6;
+    border-radius: 14px;
+    padding: 12px 12px 6px;
+    margin-bottom: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+  }
+
+  .food-table tbody tr td {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+  }
+
+  .food-table tbody tr td:last-child {
+    border-bottom: none;
+  }
+
+  /* Add labels before values */
+  .food-table tbody tr td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6f4e37;
+    margin-right: 10px;
+  }
+
+  /* Action buttons full width */
+  .food-table tbody tr td:last-child button {
+    width: 100%;
+    margin-top: 6px;
+  }
+
+  /* Image nicer on mobile */
+  .food-thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+  }
+}
 
 /* user management tab */
 .user-mgmt {
