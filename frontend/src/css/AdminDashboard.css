@@ -54,20 +54,19 @@
 }
 
 /* Tabs */
-/* Dashboard Tabs - general styling */
+/* Tabs container - desktop / default */
 .dashboard-tabs {
   display: flex;
-  overflow-x: auto; /* allow horizontal scrolling */
-  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+  flex-wrap: wrap;
   background: #f7f2ec;
   border-radius: 99px;
+  overflow: hidden;
   margin-bottom: 30px;
-  padding: 4px; /* optional for spacing around tabs */
 }
 
-/* Tabs buttons */
+/* Tab buttons - desktop / default */
 .dashboard-tabs button {
-  flex: 0 0 auto;
+  flex: 1;
   border: none;
   border-radius: 99px;
   background: transparent;
@@ -76,33 +75,44 @@
   color: #5f5040;
   font-weight: 500;
   transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 14px;
+  display: flex;                 
+  align-items: center;           
+  justify-content: center;       
+  gap: 8px;                     
+  font-size: 15px;
   white-space: nowrap;
 }
 
+/* Active tab */
 .dashboard-tabs button.active {
   background: white;
-  margin: 0 4px; 
+  margin: 0.2rem;
   border-radius: 99px;
   color: #3d2b1f;
   font-weight: 600;
 }
 
+/* Focus outline */
 .dashboard-tabs button:focus {
   outline: none;
 }
 
-@media (max-width: 480px) {
+/* Mobile: stack tabs vertically */
+@media (max-width: 640px) {
+  .dashboard-tabs {
+    flex-direction: column;
+    align-items: stretch; /* make buttons full width */
+  }
+
   .dashboard-tabs button {
-    font-size: 13px;
-    padding: 6px 10px;
-    gap: 4px;
+    flex: unset; /* remove flex-grow */
+    width: 100%;
+    margin: 4px 0; /* vertical spacing between tabs */
+    justify-content: flex-start; /* optional: align icon+text left */
+    padding-left: 16px; /* optional: add left padding for alignment */
   }
 }
+
 
 /* Food Database Section */
 .food-database-section, .recipe-database-section, .content-moderation-section {
