@@ -510,6 +510,7 @@
   vertical-align: middle;
   font-size: 14px;
   line-height: 1.2;
+  height: 60px;
 }
 
 /* Category tag */
@@ -752,6 +753,10 @@
     border: none;
     width: 100%;
     border-collapse: collapse;
+  }
+
+  .food-table td {
+    height: auto;
   }
 
   .food-table thead {
