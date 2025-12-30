@@ -264,7 +264,9 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                 <td data-label="Recipe Name">
                   {r.name || "Unnamed Recipe"}
                   <br />
-                  <small>{r.servings ? `${r.servings} servings` : ""}</small>
+                  <span className="recipe-servings">
+                    <small>{r.servings ? `${r.servings} servings` : ""}</small>
+                  </span>
                 </td>
                 <td data-label="Food Item"><span className="category-tag">{r.foodType || r.category || "N/A"}</span></td>
                 <td data-label="Author">{r.author || "Unknown"}</td>

@@ -1573,6 +1573,9 @@
   .content-table tbody tr td[data-label="Actions"] button + button {
     margin-left: 4%;
   }
+  .recipe-servings {
+    display: none;
+  }
 }
 
 
