@@ -1495,7 +1495,7 @@
 }
 
 .content-table td {
-  height: 60px; 
+  height: auto; 
   padding: 0 10px; 
   border-bottom: 1px solid #e0e0e0;
   vertical-align: middle; 
@@ -1525,7 +1525,7 @@
     background: #fff;
     border: 1px solid #e6e6e6;
     border-radius: 14px;
-    padding: 12px 12px 10px;
+    padding: 10px 12px 8px;
     margin-bottom: 12px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.05);
   }
@@ -1534,9 +1534,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 0;
+    padding: 4px 0;
     border-bottom: 1px solid #f0f0f0;
     font-size: 14px;
+    line-height: 1.25;
   }
 
   .content-table tbody tr td:last-child {
@@ -1547,7 +1548,7 @@
     content: attr(data-label);
     font-weight: 600;
     color: #6f4e37;
-    margin-right: 12px;
+    margin-right: 8px;
   }
 
   .content-table tbody tr td[data-label="Actions"] {
