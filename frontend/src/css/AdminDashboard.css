@@ -736,7 +736,7 @@
 
 
 @media (max-width: 720px) {
-
+  body { background:red !important; }
   .food-search-bar {
     flex-direction: column;
     align-items: stretch;
