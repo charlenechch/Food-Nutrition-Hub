@@ -266,7 +266,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                   <br/>
                   {r.servings && (
                     <span className="recipe-servings">
-                      <small>{r.servings} servings</small>
+                      {r.servings} servings
                     </span>
                   )}
                 </td>
