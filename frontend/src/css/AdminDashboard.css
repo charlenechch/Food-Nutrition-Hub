@@ -734,12 +734,9 @@
   border-color: #d5c2ac !important;
 }
 
-/* ===========================
-   📱 Mobile Responsive Layout
-   =========================== */
+
 @media (max-width: 720px) {
 
-  /* Filter bar becomes vertical */
   .food-search-bar {
     flex-direction: column;
     align-items: stretch;
@@ -752,16 +749,12 @@
     width: 100%;
   }
 
-
-  /* ===========================
-     Table → Card layout
-     =========================== */
   .food-table {
     border: none;
   }
 
   .food-table thead {
-    display: none; /* hide column headers */
+    display: none; 
   }
 
   .food-table tbody tr {
@@ -786,7 +779,6 @@
     border-bottom: none;
   }
 
-  /* Add labels before values */
   .food-table tbody tr td::before {
     content: attr(data-label);
     font-weight: 600;
@@ -794,16 +786,43 @@
     margin-right: 10px;
   }
 
-  /* Action buttons full width */
   .food-table tbody tr td:last-child button {
     width: 100%;
     margin-top: 6px;
   }
 
-  /* Image nicer on mobile */
   .food-thumb {
     width: 60px;
     height: 60px;
+    border-radius: 10px;
+  }
+  table thead th:last-child {
+    display: none;
+  }
+    td[data-label="Actions"] {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  td[data-label="Actions"]::before {
+    content: ""; 
+  }
+
+  td[data-label="Actions"] {
+    text-align: center;
+  }
+
+  td[data-label="Actions"] button {
+    width: 48%;
+    font-size: 1rem;
+  }
+
+  td[data-label="Actions"] button + button {
+    margin-left: 4%;
+  }
+  td[data-label="Actions"] button {
+    padding: 10px 0;
     border-radius: 10px;
   }
 }
