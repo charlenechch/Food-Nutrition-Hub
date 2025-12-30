@@ -802,10 +802,10 @@
   }
 
   .food-table tbody tr td[data-label="Actions"] button {
-    width: 48%;
+    width: 42%;
     display: inline-block;
-    font-size: 1rem;
-    padding: 10px 0;
+    font-size: 0.9rem;
+    padding: 8px 0;
     border-radius: 10px;
   }
 
