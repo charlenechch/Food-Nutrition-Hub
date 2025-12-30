@@ -750,6 +750,8 @@
 
   .food-table {
     border: none;
+    width: 100%;
+    border-collapse: collapse;
   }
 
   .food-table thead {
@@ -758,26 +760,41 @@
 
   .food-table tbody tr {
     display: block;
+    background: #fff;
+    border: 1px solid #e6e6e6;
     border-radius: 14px;
+    padding: 12px 12px 10px;
     margin-bottom: 12px;
-    padding: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.05);
   }
 
   .food-table tbody tr td {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+  }
+
+  .food-table tbody tr td:last-child {
+    border-bottom: none;
   }
 
   .food-table tbody tr td::before {
     content: attr(data-label);
     font-weight: 600;
+    color: #6f4e37;
+    margin-right: 12px;
   }
 
+  /* ----- ACTION BUTTON ROW ------ */
   .food-table tbody tr td[data-label="Actions"] {
-    display: block !important;
-    width: 100%;
+    display: block;           /* override flex layout */
     text-align: center;
+    border-bottom: none;
     margin-top: 10px;
+    padding-top: 10px;
   }
 
   .food-table tbody tr td[data-label="Actions"]::before {
@@ -786,9 +803,10 @@
 
   .food-table tbody tr td[data-label="Actions"] button {
     width: 48%;
+    display: inline-block;
+    font-size: 1rem;
     padding: 10px 0;
     border-radius: 10px;
-    font-size: 1rem;
   }
 
   .food-table tbody tr td[data-label="Actions"] button + button {
