@@ -261,17 +261,17 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
           <tbody>
             {currentRecipes.map((r, i) => (
               <tr key={r.id || i}>
-                <td>
+                <td data-label="Recipe Name">
                   {r.name || "Unnamed Recipe"}
                   <br />
                   <small>{r.servings ? `${r.servings} servings` : ""}</small>
                 </td>
-                <td><span className="category-tag">{r.foodType || r.category || "N/A"}</span></td>
-                <td>{r.author || "Unknown"}</td>
+                <td data-label="Food Item"><span className="category-tag">{r.foodType || r.category || "N/A"}</span></td>
+                <td data-label="Author">{r.author || "Unknown"}</td>
                 
                 {/* ✅ CHANGED 2: Dynamic Date Logic */}
                 {/* Shows 'updatedAt' if Approved, otherwise shows 'date/createdAt' */}
-                <td>
+                <td data-label={sectionType === "approved" ? "Date Approved" : "Date Created"}>
                   {formatDate(
                     sectionType === "approved" 
                       ? (r.updatedAt || r.date) 
@@ -279,12 +279,12 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                   )}
                 </td>
                 
-                <td>
+                <td data-label="Status">
                   <span className={`recipe-status-tag ${r.status === "Pending" ? "pending" : r.status === "Rejected" ? "rejected" : "approved"}`}>
                     {r.status}
                   </span>
                 </td>
-                <td className="admin-recipe-action-buttons">
+                <td data-label="Actions" className="admin-recipe-action-buttons">
                   {r.status === "Approved" ? (
                     <>
                       <button className="food-database-btn-edit" onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}>

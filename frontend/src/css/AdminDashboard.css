@@ -1509,6 +1509,80 @@
   background: #fcf9f6;
 }
 
+@media (max-width: 720px) {
+
+  .content-table {
+    border: none;
+  }
+
+  .content-table thead {
+    display: none; /* hide headers */
+  }
+
+  .content-table tbody tr {
+    display: block;
+    background: white;
+    border: 1px solid #e6e6e6;
+    border-radius: 14px;
+    padding: 12px 12px 8px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  }
+
+  .content-table tbody tr td {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+  }
+
+  .content-table tbody tr td:last-child {
+    border-bottom: none;
+  }
+
+  /* Label titles */
+  .content-table tbody tr td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6f4e37;
+    margin-right: 12px;
+  }
+
+  /* Status badge stays inline */
+  .recipe-status-tag {
+    margin-left: auto;
+  }
+
+  /* ACTION BUTTONS ROW */
+  td.admin-recipe-action-buttons {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding-top: 10px;
+  }
+
+  td.admin-recipe-action-buttons::before {
+    content: "";
+  }
+
+  td.admin-recipe-action-buttons button {
+    width: 46%;
+    padding: 9px 0;
+    border-radius: 10px;
+    font-size: 0.9rem;
+  }
+
+  td.admin-recipe-action-buttons button + button {
+    margin-left: 6%;
+  }
+
+  /* Review button full width for pending */
+  .review-btn {
+    width: 100% !important;
+  }
+}
+
 
 /* === Responsive Adjustments === */
 @media (max-width: 768px) {
