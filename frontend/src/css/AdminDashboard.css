@@ -736,7 +736,6 @@
 
 
 @media (max-width: 720px) {
-  body { background:red !important; }
   .food-search-bar {
     flex-direction: column;
     align-items: stretch;
@@ -754,76 +753,46 @@
   }
 
   .food-table thead {
-    display: none; 
+    display: none;
   }
 
   .food-table tbody tr {
     display: block;
-    background: white;
-    border: 1px solid #e6e6e6;
     border-radius: 14px;
-    padding: 12px 12px 6px;
     margin-bottom: 12px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    padding: 12px;
   }
 
   .food-table tbody tr td {
     display: flex;
     justify-content: space-between;
-    padding: 6px 0;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 14px;
-  }
-
-  .food-table tbody tr td:last-child {
-    border-bottom: none;
   }
 
   .food-table tbody tr td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: #6f4e37;
-    margin-right: 10px;
   }
 
-  .food-table tbody tr td:last-child button {
+  .food-table tbody tr td[data-label="Actions"] {
+    display: block !important;
     width: 100%;
-    margin-top: 6px;
-  }
-
-  .food-thumb {
-    width: 60px;
-    height: 60px;
-    border-radius: 10px;
-  }
-  table thead th:last-child {
-    display: none;
-  }
-    td[data-label="Actions"] {
-    display: block;
-    width: 100%;
+    text-align: center;
     margin-top: 10px;
   }
 
-  td[data-label="Actions"]::before {
-    content: ""; 
+  .food-table tbody tr td[data-label="Actions"]::before {
+    content: "";
   }
 
-  td[data-label="Actions"] {
-    text-align: center;
-  }
-
-  td[data-label="Actions"] button {
+  .food-table tbody tr td[data-label="Actions"] button {
     width: 48%;
+    padding: 10px 0;
+    border-radius: 10px;
     font-size: 1rem;
   }
 
-  td[data-label="Actions"] button + button {
+  .food-table tbody tr td[data-label="Actions"] button + button {
     margin-left: 4%;
-  }
-  td[data-label="Actions"] button {
-    padding: 10px 0;
-    border-radius: 10px;
   }
 }
 
