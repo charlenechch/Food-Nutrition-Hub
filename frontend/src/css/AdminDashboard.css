@@ -757,9 +757,6 @@
   .food-table thead {
     display: none;
   }
-  .food-table tbody td {
-    height: 60px;
-  }
 
   .food-table tbody tr {
     display: block;
