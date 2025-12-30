@@ -262,9 +262,12 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
             {currentRecipes.map((r, i) => (
               <tr key={r.id || i}>
                 <td data-label="Recipe Name">
-                  {r.name || "Unnamed Recipe"}
-                  <br />
-                  <small>{r.servings ? `${r.servings} servings` : ""}</small>
+                  <span className="recipe-name">{r.name || "Unnamed Recipe"}</span>
+                  {r.servings && (
+                    <span className="recipe-servings">
+                      {r.servings} servings
+                    </span>
+                  )}
                 </td>
                 <td data-label="Food Item"><span className="category-tag">{r.foodType || r.category || "N/A"}</span></td>
                 <td data-label="Author">{r.author || "Unknown"}</td>
