@@ -285,6 +285,7 @@ const AddFoodPage = () => {
   });
 
   return (
+    <>
     <div className="edit-food-page">
       <Header />
       <div className="edit-food-container">
@@ -624,8 +625,9 @@ const AddFoodPage = () => {
         </div>
       )}
 
-      <Footer />
     </div>
+    <Footer />
+    </>
   );
 };
 
