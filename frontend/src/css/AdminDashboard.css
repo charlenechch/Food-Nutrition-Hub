@@ -231,6 +231,12 @@
   z-index: 5;
 }
 
+@media (max-width: 720px) {
+  .admin-beige-dropdown {
+    display: none;
+  }
+}
+
 .admin-beige-trigger {
   display: flex;
   justify-content: space-between;
