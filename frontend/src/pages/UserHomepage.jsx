@@ -6,8 +6,14 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import axios from "axios"; 
 
+// --- IMAGES ---
+import LoginFood from "../assets/LoginFood.png"; 
+import LaksaImg from "../assets/laksa.jpg";     
+import KoloImg from "../assets/kolomee.jpg";   
+import KekImg from "../assets/keklapis.jpg";    
+
 // Icons
-import { FaSearch } from "react-icons/fa";      
+import { FaSearch, FaArrowRight } from "react-icons/fa";      
 import { FaAnglesDown, FaUtensils } from "react-icons/fa6"; 
 
 import { useAuth } from "../context/AuthContext";
@@ -17,7 +23,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // ... (Keep all your existing state and search logic the same) ...
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,6 +30,28 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const [suggestions, setSuggestions] = useState([]); 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef(null); 
+
+  // --- SIGNATURE DISHES DATA ---
+  const signatureDishes = [
+    {
+      id: "laksa",
+      name: "Sarawak Laksa",
+      description: "The 'Breakfast of the Gods'. Rice vermicelli served in an aromatic, spicy, and tangy coconut milk broth, topped with prawns and shredded chicken.",
+      image: LaksaImg 
+    },
+    {
+      id: "kolomee",
+      name: "Kolo Mee",
+      description: "A staple dry noodle dish tossed in a savory shallot oil mixture, topped with minced meat and char siu. Simple, springy, and satisfying.",
+      image: KoloImg 
+    },
+    {
+      id: "keklapis",
+      name: "Kek Lapis",
+      description: "Intricately layered cake baked with precision and patience. A colorful symbol of Sarawakian hospitality and celebration.",
+      image: KekImg 
+    }
+  ];
 
   useEffect(() => {
     const fetchFoods = async () => {
@@ -90,7 +117,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
-  // ✅ HELPER: Determine the Welcome Title
   const getHeroTitle = () => {
     if (!user) return "Discover Sarawak's Culinary Heritage";
     if (user.role === "guest") return "Welcome, Guest!";
@@ -99,14 +125,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
   return (
     <div className="homepage">
-      <Header />
+      {/* Make Header transparent to overlap Hero */}
+      <Header transparent={true} /> 
 
       <header className="hero-section">
         <div className="hero-content-wrapper">
-          
-          {/* ✅ UPDATED HERO TITLE LOGIC */}
           <h1 className="hero-title">{getHeroTitle()}</h1>
-          
           <p className="hero-subtitle">
             Preserving traditional dishes through AI-powered nutrition analysis and cultural storytelling.
           </p>
@@ -152,8 +176,26 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         </div>
       </header>
 
-      {/* Main Content (Features) */}
+      {/* --- STATS SECTION (Commented out) --- */}
+      {/* <div className="stats-section">
+        <div className="stat-item">
+          <span className="stat-number">{stats.totalFoods || "120+"}</span>
+          <span className="stat-label">Dishes Preserved</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">{stats.totalUsers || "5k+"}</span>
+          <span className="stat-label">Community Members</span>
+        </div>
+        <div className="stat-item">
+          <span className="stat-number">{stats.totalRecipes || "300+"}</span>
+          <span className="stat-label">Heritage Recipes</span>
+        </div>
+      </div>
+      */}
+
       <main className="features-layout-wrapper">
+        
+        {/* Core Features Grid */}
         <section className="features-grid">
           <div className="feature-card public-card">
             <div className="card-content-top">
@@ -201,6 +243,32 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </section>
 
+        {/* --- SIGNATURE DISHES SHOWCASE --- */}
+        <section className="showcase-section">
+          <div className="section-header center-header">
+            <h2>Taste of Sarawak</h2>
+            <p className="section-subtext">Iconic dishes that define our culinary identity</p>
+          </div>
+
+          <div className="showcase-grid">
+            {signatureDishes.map((dish) => (
+              <div key={dish.id} className="showcase-card">
+                <div className="showcase-image-wrapper">
+                  <img src={dish.image} alt={dish.name} />
+                </div>
+                <div className="showcase-content">
+                  <h3>{dish.name}</h3>
+                  <p>{dish.description}</p>
+                  <button className="text-link-btn" onClick={() => navigate('/foods')}>
+                    Discover More <FaArrowRight className="btn-icon" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Recent Foods */}
         {recentFoods && recentFoods.length > 0 && (
           <section className="recent-section">
             <div className="section-header">
