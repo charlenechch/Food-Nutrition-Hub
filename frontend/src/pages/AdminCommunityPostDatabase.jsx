@@ -260,10 +260,10 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
           <tbody>
             {currentPosts.map((p, i) => (
               <tr key={p.id || i}>
-                <td>{p.foodName || p.title || "Untitled"}</td>
-                <td>{p.author || "Anonymous"}</td>
+                <td data-label="Title">{p.foodName || p.title || "Untitled"}</td>
+                <td data-label="Author">{p.author || "Anonymous"}</td>
                 
-                <td>
+                <td data-label="Date Approved">
                   {sectionType === "approved" && p.updatedAt
                     ? new Date(p.updatedAt).toLocaleDateString('en-GB')
                     : p.createdAt 
@@ -272,12 +272,12 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
                   }
                 </td>
 
-                <td>
+                <td data-label="Status">
                   <span className={`recipe-status-tag ${p.status === "Pending" ? "pending" : p.status === "Rejected" ? "rejected" : "approved"}`}>
                     {p.status}
                   </span>
                 </td>
-                <td className="admin-recipe-action-buttons">
+                <td data-label="Actions" className="admin-recipe-action-buttons">
                   {p.status === "Approved" ? (
                     <>
                       <button className="food-database-btn-edit" onClick={() => navigate(`/admin/edit/community/${p.id}`)}>
