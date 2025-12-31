@@ -178,14 +178,17 @@
   color: #3d2b1f;
 }
 
-@media(max-width: 720px){
+@media (max-width: 720px) {
+  .food-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
   .food-actions button {
     width: 100%;
-    font-size: 12px;
-    padding: 6px 10px;
-  }
-  .food-actions .admin-food-btn-add {
-    margin-bottom: 2px;
+    margin-left: 0;
+    font-size: 15px;
   }
 }
 
