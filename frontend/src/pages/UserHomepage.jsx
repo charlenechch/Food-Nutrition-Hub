@@ -1,26 +1,25 @@
 /* src/pages/UserHomepage.jsx */
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/UserHomepage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import axios from "axios"; 
 
-// --- IMAGES FOR SLIDESHOW ---
-// Ensure you have these images in your assets folder, or use placeholders
+// --- IMAGES ---
 import LoginFood from "../assets/LoginFood.png"; 
 import LaksaImg from "../assets/laksa.jpg";     
 import KoloImg from "../assets/kolomee.jpg";   
 import KekImg from "../assets/keklapis.jpg";    
 
 // Icons
-import { FaSearch, FaArrowRight, FaChevronLeft, FaChevronRight } from "react-icons/fa";      
+import { FaSearch, FaChevronLeft, FaChevronRight, FaStar } from "react-icons/fa";      
 import { FaAnglesDown, FaUtensils } from "react-icons/fa6"; 
 
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
-// ✅ DEFINE YOUR SLIDESHOW IMAGES HERE
+// SLIDESHOW IMAGES
 const HERO_IMAGES = [
   LoginFood, 
   LaksaImg,
@@ -34,55 +33,40 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Database Data
   const [allFoods, setAllFoods] = useState([]); 
+  
   const [suggestions, setSuggestions] = useState([]); 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef(null); 
 
-  // ✅ SLIDESHOW STATE
+  // SLIDESHOW STATE
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // ✅ 1. AUTO-PLAY LOGIC (Runs every 5 seconds)
-  useEffect(() => {
-    const slideInterval = setInterval(() => {
-      setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
-    }, 5000); // Change 5000 to 3000 for faster speed
-
-    // Cleanup interval when component unmounts or user changes slide manually
-    return () => clearInterval(slideInterval);
-  }, [currentSlide]); // Dependency on currentSlide resets timer on manual change
-
-  // ✅ 2. MANUAL NAVIGATION HANDLERS
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? HERO_IMAGES.length - 1 : prev - 1));
-  };
-
-  // --- SIGNATURE DISHES DATA ---
-  const signatureDishes = [
-    {
-      id: "laksa",
-      name: "Sarawak Laksa",
-      description: "The 'Breakfast of the Gods'. Rice vermicelli served in an aromatic, spicy, and tangy coconut milk broth, topped with prawns and shredded chicken.",
-      image: LaksaImg 
-    },
-    {
-      id: "kolomee",
-      name: "Kolo Mee",
-      description: "A staple dry noodle dish tossed in a savory shallot oil mixture, topped with minced meat and char siu. Simple, springy, and satisfying.",
-      image: KoloImg 
-    },
-    {
-      id: "keklapis",
-      name: "Kek Lapis",
-      description: "Intricately layered cake baked with precision and patience. A colorful symbol of Sarawakian hospitality and celebration.",
-      image: KekImg 
-    }
+  // --- 1. DEFINE SIGNATURE DISHES (Static Data + Images) ---
+  const PRESET_SIGNATURES = [
+    { name: "Sarawak Laksa", image: LaksaImg, tag: "Must Try" },
+    { name: "Kolo Mee", image: KoloImg, tag: "Local Fav" },
+    { name: "Kek Lapis", image: KekImg, tag: "Sweet" }
   ];
 
+  // --- 2. CONNECT TO DATABASE (Find IDs) ---
+  // This merges your pretty images with the real IDs from the database
+  const signatureDishes = useMemo(() => {
+    return PRESET_SIGNATURES.map(preset => {
+      // Try to find this dish in the fetched database list (case-insensitive)
+      const match = allFoods.find(f => f.name.toLowerCase() === preset.name.toLowerCase());
+      
+      return {
+        ...preset,
+        // If found, save the real ID. If not found, dbId will be null.
+        dbId: match ? (match.foodID || match.id) : null
+      };
+    });
+  }, [allFoods]);
+
+  // --- 3. FETCH DATA ---
   useEffect(() => {
     const fetchFoods = async () => {
       try {
@@ -100,6 +84,34 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     fetchFoods();
   }, []);
 
+  // --- 4. SMART NAVIGATION HANDLER ---
+  const handleDishClick = (dish) => {
+    if (dish.dbId) {
+      // ✅ SUCCESS: Found in DB, go to Detail Page
+      navigate(`/fooddetail/${dish.dbId}`);
+    } else {
+      // ⚠️ FALLBACK: Not found in DB yet, go to Search Page
+      navigate(`/foods?search=${encodeURIComponent(dish.name)}`);
+    }
+  };
+
+  // Auto-play Logic
+  useEffect(() => {
+    const slideInterval = setInterval(() => {
+      setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
+    }, 6000); 
+    return () => clearInterval(slideInterval);
+  }, [currentSlide]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev === 0 ? HERO_IMAGES.length - 1 : prev - 1));
+  };
+
+  // Search Logic
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
@@ -147,32 +159,25 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
-  const getHeroTitle = () => {
-    if (!user) return "Discover Sarawak's Culinary Heritage";
-    if (user.role === "guest") return "Welcome, Guest!";
-    return `Welcome back, ${user.firstname || "User"}!`;
-  };
-
   return (
     <div className="homepage">
-      {/* Header overlaps hero for transparent look */}
       <Header transparent={true} /> 
 
-      {/* ✅ HERO SECTION: Dynamic Background Image */}
+      {/* HERO SECTION */}
       <header 
         className="hero-section"
         style={{ 
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${HERO_IMAGES[currentSlide]})` 
         }}
       >
-        
-        {/* ✅ LEFT ARROW BUTTON */}
-        <button className="hero-arrow arrow-left" onClick={prevSlide} aria-label="Previous Slide">
+        <button className="hero-arrow arrow-left" onClick={prevSlide}>
           <FaChevronLeft />
         </button>
 
         <div className="hero-content-wrapper">
-          <h1 className="hero-title">{getHeroTitle()}</h1>
+          <h1 className="hero-title">
+            {user ? `Welcome, ${user.firstname}!` : "Discover Sarawak's Culinary Heritage"}
+          </h1>
           <p className="hero-subtitle">
             Preserving traditional dishes through AI-powered nutrition analysis and cultural storytelling.
           </p>
@@ -217,12 +222,10 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </div>
 
-        {/* ✅ RIGHT ARROW BUTTON */}
-        <button className="hero-arrow arrow-right" onClick={nextSlide} aria-label="Next Slide">
+        <button className="hero-arrow arrow-right" onClick={nextSlide}>
           <FaChevronRight />
         </button>
 
-        {/* ✅ DOT INDICATORS */}
         <div className="hero-dots">
           {HERO_IMAGES.map((_, idx) => (
             <span 
@@ -232,10 +235,8 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             ></span>
           ))}
         </div>
-
       </header>
 
-      {/* Main Content */}
       <main className="features-layout-wrapper">
         
         {/* Core Features Grid */}
@@ -286,28 +287,35 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </section>
 
-        {/* Signature Dishes Showcase */}
+        {/* --- CINEMATIC SHOWCASE (Connected to DB) --- */}
         <section className="showcase-section">
           <div className="section-header center-header">
             <h2>Taste of Sarawak</h2>
-            <p className="section-subtext">Iconic dishes that define our culinary identity</p>
+            <p className="section-subtext">Click a dish to uncover its history</p>
           </div>
 
-          <div className="showcase-grid">
-            {signatureDishes.map((dish) => (
-              <div key={dish.id} className="showcase-card">
-                <div className="showcase-image-wrapper">
-                  <img src={dish.image} alt={dish.name} />
+          <div className="cinema-grid-wrapper">
+            <div className="cinema-grid">
+              {signatureDishes.map((dish) => (
+                <div 
+                  key={dish.name} // Use name as key since ID might be null initially
+                  className="cinema-item" 
+                  onClick={() => handleDishClick(dish)} // ✅ Use the new handler
+                >
+                  <div className="plate-container">
+                    <img src={dish.image} alt={dish.name} className="real-plate-img" />
+                    <div className="plate-glare"></div>
+                  </div>
+                  
+                  <div className="floating-label">
+                    <span className="dish-tag">
+                      <FaStar className="star-icon"/> {dish.tag}
+                    </span>
+                    <h3>{dish.name}</h3>
+                  </div>
                 </div>
-                <div className="showcase-content">
-                  <h3>{dish.name}</h3>
-                  <p>{dish.description}</p>
-                  <button className="text-link-btn" onClick={() => navigate('/foods')}>
-                    Discover More <FaArrowRight className="btn-icon" />
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
