@@ -181,7 +181,9 @@
 @media(max-width: 720px){
   .food-actions button {
     width: 100%;
-    gap: 2px;
+  }
+  .food-actions .admin-food-btn-add {
+    margin-bottom: 2px;
   }
 }
 
