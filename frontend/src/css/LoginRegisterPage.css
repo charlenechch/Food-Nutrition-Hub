@@ -62,7 +62,7 @@
   display: flex;
   width: 90%;
   max-width: 1200px;
-  height: 90vh; /* Increased slightly to fit the taller card */
+  height: 90vh; 
   align-items: center;
   justify-content: space-between;
 }
@@ -116,7 +116,7 @@
   /* --- STRICT HEIGHT FIX --- */
   height: 680px;      /* Hard fixed height */
   min-height: 680px;  /* Backup minimum */
-  justify-content: center; /* Vertically centers the shorter Login form */
+  justify-content: center; /* Vertically centers content */
   /* ----------------------- */
   
   overflow-y: auto;
@@ -127,7 +127,7 @@
 .mh-card-header {
   text-align: center;
   margin-bottom: 25px;
-  flex-shrink: 0; /* Prevents header from squishing */
+  flex-shrink: 0; 
 }
 .mh-card-header h3 {
   font-family: 'Playfair Display', serif;
@@ -141,7 +141,7 @@
   margin: 5px 0 0;
 }
 
-/* --- Tabs (FIXED OUTLINE) --- */
+/* --- Tabs --- */
 .mh-tabs {
   position: relative;
   display: flex;
@@ -315,7 +315,7 @@
   background: white;
 }
 
-/* --- Error & OTP --- */
+/* --- Error Msg --- */
 .mh-error-msg {
   background: #ffe5e5;
   color: #d32f2f;
@@ -325,13 +325,6 @@
   text-align: center;
   margin-bottom: 15px;
   border: 1px solid #ffcccc;
-}
-.mh-otp-input {
-  text-align: center;
-  letter-spacing: 10px;
-  font-size: 1.5rem !important;
-  font-weight: 700;
-  color: var(--mh-brown);
 }
 .mh-btn-text {
   background: none;
@@ -363,6 +356,70 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- OTP SECTION Styles --- */
+.mh-otp-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  animation: fadeIn 0.4s ease;
+}
+
+.mh-otp-label {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.mh-otp-input-wrapper {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.mh-otp-input {
+  width: 100%;
+  padding: 15px;
+  font-size: 2rem !important; /* Big text */
+  font-weight: 700;
+  letter-spacing: 12px;      /* Spacing between numbers */
+  text-align: center;
+  border: 2px solid #e6ddd5;
+  border-radius: 12px;
+  background: #f9f6f3;
+  color: var(--mh-brown);
+  transition: all 0.3s;
+}
+
+.mh-otp-input:focus {
+  outline: none;
+  border-color: var(--mh-gold);
+  background: white;
+  box-shadow: 0 5px 15px rgba(198, 168, 124, 0.2);
+}
+
+.mh-otp-input::placeholder {
+  color: #ddd;
+  letter-spacing: 12px;
+  font-weight: 400;
+}
+
+.mh-btn-text-small {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 0.9rem;
+  margin-top: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+.mh-btn-text-small:hover {
+  color: var(--mh-brown);
 }
 
 /* --- Mobile Responsive --- */

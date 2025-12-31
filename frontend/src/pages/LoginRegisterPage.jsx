@@ -5,7 +5,9 @@ import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
 import Modal from "../components/Modal";
+/* Icons */
 import { FaEnvelopeOpenText, FaEye, FaEyeSlash, FaUser, FaLock, FaEnvelope, FaArrowRight } from "react-icons/fa";
+/* Firebase */
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -121,7 +123,7 @@ export default function LoginRegisterPage() {
     return () => clearInterval(interval);
   }, [resendCooldown]);
 
- useEffect(() => {
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && user.emailVerified) { 
         if (!csrfToken) return;
@@ -209,13 +211,12 @@ export default function LoginRegisterPage() {
       setShowResendButton(true);
       setStoredPassword("");
     } catch (err) {
-      console.error("Resend verification error:", err);
       if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
         setLoginError("Session expired. Please try logging in again.");
         setShowResendButton(false);
         setStoredPassword("");
       } else {
-        setLoginError("Failed to resend verification email. Please try again later.");
+        setLoginError("Failed to resend verification email.");
       }
     } finally {
       setIsResending(false);
@@ -246,7 +247,6 @@ export default function LoginRegisterPage() {
         setLoginError(data.message || "Invalid code. Please try again.");
       }
     } catch (err) {
-      console.error("OTP Error:", err);
       setLoginError("Verification failed. Please try again.");
     } finally {
       setIsVerifyingOtp(false);
@@ -409,16 +409,14 @@ export default function LoginRegisterPage() {
   // ------------------------------
   return (
     <div className="modern-heritage-page">
-      {/* 1. Full Screen Background Image */}
+      {/* Background */}
       <div className="mh-background">
         <img src={LoginFood} alt="Sarawak Cuisine" />
         <div className="mh-overlay"></div>
       </div>
 
-      {/* 2. Content Container (Floating on top) */}
       <div className="mh-content-wrapper">
-        
-        {/* Left Side: Brand Text */}
+        {/* Left Side: Brand */}
         <div className="mh-brand-section">
           <h1 className="mh-title">Sarawak<br/>Food Heritage</h1>
           <div className="mh-divider"></div>
@@ -428,34 +426,75 @@ export default function LoginRegisterPage() {
           </p>
         </div>
 
-        {/* Right Side: The Glass Card */}
+        {/* Right Side: Card */}
         <div className="mh-form-card">
-          {/* Header */}
+          
+          {/* Dynamic Header */}
           <div className="mh-card-header">
-            <h3>Welcome Back</h3>
-            <p>Enter your details to explore</p>
+            <h3>
+              {activeTab === "register" ? "Create Account" : 
+               showOtpInput ? "Verify It's You" : "Welcome Back"}
+            </h3>
+            <p>
+              {activeTab === "register" ? "Join us to explore Sarawak's cuisine" : 
+               showOtpInput ? "Enter the code sent to your email" : "Enter your details to explore"}
+            </p>
           </div>
 
-          {/* Gliding Tabs */}
-          <div className="mh-tabs">
-            <div className="mh-tab-pill" style={{ transform: activeTab === "login" ? "translateX(0)" : "translateX(100%)" }} />
-            <button className={`mh-tab-btn ${activeTab === "login" ? "active" : ""}`} onClick={() => setActiveTab("login")}>Login</button>
-            <button className={`mh-tab-btn ${activeTab === "register" ? "active" : ""}`} onClick={() => setActiveTab("register")}>Register</button>
-          </div>
+          {/* Tabs (Hidden in OTP mode) */}
+          {!showOtpInput && (
+            <div className="mh-tabs">
+              <div className="mh-tab-pill" style={{ transform: activeTab === "login" ? "translateX(0)" : "translateX(100%)" }} />
+              <button className={`mh-tab-btn ${activeTab === "login" ? "active" : ""}`} onClick={() => setActiveTab("login")}>Login</button>
+              <button className={`mh-tab-btn ${activeTab === "register" ? "active" : ""}`} onClick={() => setActiveTab("register")}>Register</button>
+            </div>
+          )}
 
           <div className="mh-form-body">
-            {/* LOGIN VIEW */}
+            {/* LOGIN TAB */}
             {activeTab === "login" && (
                <>
                {showOtpInput ? (
+                  /* OTP SECTION */
                   <div className="mh-otp-section">
-                    <p className="mh-otp-text">Enter code sent to <strong>{email}</strong></p>
-                    <input type="text" className="mh-otp-input" value={otpCode} maxLength={6} placeholder="000000" onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))} />
-                    <button onClick={handleVerifyOtp} className="mh-btn-primary" disabled={isVerifyingOtp}>{isVerifyingOtp ? "Verifying..." : "Verify Code"}</button>
-                    <button onClick={handleResendOtp} className="mh-btn-text" disabled={resendCooldown > 0}>{resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}</button>
-                    <button onClick={() => setShowOtpInput(false)} className="mh-btn-text">Back to Login</button>
+                    <p className="mh-otp-label">
+                      Code sent to <strong>{email}</strong>
+                    </p>
+                    
+                    <div className="mh-otp-input-wrapper">
+                      <input 
+                        type="text" 
+                        className="mh-otp-input" 
+                        value={otpCode} 
+                        maxLength={6} 
+                        placeholder="0 0 0 0 0 0" 
+                        onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                        autoFocus
+                      />
+                    </div>
+
+                    <button 
+                      onClick={handleVerifyOtp} 
+                      className="mh-btn-primary" 
+                      disabled={isVerifyingOtp}
+                    >
+                      {isVerifyingOtp ? "Verifying..." : "Verify Code"}
+                    </button>
+
+                    <button 
+                      onClick={handleResendOtp} 
+                      className="mh-btn-text" 
+                      disabled={resendCooldown > 0}
+                    >
+                      {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend Code"}
+                    </button>
+                    
+                    <button onClick={() => setShowOtpInput(false)} className="mh-btn-text-small">
+                      <FaArrowRight style={{ transform: "rotate(180deg)" }}/> Back to Login
+                    </button>
                   </div>
                ) : (
+                 /* LOGIN FORM */
                  <>
                   {loginError && <div className="mh-error-msg">{loginError}</div>}
                   
@@ -486,7 +525,7 @@ export default function LoginRegisterPage() {
                </>
             )}
 
-            {/* REGISTER VIEW */}
+            {/* REGISTER TAB */}
             {activeTab === "register" && (
               <>
                 {registerError && <div className="mh-error-msg">{registerError}</div>}
@@ -516,7 +555,6 @@ export default function LoginRegisterPage() {
                   />
                   <div className="mh-eye" onClick={() => setShowRegPassword(!showRegPassword)}>{showRegPassword ? <FaEyeSlash/> : <FaEye/>}</div>
                   
-                  {/* Password Hints */}
                   {showPasswordHint && (
                     <div className="mh-password-hints">
                        <div className={regPasswordCriteria.length ? "valid" : "invalid"}>• 8+ Chars</div>
@@ -531,8 +569,12 @@ export default function LoginRegisterPage() {
               </>
             )}
 
-            <div className="mh-separator"><span>or</span></div>
-            <button onClick={handleGuest} className="mh-btn-outline">Continue as Guest</button>
+            {!showOtpInput && (
+              <>
+                <div className="mh-separator"><span>or</span></div>
+                <button onClick={handleGuest} className="mh-btn-outline">Continue as Guest</button>
+              </>
+            )}
           </div>
         </div>
       </div>
