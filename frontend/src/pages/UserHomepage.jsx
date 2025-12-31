@@ -6,18 +6,26 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import axios from "axios"; 
 
-// --- IMAGES ---
+// --- IMAGES FOR SLIDESHOW ---
+// Ensure you have these images in your assets folder, or use placeholders
 import LoginFood from "../assets/LoginFood.png"; 
 import LaksaImg from "../assets/laksa.jpg";     
 import KoloImg from "../assets/kolomee.jpg";   
 import KekImg from "../assets/keklapis.jpg";    
 
 // Icons
-import { FaSearch, FaArrowRight } from "react-icons/fa";      
+import { FaSearch, FaArrowRight, FaChevronLeft, FaChevronRight } from "react-icons/fa";      
 import { FaAnglesDown, FaUtensils } from "react-icons/fa6"; 
 
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
+
+// ✅ DEFINE YOUR SLIDESHOW IMAGES HERE
+const HERO_IMAGES = [
+  LoginFood, 
+  LaksaImg,
+  KoloImg
+];
 
 export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const navigate = useNavigate();
@@ -30,6 +38,28 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const [suggestions, setSuggestions] = useState([]); 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef(null); 
+
+  // ✅ SLIDESHOW STATE
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // ✅ 1. AUTO-PLAY LOGIC (Runs every 5 seconds)
+  useEffect(() => {
+    const slideInterval = setInterval(() => {
+      setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
+    }, 5000); // Change 5000 to 3000 for faster speed
+
+    // Cleanup interval when component unmounts or user changes slide manually
+    return () => clearInterval(slideInterval);
+  }, [currentSlide]); // Dependency on currentSlide resets timer on manual change
+
+  // ✅ 2. MANUAL NAVIGATION HANDLERS
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev === 0 ? HERO_IMAGES.length - 1 : prev - 1));
+  };
 
   // --- SIGNATURE DISHES DATA ---
   const signatureDishes = [
@@ -125,10 +155,22 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
   return (
     <div className="homepage">
-      {/* Make Header transparent to overlap Hero */}
+      {/* Header overlaps hero for transparent look */}
       <Header transparent={true} /> 
 
-      <header className="hero-section">
+      {/* ✅ HERO SECTION: Dynamic Background Image */}
+      <header 
+        className="hero-section"
+        style={{ 
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${HERO_IMAGES[currentSlide]})` 
+        }}
+      >
+        
+        {/* ✅ LEFT ARROW BUTTON */}
+        <button className="hero-arrow arrow-left" onClick={prevSlide} aria-label="Previous Slide">
+          <FaChevronLeft />
+        </button>
+
         <div className="hero-content-wrapper">
           <h1 className="hero-title">{getHeroTitle()}</h1>
           <p className="hero-subtitle">
@@ -174,25 +216,26 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
              <FaAnglesDown className="bounce-icon" />
           </div>
         </div>
+
+        {/* ✅ RIGHT ARROW BUTTON */}
+        <button className="hero-arrow arrow-right" onClick={nextSlide} aria-label="Next Slide">
+          <FaChevronRight />
+        </button>
+
+        {/* ✅ DOT INDICATORS */}
+        <div className="hero-dots">
+          {HERO_IMAGES.map((_, idx) => (
+            <span 
+              key={idx} 
+              className={`hero-dot ${idx === currentSlide ? "active" : ""}`}
+              onClick={() => setCurrentSlide(idx)}
+            ></span>
+          ))}
+        </div>
+
       </header>
 
-      {/* --- STATS SECTION (Commented out) --- */}
-      {/* <div className="stats-section">
-        <div className="stat-item">
-          <span className="stat-number">{stats.totalFoods || "120+"}</span>
-          <span className="stat-label">Dishes Preserved</span>
-        </div>
-        <div className="stat-item">
-          <span className="stat-number">{stats.totalUsers || "5k+"}</span>
-          <span className="stat-label">Community Members</span>
-        </div>
-        <div className="stat-item">
-          <span className="stat-number">{stats.totalRecipes || "300+"}</span>
-          <span className="stat-label">Heritage Recipes</span>
-        </div>
-      </div>
-      */}
-
+      {/* Main Content */}
       <main className="features-layout-wrapper">
         
         {/* Core Features Grid */}
@@ -243,7 +286,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </section>
 
-        {/* --- SIGNATURE DISHES SHOWCASE --- */}
+        {/* Signature Dishes Showcase */}
         <section className="showcase-section">
           <div className="section-header center-header">
             <h2>Taste of Sarawak</h2>

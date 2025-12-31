@@ -12,8 +12,7 @@
 .hero-section {
   height: 100vh;
   min-height: 600px;
-  background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
-              url('../assets/LoginFood.png');
+  /* Removed static image here because it is now handled inline in JSX */
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -24,8 +23,68 @@
   color: #ffffff;
   padding: 0 20px;
   position: relative;
+  /* Smooth transition between slides */
+  transition: background-image 0.8s ease-in-out; 
 }
 
+/* --- ✅ NEW: SLIDESHOW ARROWS --- */
+.hero-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  z-index: 10;
+  backdrop-filter: blur(5px);
+}
+
+.hero-arrow:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.arrow-left {
+  left: 20px;
+}
+
+.arrow-right {
+  right: 20px;
+}
+
+/* --- ✅ NEW: SLIDESHOW DOTS --- */
+.hero-dots {
+  position: absolute;
+  bottom: 120px; /* Above the scroll hint */
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.hero-dot {
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.hero-dot.active {
+  background: white;
+  transform: scale(1.3);
+}
+
+/* --- TEXT & CONTENT --- */
 .hero-title {
   font-family: 'Playfair Display', serif;
   font-size: clamp(3rem, 6vw, 5.5rem);
@@ -45,7 +104,7 @@
   font-weight: 300;
 }
 
-/* --- SEARCH BAR (Glassmorphism) --- */
+/* --- SEARCH BAR --- */
 .hero-search-container {
   position: relative;
   max-width: 650px;
@@ -113,14 +172,13 @@
   transform: translateY(-2px);
 }
 
-/* --- SEARCH DROPDOWN (Glassmorphism) --- */
+/* --- SEARCH DROPDOWN --- */
 .search-dropdown {
   position: absolute;
   top: 70px;
   left: 0;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border-radius: 20px;
   box-shadow: 0 15px 40px rgba(0,0,0,0.2);
   overflow: hidden;
@@ -167,12 +225,6 @@
   color: #888;
 }
 
-@media (max-width: 768px) {
-    .search-dropdown { width: 100%; top: 130px; }
-    .hero-search-form { flex-direction: column; }
-    .search-button { width: 100%; padding: 15px; margin-top: 10px; }
-}
-
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -186,46 +238,6 @@
   60% {transform: translateY(-7px);}
 }
 
-/* --- STATS SECTION (New) --- */
-.stats-section {
-  display: flex;
-  justify-content: center;
-  gap: 60px;
-  flex-wrap: wrap;
-  padding: 50px 20px;
-  background: white;
-  margin-top: -70px; /* Overlap hero */
-  position: relative;
-  z-index: 10;
-  border-radius: 24px;
-  box-shadow: 0 15px 50px rgba(0,0,0,0.08);
-  max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-number {
-  font-family: 'Playfair Display', serif;
-  font-size: 2.8rem;
-  font-weight: 700;
-  color: #916848;
-  display: block;
-  line-height: 1;
-  margin-bottom: 5px;
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  color: #777;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 600;
-}
-
 /* --- MAIN WRAPPER --- */
 .features-layout-wrapper {
   background-color: #fcf9f6;
@@ -234,7 +246,7 @@
   margin: 0 auto;
 }
 
-/* --- FEATURE CARDS --- */
+/* --- FEATURES GRID --- */
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -318,15 +330,9 @@
 .btn-accent { background-color: #d4a373; }
 .feature-btn:hover { filter: brightness(0.9); }
 
-/* --- SHOWCASE SECTION (New) --- */
-.showcase-section {
-  margin-bottom: 100px;
-}
-
-.center-header {
-  text-align: center;
-  margin-bottom: 50px;
-}
+/* --- SHOWCASE SECTION --- */
+.showcase-section { margin-bottom: 100px; }
+.center-header { text-align: center; margin-bottom: 50px; }
 
 .section-header h2 {
   font-family: 'Playfair Display', serif;
@@ -358,9 +364,7 @@
   flex-direction: column;
 }
 
-.showcase-card:hover {
-  transform: translateY(-5px);
-}
+.showcase-card:hover { transform: translateY(-5px); }
 
 .showcase-image-wrapper {
   height: 220px;
@@ -374,9 +378,7 @@
   transition: transform 0.5s ease;
 }
 
-.showcase-card:hover img {
-  transform: scale(1.05);
-}
+.showcase-card:hover img { transform: scale(1.05); }
 
 .showcase-content {
   padding: 25px;
@@ -526,4 +528,9 @@
   .stats-section { padding: 30px; gap: 30px; }
   .section-header { flex-direction: column; gap: 10px; align-items: flex-start; text-align: left; }
   .center-header { text-align: center; align-items: center; }
+  
+  .hero-arrow { width: 40px; height: 40px; font-size: 1rem; }
+  .arrow-left { left: 10px; }
+  .arrow-right { right: 10px; }
+  .search-dropdown { width: 100%; top: 130px; }
 }
