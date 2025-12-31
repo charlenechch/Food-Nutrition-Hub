@@ -25,7 +25,6 @@
   transition: background-image 0.8s ease-in-out; 
 }
 
-/* Slideshow Controls */
 .hero-arrow {
   position: absolute;
   top: 50%;
@@ -61,7 +60,6 @@
 }
 .hero-dot.active { background: white; transform: scale(1.3); }
 
-/* Hero Typography */
 .hero-title {
   font-family: 'Playfair Display', serif;
   font-size: clamp(3rem, 6vw, 5.5rem);
@@ -130,77 +128,37 @@
 .btn-accent { background-color: #d4a373; }
 .feature-btn:hover { filter: brightness(0.9); }
 
-/* --- STATS SECTION (Restored) --- */
-.stats-section {
-  display: flex; justify-content: center; gap: 60px; flex-wrap: wrap; padding: 50px 20px;
-  background: white; margin-top: -70px; position: relative; z-index: 10;
-  border-radius: 24px; box-shadow: 0 15px 50px rgba(0,0,0,0.08); max-width: 1000px; margin-left: auto; margin-right: auto;
-}
-.stat-item { text-align: center; }
-.stat-number { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; color: #916848; display: block; line-height: 1; margin-bottom: 5px; }
-.stat-label { font-size: 0.85rem; color: #777; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-
-/* --- ✅ NEW: CINEMATIC SHOWCASE --- */
-.showcase-section { margin-bottom: 100px; text-align: center; perspective: 1000px; }
+/* --- CINEMATIC SHOWCASE --- */
+.showcase-section { margin-bottom: 100px; text-align: center; }
 .center-header { margin-bottom: 70px; }
 .section-header h2 { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: #2d2d2d; font-weight: 700; margin-bottom: 10px; }
 .section-subtext { font-size: 1.1rem; color: #777; font-weight: 300; }
 
-/* The Stage */
 .cinema-grid-wrapper { display: flex; justify-content: center; }
-.cinema-grid {
-  display: flex; gap: 60px; justify-content: center; align-items: flex-end; flex-wrap: wrap;
-}
+.cinema-grid { display: flex; gap: 60px; justify-content: center; align-items: flex-end; flex-wrap: wrap; }
 
-/* Individual Item Container */
-.cinema-item {
-  position: relative; cursor: pointer; transition: all 0.5s ease;
-  perspective: 1000px; /* Allow 3D text */
-  padding: 10px;
-}
-
-/* 🔥 THE MAGIC: Focus Effect */
-/* When grid is hovered, items NOT hovered fade out */
-.cinema-grid:hover .cinema-item:not(:hover) {
-  opacity: 0.5; filter: blur(2px) grayscale(40%); transform: scale(0.95);
-}
-
-/* The hovered item pops */
+.cinema-item { position: relative; cursor: pointer; transition: all 0.5s ease; perspective: 1000px; padding: 10px; }
+.cinema-grid:hover .cinema-item:not(:hover) { opacity: 0.5; filter: blur(2px) grayscale(40%); transform: scale(0.95); }
 .cinema-item:hover { transform: translateY(-20px) scale(1.05); z-index: 10; }
 
-/* REALISTIC PLATE */
 .plate-container {
   width: 280px; height: 280px; border-radius: 50%; overflow: hidden; position: relative;
-  border: 6px solid #fff; /* Ceramic Rim */
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(0,0,0,0.1); /* Drop shadow + Inner rim shadow */
-  background: white;
-  transition: box-shadow 0.3s ease;
+  border: 6px solid #fff; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(0,0,0,0.1);
+  background: white; transition: box-shadow 0.3s ease;
 }
-
-.real-plate-img {
-  width: 100%; height: 100%; object-fit: cover; transition: transform 15s linear;
-}
-
-/* Slow spin on hover */
+.real-plate-img { width: 100%; height: 100%; object-fit: cover; transition: transform 15s linear; }
 .cinema-item:hover .real-plate-img { transform: rotate(20deg) scale(1.15); }
 
-/* FLOATING LABEL */
 .floating-label { margin-top: 25px; text-align: center; transition: transform 0.3s ease; }
 .dish-tag {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: #916848; color: white; padding: 4px 12px; border-radius: 20px;
-  font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+  display: inline-flex; align-items: center; gap: 5px; background: #916848; color: white;
+  padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
   margin-bottom: 8px; box-shadow: 0 4px 10px rgba(145, 104, 72, 0.3);
 }
 .star-icon { font-size: 0.7rem; color: #ffd700; }
 .floating-label h3 {
   font-family: 'Playfair Display', serif; font-size: 1.8rem; color: #2d2d2d; font-weight: 700; margin: 0;
   text-shadow: 0 10px 20px rgba(0,0,0,0.05);
-}
-
-/* Description (Hidden by default, shown if needed) */
-.cinema-desc {
-  font-size: 0.9rem; color: #666; margin-top: 5px; max-width: 250px; margin-left: auto; margin-right: auto;
 }
 
 /* --- RECENT SECTION --- */
@@ -216,12 +174,38 @@
 .mini-card-info h4 { margin: 0 0 8px 0; font-size: 1.1rem; color: #333; font-weight: 600; }
 .category-tag { font-size: 0.8rem; color: #777; background: #f4f4f4; padding: 5px 10px; border-radius: 20px; font-weight: 500; }
 
-/* --- HERITAGE BANNER --- */
-.heritage-fact-banner { background: #916848; color: white; padding: 60px 40px; border-radius: 25px; text-align: center; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 10px, transparent 10px, transparent 20px); box-shadow: 0 20px 40px rgba(145, 104, 72, 0.2); }
-.fact-label { display: inline-block; background: rgba(255,255,255,0.25); padding: 8px 20px; border-radius: 30px; font-weight: 700; margin-bottom: 20px; font-size: 0.9rem; letter-spacing: 0.5px; text-transform: uppercase; }
-.fact-content p { font-family: 'Playfair Display', serif; font-size: 1.6rem; max-width: 900px; margin: 0 auto; line-height: 1.6; font-style: italic; }
+/* --- ✅ UPDATED: HERITAGE TRIVIA CARD --- */
+.heritage-fact-banner {
+  margin-top: 100px; position: relative; background: #916848; border-radius: 30px; padding: 60px 40px; color: white;
+  overflow: hidden; box-shadow: 0 25px 50px rgba(145, 104, 72, 0.25); display: flex; justify-content: center;
+}
+.fact-decoration-circle {
+  position: absolute; top: -50px; left: -50px; width: 150px; height: 150px; background: rgba(255, 255, 255, 0.1); border-radius: 50%;
+}
+.fact-content-wrapper { display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 800px; position: relative; z-index: 2; }
+.fact-icon-box {
+  font-size: 2.5rem; color: #ffd700; background: rgba(255, 255, 255, 0.15); width: 70px; height: 70px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 25px;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+.fact-text-area { transition: opacity 0.3s ease, transform 0.3s ease; min-height: 140px; }
+.fact-text-area.fade-out { opacity: 0; transform: translateY(10px); }
+.fact-text-area.fade-in { opacity: 1; transform: translateY(0); }
+.fact-label {
+  display: inline-block; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.9rem; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255, 255, 255, 0.7); margin-bottom: 10px;
+}
+.fact-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; margin: 0 0 15px 0; }
+.fact-body { font-family: 'Poppins', sans-serif; font-size: 1.15rem; line-height: 1.7; font-weight: 300; color: rgba(255, 255, 255, 0.95); margin: 0 auto 30px; }
+.fact-refresh-btn {
+  background: white; color: #916848; border: none; padding: 10px 24px; border-radius: 50px; font-weight: 600; font-size: 0.95rem;
+  cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.fact-refresh-btn:hover { background: #f4f4f4; transform: translateY(-2px); }
+.fact-refresh-btn:active { transform: translateY(0); }
+.spin-icon { animation: spin 0.5s linear; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* Mobile Adjustments */
 @media (max-width: 768px) {
   .hero-section { height: 100vh; }
   .features-layout-wrapper { padding: 60px 20px; }
@@ -233,4 +217,7 @@
   .search-dropdown { width: 100%; top: 130px; }
   .cinema-grid { gap: 40px; }
   .plate-container { width: 220px; height: 220px; }
+  .heritage-fact-banner { padding: 40px 25px; }
+  .fact-title { font-size: 1.6rem; }
+  .fact-body { font-size: 1rem; }
 }

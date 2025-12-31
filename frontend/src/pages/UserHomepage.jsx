@@ -13,7 +13,7 @@ import KoloImg from "../assets/kolomee.jpg";
 import KekImg from "../assets/keklapis.jpg";    
 
 // Icons
-import { FaSearch, FaChevronLeft, FaChevronRight, FaStar } from "react-icons/fa";      
+import { FaSearch, FaChevronLeft, FaChevronRight, FaStar, FaLightbulb, FaSyncAlt } from "react-icons/fa";      
 import { FaAnglesDown, FaUtensils } from "react-icons/fa6"; 
 
 import { useAuth } from "../context/AuthContext";
@@ -44,39 +44,52 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   // SLIDESHOW STATE
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // --- 1. DEFINE SIGNATURE DISHES (Static Data + Images) ---
+  // FACTS STATE
+  const [currentFact, setCurrentFact] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // --- HERITAGE FACTS DATA ---
+  const heritageFacts = [
+    {
+      title: "Bamboo Cooking",
+      text: "\"Manok Pansoh\" is a traditional Iban delicacy where chicken is cooked inside freshly cut bamboo over an open fire, sealing in moisture and flavor."
+    },
+    {
+      title: "Melanau Sushi?",
+      text: "\"Umai\" is a traditional Melanau dish of raw sliced fish marinated with limau kasturi, onions, and chilies—Sarawak's ancient answer to ceviche."
+    },
+    {
+      title: "The Red Noodles",
+      text: "The red color in traditional Kuching Kolo Mee often comes from 'Char Siu' oil, giving it a distinct savory sweetness compared to the white version."
+    },
+    {
+      title: "Liquid Gold",
+      text: "\"Gula Apong\" is a natural palm sugar made from the Nipah palm found in Sarawak's coastal areas. It has a unique caramel-salty flavor profile."
+    }
+  ];
+
+  // --- SIGNATURE DISHES (Static + DB Connection) ---
   const PRESET_SIGNATURES = [
     { name: "Sarawak Laksa", image: LaksaImg, tag: "Must Try" },
     { name: "Kolo Mee", image: KoloImg, tag: "Local Fav" },
     { name: "Kek Lapis", image: KekImg, tag: "Sweet" }
   ];
 
-  // --- 2. CONNECT TO DATABASE (Find IDs) ---
-  // This merges your pretty images with the real IDs from the database
   const signatureDishes = useMemo(() => {
     return PRESET_SIGNATURES.map(preset => {
-      // Try to find this dish in the fetched database list (case-insensitive)
       const match = allFoods.find(f => f.name.toLowerCase() === preset.name.toLowerCase());
-      
-      return {
-        ...preset,
-        // If found, save the real ID. If not found, dbId will be null.
-        dbId: match ? (match.foodID || match.id) : null
-      };
+      return { ...preset, dbId: match ? (match.foodID || match.id) : null };
     });
   }, [allFoods]);
 
-  // --- 3. FETCH DATA ---
+  // --- FETCH DATA ---
   useEffect(() => {
     const fetchFoods = async () => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
         const res = await axios.get(`${API_BASE_URL}/api/exploreFood`); 
-        if (Array.isArray(res.data)) {
-           setAllFoods(res.data);
-        } else if (res.data && res.data.success) {
-           setAllFoods(res.data.data);
-        }
+        if (Array.isArray(res.data)) setAllFoods(res.data);
+        else if (res.data && res.data.success) setAllFoods(res.data.data);
       } catch (err) {
         console.error("Failed to load search index:", err);
       }
@@ -84,34 +97,20 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     fetchFoods();
   }, []);
 
-  // --- 4. SMART NAVIGATION HANDLER ---
+  // --- HANDLERS ---
   const handleDishClick = (dish) => {
-    if (dish.dbId) {
-      // ✅ SUCCESS: Found in DB, go to Detail Page
-      navigate(`/fooddetail/${dish.dbId}`);
-    } else {
-      // ⚠️ FALLBACK: Not found in DB yet, go to Search Page
-      navigate(`/foods?search=${encodeURIComponent(dish.name)}`);
-    }
+    if (dish.dbId) navigate(`/fooddetail/${dish.dbId}`);
+    else navigate(`/foods?search=${encodeURIComponent(dish.name)}`);
   };
 
-  // Auto-play Logic
-  useEffect(() => {
-    const slideInterval = setInterval(() => {
-      setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
-    }, 6000); 
-    return () => clearInterval(slideInterval);
-  }, [currentSlide]);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
+  const handleNextFact = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setCurrentFact((prev) => (prev + 1) % heritageFacts.length);
+      setIsAnimating(false);
+    }, 300);
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? HERO_IMAGES.length - 1 : prev - 1));
-  };
-
-  // Search Logic
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
@@ -122,8 +121,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       setSuggestions(matches.slice(0, 6)); 
       setShowSuggestions(true);
     } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
+      setSuggestions([]); setShowSuggestions(false);
     }
   };
 
@@ -140,11 +138,29 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
+  // ✅ FIXED: Helper to safely determine the Hero Title
+  const getHeroTitle = () => {
+    if (!user) return "Discover Sarawak's Culinary Heritage";
+    // Check if role is guest OR if firstname is missing (common for guest objects)
+    if (user.role === "guest" || !user.firstname) return "Welcome, Guest!";
+    return `Welcome back, ${user.firstname}!`;
+  };
+
+  // Slideshow
+  useEffect(() => {
+    const slideInterval = setInterval(() => {
+      setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
+    }, 6000); 
+    return () => clearInterval(slideInterval);
+  }, [currentSlide]);
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
+  const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? HERO_IMAGES.length - 1 : prev - 1));
+
+  // Click Outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowSuggestions(false);
-      }
+      if (searchRef.current && !searchRef.current.contains(event.target)) setShowSuggestions(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -175,9 +191,9 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         </button>
 
         <div className="hero-content-wrapper">
-          <h1 className="hero-title">
-            {user ? `Welcome, ${user.firstname}!` : "Discover Sarawak's Culinary Heritage"}
-          </h1>
+          {/* ✅ FIXED TITLE CALL */}
+          <h1 className="hero-title">{getHeroTitle()}</h1>
+          
           <p className="hero-subtitle">
             Preserving traditional dishes through AI-powered nutrition analysis and cultural storytelling.
           </p>
@@ -287,7 +303,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </section>
 
-        {/* --- CINEMATIC SHOWCASE (Connected to DB) --- */}
+        {/* --- CINEMATIC SHOWCASE --- */}
         <section className="showcase-section">
           <div className="section-header center-header">
             <h2>Taste of Sarawak</h2>
@@ -298,9 +314,9 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             <div className="cinema-grid">
               {signatureDishes.map((dish) => (
                 <div 
-                  key={dish.name} // Use name as key since ID might be null initially
+                  key={dish.name} 
                   className="cinema-item" 
-                  onClick={() => handleDishClick(dish)} // ✅ Use the new handler
+                  onClick={() => handleDishClick(dish)}
                 >
                   <div className="plate-container">
                     <img src={dish.image} alt={dish.name} className="real-plate-img" />
@@ -345,10 +361,25 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </section>
         )}
 
+        {/* --- ✅ UPDATED: INTERACTIVE TRIVIA CARD --- */}
         <section className="heritage-fact-banner">
-          <div className="fact-content">
-            <span className="fact-label">Did You Know?</span>
-            <p>"Manok Pansoh" is a traditional Iban delicacy where chicken is cooked inside bamboo over an open fire, sealing in moisture and flavor without using oil.</p>
+          <div className="fact-decoration-circle"></div>
+          
+          <div className="fact-content-wrapper">
+            <div className="fact-icon-box">
+              <FaLightbulb />
+            </div>
+            
+            <div className={`fact-text-area ${isAnimating ? "fade-out" : "fade-in"}`}>
+              <span className="fact-label">Did You Know?</span>
+              <h3 className="fact-title">{heritageFacts[currentFact].title}</h3>
+              <p className="fact-body">{heritageFacts[currentFact].text}</p>
+            </div>
+
+            <button className="fact-refresh-btn" onClick={handleNextFact} aria-label="Next Fact">
+              <FaSyncAlt className={isAnimating ? "spin-icon" : ""} />
+              <span>Next Fact</span>
+            </button>
           </div>
         </section>
       </main>
