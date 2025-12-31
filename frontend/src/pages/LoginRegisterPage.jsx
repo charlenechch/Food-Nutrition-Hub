@@ -5,8 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
 import Modal from "../components/Modal";
-import { FaEnvelopeOpenText } from "react-icons/fa";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEnvelopeOpenText, FaEye, FaEyeSlash, FaUser, FaLock, FaEnvelope, FaArrowRight } from "react-icons/fa";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -51,7 +50,7 @@ export default function LoginRegisterPage() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [tempRememberMe, setTempRememberMe] = useState(false);
 
-  // 🔒 NEW: Server-Side Lockout Timer
+  // 🔒 Server-Side Lockout Timer
   const [serverLockoutTimer, setServerLockoutTimer] = useState(0);
 
   // Password criteria
@@ -63,9 +62,7 @@ export default function LoginRegisterPage() {
     special: false,
   });
 
-  //====================
-    //CSRF
-    //======================
+  // CSRF
   const [csrfToken, setCsrfToken] = useState("");
   
   useEffect(() => {
@@ -96,27 +93,16 @@ export default function LoginRegisterPage() {
   // Effects
   // ------------------------------
   useEffect(() => {
-    // Only redirect if they are explicitly trying to login/register 
-    // but are already a valid Member or Admin.
     const currentPath = window.location.pathname;
-
-    if (
-      user && 
-      user.role !== "guest" && 
-      currentPath === "/loginregister"
-    ) {
+    if (user && user.role !== "guest" && currentPath === "/loginregister") {
       navigate(user.role === "admin" ? "/admin" : "/home");
     }
   }, [user, navigate]);
 
-  // 🔒 NEW: Countdown effect for the server lockout
   useEffect(() => {
     if (serverLockoutTimer <= 0) return;
     const interval = setInterval(() => {
-      setServerLockoutTimer((prev) => {
-        if (prev <= 1) return 0;
-        return prev - 1;
-      });
+      setServerLockoutTimer((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
     return () => clearInterval(interval);
   }, [serverLockoutTimer]);
@@ -137,11 +123,8 @@ export default function LoginRegisterPage() {
 
  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      // Only run if user exists AND is verified
       if (user && user.emailVerified) { 
-        // The effect will re-run automatically once the token loads.
         if (!csrfToken) return;
-
         try {
           await fetch(`${API_URL}/api/auth/syncEmailVerification`, {
             method: "POST",
@@ -152,7 +135,6 @@ export default function LoginRegisterPage() {
             },
             body: JSON.stringify({ email: user.email }),
           });
-          console.log("✅ Verification synced to Database");
         } catch (err) {
           console.error("❌ Sync error:", err);
         }
@@ -163,10 +145,7 @@ export default function LoginRegisterPage() {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        passwordHintRef.current &&
-        !passwordHintRef.current.contains(e.target)
-      ) {
+      if (passwordHintRef.current && !passwordHintRef.current.contains(e.target)) {
         setShowPasswordHint(false);
       }
     };
@@ -178,9 +157,7 @@ export default function LoginRegisterPage() {
   // Helper Functions
   // ------------------------------
   const formatTime = (sec) => {
-    const m = Math.floor(sec / 60)
-      .toString()
-      .padStart(2, "0");
+    const m = Math.floor(sec / 60).toString().padStart(2, "0");
     const s = (sec % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
@@ -209,18 +186,14 @@ export default function LoginRegisterPage() {
       const checkRes = await fetch(`${API_URL}/api/resendVerification`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
-         },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
         body: JSON.stringify({ email }),
       });
       const checkData = await checkRes.json();
       if (!checkRes.ok) {
         if (checkRes.status === 429 && checkData.remainingSeconds) {
           setResendCooldown(checkData.remainingSeconds);
-          setLoginError(
-            `Please wait ${checkData.remainingSeconds} seconds before requesting another email.`
-          );
+          setLoginError(`Please wait ${checkData.remainingSeconds} seconds.`);
         } else {
           setLoginError(checkData.error || "Failed to resend verification email");
         }
@@ -228,13 +201,8 @@ export default function LoginRegisterPage() {
         return;
       }
       setResendCooldown(60);
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        storedPassword
-      );
-      const user = userCredential.user;
-      await sendEmailVerification(user, {
+      const userCredential = await signInWithEmailAndPassword(auth, email, storedPassword);
+      await sendEmailVerification(userCredential.user, {
         url: window.location.origin + "/loginregister",
       });
       setLoginError(checkData.message);
@@ -265,15 +233,12 @@ export default function LoginRegisterPage() {
     try {
       const res = await fetch(`${API_URL}/api/otp/verifyLogin`, {
         method: "POST",
-        headers: { "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
-         },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
         credentials: "include",
         body: JSON.stringify({ userID: tempUserId, code: otpCode, rememberDevice: tempRememberMe }),
       });
 
       const data = await res.json();
-
       if (res.ok && data.success) {
         setUser(data.user);
         navigate(data.user.role === "admin" ? "/admin" : "/home");
@@ -296,15 +261,12 @@ export default function LoginRegisterPage() {
     try {
       const res = await fetch(`${API_URL}/api/otp/sendLogin`, {
         method: "POST",
-        headers: { "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
-         },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
         credentials: "include",
         body: JSON.stringify({ userID: tempUserId }),
       });
 
       const data = await res.json();
-
       if (res.ok && data.success) {
         setLoginError("A new code has been sent to your email.");
         setResendCooldown(60); 
@@ -319,17 +281,14 @@ export default function LoginRegisterPage() {
   };
 
   // ------------------------------
-  // 🔒 UPDATED: Login Handler
+  // Login Handler
   // ------------------------------
   const handleLogin = async () => {
     setLoginError("");
-
-    // 1. Prevent request if timer is running (Client-side check)
     if (serverLockoutTimer > 0) {
        setLoginError(`Account locked. Try again in ${formatTime(serverLockoutTimer)}.`);
        return;
     }
-
     if (!email || !password) {
       setLoginError("Please fill in all fields.");
       return;
@@ -339,21 +298,16 @@ export default function LoginRegisterPage() {
       const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
-         },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
         body: JSON.stringify({ email, password, rememberDevice }),
       });
       const data = await res.json();
 
-      // 2. 🔒 Check for 429 Status (Account Lockout)
       if (res.status === 429 && data.lockoutRemaining) {
           setServerLockoutTimer(data.lockoutRemaining);
           setLoginError(`Too many attempts. Account locked for ${formatTime(data.lockoutRemaining)}.`);
           return;
       }
-
-      // Check for 2FA
       if (data.requires2FA) {
           setTempUserId(data.tempUserId);
           setTempRememberMe(data.rememberDevice);
@@ -361,20 +315,17 @@ export default function LoginRegisterPage() {
           setLoginError(""); 
           return; 
       }
-
       if (res.ok && data.success && data.user) {
         setUser(data.user);
         navigate(data.user.role === "admin" ? "/admin" : "/home");
         return;
       }
-
       if (data.notVerified) {
-        setLoginError("Email is not verified. Please check your inbox or spam folder.");
+        setLoginError("Email is not verified. Please check your inbox.");
         setShowResendButton(true);
         setStoredPassword(password);
         return;
       }
-      
       setLoginError(data.message || "Invalid email or password.");
     } catch (err) {
       console.error("Login error:", err);
@@ -388,14 +339,11 @@ export default function LoginRegisterPage() {
     const hasLower = /[a-z]/.test(password);
     const hasNum = /[0-9]/.test(password);
     const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-    if (password.length < minLength)
-      return `Password must be at least ${minLength} characters long`;
+    if (password.length < minLength) return `Password must be at least ${minLength} characters long`;
     if (!hasUpper) return "Password must contain an uppercase letter";
     if (!hasLower) return "Password must contain a lowercase letter";
     if (!hasNum) return "Password must contain a number";
-    if (!hasSpecial)
-      return "Password must contain a special character (!@#$%^&*...)";
+    if (!hasSpecial) return "Password must contain a special character";
     return null;
   };
 
@@ -416,11 +364,7 @@ export default function LoginRegisterPage() {
       return;
     }
     try {
-      const fb = await createUserWithEmailAndPassword(
-        auth,
-        regEmail,
-        regPassword
-      );
+      const fb = await createUserWithEmailAndPassword(auth, regEmail, regPassword);
       const firebaseUID = fb.user.uid;
       await sendEmailVerification(fb.user, {
         url: window.location.origin + "/loginregister",
@@ -428,9 +372,7 @@ export default function LoginRegisterPage() {
       const res = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
-         },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
         body: JSON.stringify({
           firstname: firstName,
           lastname: lastName,
@@ -450,361 +392,153 @@ export default function LoginRegisterPage() {
       setRegEmail("");
       setRegPassword("");
       setActiveTab("login");
-      setRegPasswordCriteria({
-        length: false, upper: false, lower: false, number: false, special: false
-      });
+      setRegPasswordCriteria({ length: false, upper: false, lower: false, number: false, special: false });
     } catch (err) {
       console.error("Register error:", err);
-      if (err.code === 'auth/email-already-in-use') {
-        setRegisterError("This email is already registered. Please use a different email or try logging in.");
-      } else if (err.code === 'auth/invalid-email') {
-        setRegisterError("Invalid email format. Please check your email address.");
-      } else if (err.code === 'auth/network-request-failed') {
-        setRegisterError("Network error. Please check your internet connection and try again.");
-      } else {
-        setRegisterError("Registration failed. Please try again or contact support.");
-      }
+      setRegisterError("Registration failed. Please try again.");
     }
   };
 
   const handleGuest = () => {
     loginAsGuest();
-    navigate("/"); // Changed from /home to root to follow new flow
+    navigate("/"); 
   };
 
   // ------------------------------
-  // JSX
+  // JSX (Modern Heritage Design)
   // ------------------------------
   return (
-    <div className="login-register-page">
-      <div className="lrp-image-section">
-        <img src={LoginFood} alt="Login Visual" />
-        <div className="lrp-image-overlay"></div>
-        <div className="lrp-image-text">
-          <h1>Sarawak Food Heritage</h1>
-          <p>Discover, preserve, and celebrate the rich culinary traditions of Sarawak</p>
-        </div>
+    <div className="modern-heritage-page">
+      {/* 1. Full Screen Background Image */}
+      <div className="mh-background">
+        <img src={LoginFood} alt="Sarawak Cuisine" />
+        <div className="mh-overlay"></div>
       </div>
 
-      <div className="lrp-form-section">
-        <div className="lrp-card">
-          <div className="lrp-card-header">
-            <div className="lrp-logo">🍽️</div>
-            <h3>Welcome to SarawakEats</h3>
+      {/* 2. Content Container (Floating on top) */}
+      <div className="mh-content-wrapper">
+        
+        {/* Left Side: Brand Text */}
+        <div className="mh-brand-section">
+          <h1 className="mh-title">Sarawak<br/>Food Heritage</h1>
+          <div className="mh-divider"></div>
+          <p className="mh-subtitle">
+            Preserving the legacy of culinary traditions.<br/>
+            Taste the history, share the culture.
+          </p>
+        </div>
+
+        {/* Right Side: The Glass Card */}
+        <div className="mh-form-card">
+          {/* Header */}
+          <div className="mh-card-header">
+            <h3>Welcome Back</h3>
+            <p>Enter your details to explore</p>
           </div>
 
-          <div className="lrp-tabs">
-            <button
-              className={`lrp-tab ${activeTab === "login" ? "active" : ""}`}
-              onClick={() => setActiveTab("login")}
-            >
-              Login
-            </button>
-            <button
-              className={`lrp-tab ${activeTab === "register" ? "active" : ""}`}
-              onClick={() => setActiveTab("register")}
-            >
-              Register
-            </button>
+          {/* Gliding Tabs */}
+          <div className="mh-tabs">
+            <div className="mh-tab-pill" style={{ transform: activeTab === "login" ? "translateX(0)" : "translateX(100%)" }} />
+            <button className={`mh-tab-btn ${activeTab === "login" ? "active" : ""}`} onClick={() => setActiveTab("login")}>Login</button>
+            <button className={`mh-tab-btn ${activeTab === "register" ? "active" : ""}`} onClick={() => setActiveTab("register")}>Register</button>
           </div>
 
-          {activeTab === "login" ? (
-            <div className="lrp-form-content">
-              {loginError && (
-                <div className="lrp-error-box">
-                  {loginError}
-                  {/* 🔒 NEW: Display the server timer if active */}
-                  {serverLockoutTimer > 0 && (
-                    <p className="lrp-timer">
-                      Please wait {formatTime(serverLockoutTimer)}
-                    </p>
-                  )}
-
-                  {showResendButton && (
-                    <div style={{ marginTop: "12px", textAlign: "center" }}>
-                      <button
-                        onClick={handleResendVerification}
-                        disabled={resendCooldown > 0 || isResending}
-                        style={{
-                          padding: "8px 16px",
-                          backgroundColor: resendCooldown > 0 || isResending ? "#ccc" : "#8B4513",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "6px",
-                          cursor: resendCooldown > 0 || isResending ? "not-allowed" : "pointer",
-                          fontSize: "14px",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {isResending
-                          ? "Sending..."
-                          : resendCooldown > 0
-                            ? `Resend in ${formatTime(resendCooldown)}`
-                            : "Resend Verification Email"
-                        }
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {showOtpInput ? (
-                <div className="otp-form-section">
-                  <div className="otp-header-box">
-                    <p className="otp-text">
-                      We sent a 6-digit code to <strong>{email}</strong>.
-                    </p>
+          <div className="mh-form-body">
+            {/* LOGIN VIEW */}
+            {activeTab === "login" && (
+               <>
+               {showOtpInput ? (
+                  <div className="mh-otp-section">
+                    <p className="mh-otp-text">Enter code sent to <strong>{email}</strong></p>
+                    <input type="text" className="mh-otp-input" value={otpCode} maxLength={6} placeholder="000000" onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))} />
+                    <button onClick={handleVerifyOtp} className="mh-btn-primary" disabled={isVerifyingOtp}>{isVerifyingOtp ? "Verifying..." : "Verify Code"}</button>
+                    <button onClick={handleResendOtp} className="mh-btn-text" disabled={resendCooldown > 0}>{resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}</button>
+                    <button onClick={() => setShowOtpInput(false)} className="mh-btn-text">Back to Login</button>
                   </div>
-
-                  <div className="password-input-wrap">
-                    <label>Verification Code</label>
-                    <input
-                      type="text"
-                      className="otp-input-field"
-                      value={otpCode}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
-                        setOtpCode(val);
-                      }}
-                      placeholder="••••••"
-                      maxLength={6}
-                      autoFocus
-                    />
-                  </div>
-
-                  <button 
-                    onClick={handleVerifyOtp} 
-                    className="lrp-btn lrp-btn-primary otp-verify-btn"
-                    disabled={isVerifyingOtp}
-                  >
-                    {isVerifyingOtp ? "Verifying..." : "Verify Login"}
-                  </button>
-
-                  <button 
-                    onClick={handleResendOtp}
-                    className="lrp-btn lrp-btn-outline otp-resend-btn"
-                    disabled={resendCooldown > 0 || isResending}
-                  >
-                    {resendCooldown > 0 
-                      ? `Resend available in ${resendCooldown}s` 
-                      : isResending ? "Sending..." : "Resend Code"}
-                  </button>
+               ) : (
+                 <>
+                  {loginError && <div className="mh-error-msg">{loginError}</div>}
                   
-                  <button 
-                    onClick={() => {
-                      setShowOtpInput(false);
-                      setOtpCode("");
-                      setLoginError("");
-                    }} 
-                    className="lrp-btn lrp-btn-outline otp-back-btn"
-                  >
-                    Back to Login
+                  <div className="mh-input-group">
+                    <FaUser className="mh-icon" />
+                    <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  </div>
+                  
+                  <div className="mh-input-group">
+                    <FaLock className="mh-icon" />
+                    <input type={showLoginPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <div className="mh-eye" onClick={() => setShowLoginPassword(!showLoginPassword)}>{showLoginPassword ? <FaEyeSlash/> : <FaEye/>}</div>
+                  </div>
+
+                  <div className="mh-actions">
+                    <label className="mh-checkbox">
+                      <input type="checkbox" checked={rememberDevice} onChange={(e) => setRememberDevice(e.target.checked)} />
+                      <span>Remember me</span>
+                    </label>
+                    <span onClick={() => navigate("/forgotpassword")} className="mh-forgot">Forgot Password?</span>
+                  </div>
+
+                  <button onClick={handleLogin} className="mh-btn-primary">
+                    Sign In <FaArrowRight className="btn-arrow"/>
                   </button>
+                 </>
+               )}
+               </>
+            )}
+
+            {/* REGISTER VIEW */}
+            {activeTab === "register" && (
+              <>
+                {registerError && <div className="mh-error-msg">{registerError}</div>}
+                
+                <div className="mh-grid-inputs">
+                  <div className="mh-input-group">
+                    <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                  </div>
+                  <div className="mh-input-group">
+                     <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                  </div>
                 </div>
-              ) : (
-                <>
-                  <div>
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      value={email}
-                      placeholder="e.g. johndoe@gmail.com"
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
 
-                  <div className="password-input-wrap">
-                    <label>Password</label>
-                    <div className="password-wrapper">
-                      <input
-                        type={showLoginPassword ? "text" : "password"}
-                        value={password}
-                        placeholder="e.g. John123!"
-                        onChange={(e) => setPassword(e.target.value)}
-                        aria-label="Login password"
-                      />
-                      <span
-                        onClick={() => setShowLoginPassword(!showLoginPassword)}
-                        className="password-eye-icon"
-                        role="button"
-                        aria-label={showLoginPassword ? "Hide password" : "Show password"}
-                      >
-                        {showLoginPassword ? <FaEyeSlash /> : <FaEye />}
-                      </span>
-                    </div>
-                  </div>
+                <div className="mh-input-group">
+                  <FaEnvelope className="mh-icon" />
+                  <input type="email" placeholder="Email Address" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} />
+                </div>
 
-                  <div className="otp-remember">
-                    <input
-                      id="remember-device"
-                      type="checkbox"
-                      checked={rememberDevice}
-                      onChange={(e) => setRememberDevice(e.target.checked)}
-                    />
-                    <label htmlFor="remember-device">Remember me for 7 days</label>
-                  </div>
-
-                  <button onClick={handleLogin} className="lrp-btn lrp-btn-primary">
-                    Sign In
-                  </button>
-                  <button onClick={() => navigate("/forgotpassword")} className="lrp-btn lrp-btn-primary">
-                    Forgot Password
-                  </button>
-                  <div className="lrp-divider"><span>or</span></div>
-
-                  <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
-                    Continue as Guest
-                  </button>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="lrp-form-content">
-              {registerError && <div className="lrp-error-box">{registerError}</div>}
-
-              <div className="lrp-grid">
-                <div>
-                  <label>First Name</label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    placeholder="e.g. John"
-                    onChange={(e) => setFirstName(e.target.value)}
+                <div ref={passwordHintRef} className="mh-input-group">
+                  <FaLock className="mh-icon" />
+                  <input 
+                    type={showRegPassword ? "text" : "password"} 
+                    placeholder="Create Password" 
+                    value={regPassword} 
+                    onFocus={() => setShowPasswordHint(true)}
+                    onChange={(e) => { setRegPassword(e.target.value); updatePasswordCriteria(e.target.value); setShowPasswordHint(true); }}
                   />
-                </div>
-                <div>
-                  <label>Last Name</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    placeholder="e.g. Tan"
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={regEmail}
-                  placeholder="e.g. johndoe@gmail.com"
-                  onChange={(e) => setRegEmail(e.target.value)}
-                />
-              </div>
-
-              <div ref={passwordHintRef} className="password-input-wrap">
-                <label>Password</label>
-
-                <div className="password-wrapper">
-                <input
-                  type={showRegPassword ? "text" : "password"}
-                  value={regPassword}
-                  placeholder="e.g. John123!"
-                  onFocus={() => setShowPasswordHint(true)}
-                  onChange={(e) => {
-                    setRegPassword(e.target.value);
-                    updatePasswordCriteria(e.target.value);
-                    setShowPasswordHint(true);
-                  }}
-                  aria-describedby="password-hint"
-                  aria-label="Register password"
-                />
-
-                <span
-                  onClick={() => setShowRegPassword(!showRegPassword)}
-                  className="password-eye-icon"
-                  role="button"
-                  aria-label={showRegPassword ? "Hide password" : "Show password"}
-                >
-                  {showRegPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
-
-                {showPasswordHint && (
-                  <div id="password-hint" className="password-hint-box" role="status" aria-live="polite">
-                    <div className="password-hints">
-                      <div className="password-hint-row">
-                        <div className={`password-hint-icon ${regPasswordCriteria.length ? "password-hint-valid" : "password-hint-invalid"}`}>
-                          {regPasswordCriteria.length ? "✅" : "❌"}
-                        </div>
-                        <div className={regPasswordCriteria.length ? "password-hint-valid" : "password-hint-invalid"}>
-                          Minimum 8 characters
-                        </div>
-                      </div>
-
-                      <div className="password-hint-row">
-                        <div className={`password-hint-icon ${regPasswordCriteria.upper ? "password-hint-valid" : "password-hint-invalid"}`}>
-                          {regPasswordCriteria.upper ? "✅" : "❌"}
-                        </div>
-                        <div className={regPasswordCriteria.upper ? "password-hint-valid" : "password-hint-invalid"}>
-                          Uppercase letter
-                        </div>
-                      </div>
-
-                      <div className="password-hint-row">
-                        <div className={`password-hint-icon ${regPasswordCriteria.lower ? "password-hint-valid" : "password-hint-invalid"}`}>
-                          {regPasswordCriteria.lower ? "✅" : "❌"}
-                        </div>
-                        <div className={regPasswordCriteria.lower ? "password-hint-valid" : "password-hint-invalid"}>
-                          Lowercase letter
-                        </div>
-                      </div>
-
-                      <div className="password-hint-row">
-                        <div className={`password-hint-icon ${regPasswordCriteria.number ? "password-hint-valid" : "password-hint-invalid"}`}>
-                          {regPasswordCriteria.number ? "✅" : "❌"}
-                        </div>
-                        <div className={regPasswordCriteria.number ? "password-hint-valid" : "password-hint-invalid"}>
-                          Number
-                        </div>
-                      </div>
-
-                      <div className="password-hint-row">
-                        <div className={`password-hint-icon ${regPasswordCriteria.special ? "password-hint-valid" : "password-hint-invalid"}`}>
-                          {regPasswordCriteria.special ? "✅" : "❌"}
-                        </div>
-                        <div className={regPasswordCriteria.special ? "password-hint-valid" : "password-hint-invalid"}>
-                          Special character
-                        </div>
-                      </div>
+                  <div className="mh-eye" onClick={() => setShowRegPassword(!showRegPassword)}>{showRegPassword ? <FaEyeSlash/> : <FaEye/>}</div>
+                  
+                  {/* Password Hints */}
+                  {showPasswordHint && (
+                    <div className="mh-password-hints">
+                       <div className={regPasswordCriteria.length ? "valid" : "invalid"}>• 8+ Chars</div>
+                       <div className={regPasswordCriteria.upper ? "valid" : "invalid"}>• Uppercase</div>
+                       <div className={regPasswordCriteria.number ? "valid" : "invalid"}>• Number</div>
+                       <div className={regPasswordCriteria.special ? "valid" : "invalid"}>• Symbol</div>
                     </div>
-                  </div>
-                )}
-              </div>
-              </div>
+                  )}
+                </div>
 
-              <button onClick={handleRegister} className="lrp-btn lrp-btn-primary">
-                Create Account
-              </button>
-              <div className="lrp-divider"><span>or</span></div>
+                <button onClick={handleRegister} className="mh-btn-primary">Create Account</button>
+              </>
+            )}
 
-              <button onClick={handleGuest} className="lrp-btn lrp-btn-outline">
-                Continue as Guest
-              </button>
-            </div>
-          )}
+            <div className="mh-separator"><span>or</span></div>
+            <button onClick={handleGuest} className="mh-btn-outline">Continue as Guest</button>
+          </div>
         </div>
       </div>
 
-      <Modal
-        open={showRegSuccess}
-        title="Registration Successful"
-        titleId="reg-success-title"
-        icon={<FaEnvelopeOpenText />}
-        primaryText="Close"
-        onClose={() => setShowRegSuccess(false)}
-        onPrimary={() => setShowRegSuccess(false)}
-        centerActions
-      >
-        Please verify your email to continue. We've sent a verification link to your inbox.
-
-        <strong className="verification-outlook-notice">
-          Using Outlook, business or corporate email?
-        </strong>
-        <p className="verification-outlook-text">
-          Your email service may automatically scan links for security, which can verify your account before you click.
-          If you see "Verification Failed" or "Link already used", your account might already be verified and you may try to log in.
-        </p>
+      <Modal open={showRegSuccess} title="Registration Successful" icon={<FaEnvelopeOpenText />} primaryText="Close" onClose={() => setShowRegSuccess(false)} onPrimary={() => setShowRegSuccess(false)}>
+        Please verify your email to continue.
       </Modal>
     </div>
   );

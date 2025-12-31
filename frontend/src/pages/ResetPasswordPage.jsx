@@ -1,9 +1,15 @@
+/* src/pages/ResetPasswordPage.jsx */
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import "../css/ResetPasswordPage.css";
+import LoginFood from "../assets/LoginFood.png";
+
+// Icons
+import { FaEye, FaEyeSlash, FaLock, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
+
+// Firebase
 import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
 import { auth } from "../config/firebase";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // ✅ Font Awesome icons
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -20,38 +26,35 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(true);
   const [pwdStatus, setPwdStatus] = useState([]);
 
-  // 🔹 UI control states
+  // UI States
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showHint, setShowHint] = useState(false);
 
-  // 🔹 Password rules
+  // CSRF
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
+
+  // Password Rules
   const passwordRules = [
     { regex: /.{8,}/, label: "At least 8 characters" },
-    { regex: /[A-Z]/, label: "At least one uppercase letter" },
-    { regex: /[a-z]/, label: "At least one lowercase letter" },
-    { regex: /[0-9]/, label: "At least one number" },
-    { regex: /[!@#$%^&*(),.?\":{}|<>]/, label: "At least one special symbol (!@#$%)" },
+    { regex: /[A-Z]/, label: "Uppercase letter" },
+    { regex: /[a-z]/, label: "Lowercase letter" },
+    { regex: /[0-9]/, label: "Number" },
+    { regex: /[!@#$%^&*(),.?":{}|<>]/, label: "Special symbol (!@#$)" },
   ];
-
-//====================
-  //CSRF
-  //======================
-const [csrfToken, setCsrfToken] = useState("");
-
-useEffect(() => {
-  const fetchCsrfToken = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-      const data = await res.json();
-      setCsrfToken(data.csrfToken);
-    } catch (err) {
-      console.error("Failed to fetch CSRF token", err);
-    }
-  };
-  fetchCsrfToken();
-}, []);
 
   const getPasswordStatus = (password) =>
     passwordRules.map((rule) => ({
@@ -59,7 +62,7 @@ useEffect(() => {
       passed: rule.regex.test(password),
     }));
 
-  // ✅ Step 1: Verify Firebase reset link
+  // Step 1: Verify Link
   useEffect(() => {
     if (oobCode) {
       verifyPasswordResetCode(auth, oobCode)
@@ -72,24 +75,24 @@ useEffect(() => {
           setLoading(false);
         });
     } else {
-      setError("Invalid or missing reset link. Please request a new one.");
+      setError("Invalid or missing reset link.");
       setLoading(false);
     }
   }, [oobCode]);
 
-  // 🔹 Update live password status
+  // Update validation status live
   useEffect(() => {
     setPwdStatus(getPasswordStatus(pwd));
   }, [pwd]);
 
-  // ✅ Step 2: Handle password reset submission
+  // Step 2: Handle Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     for (let rule of passwordRules) {
       if (!rule.regex.test(pwd)) {
-        setError(`Password requirement not met: ${rule.label}`);
+        setError(`Requirement missing: ${rule.label}`);
         return;
       }
     }
@@ -102,148 +105,158 @@ useEffect(() => {
     try {
       await confirmPasswordReset(auth, oobCode, pwd);
 
-      if (email) {
-        const res = await fetch(`${API_URL}/api/auth/updatePassword`, {
+      // Sync with backend if needed
+      if (email && csrfToken) {
+        await fetch(`${API_URL}/api/auth/updatePassword`, {
           method: "POST",
-          headers: { "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken
-           },
+          headers: { 
+            "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken
+          },
           credentials: "include",
           body: JSON.stringify({ email, newPassword: pwd }),
         });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to update backend password");
       }
 
       setSuccess(true);
-      setTimeout(() => navigate("/loginregister"), 2500);
+      setTimeout(() => navigate("/loginregister"), 3000);
     } catch (err) {
       console.error(err);
-      setError(err.message || "Something went wrong. Please try again or request a new link.");
+      setError(err.message || "Something went wrong. Please try again.");
     }
   };
 
+  // --- RENDER CONTENT BASED ON STATE ---
+  let content;
+
   if (loading) {
-    return (
-      <div className="rpp-container">
-        <div className="rpp-card">
-          <h2 className="rpp-head2">Verifying link...</h2>
-        </div>
+    content = (
+      <div className="mh-status-view">
+        <div className="mh-spinner"></div>
+        <h3>Verifying Link...</h3>
+        <p>Please wait a moment.</p>
       </div>
     );
-  }
-
-  if (success) {
-    return (
-      <div className="rpp-container">
-        <div className="rpp-card">
-          <h2 className="rpp-head2">Password Updated Successfully!</h2>
-          <p>Please wait while we navigate you to our Login page.</p>
-        </div>
+  } else if (success) {
+    content = (
+      <div className="mh-status-view">
+        <div className="mh-success-icon"><FaCheckCircle /></div>
+        <h3>Password Reset!</h3>
+        <p>Your password has been updated successfully.</p>
+        <p className="mh-redirect-text">Redirecting to login...</p>
+        <button className="mh-btn-primary" onClick={() => navigate("/loginregister")}>
+          Login Now
+        </button>
       </div>
     );
-  }
-
-  if (error && !email) {
-    return (
-      <div className="rpp-container">
-        <div className="rpp-card">
-          <h2 className="rpp-head2">Invalid or Missing Link</h2>
-          <p>{error}</p>
-          <button
-            className="lrp-btn lrp-btn-primary"
-            onClick={() => navigate("/forgotpassword")}
-          >
-            Back
-          </button>
-        </div>
+  } else if (error && !email) {
+    // Error loading the page (invalid link)
+    content = (
+      <div className="mh-status-view">
+        <div className="mh-error-icon"><FaExclamationCircle /></div>
+        <h3>Link Expired</h3>
+        <p>{error}</p>
+        <button className="mh-btn-primary" onClick={() => navigate("/forgotpassword")}>
+          Request New Link
+        </button>
       </div>
     );
-  }
+  } else {
+    // Main Form
+    content = (
+      <>
+        <div className="mh-card-header">
+          <h3>Set New Password</h3>
+          <p>Resetting for <strong>{email}</strong></p>
+        </div>
 
-  return (
-    <div className="rpp-container">
-      <div className="rpp-card">
-        <h2 className="rpp-head2">Set a New Password</h2>
-        <p className="rpp-subtext">
-          Resetting password for <strong>{email}</strong>
-        </p>
+        <form onSubmit={handleSubmit} className="mh-form-body">
+          {error && <div className="mh-error-msg">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="rpp-form" noValidate>
           {/* New Password */}
-          <label>New Password</label>
-          <div className="password-input-wrap">
-  
-            <div className="password-wrapper"> 
-              <input
-                type={showPwd ? "text" : "password"}
-                placeholder="Enter a new password"
-                value={pwd}
-                onChange={(e) => setPwd(e.target.value)}
-                onFocus={() => setShowHint(true)}
-                onBlur={() => setShowHint(false)}
-              />
-              <span
-                className="password-eye-icon"
-                onClick={() => setShowPwd((prev) => !prev)}
-              >
-                {showPwd ? <FaEyeSlash /> : <FaEye />}
-              </span>
+          <div className="mh-input-group">
+            <FaLock className="mh-icon" />
+            <input
+              type={showPwd ? "text" : "password"}
+              placeholder="New Password"
+              value={pwd}
+              onChange={(e) => setPwd(e.target.value)}
+              onFocus={() => setShowHint(true)}
+              // onBlur={() => setShowHint(false)} // Optional: keep open to see checks
+            />
+            <div className="mh-eye" onClick={() => setShowPwd(!showPwd)}>
+              {showPwd ? <FaEyeSlash /> : <FaEye />}
+            </div>
 
-              {showHint && (
-                <div className="password-hint-box">
-                  <div className="password-hints">
-                    {pwdStatus.map((rule, idx) => (
-                      <div
-                        key={idx}
-                        className={
-                          rule.passed
-                            ? "password-hint-row password-hint-valid"
-                            : "password-hint-row password-hint-invalid"
-                        }
-                      >
-                        {rule.passed ? "✔" : "✖"} {rule.label}
-                      </div>
-                    ))}
+            {/* Validation Hints */}
+            {showHint && (
+              <div className="mh-password-rules">
+                {pwdStatus.map((rule, idx) => (
+                  <div
+                    key={idx}
+                    className={`mh-rule-item ${rule.passed ? "passed" : "pending"}`}
+                  >
+                    {rule.passed ? "✓" : "○"} {rule.label}
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div className="mh-input-group">
+            <FaLock className="mh-icon" />
+            <input
+              type={showConfirm ? "text" : "password"}
+              placeholder="Confirm Password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+            />
+            <div className="mh-eye" onClick={() => setShowConfirm(!showConfirm)}>
+              {showConfirm ? <FaEyeSlash /> : <FaEye />}
             </div>
           </div>
 
-          {/* 🔹 Confirm Password */}
-          <label>Confirm New Password</label>
-          <div className="password-input-wrap">
-            <div className="password-wrapper">
-              <input
-                type={showConfirm ? "text" : "password"}
-                placeholder="Re-enter your new password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-              />
-              <span
-                className="password-eye-icon"
-                onClick={() => setShowConfirm((prev) => !prev)}
-              >
-                {showConfirm ? <FaEyeSlash /> : <FaEye />}
-              </span>
-            </div>
-          </div>
-
-          {error && <p className="rpp-error">{error}</p>}
-
-          <button type="submit" className="lrp-btn lrp-btn-primary">
+          <button type="submit" className="mh-btn-primary">
             Save New Password
           </button>
-          <button
-            type="button"
-            className="lrp-btn lrp-btn-outline"
-            onClick={() => navigate("/forgotpassword")}
+          
+          <button 
+            type="button" 
+            className="mh-btn-text"
+            onClick={() => navigate("/loginregister")}
           >
             Cancel
           </button>
         </form>
+      </>
+    );
+  }
+
+  return (
+    <div className="modern-heritage-page">
+      {/* Background */}
+      <div className="mh-background">
+        <img src={LoginFood} alt="Sarawak Cuisine" />
+        <div className="mh-overlay"></div>
+      </div>
+
+      {/* Content */}
+      <div className="mh-content-wrapper">
+        {/* Brand Text */}
+        <div className="mh-brand-section">
+          <h1 className="mh-title">Secure<br/>Your Account</h1>
+          <div className="mh-divider"></div>
+          <p className="mh-subtitle">
+            Create a strong password to protect your journey<br/>
+            through Sarawak's culinary heritage.
+          </p>
+        </div>
+
+        {/* Glass Card */}
+        <div className="mh-form-card mh-form-card--auto">
+          {content}
+        </div>
       </div>
     </div>
   );

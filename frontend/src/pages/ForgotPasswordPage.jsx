@@ -1,9 +1,13 @@
+/* src/pages/ForgotPasswordPage.jsx */
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginFood from "../assets/LoginFood.png";
 import "../css/ForgotPasswordPage.css";
 
-// ✅ Import Firebase
+// Icons
+import { FaEnvelope, FaArrowLeft, FaCheckCircle } from "react-icons/fa";
+
+// Firebase
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../config/firebase";
 
@@ -12,6 +16,7 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,104 +27,116 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    try {
-      // ✅ IMPORTANT:
-      // We send a reset link but force Firebase to redirect back to our *own* reset page
-      // This ensures the link includes oobCode, &mode=resetPassword in the URL
+    setLoading(true);
 
-      // 🔹 Use dynamic environment-aware redirect so it works in local + production
+    try {
       const actionCodeSettings = {
         url:
           import.meta.env.MODE === "development"
-            ? "http://localhost:5173/resetpassword" // local dev
-            : "https://food-nutrition-hub.vercel.app/resetpassword", // production
-        handleCodeInApp: true, // 🔹 Required to process in React app instead of Firebase hosted UI
+            ? "http://localhost:5173/resetpassword"
+            : "https://food-nutrition-hub.vercel.app/resetpassword",
+        handleCodeInApp: true,
       };
 
-      // ✅ Send the reset email with redirect instructions
       await sendPasswordResetEmail(auth, email, actionCodeSettings);
-
-      setSubmitted(true); // ✅ Show "Success" UI
+      setSubmitted(true);
     } catch (err) {
       console.error(err);
-      setError("Failed to send reset email. Check if the email is registered.");
+      setError("Failed to send reset email. Please check the email provided.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="fpp-page">
-      {/* ✅ Left image panel */}
-      <div className="fpp-image-panel">
-        <img src={LoginFood} alt="Sarawak cuisine collage" />
-        <div className="fpp-overlay" />
-        <div className="fpp-caption">
-          <h1>Recover your account</h1>
-          <p>We'll send a reset link to your email so you can create a new password.</p>
-        </div>
+    <div className="modern-heritage-page">
+      {/* 1. Full Screen Background */}
+      <div className="mh-background">
+        <img src={LoginFood} alt="Sarawak Cuisine" />
+        <div className="mh-overlay"></div>
       </div>
 
-      {/* ✅ Right form */}
-      <div className="fpp-form-panel">
-        <div className="fpp-card">
-          <div className="fpp-card-header">
-            <div className="fpp-logo">🍽️</div>
-            <h3>Forgot Password</h3>
-            <p className="fpp-subtext">Enter the email you used for SarawakEats.</p>
-            <p className="fpp-subtext">We'll send a secure link to reset your password.</p>
-          </div>
+      {/* 2. Content Container */}
+      <div className="mh-content-wrapper">
+        
+        {/* Left Side: Brand Text */}
+        <div className="mh-brand-section">
+          <h1 className="mh-title">Recover<br/>Your Account</h1>
+          <div className="mh-divider"></div>
+          <p className="mh-subtitle">
+            Don't worry, it happens. <br/>
+            We'll help you get back to exploring Sarawak's finest flavors in no time.
+          </p>
+        </div>
 
+        {/* Right Side: Glass Card */}
+        <div className="mh-form-card mh-form-card--auto-height">
+          
           {!submitted ? (
-            <form onSubmit={handleSubmit} className="fpp-form" noValidate>
-              <label htmlFor="fpp-email">Email</label>
-              <input
-                id="fpp-email"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-              />
+            <>
+              <div className="mh-card-header">
+                <h3>Forgot Password?</h3>
+                <p>Enter your email to receive a reset link</p>
+              </div>
 
-              {error && <p className="fpp-error">{error}</p>}
+              <form onSubmit={handleSubmit} className="mh-form-body">
+                {error && <div className="mh-error-msg">{error}</div>}
 
-              <button type="submit" className="lrp-btn lrp-btn-primary">
-                Send reset link
-              </button>
+                <div className="mh-input-group">
+                  <FaEnvelope className="mh-icon" />
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                  />
+                </div>
 
-              <div className="fpp-links">
+                <button 
+                  type="submit" 
+                  className="mh-btn-primary" 
+                  disabled={loading}
+                >
+                  {loading ? "Sending..." : "Send Reset Link"}
+                </button>
+
+                <div className="mh-separator"><span>or</span></div>
+
                 <button
                   type="button"
-                  className="lrp-btn lrp-btn-outline"
+                  className="mh-back-btn"
                   onClick={() => navigate("/loginregister")}
                 >
-                  Back to Login
+                  <FaArrowLeft /> Back to Login
                 </button>
-              </div>
-            </form>
+              </form>
+            </>
           ) : (
-            <div className="fpp-success">
-              <div className="fpp-success-icon">✓</div>
+            /* Success State */
+            <div className="mh-success-view">
+              <div className="mh-success-icon">
+                <FaCheckCircle />
+              </div>
               <h3>Check your inbox</h3>
               <p>
-                If an account exists for <strong>{email}</strong>, a password reset link has been sent.
+                We've sent a secure reset link to <br/><strong>{email}</strong>
               </p>
-              <div className="fpp-success-actions">
-                <button
-                  type="button"
-                  className="lrp-btn lrp-btn-primary"
-                  onClick={() => navigate("/loginregister")}
-                >
-                  Back to Login
-                </button>
+              
+              <div className="mh-tips-box">
+                <p>• Check your spam folder if you don't see it.</p>
+                <p>• The link expires in 1 hour.</p>
               </div>
-              <ul className="fpp-tips">
-                <li>Didn't get it? Check your spam folder.</li>
-                <li>Still no email? Try again or contact support.</li>
-              </ul>
+
+              <button
+                type="button"
+                className="mh-btn-primary"
+                onClick={() => navigate("/loginregister")}
+              >
+                Back to Login
+              </button>
             </div>
           )}
-
-          <p className="fpp-footer">Preserving and celebrating Sarawak's culinary heritage</p>
         </div>
       </div>
     </div>

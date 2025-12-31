@@ -1,835 +1,396 @@
- /* Global   */
-body, html, #root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+/* src/css/LoginRegisterPage.css */
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap');
+
+:root {
+  --mh-gold: #c6a87c;
+  --mh-brown: #5c3a21;
+  --mh-dark: #1a1512;
+  --mh-glass: rgba(255, 255, 255, 0.85);
+  --mh-glass-border: rgba(255, 255, 255, 0.4);
 }
 
- /* Page Layout   */
-.login-register-page {
-  min-height: 100vh;
-  display: flex;
-  background: linear-gradient(to bottom right, #f9fafb, #e9f2ef);
-}
-
-/* Left Image Section */
-.lrp-image-section {
-  flex: 2;
+.modern-heritage-page {
   position: relative;
-  display: none;
-  width: 100%;
+  width: 100vw;
   height: 100vh;
   overflow: hidden;
-}
-@media (min-width: 1024px) {
-  .lrp-image-section {
-    display: block;
-    min-height: 100vh; 
-    min-width: 60%; 
-    max-width: 60%;
-    height: 100vh;
-  }
-}
-.lrp-image-section img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-.lrp-image-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(139, 69, 19, 0.8), rgba(139, 69, 19, 0.2), transparent);
-}
-.lrp-image-text {
-  position: absolute;
-  bottom: 2rem;
-  left: 2rem;
-  right: 2rem;
-  color: #fff;
-}
-.lrp-image-text h1 {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-.lrp-image-text p {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  margin-top: 0.25rem;
-}
-
-/* Right Form Section */
-.lrp-form-section {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  background: #f7f2ed;
-  min-height: 100vh;
-  box-sizing: border-box;
-  padding: 2rem;
-  max-height: 100vh;
-  overflow-y: auto;
-}
-
-.lrp-card {
-  width: 100%;
-  max-width: 500px;  
-  background: #fff;
-  border: 1px solid #dbcebc;
-  border-radius: 16px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  padding: 2rem;
-  box-sizing: border-box;
-}
-
-@media (max-width: 1023px) {
-  .lrp-form-section {
-    padding: 2rem; 
-  }
-
-  .lrp-card {
-    max-width: 100%; 
-    border-radius: 12px; 
-    padding: 1.5rem;
-  }
-}
-
-.lrp-card-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-.lrp-card-header .lrp-logo {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 1rem;
-  background: #8B4513;
-  border-radius: 50%;
+  font-family: 'Poppins', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
-  color: #fff;
-}
-.lrp-card-header h2 {
-  font-size: 1.6rem;
-  margin: 0;
-}
-.lrp-card-header .lrp-description {
-  font-size: 0.9rem;
-  color: #777;
-  margin-top: 0.25rem;
+  background-color: #f7f2ed;
 }
 
- /* Tabs   */
-.lrp-tabs {
+/* --- 1. Immersive Background --- */
+.mh-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.mh-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: slowZoom 20s infinite alternate;
+}
+
+.mh-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(40,20,5,0.4) 50%, rgba(0,0,0,0.1) 100%);
+  backdrop-filter: blur(2px);
+}
+
+@keyframes slowZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+/* --- 2. Layout Container --- */
+.mh-content-wrapper {
+  position: relative;
+  z-index: 2;
   display: flex;
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 1rem;
-  background: #f7f2ed;
-  border-radius: 16px;
-  overflow: hidden;
+  width: 90%;
+  max-width: 1200px;
+  height: 90vh; /* Increased slightly to fit the taller card */
+  align-items: center;
+  justify-content: space-between;
 }
-.lrp-tab {
+
+/* --- 3. Left Brand Section --- */
+.mh-brand-section {
+  color: white;
   flex: 1;
-  padding: 0.3rem;
-  text-align: center;
-  font-size: 1rem;
-  cursor: pointer;
-  border-radius: 16px;
-  border: none;
-  background: #f7f2ed;
-  transition: background 0.2s ease, color 0.2s ease;
-  color: black;
-  margin: 0.2rem;
-}
-.lrp-tab:hover {
-  background: #e6d5c0;
-}
-.lrp-tab.active {
-  background: #ffffff;
-  color: black;
-}
-.lrp-tab:focus {
-  outline: none;
+  padding-right: 50px;
+  animation: fadeSlideRight 0.8s ease-out;
 }
 
+.mh-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 5rem;
+  line-height: 1;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
 
- /* Form   */
-.lrp-form-content {
+.mh-divider {
+  width: 80px;
+  height: 4px;
+  background: var(--mh-gold);
+  margin: 20px 0;
+}
+
+.mh-subtitle {
+  font-size: 1.1rem;
+  font-weight: 300;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+/* --- 4. Glass Form Card (FIXED SIZE) --- */
+.mh-form-card {
+  flex: 0 0 440px;
+  background: var(--mh-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--mh-glass-border);
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  animation: fadeSlideUp 0.8s ease-out 0.2s backwards;
+  
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  
+  /* --- STRICT HEIGHT FIX --- */
+  height: 680px;      /* Hard fixed height */
+  min-height: 680px;  /* Backup minimum */
+  justify-content: center; /* Vertically centers the shorter Login form */
+  /* ----------------------- */
+  
+  overflow-y: auto;
+  scrollbar-width: none;
 }
-.lrp-form-content label {
-  font-size: 0.85rem;
-  color: #333;
-  margin-bottom: 0.25rem;
+.mh-form-card::-webkit-scrollbar { display: none; }
+
+.mh-card-header {
+  text-align: center;
+  margin-bottom: 25px;
+  flex-shrink: 0; /* Prevents header from squishing */
 }
-.lrp-form-content input {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
+.mh-card-header h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: var(--mh-brown);
+  margin: 0;
+}
+.mh-card-header p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 5px 0 0;
+}
+
+/* --- Tabs (FIXED OUTLINE) --- */
+.mh-tabs {
+  position: relative;
+  display: flex;
+  background: rgba(0,0,0,0.05);
+  border-radius: 12px;
+  padding: 5px;
+  margin-bottom: 30px;
+  height: 50px;
+  flex-shrink: 0; 
+}
+
+.mh-tab-pill {
+  position: absolute;
+  width: calc(50% - 5px);
+  height: calc(100% - 10px);
+  background: white;
   border-radius: 8px;
-  font-size: 1rem;
+  
+  /* NO BORDER */
+  border: none !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  z-index: 1;
 }
-.lrp-form-content input:focus {
-  border-color: #8B4513;
-  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.15);
+
+.mh-tab-btn {
+  flex: 1;
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  
+  /* NO OUTLINE */
+  border: none !important;
+  outline: none !important;
+  
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+.mh-tab-btn.active { color: var(--mh-brown); }
+.mh-tab-btn:focus { outline: none !important; }
+
+/* --- Inputs --- */
+.mh-input-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+.mh-input-group input {
+  width: 100%;
+  padding: 15px 15px 15px 45px;
+  border: 1px solid transparent;
+  background: white;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+.mh-input-group input:focus {
   outline: none;
+  border-color: var(--mh-gold);
+  box-shadow: 0 4px 20px rgba(198, 168, 124, 0.2);
 }
-/* Apply grid layout */
-.lrp-form-content .lrp-grid {
+
+/* --- Fixed Icon Positions --- */
+.mh-icon {
+  position: absolute;
+  left: 15px;
+  top: 25px; /* Fixed */
+  transform: translateY(-50%);
+  color: #aaa;
+  z-index: 1;
+}
+
+.mh-eye {
+  position: absolute;
+  right: 15px;
+  top: 25px; /* Fixed */
+  transform: translateY(-50%);
+  color: #aaa;
+  cursor: pointer;
+}
+.mh-eye:hover { color: var(--mh-brown); }
+
+.mh-grid-inputs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 15px;
 }
+.mh-grid-inputs .mh-input-group input { padding-left: 15px; } 
 
-/* Make each input full width and with background */
-.lrp-form-content input,
-.lrp-form-content textarea {
-  width: 100%;
-  background-color: #f7f2ed;
-  padding: 0.5rem;
-  box-sizing: border-box;
-  display: block;
+/* --- Actions --- */
+.mh-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  margin-bottom: 25px;
 }
-
-/* Make placeholder appear on a new line */
-.lrp-form-content input::placeholder,
-.lrp-form-content textarea::placeholder {
-  display: block;
-  margin-bottom: 0.5rem;
-}
-
-/* Remember me checkbox */
-.otp-remember {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    color: #333;
-}
-
-.otp-remember input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    flex-shrink: 0;
-}
-
-.otp-remember label {
-    cursor: pointer;
-    margin: 0;
-}
-
- /* Buttons   */
-.lrp-btn {
-  display: inline-block;
-  width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  border-radius: 8px;
+.mh-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  text-align: center;
+  color: #555;
 }
-.lrp-btn-primary {
-  background: #8B4513;
+.mh-forgot {
+  color: var(--mh-brown);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* --- Buttons --- */
+.mh-btn-primary {
+  width: 100%;
+  padding: 15px;
+  background: var(--mh-brown);
   color: white;
   border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s;
+  box-shadow: 0 10px 20px rgba(92, 58, 33, 0.2);
 }
-.lrp-btn-primary:hover {
-  background: #5C2E0C;
-}
-.lrp-btn-outline {
-  background: #f7f2ed;
-  border: 1px solid #dbcebc;
-}
-.lrp-btn-outline:hover {
-  background: #dbcebc;
-}
-.lrp-btn:focus {
-  outline: none; 
+.mh-btn-primary:hover {
+  background: #4a2e1a;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px rgba(92, 58, 33, 0.3);
 }
 
- /* Divider   */
-.lrp-divider {
-  position: relative;
-  text-align: center;
-  margin: 0.5rem 0;
+.mh-separator {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+  color: #aaa;
+  font-size: 0.8rem;
 }
-.lrp-divider::before,
-.lrp-divider::after {
+.mh-separator span { padding: 0 10px; }
+.mh-separator::before, .mh-separator::after {
   content: "";
-  position: absolute;
-  top: 50%;
-  width: 40%;
+  flex: 1;
   height: 1px;
   background: #ddd;
 }
-.lrp-divider::before {
-  left: 0;
-}
-.lrp-divider::after {
-  right: 0;
-}
-.lrp-divider span {
-  background: #fff;
-  padding: 0 0.5rem;
-  color: #777;
-  font-size: 0.9rem;
-}
 
- /* Footer Text   */
-.lrp-footer-text {
-  text-align: center;
-  font-size: 0.8rem;
-  color: #777;
-  margin-top: 1rem;
-}
-
- /* Password hint on registration form   */
-.password-hint {
-  font-size: 12px;
+.mh-btn-outline {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid #ccc;
+  border-radius: 12px;
   color: #666;
-  margin-top: 4px;
-  margin-bottom: 0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.mh-btn-outline:hover {
+  border-color: var(--mh-brown);
+  color: var(--mh-brown);
+  background: white;
 }
 
-/* 🔴 Instagram-style error box */
-.lrp-error-box {
-  background: rgba(237, 73, 86, 0.12);
-  color: #d63031;
-  border: 1px solid rgba(237, 73, 86, 0.3);
+/* --- Error & OTP --- */
+.mh-error-msg {
+  background: #ffe5e5;
+  color: #d32f2f;
+  padding: 10px;
   border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 14px;
-  margin-bottom: 10px;
+  font-size: 0.85rem;
   text-align: center;
-  animation: fadeIn 0.3s ease-in-out;
-  backdrop-filter: blur(6px);
-  box-shadow: 0 2px 6px rgba(237, 73, 86, 0.15);
+  margin-bottom: 15px;
+  border: 1px solid #ffcccc;
+}
+.mh-otp-input {
+  text-align: center;
+  letter-spacing: 10px;
+  font-size: 1.5rem !important;
+  font-weight: 700;
+  color: var(--mh-brown);
+}
+.mh-btn-text {
+  background: none;
+  border: none;
+  color: #666;
+  margin-top: 15px;
+  cursor: pointer;
+  text-decoration: underline;
+  width: 100%;
 }
 
-/* 🔒 countdown timer */
-.lrp-timer {
-  margin-top: 6px;
-  font-size: 13px;
-  color: #a94442;
+/* --- Password Hints --- */
+.mh-password-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 0.75rem;
+  animation: fadeIn 0.3s ease;
+}
+.mh-password-hints div {
+  padding: 2px 8px;
+  border-radius: 6px;
   font-weight: 500;
 }
-
-/* Dim disabled fields/buttons */
-.lrp-btn[disabled],
-.lrp-form-content input[disabled] {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.mh-password-hints .valid { color: #1b5e20; background: #e8f5e9; border: 1px solid #c8e6c9; }
+.mh-password-hints .invalid { color: #c62828; background: #ffebee; border: 1px solid #ffcdd2; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* 🔁 Progressive lockout timer and hint */
-.lrp-timer {
-  margin-top: 6px;
-  font-size: 13px;
-  color: #a94442;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-.lrp-hint {
-  margin-top: 4px;
-  font-size: 13px;
-  color: #8b5e3c;
-  font-style: italic;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-/* Enhance locked button look */
-.lrp-btn[disabled] {
-  opacity: 0.65;
-  cursor: not-allowed;
-  background: #b58b66;
-  border: 1px solid #9c7252;
-  transition: background 0.3s ease;
-}
-
-/* Verification Modal */
-.verification-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
-  z-index: 999999;
-}
-
-.verification-modal-card {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(185, 146, 106, 0.4);
-  border-radius: 16px;
-  padding: 32px;
-  text-align: center;
-  width: 420px;
-  max-width: 90%;
-  z-index: 1000000;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
-  animation: fadeInUp 0.35s ease;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-.verification-modal-title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #916848;
-  margin-bottom: 12px;
-  margin-top: 0;
-}
-
-.verification-icon {
-  font-size: 1.5rem;
-}
-
-.verification-modal-text {
-  color: #444;
-  margin-bottom: 16px;
-  font-size: 0.95rem;
-}
-
-.verification-email-box {
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 24px;
-}
-
-.verification-email-text {
-  margin: 0;
-  font-weight: 600;
-  color: #916848;
-  font-size: 1rem;
-}
-
-.verification-modal-hint {
-  color: #666;
-  margin-bottom: 24px;
-  font-size: 0.875rem;
-}
-
-.verification-modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.verification-btn-primary {
-  background-color: #b8926a;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.95rem;
-  transition: background-color 0.2s;
-}
-
-.verification-btn-primary:hover {
-  background-color: #a07d5a;
-}
-
-.verification-btn-secondary {
-  background-color: #eee;
-  color: #333;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.95rem;
-  transition: background-color 0.2s;
-}
-
-.verification-btn-secondary:hover {
-  background-color: #ddd;
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-  .verification-modal-card {
-    width: 95%;
-    padding: 24px;
-  }
-
-  .verification-modal-actions {
+/* --- Mobile Responsive --- */
+@media (max-width: 900px) {
+  .mh-content-wrapper {
     flex-direction: column;
+    justify-content: center;
     width: 100%;
+    padding: 20px;
+    height: auto;
+    min-height: 100vh;
   }
-
-  .verification-btn-primary,
-  .verification-btn-secondary {
-    width: 100%;
+  .mh-brand-section {
+    text-align: center;
+    padding-right: 0;
+    margin-bottom: 30px;
   }
+  .mh-title { font-size: 3rem; }
+  .mh-divider { margin: 15px auto; }
+  .mh-form-card { width: 100%; max-width: 400px; padding: 25px; height: auto; min-height: auto; }
 }
 
-/* Eye Icon Password Toggle */
-.password-wrapper {
-  position: relative;
-  width: 100%;
-  display: flex;
-  align-items: center;
+/* --- Animations --- */
+@keyframes fadeSlideRight {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
 }
-
-.password-wrapper input {
-  width: 100%;
-  padding-right: 40px; /* Space for the icon */
-}
-
-.toggle-password {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  font-size: 1.1rem;
-  color: #555;
-}
-
-.toggle-password:hover {
-  color: #222;
-}
-
-.lrp-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: blur(6px);
-  display: grid;
-  place-items: center;
-  z-index: 1000;
-}
-
-.lrp-modal {
-  background: #fff;
-  border: 1px solid #e9e9ec;
-  border-radius: 14px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.18);
-  width: min(420px, 92vw);
-  padding: 18px;
-  position: relative;
-  animation: lrp-fadeInUp 0.35s ease;
-}
-.lrp-modal.lrp-modal--compact { 
-  padding: 32px; 
-}
-
-.lrp-modal-close {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  border: 0;
-  background: transparent;
-  color: #9aa1a9;
-  cursor: pointer;
-  padding: 15px;
-  border-radius: 8px;
-  line-height: 0;
-  font-size: 1.25rem;
-  inset-inline-start: auto;
-}
-.lrp-modal-close:hover { 
-  background: #f3f4f6; 
-}
-.lrp-modal-close:focus-visible {
-  outline: 2px solid #8b5e34;
-  outline-offset: 2px;
-}
-.lrp-modal-close:focus {
-  outline: none;
-}
-
-.lrp-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: center; 
-  text-align: center;
-  gap: 10px;
-  margin: 4px 4px 6px;
-  width: 100%;
-  font-size: 1.25rem;
-}
-.lrp-modal-header > * {
-  flex: 0 0 auto;            
-}
-.lrp-modal-icon {
-  display: grid;
-  place-items: center;
-  font-size: 1.5rem;
-  display: grid;
-  place-items: center;
-  color: #916848;
-}
-.lrp-modal-title {
-  font-weight: 600;
-  color: #916848;
-  margin: 0;
-}
-
-.lrp-modal-body {
-  margin: 2px 4px 14px;
-  color: #444;
-  line-height: 1.5;
-  font-size: 14.5px;
-  text-align: center;
-}
-
-.lrp-modal-actions {
-  display: flex;
-  gap: 10px;
-}
-.lrp-modal-actions--center { 
-  justify-content: center; 
-}
-
-.lrp-btn {
-  border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 10px 18px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
-}
-.lrp-btn-lg { 
-  padding: 12px 20px; 
-  font-size: 14.5px; 
-  width: auto;
-}
-
-.lrp-btn-primary {
-  background: #8b5e34;
-  color: #fff;
-}
-.lrp-btn-primary:hover { 
-  background: #7d522c; 
-}
-.lrp-btn-primary:active { 
-  transform: translateY(1px); 
-}
-.lrp-btn-primary:focus-visible {
-  outline: 2px solid #7d522c;
-  outline-offset: 2px;
-}
-
-.lrp-btn-outline {
-  background: #fff;
-  color: #2b2b2b;
-  border-color: #e9e9ec;
-}
-.lrp-btn-outline:hover { 
-  background: #f7f7f9; 
-}
-.lrp-btn-outline:active { 
-  transform: translateY(1px); 
-}
-.lrp-btn-outline:focus-visible {
-  outline: 2px solid #8b5e34;
-  outline-offset: 2px;
-}
-
-@keyframes lrp-fadeInUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(12px); 
-  }
-  to   { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lrp-modal { 
-    animation: none; 
-  }
-  .lrp-btn { 
-    transition: none; 
-  }
-}
-
-/* Position wrapper for password input */
-.password-input-wrap {
-  position: relative;
-  width: 100%;
-  display: block;
-}
-
-.password-wrapper input {
-  width: 100%;
-  margin: 0 !important;
-  box-sizing: border-box;
-  padding-right: 40px;
-}
-
-/* Eye icon inside input (aligned right) */
-.password-eye-icon {
-position: absolute;
-  right: 12px;
-  z-index: 20;
-  cursor: pointer;
-  color: #8B4513;
-  bottom: auto !important;
-  transform: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  top: 9px !important; 
-  height: 18px !important;
-  width: 18px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.password-eye-icon:hover {
-  color: #A0522D;
-}
-
-/* Hint box */
-.password-hint-box {
-  position: absolute;
-  top: 100%; /* below input */
-  left: 0;
-  width: 100%;
-  margin-top: 6px;
-  background-color: #fff8f0; /* soft cream background */
-  border: 1px solid #d4b48c; /* subtle brown border */
-  color: #4e3b1c; /* dark warm text */
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(139, 69, 19, 0.2);
-  padding: 10px 12px;
-  font-size: 13px;
-  z-index: 20;
-}
-
-/* Styling for each hint row */
-.password-hints {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.password-hint-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Tick/valid colors */
-.password-hint-valid {
-  color: #2e7d32; /* green */
-  font-weight: 500;
-}
-
-/* Invalid colors */
-.password-hint-invalid {
-  color: #b71c1c; /* red */
-  font-weight: 400;
-}
-
-/* Optional: smooth fade in */
-.password-hint-box {
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-2px); }
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-/* OTP Form Container */
-.otp-form-section {
-  animation: fadeIn 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Message Header */
-.otp-header-box {
-  margin-bottom: 1.25rem;
-  text-align: center;
-}
-
-.otp-text {
-  color: #666;
-  font-size: 0.95rem;
-  margin: 0;
-}
-
-/* Special styling for the OTP Input */
-.otp-input-field {
-  letter-spacing: 8px;
-  font-size: 1.5rem !important; /* Override default input size */
-  text-align: center;
-  font-weight: bold;
-  color: #8B4513;
-}
-
-/* Spacing for buttons */
-.otp-verify-btn {
-  margin-top: 15px;
-}
-
-.otp-back-btn {
-  margin-top: 10px;
-}
-
-/* Resend Button specific styling */
-.otp-resend-btn {
-  margin-top: 10px;
-  font-size: 0.9rem;
-}
-
-/* Outlook/Business Email Notice in Verification Modal */
-.verification-outlook-notice {
-  display: block;
-  margin-top: 15px;
-  font-weight: 600;
-  color: #916848;
-}
-
-.verification-outlook-text {
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 5px 0 0;
-  color: #666;
 }
