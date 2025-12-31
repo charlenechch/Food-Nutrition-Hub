@@ -109,36 +109,31 @@
 
 @media (max-width: 768px) {
   .edit-topbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "back  save"
+      "title title";
+    gap: 10px;
+    align-items: center;
   }
-
-  .admin-edit-food-back-btn,
-  .admin-edit-food-save-btn {
-    width: 100%;
-    display: inline-flex;
-    flex: 1;
-  }
-
-  .admin-edit-food-back-btn { order: 1; }
-  .admin-edit-food-save-btn { order: 2; }
-  .edit-title               { order: 3; }
 
   .admin-edit-food-back-btn {
-    margin-right: 6px;
+    grid-area: back;
+    width: 100%;
   }
 
   .admin-edit-food-save-btn {
-    margin-left: 6px;
+    grid-area: save;
+    width: 100%;
   }
 
   .edit-title {
+    grid-area: title;
     text-align: center;
-    width: 100%;
+    margin-top: 4px;
   }
 }
-
 
 .edit-grid {
   display: grid;
