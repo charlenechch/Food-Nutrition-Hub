@@ -178,6 +178,13 @@
   color: #3d2b1f;
 }
 
+@media(max-width: 720px){
+  .food-actions button {
+    width: 100%;
+    gap: 2px;
+  }
+}
+
 .food-filters {
   display: flex;
   align-items: center;
