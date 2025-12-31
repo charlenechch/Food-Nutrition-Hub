@@ -1,3 +1,4 @@
+/* src/pages/LoginRegisterPage.jsx */
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -95,13 +96,14 @@ export default function LoginRegisterPage() {
   // Effects
   // ------------------------------
   useEffect(() => {
-    const redirectTriggerPaths = ["/loginregister", "/"];
+    // Only redirect if they are explicitly trying to login/register 
+    // but are already a valid Member or Admin.
     const currentPath = window.location.pathname;
 
     if (
       user && 
       user.role !== "guest" && 
-      redirectTriggerPaths.includes(currentPath)
+      currentPath === "/loginregister"
     ) {
       navigate(user.role === "admin" ? "/admin" : "/home");
     }
@@ -467,7 +469,7 @@ export default function LoginRegisterPage() {
 
   const handleGuest = () => {
     loginAsGuest();
-    navigate("/home");
+    navigate("/"); // Changed from /home to root to follow new flow
   };
 
   // ------------------------------

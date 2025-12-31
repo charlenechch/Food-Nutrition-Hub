@@ -1,3 +1,4 @@
+/* src/App.jsx */
 import {
   BrowserRouter as Router,
   Routes,
@@ -188,8 +189,11 @@ function AppRoutes() {
       <SessionChecker />
       <ScrollToTop />
       <Routes>
-        {/* === Default & Auth Routes === */}
-        <Route path="/" element={<Navigate to="/loginregister" replace />} />
+        {/* === Default Landing (GUEST FIRST) === */}
+        <Route path="/" element={<UserHomepage />} />
+        <Route path="/home" element={<UserHomepage />} />
+        
+        {/* === Auth Routes === */}
         <Route path="/loginregister" element={<LoginRegisterPage />} />
         <Route path="/auth/action" element={<AuthActionRouter />} />
         <Route path="/verifyemail" element={<EmailVerificationPage />} />
@@ -198,7 +202,6 @@ function AppRoutes() {
         <Route path="/otpverification" element={<OTPVerification />} />
 
         {/* === Public / User Pages === */}
-        <Route path="/home" element={<UserHomepage />} />
         <Route path="/foods" element={<ExploreFoodsPage />} />
         <Route path="/fooddetail/:id" element={<FoodDetail />} />
         <Route path="/fooddiscussion/:foodId" element={<FoodDiscussionRoute />} />
@@ -206,8 +209,24 @@ function AppRoutes() {
         <Route path="/recipes/:id" element={<RecipeDetailPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:id" element={<CommunityPost />} />
-        <Route path="/analyzer" element={<NutritionAnalyzerPage />} />
-        <Route path="/analytics" element={<Analytics />} />
+
+        {/* === Gated Tools (Protected) === */}
+        <Route
+          path="/analyzer"
+          element={
+            <ProtectedRoute allowedRoles={["member", "admin"]}>
+              <NutritionAnalyzerPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute allowedRoles={["member", "admin"]}>
+              <Analytics />
+            </ProtectedRoute>
+          }
+        />
 
         {/* === Member Pages === */}
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
@@ -240,24 +259,6 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           />
-        <Route
-          path="/admin/review/:type/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <ReviewContentPage />
-            </ProtectedRoute>
-          }
-        />
-        
-        {/* This single dynamic route now handles recipes, community posts, and anything else */}
-        <Route
-          path="/admin/review/:type/:id"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <ReviewContentPage />
-            </ProtectedRoute>
-          }
-        />
 
         {/* Protected Profile (member + admin only) */}
         <Route
@@ -270,7 +271,7 @@ function AppRoutes() {
         />
 
         {/* === Catch-all Fallback === */}
-        <Route path="*" element={<Navigate to="/loginregister" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
