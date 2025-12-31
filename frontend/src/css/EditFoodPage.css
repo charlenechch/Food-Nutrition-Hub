@@ -114,7 +114,6 @@
     gap: 12px;
   }
 
-  /* Put buttons into the same row */
   .admin-edit-food-back-btn,
   .admin-edit-food-save-btn {
     width: 100%;
@@ -134,7 +133,6 @@
     width: 100%;
   }
 
-  /* Place the two buttons side-by-side */
   .edit-topbar {
     display: flex;
   }
@@ -145,7 +143,6 @@
     flex: 1;
   }
 
-  /* keep a gap between buttons */
   .admin-edit-food-back-btn {
     margin-right: 6px;
   }
