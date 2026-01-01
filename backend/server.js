@@ -132,6 +132,8 @@ app.use(helmet.referrerPolicy({ policy: "no-referrer" }));
 // ---------- CORS ----------
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://sarawakeats.site",
+  "https://www.sarawakeats.site",
   "https://food-nutrition-hub.vercel.app", 
   process.env.FRONTEND_URL
 ].filter(Boolean);
@@ -215,8 +217,9 @@ app.use(
     proxy: true, 
     cookie: {
       httpOnly: true,
-      sameSite: 'none', 
-      secure: true,     
+      sameSite: 'lax', 
+      secure: true,
+      domain: '.sarawakeats.site',
       maxAge: 24 * 60 * 60 * 1000,
     },
   })
