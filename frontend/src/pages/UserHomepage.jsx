@@ -1,5 +1,5 @@
 /* src/pages/UserHomepage.jsx */
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/UserHomepage.css";
 import Header from "../components/Header";
@@ -13,11 +13,18 @@ import KoloImg from "../assets/kolomee.jpg";
 import KekImg from "../assets/keklapis.jpg";    
 
 // Icons
-import { FaSearch, FaArrowRight } from "react-icons/fa";      
+import { FaSearch, FaChevronLeft, FaChevronRight, FaStar, FaLightbulb, FaSyncAlt } from "react-icons/fa";      
 import { FaAnglesDown, FaUtensils } from "react-icons/fa6"; 
 
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
+
+// SLIDESHOW IMAGES
+const HERO_IMAGES = [
+  LoginFood, 
+  LaksaImg,
+  KoloImg
+];
 
 export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const navigate = useNavigate();
@@ -26,49 +33,83 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Database Data
   const [allFoods, setAllFoods] = useState([]); 
+  
   const [suggestions, setSuggestions] = useState([]); 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef(null); 
 
-  // --- SIGNATURE DISHES DATA ---
-  const signatureDishes = [
+  // SLIDESHOW STATE
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // FACTS STATE
+  const [currentFact, setCurrentFact] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // --- HERITAGE FACTS DATA ---
+  const heritageFacts = [
     {
-      id: "laksa",
-      name: "Sarawak Laksa",
-      description: "The 'Breakfast of the Gods'. Rice vermicelli served in an aromatic, spicy, and tangy coconut milk broth, topped with prawns and shredded chicken.",
-      image: LaksaImg 
+      title: "Bamboo Cooking",
+      text: "\"Manok Pansoh\" is a traditional Iban delicacy where chicken is cooked inside freshly cut bamboo over an open fire, sealing in moisture and flavor."
     },
     {
-      id: "kolomee",
-      name: "Kolo Mee",
-      description: "A staple dry noodle dish tossed in a savory shallot oil mixture, topped with minced meat and char siu. Simple, springy, and satisfying.",
-      image: KoloImg 
+      title: "Melanau Sushi?",
+      text: "\"Umai\" is a traditional Melanau dish of raw sliced fish marinated with limau kasturi, onions, and chilies—Sarawak's ancient answer to ceviche."
     },
     {
-      id: "keklapis",
-      name: "Kek Lapis",
-      description: "Intricately layered cake baked with precision and patience. A colorful symbol of Sarawakian hospitality and celebration.",
-      image: KekImg 
+      title: "The Red Noodles",
+      text: "The red color in traditional Kuching Kolo Mee often comes from 'Char Siu' oil, giving it a distinct savory sweetness compared to the white version."
+    },
+    {
+      title: "Liquid Gold",
+      text: "\"Gula Apong\" is a natural palm sugar made from the Nipah palm found in Sarawak's coastal areas. It has a unique caramel-salty flavor profile."
     }
   ];
 
+  // --- SIGNATURE DISHES (Static + DB Connection) ---
+  const PRESET_SIGNATURES = [
+    { name: "Sarawak Laksa", image: LaksaImg, tag: "Must Try" },
+    { name: "Kolo Mee", image: KoloImg, tag: "Local Fav" },
+    { name: "Kek Lapis", image: KekImg, tag: "Sweet" }
+  ];
+
+  const signatureDishes = useMemo(() => {
+    return PRESET_SIGNATURES.map(preset => {
+      const match = allFoods.find(f => f.name.toLowerCase() === preset.name.toLowerCase());
+      return { ...preset, dbId: match ? (match.foodID || match.id) : null };
+    });
+  }, [allFoods]);
+
+  // --- FETCH DATA ---
   useEffect(() => {
     const fetchFoods = async () => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
         const res = await axios.get(`${API_BASE_URL}/api/exploreFood`); 
-        if (Array.isArray(res.data)) {
-           setAllFoods(res.data);
-        } else if (res.data && res.data.success) {
-           setAllFoods(res.data.data);
-        }
+        if (Array.isArray(res.data)) setAllFoods(res.data);
+        else if (res.data && res.data.success) setAllFoods(res.data.data);
       } catch (err) {
         console.error("Failed to load search index:", err);
       }
     };
     fetchFoods();
   }, []);
+
+  // --- HANDLERS ---
+  const handleDishClick = (dish) => {
+    if (dish.dbId) navigate(`/fooddetail/${dish.dbId}`);
+    else navigate(`/foods?search=${encodeURIComponent(dish.name)}`);
+  };
+
+  const handleNextFact = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setCurrentFact((prev) => (prev + 1) % heritageFacts.length);
+      setIsAnimating(false);
+    }, 300);
+  };
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -80,8 +121,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       setSuggestions(matches.slice(0, 6)); 
       setShowSuggestions(true);
     } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
+      setSuggestions([]); setShowSuggestions(false);
     }
   };
 
@@ -98,11 +138,29 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
+  // ✅ FIXED: Helper to safely determine the Hero Title
+  const getHeroTitle = () => {
+    if (!user) return "Discover Sarawak's Culinary Heritage";
+    // Check if role is guest OR if firstname is missing (common for guest objects)
+    if (user.role === "guest" || !user.firstname) return "Welcome, Guest!";
+    return `Welcome back, ${user.firstname}!`;
+  };
+
+  // Slideshow
+  useEffect(() => {
+    const slideInterval = setInterval(() => {
+      setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
+    }, 6000); 
+    return () => clearInterval(slideInterval);
+  }, [currentSlide]);
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
+  const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? HERO_IMAGES.length - 1 : prev - 1));
+
+  // Click Outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowSuggestions(false);
-      }
+      if (searchRef.current && !searchRef.current.contains(event.target)) setShowSuggestions(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -117,20 +175,25 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
-  const getHeroTitle = () => {
-    if (!user) return "Discover Sarawak's Culinary Heritage";
-    if (user.role === "guest") return "Welcome, Guest!";
-    return `Welcome back, ${user.firstname || "User"}!`;
-  };
-
   return (
     <div className="homepage">
-      {/* Make Header transparent to overlap Hero */}
       <Header transparent={true} /> 
 
-      <header className="hero-section">
+      {/* HERO SECTION */}
+      <header 
+        className="hero-section"
+        style={{ 
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${HERO_IMAGES[currentSlide]})` 
+        }}
+      >
+        <button className="hero-arrow arrow-left" onClick={prevSlide}>
+          <FaChevronLeft />
+        </button>
+
         <div className="hero-content-wrapper">
+          {/* ✅ FIXED TITLE CALL */}
           <h1 className="hero-title">{getHeroTitle()}</h1>
+          
           <p className="hero-subtitle">
             Preserving traditional dishes through AI-powered nutrition analysis and cultural storytelling.
           </p>
@@ -174,24 +237,21 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
              <FaAnglesDown className="bounce-icon" />
           </div>
         </div>
-      </header>
 
-      {/* --- STATS SECTION (Commented out) --- */}
-      {/* <div className="stats-section">
-        <div className="stat-item">
-          <span className="stat-number">{stats.totalFoods || "120+"}</span>
-          <span className="stat-label">Dishes Preserved</span>
+        <button className="hero-arrow arrow-right" onClick={nextSlide}>
+          <FaChevronRight />
+        </button>
+
+        <div className="hero-dots">
+          {HERO_IMAGES.map((_, idx) => (
+            <span 
+              key={idx} 
+              className={`hero-dot ${idx === currentSlide ? "active" : ""}`}
+              onClick={() => setCurrentSlide(idx)}
+            ></span>
+          ))}
         </div>
-        <div className="stat-item">
-          <span className="stat-number">{stats.totalUsers || "5k+"}</span>
-          <span className="stat-label">Community Members</span>
-        </div>
-        <div className="stat-item">
-          <span className="stat-number">{stats.totalRecipes || "300+"}</span>
-          <span className="stat-label">Heritage Recipes</span>
-        </div>
-      </div>
-      */}
+      </header>
 
       <main className="features-layout-wrapper">
         
@@ -243,28 +303,35 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </section>
 
-        {/* --- SIGNATURE DISHES SHOWCASE --- */}
+        {/* --- CINEMATIC SHOWCASE --- */}
         <section className="showcase-section">
           <div className="section-header center-header">
             <h2>Taste of Sarawak</h2>
-            <p className="section-subtext">Iconic dishes that define our culinary identity</p>
+            <p className="section-subtext">Click a dish to uncover its history</p>
           </div>
 
-          <div className="showcase-grid">
-            {signatureDishes.map((dish) => (
-              <div key={dish.id} className="showcase-card">
-                <div className="showcase-image-wrapper">
-                  <img src={dish.image} alt={dish.name} />
+          <div className="cinema-grid-wrapper">
+            <div className="cinema-grid">
+              {signatureDishes.map((dish) => (
+                <div 
+                  key={dish.name} 
+                  className="cinema-item" 
+                  onClick={() => handleDishClick(dish)}
+                >
+                  <div className="plate-container">
+                    <img src={dish.image} alt={dish.name} className="real-plate-img" />
+                    <div className="plate-glare"></div>
+                  </div>
+                  
+                  <div className="floating-label">
+                    <span className="dish-tag">
+                      <FaStar className="star-icon"/> {dish.tag}
+                    </span>
+                    <h3>{dish.name}</h3>
+                  </div>
                 </div>
-                <div className="showcase-content">
-                  <h3>{dish.name}</h3>
-                  <p>{dish.description}</p>
-                  <button className="text-link-btn" onClick={() => navigate('/foods')}>
-                    Discover More <FaArrowRight className="btn-icon" />
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
@@ -294,10 +361,25 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </section>
         )}
 
+        {/* --- ✅ UPDATED: INTERACTIVE TRIVIA CARD --- */}
         <section className="heritage-fact-banner">
-          <div className="fact-content">
-            <span className="fact-label">Did You Know?</span>
-            <p>"Manok Pansoh" is a traditional Iban delicacy where chicken is cooked inside bamboo over an open fire, sealing in moisture and flavor without using oil.</p>
+          <div className="fact-decoration-circle"></div>
+          
+          <div className="fact-content-wrapper">
+            <div className="fact-icon-box">
+              <FaLightbulb />
+            </div>
+            
+            <div className={`fact-text-area ${isAnimating ? "fade-out" : "fade-in"}`}>
+              <span className="fact-label">Did You Know?</span>
+              <h3 className="fact-title">{heritageFacts[currentFact].title}</h3>
+              <p className="fact-body">{heritageFacts[currentFact].text}</p>
+            </div>
+
+            <button className="fact-refresh-btn" onClick={handleNextFact} aria-label="Next Fact">
+              <FaSyncAlt className={isAnimating ? "spin-icon" : ""} />
+              <span>Next Fact</span>
+            </button>
           </div>
         </section>
       </main>
