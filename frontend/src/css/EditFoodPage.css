@@ -297,6 +297,36 @@
   outline: none;
 }
 
+@media (max-width: 720px) {
+
+  .edit-grid {
+    grid-template-columns: 1fr;   
+    gap: 16px;                  
+  }
+
+  .edit-food-image-upload-section {
+    height: auto;     
+    padding-bottom: 16px;
+  }
+
+  .image-preview {
+    width: 100%;          
+    max-width: 320px;       
+    height: 200px;
+  }
+
+  .image-preview img {
+    width: 100%;
+    height: 100%;
+  }
+
+  .edit-food-image-upload-section {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 420px;
+  }
+}
+
 /* Custom Dropdown Arrow Styles */
 
 /* 1. Wrapper to contain the select box and the arrow */
