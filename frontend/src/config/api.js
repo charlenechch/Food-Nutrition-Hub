@@ -1,7 +1,7 @@
 // frontend/src/config/api.js
 
-// ✅ Base URL — do NOT include "/api" here
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// ✅ FIXED: If Env Var is missing: use localhost in DEV, but use relative path ("") in PROD.
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:5000" : "");
 
 let csrfToken = null;
 
