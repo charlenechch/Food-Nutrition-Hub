@@ -326,8 +326,8 @@
     max-width: 420px;
   }
   
-  .edit-food-image-upload-section, .edit-food-basic-info-card {
-    margin-bottom: 40px;
+  .edit-food-image-upload-section, .edit-food-basic-info-card, .edit-cultural-context-card {
+    margin-bottom: 20px;
   }
 }
 
