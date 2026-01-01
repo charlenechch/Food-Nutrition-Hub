@@ -296,21 +296,25 @@ const EditFoodPage = () => {
   // --- Loading / Not Found ---
   if (loading) {
     return (
+      <>
       <div className="edit-food-page">
         <Header />
         <p style={{ textAlign: "center", marginTop: "2rem" }}>Loading food data...</p>
-        <Footer />
       </div>
+      <Footer />
+      </>
     );
   }
 
   if (!food) {
     return (
+      <>
       <div className="edit-food-page">
         <Header />
         <p style={{ textAlign: "center", marginTop: "2rem" }}>Food not found.</p>
-        <Footer />
       </div>
+      <Footer />
+      </>
     );
   }
 
@@ -323,6 +327,7 @@ const EditFoodPage = () => {
 
   // --- Render Page ---
   return (
+    <>
     <div className="edit-food-page">
       <Header />
 
@@ -532,8 +537,9 @@ const EditFoodPage = () => {
         </div>
       )}
 
+      </div>
       <Footer />
-    </div>
+    </>
   );
 };
 
