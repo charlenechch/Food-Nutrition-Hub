@@ -98,6 +98,7 @@ router.get("/counts", async (req, res) => {
   try {
     console.log('📥 Fetching all approved posts with counts...');
     
+    // ✅ FIXED: Added up.avatar to SELECT
     const query = `
         SELECT 
             p.postID,
@@ -110,6 +111,7 @@ router.get("/counts", async (req, res) => {
             p.origin AS culturalOrigin,
             p.recipe,
             up.userProfileID,
+            up.avatar, 
             CONCAT(u.firstname, ' ', u.lastname) AS author,
             COUNT(DISTINCT l.likeID) as likeCount,
             COUNT(DISTINCT c.commentID) as commentCount
@@ -131,6 +133,8 @@ router.get("/counts", async (req, res) => {
       id: post.postID,
       foodName: post.foodName,
       author: post.author,
+      // ✅ FIXED: Map the avatar from DB to the frontend field
+      authorProfilePic: post.avatar, 
       daysAgo: getTimeAgo(post.created_at),
       createdAt: post.created_at,
       updatedAt: post.updated_at,
@@ -179,6 +183,7 @@ router.get("/:id", async (req, res) => {
       if (profileResult.length > 0) userProfileID = profileResult[0].userProfileID;
     }
 
+    // ✅ FIXED: Added up.avatar to SELECT
     const postQuery = `
       SELECT 
           p.postID,
@@ -190,6 +195,7 @@ router.get("/:id", async (req, res) => {
           p.origin AS culturalOrigin,
           p.recipe,
           up.userProfileID,
+          up.avatar,
           CONCAT(u.firstname, ' ', u.lastname) AS author,
           COUNT(DISTINCT l.likeID) as likeCount,
           COUNT(DISTINCT c.commentID) as commentCount
@@ -238,6 +244,8 @@ router.get("/:id", async (req, res) => {
       id: post.postID,
       foodName: post.foodName,
       author: post.author,
+      // ✅ FIXED: Map avatar here too
+      authorProfilePic: post.avatar, 
       daysAgo: getTimeAgo(post.created_at),
       culturalOrigin: post.culturalOrigin,
       images: post.photos ? post.photos.split(',').map(photo => photo.trim()) : [],
