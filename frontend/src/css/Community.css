@@ -162,7 +162,7 @@
 .cancel-btn:hover { background: #f5f5f5; }
 
 /* ===========================================
-   3. STICKY FILTER BAR
+   3. STICKY FILTER BAR (FIXED & SPACIOUS)
 =========================================== */
 .sticky-filter-bar {
   position: sticky; top: 20px; z-index: 100;
@@ -176,6 +176,7 @@
   margin-bottom: 40px;
 }
 
+/* ✅ FIXED: Larger padding and flex centering */
 .search-pill {
   flex-grow: 1; 
   display: flex; 
@@ -183,7 +184,7 @@
   background: white;
   border: 1px solid #eee; 
   border-radius: 50px;
-  padding: 12px 25px; 
+  padding: 12px 25px; /* More breathing room */
   transition: all 0.2s;
   height: 50px;
   box-sizing: border-box;
@@ -191,6 +192,7 @@
 }
 .search-pill:focus-within { border-color: #916848; box-shadow: 0 0 0 3px rgba(145,104,72,0.1); }
 
+/* ✅ FIXED: Static position ensures it stays inside */
 .search-pill .search-icon { 
   position: static !important;
   transform: none !important;
@@ -217,7 +219,7 @@
 }
 
 /* ===========================================
-   4. PREMIUM CARDS GRID
+   4. PREMIUM CARDS GRID (MAIN LIST)
 =========================================== */
 .premium-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px;
@@ -244,13 +246,15 @@
 .card-body { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
 .card-body h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin: 0 0 12px; color: #222; }
 
+/* User Meta & Avatar */
 .card-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
 
+/* ✅ FIXED AVATAR CSS */
 .user-avatar { 
   width: 35px; height: 35px; background: #e0d0c0; color: #7a5638; 
   border-radius: 50%; display: flex; align-items: center; justify-content: center; 
   font-weight: 700; font-size: 0.9rem;
-  overflow: hidden; 
+  overflow: hidden; /* Crops image */
   flex-shrink: 0;
 }
 .user-avatar img {
@@ -267,7 +271,7 @@
 .stat svg { color: #ccc; transition: color 0.2s; }
 .premium-card:hover .stat svg { color: #916848; }
 
-/* --- PAGINATION --- */
+/* --- ✅ PAGINATION (FIXED ROW LAYOUT) --- */
 .community-pagination {
   display: flex;
   justify-content: center;
@@ -275,9 +279,10 @@
   gap: 15px;
   width: 100%;
   margin: 50px 0;
-  flex-wrap: wrap; 
+  flex-wrap: wrap; /* Allows wrapping on very small screens */
 }
 
+/* ✅ Added missing .page-numbers styles to force row layout */
 .page-numbers {
   display: flex;
   gap: 8px;
@@ -289,12 +294,14 @@
   font-weight: 600; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
 }
 
+/* Circles for Numbers */
 .community-page-btn.page-num {
   width: 40px; height: 40px; border-radius: 50%; border: 1px solid #ddd; background: white; color: #666;
 }
 .community-page-btn.page-num:hover { background: #f5f5f5; border-color: #ccc; }
 .community-page-btn.page-num.active { background: #916848; color: white; border-color: #916848; box-shadow: 0 4px 10px rgba(145, 104, 72, 0.3); }
 
+/* Pills for Prev/Next */
 .community-page-btn.nav-btn {
   padding: 10px 24px; border-radius: 30px; background: white; border: 1px solid #ddd; color: #555; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
@@ -305,6 +312,7 @@
 .empty-state { text-align: center; padding: 60px 20px; color: #888; width: 100%; }
 .empty-icon { font-size: 3rem; margin-bottom: 10px; display: block; opacity: 0.5; }
 
+
 /* ===========================================
    5. POST DETAIL PAGE STYLES
 =========================================== */
@@ -313,6 +321,7 @@
   margin: 0 auto 4rem auto; align-items: flex-start; box-sizing: border-box; padding: 0 20px;
 }
 
+/* ✅ Back Button Override for Detail Page */
 .back-btn.back-to-community-fixed {
   grid-column: 1 / -1; 
   width: fit-content;
@@ -358,54 +367,32 @@
 .fd-delete-btn:hover { opacity: 1; text-decoration: underline; }
 
 /* ===========================================
-   6. MODAL STYLES (SYNCHRONIZED WITH MODAL.JSX)
+   6. MODAL STYLES
 =========================================== */
-.lrp-modal-backdrop { 
-  position: fixed; 
-  top: 0; 
-  left: 0; 
-  right: 0; 
-  bottom: 0; 
-  background: rgba(0,0,0,0.6); 
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-  z-index: 10000 !important; 
-}
-
-.lrp-modal { 
-  background: white; 
-  border-radius: 16px; 
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
-  width: 90%; 
-  max-width: 420px; 
-  overflow: hidden; 
-  animation: slideIn 0.3s ease; 
-  border: 1px solid #e0e0e0; 
-  z-index: 10001;
-  position: relative;
-}
-
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.modal-card { background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 90%; max-width: 420px; overflow: hidden; animation: slideIn 0.3s ease; border: 1px solid #e0e0e0; }
 @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+.modal-card-header { padding: 20px 24px; border-bottom: 1px solid #eee; }
+.modal-card-header h3 { margin: 0; font-size: 1.4rem; color: #333; }
+.modal-card-body { padding: 24px; text-align: center; color: #666; font-size: 1rem; line-height: 1.5; }
+.modal-card-actions { padding: 0 24px 24px; display: flex; gap: 10px; justify-content: center; }
+.lrp-btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; font-size: 0.95rem; }
+.lrp-btn-outline { background: white; border: 2px solid #e0e0e0; color: #333; }
+.lrp-btn-outline:hover { background: #f8f9fa; border-color: #ccc; }
+.lrp-btn-danger { background: #8B4513; color: white; }
+.lrp-btn-danger:hover { background: #6b3e26; }
+.lrp-btn-primary { background: #007bff; color: white; }
 
-.lrp-modal-header { padding: 20px 24px 10px; border-bottom: 1px solid #eee; text-align: center; }
-.lrp-modal-title { margin: 0; font-size: 1.4rem; color: #333; font-family: 'Playfair Display', serif; }
-.lrp-modal-icon { font-size: 2.5rem; color: #916848; margin-bottom: 10px; }
-
-.lrp-modal-body { padding: 24px; text-align: center; color: #666; font-size: 1rem; line-height: 1.5; }
-
-.lrp-modal-actions { padding: 0 24px 24px; display: flex; gap: 10px; }
-.lrp-modal-actions--center { justify-content: center; }
-
-/* Modal specific button adjustments to match your lrp-btn system */
-.lrp-btn-lg { padding: 12px 24px; font-size: 1rem; }
-.lrp-modal-close {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: #888;
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .post-layout { grid-template-columns: 1fr; }
+  .sticky-filter-bar { flex-direction: column; align-items: stretch; }
+  .filter-group { justify-content: space-between; }
+  .post-right { position: static; margin-top: 20px; }
+  .community-pagination { flex-direction: column; gap: 20px; }
+}
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .premium-grid { grid-template-columns: 1fr; }
+  .community-hero-content h1 { font-size: 2.2rem; }
 }
