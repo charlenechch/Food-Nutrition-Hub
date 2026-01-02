@@ -422,6 +422,44 @@
   color: var(--mh-brown);
 }
 
+.mh-google-wrapper {
+  margin-top: 15px;
+}
+
+/* The Google Button Style */
+.mh-btn-google {
+  width: 100%;
+  padding: 12px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  color: #555;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.mh-btn-google:hover {
+  background: #fdfdfd;
+  border-color: var(--mh-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+  color: #333;
+}
+
+/* The Google "G" Icon */
+.mh-google-icon {
+  width: 20px;
+  height: 20px;
+}
+
 /* --- Mobile Responsive --- */
 @media (max-width: 900px) {
   .mh-content-wrapper {
