@@ -33,7 +33,7 @@ const DEFAULT_PREFS = {
   language: "en"
 };
 
-// ✅ FIXED: Better normalization that ensures clean string arrays
+// ✅Better normalization that ensures clean string arrays
 const normalizePrefs = (data = {}) => {
   const prefsData = data.prefs || data;
 
@@ -152,24 +152,35 @@ export default function UserProfilePage() {
   //Controls view and edit mode
   const [isEditing, setIsEditing] = useState(false);
 
-//====================
+  //====================
   //CSRF
   //======================
-const [csrfToken, setCsrfToken] = useState("");
+  const [csrfToken, setCsrfToken] = useState("");
 
-useEffect(() => {
-  const fetchCsrfToken = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-      const data = await res.json();
-      setCsrfToken(data.csrfToken);
-    } catch (err) {
-      console.error("Failed to fetch CSRF token", err);
-    }
-  };
-  fetchCsrfToken();
-}, []);
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
+
+
+  // Export State
+  const [exportModal, setExportModal] = useState({
+    open: false,
+    title: "Export Saved Foods",
+    message: "Select which saved foods you want to export:",
+    selectedFoods: [],
+    selectAll: false,
+    loading: false
+  });
 
   // State
   const [user, setUser] = useState(null);
@@ -261,6 +272,53 @@ useEffect(() => {
     setPwModal({ open: true, title: "Confirm Account Deletion", message: "For security, please enter your password to confirm.", password: "", onSubmit });
   const closePasswordModal = () =>
     setPwModal(m => ({ ...m, open: false, onSubmit: null, password: "" }));
+
+const openExportModal = () => {
+  const savedFoodsArray = user?.savedFoods || [];
+  setExportModal({
+    open: true,
+    title: "Export Saved Foods",
+    message: "Select which saved foods you want to export:",
+    selectedFoods: [], // Start with none selected
+    selectAll: false,
+    loading: false
+  });
+};
+
+const closeExportModal = () => {
+  setExportModal(m => ({ ...m, open: false, loading: false }));
+};
+
+// Toggle individual food selection
+const toggleFoodSelection = (foodId) => {
+  setExportModal(m => {
+    const newSelected = m.selectedFoods.includes(foodId)
+      ? m.selectedFoods.filter(id => id !== foodId)
+      : [...m.selectedFoods, foodId];
+    
+    return {
+      ...m,
+      selectedFoods: newSelected,
+      selectAll: newSelected.length === (user?.savedFoods?.length || 0)
+    };
+  });
+};
+
+// Toggle select all
+const toggleSelectAll = () => {
+  setExportModal(m => {
+    const savedFoodsArray = user?.savedFoods || [];
+    const selectAll = !m.selectAll;
+    
+    return {
+      ...m,
+      selectAll: selectAll,
+      selectedFoods: selectAll 
+        ? savedFoodsArray.map(f => f.id || f.saveId)
+        : []
+    };
+  });
+};
 
   // ===== Save: Personal Info =====
 const savePersonal = async () => {
@@ -354,6 +412,75 @@ const savePrefs = async () => {
   } catch (e) {
     console.error("Preferences update error:", e);
     openAlert("Update Failed", e.message || "Failed to update preferences", <AlertTriangle />);
+  }
+};
+
+const handleExportData = async () => {
+  try {
+    setExportModal(m => ({ ...m, loading: true }));
+    
+    const { selectedFoods, selectAll } = exportModal;
+    const savedFoodsArray = user?.savedFoods || [];
+    
+    // Determine what to export
+    let exportPayload;
+    
+    if (selectAll || selectedFoods.length === savedFoodsArray.length) {
+      // Export all
+      exportPayload = { exportType: "all" };
+    } else if (selectedFoods.length > 0) {
+      // Export selected
+      exportPayload = {
+        exportType: "selected",
+        foodIds: selectedFoods
+      };
+    } else {
+      // No selection
+      openAlert("No Selection", "Please select at least one food to export, or choose 'All'.", <AlertTriangle />);
+      setExportModal(m => ({ ...m, loading: false }));
+      return;
+    }
+    
+    console.log("📤 Exporting saved foods:", exportPayload);
+    
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/export/saved-foods`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+      },
+      credentials: "include",
+      body: JSON.stringify(exportPayload),
+    });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Export failed (${res.status}): ${errorText}`);
+    }
+    
+    // Create download
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().split('T')[0];
+    const count = selectedFoods.length === savedFoodsArray.length ? 'all' : selectedFoods.length;
+    a.download = `saved-foods-${count}-${timestamp}.json`;
+    
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    openAlert("Export Complete", "Your saved foods have been exported successfully!", <CheckCircle2 />);
+    closeExportModal();
+    
+  } catch (error) {
+    console.error("Export error:", error);
+    openAlert("Export Failed", error.message || "Failed to export data. Please try again.", <AlertTriangle />);
+    setExportModal(m => ({ ...m, loading: false }));
   }
 };
 
@@ -1442,9 +1569,13 @@ const savePrefs = async () => {
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">Data Export</div>
-                      <div className="upp-muted2">Download your saved data</div>
+                      <div className="upp-muted2">Download your saved foods data</div>
                     </div>
-                    <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => openAlert("Export Started", "We're preparing your data export. You'll get a download when it's ready.", <CheckCircle2 />)}>
+                    <button 
+                      className="lrp-btn lrp-btn-outline upp-btn" 
+                      onClick={openExportModal}
+                      disabled={!user?.savedFoods || user.savedFoods.length === 0}
+                    >
                       Export Data
                     </button>
                   </div>
@@ -1483,6 +1614,109 @@ const savePrefs = async () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Export Modal */}
+      {exportModal.open && (
+        <div className="upp-modal-overlay">
+          <div className="upp-modal" style={{ maxWidth: "600px", maxHeight: "80vh" }}>
+            <div className="upp-modal-header">
+              <h3>{exportModal.title}</h3>
+              <button className="upp-modal-close" onClick={closeExportModal}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="upp-modal-body">
+              <p className="upp-muted" style={{ marginBottom: 16 }}>
+                {exportModal.message} ({user?.savedFoods?.length || 0} total saved foods)
+              </p>
+              
+              {/* Select All checkbox */}
+              <div className="upp-export-select-all">
+                <label className="upp-choice" style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
+                  <input
+                    type="checkbox"
+                    checked={exportModal.selectAll}
+                    onChange={toggleSelectAll}
+                    style={{ marginRight: 8 }}
+                  />
+                  <span style={{ fontWeight: "bold" }}>Select All</span>
+                </label>
+              </div>
+              
+              {/* Foods list */}
+              <div className="upp-export-list" style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #eee", borderRadius: "8px", padding: "12px" }}>
+                {user?.savedFoods?.length > 0 ? (
+                  user.savedFoods.map((food, index) => (
+                    <div 
+                      key={food.id || food.saveId || index} 
+                      className="upp-export-item"
+                      style={{ 
+                        padding: "10px", 
+                        borderBottom: "1px solid #f5f5f5",
+                        display: "flex",
+                        alignItems: "center"
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        id={`food-${food.id || food.saveId}`}
+                        checked={exportModal.selectedFoods.includes(food.id || food.saveId)}
+                        onChange={() => toggleFoodSelection(food.id || food.saveId)}
+                        style={{ marginRight: "12px" }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: "500" }}>{food.name || "Unnamed Food"}</div>
+                        <div style={{ fontSize: "0.85rem", color: "#666" }}>
+                          {food.origin || "Unknown origin"} • Saved: {food.savedDate || "Unknown date"}
+                        </div>
+                      </div>
+                      {food.image && (
+                        <img 
+                          src={food.image} 
+                          alt={food.name}
+                          style={{ 
+                            width: "40px", 
+                            height: "40px", 
+                            borderRadius: "4px",
+                            objectFit: "cover",
+                            marginLeft: "12px"
+                          }}
+                        />
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>
+                    No saved foods to export
+                  </div>
+                )}
+              </div>
+              
+              <div style={{ marginTop: "16px", fontSize: "0.9rem", color: "#666" }}>
+                Selected: {exportModal.selectedFoods.length} of {user?.savedFoods?.length || 0} foods
+              </div>
+            </div>
+            
+            <div className="upp-modal-footer">
+              <button 
+                className="lrp-btn lrp-btn-outline" 
+                onClick={closeExportModal}
+                disabled={exportModal.loading}
+              >
+                Cancel
+              </button>
+              <button
+                className="lrp-btn lrp-btn-primary"
+                onClick={handleExportData}
+                disabled={exportModal.loading || exportModal.selectedFoods.length === 0}
+              >
+                {exportModal.loading ? "Exporting..." : `Export (${exportModal.selectedFoods.length})`}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -6,6 +6,8 @@ const { Parser } = require('json2csv');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 
+//Admin - data export
+
 // Helper function to get month name
 function getMonthName(monthNumber) {  
   const months = [
@@ -489,5 +491,227 @@ async function exportAsPDF(res, data, year) {
     throw error;
   }
 }
+
+//User - data export (saved foods)
+
+// ✅ Export Saved Foods Endpoint
+router.post('/export/saved-foods', authenticate, async (req, res) => {
+  let connection;
+  
+  try {
+    connection = await db.getConnection();
+    
+    const userId = req.user.userID;
+    const { exportType, foodIds } = req.body;
+    
+    console.log('📥 Export request received:', { userId, exportType, foodIds });
+
+    // Step 1: Get userProfileID from userID
+    const [userProfileRows] = await connection.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userId]
+    );
+    
+    if (!userProfileRows || userProfileRows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User profile not found' 
+      });
+    }
+    
+    const userProfileID = userProfileRows[0].userProfileID;
+    
+    // Step 2: Get saved food IDs based on export type
+    let savedFoodsQuery = `
+      SELECT sf.saveID, sf.foodID, sf.recipeID, sf.createdAt as savedDate
+      FROM saveFood sf
+      WHERE sf.userProfileID = ?
+    `;
+    
+    const queryParams = [userProfileID];
+    
+    if (exportType === 'selected' && foodIds && Array.isArray(foodIds) && foodIds.length > 0) {
+      // Export only selected foods
+      const placeholders = foodIds.map(() => '?').join(',');
+      savedFoodsQuery += ` AND sf.foodID IN (${placeholders})`;
+      queryParams.push(...foodIds);
+    }
+    
+    savedFoodsQuery += ' ORDER BY sf.createdAt DESC';
+    
+    const [savedFoods] = await connection.execute(savedFoodsQuery, queryParams);
+    
+    if (savedFoods.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'No saved foods found to export' 
+      });
+    }
+    
+    // Step 3: Fetch complete food details for each saved food
+    const foodIdsToFetch = savedFoods.map(sf => sf.foodID).filter(id => id);
+    const recipeIdsToFetch = savedFoods.map(sf => sf.recipeID).filter(id => id);
+    
+    let foodsData = [];
+    let recipesData = [];
+    
+    if (foodIdsToFetch.length > 0) {
+      const foodPlaceholders = foodIdsToFetch.map(() => '?').join(',');
+      const [foodRows] = await connection.execute(`
+        SELECT 
+          f.foodID,
+          f.name,
+          f.origin,
+          f.category,
+          f.foodType,
+          f.difficulty,
+          f.dietaryTags,
+          f.description,
+          f.image,
+          f.prepTime,
+          f.culturalSignificance,
+          f.traditionalPreparation,
+          f.commonIngredients,
+          f.alternative,
+          f.altDescription,
+          f.healthTips,
+          f.Energy_kcal,
+          f.Protein_g,
+          f.Fat_g,
+          f.Carbohydrates_g,
+          f.Fiber_g,
+          f.VitaminC_mg,
+          f.likes_count
+        FROM food f
+        WHERE f.foodID IN (${foodPlaceholders})
+      `, foodIdsToFetch);
+      
+      foodsData = foodRows;
+    }
+    
+    if (recipeIdsToFetch.length > 0) {
+      const recipePlaceholders = recipeIdsToFetch.map(() => '?').join(',');
+      const [recipeRows] = await connection.execute(`
+        SELECT 
+          r.recipeID,
+          r.foodID,
+          r.ingredients,
+          r.steps,
+          r.cookTime,
+          r.servings,
+          r.DidYouKnow,
+          r.chefTips,
+          r.createdAt as recipeCreatedAt,
+          r.admin_feedback,
+          r.status,
+          up.userProfileID,
+          u.firstname,
+          u.lastname,
+          up.location,
+          up.bio
+        FROM recipe r
+        JOIN userProfile up ON r.userProfileID = up.userProfileID
+        JOIN user u ON up.userID = u.userID
+        WHERE r.recipeID IN (${recipePlaceholders})
+      `, recipeIdsToFetch);
+      
+      recipesData = recipeRows;
+    }
+    
+    console.log(`📊 Preparing export of ${savedFoods.length} saved foods`);
+    
+    // Step 4: Format the export data
+    const exportData = {
+      meta: {
+        exportedAt: new Date().toISOString(),
+        userId: userId,
+        userProfileID: userProfileID,
+        exportType: exportType,
+        totalExported: savedFoods.length,
+        format: "JSON v1.0"
+      },
+      savedFoods: savedFoods.map(sf => {
+        const food = foodsData.find(f => f.foodID === sf.foodID);
+        const recipe = recipesData.find(r => r.recipeID === sf.recipeID);
+        
+        return {
+          saveInfo: {
+            saveID: sf.saveID,
+            savedDate: sf.savedDate,
+            foodID: sf.foodID,
+            recipeID: sf.recipeID
+          },
+          food: food ? {
+            // Basic food info
+            id: food.foodID,
+            name: food.name,
+            origin: food.origin,
+            category: food.category,
+            foodType: food.foodType,
+            difficulty: food.difficulty,
+            dietaryTags: food.dietaryTags ? food.dietaryTags.split(',') : [],
+            description: food.description,
+            image: food.image,
+            prepTime: food.prepTime,
+            culturalSignificance: food.culturalSignificance,
+            traditionalPreparation: food.traditionalPreparation,
+            commonIngredients: food.commonIngredients ? food.commonIngredients.split(',') : [],
+            alternative: food.alternative,
+            altDescription: food.altDescription,
+            healthTips: food.healthTips,
+            likes_count: food.likes_count,
+            
+            // Nutrition info (as requested)
+            nutrition: {
+              energy_kcal: food.Energy_kcal,
+              protein_g: food.Protein_g,
+              fat_g: food.Fat_g,
+              carbohydrates_g: food.Carbohydrates_g,
+              fiber_g: food.Fiber_g,
+              vitaminC_mg: food.VitaminC_mg
+            }
+          } : null,
+          
+          recipe: recipe ? {
+            recipeID: recipe.recipeID,
+            foodID: recipe.foodID,
+            ingredients: recipe.ingredients,
+            steps: recipe.steps,
+            cookTime: recipe.cookTime,
+            servings: recipe.servings,
+            didYouKnow: recipe.DidYouKnow,
+            chefTips: recipe.chefTips,
+            createdAt: recipe.recipeCreatedAt,
+            status: recipe.status,
+            adminFeedback: recipe.admin_feedback,
+            contributor: {
+              userProfileID: recipe.userProfileID,
+              name: `${recipe.firstname} ${recipe.lastname}`,
+              location: recipe.location,
+              bio: recipe.bio
+            }
+          } : null
+        };
+      })
+    };
+    
+    // Step 5: Send as JSON file
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="saved-foods-${Date.now()}.json"`);
+    
+    // Print JSON for readability
+    res.send(JSON.stringify(exportData, null, 2));
+
+  } catch (error) {
+    console.error('❌ Export error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to export saved foods',
+      message: error.message 
+    });
+  } finally {
+    if (connection) connection.release();
+  }
+});
 
 module.exports = router;
