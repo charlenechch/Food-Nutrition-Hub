@@ -557,7 +557,7 @@ export default function LoginRegisterPage() {
                   <div className="mh-actions">
                     <label className="mh-checkbox">
                       <input type="checkbox" checked={rememberDevice} onChange={(e) => setRememberDevice(e.target.checked)} />
-                      <span>Remember me for 7 days</span>
+                      <span>Keep Me Signed In</span>
                     </label>
                     <span onClick={() => navigate("/forgotpassword")} className="mh-forgot">Forgot Password?</span>
                   </div>
