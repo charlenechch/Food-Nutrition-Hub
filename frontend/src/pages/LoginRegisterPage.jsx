@@ -6,7 +6,7 @@ import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
 import Modal from "../components/Modal";
 /* Icons */
-import { FaEnvelopeOpenText, FaEye, FaEyeSlash, FaUser, FaLock, FaEnvelope, FaArrowRight } from "react-icons/fa";
+import { FaEnvelopeOpenText, FaInfoCircle, FaEye, FaEyeSlash, FaUser, FaLock, FaEnvelope, FaArrowRight } from "react-icons/fa";
 /* Firebase */
 import {
   createUserWithEmailAndPassword,
@@ -92,6 +92,8 @@ export default function LoginRegisterPage() {
 
   const navigate = useNavigate();
   const { user, setUser, loginAsGuest } = useAuth();
+
+  const [showTooltip, setShowTooltip] = useState(false);
 
   // ------------------------------
   // Effects
@@ -555,10 +557,31 @@ export default function LoginRegisterPage() {
                   </div>
 
                   <div className="mh-actions">
-                    <label className="mh-checkbox" title="Stay Logged In for 7 days" >
-                      <input type="checkbox" checked={rememberDevice} onChange={(e) => setRememberDevice(e.target.checked)} />
-                      <span>Stay Logged In</span>
-                    </label>
+                    <div className="mh-checkbox-wrapper">
+                      <label className="mh-checkbox">
+                        <input 
+                          type="checkbox" 
+                          checked={rememberDevice} 
+                          onChange={(e) => setRememberDevice(e.target.checked)} 
+                        />
+                        <span>Remember me</span>
+                      </label>
+                      
+                      <div 
+                        className="mh-info-icon"
+                        onMouseEnter={() => setShowTooltip(true)}
+                        onMouseLeave={() => setShowTooltip(false)}
+                        onClick={() => setShowTooltip(!showTooltip)} 
+                      >
+                        <FaInfoCircle />
+                        
+                        {showTooltip && (
+                          <div className="mh-custom-tooltip">
+                            Stay Logged in for 7 days
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <span onClick={() => navigate("/forgotpassword")} className="mh-forgot">Forgot Password?</span>
                   </div>
 

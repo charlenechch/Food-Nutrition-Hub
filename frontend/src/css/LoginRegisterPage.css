@@ -490,6 +490,56 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+.mh-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative; 
+}
+
+.mh-info-icon {
+  color: #aaa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+
+.mh-info-icon:hover {
+  color: var(--mh-brown);
+}
+
+.mh-custom-tooltip {
+  position: absolute;
+  bottom: 140%;         
+  left: 50%;             
+  transform: translateX(-50%);
+  
+  background-color: #333;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;  
+  z-index: 100;        
+  pointer-events: none;  
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.mh-custom-tooltip::after {
+  content: " ";
+  position: absolute;
+  top: 100%; 
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
 @media (max-width: 720px) {
 
   .modern-heritage-page {
