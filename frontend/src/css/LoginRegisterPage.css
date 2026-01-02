@@ -500,4 +500,27 @@
     justify-content: flex-start; 
     padding-top: 30px;           
   }
+
+  .mh-actions {
+    flex-direction: column;      
+    align-items: flex-start;     
+    gap: 15px;                   
+    margin-bottom: 30px;         
+  }
+
+  .mh-checkbox {
+    width: 100%;                 
+    padding: 5px 0;             
+    font-size: 1rem;            
+  }
+
+  .mh-forgot {
+    width: 100%;                
+    text-align: right;          
+    display: block;             
+    font-size: 0.95rem;         
+    color: var(--mh-brown);      
+    text-decoration: none;       
+    padding-right: 5px;          
+  }
 }
