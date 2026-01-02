@@ -212,7 +212,8 @@ export default function Community() {
           onPrimary: () => {
             closeModal();
             resetForm();
-            navigate(`/profile/${currentUID}?tab=status`);
+            // Don't guess the ID. Just go to /profile and let the backend find the logged-in user.
+            navigate("/profile?tab=status"); 
           },
           secondaryText: "Close",
           onSecondary: () => {
@@ -372,12 +373,41 @@ export default function Community() {
                     <div className="card-body">
                       <h3>{post.foodName}</h3>
                       <div className="card-meta">
-                          <div className="user-avatar">{getInitials(post.author)}</div>
-                          <div className="meta-text">
-                              <span className="author-name">{post.author}</span>
-                              <span className="post-date">{post.daysAgo}</span>
+                          {/* clickable avatar container */}
+                          <div 
+                            className="user-avatar" 
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevents opening the post detail
+                              // Navigate to the specific user's profile
+                              if (post.userProfile?.id) {
+                                navigate(`/profile/${post.userProfile.id}`);
+                              }
+                            }}
+                            style={{ cursor: "pointer" }}
+                            title={`View ${post.author}'s profile`}
+                          >
+                            {/* Logic: Show Image if exists, otherwise show Initials */}
+                            {post.authorProfilePic ? (
+                              <img src={post.authorProfilePic} alt={post.author} />
+                            ) : (
+                              getInitials(post.author)
+                            )}
                           </div>
-                      </div>
+
+                          <div className="meta-text">
+                            <span 
+                              className="author-name" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (post.userProfile?.id) navigate(`/profile/${post.userProfile.id}`);
+                              }}
+                              style={{ cursor: "pointer" }}
+                            >
+                              {post.author}
+                            </span>
+                            <span className="post-date">{post.daysAgo}</span>
+                          </div>
+                        </div>
                       <p className="card-excerpt">{post.culturalStory}</p>
                       <div className="card-stats">
                         <span className="stat"><FaHeart /> {post.likeCount}</span>
