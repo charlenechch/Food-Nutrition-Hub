@@ -501,26 +501,29 @@
     padding-top: 30px;           
   }
 
-  .mh-actions {
-    flex-direction: column;      
-    align-items: flex-start;     
-    gap: 15px;                   
-    margin-bottom: 30px;         
+.mh-actions {
+    display: flex;
+    flex-direction: row;       
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 25px;
+    gap: 10px;                 
   }
 
   .mh-checkbox {
-    width: 100%;                 
-    padding: 5px 0;             
-    font-size: 1rem;            
+    font-size: 0.85rem;         
+    margin: 0;
+    white-space: nowrap;        
+    display: flex;
+    align-items: center;
   }
 
   .mh-forgot {
-    width: 100%;                
-    text-align: right;          
-    display: block;             
-    font-size: 0.95rem;         
-    color: var(--mh-brown);      
-    text-decoration: none;       
-    padding-right: 5px;          
+    font-size: 0.85rem;
+    text-align: right;
+    white-space: nowrap;       
+    margin-top: 0;             
+    width: auto;             
   }
 }
