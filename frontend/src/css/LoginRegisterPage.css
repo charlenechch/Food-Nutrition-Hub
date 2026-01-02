@@ -475,7 +475,7 @@
     align-items: center;
     height: auto !important;   
     width: 100%;
-    padding: 0 20px 40px 20px;  
+    padding: 0 20px 60px 20px;  
   }
 
   .mh-brand-section {
@@ -494,8 +494,11 @@
     width: 100%;
     max-width: 400px;            
     height: auto !important;    
-    min-height: auto;            
+    min-height: auto !important;
+    max-height: none !important;         
     margin-top: 0;
+    margin-bottom: 40px;
+    overflow: visible !important;
     
     justify-content: flex-start; 
     padding-top: 30px;           
