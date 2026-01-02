@@ -502,9 +502,9 @@ router.post('/export/saved-foods', async (req, res) => {
     connection = await db.getConnection();
     
     const userId = req.user.userID;
-    const { exportType, foodIds } = req.body;
+    const { foodIds } = req.body;
     
-    console.log('📥 Export request received:', { userId, exportType, foodIds });
+    console.log('📥 Export request received:', { userId, foodIds });
 
     // Step 1: Get userProfileID from userID
     const [userProfileRows] = await connection.execute(

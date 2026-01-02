@@ -426,12 +426,13 @@ const handleExportData = async () => {
     let exportPayload;
     
     if (selectAll || selectedFoods.length === savedFoodsArray.length) {
-      // Export all
-      exportPayload = { exportType: "all" };
+      // Export all - send empty array or specific flag
+      exportPayload = { 
+        foodIds: [] // Empty array means "all"
+      };
     } else if (selectedFoods.length > 0) {
       // Export selected
       exportPayload = {
-        exportType: "selected",
         foodIds: selectedFoods
       };
     } else {
