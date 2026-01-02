@@ -501,29 +501,29 @@
     padding-top: 30px;           
   }
 
-.mh-actions {
+  .mh-actions {
     display: flex;
-    flex-direction: row;       
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;     /* Stack them */
+    justify-content: center;
+    align-items: center;        /* Center everything horizontally */
+    gap: 20px;                  /* Generous breathing room */
+    margin-bottom: 30px;
     width: 100%;
-    margin-bottom: 25px;
-    gap: 10px;                 
   }
 
   .mh-checkbox {
-    font-size: 0.85rem;         
+    width: auto;                /* Only take necessary width */
+    font-size: 1rem;
+    justify-content: center;    /* Ensure the box and text are centered */
     margin: 0;
-    white-space: nowrap;        
-    display: flex;
-    align-items: center;
   }
 
   .mh-forgot {
-    font-size: 0.85rem;
-    text-align: right;
-    white-space: nowrap;       
-    margin-top: 0;             
-    width: auto;             
+    width: auto;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--mh-brown);
+    border-bottom: 1px solid transparent; /* Prepare for hover effect */
+    padding-bottom: 2px;
   }
 }
