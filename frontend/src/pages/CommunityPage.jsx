@@ -212,7 +212,8 @@ export default function Community() {
           onPrimary: () => {
             closeModal();
             resetForm();
-            navigate(`/profile/${currentUID}?tab=status`);
+            // Don't guess the ID. Just go to /profile and let the backend find the logged-in user.
+            navigate("/profile?tab=status"); 
           },
           secondaryText: "Close",
           onSecondary: () => {
