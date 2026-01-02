@@ -443,7 +443,7 @@ const handleExportData = async () => {
     
     console.log("📤 Exporting saved foods:", exportPayload);
     
-    const res = await fetch(`${API_BASE_URL}/api/userProfile/export/saved-foods`, {
+    const res = await fetch(`${API_BASE_URL}/api/export/export/saved-foods`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
