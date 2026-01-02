@@ -495,7 +495,7 @@ async function exportAsPDF(res, data, year) {
 //User - data export (saved foods)
 
 // ✅ Export Saved Foods Endpoint
-router.post('/export/saved-foods', authenticate, async (req, res) => {
+router.post('/export/saved-foods', async (req, res) => {
   let connection;
   
   try {
