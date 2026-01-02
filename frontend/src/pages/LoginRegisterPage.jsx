@@ -13,6 +13,8 @@ import {
   sendEmailVerification,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 
@@ -405,6 +407,49 @@ export default function LoginRegisterPage() {
   };
 
   // ------------------------------
+  // Google Login Handler
+  // ------------------------------
+  const handleGoogleLogin = async () => {
+    setLoginError(""); // Clear previous errors
+    
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user; // Firebase User
+
+      // Send to Backend
+      const res = await fetch(`${API_URL}/api/auth/google-login`, {
+        method: "POST",
+        credentials: "include",
+        headers: { 
+            "Content-Type": "application/json", 
+            "X-CSRF-Token": csrfToken 
+        },
+        body: JSON.stringify({
+          email: user.email,
+          firstname: user.displayName ? user.displayName.split(" ")[0] : "User",
+          lastname: user.displayName ? user.displayName.split(" ").slice(1).join(" ") : "",
+          googlePhotoUrl: user.photoURL,
+          firebaseUID: user.uid
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setUser(data.user);
+        navigate(data.user.role === "admin" ? "/admin" : "/home");
+      } else {
+        setLoginError(data.message || "Google Login failed.");
+      }
+
+    } catch (err) {
+      console.error("Google Login Error:", err);
+      setLoginError("Popup closed or network error.");
+    }
+  };
+
+  // ------------------------------
   // JSX (Modern Heritage Design)
   // ------------------------------
   return (
@@ -520,6 +565,21 @@ export default function LoginRegisterPage() {
                   <button onClick={handleLogin} className="mh-btn-primary">
                     Sign In <FaArrowRight className="btn-arrow"/>
                   </button>
+
+                  <div className="mh-google-wrapper">
+                    <button 
+                      onClick={handleGoogleLogin} 
+                      className="mh-btn-google"
+                      type="button" 
+                    >
+                      <img 
+                        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+                        alt="G" 
+                        className="mh-google-icon"
+                      />
+                      Sign in with Google
+                    </button>
+                  </div>
                  </>
                )}
                </>

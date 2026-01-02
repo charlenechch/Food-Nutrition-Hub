@@ -4,13 +4,11 @@ const { pool: db } = require("../config/db");
 const bcrypt = require("bcrypt");
 const { sendEmail } = require("../config/mailer");
 
-// ✅ 1. PARSE JSON BODIES
-// This middleware *must* come before your routes to parse req.body
+// Parse JSON Bodies
+// This middleware must come before your routes to parse req.body
 router.use(express.json());
 
-/* ✅ 2. Session Check (Supports Guests + Verifies Suspension)
-  - Path: GET /session
-*/
+// Session Check (Supports Guests + Verifies Suspension)
 router.get("/session", async (req, res) => {
   if (!req.session || !req.session.user) {
     return res.status(401).json({
@@ -66,9 +64,7 @@ router.get("/session", async (req, res) => {
   }
 });
 
-/* ✅ 3. Login
-  - Path: POST /login
-*/
+// 3. Login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -158,9 +154,106 @@ router.post("/login", async (req, res) => {
   }
 });
 
-/* ✅ 4. Logout
-  - Path: POST /logout
-*/
+// Google Login
+router.post("/google-login", async (req, res) => {
+  const { email, firstname, lastname, googlePhotoUrl, firebaseUID } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required" });
+  }
+
+  try {
+    // 1. Check if user exists
+    const [users] = await db.execute(
+      "SELECT * FROM user WHERE email = ?", 
+      [email]
+    );
+
+    let user;
+
+    if (users.length > 0) {
+      // Case A: Existing User
+      console.log(`✅ Google Login: Found existing user ${email}`);
+      user = users[0];
+
+      // Optional: Update Firebase UID if it wasn't there before
+      if (!user.firebase_uid && firebaseUID) {
+        await db.execute("UPDATE user SET firebase_uid = ? WHERE userID = ?", [firebaseUID, user.userID]);
+      }
+      
+      // Optional: If they were unverified, auto-verify them since Google trusts them
+      if (user.verified === 'False' || user.verified === 0) {
+         await db.execute("UPDATE user SET verified = 'True' WHERE userID = ?", [user.userID]);
+         user.verified = 'True';
+      }
+
+    } else {
+      // Case B: New User (Auto-Register)
+      console.log(`🆕 Google Login: Creating new user for ${email}`);
+
+      // Insert new user with NULL password and Verified = True
+      const [result] = await db.execute(
+        `INSERT INTO user 
+        (firstname, lastname, email, password, role, verified, firebase_uid, status) 
+        VALUES (?, ?, ?, NULL, 'member', 'True', ?, 'Active')`,
+        [firstname || "User", lastname || "", email, firebaseUID || ""]
+      );
+
+      const newUserID = result.insertId;
+
+      // Create their UserProfile (Same logic as register.js)
+      await db.execute(
+        `INSERT INTO userProfile 
+         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, recipes, posts, likes) 
+         VALUES (?, '[]', '[]', true, true, true, 'en', 0, 0, 0)`,
+        [newUserID]
+      );
+
+      // Fetch the full user object again to be safe
+      const [newUsers] = await db.execute("SELECT * FROM user WHERE userID = ?", [newUserID]);
+      user = newUsers[0];
+    }
+
+    // 2. Create Session (Same logic from login.js)
+    req.session.regenerate(async (err) => {
+      if (err) return res.status(500).json({ message: "Session error" });
+
+      // Fetch profile ID for session
+      const [profiles] = await db.execute("SELECT userProfileID FROM userProfile WHERE userID = ?", [user.userID]);
+      const userProfileID = profiles.length > 0 ? profiles[0].userProfileID : null;
+
+      req.session.user = {
+        userID: user.userID,
+        userProfileID: userProfileID,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        role: user.role,
+        loginMethod: "google" // Useful for frontend to know
+      };
+
+      // Save session
+      req.session.save((err) => {
+        if (err) return res.status(500).json({ message: "Session save error" });
+        
+        // Update Last Login
+        db.execute("UPDATE user SET lastLogin = ? WHERE userID = ?", [new Date(), user.userID]);
+
+        return res.json({
+          success: true,
+          message: "Google Login Successful",
+          user: req.session.user
+        });
+      });
+    });
+
+  } catch (err) {
+    console.error("Google Login Error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// Logout
 router.post("/logout", (req, res) => {
   try {
     req.session.destroy(() => {
@@ -172,9 +265,8 @@ router.post("/logout", (req, res) => {
   }
 });
 
-/* ✅ 5. Update Password (from Firebase Reset)
-  - Path: POST /updatePassword
-*/
+// Update Password (from Firebase Reset)
+
 router.post("/updatePassword", async (req, res) => {
   // 1️⃣ Define variables first
   const email = req.body.email?.trim();
@@ -245,9 +337,7 @@ router.post("/updatePassword", async (req, res) => {
   }
 });
 
-/* ✅ 6. Verify Password (for Account Deletion)
-  - Path: POST /verifyAccountDeletion
-*/
+// Verify Password (for Account Deletion)
 router.post("/verifyAccountDeletion", async (req, res) => {
   if (!req.session?.user) {
     return res.status(401).json({ error: "Not authenticated" });
@@ -283,9 +373,7 @@ router.post("/verifyAccountDeletion", async (req, res) => {
   }
 });
 
-/* ✅ 7. Sync Email Verification
-  - Path: POST /syncEmailVerification
-*/
+// Sync Email Verification
 router.post("/syncEmailVerification", async (req, res) => {
   const { email } = req.body;
 
@@ -361,9 +449,7 @@ router.post("/syncEmailVerification", async (req, res) => {
   }
 });
 
-/* ✅ 8. Role Toggle
-  - Path: POST /toggle-role
-*/
+// Role Toggle
 router.post("/toggle-role", async (req, res) => {
   try {
     if (!req.session?.user) {
