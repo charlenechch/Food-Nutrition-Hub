@@ -455,41 +455,49 @@
 @media (max-width: 720px) {
 
   .modern-heritage-page {
-    height: auto !important; 
-    min-height: 100vh;
-    overflow-y: auto !important;
-    display: block;
+    display: block;              
+    height: auto !important;    
+    min-height: 100vh;           
+    overflow-y: auto !important; 
+    padding-top: 20px;     
   }
 
   .mh-background {
     position: fixed;
     height: 100vh;
+    width: 100vw;
   }
 
   .mh-content-wrapper {
-    flex-direction: column;
-    height: auto; 
+    display: flex;
+    flex-direction: column;      
+    justify-content: flex-start; 
+    align-items: center;
+    height: auto !important;   
     width: 100%;
-    padding: 40px 20px; 
-    justify-content: flex-start;
+    padding: 0 20px 40px 20px;  
   }
 
   .mh-brand-section {
     width: 100%;
     padding-right: 0;
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;         
+    flex: none;                 
   }
   
   .mh-title {
-    font-size: 3rem;
+    font-size: 2.5rem;          
   }
 
   .mh-form-card {
     width: 100%;
-    max-width: 100%;
-    height: auto !important;
-    min-height: auto;
-    margin-bottom: 50px; 
+    max-width: 400px;            
+    height: auto !important;    
+    min-height: auto;            
+    margin-top: 0;
+    
+    justify-content: flex-start; 
+    padding-top: 30px;           
   }
 }
