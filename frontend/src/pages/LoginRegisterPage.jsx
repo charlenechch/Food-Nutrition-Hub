@@ -577,7 +577,7 @@ export default function LoginRegisterPage() {
                         
                         {showTooltip && (
                           <div className="mh-custom-tooltip">
-                            Stay Logged in for 7 days
+                            You won't need to log in again for 7 days
                           </div>
                         )}
                       </div>
