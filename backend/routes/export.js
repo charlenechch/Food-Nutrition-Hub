@@ -624,97 +624,223 @@ router.post('/export/saved-foods', async (req, res) => {
       recipesData = recipeRows;
     }
     
-    console.log(`📊 Preparing export of ${savedFoods.length} saved foods`);
+    console.log(`📊 Preparing PDF export of ${savedFoods.length} saved foods`);
     
-    // Step 4: Format the export data
-    const exportData = {
-      meta: {
-        exportedAt: new Date().toISOString(),
-        userId: userId,
-        userProfileID: userProfileID,
-        exportType: exportType,
-        totalExported: savedFoods.length,
-        format: "JSON v1.0"
-      },
-      savedFoods: savedFoods.map(sf => {
-        const food = foodsData.find(f => f.foodID === sf.foodID);
-        const recipe = recipesData.find(r => r.recipeID === sf.recipeID);
-        
-        return {
-          saveInfo: {
-            saveID: sf.saveID,
-            savedDate: sf.savedDate,
-            foodID: sf.foodID,
-            recipeID: sf.recipeID
-          },
-          food: food ? {
-            // Basic food info
-            id: food.foodID,
-            name: food.name,
-            origin: food.origin,
-            category: food.category,
-            foodType: food.foodType,
-            difficulty: food.difficulty,
-            dietaryTags: food.dietaryTags ? food.dietaryTags.split(',') : [],
-            description: food.description,
-            image: food.image,
-            prepTime: food.prepTime,
-            culturalSignificance: food.culturalSignificance,
-            traditionalPreparation: food.traditionalPreparation,
-            commonIngredients: food.commonIngredients ? food.commonIngredients.split(',') : [],
-            alternative: food.alternative,
-            altDescription: food.altDescription,
-            healthTips: food.healthTips,
-            likes_count: food.likes_count,
-            
-            // Nutrition info (as requested)
-            nutrition: {
-              energy_kcal: food.Energy_kcal,
-              protein_g: food.Protein_g,
-              fat_g: food.Fat_g,
-              carbohydrates_g: food.Carbohydrates_g,
-              fiber_g: food.Fiber_g,
-              vitaminC_mg: food.VitaminC_mg
-            }
-          } : null,
-          
-          recipe: recipe ? {
-            recipeID: recipe.recipeID,
-            foodID: recipe.foodID,
-            ingredients: recipe.ingredients,
-            steps: recipe.steps,
-            cookTime: recipe.cookTime,
-            servings: recipe.servings,
-            didYouKnow: recipe.DidYouKnow,
-            chefTips: recipe.chefTips,
-            createdAt: recipe.recipeCreatedAt,
-            status: recipe.status,
-            adminFeedback: recipe.admin_feedback,
-            contributor: {
-              userProfileID: recipe.userProfileID,
-              name: `${recipe.firstname} ${recipe.lastname}`,
-              location: recipe.location,
-              bio: recipe.bio
-            }
-          } : null
-        };
-      })
-    };
-    
-    // Step 5: Send as JSON file
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="saved-foods-${Date.now()}.json"`);
-    
-    // Print JSON for readability
-    res.send(JSON.stringify(exportData, null, 2));
-
-  } catch (error) {
-    console.error('❌ Export error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to export saved foods',
-      message: error.message 
+    // Create PDF document
+    const doc = new PDFDocument({
+      margin: 50,
+      size: 'A4',
+      info: {
+        Title: 'Saved Foods Export',
+        Author: 'Sarawak Eats',
+        Subject: 'User Saved Foods',
+        Keywords: 'food, recipes, export',
+        Creator: 'Sarawak Eats Export System',
+        CreationDate: new Date()
+      }
     });
+    
+    // Set response headers for PDF
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="saved-foods-${Date.now()}.pdf"`);
+    
+    // Pipe PDF to response
+    doc.pipe(res);
+    
+    // ===== PDF CONTENT =====
+    
+    // Header
+    doc.fontSize(25)
+       .font('Helvetica-Bold')
+       .text('Sarawak Eats', { align: 'center' });
+    
+    doc.moveDown(0.5);
+    doc.fontSize(16)
+       .font('Helvetica')
+       .text('Saved Foods Export', { align: 'center' });
+    
+    doc.moveDown();
+    doc.fontSize(10)
+       .text(`Exported on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, { align: 'center' });
+    doc.text(`Export type: ${exportType} | Total items: ${savedFoods.length}`, { align: 'center' });
+    doc.text(`User: ${req.session.user.firstName} ${req.session.user.lastName}`, { align: 'center' });
+    
+    doc.moveDown(2);
+    
+    // Table of Contents style
+    doc.fontSize(14)
+       .font('Helvetica-Bold')
+       .text('Saved Foods List');
+    
+    doc.moveDown(0.5);
+    doc.moveTo(50, doc.y)
+       .lineTo(550, doc.y)
+       .stroke();
+    
+    doc.moveDown(1);
+    
+    // List each saved food
+    savedFoods.forEach((sf, index) => {
+      const food = foodsData.find(f => f.foodID === sf.foodID);
+      const recipe = recipesData.find(r => r.recipeID === sf.recipeID);
+      
+      if (food) {
+        // Item number
+        doc.fontSize(12)
+           .font('Helvetica-Bold')
+           .text(`${index + 1}. ${food.name}`, {
+             continued: true
+           })
+           .font('Helvetica')
+           .fontSize(10)
+           .text(` (Saved on: ${new Date(sf.savedDate).toLocaleDateString()})`, { align: 'right' });
+        
+        // Food details
+        doc.fontSize(10)
+           .text(`Origin: ${food.origin || 'N/A'} | Category: ${food.category || 'N/A'} | Type: ${food.foodType || 'N/A'}`);
+        
+        doc.text(`Difficulty: ${food.difficulty || 'N/A'} | Prep Time: ${food.prepTime || 'N/A'} minutes`);
+        
+        // Dietary tags
+        if (food.dietaryTags) {
+          doc.text(`Dietary: ${food.dietaryTags}`);
+        }
+        
+        // Description
+        if (food.description) {
+          doc.moveDown(0.3);
+          doc.text('Description:', { underline: true });
+          doc.text(food.description, {
+            width: 500,
+            align: 'justify'
+          });
+        }
+        
+        // Nutrition facts (table)
+        doc.moveDown(0.5);
+        doc.font('Helvetica-Bold')
+           .text('Nutrition Facts (per serving):');
+        
+        doc.font('Helvetica');
+        const nutritionY = doc.y;
+        doc.text(`Energy: ${food.Energy_kcal || 'N/A'} kcal`, 50, nutritionY);
+        doc.text(`Protein: ${food.Protein_g || 'N/A'} g`, 200, nutritionY);
+        doc.text(`Carbs: ${food.Carbohydrates_g || 'N/A'} g`, 350, nutritionY);
+        
+        doc.text(`Fat: ${food.Fat_g || 'N/A'} g`, 50, doc.y + 15);
+        doc.text(`Fiber: ${food.Fiber_g || 'N/A'} g`, 200, doc.y);
+        doc.text(`Vitamin C: ${food.VitaminC_mg || 'N/A'} mg`, 350, doc.y);
+        
+        // Recipe (if exists)
+        if (recipe) {
+          doc.moveDown(0.5);
+          doc.font('Helvetica-Bold')
+             .text('Recipe:');
+          
+          doc.font('Helvetica');
+          doc.text(`Contributor: ${recipe.firstname} ${recipe.lastname}`);
+          doc.text(`Cook Time: ${recipe.cookTime || 'N/A'} min | Servings: ${recipe.servings || 'N/A'}`);
+          
+          if (recipe.ingredients) {
+            doc.moveDown(0.3);
+            doc.text('Ingredients:', { underline: true });
+            const ingredients = recipe.ingredients.split(',').map(i => `• ${i.trim()}`).join('\n');
+            doc.text(ingredients, {
+              width: 500,
+              indent: 20
+            });
+          }
+          
+          if (recipe.steps) {
+            doc.moveDown(0.3);
+            doc.text('Steps:', { underline: true });
+            const steps = recipe.steps.split(',').map((s, i) => `${i + 1}. ${s.trim()}`).join('\n');
+            doc.text(steps, {
+              width: 500,
+              indent: 20
+            });
+          }
+          
+          if (recipe.chefTips) {
+            doc.moveDown(0.3);
+            doc.font('Helvetica-Bold')
+               .text('Chef Tips:');
+            doc.font('Helvetica')
+               .text(recipe.chefTips, {
+                 width: 500,
+                 align: 'justify'
+               });
+          }
+        }
+        
+        // Health tips
+        if (food.healthTips) {
+          doc.moveDown(0.5);
+          doc.font('Helvetica-Bold')
+             .text('Health Tips:');
+          doc.font('Helvetica')
+             .text(food.healthTips, {
+               width: 500,
+               align: 'justify'
+             });
+        }
+        
+        // Separator
+        doc.moveDown(1);
+        doc.moveTo(50, doc.y)
+           .lineTo(550, doc.y)
+           .strokeColor('#CCCCCC')
+           .stroke();
+        
+        doc.moveDown(1);
+        
+        // Page break if needed
+        if (doc.y > 700) {
+          doc.addPage();
+          doc.fontSize(10)
+             .text(`Continued...`, { align: 'right' });
+          doc.moveDown(1);
+        }
+      }
+    });
+    
+    // Footer
+    const totalPages = doc.bufferedPageRange().count;
+    for (let i = 0; i < totalPages; i++) {
+      doc.switchToPage(i);
+      
+      // Page number
+      doc.fontSize(8)
+         .text(
+           `Page ${i + 1} of ${totalPages}`,
+           50,
+           doc.page.height - 50,
+           { align: 'center', width: 500 }
+         );
+      
+      // Copyright
+      doc.text(
+        `© ${new Date().getFullYear()} Sarawak Eats. All rights reserved.`,
+        50,
+        doc.page.height - 30,
+        { align: 'center', width: 500 }
+      );
+    }
+    
+    // Finalize PDF
+    doc.end();
+    
+  } catch (error) {
+    console.error('❌ PDF export error:', error);
+    
+    // Send error as JSON instead of trying to send partial PDF
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to export saved foods as PDF',
+        message: error.message 
+      });
+    }
   } finally {
     if (connection) connection.release();
   }

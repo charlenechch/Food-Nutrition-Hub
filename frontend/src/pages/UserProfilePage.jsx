@@ -468,7 +468,7 @@ const handleExportData = async () => {
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0];
     const count = selectedFoods.length === savedFoodsArray.length ? 'all' : selectedFoods.length;
-    a.download = `saved-foods-${count}-${timestamp}.json`;
+    a.download = `saved-foods-${count}-${timestamp}.pdf`;
     
     document.body.appendChild(a);
     a.click();
