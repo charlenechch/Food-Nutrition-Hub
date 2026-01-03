@@ -805,8 +805,13 @@ router.post('/export/saved-foods', async (req, res) => {
     });
     
     // Footer
-    const totalPages = doc.bufferedPageRange().count;
-    for (let i = 0; i < totalPages; i++) {
+    doc.flushPages();
+
+    // Get the buffered page range
+    const { start: firstPage, count: totalPages } = doc.bufferedPageRange();
+    
+    // Add footer to each page
+    for (let i = firstPage; i < firstPage + totalPages; i++) {
       doc.switchToPage(i);
       
       // Page number
