@@ -506,6 +506,12 @@ router.post('/export/saved-foods', async (req, res) => {
     
     console.log('📥 Export request received:', { userId, foodIds });
 
+    const exportType = foodIds && Array.isArray(foodIds) && foodIds.length > 0 
+      ? "selected" 
+      : "all";
+    
+    console.log('📊 Export type:', exportType);
+
     // Step 1: Get userProfileID from userID
     const [userProfileRows] = await connection.execute(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
