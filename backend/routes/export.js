@@ -530,7 +530,7 @@ router.post('/export/saved-foods', async (req, res) => {
     
     const queryParams = [userProfileID];
     
-    if (exportType === 'selected' && foodIds && Array.isArray(foodIds) && foodIds.length > 0) {
+    if (foodIds && Array.isArray(foodIds) && foodIds.length > 0) {
       // Export only selected foods
       const placeholders = foodIds.map(() => '?').join(',');
       savedFoodsQuery += ` AND sf.foodID IN (${placeholders})`;
