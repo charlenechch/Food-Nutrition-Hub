@@ -419,6 +419,8 @@ export default function LoginRegisterPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user; // Firebase User
 
+      const token = await user.getIdToken();
+
       // Send to Backend
       const res = await fetch(`${API_URL}/api/auth/google-login`, {
         method: "POST",
@@ -431,8 +433,7 @@ export default function LoginRegisterPage() {
           email: user.email,
           firstname: user.displayName ? user.displayName.split(" ")[0] : "User",
           lastname: user.displayName ? user.displayName.split(" ").slice(1).join(" ") : "",
-          googlePhotoUrl: user.photoURL,
-          firebaseUID: user.uid
+          token: token,
         }),
       });
 
