@@ -373,20 +373,28 @@ export default function Community() {
                     <div className="card-body">
                       <h3>{post.foodName}</h3>
                       <div className="card-meta">
-                          {/* clickable avatar container */}
+                          {/* ✅ FIX APPLIED BELOW:
+                              Added checks to see if the post belongs to the current user.
+                              If yes -> Go to personal dashboard (/profile)
+                              If no  -> Go to public profile view (/profile/:id)
+                          */}
                           <div 
                             className="user-avatar" 
                             onClick={(e) => {
-                              e.stopPropagation(); // Prevents opening the post detail
-                              // Navigate to the specific user's profile
-                              if (post.userProfile?.id) {
-                                navigate(`/profile/${post.userProfile.id}`);
+                              e.stopPropagation(); 
+                              const currentUID = user?.userID || user?.id;
+                              const postUID = post.userProfile?.id;
+                              
+                              // Check if logged in AND is the owner
+                              if (user && String(currentUID) === String(postUID)) {
+                                navigate('/profile'); 
+                              } else if (postUID) {
+                                navigate(`/profile/${postUID}`);
                               }
                             }}
                             style={{ cursor: "pointer" }}
                             title={`View ${post.author}'s profile`}
                           >
-                            {/* Logic: Show Image if exists, otherwise show Initials */}
                             {post.authorProfilePic ? (
                               <img src={post.authorProfilePic} alt={post.author} />
                             ) : (
@@ -399,7 +407,14 @@ export default function Community() {
                               className="author-name" 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (post.userProfile?.id) navigate(`/profile/${post.userProfile.id}`);
+                                const currentUID = user?.userID || user?.id;
+                                const postUID = post.userProfile?.id;
+
+                                if (user && String(currentUID) === String(postUID)) {
+                                  navigate('/profile');
+                                } else if (postUID) {
+                                  navigate(`/profile/${postUID}`);
+                                }
                               }}
                               style={{ cursor: "pointer" }}
                             >
