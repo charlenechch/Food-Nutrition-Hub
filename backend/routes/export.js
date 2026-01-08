@@ -747,20 +747,22 @@ router.post('/export/saved-foods', async (req, res) => {
           if (recipe.ingredients) {
             doc.moveDown(0.3);
             doc.text('Ingredients:', { underline: true });
-            const ingredients = recipe.ingredients.split(',').map(i => `• ${i.trim()}`).join('\n');
+            const ingredients = recipe.ingredients.split(/[,|\n]/).map(i => `• ${i.trim()}`).join('\n');
             doc.text(ingredients, {
               width: 500,
-              indent: 20
+              indent: 20,
+              align: 'left'
             });
           }
           
           if (recipe.steps) {
             doc.moveDown(0.3);
             doc.text('Steps:', { underline: true });
-            const steps = recipe.steps.split(',').map((s, i) => `${i + 1}. ${s.trim()}`).join('\n');
+            const steps = recipe.steps.split(/[,|\n]/).map((s, i) => `${i + 1}. ${s.trim()}`).join('\n');
             doc.text(steps, {
               width: 500,
-              indent: 20
+              indent: 20,
+              align: 'left'
             });
           }
           
@@ -771,7 +773,7 @@ router.post('/export/saved-foods', async (req, res) => {
             doc.font('Helvetica')
                .text(recipe.chefTips, {
                  width: 500,
-                 align: 'justify'
+                 align: 'left'
                });
           }
         }
@@ -784,7 +786,7 @@ router.post('/export/saved-foods', async (req, res) => {
           doc.font('Helvetica')
              .text(food.healthTips, {
                width: 500,
-               align: 'justify'
+               align: 'left'
              });
         }
         
