@@ -555,7 +555,7 @@ router.post('/export/saved-foods', async (req, res) => {
     }
     
     // Step 3: Fetch complete food details for each saved food
-    constfoodIdsToFetch = savedFoods.map(sf => sf.foodID).filter(id => id);
+    const foodIdsToFetch = savedFoods.map(sf => sf.foodID).filter(id => id);
     const recipeIdsToFetch = savedFoods.map(sf => sf.recipeID).filter(id => id);
     
     let foodsData = [];
@@ -590,7 +590,7 @@ router.post('/export/saved-foods', async (req, res) => {
           f.likes_count
         FROM food f
         WHERE f.foodID IN (${foodPlaceholders})
-      `, foodIdsToFetch);
+      `, IdsToFetch);
       
       foodsData = foodRows;
     }
