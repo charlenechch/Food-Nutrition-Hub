@@ -187,6 +187,16 @@ router.post("/google-login", async (req, res) => {
          user.verified = 'True';
       }
 
+      if (googlePhotoUrl) {
+         await db.execute(
+            `UPDATE userProfile 
+             SET avatar = ? 
+             WHERE userID = ? AND (avatar IS NULL OR avatar = '')`, 
+            [googlePhotoUrl, user.userID]
+         );
+         console.log(`🖼️ Updated avatar for existing user ${user.userID}`);
+      }
+
     } else {
       // Case B: New User (Auto-Register)
       console.log(`🆕 Google Login: Creating new user for ${email}`);
@@ -204,9 +214,9 @@ router.post("/google-login", async (req, res) => {
       // Create their UserProfile (Same logic as register.js)
       await db.execute(
         `INSERT INTO userProfile 
-         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, recipes, posts, likes) 
-         VALUES (?, '[]', '[]', true, true, true, 'en', 0, 0, 0)`,
-        [newUserID]
+         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, recipes, posts, likes, avatar) 
+         VALUES (?, '[]', '[]', true, true, true, 'en', 0, 0, 0, ?)`,
+        [newUserID, googlePhotoUrl || null]
       );
 
       // Fetch the full user object again to be safe
