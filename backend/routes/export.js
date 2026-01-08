@@ -809,15 +809,17 @@ router.post('/export/saved-foods', async (req, res) => {
     
     // Footer
     // doc.flushPages();
-
-    const totalPages = doc.bufferedPageRange().count;
-    for (let i = 0; i < totalPages; i++) {
+    const { start, count } = doc.bufferedPageRange();
+    const totalPages = count;
+    for (let i = start; i < start + totalPages; i++) {
       doc.switchToPage(i);
+
+      const pageNumber = i - start + 1;
       
       // Page number
       doc.fontSize(8)
          .text(
-           `Page ${i + 1} of ${totalPages}`,
+           `Page ${pageNumber} of ${totalPages}`,
            50,
            doc.page.height - 50,
            { align: 'center', width: 500 }
