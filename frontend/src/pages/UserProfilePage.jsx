@@ -1101,7 +1101,10 @@ const handleExportData = async () => {
               }}
               aria-label="Change avatar"
             >
-              {user?.avatar && /\.(jpg|jpeg|png|gif|webp)$/i.test(user.avatar) ? (
+              {user?.avatar && (
+                /\.(jpg|jpeg|png|gif|webp)$/i.test(user.avatar) || 
+                user.avatar.includes('googleusercontent.com')
+              ) ? (
                 <>
                   <img src={user.avatar} alt="Profile Avatar" />
                   <div className="upp-avatar-overlay">
