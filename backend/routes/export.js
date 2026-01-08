@@ -590,7 +590,7 @@ router.post('/export/saved-foods', async (req, res) => {
           f.likes_count
         FROM food f
         WHERE f.foodID IN (${foodPlaceholders})
-      `, IdsToFetch);
+      `, foodIdsToFetch);
       
       foodsData = foodRows;
     }
