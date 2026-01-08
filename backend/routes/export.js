@@ -502,11 +502,11 @@ router.post('/export/saved-foods', async (req, res) => {
     connection = await db.getConnection();
     
     const userId = req.session.user.userID;
-    const { foodIds } = req.body;
+    const { saveIds } = req.body;
     
-    console.log('📥 Export request received:', { userId, foodIds });
+    console.log('📥 Export request received:', { userId, saveIds });
 
-    const exportType = foodIds && Array.isArray(foodIds) && foodIds.length > 0 
+    const exportType = saveIds && Array.isArray(saveIds) && saveIds.length > 0 
       ? "selected" 
       : "all";
     
@@ -536,11 +536,11 @@ router.post('/export/saved-foods', async (req, res) => {
     
     const queryParams = [userProfileID];
     
-    if (foodIds && Array.isArray(foodIds) && foodIds.length > 0) {
+    if (saveIds && Array.isArray(saveIds) && saveIds.length > 0) {
       // Export only selected foods
-      const placeholders = foodIds.map(() => '?').join(',');
-      savedFoodsQuery += ` AND sf.foodID IN (${placeholders})`;
-      queryParams.push(...foodIds);
+      const placeholders = saveIds.map(() => '?').join(',');
+      savedFoodsQuery += ` AND sf.saveID IN (${placeholders})`;
+      queryParams.push(...saveIds);
     }
     
     savedFoodsQuery += ' ORDER BY sf.createdAt DESC';
@@ -661,9 +661,10 @@ router.post('/export/saved-foods', async (req, res) => {
     
     doc.moveDown();
     doc.fontSize(10)
+       .font('Helvetica')
        .text(`Exported on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, { align: 'center' });
     doc.text(`Export type: ${exportType} | Total items: ${savedFoods.length}`, { align: 'center' });
-    doc.text(`User: ${req.session.user.firstName} ${req.session.user.lastName}`, { align: 'center' });
+    //doc.text(`User: ${req.session.user.firstName} ${req.session.user.lastName}`, { align: 'center' });
     
     doc.moveDown(2);
     
@@ -682,6 +683,8 @@ router.post('/export/saved-foods', async (req, res) => {
     // List each saved food
     savedFoods.forEach((sf, index) => {
       const food = foodsData.find(f => f.foodID === sf.foodID);
+      if (!food) return;
+
       const recipe = recipesData.find(r => r.recipeID === sf.recipeID);
       
       if (food) {
@@ -805,13 +808,10 @@ router.post('/export/saved-foods', async (req, res) => {
     });
     
     // Footer
-    doc.flushPages();
+    // doc.flushPages();
 
-    // Get the buffered page range
-    const { start: firstPage, count: totalPages } = doc.bufferedPageRange();
-    
-    // Add footer to each page
-    for (let i = firstPage; i < firstPage + totalPages; i++) {
+    const totalPages = doc.bufferedPageRange().count;
+    for (let i = 0; i < totalPages; i++) {
       doc.switchToPage(i);
       
       // Page number
