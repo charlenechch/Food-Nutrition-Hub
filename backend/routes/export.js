@@ -529,8 +529,9 @@ router.post('/export/saved-foods', async (req, res) => {
     
     // Step 2: Get saved food IDs based on export type
     let savedFoodsQuery = `
-      SELECT sf.saveID, sf.foodID, sf.recipeID, sf.createdAt as savedDate
+      SELECT sf.saveID, f.foodID as id, f.name, f.origin, sf.createdAt as savedDate
       FROM saveFood sf
+      JOIN food f ON sf.foodID = f.foodID
       WHERE sf.userProfileID = ?
     `;
     
@@ -747,22 +748,47 @@ router.post('/export/saved-foods', async (req, res) => {
           if (recipe.ingredients) {
             doc.moveDown(0.3);
             doc.text('Ingredients:', { underline: true });
-            const ingredients = recipe.ingredients.split(/[,|\n]/).map(i => `• ${i.trim()}`).join('\n');
-            doc.text(ingredients, {
-              width: 500,
-              indent: 20,
-              align: 'left'
-            });
-          }
+            doc.moveDown(0.2);
+    
+          let ingredientsText = recipe.ingredients.replace(/\\n/g, '\n');
+          
+          // Process each line
+          const lines = ingredientsText.split('\n');
+          lines.forEach((line, index) => {
+            if (line.trim()) {
+              const bulletLine = line.trim().startsWith('•') || line.trim().startsWith('-') 
+                ? line.trim() 
+                : `• ${line.trim()}`;
+              
+              doc.text(bulletLine, {
+                width: 500,
+                align: 'left'
+              });
+            }
+          });
+        }
           
           if (recipe.steps) {
             doc.moveDown(0.3);
-            doc.text('Steps:', { underline: true });
-            const steps = recipe.steps.split(/[,|\n]/).map((s, i) => `${i + 1}. ${s.trim()}`).join('\n');
-            doc.text(steps, {
-              width: 500,
-              indent: 20,
-              align: 'left'
+            doc.font('Helvetica-Bold')
+              .text('Steps:');
+            doc.moveDown(0.2);
+            
+            let stepsText = recipe.steps.replace(/\\n/g, '\n');
+            
+            // Process each line
+            const lines = stepsText.split('\n');
+            let stepNumber = 1;
+            lines.forEach((line, index) => {
+              if (line.trim()) {
+                // Add step number
+                const stepLine = `${stepNumber}. ${line.trim()}`;
+                doc.text(stepLine, {
+                  width: 500,
+                  align: 'left'
+                });
+                stepNumber++;
+              }
             });
           }
           
@@ -803,38 +829,20 @@ router.post('/export/saved-foods', async (req, res) => {
         if (doc.y > 700) {
           doc.addPage();
           doc.fontSize(10)
-             .text(`Continued...`, { align: 'right' });
+             //.text(`Continued...`, { align: 'right' });
           doc.moveDown(1);
         }
       }
     });
     
     // Footer
-    // doc.flushPages();
-    const { start, count } = doc.bufferedPageRange();
-    const totalPages = count;
-    for (let i = start; i < start + totalPages; i++) {
-      doc.switchToPage(i);
-
-      const pageNumber = i - start + 1;
-      
-      // Page number
-      doc.fontSize(8)
-         .text(
-           `Page ${pageNumber} of ${totalPages}`,
-           50,
-           doc.page.height - 50,
-           { align: 'center', width: 500 }
-         );
-      
-      // Copyright
-      doc.text(
-        `© ${new Date().getFullYear()} Sarawak Eats. All rights reserved.`,
-        50,
-        doc.page.height - 30,
-        { align: 'center', width: 500 }
-      );
-    }
+    doc.moveDown(3);
+    doc.fontSize(10)
+      .font('Helvetica')
+      .text(`© ${new Date().getFullYear()} Sarawak Eats. All rights reserved.`, { 
+        align: 'center',
+        width: 500 
+      });
     
     // Finalize PDF
     doc.end();
