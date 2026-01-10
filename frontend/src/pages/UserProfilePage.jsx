@@ -290,11 +290,11 @@ const closeExportModal = () => {
 };
 
 // Toggle individual food selection
-const toggleFoodSelection = (foodId) => {
+const toggleFoodSelection = (saveId) => {
   setExportModal(m => {
-    const newSelected = m.selectedFoods.includes(foodId)
-      ? m.selectedFoods.filter(id => id !== foodId)
-      : [...m.selectedFoods, foodId];
+    const newSelected = m.selectedFoods.includes(saveId)
+      ? m.selectedFoods.filter(id => id !== saveId)
+      : [...m.selectedFoods, saveId];
     
     return {
       ...m,
@@ -314,7 +314,7 @@ const toggleSelectAll = () => {
       ...m,
       selectAll: selectAll,
       selectedFoods: selectAll 
-        ? savedFoodsArray.map(f => f.id || f.saveId)
+        ? savedFoodsArray.map(f => f.saveId)
         : []
     };
   });
@@ -428,7 +428,7 @@ const handleExportData = async () => {
     if (selectAll || selectedFoods.length === savedFoodsArray.length) {
       // Export all - send empty array or specific flag
       exportPayload = { 
-        // saveIds: [] // Empty array means "all"
+        saveIds: [] // Empty array means "all"
       };
     } else if (selectedFoods.length > 0) {
       // Export selected
@@ -1668,8 +1668,8 @@ const handleExportData = async () => {
                       <input
                         type="checkbox"
                         id={`food-${food.id || food.saveId}`}
-                        checked={exportModal.selectedFoods.includes(food.id || food.saveId)}
-                        onChange={() => toggleFoodSelection(food.id || food.saveId)}
+                        checked={exportModal.selectedFoods.includes(food.saveId)}
+                        onChange={() => toggleFoodSelection(food.saveId)}
                         style={{ marginRight: "12px" }}
                       />
                       <div style={{ flex: 1 }}>
