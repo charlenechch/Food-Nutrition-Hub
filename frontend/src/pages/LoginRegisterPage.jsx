@@ -434,6 +434,8 @@ export default function LoginRegisterPage() {
           firstname: user.displayName ? user.displayName.split(" ")[0] : "User",
           lastname: user.displayName ? user.displayName.split(" ").slice(1).join(" ") : "",
           token: token,
+          googlePhotoUrl: user.photoURL,
+          firebaseUID: user.uid,
         }),
       });
 
