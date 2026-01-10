@@ -526,10 +526,11 @@ router.post('/export/saved-foods', async (req, res) => {
     }
     
     const userProfileID = userProfileRows[0].userProfileID;
+    console.log('📊 UserProfileID:', userProfileID);
     
     // Step 2: Get saved food IDs based on export type
     let savedFoodsQuery = `
-      SELECT sf.saveID, f.foodID as id, f.name, f.origin, sf.createdAt as savedDate
+      SELECT sf.saveID, f.foodID as id, sf.recipeID, f.name, f.origin, sf.createdAt as savedDate
       FROM saveFood sf
       JOIN food f ON sf.foodID = f.foodID
       WHERE sf.userProfileID = ?
@@ -556,8 +557,11 @@ router.post('/export/saved-foods', async (req, res) => {
     }
     
     // Step 3: Fetch complete food details for each saved food
-    const foodIdsToFetch = savedFoods.map(sf => sf.foodID).filter(id => id);
+    const foodIdsToFetch = savedFoods.map(sf => sf.id).filter(id => id);
     const recipeIdsToFetch = savedFoods.map(sf => sf.recipeID).filter(id => id);
+
+    console.log('🔍 Food IDs to fetch:', foodIdsToFetch);
+    console.log('🔍 Recipe IDs to fetch:', recipeIdsToFetch);
     
     let foodsData = [];
     let recipesData = [];
@@ -683,12 +687,31 @@ router.post('/export/saved-foods', async (req, res) => {
     
     // List each saved food
     savedFoods.forEach((sf, index) => {
-      const food = foodsData.find(f => f.foodID === sf.foodID);
-      if (!food) return;
+      console.log(`📄 Processing item ${index + 1}:`, {
+        saveID: sf.saveID,
+        foodID: sf.id,
+        name: sf.name
+      });
+
+      const food = foodsData.find(f => f.foodID === sf.id); 
+      
+      if (!food) {
+        console.log(`❌ No food data found for foodID: ${sf.id}`);
+        doc.fontSize(12)
+           .font('Helvetica-Bold')
+           .text(`${index + 1}. ${sf.name || 'Unknown Food'}`);
+        doc.fontSize(10)
+           .font('Helvetica')
+           .text(`Saved on: ${new Date(sf.savedDate).toLocaleDateString()}`);
+        doc.text(`Note: Food details not available`);
+        doc.moveDown(1);
+        return;
+      }
+      
+      console.log(`✅ Found food data:`, food.name);
 
       const recipe = recipesData.find(r => r.recipeID === sf.recipeID);
       
-      if (food) {
         // Item number
         doc.fontSize(12)
            .font('Helvetica-Bold')
@@ -708,7 +731,6 @@ router.post('/export/saved-foods', async (req, res) => {
         // Dietary tags
         if (food.dietaryTags) {
           doc.text(`Dietary: ${food.dietaryTags}`);
-        }
         
         // Description
         if (food.description) {
