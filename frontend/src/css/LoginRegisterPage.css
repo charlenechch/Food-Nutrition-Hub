@@ -642,3 +642,18 @@
     padding-bottom: 2px;
   }
 }
+
+@media (max-width: 450px) {
+
+  .mh-otp-input {
+    font-size: 1.5rem !important;   
+    letter-spacing: 5px !important; 
+    padding: 10px !important;      
+    width: 100%;                   
+  }
+
+  .mh-otp-input::placeholder {
+    letter-spacing: 5px !important; 
+    font-size: 1.5rem !important;
+  }
+}
