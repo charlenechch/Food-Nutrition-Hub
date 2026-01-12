@@ -540,7 +540,7 @@
   border-color: #333 transparent transparent transparent;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 900px) {
 
   .modern-heritage-page {
     display: block;              
