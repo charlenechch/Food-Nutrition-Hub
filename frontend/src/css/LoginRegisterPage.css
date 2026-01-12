@@ -212,32 +212,27 @@
 }
 
 /* --- Fixed Icon Positions --- */
-.mh-icon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #aaa;
-  z-index: 1;
+.mh-input-group .mh-icon {
+  position: absolute !important;
+  left: 15px !important;
+  z-index: 10 !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  height: auto !important;
+  margin: 0 !important;
 }
 
 .mh-input-group .mh-eye {
   position: absolute !important;
   right: 15px !important;
   z-index: 20 !important;
-
-  /* 1. Force the top edge to the exact center line */
   top: 50% !important;
   bottom: auto !important;
   margin: 0 !important;
-
-  /* 2. Use Transform to center it perfectly */
-  /* -50% is mathematical center. */
-  /* -40% pushes it DOWN slightly (fixing the "too high" look) */
-  /* -60% would pull it UP. */
   transform: translateY(-40%) !important;
-  
-  /* 3. Reset any layout interference */
   display: flex !important;
   align-items: center !important;
   height: auto !important;
