@@ -215,7 +215,7 @@
 .mh-icon {
   position: absolute;
   left: 15px;
-  top: 20%;
+  top: 50%;
   transform: translateY(-50%);
   color: #aaa;
   z-index: 1;
@@ -224,12 +224,13 @@
 .mh-eye {
   position: absolute;
   right: 15px;
-  top: 20%;
+  top: calc(50% + 3px);
   transform: translateY(-50%);
   color: #aaa;
   cursor: pointer;
   display: flex;
   align-items: center;
+  line-height: 0;
 }
 .mh-eye:hover { color: var(--mh-brown); }
 
