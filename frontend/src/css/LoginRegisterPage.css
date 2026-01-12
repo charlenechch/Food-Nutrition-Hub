@@ -222,25 +222,19 @@
 }
 
 .mh-eye {
-  /* 1. Reset Positioning */
   position: absolute;
   right: 15px;
-  
-  /* 2. The "God Mode" Centering Trick */
   top: 0;
   bottom: 0;
-  margin: auto 0;  /* Auto vertical margin forces it to the middle */
-  
-  /* 3. Define size so the browser knows how to center it */
-  height: 20px;    /* Roughly the size of your icon */
+  margin: auto 0;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  
-  /* 4. Visuals */
   color: #aaa;
   cursor: pointer;
-  z-index: 10;     /* Ensure it sits on top of the input */
+  z-index: 10;
+  transform: translateY(-3px);
 }
 .mh-eye:hover { color: var(--mh-brown); }
 
