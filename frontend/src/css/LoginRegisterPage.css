@@ -224,7 +224,7 @@
 .mh-eye {
   position: absolute;
   right: 15px;
-  top: 50%;
+  top: 70%;
   transform: translateY(-50%);
   color: #aaa;
   cursor: pointer;
