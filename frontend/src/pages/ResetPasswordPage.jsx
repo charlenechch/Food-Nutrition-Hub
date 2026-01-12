@@ -174,18 +174,20 @@ export default function ResetPasswordPage() {
           {error && <div className="mh-error-msg">{error}</div>}
 
           {/* New Password */}
-          <div className="mh-input-group">
-            <FaLock className="mh-icon" />
-            <input
-              type={showPwd ? "text" : "password"}
-              placeholder="New Password"
-              value={pwd}
-              onChange={(e) => setPwd(e.target.value)}
-              onFocus={() => setShowHint(true)}
-              // onBlur={() => setShowHint(false)} // Optional: keep open to see checks
-            />
-            <div className="mh-eye" onClick={() => setShowPwd(!showPwd)}>
-              {showPwd ? <FaEyeSlash /> : <FaEye />}
+          <div className="mh-password-wrapper">
+            <div className="mh-input-group">
+              <FaLock className="mh-icon" />
+              <input
+                type={showPwd ? "text" : "password"}
+                placeholder="New Password"
+                value={pwd}
+                onChange={(e) => setPwd(e.target.value)}
+                onFocus={() => setShowHint(true)}
+                // onBlur={() => setShowHint(false)} // Optional: keep open to see checks
+              />
+              <div className="mh-eye" onClick={() => setShowPwd(!showPwd)}>
+                {showPwd ? <FaEyeSlash /> : <FaEye />}
+              </div>
             </div>
 
             {/* Validation Hints */}
