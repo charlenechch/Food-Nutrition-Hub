@@ -630,7 +630,7 @@ export default function LoginRegisterPage() {
                   <input type="email" placeholder="Email Address" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} />
                 </div>
 
-                <div ref={passwordHintRef}>
+                <div ref={passwordHintRef} className="mh-password-wrapper">
                   <div className="mh-input-group">
                     <FaLock className="mh-icon" />
                     <input 

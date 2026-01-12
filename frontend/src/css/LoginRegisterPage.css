@@ -362,6 +362,21 @@
 .mh-password-hints .valid { color: #1b5e20; background: #e8f5e9; border: 1px solid #c8e6c9; }
 .mh-password-hints .invalid { color: #c62828; background: #ffebee; border: 1px solid #ffcdd2; }
 
+.mh-password-wrapper {
+  margin-bottom: 25px; 
+  width: 100%;
+}
+
+
+.mh-password-wrapper .mh-input-group {
+  margin-bottom: 5px !important; 
+}
+
+.mh-password-wrapper .mh-password-hints {
+  margin-top: 0 !important;
+  margin-bottom: 5px;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
