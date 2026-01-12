@@ -218,7 +218,7 @@
   z-index: 10 !important;
   top: 50% !important;
   bottom: auto !important;
-  transform: translateY(-40%) !important;
+  transform: translateY(-50%) !important;
   display: flex !important;
   align-items: center !important;
   height: auto !important;
