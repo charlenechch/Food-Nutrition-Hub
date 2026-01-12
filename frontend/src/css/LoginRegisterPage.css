@@ -238,7 +238,7 @@
   /* -10px = Moves UP */
   /* 10px = Moves DOWN */
   /* Start with -10px because icons usually sit high */
-  margin-top: -10px; 
+  margin-top: -12px; 
   
   /* 4. Visuals */
   height: 20px;
