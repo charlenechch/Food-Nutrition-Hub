@@ -630,16 +630,18 @@ export default function LoginRegisterPage() {
                   <input type="email" placeholder="Email Address" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} />
                 </div>
 
-                <div ref={passwordHintRef} className="mh-input-group">
-                  <FaLock className="mh-icon" />
-                  <input 
-                    type={showRegPassword ? "text" : "password"} 
-                    placeholder="Create Password" 
-                    value={regPassword} 
-                    onFocus={() => setShowPasswordHint(true)}
-                    onChange={(e) => { setRegPassword(e.target.value); updatePasswordCriteria(e.target.value); setShowPasswordHint(true); }}
-                  />
-                  <div className="mh-eye" onClick={() => setShowRegPassword(!showRegPassword)}>{showRegPassword ? <FaEyeSlash/> : <FaEye/>}</div>
+                <div ref={passwordHintRef}>
+                  <div className="mh-input-group">
+                    <FaLock className="mh-icon" />
+                    <input 
+                      type={showRegPassword ? "text" : "password"} 
+                      placeholder="Create Password" 
+                      value={regPassword} 
+                      onFocus={() => setShowPasswordHint(true)}
+                      onChange={(e) => { setRegPassword(e.target.value); updatePasswordCriteria(e.target.value); setShowPasswordHint(true); }}
+                    />
+                    <div className="mh-eye" onClick={() => setShowRegPassword(!showRegPassword)}>{showRegPassword ? <FaEyeSlash/> : <FaEye/>}</div>
+                  </div>
                   
                   {showPasswordHint && (
                     <div className="mh-password-hints">
