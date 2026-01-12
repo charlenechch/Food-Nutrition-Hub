@@ -221,32 +221,27 @@
   z-index: 1;
 }
 
-.mh-eye {
-  position: absolute;
-  right: 15px;
-  z-index: 10;
-  
-  /* 1. CLEAR the previous centering hacks */
-  bottom: auto !important; 
-  margin: 0 !important;
-  transform: none !important; /* Turn off the transform logic */
+.mh-input-group .mh-eye {
+  position: absolute !important;
+  right: 15px !important;
+  z-index: 20 !important;
 
-  /* 2. Set the baseline to exactly 50% */
+  /* 1. Force the top edge to the exact center line */
   top: 50% !important;
+  bottom: auto !important;
+  margin: 0 !important;
 
-  /* 3. Use 'margin-top' as your joystick */
-  /* -10px = Moves UP */
-  /* 10px = Moves DOWN */
-  /* Start with -10px because icons usually sit high */
-  margin-top: -120px; 
+  /* 2. Use Transform to center it perfectly */
+  /* -50% is mathematical center. */
+  /* -40% pushes it DOWN slightly (fixing the "too high" look) */
+  /* -60% would pull it UP. */
+  transform: translateY(-40%) !important;
   
-  /* 4. Visuals */
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #aaa;
-  cursor: pointer;
+  /* 3. Reset any layout interference */
+  display: flex !important;
+  align-items: center !important;
+  height: auto !important;
+  line-height: 1 !important;
 }
 .mh-eye:hover { color: var(--mh-brown); }
 
