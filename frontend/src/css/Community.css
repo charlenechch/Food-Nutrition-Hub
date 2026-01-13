@@ -165,7 +165,7 @@
    3. STICKY FILTER BAR
 =========================================== */
 .sticky-filter-bar {
-   position: sticky; top: 70px; z-index: 100;
+  position: sticky; top: 100px; z-index: 100;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   padding: 15px 20px; 
@@ -439,11 +439,11 @@
     gap: 15px;
   }
 
-  .upload-group .upload-box {
+  .upload-wrap .upload-box {
     padding: 20px;
     width: 100%;
     box-sizing: border-box; 
-    min-width: none;
+    min-width: 0;
   }
 
   .form-actions {
@@ -468,10 +468,11 @@
 
 @media (max-width: 900px) {
   .sticky-filter-bar {
+    top: 75px;
     flex-direction: column; 
     align-items: stretch;   
-    padding: 20px;
-    gap: 15px;
+    padding: 15px;
+    gap: 10px;
   }
 
   .search-pill {

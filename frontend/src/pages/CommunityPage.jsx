@@ -305,8 +305,10 @@ export default function Community() {
                 </div>
                 <div className="form-group upload-group">
                   <label>Upload Photo *</label>
-                  <div className="upload-box" onClick={() => document.getElementById("file-input").click()}>
-                    {preview ? <img src={preview} alt="Preview" className="preview-img" /> : <div className="upload-placeholder"><FaCamera className="camera-icon"/><p>Click to upload</p></div>}
+                  <div className="upload-wrap">
+                    <div className="upload-box" onClick={() => document.getElementById("file-input").click()}>
+                      {preview ? <img src={preview} alt="Preview" className="preview-img" /> : <div className="upload-placeholder"><FaCamera className="camera-icon"/><p>Click to upload</p></div>}
+                    </div>
                   </div>
                   <input id="file-input" type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} />
                 </div>
