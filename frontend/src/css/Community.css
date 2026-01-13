@@ -456,6 +456,17 @@
     text-align: center;
   }
 
+  .premium-grid {
+    grid-template-columns: 1fr; 
+  }
+  
+  .mh-content-wrapper {
+    width: 100%;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 900px) {
   .sticky-filter-bar {
     flex-direction: column; 
     align-items: stretch;   
@@ -486,14 +497,5 @@
   
   .filter-icon {
     left: 10px;
-  }
-
-  .premium-grid {
-    grid-template-columns: 1fr; 
-  }
-  
-  .mh-content-wrapper {
-    width: 100%;
-    padding: 10px;
   }
 }
