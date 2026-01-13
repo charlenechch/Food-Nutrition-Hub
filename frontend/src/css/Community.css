@@ -165,7 +165,7 @@
    3. STICKY FILTER BAR
 =========================================== */
 .sticky-filter-bar {
-  position: sticky; top: 20px; z-index: 100;
+  position: relative; top: 0; z-index: 100;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   padding: 15px 20px; 
@@ -408,4 +408,91 @@
   font-size: 1.2rem;
   cursor: pointer;
   color: #888;
+}
+
+@media (max-width: 900px) {
+  .community-page {
+    padding: 0 15px 60px; 
+    margin-top: -30px;
+  }
+  
+  .community-hero-content h1 {
+    font-size: 2.2rem; 
+  }
+
+  .share-banner {
+    padding: 25px 20px; 
+  }
+  
+  .share-header-flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .share-cta-btn {
+    width: 100%; 
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr; 
+    gap: 15px;
+  }
+
+  .upload-box {
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box; 
+  }
+
+  .form-actions {
+    flex-direction: column-reverse; 
+    width: 100%;
+  }
+  
+  .submit-btn, .cancel-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .sticky-filter-bar {
+    flex-direction: column; 
+    align-items: stretch;   
+    padding: 20px;
+    gap: 15px;
+  }
+
+  .search-pill {
+    width: 100%;
+  }
+
+  .filter-group {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+  }
+
+  .select-wrapper {
+    flex: 1; 
+    width: 50%;
+  }
+
+  .community-filter-select {
+    width: 100%;
+    padding-left: 30px; 
+    font-size: 0.85rem;
+  }
+  
+  .filter-icon {
+    left: 10px;
+  }
+
+  .premium-grid {
+    grid-template-columns: 1fr; 
+  }
+  
+  .mh-content-wrapper {
+    width: 100%;
+    padding: 10px;
+  }
 }
