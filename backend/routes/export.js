@@ -745,17 +745,29 @@ router.post('/export/saved-foods', async (req, res) => {
         // Nutrition facts (table)
         doc.moveDown(0.5);
         doc.font('Helvetica-Bold')
-           .text('Nutrition Facts (per serving):');
+           .text('Nutrition Facts:');
+        doc.moveDown(0.2);
         
         doc.font('Helvetica');
-        const nutritionY = doc.y;
-        doc.text(`Energy: ${food.Energy_kcal || 'N/A'} kcal`, 50, nutritionY);
-        doc.text(`Protein: ${food.Protein_g || 'N/A'} g`, 200, nutritionY);
-        doc.text(`Carbs: ${food.Carbohydrates_g || 'N/A'} g`, 350, nutritionY);
-        
-        doc.text(`Fat: ${food.Fat_g || 'N/A'} g`, 50, doc.y + 15);
-        doc.text(`Fiber: ${food.Fiber_g || 'N/A'} g`, 200, doc.y);
-        doc.text(`Vitamin C: ${food.VitaminC_mg || 'N/A'} mg`, 350, doc.y);
+        const nutritionLines = [
+          `Energy: ${food.Energy_kcal || 'N/A'} kcal`,
+          `Protein: ${food.Protein_g || 'N/A'} g`,
+          `Fat: ${food.Fat_g || 'N/A'} g`,
+          `Carbs: ${food.Carbohydrates_g || 'N/A'} g`,
+          `Fiber: ${food.Fiber_g || 'N/A'} g`,
+          `Vitamin C: ${food.VitaminC_mg || 'N/A'} mg`
+        ];
+
+        // Create a neat list
+        nutritionLines.forEach((line, index) => {
+          doc.text(line, {
+            indent: 20,
+            width: 500,
+            align: 'left'
+          });
+        });
+
+        doc.moveDown(0.3);
         
         // Recipe (if exists)
         if (recipe) {
@@ -772,7 +784,11 @@ router.post('/export/saved-foods', async (req, res) => {
             doc.text('Ingredients:', { underline: true });
             doc.moveDown(0.2);
     
-          let ingredientsText = recipe.ingredients.replace(/\\n/g, '\n');
+          let ingredientsText = recipe.ingredients;
+    
+          // Clean up the ingredients text
+          ingredientsText = ingredientsText.replace(/\\n/g, '\n');
+          ingredientsText = ingredientsText.replace(/\\r/g, '');
           
           // Process each line
           const lines = ingredientsText.split('\n');
@@ -793,21 +809,33 @@ router.post('/export/saved-foods', async (req, res) => {
           if (recipe.steps) {
             doc.moveDown(0.3);
             doc.font('Helvetica-Bold')
-              .text('Steps:');
+              .text('Steps:', { underline: true });
             doc.moveDown(0.2);
             
-            let stepsText = recipe.steps.replace(/\\n/g, '\n');
+            let stepsText = recipe.steps;
+    
+            // Clean up the steps text
+            stepsText = stepsText.replace(/\\n/g, '\n');
+            stepsText = stepsText.replace(/\\r/g, '');
+            stepsText = stepsText.replace(/\*\*/g, ''); // Remove bold markers
+            stepsText = stepsText.replace(/<\/?b>/g, ''); // Remove HTML bold tags
             
             // Process each line
             const lines = stepsText.split('\n');
             let stepNumber = 1;
             lines.forEach((line, index) => {
-              if (line.trim()) {
-                // Add step number
-                const stepLine = `${stepNumber}. ${line.trim()}`;
-                doc.text(stepLine, {
+              const trimmedLine = line.trim();
+              
+              if (trimmedLine) {
+                // Remove any existing step numbers (like "1.", "2.", etc.)
+                const cleanLine = trimmedLine.replace(/^\d+\.\s*/, '');
+                
+                // Add proper step number
+                doc.font('Helvetica'); // Ensure regular font
+                doc.text(`${stepNumber}. ${cleanLine}`, {
                   width: 500,
-                  align: 'left'
+                  align: 'left',
+                  indent: 10
                 });
                 stepNumber++;
               }
