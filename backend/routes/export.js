@@ -735,7 +735,9 @@ router.post('/export/saved-foods', async (req, res) => {
         // Description
         if (food.description) {
           doc.moveDown(0.3);
-          doc.text('Description:', { underline: true });
+          doc.font('Helvetica-Bold')
+             .text('Description:');
+          doc.moveDown(0.1);
           doc.text(food.description, {
             width: 500,
             align: 'justify'
@@ -781,7 +783,8 @@ router.post('/export/saved-foods', async (req, res) => {
           
           if (recipe.ingredients) {
             doc.moveDown(0.3);
-            doc.text('Ingredients:', { underline: true });
+            doc.font('Helvetica-Bold')
+               .text('Ingredients:');
             doc.moveDown(0.2);
     
           let ingredientsText = recipe.ingredients;
@@ -828,7 +831,7 @@ router.post('/export/saved-foods', async (req, res) => {
               
               if (trimmedLine) {
                 // Remove any existing step numbers (like "1.", "2.", etc.)
-                const cleanLine = trimmedLine.replace(/^\d+\.\s*/, '');
+                // const cleanLine = trimmedLine.replace(/^\d+\.\s*/, '');
                 
                 // Add proper step number
                 doc.font('Helvetica'); // Ensure regular font
@@ -837,7 +840,7 @@ router.post('/export/saved-foods', async (req, res) => {
                   align: 'left',
                   indent: 10
                 });
-                stepNumber++;
+                // stepNumber++;
               }
             });
           }
