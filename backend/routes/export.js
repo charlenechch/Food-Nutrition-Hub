@@ -738,6 +738,8 @@ router.post('/export/saved-foods', async (req, res) => {
           doc.font('Helvetica-Bold')
              .text('Description:');
           doc.moveDown(0.1);
+
+          doc.font('Helvetica');
           doc.text(food.description, {
             width: 500,
             align: 'justify'
@@ -792,6 +794,8 @@ router.post('/export/saved-foods', async (req, res) => {
           // Clean up the ingredients text
           ingredientsText = ingredientsText.replace(/\\n/g, '\n');
           ingredientsText = ingredientsText.replace(/\\r/g, '');
+
+          doc.font('Helvetica');
           
           // Process each line
           const lines = ingredientsText.split('\n');
@@ -812,7 +816,7 @@ router.post('/export/saved-foods', async (req, res) => {
           if (recipe.steps) {
             doc.moveDown(0.3);
             doc.font('Helvetica-Bold')
-              .text('Steps:', { underline: true });
+              .text('Steps:');
             doc.moveDown(0.2);
             
             let stepsText = recipe.steps;
@@ -822,27 +826,34 @@ router.post('/export/saved-foods', async (req, res) => {
             stepsText = stepsText.replace(/\\r/g, '');
             stepsText = stepsText.replace(/\*\*/g, ''); // Remove bold markers
             stepsText = stepsText.replace(/<\/?b>/g, ''); // Remove HTML bold tags
-            
-            stepsText = stepsText.replace(/^\s*(\d+\.)/gm, '$1');
 
-            // Process each line
-            const lines = stepsText.split('\n');
-            let stepNumber = 1;
-            lines.forEach((line) => {
-              const trimmedLine = line.trim();
+            stepsText = stepsText.replace(/^(\s+)(\d+(?:\.\d+)*\.)/gm, '$2');
+    
+            doc.font('Helvetica');
+            doc.text(stepsText, {
+                width: 500,
+                align: 'left',
+                indent: 10
+            
+            // // Process each line
+            // const lines = stepsText.split('\n');
+            // // let stepNumber = 1;
+            // lines.forEach((line) => {
+            //   const trimmedLine = line.trim();
               
-              if (trimmedLine) {
-                const cleanLine = trimmedLine;
+            //   if (trimmedLine) {
+            //     // Remove any existing step numbers (like "1.", "2.", etc.)
+            //     const cleanLine = trimmedLine.replace(/^\d+\.\s*/, '');
                 
-                // Add proper step number
-                doc.font('Helvetica'); // Ensure regular font
-                doc.text(`${stepNumber}. ${cleanLine}`, {
-                  width: 500,
-                  align: 'left',
-                  indent: 10
-                });
-                // stepNumber++;
-              }
+            //     // Add proper step number
+            //     doc.font('Helvetica'); // Ensure regular font
+            //     doc.text(`${stepNumber}. ${cleanLine}`, {
+            //       width: 500,
+            //       align: 'left',
+            //       indent: 10
+            //     });
+            //     stepNumber++;
+            //   }
             });
           }
           
