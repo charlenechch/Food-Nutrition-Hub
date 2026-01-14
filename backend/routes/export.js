@@ -823,15 +823,16 @@ router.post('/export/saved-foods', async (req, res) => {
             stepsText = stepsText.replace(/\*\*/g, ''); // Remove bold markers
             stepsText = stepsText.replace(/<\/?b>/g, ''); // Remove HTML bold tags
             
+            stepsText = stepsText.replace(/^\s*(\d+\.)/gm, '$1');
+
             // Process each line
             const lines = stepsText.split('\n');
             let stepNumber = 1;
-            lines.forEach((line, index) => {
+            lines.forEach((line) => {
               const trimmedLine = line.trim();
               
               if (trimmedLine) {
-                // Remove any existing step numbers (like "1.", "2.", etc.)
-                // const cleanLine = trimmedLine.replace(/^\d+\.\s*/, '');
+                const cleanLine = trimmedLine;
                 
                 // Add proper step number
                 doc.font('Helvetica'); // Ensure regular font
