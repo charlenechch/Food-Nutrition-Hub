@@ -291,6 +291,9 @@ const closeExportModal = () => {
 
 // Toggle individual food selection
 const toggleFoodSelection = (saveId) => {
+  console.log('🔍 Toggling selection for saveId:', saveId);
+  console.log('🔍 saveId type:', typeof saveId);
+
   setExportModal(m => {
     const newSelected = m.selectedFoods.includes(saveId)
       ? m.selectedFoods.filter(id => id !== saveId)
@@ -427,11 +430,15 @@ const handleExportData = async () => {
     
     if (selectAll || selectedFoods.length === savedFoodsArray.length) {
       // Export all - send empty array or specific flag
+      console.log('🔍 Exporting ALL foods - payload will have saveIds: []');
       exportPayload = { 
         saveIds: [] // Empty array means "all"
       };
     } else if (selectedFoods.length > 0) {
       // Export selected
+      console.log('🔍 Exporting SELECTED foods:', selectedFoods);
+      console.log('🔍 Selected foods type:', typeof selectedFoods);
+      console.log('🔍 Selected foods is array?', Array.isArray(selectedFoods));
       exportPayload = {
         saveIds: selectedFoods
       };
@@ -443,6 +450,7 @@ const handleExportData = async () => {
     }
     
     console.log("📤 Exporting saved foods:", exportPayload);
+    console.log('📤 JSON stringified:', JSON.stringify(exportPayload));
     
     const res = await fetch(`${API_BASE_URL}/api/export/export/saved-foods`, {
       method: "POST",
@@ -453,6 +461,8 @@ const handleExportData = async () => {
       credentials: "include",
       body: JSON.stringify(exportPayload),
     });
+
+    console.log('📥 Response status:', res.status);
     
     if (!res.ok) {
       const errorText = await res.text();
@@ -1665,13 +1675,16 @@ const handleExportData = async () => {
                         alignItems: "center"
                       }}
                     >
-                      <input
-                        type="checkbox"
-                        id={`food-${food.id || food.saveId}`}
-                        checked={exportModal.selectedFoods.includes(food.saveId)}
-                        onChange={() => toggleFoodSelection(food.saveId)}
-                        style={{ marginRight: "12px" }}
-                      />
+                    <input
+                      type="checkbox"
+                      id={`food-${food.saveId}`}
+                      checked={exportModal.selectedFoods.includes(food.saveId)}
+                      onChange={() => {
+                        console.log('🔍 Checkbox onChange - food.saveId:', food.saveId);
+                        toggleFoodSelection(food.saveId);
+                      }}
+                      style={{ marginRight: "12px" }}
+                    />
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: "500" }}>{food.name || "Unnamed Food"}</div>
                         <div style={{ fontSize: "0.85rem", color: "#666" }}>
