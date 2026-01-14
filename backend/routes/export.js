@@ -499,12 +499,42 @@ router.post('/export/saved-foods', async (req, res) => {
   let connection;
   
   try {
+    console.log('='.repeat(60));
+    console.log('🚨 EXPORT ROUTE HIT!');
+    console.log('🚨 Request method:', req.method);
+    console.log('🚨 Request URL:', req.url);
+    console.log('🚨 Request path:', req.path);
+    console.log('🚨 Request originalUrl:', req.originalUrl);
+    console.log('🚨 Request headers:', req.headers['content-type']);
+    console.log('🚨 Request body RAW:', req.body);
+    console.log('🚨 Request body TYPE:', typeof req.body);
+    
+    // Try to manually parse body if it's a string
+    if (typeof req.body === 'string') {
+      console.log('🚨 Body is string, attempting manual parse...');
+      try {
+        req.body = JSON.parse(req.body);
+        console.log('🚨 Manually parsed body:', req.body);
+      } catch (e) {
+        console.log('🚨 Failed to parse:', e.message);
+      }
+    }
+    
+    console.log('🚨 Session user:', req.session?.user);
+    console.log('='.repeat(60));
+    
     connection = await db.getConnection();
     
     const userId = req.session.user.userID;
     const { saveIds } = req.body;
     
-    console.log('📥 Export request received:', { userId, saveIds });
+    console.log('📥 Export request processed:', { 
+      userId, 
+      saveIds,
+      saveIdsType: typeof saveIds,
+      saveIdsIsArray: Array.isArray(saveIds),
+      saveIdsLength: saveIds?.length || 0
+    });
 
     const exportType = saveIds && Array.isArray(saveIds) && saveIds.length > 0 
       ? "selected" 

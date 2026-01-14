@@ -257,7 +257,7 @@ app.use("/api/recipe", hppProtect({ policy: "first", allowlist: ["includeAll", "
 
 app.use("/api/foods", hppProtect({ policy: "first", allowlist: ["name", "category", "culturalSignificance", "traditionalPreparation", "origin", "description", "image", "foodType", "dietaryTags", "ingredients", "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg", "difficulty", "prepTime", "commonIngredients", "alternative", "altDescription", "healthTips"], logger: (tag, meta) => logger.warn(`HPP Foods Parameter: ${tag}`, meta) }), foodRoutes);
 
-app.use("/api/export", hppProtect({ policy: "first", allowlist: ["format", "year","saveIds"], logger: (tag, meta) => logger.warn(`HPP Export Parameter: ${tag}`, meta) }), exportRoutes);
+app.use("/api/export", hppProtect({ policy: "none", allowlist: ["format", "year","saveIds"], logger: (tag, meta) => logger.warn(`HPP Export Parameter: ${tag}`, meta) }), exportRoutes);
 app.use("/api/foodSearch", foodSearchRoutes);
 
 // ---------- Global HPP for everything else (UNTOUCHED) ----------
