@@ -48,9 +48,9 @@ router.get('/:id', async (req, res) => {
     const food = foodRows[0];
     console.log('Raw food data from DB:', food);
     
-    // 2. Fetch recipe for this specific food only
+    // 2. Fetch recipe for this specific food ONLY
     let recipeId = null;
-    let servings = null; // Set to null instead of 1 when no recipe
+    let servings = null;
     
     const recipeQuery = `
       SELECT recipeID, servings 
@@ -69,29 +69,21 @@ router.get('/:id', async (req, res) => {
       console.log(`✅ Found recipe for food ${foodId}: recipeID=${recipeId}, servings=${servings}`);
     } else {
       console.log(`ℹ️ No approved recipe found for food ${foodId}`);
-      // servings remains null
     }
     
-    // Parse ingredients - handle both JSON array and comma-separated string
+    // Parse ingredients
     let ingredients = [];
     if (food.commonIngredients) {
       try {
-        // First try to parse as JSON
         ingredients = JSON.parse(food.commonIngredients);
-        console.log('Ingredients parsed as JSON:', ingredients);
       } catch (e) {
-        // If JSON parsing fails, treat as comma-separated string
-        console.log('Ingredients is comma-separated string, splitting...');
         ingredients = food.commonIngredients.split(',').map(ing => ing.trim());
-        console.log('Ingredients after splitting:', ingredients);
       }
-    } else {
-      console.log('No commonIngredients found');
     }
 
-    // Instead, use the servings from recipe query
-    const servingsForCalculation = servings || 1; // Use recipe servings or default to 1
-    const k = 1 / servingsForCalculation;
+    // Calculate per-serving values
+    const servingsForCalc = servings || 1;
+    const k = 1 / servingsForCalc;
 
     const Energy_kcal = num(food.Energy_kcal);
     const Protein_g = num(food.Protein_g);
@@ -116,17 +108,17 @@ router.get('/:id', async (req, res) => {
       description: food.description,
       culturalSignificance: food.culturalSignificance,
       traditionalPreparation: food.traditionalPreparation,
-      commonIngredients: ingredients, // this will be an array
+      commonIngredients: ingredients,
       calories: Energy_kcal,
       protein: Protein_g,
       fat: Fat_g,
       carbs: Carbohydrates_g,
       image: food.image,
       healthTips: food.healthTips,
-      recipeId: recipeId, // FIX: Use the recipeId from our separate query
+      recipeId: recipeId, // This will be null if no recipe exists for THIS food
       Fiber_g,
       VitaminC_mg,
-      servings: servings, // FIX: Use the servings from our separate query
+      servings: servings,
       Energy_kcal_ps,
       Protein_g_ps,
       Fat_g_ps,
@@ -139,10 +131,8 @@ router.get('/:id', async (req, res) => {
       carbs_ps: Carbohydrates_g_ps,
     };
 
-    console.log(`✅ Successfully formatted food: ${formattedFood.name}`);
-    console.log(`✅ Recipe ID for this food: ${formattedFood.recipeId}`);
-    console.log(`✅ Servings for this food: ${formattedFood.servings}`);
-    console.log('Final ingredients array:', formattedFood.commonIngredients);
+    console.log(`✅ Food ${foodId} - Recipe ID: ${recipeId}`);
+    console.log(`✅ Food name: ${formattedFood.name}`);
 
     res.json({
       success: true,
@@ -153,8 +143,7 @@ router.get('/:id', async (req, res) => {
     console.error('❌ Database Error fetching food:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching food details',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: 'Error fetching food details'
     });
   }
 });
