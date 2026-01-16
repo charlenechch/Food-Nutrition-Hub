@@ -9,7 +9,8 @@ router.get('/:id', async (req, res) => {
     const foodId = req.params.id;
     console.log(`Fetching data for food ID: ${foodId}`);
 
-    const foodDetailQuery = `
+    // 1. Fetch food details separately
+    const foodQuery = `
       SELECT 
         f.foodID,
         f.name,
@@ -26,27 +27,15 @@ router.get('/:id', async (req, res) => {
         f.Fat_g,
         f.Carbohydrates_g,
         f.Fiber_g,
-        f.VitaminC_mg,
-        r.recipeID AS recipeId,
-        r.servings
+        f.VitaminC_mg
       FROM food f
-      LEFT JOIN (
-        SELECT r1.*
-        FROM recipe r1
-        INNER JOIN (
-          SELECT foodID, MIN(recipeID) AS rid
-          FROM recipe
-          WHERE status = 'Approved'
-          GROUP BY foodID
-        ) x ON x.rid = r1.recipeID
-      ) r ON r.foodID = f.foodID
       WHERE f.foodID = ?
     `;
 
-    console.log('Executing query with ID:', foodId);
+    console.log('Executing food query with ID:', foodId);
     
-    const [foodRows] = await db.execute(foodDetailQuery, [foodId]);
-    console.log('Query result:', foodRows);
+    const [foodRows] = await db.execute(foodQuery, [foodId]);
+    console.log('Food query result:', foodRows);
 
     if (foodRows.length === 0) {
       console.log('No food found with ID:', foodId);
@@ -58,6 +47,30 @@ router.get('/:id', async (req, res) => {
 
     const food = foodRows[0];
     console.log('Raw food data from DB:', food);
+    
+    // 2. Fetch recipe for this specific food only
+    let recipeId = null;
+    let servings = null; // Set to null instead of 1 when no recipe
+    
+    const recipeQuery = `
+      SELECT recipeID, servings 
+      FROM recipe 
+      WHERE foodID = ? AND status = 'Approved'
+      ORDER BY recipeID 
+      LIMIT 1
+    `;
+    
+    console.log('Executing recipe query for foodID:', foodId);
+    const [recipeRows] = await db.execute(recipeQuery, [foodId]);
+    
+    if (recipeRows.length > 0) {
+      recipeId = recipeRows[0].recipeID;
+      servings = num(recipeRows[0].servings);
+      console.log(`✅ Found recipe for food ${foodId}: recipeID=${recipeId}, servings=${servings}`);
+    } else {
+      console.log(`ℹ️ No approved recipe found for food ${foodId}`);
+      // servings remains null
+    }
     
     // Parse ingredients - handle both JSON array and comma-separated string
     let ingredients = [];
@@ -76,8 +89,9 @@ router.get('/:id', async (req, res) => {
       console.log('No commonIngredients found');
     }
 
-    const servings = Math.max(1, num(food.servings) || 1);
-    const k = 1 / servings;
+    // Instead, use the servings from recipe query
+    const servingsForCalculation = servings || 1; // Use recipe servings or default to 1
+    const k = 1 / servingsForCalculation;
 
     const Energy_kcal = num(food.Energy_kcal);
     const Protein_g = num(food.Protein_g);
@@ -92,7 +106,6 @@ router.get('/:id', async (req, res) => {
     const Carbohydrates_g_ps = +(Carbohydrates_g * k).toFixed(2);
     const Fiber_g_ps = +(Fiber_g * k).toFixed(2);
     const VitaminC_mg_ps = +(VitaminC_mg * k).toFixed(2);
-
 
     // Map to frontend field names
     const formattedFood = {
@@ -110,10 +123,10 @@ router.get('/:id', async (req, res) => {
       carbs: Carbohydrates_g,
       image: food.image,
       healthTips: food.healthTips,
-      recipeId: food.recipeId || null,
+      recipeId: recipeId, // FIX: Use the recipeId from our separate query
       Fiber_g,
       VitaminC_mg,
-      servings,
+      servings: servings, // FIX: Use the servings from our separate query
       Energy_kcal_ps,
       Protein_g_ps,
       Fat_g_ps,
@@ -127,6 +140,8 @@ router.get('/:id', async (req, res) => {
     };
 
     console.log(`✅ Successfully formatted food: ${formattedFood.name}`);
+    console.log(`✅ Recipe ID for this food: ${formattedFood.recipeId}`);
+    console.log(`✅ Servings for this food: ${formattedFood.servings}`);
     console.log('Final ingredients array:', formattedFood.commonIngredients);
 
     res.json({
