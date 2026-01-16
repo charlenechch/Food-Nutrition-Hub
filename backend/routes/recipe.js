@@ -255,7 +255,7 @@ return {
 };
 }
 
-// GET single recipe by ID 
+// GET single recipe by ID  
 router.get('/recipes/:id', async (req, res) => {
 try {
   const { id } = req.params;
@@ -263,7 +263,8 @@ try {
   
   const query = `
     SELECT 
-      f.foodID AS id,
+      f.foodID AS foodId,  
+      r.recipeID AS id,   
       f.name, 
       f.origin, 
       f.difficulty, 
@@ -283,17 +284,17 @@ try {
       r.admin_feedback,
       CONCAT(u.firstname, ' ', u.lastname) AS authorName,
       u.email AS authorEmail
-    FROM food f
-    LEFT JOIN recipe r ON f.foodID = r.foodID
+    FROM recipe r  // ⬅️ START FROM RECIPE TABLE!
+    LEFT JOIN food f ON r.foodID = f.foodID  // ⬅️ THEN JOIN TO FOOD
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
     LEFT JOIN user u ON up.userID = u.userID
-    WHERE f.foodID = ? 
+    WHERE r.recipeID = ?  // ⬅️ QUERY BY RECIPE ID, NOT FOOD ID!
   `;
   
-  console.log('🔍 SQL Query:', query);
-  console.log('🔍 Query parameter (id):', id);
+  console.log('🔍 Fixed SQL Query - Getting recipe by recipeID:', id);
+  console.log('🔍 Query parameter (recipeID):', id);
   
-  const [rows] = await db.query(query, [id]);
+  const [rows] = await db.query(query, [id]);  // id = recipeID
   console.log('✅ SQL rows found:', rows.length);
   
   if (!rows || rows.length === 0) {
@@ -301,10 +302,16 @@ try {
   }
   
   const row = rows[0];
-  console.log('✅ Raw row data received:', row);
+  console.log('✅ Raw row data received:', {
+    recipeID: row.id,      // Should match the id parameter
+    foodID: row.foodId,    // The food this recipe belongs to
+    name: row.name,
+    status: row.status
+  });
   
   const recipe = {
-    id: row.id,
+    id: row.id,  // This is recipeID
+    foodId: row.foodId,  // This is foodID
     name: row.name || '',
     origin: row.origin || '',
     difficulty: row.difficulty || 'Easy',
@@ -330,8 +337,9 @@ try {
     createdAt: row.createdAt
   };
   
-  console.log('Sending transformed recipe:', {
-    id: recipe.id, 
+  console.log('✅ Sending transformed recipe:', {
+    recipeId: recipe.id, 
+    foodId: recipe.foodId,
     name: recipe.name,
     origin: recipe.origin,
     foodType: recipe.foodType,
