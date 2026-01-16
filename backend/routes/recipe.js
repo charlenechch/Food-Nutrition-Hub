@@ -284,11 +284,11 @@ try {
       r.admin_feedback,
       CONCAT(u.firstname, ' ', u.lastname) AS authorName,
       u.email AS authorEmail
-    FROM recipe r  // ⬅️ START FROM RECIPE TABLE!
-    LEFT JOIN food f ON r.foodID = f.foodID  // ⬅️ THEN JOIN TO FOOD
+    FROM recipe r  
+    LEFT JOIN food f ON r.foodID = f.foodID  
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
     LEFT JOIN user u ON up.userID = u.userID
-    WHERE r.recipeID = ?  // ⬅️ QUERY BY RECIPE ID, NOT FOOD ID!
+    WHERE r.recipeID = ?  
   `;
   
   console.log('🔍 Fixed SQL Query - Getting recipe by recipeID:', id);
