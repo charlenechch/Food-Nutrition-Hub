@@ -104,7 +104,7 @@ router.get("/search", async (req, res) => {
 });
 
 // bulk import function
-router.post("/bulk-import", requireAuth, requireAdmin, async (req, res) => {
+router.post("/bulk-import", async (req, res) => {
   console.log("📥 [BULK IMPORT] Received request with", req.body.length, "items");
 
   try {
