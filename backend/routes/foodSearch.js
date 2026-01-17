@@ -103,4 +103,161 @@ router.get("/search", async (req, res) => {
   }
 });
 
+// bulk import function
+router.post("/bulk-import", requireAuth, requireAdmin, async (req, res) => {
+  console.log("📥 [BULK IMPORT] Received request with", req.body.length, "items");
+
+  try {
+    const importedData = req.body;
+    
+    if (!Array.isArray(importedData)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Data must be an array of food items" 
+      });
+    }
+
+    // Get the logged-in admin's ID from the session/token
+    const adminUserId = req.user?.userProfileID || req.user?.id;
+    
+    if (!adminUserId) {
+      return res.status(401).json({
+        success: false,
+        error: "Admin authentication required"
+      });
+    }
+
+    const results = {
+      total: importedData.length,
+      foodCreated: 0,
+      recipeCreated: 0,
+      failed: 0,
+      errors: []
+    };
+
+    // Process each food item
+    for (let i = 0; i < importedData.length; i++) {
+      const foodItem = importedData[i];
+      
+      try {
+        // Validate required fields for FOOD table
+        if (!foodItem.name || !foodItem.origin) {
+          throw new Error("Missing name or origin");
+        }
+
+        // Validate required fields for RECIPE table
+        if (!foodItem.ingredients || !foodItem.steps) {
+          throw new Error("Missing ingredients or steps for recipe");
+        }
+
+        // Start transaction
+        const connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        try {
+          // 1. Insert into FOOD table
+          const foodSql = `
+            INSERT INTO food 
+            (
+              name, origin, category, foodType, difficulty, dietaryTags, 
+              description, image, prepTime, culturalSignificance, 
+              traditionalPreparation, commonIngredients, alternative, 
+              altDescription, healthTips, Energy_kcal, Protein_g, Fat_g, 
+              Carbohydrates_g, Fiber_g, VitaminC_mg
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+
+          const foodValues = [
+            foodItem.name,
+            foodItem.origin,
+            foodItem.category || "",
+            foodItem.foodType || "Dish",
+            foodItem.difficulty || "Medium",
+            foodItem.dietaryTags || "",
+            foodItem.description || "",
+            foodItem.image || "",
+            foodItem.prepTime || 0,
+            foodItem.culturalSignificance || "",
+            foodItem.traditionalPreparation || "",
+            foodItem.commonIngredients || "",
+            foodItem.alternative || "",
+            foodItem.altDescription || "",
+            foodItem.healthTips || "",
+            foodItem.Energy_kcal || 0,
+            foodItem.Protein_g || 0,
+            foodItem.Fat_g || 0,
+            foodItem.Carbohydrates_g || 0,
+            foodItem.Fiber_g || 0,
+            foodItem.VitaminC_mg || 0
+          ];
+
+          const [foodResult] = await connection.query(foodSql, foodValues);
+          const foodID = foodResult.insertId;
+          results.foodCreated++;
+
+          // 2. Insert into RECIPE table with "Approved" status
+          const recipeSql = `
+            INSERT INTO recipe 
+            (
+              foodID, userProfileID, ingredients, steps, cookTime, 
+              servings, DidYouKnow, chefTips, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+          
+          const recipeValues = [
+            foodID,
+            adminUserId, // ✅ Use the actual logged-in admin's ID
+            foodItem.ingredients || "",
+            foodItem.steps || "",
+            foodItem.cookTime || 0,
+            foodItem.servings || 1,
+            foodItem.DidYouKnow || "",
+            foodItem.chefTips || "",
+            "Approved" // Directly approved
+          ];
+
+          await connection.query(recipeSql, recipeValues);
+          results.recipeCreated++;
+
+          // Commit transaction
+          await connection.commit();
+          connection.release();
+
+        } catch (dbError) {
+          // Rollback on error
+          await connection.rollback();
+          connection.release();
+          throw dbError;
+        }
+
+      } catch (error) {
+        results.failed++;
+        results.errors.push({
+          index: i + 1,
+          name: foodItem.name || `Item ${i + 1}`,
+          error: error.message
+        });
+        console.error(`❌ Failed to import item ${i + 1}:`, error.message);
+      }
+    }
+
+    console.log(`✅ [BULK IMPORT] Completed by admin ${adminUserId}: ${results.foodCreated} foods, ${results.recipeCreated} recipes created`);
+
+    res.json({
+      success: true,
+      message: `Bulk import completed: ${results.foodCreated} foods created, ${results.recipeCreated} recipes approved`,
+      results
+    });
+
+  } catch (error) {
+    console.error("❌ [BULK IMPORT] Server error:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Server error during bulk import: " + error.message 
+    });
+  }
+});
+
 module.exports = router;

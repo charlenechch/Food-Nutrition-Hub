@@ -6,6 +6,7 @@ import { FaPlus } from "react-icons/fa6";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { HiOutlinePencilAlt } from "react-icons/hi";
+import * as XLSX from "xlsx";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -126,49 +127,298 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     fileInputRef.current.click();
   };
 
+  // const handleFileChange = async (event) => {
+  //   const file = event.target.files[0];
+  //   if (!file) return;
+
+  //   const reader = new FileReader();
+  //   reader.onload = async (e) => {
+  //     try {
+  //       const importedData = JSON.parse(e.target.result);
+  //       if (!Array.isArray(importedData)) {
+  //         alert("Error: File must contain a JSON Array of foods.");
+  //         return;
+  //       }
+
+  //       let successCount = 0;
+  //       setLoading(true);
+
+  //       for (const foodItem of importedData) {
+  //         try {
+  //           await fetch(`${API_URL}/api/foods`, {
+  //             method: "POST",
+  //             headers: {
+  //               "Content-Type": "application/json",
+  //               "X-CSRF-Token": csrfToken,
+  //             },
+  //             body: JSON.stringify(foodItem),
+  //             credentials: "include",
+  //           });
+  //           successCount++;
+  //         } catch (err) {
+  //           console.error("Failed to import item:", foodItem.name);
+  //         }
+  //       }
+  //       alert(`Successfully imported ${successCount} items!`);
+  //       fetchFoods();
+  //     } catch (err) {
+  //       alert("Invalid JSON file.");
+  //     } finally {
+  //       setLoading(false);
+  //       event.target.value = null; 
+  //     }
+  //   };
+  //   reader.readAsText(file);
+  // };
+
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const importedData = JSON.parse(e.target.result);
-        if (!Array.isArray(importedData)) {
-          alert("Error: File must contain a JSON Array of foods.");
-          return;
-        }
+    // Check file type
+    const fileType = file.name.split('.').pop().toLowerCase();
+    const allowedTypes = ['xlsx', 'xls', 'csv', 'json'];
+    
+    if (!allowedTypes.includes(fileType)) {
+      alert("Please select an Excel (.xlsx, .xls), CSV, or JSON file");
+      event.target.value = null;
+      return;
+    }
 
-        let successCount = 0;
-        setLoading(true);
+    setLoading(true);
 
-        for (const foodItem of importedData) {
-          try {
-            await fetch(`${API_URL}/api/foods`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-Token": csrfToken,
-              },
-              body: JSON.stringify(foodItem),
-              credentials: "include",
-            });
-            successCount++;
-          } catch (err) {
-            console.error("Failed to import item:", foodItem.name);
-          }
+    try {
+      let importedData = [];
+
+      if (fileType === 'json') {
+        // Handle JSON files
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        
+        if (!Array.isArray(parsed)) {
+          throw new Error("JSON file must contain an array of food items");
         }
-        alert(`Successfully imported ${successCount} items!`);
-        fetchFoods();
-      } catch (err) {
-        alert("Invalid JSON file.");
-      } finally {
-        setLoading(false);
-        event.target.value = null; 
+        importedData = parsed;
+        
+      } else {
+        // Handle Excel/CSV files
+        importedData = await parseExcelOrCSV(file, fileType);
       }
-    };
-    reader.readAsText(file);
+
+      // Validate and process the data
+      await processImportedData(importedData);
+
+    } catch (err) {
+      alert(`Error processing file: ${err.message}`);
+      console.error("File processing error:", err);
+    } finally {
+      setLoading(false);
+      event.target.value = null;
+    }
   };
+
+  // Function to parse Excel/CSV files
+  const parseExcelOrCSV = (file, fileType) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const data = e.target.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          
+          // Get the first worksheet
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          
+          // Convert to JSON
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          resolve(jsonData);
+         } catch (error) {
+          reject(new Error(`Failed to parse ${fileType.toUpperCase()} file: ${error.message}`));
+        }
+      };
+      
+      reader.onerror = () => {
+        reject(new Error("Failed to read file"));
+      };
+      
+      // Read the file based on type
+      if (fileType === 'csv') {
+        reader.readAsText(file);
+      } else { 
+        reader.readAsBinaryString(file);
+      }
+    });
+  };
+
+  // Function to process and validate imported data
+  const processImportedData = async (importedData) => {
+    if (!Array.isArray(importedData) || importedData.length === 0) {
+      throw new Error("File contains no valid data");
+    }
+
+    // Map all rows to food items
+    const foodItems = importedData.map(row => mapRowToFoodItem(row));
+    
+    // Validate all items before sending
+    const validationErrors = [];
+    foodItems.forEach((item, index) => {
+      if (!item.name || !item.origin) {
+        validationErrors.push({
+          row: index + 2,
+          name: item.name || `Row ${index + 1}`,
+          error: "Missing name or origin"
+        });
+      }
+      if (!item.ingredients || !item.steps) {
+        validationErrors.push({
+          row: index + 2,
+          name: item.name || `Row ${index + 1}`,
+          error: "Missing ingredients or steps for recipe"
+        });
+      }
+    });
+
+    if (validationErrors.length > 0) {
+      const message = `Validation failed for ${validationErrors.length} items:\n\n` +
+        validationErrors.slice(0, 10).map(item => `  Row ${item.row}: ${item.name} - ${item.error}`).join('\n');
+      
+      if (validationErrors.length > 10) {
+        alert(message + `\n\n... and ${validationErrors.length - 10} more errors.`);
+      } else {
+        alert(message);
+      }
+      return;
+    }
+
+    try {
+      // Send ALL data at once to bulk endpoint
+      const res = await fetch(`${API_URL}/api/foods/bulk-import`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+        },
+        body: JSON.stringify(foodItems), // Send array of all items
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      
+      if (data.success) {
+        // Updated success message
+        alert(`✅ Successfully imported ${data.results.foodCreated || data.results.total} food items!\n\n` +
+              `Recipes are automatically APPROVED and ready to display.`);
+        
+        // Refresh the food list
+        fetchFoods();
+      } else {
+        alert(`Import failed: ${data.message}`);
+      }
+      
+    } catch (err) {
+      alert(`Import error: ${err.message}`);
+      console.error("Import error:", err);
+    }
+  };
+
+  // Map Excel/CSV columns to your backend schema 
+  const mapRowToFoodItem = (row) => {
+    return {
+      // --- FOOD TABLE FIELDS ---
+      name: row.Name || row.name || "",
+      origin: row.Origin || row.origin || "",
+      category: row.Category || row.category || "",
+      foodType: row.FoodType || row.foodType || "Dish",
+      difficulty: row.Difficulty || row.difficulty || "Medium",
+      dietaryTags: row.DietaryTags || row.dietaryTags || "",
+      description: row.Description || row.description || "",
+      image: row.Image || row.image || "",
+      prepTime: Number(row.PrepTime || row.prepTime || 0) || 0,
+      culturalSignificance: row.CulturalSignificance || row.culturalSignificance || "",
+      traditionalPreparation: row.TraditionalPreparation || row.traditionalPreparation || "",
+      commonIngredients: row.CommonIngredients || row.commonIngredients || "",
+      alternative: row.Alternative || row.alternative || "",
+      altDescription: row.AltDescription || row.altDescription || "",
+      healthTips: row.HealthTips || row.healthTips || "",
+      Energy_kcal: Number(row.Energy_kcal || row.Calories || 0) || 0,
+      Protein_g: Number(row.Protein_g || row.Protein || 0) || 0,
+      Fat_g: Number(row.Fat_g || row.Fat || 0) || 0,
+      Carbohydrates_g: Number(row.Carbohydrates_g || row.Carbs || 0) || 0,
+      Fiber_g: Number(row.Fiber_g || row.Fiber || 0) || 0,
+      VitaminC_mg: Number(row.VitaminC_mg || row.VitaminC || 0) || 0,
+
+      // --- RECIPE TABLE FIELDS ---
+      ingredients: row.Ingredients || row.ingredients || "",
+      steps: row.Steps || row.steps || row.Instructions || row.instructions || "",
+      cookTime: Number(row.CookTime || row.cookTime || row.CookingTime || 0) || 0,
+      servings: Number(row.Servings || row.servings || 1) || 1,
+      DidYouKnow: row.DidYouKnow || row.didYouKnow || "",
+      chefTips: row.ChefTips || row.chefTips || ""
+    };
+  };
+
+  // Helper function to parse string fields to arrays
+  const parseFieldToArray = (field) => {
+    if (!field) return [];
+    if (Array.isArray(field)) return field;
+    if (typeof field === 'string') {
+      // Split by commas, newlines, or semicolons
+      return field.split(/[,;\n]/)
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+    }
+    return [String(field)];
+  };
+
+  // Show import results
+  const showImportResults = (successCount, failedCount, failedItems) => {
+    if (failedCount === 0) {
+      alert(`✅ Successfully imported ${successCount} food items!`);
+    } else {
+      const message = `Import completed with ${successCount} successful and ${failedCount} failed.\n\n` +
+        `Failed items:\n` +
+        failedItems.slice(0, 10).map(item => `  Row ${item.row}: ${item.name} - ${item.error}`).join('\n');
+      
+      if (failedItems.length > 10) {
+        alert(message + `\n\n... and ${failedItems.length - 10} more errors.`);
+      } else {
+        alert(message);
+      }
+    }
+  };
+
+// Download Excel template - EMPTY template with only headers
+const downloadTemplate = () => {
+  // Create EMPTY template with just column headers
+  const templateData = [
+    // FOOD TABLE FIELDS
+    ["Name", "Origin", "Category", "FoodType", "Difficulty", "DietaryTags", 
+     "Description", "Image", "PrepTime", "CulturalSignificance", 
+     "TraditionalPreparation", "CommonIngredients", "Alternative", 
+     "AltDescription", "HealthTips", "Energy_kcal", "Protein_g", "Fat_g", 
+     "Carbohydrates_g", "Fiber_g", "VitaminC_mg",
+     
+     // RECIPE TABLE FIELDS
+     "Ingredients", "Steps", "CookTime", "Servings", "DidYouKnow", "ChefTips"]
+  ];
+
+  // Create worksheet
+  const ws = XLSX.utils.aoa_to_sheet(templateData);
+  
+  // Remove the empty data row, keep only headers
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  range.e.r = range.s.r; 
+  ws['!ref'] = XLSX.utils.encode_range(range);
+  
+  // Create workbook
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Food Template");
+  
+  // Generate Excel file
+  XLSX.writeFile(wb, "food-import-template.xlsx");
+};
 
   // --- Filtering Logic ---
   const filteredFoods = foodData.filter((f) => {
@@ -228,9 +478,30 @@ const AdminFoodDatabase = ({ categories = [] }) => {
             <button className="admin-food-btn-import" onClick={handleImportClick}>
               <MdOutlineFileUpload /> Bulk Import
             </button>
+
+            {/* Template download button */}
+            <button 
+              className="admin-food-btn-template"
+              onClick={downloadTemplate}
+              style={{
+                backgroundColor: "#f0f0f0",
+                color: "#333",
+                border: "1px solid #ddd",
+                padding: "10px 15px",
+                borderRadius: "5px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                fontSize: "14px"
+              }}
+            >
+              <FiDatabase /> Download Import Template
+            </button>
+
             <input 
               type="file" 
-              accept=".json" 
+              accept=".xlsx,.xls,.csv,.json" 
               ref={fileInputRef} 
               style={{ display: "none" }} 
               onChange={handleFileChange}
