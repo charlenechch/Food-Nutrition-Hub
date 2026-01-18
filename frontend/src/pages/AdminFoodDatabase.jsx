@@ -259,8 +259,18 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     }
 
     // Map all rows to food items
-    const foodItems = importedData.map(row => mapRowToFoodItem(row));
-    
+    const foodItems = importedData
+      .map(row => mapRowToFoodItem(row))
+      .filter(item => item !== null && item.name);
+
+    if (foodItems.length === 0) {
+      throw new Error("No valid food items found after mapping");
+    }
+
+    console.log("Mapped food items:", foodItems);
+    console.log("First item structure:", foodItems[0]);
+    console.log("JSON to send:", JSON.stringify(foodItems, null, 2));
+      
     // Validate all items before sending
     const validationErrors = [];
     foodItems.forEach((item, index) => {
@@ -329,23 +339,29 @@ const AdminFoodDatabase = ({ categories = [] }) => {
 
   // Map Excel/CSV columns to your backend schema 
   const mapRowToFoodItem = (row) => {
-    return {
+    // Ensure row is an object
+    if (!row || typeof row !== 'object') {
+      console.warn("Invalid row:", row);
+      return null;
+    }
+    
+    const mappedItem = {
       // --- FOOD TABLE FIELDS ---
-      name: row.Name || row.name || "",
-      origin: row.Origin || row.origin || "",
-      category: row.Category || row.category || "",
-      foodType: row.FoodType || row.foodType || "Dish",
-      difficulty: row.Difficulty || row.difficulty || "Medium",
-      dietaryTags: row.DietaryTags || row.dietaryTags || "",
-      description: row.Description || row.description || "",
-      image: row.Image || row.image || "",
+      name: String(row.Name || row.name || "").trim(),
+      origin: String(row.Origin || row.origin || "").trim(),
+      category: String(row.Category || row.category || "").trim(),
+      foodType: String(row.FoodType || row.foodType || "Dish").trim(),
+      difficulty: String(row.Difficulty || row.difficulty || "Medium").trim(),
+      dietaryTags: String(row.DietaryTags || row.dietaryTags || "").trim(),
+      description: String(row.Description || row.description || "").trim(),
+      image: String(row.Image || row.image || "").trim(),
       prepTime: Number(row.PrepTime || row.prepTime || 0) || 0,
-      culturalSignificance: row.CulturalSignificance || row.culturalSignificance || "",
-      traditionalPreparation: row.TraditionalPreparation || row.traditionalPreparation || "",
-      commonIngredients: row.CommonIngredients || row.commonIngredients || "",
-      alternative: row.Alternative || row.alternative || "",
-      altDescription: row.AltDescription || row.altDescription || "",
-      healthTips: row.HealthTips || row.healthTips || "",
+      culturalSignificance: String(row.CulturalSignificance || row.culturalSignificance || "").trim(),
+      traditionalPreparation: String(row.TraditionalPreparation || row.traditionalPreparation || "").trim(),
+      commonIngredients: String(row.CommonIngredients || row.commonIngredients || "").trim(),
+      alternative: String(row.Alternative || row.alternative || "").trim(),
+      altDescription: String(row.AltDescription || row.altDescription || "").trim(),
+      healthTips: String(row.HealthTips || row.healthTips || "").trim(),
       Energy_kcal: Number(row.Energy_kcal || row.Calories || 0) || 0,
       Protein_g: Number(row.Protein_g || row.Protein || 0) || 0,
       Fat_g: Number(row.Fat_g || row.Fat || 0) || 0,
@@ -354,13 +370,16 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       VitaminC_mg: Number(row.VitaminC_mg || row.VitaminC || 0) || 0,
 
       // --- RECIPE TABLE FIELDS ---
-      ingredients: row.Ingredients || row.ingredients || "",
-      steps: row.Steps || row.steps || row.Instructions || row.instructions || "",
+      ingredients: String(row.Ingredients || row.ingredients || "").trim(),
+      steps: String(row.Steps || row.steps || row.Instructions || row.instructions || "").trim(),
       cookTime: Number(row.CookTime || row.cookTime || row.CookingTime || 0) || 0,
       servings: Number(row.Servings || row.servings || 1) || 1,
-      DidYouKnow: row.DidYouKnow || row.didYouKnow || "",
-      chefTips: row.ChefTips || row.chefTips || ""
+      DidYouKnow: String(row.DidYouKnow || row.didYouKnow || "").trim(),
+      chefTips: String(row.ChefTips || row.chefTips || "").trim()
     };
+    
+    console.log("Mapped item:", mappedItem.name, "keys:", Object.keys(mappedItem));
+    return mappedItem;
   };
 
   // Helper function to parse string fields to arrays
