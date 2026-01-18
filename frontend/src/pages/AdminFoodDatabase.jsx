@@ -271,13 +271,13 @@ const AdminFoodDatabase = ({ categories = [] }) => {
           error: "Missing name or origin"
         });
       }
-      if (!item.ingredients || !item.steps) {
-        validationErrors.push({
-          row: index + 2,
-          name: item.name || `Row ${index + 1}`,
-          error: "Missing ingredients or steps for recipe"
-        });
-      }
+      // if (!item.ingredients || !item.steps) {
+      //   validationErrors.push({
+      //     row: index + 2,
+      //     name: item.name || `Row ${index + 1}`,
+      //     error: "Missing ingredients or steps for recipe"
+      //   });
+      // }
     });
 
     if (validationErrors.length > 0) {
@@ -305,10 +305,14 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       });
 
       const data = await res.json();
+      console.log("Import response:", data);
       
       if (data.success) {
+
+        const createdCount = data.results?.foodCreated || data.results?.total || 0;
+
         // Updated success message
-        alert(`✅ Successfully imported ${data.results.foodCreated || data.results.total} food items!\n\n` +
+        alert(`✅ Successfully imported ${createdCount} food items!\n\n` +
               `Recipes are automatically APPROVED and ready to display.`);
         
         // Refresh the food list
