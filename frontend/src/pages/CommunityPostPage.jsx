@@ -342,8 +342,30 @@ export default function CommunityPost() {
               <LikeButton postId={post.id} initialLikes={post.likeCount || 0} user={user} onAlert={openAlert} />
             </div>
 
-            <p className="meta">by <b>{post.author}</b> • {post.daysAgo} • <span>{post.culturalOrigin}</span></p>
+            <div className="title-and-likes-wrapper">
+              <h1>{post.foodName}</h1>
+              <LikeButton postId={post.id} initialLikes={post.likeCount || 0} user={user} onAlert={openAlert} />
+            </div>
 
+            <div className="post-author-lockup">
+              <div className="author-avatar-large">
+                {post.authorProfilePic ? (
+                  <img src={post.authorProfilePic} alt={post.author} />
+                ) : (
+                  (post.author || "U").charAt(0).toUpperCase()
+                )}
+              </div>
+
+              <div className="author-text-info">
+                <span className="author-name-large">{post.author || "Unknown Chef"}</span>
+                <div className="post-metadata-row">
+                  <span className="post-date">{post.daysAgo}</span>
+                  <span className="meta-dot">•</span>
+                  <span className="origin-pill">{post.culturalOrigin}</span>
+                </div>
+              </div>
+            </div>
+            
             <div className="story-section">
               <h3>Cultural Story</h3>
               <p>{post.culturalStory}</p>
