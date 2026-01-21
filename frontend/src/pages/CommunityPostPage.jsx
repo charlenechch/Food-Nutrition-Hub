@@ -342,11 +342,6 @@ export default function CommunityPost() {
               <LikeButton postId={post.id} initialLikes={post.likeCount || 0} user={user} onAlert={openAlert} />
             </div>
 
-            <div className="title-and-likes-wrapper">
-              <h1>{post.foodName}</h1>
-              <LikeButton postId={post.id} initialLikes={post.likeCount || 0} user={user} onAlert={openAlert} />
-            </div>
-
             <div className="post-author-lockup">
               <div className="author-avatar-large">
                 {post.authorProfilePic ? (
