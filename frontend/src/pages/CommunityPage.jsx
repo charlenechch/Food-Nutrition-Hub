@@ -10,6 +10,7 @@ import Modal from "../components/Modal";
 import { GrDocumentMissing } from "react-icons/gr";
 import { PiChefHat } from "react-icons/pi";
 import LoginPromptModal from "../components/LoginPromptModal";
+import { FaChevronDown } from "react-icons/fa"; // Add this icon
 
 export default function Community() {
   const navigate = useNavigate();
@@ -54,6 +55,10 @@ export default function Community() {
 
   const closeModal = () =>
     setModal((prev) => ({ ...prev, open: false, onPrimary: null, onSecondary: null }));
+
+  // --- Dropdown States ---
+  const [originDropdownOpen, setOriginDropdownOpen] = useState(false);
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 
   // --- Initialization ---
   useEffect(() => {
@@ -332,25 +337,59 @@ export default function Community() {
             />
           </div>
           <div className="filter-group">
-            <div className="select-wrapper">
-                <FaFilter className="filter-icon" />
-                <select className="community-filter-select" value={selectedOrigin} onChange={(e) => setSelectedOrigin(e.target.value)}>
-                    <option value="all">All Origins</option>
-                    <option value="Malay">Malay</option>
-                    <option value="Chinese">Chinese</option>
-                    <option value="Iban">Iban</option>
-                    <option value="Melanau">Melanau</option>
-                    <option value="Bidayuh">Bidayuh</option>
-                    <option value="Dayak">Dayak</option>
-                </select>
+            
+            <div className="custom-dropdown-wrapper">
+              <button 
+                className={`dropdown-trigger ${originDropdownOpen ? "active" : ""}`} 
+                onClick={() => { setOriginDropdownOpen(!originDropdownOpen); setSortDropdownOpen(false); }}
+              >
+                <FaFilter className="filter-icon-custom" />
+                <span className="dropdown-label">
+                  {selectedOrigin === 'all' ? 'All Origins' : selectedOrigin}
+                </span>
+                <FaChevronDown className={`chevron ${originDropdownOpen ? "rotate" : ""}`} />
+              </button>
+
+              {originDropdownOpen && (
+                <div className="dropdown-menu-list">
+                  {["All", "Malay", "Chinese", "Iban", "Melanau", "Bidayuh", "Dayak"].map((origin) => (
+                    <div 
+                      key={origin} 
+                      className={`dropdown-item ${selectedOrigin === (origin === "All" ? "all" : origin) ? "selected" : ""}`}
+                      onClick={() => {
+                        setSelectedOrigin(origin === "All" ? "all" : origin);
+                        setOriginDropdownOpen(false);
+                      }}
+                    >
+                      {origin === "All" ? "All Origins" : origin}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="select-wrapper">
-                <select className="community-filter-select" value={sortOption} onChange={(e) => setSortOption(e.target.value)}>
-                    <option value="newest">Newest First</option>
-                    <option value="mostLiked">Most Liked</option>
-                    <option value="mostCommented">Most Discussed</option>
-                </select>
+
+            <div className="custom-dropdown-wrapper">
+              <button 
+                className={`dropdown-trigger ${sortDropdownOpen ? "active" : ""}`} 
+                onClick={() => { setSortDropdownOpen(!sortDropdownOpen); setOriginDropdownOpen(false); }}
+              >
+                <span className="dropdown-label">
+                  {sortOption === 'newest' && 'Newest First'}
+                  {sortOption === 'mostLiked' && 'Most Liked'}
+                  {sortOption === 'mostCommented' && 'Most Discussed'}
+                </span>
+                <FaChevronDown className={`chevron ${sortDropdownOpen ? "rotate" : ""}`} />
+              </button>
+
+              {sortDropdownOpen && (
+                <div className="dropdown-menu-list">
+                  <div className={`dropdown-item ${sortOption === "newest" ? "selected" : ""}`} onClick={() => { setSortOption("newest"); setSortDropdownOpen(false); }}>Newest First</div>
+                  <div className={`dropdown-item ${sortOption === "mostLiked" ? "selected" : ""}`} onClick={() => { setSortOption("mostLiked"); setSortDropdownOpen(false); }}>Most Liked</div>
+                  <div className={`dropdown-item ${sortOption === "mostCommented" ? "selected" : ""}`} onClick={() => { setSortOption("mostCommented"); setSortDropdownOpen(false); }}>Most Discussed</div>
+                </div>
+              )}
             </div>
+
           </div>
         </div>
 
