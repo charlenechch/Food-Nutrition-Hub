@@ -522,6 +522,9 @@
   padding-left: 20px; 
 }
 
+.dropdown-label:focus {
+  outline: none;
+}
 
 @media (max-width: 450px) {
   .community-page {
