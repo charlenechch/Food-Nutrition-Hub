@@ -522,7 +522,7 @@
   padding-left: 20px; 
 }
 
-.dropdown-label:focus {
+.dropdown-trigger:focus {
   outline: none;
 }
 
