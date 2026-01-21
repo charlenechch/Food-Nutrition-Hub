@@ -240,18 +240,40 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
         <button type="submit" className="comment-btn" disabled={loading || (!comment.trim() && !isGuest)}>{loading ? "Posting..." : "Post Comment"}</button>
       </form>
       <div className="comments-list">
-        {comments.length === 0 ? <p className="comments-empty">No comments yet.</p> : comments.map((c) => (
-          <div key={c.id} className="comment-item">
-            <div className="comment-header">
-              <span className="comment-author">{c.username || c.author || 'User'}</span>
-              <span className="comment-date">{c.daysAgo}</span>
+        {comments.length === 0 ? (
+          <p className="comments-empty">No comments yet. Be the first!</p>
+        ) : (
+          comments.map((c) => (
+            <div key={c.id} className="comment-item">
+              
+              <div className="comment-avatar-small">
+                {(c.username || c.author || "U").charAt(0).toUpperCase()}
+              </div>
+
+              <div className="comment-body">
+                <div className="comment-header-row">
+                  <span className="comment-author-name">
+                    {c.username || c.author || 'User'}
+                  </span>
+                  <span className="comment-meta-dot">•</span>
+                  <span className="comment-time">{c.daysAgo}</span>
+                </div>
+
+                <div className="comment-text-content">{c.text}</div>
+              </div>
+
               {canDeleteComment(c.userProfileID) && (
-                <button className="fd-delete-btn" onClick={() => openDeleteModal(c.id)}><i className="fas fa-trash-alt"></i></button>
+                <button 
+                  className="delete-icon-btn" 
+                  onClick={() => openDeleteModal(c.id)}
+                  title="Delete comment"
+                >
+                  <i className="fas fa-trash-alt"></i>
+                </button>
               )}
             </div>
-            <div className="comment-content">{c.text}</div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
