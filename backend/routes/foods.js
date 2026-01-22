@@ -340,8 +340,7 @@ router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
 
 // bulk import function
 router.post("/bulk-import", async (req, res) => {
-  console.log("📥 [BULK IMPORT] Received request with", req.body.length, "items");
-
+  console.log("📥 [BULK IMPORT] Received request body:", req.body);
   console.log("Body type:", typeof req.body);
   console.log("Is array?", Array.isArray(req.body));
   console.log("Body keys:", Object.keys(req.body));
@@ -349,14 +348,23 @@ router.post("/bulk-import", async (req, res) => {
   try {
     let importedData;
     
-    if (Array.isArray(req.body)) {
+    // Check if foodItems exists
+    if (req.body && req.body.foodItems) {
+      importedData = req.body.foodItems;
+      console.log(`✅ Found foodItems array with ${importedData.length} items`);
+    } 
+    else if (Array.isArray(req.body)) {
       importedData = req.body;
-    } else if (req.body && typeof req.body === 'object' && req.body.data) {
+    }
+    else if (req.body && typeof req.body === 'object' && req.body.data) {
       importedData = req.body.data;
-    } else if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+    }
+    else if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+      // Try to find any array property
       for (const key in req.body) {
         if (Array.isArray(req.body[key])) {
           importedData = req.body[key];
+          console.log(`✅ Found array in property "${key}" with ${importedData.length} items`);
           break;
         }
       }
@@ -365,15 +373,15 @@ router.post("/bulk-import", async (req, res) => {
       if (!importedData) {
         importedData = [req.body];
       }
-    } else {
+    }
+    else {
       return res.status(400).json({ 
         success: false, 
-        error: "Invalid data format. Expected an array of food items." 
+        error: "Invalid data format. Expected { foodItems: [...] } or an array." 
       });
     }
     
-    console.log("Processed data length:", importedData.length);
-    console.log("First item:", importedData[0]);
+    console.log("Processed data length:", importedData?.length || 0);
     
     if (!Array.isArray(importedData) || importedData.length === 0) {
       return res.status(400).json({ 

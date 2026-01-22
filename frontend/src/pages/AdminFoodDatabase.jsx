@@ -127,50 +127,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     fileInputRef.current.click();
   };
 
-  // const handleFileChange = async (event) => {
-  //   const file = event.target.files[0];
-  //   if (!file) return;
-
-  //   const reader = new FileReader();
-  //   reader.onload = async (e) => {
-  //     try {
-  //       const importedData = JSON.parse(e.target.result);
-  //       if (!Array.isArray(importedData)) {
-  //         alert("Error: File must contain a JSON Array of foods.");
-  //         return;
-  //       }
-
-  //       let successCount = 0;
-  //       setLoading(true);
-
-  //       for (const foodItem of importedData) {
-  //         try {
-  //           await fetch(`${API_URL}/api/foods`, {
-  //             method: "POST",
-  //             headers: {
-  //               "Content-Type": "application/json",
-  //               "X-CSRF-Token": csrfToken,
-  //             },
-  //             body: JSON.stringify(foodItem),
-  //             credentials: "include",
-  //           });
-  //           successCount++;
-  //         } catch (err) {
-  //           console.error("Failed to import item:", foodItem.name);
-  //         }
-  //       }
-  //       alert(`Successfully imported ${successCount} items!`);
-  //       fetchFoods();
-  //     } catch (err) {
-  //       alert("Invalid JSON file.");
-  //     } finally {
-  //       setLoading(false);
-  //       event.target.value = null; 
-  //     }
-  //   };
-  //   reader.readAsText(file);
-  // };
-
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -265,54 +221,18 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       throw new Error("No valid food items found after mapping");
     }
 
-    console.log("Mapped food items:", foodItems);
-    console.log("First item structure:", foodItems[0]);
-    console.log("JSON to send:", JSON.stringify(foodItems, null, 2));
-      
-    // Validate all items before sending
-    const validationErrors = [];
-    foodItems.forEach((item, index) => {
-      if (!item.name || !item.origin) {
-        validationErrors.push({
-          row: index + 2,
-          name: item.name || `Row ${index + 1}`,
-          error: "Missing name or origin"
-        });
-      }
-      // if (!item.ingredients || !item.steps) {
-      //   validationErrors.push({
-      //     row: index + 2,
-      //     name: item.name || `Row ${index + 1}`,
-      //     error: "Missing ingredients or steps for recipe"
-      //   });
-      // }
+      console.log("📤 Sending to API:", {
+      url: `${API_URL}/api/foods/bulk-import`,
+      dataType: typeof foodItems,
+      isArray: Array.isArray(foodItems),
+      itemCount: foodItems.length,
+      firstItemKeys: foodItems[0] ? Object.keys(foodItems[0]) : 'none',
+      sampleData: JSON.stringify(foodItems.slice(0, 1), null, 2)
     });
 
-    if (validationErrors.length > 0) {
-      const message = `Validation failed for ${validationErrors.length} items:\n\n` +
-        validationErrors.slice(0, 10).map(item => `  Row ${item.row}: ${item.name} - ${item.error}`).join('\n');
-      
-      if (validationErrors.length > 10) {
-        alert(message + `\n\n... and ${validationErrors.length - 10} more errors.`);
-      } else {
-        alert(message);
-      }
-      return;
-    }
-
     try {
-
-        console.log("📤 Sending to API:", {
-        url: `${API_URL}/api/foods/bulk-import`,
-        dataType: typeof foodItems,
-        isArray: Array.isArray(foodItems),
-        itemCount: foodItems.length,
-        firstItemKeys: foodItems[0] ? Object.keys(foodItems[0]) : 'none',
-        sampleData: JSON.stringify(foodItems.slice(0, 1), null, 2)
-      });
-
       const requestBody = { foodItems: foodItems };
-    
+      
       console.log("📤 Request body structure:", {
         bodyKeys: Object.keys(requestBody),
         bodyType: typeof requestBody,
@@ -330,6 +250,12 @@ const AdminFoodDatabase = ({ categories = [] }) => {
         body: JSON.stringify(requestBody), // Send array of all items
         credentials: "include",
       });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("❌ Server responded with error:", res.status, errorText);
+        throw new Error(`Server error ${res.status}: ${errorText}`);
+      }
 
       const data = await res.json();
       console.log("Import response:", data);
@@ -349,8 +275,8 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       }
       
     } catch (err) {
-      alert(`Import error: ${err.message}`);
-      console.error("Import error:", err);
+      console.error("Import error details:", err);
+      alert(`Import error: ${err.message}\n\nCheck console for details.`);
     }
   };
 
