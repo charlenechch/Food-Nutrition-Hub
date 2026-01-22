@@ -24,16 +24,46 @@ function detectDuplicates(obj) {
  *  - logger: function(tag, meta) optional
  */
 module.exports = function hppProtect(options = {}) {
-  const { policy = 'reject', allowlist = null, logger = null } = options;
+  const { policy = 'reject', allowlist = null, logger = null, skipArrays = false } = options;
 
   return function (req, res, next) {
     try {
+      // SKIP VALIDATION FOR JSON ARRAYS (for bulk imports)
+      if (skipArrays && Array.isArray(req.body)) {
+        if (logger) logger('hpp_skip_array', { 
+          message: 'Skipping HPP validation for JSON array',
+          path: req.path,
+          method: req.method,
+          arrayLength: req.body.length
+        });
+        return next();
+      }
+
+      // Skip bulk-import endpoint specifically
+      if (req.path.includes('/bulk-import') && Array.isArray(req.body)) {
+        if (logger) logger('hpp_skip_bulk_import', {
+          message: 'Skipping HPP for bulk-import endpoint',
+          path: req.path,
+          arrayLength: req.body.length
+        });
+        return next();
+      }
+
       // sources to check: query, body, params
       const sources = [
         { name: 'query', obj: req.query || {} },
         { name: 'body', obj: req.body || {} },
         { name: 'params', obj: req.params || {} },
       ];
+
+      const filteredSources = sources.map(source => {
+        if (source.name === 'body' && Array.isArray(source.obj)) {
+          // For arrays, we should skip parameter validation
+          // or convert to a format we can check
+          return { name: source.name, obj: {} }; // Empty object for arrays
+        }
+        return source;
+      });
 
       // 1) allowlist check (reject unexpected params)
       if (Array.isArray(allowlist)) {
