@@ -190,10 +190,17 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       
       reader.onload = (e) => {
         try {
-          const data = e.target.result;
-          const workbook = XLSX.read(data, { 
-            type: fileType === 'csv' ? 'string' : 'binary' 
-          });
+          let workbook;
+          
+          if (fileType === 'csv') {
+            // Handle CSV
+            const csvData = e.target.result;
+            workbook = XLSX.read(csvData, { type: 'string' });
+          } else {
+            // Handle Excel (xlsx, xls) - read as ArrayBuffer
+            const data = new Uint8Array(e.target.result);
+            workbook = XLSX.read(data, { type: 'array' });
+          }
           
           // Get the first worksheet
           const firstSheetName = workbook.SheetNames[0];
@@ -201,20 +208,25 @@ const AdminFoodDatabase = ({ categories = [] }) => {
           
           // Convert to JSON
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          console.log(`✅ Parsed ${jsonData.length} rows from ${fileType} file`);
+          console.log("Sample row:", jsonData[0]);
           resolve(jsonData);
-         } catch (error) {
+          
+        } catch (error) {
+          console.error(`❌ Failed to parse ${fileType} file:`, error);
           reject(new Error(`Failed to parse ${fileType.toUpperCase()} file: ${error.message}`));
         }
       };
       
       reader.onerror = () => {
+        console.error("❌ FileReader error");
         reject(new Error("Failed to read file"));
       };
       
       // Read the file based on type
       if (fileType === 'csv') {
         reader.readAsText(file);
-      }else {
+      } else {
         reader.readAsArrayBuffer(file);
       }
     });
@@ -222,14 +234,28 @@ const AdminFoodDatabase = ({ categories = [] }) => {
 
   // Function to process and validate imported data
   const processImportedData = async (importedData) => {
-    if (!Array.isArray(importedData) || importedData.length === 0) {
-      throw new Error("File contains no valid data");
+    if (!importedData || !Array.isArray(importedData)) {
+      console.error("❌ Invalid importedData:", importedData);
+      throw new Error("File contains no valid data or data is not an array");
+    }
+    
+    if (importedData.length === 0) {
+      throw new Error("File contains no data rows");
     }
 
     // Map all rows to food items
     const foodItems = importedData
-      .map(row => mapRowToFoodItem(row))
-      .filter(item => item !== null && item.name);
+    .map(row => {
+      try {
+        return mapRowToFoodItem(row);
+      } catch (error) {
+        console.warn("Failed to map row:", row, error);
+        return null;
+      }
+    })
+    .filter(item => item !== null && item.name && item.name.trim() !== "");
+
+    console.log(`✅ Mapped ${foodItems.length} valid items out of ${importedData.length} rows`);
 
     if (foodItems.length === 0) {
       throw new Error("No valid food items found after mapping");
@@ -248,10 +274,10 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       const requestBody = foodItems;
       
       console.log("📤 Request body structure:", {
-        bodyKeys: Object.keys(requestBody),
         bodyType: typeof requestBody,
-        isArray: Array.isArray(requestBody.foodItems),
-        foodItemsCount: requestBody.foodItems.length
+        isArray: Array.isArray(requestBody),
+        itemCount: requestBody.length, 
+        firstItem: requestBody[0] ? requestBody[0].name : 'none'
       });
 
       // Send ALL data at once to bulk endpoint
