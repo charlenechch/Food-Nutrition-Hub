@@ -391,7 +391,6 @@ router.post("/bulk-import", async (req, res) => {
     }
 
     console.log("🔍 Checking session for admin user...");
-    console.log("Session:", req.session);
     console.log("Session user:", req.session?.user);
     
     const userID = req.session?.user?.userID;
@@ -459,7 +458,7 @@ router.post("/bulk-import", async (req, res) => {
         }
 
         // Start transaction
-        const connection = await pool.getConnection();
+        const connection = await db.getConnection();
         await connection.beginTransaction();
 
         try {

@@ -58,26 +58,36 @@ const AdminFoodDatabase = ({ categories = [] }) => {
 
   // --- Fetch Data ---
   const fetchFoods = async () => {
+    console.log("🔄 Starting fetchFoods...");
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/foods`);
       const data = await res.json();
+      console.log("[AdminFoodDatabase] Response data:", data);
 
       if (data.success) {
         const mapped = data.data.map(f => ({
           ...f,
           lastUpdated: f.updatedAt,
         }));
+        console.log(`✅ Got ${mapped.length} foods`);
         setFoodData(mapped);
+      } else {
+        console.error("❌ API returned success: false", data);
+        setFoodData([]);
       }
     } catch (error) {
-      console.error("Error fetching foods:", error);
+      console.error("❌ Error fetching foods:", error);
+      // Fallback to empty array
+      setFoodData([]);
     } finally {
+      console.log("✅ Setting loading to false");
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log("🔄 [AdminFoodDatabase] useEffect triggered");
     fetchFoods();
   }, []);
 
@@ -181,7 +191,9 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       reader.onload = (e) => {
         try {
           const data = e.target.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
+          const workbook = XLSX.read(data, { 
+            type: fileType === 'csv' ? 'string' : 'binary' 
+          });
           
           // Get the first worksheet
           const firstSheetName = workbook.SheetNames[0];
@@ -202,6 +214,8 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       // Read the file based on type
       if (fileType === 'csv') {
         reader.readAsText(file);
+      }else {
+        reader.readAsArrayBuffer(file);
       }
     });
   };
