@@ -1,7 +1,7 @@
 // routes/foodSearch.js
 const express = require("express");
 const router = express.Router();
-const { one, many } = require("../config/db");
+const { one, many, pool } = require("../config/db");
 
 // ✅ Case-insensitive exact name search
 router.get("/search", async (req, res) => {
@@ -151,7 +151,7 @@ router.post("/bulk-import", async (req, res) => {
         }
 
         // Start transaction
-        const connection = await db.getConnection();
+        const connection = await pool.getConnection();
         await connection.beginTransaction();
 
         try {
