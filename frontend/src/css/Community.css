@@ -165,14 +165,19 @@
    3. STICKY FILTER BAR
 =========================================== */
 .sticky-filter-bar {
-  position: sticky; top: 100px; z-index: 100;
+  position: relative; 
+  /* top: 100px;      <-- REMOVED: No longer needed */
+  z-index: 100;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   padding: 15px 20px; 
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,0.5);
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-  display: flex; justify-content: space-between; align-items: center; gap: 15px;
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  gap: 15px;
   margin-bottom: 40px;
 }
 
