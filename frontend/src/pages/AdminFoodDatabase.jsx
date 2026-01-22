@@ -246,8 +246,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       // Read the file based on type
       if (fileType === 'csv') {
         reader.readAsText(file);
-      } else { 
-        reader.readAsBinaryString(file);
       }
     });
   };

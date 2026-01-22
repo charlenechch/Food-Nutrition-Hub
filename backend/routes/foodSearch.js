@@ -147,13 +147,48 @@ router.post("/bulk-import", async (req, res) => {
       });
     }
 
-    // Get the logged-in admin's ID from the session/token
-    const adminUserId = req.user?.userProfileID || req.user?.id;
+    console.log("🔍 Checking session for admin user...");
+    console.log("Session:", req.session);
+    console.log("Session user:", req.session?.user);
     
-    if (!adminUserId) {
+    const userID = req.session?.user?.userID;
+    
+    if (!userID) {
+      console.log("❌ No userID found in session");
       return res.status(401).json({
         success: false,
-        error: "Admin authentication required"
+        error: "Please log in first"
+      });
+    }
+    
+    console.log(`✅ Current admin userID: ${userID}`);
+    
+    // Get the admin's userProfileID from database
+    let userProfileID;
+    try {
+      const [profileResult] = await db.execute(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [userID]
+      );
+      
+      if (profileResult.length > 0) {
+        userProfileID = profileResult[0].userProfileID;
+        console.log(`✅ Found admin's userProfileID: ${userProfileID}`);
+      } else {
+        // If userProfile doesn't exist, create it
+        console.log(`🛠️ Creating userProfile for admin userID: ${userID}`);
+        const [insertResult] = await db.execute(
+          'INSERT INTO userProfile (userID) VALUES (?)',
+          [userID]
+        );
+        userProfileID = insertResult.insertId;
+        console.log(`✅ Created userProfileID: ${userProfileID}`);
+      }
+    } catch (dbError) {
+      console.error("❌ Error getting userProfileID:", dbError);
+      return res.status(500).json({ 
+        success: false, 
+        error: "Error getting admin profile: " + dbError.message 
       });
     }
 
@@ -238,7 +273,7 @@ router.post("/bulk-import", async (req, res) => {
           
           const recipeValues = [
             foodID,
-            adminUserId, // ✅ Use the actual logged-in admin's ID
+            userProfileID, // ✅ Use the actual logged-in admin's ID
             foodItem.ingredients || "",
             foodItem.steps || "",
             foodItem.cookTime || 0,
@@ -273,7 +308,7 @@ router.post("/bulk-import", async (req, res) => {
       }
     }
 
-    console.log(`✅ [BULK IMPORT] Completed by admin ${adminUserId}: ${results.foodCreated} foods, ${results.recipeCreated} recipes created`);
+    console.log(`✅ [BULK IMPORT] Completed by admin ${userID}: ${results.foodCreated} foods, ${results.recipeCreated} recipes created`);
 
     res.json({
       success: true,
