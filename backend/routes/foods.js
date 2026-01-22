@@ -347,41 +347,49 @@ router.post("/bulk-import", async (req, res) => {
 
   try {
     let importedData;
+    const rawBody = req.body;
     
-    // Check if foodItems exists
-    if (req.body && req.body.foodItems) {
-      importedData = req.body.foodItems;
-      console.log(`✅ Found foodItems array with ${importedData.length} items`);
+    console.log("Raw body keys:", Object.keys(rawBody));
+
+    if (Array.isArray(rawBody)) {
+      importedData = rawBody;
+      console.log(`✅ Direct array with ${importedData.length} items`);
     } 
-    else if (Array.isArray(req.body)) {
-      importedData = req.body;
-    }
-    else if (req.body && typeof req.body === 'object' && req.body.data) {
-      importedData = req.body.data;
-    }
-    else if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
-      // Try to find any array property
-      for (const key in req.body) {
-        if (Array.isArray(req.body[key])) {
-          importedData = req.body[key];
-          console.log(`✅ Found array in property "${key}" with ${importedData.length} items`);
-          break;
-        }
+    else if (rawBody && typeof rawBody === 'object') {
+      if (rawBody.foodItems && Array.isArray(rawBody.foodItems)) {
+        importedData = rawBody.foodItems;
+        console.log(`✅ foodItems array with ${importedData.length} items`);
       }
-      
-      // If no array found, wrap the object in an array
-      if (!importedData) {
-        importedData = [req.body];
+      else if (rawBody.data && Array.isArray(rawBody.data)) {
+        importedData = rawBody.data;
+        console.log(`✅ data array with ${importedData.length} items`);
+      }
+      else if (Object.keys(rawBody).length > 0) {
+        importedData = [rawBody];
+        console.log(`✅ Single object wrapped in array`);
+      }
+      else {
+        return res.status(400).json({ 
+          success: false, 
+          error: "No valid data found in request body" 
+        });
       }
     }
     else {
       return res.status(400).json({ 
         success: false, 
-        error: "Invalid data format. Expected { foodItems: [...] } or an array." 
+        error: "Invalid request format" 
       });
     }
     
-    console.log("Processed data length:", importedData?.length || 0);
+    console.log("Final imported data:", {
+      length: importedData?.length || 0,
+      firstItem: importedData?.[0] ? {
+        name: importedData[0].name,
+        origin: importedData[0].origin,
+        keys: Object.keys(importedData[0])
+      } : 'none'
+    });
     
     if (!Array.isArray(importedData) || importedData.length === 0) {
       return res.status(400).json({ 

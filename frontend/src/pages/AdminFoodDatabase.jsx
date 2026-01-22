@@ -245,7 +245,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     });
 
     try {
-      const requestBody = { foodItems: foodItems };
+      const requestBody = foodItems;
       
       console.log("📤 Request body structure:", {
         bodyKeys: Object.keys(requestBody),
