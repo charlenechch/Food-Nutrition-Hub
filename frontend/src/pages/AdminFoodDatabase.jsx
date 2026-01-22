@@ -303,6 +303,16 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     }
 
     try {
+
+        console.log("📤 Sending to API:", {
+        url: `${API_URL}/api/foods/bulk-import`,
+        dataType: typeof foodItems,
+        isArray: Array.isArray(foodItems),
+        itemCount: foodItems.length,
+        firstItemKeys: foodItems[0] ? Object.keys(foodItems[0]) : 'none',
+        sampleData: JSON.stringify(foodItems.slice(0, 1), null, 2)
+      });
+
       // Send ALL data at once to bulk endpoint
       const res = await fetch(`${API_URL}/api/foods/bulk-import`, {
         method: "POST",
@@ -310,7 +320,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
           "Content-Type": "application/json",
           "X-CSRF-Token": csrfToken,
         },
-        body: JSON.stringify(foodItems), // Send array of all items
+        body: JSON.stringify({foodItems}), // Send array of all items
         credentials: "include",
       });
 

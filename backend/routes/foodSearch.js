@@ -107,13 +107,43 @@ router.get("/search", async (req, res) => {
 router.post("/bulk-import", async (req, res) => {
   console.log("📥 [BULK IMPORT] Received request with", req.body.length, "items");
 
+  console.log("Body type:", typeof req.body);
+  console.log("Is array?", Array.isArray(req.body));
+  console.log("Body keys:", Object.keys(req.body));
+
   try {
-    const importedData = req.body;
+    let importedData;
     
-    if (!Array.isArray(importedData)) {
+    if (Array.isArray(req.body)) {
+      importedData = req.body;
+    } else if (req.body && typeof req.body === 'object' && req.body.data) {
+      importedData = req.body.data;
+    } else if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+      for (const key in req.body) {
+        if (Array.isArray(req.body[key])) {
+          importedData = req.body[key];
+          break;
+        }
+      }
+      
+      // If no array found, wrap the object in an array
+      if (!importedData) {
+        importedData = [req.body];
+      }
+    } else {
       return res.status(400).json({ 
         success: false, 
-        error: "Data must be an array of food items" 
+        error: "Invalid data format. Expected an array of food items." 
+      });
+    }
+    
+    console.log("Processed data length:", importedData.length);
+    console.log("First item:", importedData[0]);
+    
+    if (!Array.isArray(importedData) || importedData.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Data must be a non-empty array of food items" 
       });
     }
 
