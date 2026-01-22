@@ -151,65 +151,132 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       return;
     }
 
+    console.log(`📁 Processing file: ${file.name} (${fileType}, ${file.size} bytes)`);
+  
+    if (file.size === 0) {
+      alert("File is empty!");
+      event.target.value = null;
+      return;
+    }
+
     setLoading(true);
 
     try {
       let importedData = [];
 
       if (fileType === 'json') {
-        // Handle JSON files
-        const text = await file.text();
-        const parsed = JSON.parse(text);
-        
-        if (!Array.isArray(parsed)) {
-          throw new Error("JSON file must contain an array of food items");
-        }
-        importedData = parsed;
-        
-      } else {
-        // Handle Excel/CSV files
-        importedData = await parseExcelOrCSV(file, fileType);
+      console.log("Processing JSON file...");
+      const text = await file.text();
+      console.log("JSON text length:", text.length);
+      
+      const parsed = JSON.parse(text);
+      console.log("Parsed JSON type:", typeof parsed);
+      
+      if (!Array.isArray(parsed)) {
+        throw new Error("JSON file must contain an array of food items");
       }
-
-      // Validate and process the data
-      await processImportedData(importedData);
-
-    } catch (err) {
-      alert(`Error processing file: ${err.message}`);
-      console.error("File processing error:", err);
-    } finally {
-      setLoading(false);
-      event.target.value = null;
+      importedData = parsed;
+      
+    } else {
+      console.log(`Processing ${fileType.toUpperCase()} file...`);
+      importedData = await parseExcelOrCSV(file, fileType);
     }
-  };
+
+    console.log(`✅ File processing complete. importedData:`, {
+      exists: !!importedData,
+      isArray: Array.isArray(importedData),
+      length: importedData?.length || 0,
+      firstItem: importedData?.[0]
+    });
+    
+    if (!importedData) {
+      throw new Error("File parsing returned no data");
+    }
+    
+    if (!Array.isArray(importedData)) {
+      throw new Error(`Expected array but got ${typeof importedData}`);
+    }
+    
+    if (importedData.length === 0) {
+      throw new Error("File contains no data rows. Make sure your Excel has data beyond the header row.");
+    }
+    
+    // Validate and process the data
+    await processImportedData(importedData);
+
+  } catch (err) {
+    console.error("❌ File processing error:", err);
+    alert(`Error processing file: ${err.message}\n\nCheck console for details.`);
+  } finally {
+    console.log("✅ File processing complete");
+    setLoading(false);
+    event.target.value = null;
+  }
+};
 
   // Function to parse Excel/CSV files
   const parseExcelOrCSV = (file, fileType) => {
     return new Promise((resolve, reject) => {
+      console.log(`📄 Starting to parse ${fileType} file: ${file.name}`);
+      
       const reader = new FileReader();
       
       reader.onload = (e) => {
+        console.log(`✅ FileReader loaded successfully`);
+        console.log(`Result type:`, typeof e.target.result);
+        console.log(`Result is ArrayBuffer:`, e.target.result instanceof ArrayBuffer);
+        
         try {
           let workbook;
           
           if (fileType === 'csv') {
             // Handle CSV
             const csvData = e.target.result;
+            console.log("CSV data length:", csvData.length);
             workbook = XLSX.read(csvData, { type: 'string' });
           } else {
-            // Handle Excel (xlsx, xls) - read as ArrayBuffer
-            const data = new Uint8Array(e.target.result);
+            // Handle Excel (xlsx, xls)
+            console.log("Excel file - processing ArrayBuffer");
+            
+            // Convert ArrayBuffer to Uint8Array properly
+            const arrayBuffer = e.target.result;
+            console.log("ArrayBuffer byteLength:", arrayBuffer.byteLength);
+            
+            if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+              throw new Error("Empty ArrayBuffer received");
+            }
+            
+            const data = new Uint8Array(arrayBuffer);
+            console.log("Uint8Array length:", data.length);
+            
             workbook = XLSX.read(data, { type: 'array' });
+          }
+          
+          console.log("Workbook created, SheetNames:", workbook.SheetNames);
+          
+          if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+            throw new Error("No worksheets found in the Excel file");
           }
           
           // Get the first worksheet
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
           
+          if (!worksheet) {
+            throw new Error(`Worksheet "${firstSheetName}" not found`);
+          }
+          
           // Convert to JSON
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
           console.log(`✅ Parsed ${jsonData.length} rows from ${fileType} file`);
-          console.log("Sample row:", jsonData[0]);
+          
+          if (jsonData.length > 0) {
+            console.log("First row keys:", Object.keys(jsonData[0]));
+            console.log("First row sample:", jsonData[0]);
+          } else {
+            console.warn("⚠️ File parsed but contains no data rows (only headers?)");
+          }
+          
           resolve(jsonData);
           
         } catch (error) {
@@ -218,15 +285,31 @@ const AdminFoodDatabase = ({ categories = [] }) => {
         }
       };
       
-      reader.onerror = () => {
-        console.error("❌ FileReader error");
-        reject(new Error("Failed to read file"));
+      reader.onerror = (error) => {
+        console.error("❌ FileReader error event:", error);
+        console.error("FileReader error code:", reader.error?.code);
+        reject(new Error(`Failed to read file: ${reader.error?.message || 'Unknown error'}`));
+      };
+      
+      reader.onabort = () => {
+        console.error("❌ FileReader aborted");
+        reject(new Error("File reading was aborted"));
+      };
+      
+      // Add progress event for debugging
+      reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentLoaded = Math.round((event.loaded / event.total) * 100);
+          console.log(`📊 File loading: ${percentLoaded}%`);
+        }
       };
       
       // Read the file based on type
       if (fileType === 'csv') {
-        reader.readAsText(file);
+        console.log("Reading CSV as text...");
+        reader.readAsText(file, 'UTF-8');
       } else {
+        console.log("Reading Excel as ArrayBuffer...");
         reader.readAsArrayBuffer(file);
       }
     });
