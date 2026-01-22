@@ -321,7 +321,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       });
 
       // Send ALL data at once to bulk endpoint
-      const res = await fetch(`${API_URL}/api/foodSearch/bulk-import`, {
+      const res = await fetch(`${API_URL}/api/foods/bulk-import`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
