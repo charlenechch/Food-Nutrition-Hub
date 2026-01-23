@@ -983,13 +983,6 @@ router.get("/:identifier", async (req, res) => {
     console.log(`🔍 Fetching profile for identifier: ${identifier}`);
 
     // ✅ Added Joi validation + sanitization for identifier param
-    const { error, value } = identifierSchema.validate(identifier);
-    if (error) {
-      return res.status(400).json({ message: "Invalid identifier" });
-    }
-    const cleanIdentifier = typeof value === 'string' ? sanitizeInput(value) : value;
-    
-    console.log(`📊 Executing profile query`);
     const [rows] = await db.execute(
       `SELECT 
         u.userID, u.firstname AS firstName, u.lastname AS lastName, u.email, u.role,
@@ -999,8 +992,10 @@ router.get("/:identifier", async (req, res) => {
         up.recipes, up.posts, up.likes
       FROM user u
       LEFT JOIN userProfile up ON up.userID = u.userID
-      WHERE u.userID = ? OR u.firstname = ?`,
-      [cleanIdentifier, cleanIdentifier]
+      WHERE u.userID = ? 
+         OR up.userProfileID = ? 
+         OR u.firstname = ?`,
+      [cleanIdentifier, cleanIdentifier, cleanIdentifier] // Added 3rd parameter here
     );
     
     console.log(`📄 Query returned ${rows.length} rows`);
