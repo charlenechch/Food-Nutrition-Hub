@@ -300,6 +300,7 @@ export default function FoodDetailPage() {
     setJumping(true);
     try {
       if (food.recipeId) {
+        console.log("Using direct recipeId from food:", food.recipeId);
         navigate(`/recipes/${food.recipeId}`);
         return;
       }
@@ -312,7 +313,7 @@ export default function FoodDetailPage() {
         });
         if (byFood.ok) {
           const json = await byFood.json();
-          const recipeId = json?.data?.id || json?.data?.recipeId;
+          const recipeId = json?.data?.id || json?.data?.recipeId || json?.data?.recipeID;
           if (recipeId) {
             navigate(`/recipes/${recipeId}`);
             return;

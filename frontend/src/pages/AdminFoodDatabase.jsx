@@ -403,12 +403,66 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     }
   };
 
+  const validateImageUrl = (url) => {
+    if (!url || url.trim() === "") {
+      return null;
+    }
+    
+    const trimmedUrl = url.trim();
+ 
+    try {
+        // Try to create a URL object
+        new URL(trimmedUrl);
+        
+        // Additional checks for common image URL patterns
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+        const isImageUrl = imageExtensions.some(ext => 
+          trimmedUrl.toLowerCase().includes(ext) || 
+          trimmedUrl.includes('/image/') ||
+          trimmedUrl.includes('data:image/')
+        );
+        
+        if (!isImageUrl) {
+          console.warn(`URL may not be an image: ${trimmedUrl}`);
+        }
+        
+        return trimmedUrl;
+      } catch (e) {
+        console.warn(`Invalid URL format: ${trimmedUrl}`);
+      if (trimmedUrl.startsWith('/')) {
+        const baseUrl = window.location.origin;
+        return `${baseUrl}${trimmedUrl}`;
+      }
+      if (trimmedUrl.startsWith('www.')) {
+        return `https://${trimmedUrl}`;
+      }
+      return null;
+    }
+  };
+
   // Map Excel/CSV columns to your backend schema 
   const mapRowToFoodItem = (row) => {
     // Ensure row is an object
     if (!row || typeof row !== 'object') {
       console.warn("Invalid row:", row);
       return null;
+    }
+
+    // Validate Cloudinary image URL
+    const rawImageUrl = String(row.Image || row.image || "").trim();
+    const validatedImageUrl = validateImageUrl(rawImageUrl);
+    
+    // If invalid or empty, use Cloudinary placeholder
+    let finalImageUrl;
+    if (!validatedImageUrl) {
+      const foodName = String(row.Name || row.name || "Food").trim();
+      const encodedName = encodeURIComponent(foodName.substring(0, 30));
+   
+      finalImageUrl = `https://placehold.co/600x400/f8f8f8/333333?text=${encodedName}&font=roboto`;
+
+      console.log(`Using placeholder for "${foodName}"`);
+    } else {
+      finalImageUrl = validatedImageUrl;
     }
     
     const mappedItem = {
@@ -420,7 +474,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       difficulty: String(row.Difficulty || row.difficulty || "Medium").trim(),
       dietaryTags: String(row.DietaryTags || row.dietaryTags || "").trim(),
       description: String(row.Description || row.description || "").trim(),
-      image: String(row.Image || row.image || "").trim(),
+      image: finalImageUrl,
       prepTime: Number(row.PrepTime || row.prepTime || 0) || 0,
       culturalSignificance: String(row.CulturalSignificance || row.culturalSignificance || "").trim(),
       traditionalPreparation: String(row.TraditionalPreparation || row.traditionalPreparation || "").trim(),
@@ -493,23 +547,23 @@ const downloadTemplate = () => {
      "Ingredients", "Steps", "CookTime", "Servings", "DidYouKnow", "ChefTips"],
 
      // INSTRUCTION ROW (Formats and examples)
-    ["REQUIRED: Food name", "ENUM: Malay, Chinese, Iban, Melanau, Kadazan, Bidayuh, Dayak", 
-     "REQUIRED: e.g., Main Dish", "REQUIRED: e.g., Appetizer, Main, Dessert", 
-     "ENUM: Easy, Medium, Hard", "Separate with commas: e.g., Vegetarian, Gluten-Free", 
-     "REQUIRED: Brief description", "REQUIRED: Image URL", 
-     "REQUIRED: Minutes (number only)", "Optional cultural info", 
+    ["* REQUIRED: Food name", "* REQUIRED: Enum: Malay, Chinese, Iban, Melanau, Kadazan, Bidayuh, Dayak", 
+     "* REQUIRED: e.g., Main Dish", "* REQUIRED: e.g., Appetizer, Main, Dessert", 
+     "* REQUIRED: Enum: Easy, Medium, Hard", "Separate with commas: e.g., Vegetarian, Gluten-Free", 
+     "* REQUIRED: Brief description", "* REQUIRED: Image URL", 
+     "* REQUIRED: Minutes (number only)", "Optional cultural info", 
      "Optional traditional methods", "Optional: Common ingredients list", 
      "Optional alternative name", "Optional alternative description", 
-     "Optional health advice", "Optional: Calories (number)", 
-     "Optional: Protein in grams", "Optional: Fat in grams", 
-     "Optional: Carbs in grams", "Optional: Fiber in grams", 
-     "Optional: Vitamin C in mg",
+     "Optional health advice", "* REQUIRED: Calories (number)", 
+     "* REQUIRED: Protein in grams", "* REQUIRED: Fat in grams", 
+     "* REQUIRED: Carbs in grams", "* REQUIRED: Fiber in grams", 
+     "* REQUIRED: Vitamin C in mg",
      
      // RECIPE INSTRUCTIONS
-     "REQUIRED: Each ingredient on new line or separated by '|'", 
-     "REQUIRED: Number steps like: 1. First step\n2. Second step", 
-     "REQUIRED: Minutes (number)", 
-     "REQUIRED: Number of servings (number)", 
+     "* REQUIRED: Each ingredient on new line or separated by '|'", 
+     "* REQUIRED: Number steps like: 1. First step\n2. Second step", 
+     "* REQUIRED: Minutes (number)", 
+     "* REQUIRED: Number of servings (number)", 
      "Optional fun fact", 
      "Optional chef tips"]
   ];
@@ -553,11 +607,11 @@ const downloadTemplate = () => {
   
   // Set column widths for better readability
   const colWidths = [
-    {wch: 20}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 12}, {wch: 20},
-    {wch: 30}, {wch: 40}, {wch: 10}, {wch: 25}, {wch: 25}, {wch: 25},
-    {wch: 15}, {wch: 25}, {wch: 25}, {wch: 12}, {wch: 12}, {wch: 12},
-    {wch: 15}, {wch: 12}, {wch: 15},
-    {wch: 40}, {wch: 60}, {wch: 12}, {wch: 12}, {wch: 30}, {wch: 30}
+    {wch: 20}, {wch: 30}, {wch: 30}, {wch: 30}, {wch: 30}, {wch: 30},
+    {wch: 30}, {wch: 40}, {wch: 20}, {wch: 25}, {wch: 30}, {wch: 30},
+    {wch: 15}, {wch: 30}, {wch: 30}, {wch: 20}, {wch: 20}, {wch: 20},
+    {wch: 15}, {wch: 20}, {wch: 60},
+    {wch: 40}, {wch: 60}, {wch: 30}, {wch: 30}, {wch: 30}, {wch: 30}
   ];
   ws['!cols'] = colWidths;
  
@@ -571,8 +625,6 @@ const downloadTemplate = () => {
     [""],
     ["FIELD REQUIREMENTS:"],
     ["• Fields marked with * are REQUIRED"],
-    ["• Do not delete the first 4 rows (header, instructions, 2 examples)"],
-    ["• Add your data starting from Row 5"],
     [""],
     ["ENUM FIELDS (Must use exact values):"],
     ["• Origin: Malay, Chinese, Iban, Melanau, Kadazan, Bidayuh, Dayak"],
@@ -631,7 +683,7 @@ const downloadTemplate = () => {
   XLSX.utils.book_append_sheet(wb, instructionWs, "Instructions");
   
   // Generate Excel file
-  XLSX.writeFile(wb, "food-import-template-with-examples.xlsx");
+  XLSX.writeFile(wb, "food-import-template.xlsx");
 };
 
   // --- Filtering Logic ---
@@ -706,10 +758,10 @@ const downloadTemplate = () => {
                 backgroundColor: "#f0f0f0",
                 color: "#333",
                 border: "1px solid #ddd",
-                padding: "10px 15px",
+                padding: "8px 12px",
                 borderRadius: "8px",
                 cursor: "pointer",
-                display: "flex",
+                display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
                 fontSize: "14px"
