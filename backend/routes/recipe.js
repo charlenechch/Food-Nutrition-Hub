@@ -1313,4 +1313,51 @@ router.delete("/admin/delete/:id", async (req, res) => {
   }
 });
 
+// recipe navigation
+router.get('/byFood/:foodId', async (req, res) => {
+  try {
+    const { foodId } = req.params;
+    console.log('🔍 Looking for recipe by food ID:', foodId);
+
+    const query = `
+      SELECT 
+        r.recipeID AS id,
+        r.foodID,
+        f.name AS foodName,
+        r.status,
+        r.cookTime,
+        r.servings,
+        r.ingredients,
+        r.steps AS instructions
+      FROM recipe r
+      JOIN food f ON r.foodID = f.foodID
+      WHERE r.foodID = ?
+      LIMIT 1
+    `;
+
+    const [rows] = await db.query(query, [foodId]);
+
+    if (rows.length === 0) {
+      console.log('❌ No recipe found for food ID:', foodId);
+      return res.json({
+        success: false,
+        message: 'No recipe found for this food'
+      });
+    }
+
+    console.log('✅ Found recipe:', rows[0]);
+    res.json({
+      success: true,
+      data: rows[0]
+    });
+
+  } catch (error) {
+    console.error('Error fetching recipe by food:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

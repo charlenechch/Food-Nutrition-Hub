@@ -608,9 +608,9 @@ const downloadTemplate = () => {
   // Set column widths for better readability
   const colWidths = [
     {wch: 25}, {wch: 50}, {wch: 30}, {wch: 50}, {wch: 40}, {wch: 50},
-    {wch: 30}, {wch: 40}, {wch: 20}, {wch: 25}, {wch: 30}, {wch: 30},
+    {wch: 30}, {wch: 40}, {wch: 25}, {wch: 25}, {wch: 30}, {wch: 30},
     {wch: 30}, {wch: 30}, {wch: 30}, {wch: 30}, {wch: 30}, {wch: 30},
-    {wch: 15}, {wch: 20}, {wch: 30},
+    {wch: 30}, {wch: 30}, {wch: 30},
     {wch: 60}, {wch: 60}, {wch: 30}, {wch: 30}, {wch: 30}, {wch: 30}
   ];
   ws['!cols'] = colWidths;
