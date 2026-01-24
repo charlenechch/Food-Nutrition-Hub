@@ -295,64 +295,106 @@ export default function FoodDetailPage() {
     navigate(`/fooddiscussion/${id}`, { state: { food } });
   };
 
+  // const goToRecipe = async () => {
+  //   if (!food) return;
+  //   setJumping(true);
+  //   try {
+  //     if (food.recipeId) {
+  //       console.log("Using direct recipeId from food:", food.recipeId);
+  //       navigate(`/recipes/${food.recipeId}`);
+  //       return;
+  //     }
+
+  //     const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  //     try {
+  //       const byFood = await fetch(`${API_BASE_URL}/api/recipe/byFood/${food.id}`, {
+  //         credentials: "include",
+  //       });
+  //       if (byFood.ok) {
+  //         const json = await byFood.json();
+  //         const recipeId = json?.data?.id || json?.data?.recipeId || json?.data?.recipeID;
+  //         if (recipeId) {
+  //           navigate(`/recipes/${recipeId}`);
+  //           return;
+  //         }
+  //       }
+  //     } catch {}
+
+  //     try {
+  //       const byName = await fetch(
+  //         `${API_BASE_URL}/api/recipe/find?name=${encodeURIComponent(food.name || "")}`,
+  //         { credentials: "include" }
+  //       );
+  //       if (byName.ok) {
+  //         const json = await byName.json();
+  //         const hit = Array.isArray(json?.data) ? json.data[0] : json?.data;
+  //         const recipeId = hit?.id || hit?.recipeId;
+  //         if (recipeId) {
+  //           navigate(`/recipes/${recipeId}`);
+  //           return;
+  //         }
+  //       }
+  //     } catch {}
+
+  //     try {
+  //       const res = await fetch(`${API_BASE_URL}/api/recipe/all/recipes`, { credentials: "include" });
+  //       if (res.ok) {
+  //         const all = await res.json();
+  //         const norm = (s) => String(s ?? "").trim().toLowerCase();
+  //         const byExact = all.find(r => norm(r.name) === norm(food.name));
+  //         const byLoose = byExact || all.find(r => norm(r.name).includes(norm(food.name)));
+  //         const recipeId = byLoose?.id || byLoose?.foodID;
+  //         if (recipeId) {
+  //           navigate(`/recipes/${recipeId}`);
+  //           return;
+  //         }
+  //       }
+  //     } catch {}
+
+  //     navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`);
+  //   } finally {
+  //     setJumping(false);
+  //   }
+  // };
+
   const goToRecipe = async () => {
     if (!food) return;
     setJumping(true);
+    
     try {
-      if (food.recipeId) {
-        console.log("Using direct recipeId from food:", food.recipeId);
-        navigate(`/recipes/${food.recipeId}`);
-        return;
-      }
-
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-      try {
-        const byFood = await fetch(`${API_BASE_URL}/api/recipe/byFood/${food.id}`, {
-          credentials: "include",
-        });
-        if (byFood.ok) {
-          const json = await byFood.json();
-          const recipeId = json?.data?.id || json?.data?.recipeId || json?.data?.recipeID;
-          if (recipeId) {
-            navigate(`/recipes/${recipeId}`);
-            return;
-          }
+      
+      console.log("🔍 Finding recipe for food ID:", food.id);
+      
+      console.log(`📤 Calling: ${API_BASE_URL}/api/recipe/byFood/${food.id}`);
+      
+      const response = await fetch(
+        `${API_BASE_URL}/api/recipe/byFood/${food.id}`,
+        { credentials: "include" }
+      );
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log("📊 Response:", result);
+        
+        if (result.success && result.data && result.data.id) {
+          console.log("✅ Found recipe ID:", result.data.id);
+          navigate(`/recipes/${result.data.id}`);
+          return;
+        } else {
+          console.log("❌ No recipe found");
+          // Fallback to search
+          navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`);
         }
-      } catch {}
-
-      try {
-        const byName = await fetch(
-          `${API_BASE_URL}/api/recipe/find?name=${encodeURIComponent(food.name || "")}`,
-          { credentials: "include" }
-        );
-        if (byName.ok) {
-          const json = await byName.json();
-          const hit = Array.isArray(json?.data) ? json.data[0] : json?.data;
-          const recipeId = hit?.id || hit?.recipeId;
-          if (recipeId) {
-            navigate(`/recipes/${recipeId}`);
-            return;
-          }
-        }
-      } catch {}
-
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/recipe/all/recipes`, { credentials: "include" });
-        if (res.ok) {
-          const all = await res.json();
-          const norm = (s) => String(s ?? "").trim().toLowerCase();
-          const byExact = all.find(r => norm(r.name) === norm(food.name));
-          const byLoose = byExact || all.find(r => norm(r.name).includes(norm(food.name)));
-          const recipeId = byLoose?.id || byLoose?.foodID;
-          if (recipeId) {
-            navigate(`/recipes/${recipeId}`);
-            return;
-          }
-        }
-      } catch {}
-
-      navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`);
+      } else {
+        console.log("❌ API call failed:", response.status);
+        navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`);
+      }
+      
+    } catch (error) {
+      console.error("Error:", error);
+      navigate(`/recipes?q=${encodeURIComponent(food.name || '')}`);
     } finally {
       setJumping(false);
     }

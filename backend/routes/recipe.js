@@ -288,7 +288,7 @@ try {
     LEFT JOIN food f ON r.foodID = f.foodID  
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
     LEFT JOIN user u ON up.userID = u.userID
-    WHERE f.foodID = ?  
+    WHERE r.recipeID = ?  
   `;
   
   console.log('🔍 Fixed SQL Query - Getting recipe by recipeID:', id);
@@ -1314,6 +1314,7 @@ router.delete("/admin/delete/:id", async (req, res) => {
 });
 
 // recipe navigation
+// GET recipe by food ID
 router.get('/byFood/:foodId', async (req, res) => {
   try {
     const { foodId } = req.params;
@@ -1321,17 +1322,13 @@ router.get('/byFood/:foodId', async (req, res) => {
 
     const query = `
       SELECT 
-        r.recipeID AS id,
-        r.foodID,
+        r.recipeID AS id,  
+        f.foodID,  
         f.name AS foodName,
-        r.status,
-        r.cookTime,
-        r.servings,
-        r.ingredients,
-        r.steps AS instructions
+        r.status
       FROM recipe r
       JOIN food f ON r.foodID = f.foodID
-      WHERE r.foodID = ?
+      WHERE f.foodID = ?
       LIMIT 1
     `;
 
@@ -1348,7 +1345,7 @@ router.get('/byFood/:foodId', async (req, res) => {
     console.log('✅ Found recipe:', rows[0]);
     res.json({
       success: true,
-      data: rows[0]
+      data: rows[0]  
     });
 
   } catch (error) {
