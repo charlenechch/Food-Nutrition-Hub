@@ -557,7 +557,12 @@ const downloadTemplate = () => {
           <h2>
             <span className="food-icon"><FiDatabase /></span> Food Database
           </h2>
-          <div className="food-actions">
+          <div className="food-actions" style={{
+            display: "flex",
+            gap: "10px",  
+            alignItems: "center", 
+            flexWrap: "wrap"  
+          }}>
             <button
               className="admin-food-btn-add"
               onClick={() => navigate("/admin/addfood")}
@@ -635,7 +640,7 @@ const downloadTemplate = () => {
           </div>
 
           <button className="admin-food-btn-filter" onClick={() => setShowFilters(!showFilters)}>
-            <CiFilter className="filter-icon" /> Filters
+            <CiFilter /> Filters
           </button>
         </div>
 

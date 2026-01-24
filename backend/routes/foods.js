@@ -338,6 +338,90 @@ router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// ✅ ADMIN ONLY: Get all foods with ALL recipes
+router.get("/admin/all", async (req, res) => {
+  try {
+    console.log("📋 [ADMIN] Fetching all foods with recipe details");
+    
+    const query = `
+      SELECT 
+        f.foodID,
+        f.name,
+        f.origin,
+        f.category,
+        f.updatedAt,
+        r.recipeID,
+        r.status,
+        r.createdAt as recipeCreatedAt,
+        r.updatedAt as recipeUpdatedAt
+      FROM food f
+      LEFT JOIN recipe r ON f.foodID = r.foodID
+      ORDER BY f.foodID DESC, r.recipeID DESC
+    `;
+
+    const [rows] = await db.query(query);
+    
+    // Group by food to handle multiple recipes
+    const foodMap = new Map();
+    
+    rows.forEach(row => {
+      const foodID = row.foodID;
+      
+      if (!foodMap.has(foodID)) {
+        foodMap.set(foodID, {
+          foodID: row.foodID,
+          name: row.name,
+          origin: row.origin,
+          category: row.category,
+          updatedAt: row.updatedAt,
+          recipes: [],
+          recipeCount: 0,
+          latestRecipe: null
+        });
+      }
+      
+      const food = foodMap.get(foodID);
+      
+      if (row.recipeID) {
+        const recipe = {
+          recipeID: row.recipeID,
+          status: row.status,
+          createdAt: row.recipeCreatedAt,
+          updatedAt: row.recipeUpdatedAt
+        };
+        
+        food.recipes.push(recipe);
+        food.recipeCount++;
+        
+        // Track latest recipe
+        if (!food.latestRecipe || new Date(recipe.updatedAt) > new Date(food.latestRecipe.updatedAt)) {
+          food.latestRecipe = recipe;
+        }
+      }
+    });
+    
+    // Convert to array
+    const foods = Array.from(foodMap.values()).map(food => ({
+      ...food,
+      recipeID: food.latestRecipe?.recipeID || null,
+      recipeStatus: food.latestRecipe?.status || 'No recipe',
+      lastUpdated: food.latestRecipe?.updatedAt || food.updatedAt
+    }));
+    
+    console.log(`✅ [ADMIN] Returning ${foods.length} foods`);
+    res.json({ 
+      success: true, 
+      data: foods,
+      totalFoods: foods.length,
+      foodsWithRecipes: foods.filter(f => f.recipeCount > 0).length
+    });
+    
+  } catch (err) {
+    console.error("❌ Admin get foods error:", err.message);
+    res.status(500).json({ success: false, error: "Failed to fetch admin foods" });
+  }
+});
+
 // bulk import function
 router.post("/bulk-import", async (req, res) => {
   console.log("📥 [BULK IMPORT] Received request body:", req.body);

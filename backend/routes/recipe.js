@@ -264,7 +264,7 @@ try {
   const query = `
     SELECT 
       f.foodID AS foodId,  
-      r.recipeID AS id,   
+      r.recipeID AS recipeID,   
       f.name, 
       f.origin, 
       f.difficulty, 
@@ -288,13 +288,13 @@ try {
     LEFT JOIN food f ON r.foodID = f.foodID  
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
     LEFT JOIN user u ON up.userID = u.userID
-    WHERE r.recipeID = ?  
+    WHERE f.foodID = ?  
   `;
   
   console.log('🔍 Fixed SQL Query - Getting recipe by recipeID:', id);
   console.log('🔍 Query parameter (recipeID):', id);
   
-  const [rows] = await db.query(query, [id]);  // id = recipeID
+  const [rows] = await db.query(query, [id]);  
   console.log('✅ SQL rows found:', rows.length);
   
   if (!rows || rows.length === 0) {
