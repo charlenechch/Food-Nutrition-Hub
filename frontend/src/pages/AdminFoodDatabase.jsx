@@ -490,23 +490,148 @@ const downloadTemplate = () => {
      "Carbohydrates_g", "Fiber_g", "VitaminC_mg",
      
      // RECIPE TABLE FIELDS
-     "Ingredients", "Steps", "CookTime", "Servings", "DidYouKnow", "ChefTips"]
+     "Ingredients", "Steps", "CookTime", "Servings", "DidYouKnow", "ChefTips"],
+
+     // INSTRUCTION ROW (Formats and examples)
+    ["REQUIRED: Food name", "ENUM: Malay, Chinese, Iban, Melanau, Kadazan, Bidayuh, Dayak", 
+     "REQUIRED: e.g., Main Dish", "REQUIRED: e.g., Appetizer, Main, Dessert", 
+     "ENUM: Easy, Medium, Hard", "Separate with commas: e.g., Vegetarian, Gluten-Free", 
+     "REQUIRED: Brief description", "REQUIRED: Image URL", 
+     "REQUIRED: Minutes (number only)", "Optional cultural info", 
+     "Optional traditional methods", "Optional: Common ingredients list", 
+     "Optional alternative name", "Optional alternative description", 
+     "Optional health advice", "Optional: Calories (number)", 
+     "Optional: Protein in grams", "Optional: Fat in grams", 
+     "Optional: Carbs in grams", "Optional: Fiber in grams", 
+     "Optional: Vitamin C in mg",
+     
+     // RECIPE INSTRUCTIONS
+     "REQUIRED: Each ingredient on new line or separated by '|'", 
+     "REQUIRED: Number steps like: 1. First step\n2. Second step", 
+     "REQUIRED: Minutes (number)", 
+     "REQUIRED: Number of servings (number)", 
+     "Optional fun fact", 
+     "Optional chef tips"]
   ];
 
   // Create worksheet
   const ws = XLSX.utils.aoa_to_sheet(templateData);
   
-  // Remove the empty data row, keep only headers
-  const range = XLSX.utils.decode_range(ws['!ref']);
-  range.e.r = range.s.r; 
-  ws['!ref'] = XLSX.utils.encode_range(range);
+  // Header row formatting
+  const headerRange = XLSX.utils.decode_range(ws['!ref']);
   
+  // Make header row bold and colored
+  for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
+    const headerCell = XLSX.utils.encode_cell({r: 0, c: C});
+    if (!ws[headerCell]) ws[headerCell] = {};
+    ws[headerCell].s = {
+      font: { bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "4CAF50" } } // Green background
+    };
+  }
+  
+  // Instruction row formatting (gray background)
+  for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
+    const instructionCell = XLSX.utils.encode_cell({r: 1, c: C});
+    if (!ws[instructionCell]) ws[instructionCell] = {};
+    ws[instructionCell].s = {
+      font: { italic: true, color: { rgb: "666666" } },
+      fill: { fgColor: { rgb: "F5F5F5" } } // Light gray
+    };
+  }
+  
+  // Example rows formatting (light blue)
+  for (let R = 2; R <= 3; ++R) {
+    for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
+      const exampleCell = XLSX.utils.encode_cell({r: R, c: C});
+      if (!ws[exampleCell]) ws[exampleCell] = {};
+      ws[exampleCell].s = {
+        fill: { fgColor: { rgb: "E8F4F8" } } // Light blue
+      };
+    }
+  }
+  
+  // Set column widths for better readability
+  const colWidths = [
+    {wch: 20}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 12}, {wch: 20},
+    {wch: 30}, {wch: 40}, {wch: 10}, {wch: 25}, {wch: 25}, {wch: 25},
+    {wch: 15}, {wch: 25}, {wch: 25}, {wch: 12}, {wch: 12}, {wch: 12},
+    {wch: 15}, {wch: 12}, {wch: 15},
+    {wch: 40}, {wch: 60}, {wch: 12}, {wch: 12}, {wch: 30}, {wch: 30}
+  ];
+  ws['!cols'] = colWidths;
+ 
   // Create workbook
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Food Template");
+  XLSX.utils.book_append_sheet(wb, ws, "Food Import Template");
+  
+  // Add an instruction sheet
+  const instructionData = [
+    ["FOOD IMPORT TEMPLATE - INSTRUCTIONS"],
+    [""],
+    ["FIELD REQUIREMENTS:"],
+    ["• Fields marked with * are REQUIRED"],
+    ["• Do not delete the first 4 rows (header, instructions, 2 examples)"],
+    ["• Add your data starting from Row 5"],
+    [""],
+    ["ENUM FIELDS (Must use exact values):"],
+    ["• Origin: Malay, Chinese, Iban, Melanau, Kadazan, Bidayuh, Dayak"],
+    ["• Difficulty: Easy, Medium, Hard"],
+    ["• FoodType: Typically Appetizer, Main Dish, Dessert, Snack, Drink"],
+    [""],
+    ["FORMATTING TIPS:"],
+    ["• Ingredients: Separate with '|' or new lines (will be converted to list)"],
+    ["• Steps: Number each step (1. Step one, 2. Step two, etc.)"],
+    ["• DietaryTags: Separate multiple tags with commas"],
+    ["• Image: Use direct image URLs (ending with .jpg, .png, etc.)"],
+    ["• PrepTime & CookTime: Numbers only (minutes)"],
+    ["• Servings: Numbers only"],
+    ["• Nutritional info: Numbers only (grams or mg)"],
+    [""],
+    ["IMPORTANT NOTES:"],
+    ["• Each row creates ONE food with ONE recipe"],
+    ["• Recipe will be automatically APPROVED for admin imports"],
+    ["• Save this file as .xlsx or .csv before importing"]
+  ];
+  
+  const instructionWs = XLSX.utils.aoa_to_sheet(instructionData);
+  
+  // Format instruction sheet
+  for (let R = 0; R < instructionData.length; R++) {
+    for (let C = 0; C < instructionData[R].length; C++) {
+      const cell = XLSX.utils.encode_cell({r: R, c: C});
+      if (!instructionWs[cell]) instructionWs[cell] = {};
+      
+      // Title formatting
+      if (R === 0) {
+        instructionWs[cell].s = {
+          font: { bold: true, sz: 16, color: { rgb: "2E7D32" } }
+        };
+      }
+      
+      // Section headers
+      if (instructionData[R][0] && instructionData[R][0].includes(":")) {
+        instructionWs[cell].s = {
+          font: { bold: true, color: { rgb: "1565C0" } }
+        };
+      }
+      
+      // Bullet points
+      if (instructionData[R][0] && instructionData[R][0].startsWith("•")) {
+        instructionWs[cell].s = {
+          font: { color: { rgb: "424242" } }
+        };
+      }
+    }
+  }
+  
+  // Set column width for instruction sheet
+  instructionWs['!cols'] = [{wch: 80}];
+  
+  XLSX.utils.book_append_sheet(wb, instructionWs, "Instructions");
   
   // Generate Excel file
-  XLSX.writeFile(wb, "food-import-template.xlsx");
+  XLSX.writeFile(wb, "food-import-template-with-examples.xlsx");
 };
 
   // --- Filtering Logic ---
@@ -582,11 +707,11 @@ const downloadTemplate = () => {
                 color: "#333",
                 border: "1px solid #ddd",
                 padding: "10px 15px",
-                borderRadius: "5px",
+                borderRadius: "8px",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: "8px",
+                gap: "6px",
                 fontSize: "14px"
               }}
             >
