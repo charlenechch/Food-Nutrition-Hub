@@ -162,7 +162,7 @@ router.get('/metrics', async (req, res) => {
       FROM posts 
       WHERE status = 'Approved' 
         AND MONTH(updated_at) = ? 
-        AND YEAR(updtted_at) = ?
+        AND YEAR(updated_at) = ?
     `, [previousMonth, previousYear]);
 
     // Calculate percentages
