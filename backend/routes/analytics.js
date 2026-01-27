@@ -11,12 +11,89 @@ function getMonthName(monthNumber) {
   return months[monthNumber - 1];
 }
 
+// Get available years from database
+router.get('/available-years', async (req, res) => {
+  try {
+    const query = `
+      SELECT DISTINCT YEAR(updatedAt) as year 
+      FROM (
+        SELECT updatedAt FROM recipe WHERE status = 'Approved'
+        UNION ALL
+        SELECT updated_at as updatedAt FROM posts WHERE status = 'Approved'
+      ) AS contributions
+      ORDER BY year DESC
+    `;
+    
+    const [results] = await db.execute(query);
+    const years = results.map(row => row.year);
+    
+    res.json({
+      success: true,
+      data: years
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching available years:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch available years'
+    });
+  }
+});
+
+// Get available months for a selected year
+router.get('/available-months', async (req, res) => {
+  try {
+    const { year } = req.query;
+    
+    if (!year) {
+      return res.json({
+        success: true,
+        data: []
+      });
+    }
+    
+    const query = `
+      SELECT DISTINCT MONTH(updatedAt) as month 
+      FROM (
+        SELECT updatedAt FROM recipe WHERE status = 'Approved'
+        UNION ALL
+        SELECT updated_at as updatedAt FROM posts WHERE status = 'Approved'
+      ) AS contributions
+      WHERE YEAR(updatedAt) = ?
+      ORDER BY month
+    `;
+    
+    const [results] = await db.execute(query, [year]);
+    
+    const months = results.map(row => ({
+      value: row.month,
+      name: getMonthName(row.month)
+    }));
+    
+    res.json({
+      success: true,
+      data: months
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching available months:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch available months'
+    });
+  }
+});
+
 // Get metrics data for the cards
 router.get('/metrics', async (req, res) => {
   try {
     // Get current month and previous month for percentage calculations
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
+    // const currentYear = new Date().getFullYear();
+    // const currentMonth = new Date().getMonth() + 1;
+    const { year, month } = req.query;
+    const currentYear = year ? parseInt(year) : new Date().getFullYear();
+    const currentMonth = month ? parseInt(month) : new Date().getMonth() + 1;
     const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
     const previousYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
@@ -25,14 +102,18 @@ router.get('/metrics', async (req, res) => {
       SELECT COUNT(*) as count 
       FROM recipe 
       WHERE status = 'Approved'
-    `);
+        ${year ? 'AND YEAR(updatedAt) = ?' : ''}
+        ${month ? 'AND MONTH(updatedAt) = ?' : ''}
+    `, year && month ? [year, month] : year ? [year] : []);
 
     // Query for total approved stories (posts)
     const [totalStoriesResult] = await db.execute(`
       SELECT COUNT(*) as count 
       FROM posts 
       WHERE status = 'Approved'
-    `);
+        ${year ? 'AND YEAR(updated_at) = ?' : ''}
+        ${month ? 'AND MONTH(updated_at) = ?' : ''}
+    `, year && month ? [year, month] : year ? [year] : []);
 
     // Query for pending recipe reviews
     const [pendingRecipesResult] = await db.execute(`
@@ -53,8 +134,8 @@ router.get('/metrics', async (req, res) => {
       SELECT COUNT(*) as count 
       FROM recipe 
       WHERE status = 'Approved' 
-        AND MONTH(createdAt) = ? 
-        AND YEAR(createdAt) = ?
+        AND MONTH(updatedAt) = ? 
+        AND YEAR(updatedAt) = ?
     `, [currentMonth, currentYear]);
 
     // Query for previous month approved recipes
@@ -62,8 +143,8 @@ router.get('/metrics', async (req, res) => {
       SELECT COUNT(*) as count 
       FROM recipe 
       WHERE status = 'Approved' 
-        AND MONTH(createdAt) = ? 
-        AND YEAR(createdAt) = ?
+        AND MONTH(updatedAt) = ? 
+        AND YEAR(updatedAt) = ?
     `, [previousMonth, previousYear]);
 
     // Query for current month approved stories
@@ -71,8 +152,8 @@ router.get('/metrics', async (req, res) => {
       SELECT COUNT(*) as count 
       FROM posts 
       WHERE status = 'Approved' 
-        AND MONTH(created_at) = ? 
-        AND YEAR(created_at) = ?
+        AND MONTH(updated_at) = ? 
+        AND YEAR(updated_at) = ?
     `, [currentMonth, currentYear]);
 
     // Query for previous month approved stories
@@ -80,8 +161,8 @@ router.get('/metrics', async (req, res) => {
       SELECT COUNT(*) as count 
       FROM posts 
       WHERE status = 'Approved' 
-        AND MONTH(created_at) = ? 
-        AND YEAR(created_at) = ?
+        AND MONTH(updated_at) = ? 
+        AND YEAR(updtted_at) = ?
     `, [previousMonth, previousYear]);
 
     // Calculate percentages
@@ -111,6 +192,10 @@ router.get('/metrics', async (req, res) => {
         currentMonth: {
           recipes: currentMonthRecipes,
           stories: currentMonthStories
+        },
+        timeframe: {
+          year: currentYear,
+          month: currentMonth
         }
       }
     });
@@ -126,17 +211,28 @@ router.get('/metrics', async (req, res) => {
 
 router.get('/cultural-origin', async (req, res) => {
   try {
+    const { year, month } = req.query;
+
     const query = `
       SELECT 
-        origin as name,
-        COUNT(foodID) as count
-      FROM food
-      WHERE origin IS NOT NULL AND origin != ''
-      GROUP BY origin
+        f.origin as name,
+        COUNT(f.foodID) as count
+      FROM food f
+      INNER JOIN recipe r ON f.foodID = r.foodID
+      WHERE f.origin IS NOT NULL 
+        AND f.origin != ''
+        AND r.status = 'Approved'
+        ${year ? 'AND YEAR(r.updatedAt) = ?' : ''}
+        ${month ? 'AND MONTH(r.updatedAt) = ?' : ''}
+      GROUP BY f.origin
       ORDER BY count DESC
     `;
+
+    const params = [];
+    if (year) params.push(year);
+    if (month) params.push(month);
     
-    const [results] = await db.execute(query);
+    const [results] = await db.execute(query, params);
     
     const total = results.reduce((sum, item) => sum + parseInt(item.count), 0);
     
@@ -161,36 +257,6 @@ router.get('/cultural-origin', async (req, res) => {
   }
 });
 
-// Get available years from database
-router.get('/available-years', async (req, res) => {
-  try {
-    const query = `
-      SELECT DISTINCT YEAR(createdAt) as year 
-      FROM (
-        SELECT createdAt FROM recipe WHERE status = 'Approved'
-        UNION ALL
-        SELECT created_at as createdAt FROM posts WHERE status = 'Approved'
-      ) AS contributions
-      ORDER BY year DESC
-    `;
-    
-    const [results] = await db.execute(query);
-    const years = results.map(row => row.year);
-    
-    res.json({
-      success: true,
-      data: years
-    });
-    
-  } catch (error) {
-    console.error('❌ Error fetching available years:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch available years'
-    });
-  }
-});
-
 router.get('/posts-recipes-by-month', async (req, res) => {
   try {
     // Use the year from query parameter, fallback to current year
@@ -202,22 +268,22 @@ router.get('/posts-recipes-by-month', async (req, res) => {
       SELECT 
         'Posts' as type,
         status,
-        MONTH(created_at) as month,
+        MONTH(updated_at) as month,
         COUNT(*) as count
       FROM posts 
-      WHERE YEAR(created_at) = ?
-      GROUP BY MONTH(created_at), status
+      WHERE YEAR(updated_at) = ?
+      GROUP BY MONTH(updated_at), status
       
       UNION ALL
       
       SELECT 
         'Recipes' as type,
         status,
-        MONTH(createdAt) as month,
+        MONTH(updatedAt) as month,
         COUNT(*) as count
       FROM recipe 
-      WHERE YEAR(createdAt) = ?
-      GROUP BY MONTH(createdAt), status
+      WHERE YEAR(updatedAt) = ?
+      GROUP BY MONTH(updatedAt), status
       
       ORDER BY month, type, status
     `;
@@ -300,17 +366,28 @@ router.get('/posts-recipes-by-month', async (req, res) => {
 // Get popular food categories
 router.get('/popular-categories', async (req, res) => {
   try {
+    const { year, month } = req.query;
+    
     const query = `
       SELECT 
-        category as name,
-        COUNT(foodID) as submissions
-      FROM food
-      WHERE category IS NOT NULL AND category != ''
-      GROUP BY category
+        f.category as name,
+        COUNT(f.foodID) as submissions
+      FROM food f
+      INNER JOIN recipe r ON f.foodID = r.foodID
+      WHERE f.category IS NOT NULL 
+        AND f.category != ''
+        AND r.status = 'Approved'
+        ${year ? 'AND YEAR(r.createdAt) = ?' : ''}
+        ${month ? 'AND MONTH(r.createdAt) = ?' : ''}
+      GROUP BY f.category
       ORDER BY submissions DESC
     `;
+
+    const params = [];
+    if (year) params.push(year);
+    if (month) params.push(month);
     
-    const [results] = await db.execute(query);
+    const [results] = await db.execute(query, params);
     
     const data = results.map(item => ({
       name: item.name,
@@ -332,9 +409,11 @@ router.get('/popular-categories', async (req, res) => {
   }
 });
 
-// Top contributors endpoints (already fixed from previous)
+// Top contributors endpoints
 router.get('/top-contributors-recipes', async (req, res) => {
   try {
+    const { year, month } = req.query;
+    
     const query = `
       SELECT 
         u.firstname,
@@ -343,14 +422,21 @@ router.get('/top-contributors-recipes', async (req, res) => {
         COUNT(r.recipeID) as recipes
       FROM user u
       INNER JOIN userProfile up ON u.userID = up.userID
-      LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
+      LEFT JOIN recipe r ON up.userProfileID = r.userProfileID 
+        AND r.status = 'Approved'
+        ${year ? 'AND YEAR(r.createdAt) = ?' : ''}
+        ${month ? 'AND MONTH(r.createdAt) = ?' : ''}
       GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
       HAVING COUNT(r.recipeID) > 0
       ORDER BY recipes DESC
       LIMIT 5
     `;
     
-    const [results] = await db.execute(query);
+    const params = [];
+    if (year) params.push(year);
+    if (month) params.push(month);
+    
+    const [results] = await db.execute(query, params);
     
     const formattedResults = results.map(item => ({
       firstname: item.firstname,
@@ -377,6 +463,8 @@ router.get('/top-contributors-recipes', async (req, res) => {
 
 router.get('/top-contributors-stories', async (req, res) => {
   try {
+    const { year, month } = req.query;
+
     const query = `
       SELECT 
         u.firstname,
@@ -385,14 +473,21 @@ router.get('/top-contributors-stories', async (req, res) => {
         COUNT(p.postID) as stories
       FROM user u
       INNER JOIN userProfile up ON u.userID = up.userID
-      LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
+      LEFT JOIN posts p ON up.userProfileID = p.userProfileID 
+      AND p.status = 'Approved'
+        ${year ? 'AND YEAR(p.created_at) = ?' : ''}
+        ${month ? 'AND MONTH(p.created_at) = ?' : ''}
       GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
       HAVING COUNT(p.postID) > 0
       ORDER BY stories DESC
       LIMIT 5
     `;
     
-    const [results] = await db.execute(query);
+    const params = [];
+    if (year) params.push(year);
+    if (month) params.push(month);
+
+    const [results] = await db.execute(query, params);
     
     const formattedResults = results.map(item => ({
       firstname: item.firstname,
@@ -418,45 +513,45 @@ router.get('/top-contributors-stories', async (req, res) => {
 });
 
 // Default top contributors
-router.get('/top-contributors', async (req, res) => {
-  try {
-    const query = `
-      SELECT 
-        u.firstname,
-        u.lastname,
-        up.userProfileID,
-        COUNT(r.recipeID) as recipes
-      FROM user u
-      INNER JOIN userProfile up ON u.userID = up.userID
-      LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
-      GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
-      HAVING COUNT(r.recipeID) > 0
-      ORDER BY recipes DESC
-      LIMIT 5
-    `;
+// router.get('/top-contributors', async (req, res) => {
+//   try {
+//     const query = `
+//       SELECT 
+//         u.firstname,
+//         u.lastname,
+//         up.userProfileID,
+//         COUNT(r.recipeID) as recipes
+//       FROM user u
+//       INNER JOIN userProfile up ON u.userID = up.userID
+//       LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
+//       GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
+//       HAVING COUNT(r.recipeID) > 0
+//       ORDER BY recipes DESC
+//       LIMIT 5
+//     `;
     
-    const [results] = await db.execute(query);
+//     const [results] = await db.execute(query);
     
-    const formattedResults = results.map(item => ({
-      firstname: item.firstname,
-      lastname: item.lastname,
-      userProfileID: item.userProfileID,
-      recipes: item.recipes || 0,
-      stories: 0
-    }));
+//     const formattedResults = results.map(item => ({
+//       firstname: item.firstname,
+//       lastname: item.lastname,
+//       userProfileID: item.userProfileID,
+//       recipes: item.recipes || 0,
+//       stories: 0
+//     }));
     
-    res.json({
-      success: true,
-      data: formattedResults
-    });
+//     res.json({
+//       success: true,
+//       data: formattedResults
+//     });
     
-  } catch (error) {
-    console.error('❌ Error fetching default contributors:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch contributors'
-    });
-  }
-});
+//   } catch (error) {
+//     console.error('❌ Error fetching default contributors:', error);
+//     res.status(500).json({
+//       success: false,
+//       error: 'Failed to fetch contributors'
+//     });
+//   }
+// });
 
 module.exports = router;

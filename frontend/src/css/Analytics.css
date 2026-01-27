@@ -887,3 +887,124 @@ h2 {
     font-size: 12px;
   }
 }
+
+/* Timeline Controls */
+.timeline-controls {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+  border: 1px solid #e2e8f0;
+}
+
+.timeline-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.timeline-filters {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 13px;
+  color: #718096;
+  font-weight: 500;
+}
+
+.year-select, .month-select {
+  padding: 8px 12px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 140px;
+  background: white;
+  color: #2d3748;
+  cursor: pointer;
+}
+
+.year-select:hover, .month-select:hover {
+  border-color: #a0aec0;
+}
+
+.year-select:disabled, .month-select:disabled {
+  background: #f7fafc;
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.timeframe-tabs {
+  display: flex;
+  background: #f7fafc;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.timeframe-tab {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #718096;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.timeframe-tab.active {
+  background: white;
+  color: #4f46e5;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.timeframe-tab:hover:not(.active) {
+  color: #4a5568;
+}
+
+.current-timeframe {
+  padding: 12px;
+  background: #f0f9ff;
+  border-radius: 6px;
+  border-left: 4px solid #3b82f6;
+}
+
+.timeframe-text {
+  font-size: 14px;
+  color: #1e40af;
+  font-weight: 500;
+}
+
+.timeframe-display {
+  padding: 6px 12px;
+  background: #f7fafc;
+  border-radius: 4px;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.loading-indicator {
+  padding: 15px;
+  background: #fef3c7;
+  border-radius: 8px;
+  border-left: 4px solid #f59e0b;
+  margin-bottom: 20px;
+  color: #92400e;
+  font-weight: 500;
+}
