@@ -8,8 +8,29 @@ function getMonthName(monthNumber) {
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
   ];
-  return months[monthNumber - 1];
+  return months[monthNumber - 1] || '';
 }
+
+// Validate parameters middleware
+const validateAnalyticsParams = (req, res, next) => {
+  const { year, month } = req.query;
+  
+  if (year && (isNaN(year) || year.toString().length !== 4)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Year must be a 4-digit number'
+    });
+  }
+  
+  if (month && (isNaN(month) || month < 1 || month > 12)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid month parameter'
+    });
+  }
+  
+  next();
+};
 
 // Get available years from database
 router.get('/available-years', async (req, res) => {
@@ -46,7 +67,7 @@ router.get('/available-months', async (req, res) => {
   try {
     const { year } = req.query;
     
-    if (!year) {
+    if (!year || isNaN(year)) {
       return res.json({
         success: true,
         data: []
@@ -64,7 +85,7 @@ router.get('/available-months', async (req, res) => {
       ORDER BY month
     `;
     
-    const [results] = await db.execute(query, [year]);
+    const [results] = await db.execute(query, [parseInt(year)]);
     
     const months = results.map(row => ({
       value: row.month,
@@ -86,73 +107,72 @@ router.get('/available-months', async (req, res) => {
 });
 
 // Get metrics data for the cards
-router.get('/metrics', async (req, res) => {
+router.get('/metrics', validateAnalyticsParams, async (req, res) => {
   try {
-    // Get current month and previous month for percentage calculations
-    // const currentYear = new Date().getFullYear();
-    // const currentMonth = new Date().getMonth() + 1;
     const { year, month } = req.query;
+    
+    // Parse parameters
     const currentYear = year ? parseInt(year) : new Date().getFullYear();
-    const currentMonth = month ? parseInt(month) : new Date().getMonth() + 1;
-    const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-    const previousYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-
-    let recipeQuery = "SELECT COUNT(*) as count FROM recipe WHERE status = 'Approved'";
+    const currentMonth = month ? parseInt(month) : null;
+    
+    console.log(`📊 Metrics request: year=${currentYear}, month=${currentMonth || 'all'}`);
+    
+    // Build queries
+    let recipeWhere = "WHERE status = 'Approved'";
     let recipeParams = [];
     
-    let storyQuery = "SELECT COUNT(*) as count FROM posts WHERE status = 'Approved'";
+    let storyWhere = "WHERE status = 'Approved'";
     let storyParams = [];
     
     if (year && month) {
-      recipeQuery += " AND YEAR(updatedAt) = ? AND MONTH(updatedAt) = ?";
-      recipeParams.push(parseInt(year), parseInt(month));
+      recipeWhere += " AND YEAR(updatedAt) = ? AND MONTH(updatedAt) = ?";
+      recipeParams.push(currentYear, currentMonth);
       
-      storyQuery += " AND YEAR(updated_at) = ? AND MONTH(updated_at) = ?";
-      storyParams.push(parseInt(year), parseInt(month));
-      
-      console.log('📊 With month filter - Recipe query:', recipeQuery);
-      console.log('📊 With month filter - Recipe params:', recipeParams);
+      storyWhere += " AND YEAR(updated_at) = ? AND MONTH(updated_at) = ?";
+      storyParams.push(currentYear, currentMonth);
     } else if (year) {
-      recipeQuery += " AND YEAR(updatedAt) = ?";
-      recipeParams.push(parseInt(year));
+      recipeWhere += " AND YEAR(updatedAt) = ?";
+      recipeParams.push(currentYear);
       
-      storyQuery += " AND YEAR(updated_at) = ?";
-      storyParams.push(parseInt(year));
-      
-      console.log('📊 Year only - Recipe query:', recipeQuery);
-      console.log('📊 Year only - Recipe params:', recipeParams);
+      storyWhere += " AND YEAR(updated_at) = ?";
+      storyParams.push(currentYear);
     }
 
+    console.log('📊 Recipe query:', recipeWhere, 'Params:', recipeParams);
+    
     // Query for total approved recipes
-    console.log('🚀 Executing recipe query...');
+    const recipeQuery = `SELECT COUNT(*) as count FROM recipe ${recipeWhere}`;
     const [totalRecipesResult] = await db.execute(recipeQuery, recipeParams);
-    console.log('✅ Recipe count:', totalRecipesResult[0].count);
+    const totalRecipes = totalRecipesResult[0].count || 0;
 
     // Query for total approved stories (posts)
-    console.log('🚀 Executing story query...');
+    const storyQuery = `SELECT COUNT(*) as count FROM posts ${storyWhere}`;
     const [totalStoriesResult] = await db.execute(storyQuery, storyParams);
-    console.log('✅ Story count:', totalStoriesResult[0].count);
+    const totalStories = totalStoriesResult[0].count || 0;
 
-    // Query for pending recipe reviews
+    // Query for pending recipe reviews (always total, not filtered by date)
     const [pendingRecipesResult] = await db.execute(`
       SELECT COUNT(*) as count 
       FROM recipe 
       WHERE status = 'Pending'
     `);
+    const pendingRecipes = pendingRecipesResult[0].count || 0;
 
-    // Query for pending story reviews
+    // Query for pending story reviews (always total, not filtered by date)
     const [pendingStoriesResult] = await db.execute(`
       SELECT COUNT(*) as count 
       FROM posts 
       WHERE status = 'Pending'
     `);
+    const pendingStories = pendingStoriesResult[0].count || 0;
 
-    let currentMonthRecipes = 0;
-    let previousMonthRecipes = 0;
-    let currentMonthStories = 0;
-    let previousMonthStories = 0;
+    let recipesPercentage = 0;
+    let storiesPercentage = 0;
     
     if (month) {
+      const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+      const previousYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+
       // Query for current month approved recipes
       const [currentMonthRecipesResult] = await db.execute(`
         SELECT COUNT(*) as count 
@@ -161,7 +181,7 @@ router.get('/metrics', async (req, res) => {
           AND MONTH(updatedAt) = ? 
           AND YEAR(updatedAt) = ?
       `, [currentMonth, currentYear]);
-      currentMonthRecipes = currentMonthRecipesResult[0].count;
+      const currentMonthRecipes = currentMonthRecipesResult[0].count || 0;
 
       // Query for previous month approved recipes
       const [previousMonthRecipesResult] = await db.execute(`
@@ -171,7 +191,7 @@ router.get('/metrics', async (req, res) => {
           AND MONTH(updatedAt) = ? 
           AND YEAR(updatedAt) = ?
       `, [previousMonth, previousYear]);
-      previousMonthRecipes = previousMonthRecipesResult[0].count;
+      const previousMonthRecipes = previousMonthRecipesResult[0].count || 0;
 
       // Query for current month approved stories
       const [currentMonthStoriesResult] = await db.execute(`
@@ -181,7 +201,7 @@ router.get('/metrics', async (req, res) => {
           AND MONTH(updated_at) = ? 
           AND YEAR(updated_at) = ?
       `, [currentMonth, currentYear]);
-      currentMonthStories = currentMonthStoriesResult[0].count;
+      const currentMonthStories = currentMonthStoriesResult[0].count || 0;
 
       // Query for previous month approved stories
       const [previousMonthStoriesResult] = await db.execute(`
@@ -191,32 +211,28 @@ router.get('/metrics', async (req, res) => {
           AND MONTH(updated_at) = ? 
           AND YEAR(updated_at) = ?
       `, [previousMonth, previousYear]);
-      previousMonthStories = previousMonthStoriesResult[0].count;
+      const previousMonthStories = previousMonthStoriesResult[0].count || 0;
+
+      // Calculate percentages safely
+      recipesPercentage = previousMonthRecipes > 0 
+        ? Math.round(((currentMonthRecipes - previousMonthRecipes) / previousMonthRecipes) * 100)
+        : currentMonthRecipes > 0 ? 100 : 0;
+
+      storiesPercentage = previousMonthStories > 0 
+        ? Math.round(((currentMonthStories - previousMonthStories) / previousMonthStories) * 100)
+        : currentMonthStories > 0 ? 100 : 0;
     }
-
-    // Calculate percentages
-    const recipesPercentage = previousMonthRecipes > 0 
-      ? Math.round(Math.min(((currentMonthRecipes - previousMonthRecipes) / previousMonthRecipes) * 100, 100))
-      : currentMonthRecipes > 0 ? 100 : 0;
-
-    const storiesPercentage = previousMonthStories > 0 
-      ? Math.round(Math.min(((currentMonthStories - previousMonthStories) / previousMonthStories) * 100, 100))
-      : currentMonthStories > 0 ? 100 : 0;
 
     res.json({
       success: true,
       data: {
-        totalRecipes: totalRecipesResult[0].count,
-        totalStories: totalStoriesResult[0].count,
-        pendingRecipes: pendingRecipesResult[0].count,
-        pendingStories: pendingStoriesResult[0].count,
+        totalRecipes,
+        totalStories,
+        pendingRecipes,
+        pendingStories,
         percentages: {
           recipes: recipesPercentage,
           stories: storiesPercentage
-        },
-        currentMonth: {
-          recipes: currentMonthRecipes,
-          stories: currentMonthStories
         },
         timeframe: {
           year: currentYear,
@@ -234,7 +250,8 @@ router.get('/metrics', async (req, res) => {
   }
 });
 
-router.get('/cultural-origin', async (req, res) => {
+// Cultural origin endpoint
+router.get('/cultural-origin', validateAnalyticsParams, async (req, res) => {
   try {
     const { year, month } = req.query;
 
@@ -243,13 +260,10 @@ router.get('/cultural-origin', async (req, res) => {
     
     if (year && month) {
       whereConditions += " AND YEAR(r.updatedAt) = ? AND MONTH(r.updatedAt) = ?";
-      params.push(year, month);
+      params.push(parseInt(year), parseInt(month));
     } else if (year) {
       whereConditions += " AND YEAR(r.updatedAt) = ?";
-      params.push(year);
-    } else if (month) {
-      whereConditions += " AND MONTH(r.updatedAt) = ?";
-      params.push(month);
+      params.push(parseInt(year));
     }
 
     const query = `
@@ -265,11 +279,19 @@ router.get('/cultural-origin', async (req, res) => {
 
     const [results] = await db.execute(query, params);
     
+    if (results.length === 0) {
+      return res.json({ 
+        success: true, 
+        data: [],
+        totalCount: 0
+      });
+    }
+    
     const total = results.reduce((sum, item) => sum + parseInt(item.count), 0);
     
     const data = results.map(item => ({
       name: item.name,
-      value: Math.round((item.count / total) * 100),
+      value: total > 0 ? Math.round((item.count / total) * 100) : 0,
       count: item.count
     }));
     
@@ -288,7 +310,8 @@ router.get('/cultural-origin', async (req, res) => {
   }
 });
 
-router.get('/posts-recipes-by-month', async (req, res) => {
+// Posts and recipes by month endpoint
+router.get('/posts-recipes-by-month', validateAnalyticsParams, async (req, res) => {
   try {
     const year = parseInt(req.query.year) || new Date().getFullYear();
     const month = req.query.month ? parseInt(req.query.month) : null;
@@ -296,7 +319,15 @@ router.get('/posts-recipes-by-month', async (req, res) => {
     console.log(`📊 Fetching data for year: ${year}, month: ${month || 'all months'}`);
     
     if (month) {
-      const daysInMonth = new Date(year, month, 0).getDate(); // Get number of days in month
+      // Validate month
+      if (month < 1 || month > 12) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid month parameter'
+        });
+      }
+      
+      const daysInMonth = new Date(year, month, 0).getDate();
       
       const query = `
         SELECT 
@@ -466,8 +497,8 @@ router.get('/posts-recipes-by-month', async (req, res) => {
   }
 });
 
-// Get popular food categories
-router.get('/popular-categories', async (req, res) => {
+// Popular categories endpoint
+router.get('/popular-categories', validateAnalyticsParams, async (req, res) => {
   try {
     const { year, month } = req.query;
 
@@ -475,16 +506,13 @@ router.get('/popular-categories', async (req, res) => {
     const params = [];
     
     if (year && month) {
-      whereConditions += " AND YEAR(r.createdAt) = ? AND MONTH(r.createdAt) = ?";
-      params.push(year, month);
+      whereConditions += " AND YEAR(r.updatedAt) = ? AND MONTH(r.updatedAt) = ?";
+      params.push(parseInt(year), parseInt(month));
     } else if (year) {
-      whereConditions += " AND YEAR(r.createdAt) = ?";
-      params.push(year);
-    } else if (month) {
-      whereConditions += " AND MONTH(r.createdAt) = ?";
-      params.push(month);
+      whereConditions += " AND YEAR(r.updatedAt) = ?";
+      params.push(parseInt(year));
     }
-    
+
     const query = `
       SELECT 
         f.category as name,
@@ -500,7 +528,7 @@ router.get('/popular-categories', async (req, res) => {
     
     const data = results.map(item => ({
       name: item.name,
-      submissions: parseInt(item.submissions)
+      submissions: parseInt(item.submissions) || 0
     }));
     
     res.json({ 
@@ -519,24 +547,21 @@ router.get('/popular-categories', async (req, res) => {
 });
 
 // Top contributors endpoints
-router.get('/top-contributors-recipes', async (req, res) => {
+router.get('/top-contributors-recipes', validateAnalyticsParams, async (req, res) => {
   try {
     const { year, month } = req.query;
 
-    let whereConditions = "AND r.status = 'Approved'";
+    let whereConditions = "WHERE r.status = 'Approved'";
     const params = [];
     
     if (year && month) {
-      whereConditions += " AND YEAR(r.createdAt) = ? AND MONTH(r.createdAt) = ?";
-      params.push(year, month);
+      whereConditions += " AND YEAR(r.updatedAt) = ? AND MONTH(r.updatedAt) = ?";
+      params.push(parseInt(year), parseInt(month));
     } else if (year) {
-      whereConditions += " AND YEAR(r.createdAt) = ?";
-      params.push(year);
-    } else if (month) {
-      whereConditions += " AND MONTH(r.createdAt) = ?";
-      params.push(month);
+      whereConditions += " AND YEAR(r.updatedAt) = ?";
+      params.push(parseInt(year));
     }
-    
+
     const query = `
       SELECT 
         u.firstname,
@@ -546,7 +571,7 @@ router.get('/top-contributors-recipes', async (req, res) => {
       FROM user u
       INNER JOIN userProfile up ON u.userID = up.userID
       LEFT JOIN recipe r ON up.userProfileID = r.userProfileID 
-        ${whereConditions}
+      ${whereConditions}
       GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
       HAVING COUNT(r.recipeID) > 0
       ORDER BY recipes DESC
@@ -578,22 +603,19 @@ router.get('/top-contributors-recipes', async (req, res) => {
   }
 });
 
-router.get('/top-contributors-stories', async (req, res) => {
+router.get('/top-contributors-stories', validateAnalyticsParams, async (req, res) => {
   try {
     const { year, month } = req.query;
 
-    let whereConditions = "AND p.status = 'Approved'";
+    let whereConditions = "WHERE p.status = 'Approved'";
     const params = [];
     
     if (year && month) {
-      whereConditions += " AND YEAR(p.created_at) = ? AND MONTH(p.created_at) = ?";
-      params.push(year, month);
+      whereConditions += " AND YEAR(p.updated_at) = ? AND MONTH(p.updated_at) = ?";
+      params.push(parseInt(year), parseInt(month));
     } else if (year) {
-      whereConditions += " AND YEAR(p.created_at) = ?";
-      params.push(year);
-    } else if (month) {
-      whereConditions += " AND MONTH(p.created_at) = ?";
-      params.push(month);
+      whereConditions += " AND YEAR(p.updated_at) = ?";
+      params.push(parseInt(year));
     }
 
     const query = `
@@ -605,7 +627,7 @@ router.get('/top-contributors-stories', async (req, res) => {
       FROM user u
       INNER JOIN userProfile up ON u.userID = up.userID
       LEFT JOIN posts p ON up.userProfileID = p.userProfileID 
-        ${whereConditions}
+      ${whereConditions}
       GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
       HAVING COUNT(p.postID) > 0
       ORDER BY stories DESC
