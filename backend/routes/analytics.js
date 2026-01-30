@@ -11,27 +11,6 @@ function getMonthName(monthNumber) {
   return months[monthNumber - 1] || '';
 }
 
-// Validate parameters middleware
-const validateAnalyticsParams = (req, res, next) => {
-  const { year, month } = req.query;
-  
-  if (year && (isNaN(year) || year.toString().length !== 4)) {
-    return res.status(400).json({
-      success: false,
-      error: 'Year must be a 4-digit number'
-    });
-  }
-  
-  if (month && (isNaN(month) || month < 1 || month > 12)) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid month parameter'
-    });
-  }
-  
-  next();
-};
-
 // Get available years from database
 router.get('/available-years', async (req, res) => {
   try {
@@ -107,7 +86,7 @@ router.get('/available-months', async (req, res) => {
 });
 
 // Get metrics data for the cards
-router.get('/metrics', validateAnalyticsParams, async (req, res) => {
+router.get('/metrics', async (req, res) => {
   try {
     const { year, month } = req.query;
     
@@ -251,7 +230,7 @@ router.get('/metrics', validateAnalyticsParams, async (req, res) => {
 });
 
 // Cultural origin endpoint
-router.get('/cultural-origin', validateAnalyticsParams, async (req, res) => {
+router.get('/cultural-origin', async (req, res) => {
   try {
     const { year, month } = req.query;
 
@@ -311,7 +290,7 @@ router.get('/cultural-origin', validateAnalyticsParams, async (req, res) => {
 });
 
 // Posts and recipes by month endpoint
-router.get('/posts-recipes-by-month', validateAnalyticsParams, async (req, res) => {
+router.get('/posts-recipes-by-month', async (req, res) => {
   try {
     const year = parseInt(req.query.year) || new Date().getFullYear();
     const month = req.query.month ? parseInt(req.query.month) : null;
@@ -498,7 +477,7 @@ router.get('/posts-recipes-by-month', validateAnalyticsParams, async (req, res) 
 });
 
 // Popular categories endpoint
-router.get('/popular-categories', validateAnalyticsParams, async (req, res) => {
+router.get('/popular-categories', async (req, res) => {
   try {
     const { year, month } = req.query;
 
@@ -547,7 +526,7 @@ router.get('/popular-categories', validateAnalyticsParams, async (req, res) => {
 });
 
 // Top contributors endpoints
-router.get('/top-contributors-recipes', validateAnalyticsParams, async (req, res) => {
+router.get('/top-contributors-recipes', async (req, res) => {
   try {
     const { year, month } = req.query;
 
@@ -603,7 +582,7 @@ router.get('/top-contributors-recipes', validateAnalyticsParams, async (req, res
   }
 });
 
-router.get('/top-contributors-stories', validateAnalyticsParams, async (req, res) => {
+router.get('/top-contributors-stories', async (req, res) => {
   try {
     const { year, month } = req.query;
 
