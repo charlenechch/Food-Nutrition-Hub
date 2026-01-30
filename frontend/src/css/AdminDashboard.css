@@ -1971,4 +1971,19 @@
   .food-database-slider-container {
     padding: 10px 5px;
   }
+
+  .filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .filter-item select {
+    height: 45px; 
+    font-size: 16px; 
+    background-color: #f3ece2;
+    border: none;
+    border-radius: 8px;
+    padding: 0 10px;
+  }
 }
