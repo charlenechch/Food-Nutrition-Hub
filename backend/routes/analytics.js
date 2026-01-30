@@ -512,46 +512,4 @@ router.get('/top-contributors-stories', async (req, res) => {
   }
 });
 
-// Default top contributors
-// router.get('/top-contributors', async (req, res) => {
-//   try {
-//     const query = `
-//       SELECT 
-//         u.firstname,
-//         u.lastname,
-//         up.userProfileID,
-//         COUNT(r.recipeID) as recipes
-//       FROM user u
-//       INNER JOIN userProfile up ON u.userID = up.userID
-//       LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
-//       GROUP BY u.userID, u.firstname, u.lastname, up.userProfileID
-//       HAVING COUNT(r.recipeID) > 0
-//       ORDER BY recipes DESC
-//       LIMIT 5
-//     `;
-    
-//     const [results] = await db.execute(query);
-    
-//     const formattedResults = results.map(item => ({
-//       firstname: item.firstname,
-//       lastname: item.lastname,
-//       userProfileID: item.userProfileID,
-//       recipes: item.recipes || 0,
-//       stories: 0
-//     }));
-    
-//     res.json({
-//       success: true,
-//       data: formattedResults
-//     });
-    
-//   } catch (error) {
-//     console.error('❌ Error fetching default contributors:', error);
-//     res.status(500).json({
-//       success: false,
-//       error: 'Failed to fetch contributors'
-//     });
-//   }
-// });
-
 module.exports = router;
