@@ -734,7 +734,12 @@ const downloadTemplate = () => {
           <h2>
             <span className="food-icon"><FiDatabase /></span> Food Database
           </h2>
-          <div className="food-actions">
+          <div className="food-actions" style={{
+            display: "flex",
+            gap: "10px",  
+            alignItems: "center", 
+            flexWrap: "wrap"  
+          }}>
             <button
               className="admin-food-btn-add"
               onClick={() => navigate("/admin/addfood")}
@@ -742,15 +747,27 @@ const downloadTemplate = () => {
               <FaPlus /> Add New Food
             </button>
             <button className="admin-food-btn-import" onClick={handleImportClick}>
-              <MdOutlineFileUpload /> <span>Bulk Import</span>
+              <MdOutlineFileUpload /> Bulk Import
             </button>
 
             {/* Template download button */}
             <button 
               className="admin-food-btn-template"
               onClick={downloadTemplate}
+              style={{
+                backgroundColor: "#f0f0f0",
+                color: "#333",
+                border: "1px solid #ddd",
+                padding: "8px 12px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "14px"
+              }}
             >
-              <FiDatabase /> <span>Download Template</span>
+              <FiDatabase /> Download Import Template
             </button>
 
             <input 
