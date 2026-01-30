@@ -9,10 +9,13 @@ import {
     FiMail as Mail,
     FiFileText as FileText,
     FiX as X,
-    FiCheckCircle as CheckIcon
+    FiCheckCircle as CheckIcon,
+    FiCalendar as Calendar
 } from "react-icons/fi";
 import Modal from "../components/Modal";
 import { useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -117,61 +120,144 @@ export default function AdminSystemSettings({
 
     const closeSysDialog = () => setSysDialog((m) => ({ ...m, open: false, onPrimary: null }));
 
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportOptions, setExportOptions] = useState({
+        format: 'excel',
+        rangeType: 'year',
+        year: new Date().getFullYear(),
+        month: new Date().getMonth() + 1,
+        startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], // Jan 1 of current year
+        endDate: new Date().toISOString().split('T')[0], // Today
+    });
+
+    useEffect(() => {
+        if (!showExportModal) return;
+        const onKey = (e) => e.key === "Escape" && setShowExportModal(false);
+        document.addEventListener("keydown", onKey);
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.removeEventListener("keydown", onKey);
+            document.body.style.overflow = prev;
+        };
+    }, [showExportModal]);
+
     const [exportLoading, setExportLoading] = useState({ 
         csv: false, 
         reportExcel: false,
         reportPdf: false 
     });
 
-    const handleExport = async (type, format = 'excel') => {
-        try {
-            // Set loading state - need separate keys for Excel and PDF
-            let loadingKey;
-            if (type === 'food-csv') {
-                loadingKey = 'csv';
-            } else if (type === 'analytics-report') {
-                // Use different keys for Excel and PDF
-                loadingKey = format === 'pdf' ? 'reportPdf' : 'reportExcel';
-            }
-            
-            setExportLoading(prev => ({ ...prev, [loadingKey]: true }));
+    const handleExport = async (type) => {
+        if (type === 'analytics-report') {
+            setShowExportModal(true);
+            return;
+        }
+        
+        // Original food CSV export logic
+        if (type === 'food-csv') {
+            try {
+                setExportLoading(prev => ({ ...prev, csv: true }));
+                const endpoint = `${API_URL}/api/export/food-csv`;
+                const filename = `food-database-${new Date().toISOString().split('T')[0]}.csv`;
+                
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    }
+                });
 
-            let endpoint, filename;
-            
-            if (type === 'food-csv') {
-                // Food database export (only CSV)
-                endpoint = `${API_URL}/api/export/food-csv`;
-                filename = `food-database-${new Date().toISOString().split('T')[0]}.csv`;
-            } else {
-                // Analytics report export (Excel or PDF only)
-                if (format !== 'excel' && format !== 'pdf') {
-                    format = 'excel'; // Default to excel if invalid format
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Export failed: ${response.status} ${response.statusText}`);
                 }
-                
-                endpoint = `${API_URL}/api/export/analytics-report?format=${format}`;
-                
-                // Simplified filename logic
-                const extension = format === 'pdf' ? 'pdf' : 'xlsx';
-                filename = `sarawakeats-analytics-report-${new Date().toISOString().split('T')[0]}.${extension}`;
-            }
 
-            console.log('Exporting from:', endpoint); // Debug log
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+
+            } catch (error) {
+                console.error('Export error:', error);
+                toast.error(`Failed to export: ${error.message}`);
+            } finally {
+                setExportLoading(prev => ({ ...prev, csv: false }));
+            }
+        }
+    };
+
+    const handleAnalyticsExport = async () => {
+        if (exportOptions.rangeType === 'custom' && (!exportOptions.startDate || !exportOptions.endDate)) {
+            setSysDialog({
+                open: true,
+                title: "Missing Dates",
+                message: "Please select both start and end dates for custom range.",
+                icon: <AlertTriangle />,
+                primaryText: "OK",
+                onPrimary: closeSysDialog,
+            });
+            return;
+        }
+        try {
+            // Set loading based on format
+            const loadingKey = exportOptions.format === 'pdf' ? 'reportPdf' : 'reportExcel';
+            setExportLoading(prev => ({ ...prev, [loadingKey]: true }));
+            
+            // Build query parameters based on selected options
+            let queryParams = new URLSearchParams();
+            queryParams.append('format', exportOptions.format);
+            
+            if (exportOptions.rangeType === 'year') {
+                queryParams.append('year', exportOptions.year);
+            } else if (exportOptions.rangeType === 'month') {
+                // For month, we'll use year and month parameters
+                queryParams.append('year', exportOptions.year);
+                queryParams.append('month', exportOptions.month);
+            } else if (exportOptions.rangeType === 'custom') {
+                // For custom range, we'll need to update backend to handle date ranges
+                if (exportOptions.startDate) {
+                    queryParams.append('startDate', exportOptions.startDate);
+                }
+                if (exportOptions.endDate) {
+                    queryParams.append('endDate', exportOptions.endDate);
+                }
+            }
+            
+            const endpoint = `${API_URL}/api/export/analytics-report?${queryParams.toString()}`;
+            const extension = exportOptions.format === 'pdf' ? 'pdf' : 'xlsx';
+            
+            // Generate filename based on options
+            let filename = `sarawakeats-analytics-report`;
+            if (exportOptions.rangeType === 'year') {
+                filename += `-${exportOptions.year}`;
+            } else if (exportOptions.rangeType === 'month') {
+                const monthName = new Date(exportOptions.year, exportOptions.month - 1).toLocaleString('default', { month: 'long' });
+                filename += `-${monthName}-${exportOptions.year}`;
+            } else if (exportOptions.rangeType === 'custom') {
+                filename += `-${exportOptions.startDate || 'start'}-to-${exportOptions.endDate || 'end'}`;
+            }
+            filename += `.${extension}`;
 
             const response = await fetch(endpoint, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Accept': format === 'excel' 
+                    'Accept': exportOptions.format === 'excel' 
                         ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                         : 'application/pdf' 
                 }
             });
 
-            console.log('Response status:', response.status); // Debug log
-
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Export error response:', errorText);
                 throw new Error(`Export failed: ${response.status} ${response.statusText}`);
             }
 
@@ -186,19 +272,24 @@ export default function AdminSystemSettings({
             
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
+            
+            setShowExportModal(false);
+            
+            // Show success message
+            setSysDialog({
+                open: true,
+                title: "Export Successful",
+                message: `Analytics report exported successfully as ${exportOptions.format.toUpperCase()}`,
+                icon: <CheckIcon />,
+                primaryText: "OK",
+                onPrimary: closeSysDialog,
+            });
 
         } catch (error) {
             console.error('Export error:', error);
             toast.error(`Failed to export: ${error.message}`);
         } finally {
-            // Reset the correct loading state
-            let loadingKey;
-            if (type === 'food-csv') {
-                loadingKey = 'csv';
-            } else if (type === 'analytics-report') {
-                loadingKey = format === 'pdf' ? 'reportPdf' : 'reportExcel';
-            }
-            
+            const loadingKey = exportOptions.format === 'pdf' ? 'reportPdf' : 'reportExcel';
             setExportLoading(prev => ({ ...prev, [loadingKey]: false }));
         }
     };
@@ -359,25 +450,17 @@ export default function AdminSystemSettings({
                                     {exportLoading.csv ? 'Exporting...' : 'Export Food Database (CSV)'}
                                 </button>
 
-                                {/* Analytics - Excel */}
+                                {/* Analytics Report - Single button that opens modal */}
                                 <button 
                                     className="admset-btn admset-btn-outline w-full justify-start"
-                                    onClick={() => handleExport('analytics-report', 'excel')}
-                                    disabled={exportLoading.report}
+                                    onClick={() => handleExport('analytics-report')}
+                                    disabled={exportLoading.reportExcel || exportLoading.reportPdf}
                                 >
                                     <Download className="admset-ic-sm" />
-                                    {exportLoading.report ? 'Exporting...' : 'Export Analytics Report (CSV)'}
-                                </button> 
-
-                                {/* Analytics - PDF */}
-                                <button 
-                                    className="admset-btn admset-btn-outline w-full justify-start"
-                                    onClick={() => handleExport('analytics-report', 'pdf')}
-                                    disabled={exportLoading.report}
-                                >
-                                    <Download className="admset-ic-sm" />
-                                    {exportLoading.report ? 'Exporting...' : 'Export Analytics Report (PDF)'}
-                                </button>                
+                                    {exportLoading.reportExcel || exportLoading.reportPdf 
+                                        ? 'Exporting...' 
+                                        : 'Export Analytics Report'}
+                                </button>               
                             </div>        
                         </div>
                     </div>
@@ -582,6 +665,191 @@ export default function AdminSystemSettings({
                     </div>
                 </div>
             )}
+
+            {showExportModal && (
+                <div
+                    className="umg-modal-backdrop"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={() => setShowExportModal(false)}
+                >
+                    <div className="umg-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                        {/* Header */}
+                        <div className="umg-modal-header">
+                            <h3><FileText size={18} /> Export Analytics Report</h3>
+                            <button className="umg-modal-close" onClick={() => setShowExportModal(false)} aria-label="Close">×</button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="umg-modal-body">
+                            {/* Format Selection */}
+                            <div className="umg-field">
+                                <label className="umg-label">Export Format</label>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="exportFormat"
+                                            value="excel"
+                                            checked={exportOptions.format === 'excel'}
+                                            onChange={(e) => setExportOptions(prev => ({ ...prev, format: e.target.value }))}
+                                            className="w-4 h-4"
+                                        />
+                                        <FileText className="admset-ic-sm" />
+                                        <span>Excel (.xlsx)</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="exportFormat"
+                                            value="pdf"
+                                            checked={exportOptions.format === 'pdf'}
+                                            onChange={(e) => setExportOptions(prev => ({ ...prev, format: e.target.value }))}
+                                            className="w-4 h-4"
+                                        />
+                                        <FileText className="admset-ic-sm" />
+                                        <span>PDF (.pdf)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Date Range Selection */}
+                            <div className="umg-field">
+                                <label className="umg-label">Date Range</label>
+                                <select
+                                    className="umg-input"
+                                    value={exportOptions.rangeType}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setExportOptions(prev => ({ 
+                                            ...prev, 
+                                            rangeType: value,
+                                            // Reset custom dates when changing range type
+                                            ...(value !== 'custom' && { startDate: '', endDate: '' })
+                                        }));
+                                    }}
+                                >
+                                    <option value="year">Full Year</option>
+                                    <option value="month">Specific Month</option>
+                                    <option value="custom">Custom Range</option>
+                                </select>
+                            </div>
+
+                            {/* Year Selection */}
+                            {(exportOptions.rangeType === 'year' || exportOptions.rangeType === 'month') && (
+                                <div className="umg-field">
+                                    <label className="umg-label">Select Year</label>
+                                    <select
+                                        className="umg-input"
+                                        value={exportOptions.year}
+                                        onChange={(e) => setExportOptions(prev => ({ ...prev, year: parseInt(e.target.value) }))}
+                                    >
+                                        {Array.from({ length: 5 }, (_, i) => {
+                                            const year = new Date().getFullYear() - i;
+                                            return (
+                                                <option key={year} value={year}>
+                                                    {year}
+                                                </option>
+                                            );
+                                        })}
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Month Selection */}
+                            {exportOptions.rangeType === 'month' && (
+                                <div className="umg-field">
+                                    <label className="umg-label">Select Month</label>
+                                    <select
+                                        className="umg-input"
+                                        value={exportOptions.month}
+                                        onChange={(e) => setExportOptions(prev => ({ ...prev, month: parseInt(e.target.value) }))}
+                                    >
+                                        {Array.from({ length: 12 }, (_, i) => {
+                                            const monthNum = i + 1;
+                                            const date = new Date(exportOptions.year, monthNum - 1);
+                                            return (
+                                                <option key={monthNum} value={monthNum}>
+                                                    {date.toLocaleString('default', { month: 'long' })}
+                                                </option>
+                                            );
+                                        })}
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Custom Date Range */}
+                            {exportOptions.rangeType === 'custom' && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="umg-field">
+                                        <label className="umg-label">Start Date</label>
+                                        <input
+                                            type="date"
+                                            className="umg-input"
+                                            value={exportOptions.startDate}
+                                            onChange={(e) => setExportOptions(prev => ({ ...prev, startDate: e.target.value }))}
+                                            max={exportOptions.endDate || new Date().toISOString().split('T')[0]}
+                                        />
+                                    </div>
+                                    <div className="umg-field">
+                                        <label className="umg-label">End Date</label>
+                                        <input
+                                            type="date"
+                                            className="umg-input"
+                                            value={exportOptions.endDate}
+                                            onChange={(e) => setExportOptions(prev => ({ ...prev, endDate: e.target.value }))}
+                                            min={exportOptions.startDate}
+                                            max={new Date().toISOString().split('T')[0]}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Preview Info */}
+                            <div className="umg-field p-3 bg-gray-50 rounded">
+                                <div className="text-sm text-gray-600">
+                                    <div className="font-medium mb-1">Export Summary:</div>
+                                    <div>Format: {exportOptions.format.toUpperCase()}</div>
+                                    {exportOptions.rangeType === 'year' && (
+                                        <div>Period: Full Year {exportOptions.year}</div>
+                                    )}
+                                    {exportOptions.rangeType === 'month' && (
+                                        <div>Period: {new Date(exportOptions.year, exportOptions.month - 1).toLocaleString('default', { month: 'long' })} {exportOptions.year}</div>
+                                    )}
+                                    {exportOptions.rangeType === 'custom' && (
+                                        <div>Period: {exportOptions.startDate || 'Start'} to {exportOptions.endDate || 'End'}</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="umg-modal-footer">
+                            <button className="umg-btn-secondary" onClick={() => setShowExportModal(false)}>
+                                Cancel
+                            </button>
+                            <button
+                                className="umg-btn-primary"
+                                onClick={handleAnalyticsExport}
+                                disabled={exportLoading.reportExcel || exportLoading.reportPdf}
+                            >
+                                {exportLoading.reportExcel || exportLoading.reportPdf ? (
+                                    <>
+                                        <span className="animate-spin mr-2">⏳</span>
+                                        Exporting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="admset-ic-sm mr-2" />
+                                        Export Report
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             <Modal
                 open={sysDialog.open}
                 title={sysDialog.title}

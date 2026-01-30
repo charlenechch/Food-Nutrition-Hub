@@ -71,99 +71,307 @@ router.get('/analytics-report', async (req, res) => {
   try {
     const format = req.query.format || 'excel'; // 'excel' or 'pdf'
     const year = parseInt(req.query.year) || new Date().getFullYear();
+    const month = req.query.month ? parseInt(req.query.month) : null;
+    const startDate = req.query.startDate || null;
+    const endDate = req.query.endDate || null;
 
-    // Fetch all analytics data
+    // Helper function to build WHERE clause
+    const buildWhereClause = (tableAlias = '', dateColumn = 'created_at') => {
+      let whereClause = '';
+      let params = [];
+      
+      if (month) {
+        // Specific month of a year
+        whereClause = `AND MONTH(${tableAlias ? tableAlias + '.' : ''}${dateColumn}) = ? AND YEAR(${tableAlias ? tableAlias + '.' : ''}${dateColumn}) = ?`;
+        params = [month, year];
+      } else if (startDate && endDate) {
+        // Custom date range
+        whereClause = `AND DATE(${tableAlias ? tableAlias + '.' : ''}${dateColumn}) BETWEEN ? AND ?`;
+        params = [startDate, endDate];
+      } else {
+        // Full year (default)
+        whereClause = `AND YEAR(${tableAlias ? tableAlias + '.' : ''}${dateColumn}) = ?`;
+        params = [year];
+      }
+      
+      return { whereClause, params };
+    };
+
+    // Build WHERE clauses for different tables
+    const recipeWhere = buildWhereClause('r', 'createdAt');
+    const postWhere = buildWhereClause('p', 'created_at');
+    const foodWhere = buildWhereClause('f', 'createdAt');
+
     // Get metrics data
     const [totalRecipesResult] = await db.execute(`
-      SELECT COUNT(*) as count FROM recipe WHERE status = 'Approved'
-    `);
+      SELECT COUNT(*) as count FROM recipe r 
+      WHERE r.status = 'Approved'
+      ${recipeWhere.whereClause}
+    `, recipeWhere.params);
+
     const [totalStoriesResult] = await db.execute(`
-      SELECT COUNT(*) as count FROM posts WHERE status = 'Approved'
-    `);
+      SELECT COUNT(*) as count FROM posts p 
+      WHERE p.status = 'Approved'
+      ${postWhere.whereClause}
+    `, postWhere.params);
+    
     const [pendingRecipesResult] = await db.execute(`
-      SELECT COUNT(*) as count FROM recipe WHERE status = 'Pending'
-    `);
+      SELECT COUNT(*) as count FROM recipe r 
+      WHERE r.status = 'Pending'
+      ${recipeWhere.whereClause}
+    `, recipeWhere.params);
+
     const [pendingStoriesResult] = await db.execute(`
-      SELECT COUNT(*) as count FROM posts WHERE status = 'Pending'
-    `);
+      SELECT COUNT(*) as count FROM posts p 
+      WHERE p.status = 'Pending'
+      ${postWhere.whereClause}
+    `, postWhere.params);
 
-    // Get cultural origin data
+    // Get cultural origin data WITH date filter
     const [culturalOriginResult] = await db.execute(`
-      SELECT origin as name, COUNT(foodID) as count
-      FROM food
-      WHERE origin IS NOT NULL AND origin != ''
-      GROUP BY origin
+      SELECT f.origin as name, COUNT(f.foodID) as count
+      FROM food f
+      WHERE f.origin IS NOT NULL AND f.origin != ''
+      ${foodWhere.whereClause}
+      GROUP BY f.origin
       ORDER BY count DESC
-    `);
+    `, foodWhere.params);
 
-    // Get popular categories
+    // Get popular categories WITH date filter
     const [categoriesResult] = await db.execute(`
-      SELECT category as name, COUNT(foodID) as submissions
-      FROM food
-      WHERE category IS NOT NULL AND category != ''
-      GROUP BY category
+      SELECT f.category as name, COUNT(f.foodID) as submissions
+      FROM food f
+      WHERE f.category IS NOT NULL AND f.category != ''
+      ${foodWhere.whereClause}
+      GROUP BY f.category
       ORDER BY submissions DESC
-    `);
+    `, foodWhere.params);
 
-    // Get monthly data
-    const [monthlyResult] = await db.execute(`
-      SELECT 
-        'Posts' as type,
-        status,
-        MONTH(created_at) as month,
-        COUNT(*) as count
-      FROM posts 
-      WHERE YEAR(created_at) = ?
-      GROUP BY MONTH(created_at), status
-      
-      UNION ALL
-      
-      SELECT 
-        'Recipes' as type,
-        status,
-        MONTH(createdAt) as month,
-        COUNT(*) as count
-      FROM recipe 
-      WHERE YEAR(createdAt) = ?
-      GROUP BY MONTH(createdAt), status
-      
-      ORDER BY month, type, status
-    `, [year, year]);
+    // Get monthly data WITH date filter
+    let monthlyQuery;
+    let monthlyParams;
+    
+    if (startDate && endDate) {
+      // Custom date range
+      monthlyQuery = `
+        SELECT 
+          'Posts' as type,
+          status,
+          MONTH(created_at) as month,
+          COUNT(*) as count
+        FROM posts 
+        WHERE DATE(created_at) BETWEEN ? AND ?
+        GROUP BY MONTH(created_at), status
+        
+        UNION ALL
+        
+        SELECT 
+          'Recipes' as type,
+          status,
+          MONTH(createdAt) as month,
+          COUNT(*) as count
+        FROM recipe 
+        WHERE DATE(createdAt) BETWEEN ? AND ?
+        GROUP BY MONTH(createdAt), status
+        
+        ORDER BY month, type, status
+      `;
+      monthlyParams = [startDate, endDate, startDate, endDate];
+    } else if (month) {
+      // Specific month
+      monthlyQuery = `
+        SELECT 
+          'Posts' as type,
+          status,
+          MONTH(created_at) as month,
+          COUNT(*) as count
+        FROM posts 
+        WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?
+        GROUP BY status
+        
+        UNION ALL
+        
+        SELECT 
+          'Recipes' as type,
+          status,
+          MONTH(createdAt) as month,
+          COUNT(*) as count
+        FROM recipe 
+        WHERE YEAR(createdAt) = ? AND MONTH(createdAt) = ?
+        GROUP BY status
+        
+        ORDER BY type, status
+      `;
+      monthlyParams = [year, month, year, month];
+    } else {
+      // Full year
+      monthlyQuery = `
+        SELECT 
+          'Posts' as type,
+          status,
+          MONTH(created_at) as month,
+          COUNT(*) as count
+        FROM posts 
+        WHERE YEAR(created_at) = ?
+        GROUP BY MONTH(created_at), status
+        
+        UNION ALL
+        
+        SELECT 
+          'Recipes' as type,
+          status,
+          MONTH(createdAt) as month,
+          COUNT(*) as count
+        FROM recipe 
+        WHERE YEAR(createdAt) = ?
+        GROUP BY MONTH(createdAt), status
+        
+        ORDER BY month, type, status
+      `;
+      monthlyParams = [year, year];
+    }
 
-    // Get top contributors
-    const [contributorsResult] = await db.execute(`
-      SELECT 
-        u.firstname,
-        u.lastname,
-        u.email,
-        up.userProfileID,
-        COUNT(DISTINCT r.recipeID) as recipes,
-        COUNT(DISTINCT p.postID) as stories,
-        (COUNT(DISTINCT r.recipeID) + COUNT(DISTINCT p.postID)) as total
-      FROM user u
-      INNER JOIN userProfile up ON u.userID = up.userID
-      LEFT JOIN recipe r ON up.userProfileID = r.userProfileID AND r.status = 'Approved'
-      LEFT JOIN posts p ON up.userProfileID = p.userProfileID AND p.status = 'Approved'
-      GROUP BY u.userID, u.firstname, u.lastname, u.email, up.userProfileID
-      HAVING total > 0
-      ORDER BY total DESC
-      LIMIT 10
-    `);
+    const [monthlyResult] = await db.execute(monthlyQuery, monthlyParams);
 
-    // Format data for export
+    // Get top contributors WITH date filter
+    let contributorQuery;
+    let contributorParams;
+    
+    if (startDate && endDate) {
+      contributorQuery = `
+        SELECT 
+          u.firstname,
+          u.lastname,
+          u.email,
+          up.userProfileID,
+          COUNT(DISTINCT r.recipeID) as recipes,
+          COUNT(DISTINCT p.postID) as stories,
+          (COUNT(DISTINCT r.recipeID) + COUNT(DISTINCT p.postID)) as total
+        FROM user u
+        INNER JOIN userProfile up ON u.userID = up.userID
+        LEFT JOIN recipe r ON up.userProfileID = r.userProfileID 
+          AND r.status = 'Approved'
+          AND DATE(r.createdAt) BETWEEN ? AND ?
+        LEFT JOIN posts p ON up.userProfileID = p.userProfileID 
+          AND p.status = 'Approved'
+          AND DATE(p.created_at) BETWEEN ? AND ?
+        GROUP BY u.userID, u.firstname, u.lastname, u.email, up.userProfileID
+        HAVING total > 0
+        ORDER BY total DESC
+        LIMIT 10
+      `;
+      contributorParams = [startDate, endDate, startDate, endDate];
+    } else if (month) {
+      contributorQuery = `
+        SELECT 
+          u.firstname,
+          u.lastname,
+          u.email,
+          up.userProfileID,
+          COUNT(DISTINCT r.recipeID) as recipes,
+          COUNT(DISTINCT p.postID) as stories,
+          (COUNT(DISTINCT r.recipeID) + COUNT(DISTINCT p.postID)) as total
+        FROM user u
+        INNER JOIN userProfile up ON u.userID = up.userID
+        LEFT JOIN recipe r ON up.userProfileID = r.userProfileID 
+          AND r.status = 'Approved'
+          AND YEAR(r.createdAt) = ? 
+          AND MONTH(r.createdAt) = ?
+        LEFT JOIN posts p ON up.userProfileID = p.userProfileID 
+          AND p.status = 'Approved'
+          AND YEAR(p.created_at) = ? 
+          AND MONTH(p.created_at) = ?
+        GROUP BY u.userID, u.firstname, u.lastname, u.email, up.userProfileID
+        HAVING total > 0
+        ORDER BY total DESC
+        LIMIT 10
+      `;
+      contributorParams = [year, month, year, month];
+    } else {
+      contributorQuery = `
+        SELECT 
+          u.firstname,
+          u.lastname,
+          u.email,
+          up.userProfileID,
+          COUNT(DISTINCT r.recipeID) as recipes,
+          COUNT(DISTINCT p.postID) as stories,
+          (COUNT(DISTINCT r.recipeID) + COUNT(DISTINCT p.postID)) as total
+        FROM user u
+        INNER JOIN userProfile up ON u.userID = up.userID
+        LEFT JOIN recipe r ON up.userProfileID = r.userProfileID 
+          AND r.status = 'Approved'
+          AND YEAR(r.createdAt) = ?
+        LEFT JOIN posts p ON up.userProfileID = p.userProfileID 
+          AND p.status = 'Approved'
+          AND YEAR(p.created_at) = ?
+        GROUP BY u.userID, u.firstname, u.lastname, u.email, up.userProfileID
+        HAVING total > 0
+        ORDER BY total DESC
+        LIMIT 10
+      `;
+      contributorParams = [year, year];
+    }
+
+    const [contributorsResult] = await db.execute(contributorQuery, contributorParams);
+
+    // Format period display
+    let period = '';
+    if (month) {
+      const monthName = getMonthName(month);
+      period = `${monthName} ${year}`;
+    } else if (startDate && endDate) {
+      // Format dates nicely
+      const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-MY', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+      };
+      period = `${formatDate(startDate)} to ${formatDate(endDate)}`;
+    } else {
+      period = `Year ${year}`;
+    }
+
+    // Format monthly data properly
+    const monthlyData = {};
+    monthlyResult.forEach(row => {
+      const monthName = getMonthName(row.month);
+      if (!monthlyData[monthName]) {
+        monthlyData[monthName] = { 
+          month: monthName, 
+          posts: { Approved: 0, Pending: 0, Rejected: 0 },
+          recipes: { Approved: 0, Pending: 0, Rejected: 0 }
+        };
+      }
+      
+      if (row.type === 'Posts') {
+        monthlyData[monthName].posts[row.status] = row.count;
+      } else {
+        monthlyData[monthName].recipes[row.status] = row.count;
+      }
+    });
+
     const analyticsData = {
       reportInfo: {
         title: "SarawakEats Analytics Report",
-        generated: new Date().toISOString(),
-        year: year,
-        period: `Year ${year}`
+        generated: new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuching' }),
+        period: period,
+        filters: {
+          year: year,
+          month: month,
+          startDate: startDate,
+          endDate: endDate
+        }
       },
       summary: {
-        totalRecipes: totalRecipesResult[0].count,
-        totalStories: totalStoriesResult[0].count,
-        pendingRecipes: pendingRecipesResult[0].count,
-        pendingStories: pendingStoriesResult[0].count,
-        totalContent: totalRecipesResult[0].count + totalStoriesResult[0].count
+        totalRecipes: totalRecipesResult[0]?.count || 0,
+        totalStories: totalStoriesResult[0]?.count || 0,
+        pendingRecipes: pendingRecipesResult[0]?.count || 0,
+        pendingStories: pendingStoriesResult[0]?.count || 0,
+        totalContent: (totalRecipesResult[0]?.count || 0) + (totalStoriesResult[0]?.count || 0)
       },
       culturalOrigins: culturalOriginResult.map(row => ({
         origin: row.name,
@@ -173,17 +381,7 @@ router.get('/analytics-report', async (req, res) => {
         category: row.name,
         submissions: row.submissions
       })),
-      monthlyData: monthlyResult.reduce((acc, row) => {
-        const monthName = getMonthName(row.month);
-        if (!acc[monthName]) acc[monthName] = { month: monthName, posts: {}, recipes: {} };
-        
-        if (row.type === 'Posts') {
-          acc[monthName].posts[row.status] = row.count;
-        } else {
-          acc[monthName].recipes[row.status] = row.count;
-        }
-        return acc;
-      }, {}),
+      monthlyData: monthlyData,
       topContributors: contributorsResult.map(row => ({
         name: `${row.firstname} ${row.lastname}`,
         email: row.email,
@@ -195,10 +393,9 @@ router.get('/analytics-report', async (req, res) => {
 
     // Export based on requested format
     if (format.toLowerCase() === 'pdf') {
-      return exportAsPDF(res, analyticsData, year);
+      return exportAsPDF(res, analyticsData, period);
     } else {
-      // Default to Excel
-      return exportAsExcel(res, analyticsData, year);
+      return exportAsExcel(res, analyticsData, period);
     }
 
   } catch (error) {
@@ -212,130 +409,155 @@ router.get('/analytics-report', async (req, res) => {
 });
 
 // Excel Export Function
-async function exportAsExcel(res, data, year) {
+async function exportAsExcel(res, data, period) {
   try {
     const workbook = new ExcelJS.Workbook();
     
     // Add metadata
     workbook.creator = 'SarawakEats Admin';
     workbook.created = new Date();
+    workbook.properties.date1904 = true;
     
     // Sheet 1: Summary
     const summarySheet = workbook.addWorksheet('Summary');
     summarySheet.columns = [
-      { header: 'Metric', key: 'metric', width: 25 },
-      { header: 'Value', key: 'value', width: 15 }
+      { header: 'Metric', key: 'metric', width: 30 },
+      { header: 'Value', key: 'value', width: 20 }
     ];
     
+    // Add report header
+    summarySheet.addRow({ metric: 'SarawakEats Analytics Report', value: '' });
+    summarySheet.addRow({ metric: 'Period', value: period });
+    summarySheet.addRow({ metric: 'Generated On', value: data.reportInfo.generated });
+    summarySheet.addRow({ metric: '', value: '' }); // Empty row
+    
+    // Add summary data
     summarySheet.addRows([
-      { metric: 'Total Recipes', value: data.summary.totalRecipes },
-      { metric: 'Total Stories', value: data.summary.totalStories },
+      { metric: 'Total Approved Recipes', value: data.summary.totalRecipes },
+      { metric: 'Total Approved Stories', value: data.summary.totalStories },
       { metric: 'Pending Recipes', value: data.summary.pendingRecipes },
       { metric: 'Pending Stories', value: data.summary.pendingStories },
-      { metric: 'Total Content', value: data.summary.totalContent },
-      { metric: 'Report Year', value: year },
-      { metric: 'Generated On', value: new Date().toLocaleString() }
+      { metric: 'Total Content Items', value: data.summary.totalContent }
     ]);
     
-    // Sheet 2: Cultural Origins
-    const originsSheet = workbook.addWorksheet('Cultural Origins');
-    originsSheet.columns = [
-      { header: 'Cultural Origin', key: 'origin', width: 30 },
-      { header: 'Count', key: 'count', width: 15 },
-      { header: 'Percentage', key: 'percentage', width: 15 }
-    ];
+    // Style the header row
+    summarySheet.getRow(1).font = { bold: true, size: 14 };
+    summarySheet.getRow(1).alignment = { horizontal: 'center' };
+    summarySheet.mergeCells('A1:B1');
     
-    const originTotal = data.culturalOrigins.reduce((sum, item) => sum + item.count, 0);
-    data.culturalOrigins.forEach(item => {
-      const percentage = ((item.count / originTotal) * 100).toFixed(2);
-      originsSheet.addRow({
-        origin: item.origin,
-        count: item.count,
-        percentage: `${percentage}%`
+    // Sheet 2: Cultural Origins
+    if (data.culturalOrigins.length > 0) {
+      const originsSheet = workbook.addWorksheet('Cultural Origins');
+      originsSheet.columns = [
+        { header: 'Cultural Origin', key: 'origin', width: 30 },
+        { header: 'Count', key: 'count', width: 15 },
+        { header: 'Percentage', key: 'percentage', width: 15 }
+      ];
+      
+      const originTotal = data.culturalOrigins.reduce((sum, item) => sum + item.count, 0);
+      data.culturalOrigins.forEach(item => {
+        const percentage = originTotal > 0 ? ((item.count / originTotal) * 100).toFixed(2) : '0.00';
+        originsSheet.addRow({
+          origin: item.origin,
+          count: item.count,
+          percentage: `${percentage}%`
+        });
       });
-    });
+    }
     
     // Sheet 3: Categories
-    const categoriesSheet = workbook.addWorksheet('Categories');
-    categoriesSheet.columns = [
-      { header: 'Category', key: 'category', width: 30 },
-      { header: 'Submissions', key: 'submissions', width: 15 }
-    ];
-    
-    data.categories.forEach(item => {
-      categoriesSheet.addRow({
-        category: item.category,
-        submissions: item.submissions
+    if (data.categories.length > 0) {
+      const categoriesSheet = workbook.addWorksheet('Categories');
+      categoriesSheet.columns = [
+        { header: 'Category', key: 'category', width: 30 },
+        { header: 'Submissions', key: 'submissions', width: 15 }
+      ];
+      
+      data.categories.forEach(item => {
+        categoriesSheet.addRow({
+          category: item.category,
+          submissions: item.submissions
+        });
       });
-    });
+    }
     
     // Sheet 4: Monthly Data
-    const monthlySheet = workbook.addWorksheet('Monthly Data');
-    monthlySheet.columns = [
-      { header: 'Month', key: 'month', width: 15 },
-      { header: 'Posts Approved', key: 'posts_approved', width: 15 },
-      { header: 'Posts Pending', key: 'posts_pending', width: 15 },
-      { header: 'Posts Rejected', key: 'posts_rejected', width: 15 },
-      { header: 'Recipes Approved', key: 'recipes_approved', width: 15 },
-      { header: 'Recipes Pending', key: 'recipes_pending', width: 15 },
-      { header: 'Recipes Rejected', key: 'recipes_rejected', width: 15 },
-      { header: 'Total', key: 'total', width: 15 }
-    ];
-    
-    Object.values(data.monthlyData).forEach(month => {
-      const total = 
-        (month.posts.Approved || 0) + (month.posts.Pending || 0) + (month.posts.Rejected || 0) +
-        (month.recipes.Approved || 0) + (month.recipes.Pending || 0) + (month.recipes.Rejected || 0);
+    if (Object.keys(data.monthlyData).length > 0) {
+      const monthlySheet = workbook.addWorksheet('Monthly Data');
+      monthlySheet.columns = [
+        { header: 'Month', key: 'month', width: 15 },
+        { header: 'Posts Approved', key: 'posts_approved', width: 15 },
+        { header: 'Posts Pending', key: 'posts_pending', width: 15 },
+        { header: 'Posts Rejected', key: 'posts_rejected', width: 15 },
+        { header: 'Recipes Approved', key: 'recipes_approved', width: 15 },
+        { header: 'Recipes Pending', key: 'recipes_pending', width: 15 },
+        { header: 'Recipes Rejected', key: 'recipes_rejected', width: 15 },
+        { header: 'Total', key: 'total', width: 15 }
+      ];
       
-      monthlySheet.addRow({
-        month: month.month,
-        posts_approved: month.posts.Approved || 0,
-        posts_pending: month.posts.Pending || 0,
-        posts_rejected: month.posts.Rejected || 0,
-        recipes_approved: month.recipes.Approved || 0,
-        recipes_pending: month.recipes.Pending || 0,
-        recipes_rejected: month.recipes.Rejected || 0,
-        total: total
+      Object.values(data.monthlyData).forEach(month => {
+        const total = 
+          (month.posts.Approved || 0) + (month.posts.Pending || 0) + (month.posts.Rejected || 0) +
+          (month.recipes.Approved || 0) + (month.recipes.Pending || 0) + (month.recipes.Rejected || 0);
+        
+        monthlySheet.addRow({
+          month: month.month,
+          posts_approved: month.posts.Approved || 0,
+          posts_pending: month.posts.Pending || 0,
+          posts_rejected: month.posts.Rejected || 0,
+          recipes_approved: month.recipes.Approved || 0,
+          recipes_pending: month.recipes.Pending || 0,
+          recipes_rejected: month.recipes.Rejected || 0,
+          total: total
+        });
       });
-    });
+    }
     
     // Sheet 5: Top Contributors
-    const contributorsSheet = workbook.addWorksheet('Top Contributors');
-    contributorsSheet.columns = [
-      { header: 'Rank', key: 'rank', width: 10 },
-      { header: 'Name', key: 'name', width: 25 },
-      { header: 'Email', key: 'email', width: 30 },
-      { header: 'Recipes', key: 'recipes', width: 15 },
-      { header: 'Stories', key: 'stories', width: 15 },
-      { header: 'Total', key: 'total', width: 15 }
-    ];
-    
-    data.topContributors.forEach((contributor, index) => {
-      contributorsSheet.addRow({
-        rank: index + 1,
-        name: contributor.name,
-        email: contributor.email,
-        recipes: contributor.recipes,
-        stories: contributor.stories,
-        total: contributor.totalContributions
+    if (data.topContributors.length > 0) {
+      const contributorsSheet = workbook.addWorksheet('Top Contributors');
+      contributorsSheet.columns = [
+        { header: 'Rank', key: 'rank', width: 10 },
+        { header: 'Name', key: 'name', width: 25 },
+        { header: 'Email', key: 'email', width: 30 },
+        { header: 'Recipes', key: 'recipes', width: 15 },
+        { header: 'Stories', key: 'stories', width: 15 },
+        { header: 'Total', key: 'total', width: 15 }
+      ];
+      
+      data.topContributors.forEach((contributor, index) => {
+        contributorsSheet.addRow({
+          rank: index + 1,
+          name: contributor.name,
+          email: contributor.email,
+          recipes: contributor.recipes,
+          stories: contributor.stories,
+          total: contributor.totalContributions
+        });
       });
-    });
+    }
     
-    // Style headers
-    [summarySheet, originsSheet, categoriesSheet, monthlySheet, contributorsSheet].forEach(sheet => {
-      sheet.getRow(1).font = { bold: true };
-      sheet.getRow(1).fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE0E0E0' }
-      };
+    // Style all headers
+    workbook.eachSheet((sheet) => {
+      if (sheet.rowCount > 0) {
+        sheet.getRow(1).font = { bold: true };
+        sheet.getRow(1).fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFE0E0E0' }
+        };
+      }
     });
     
     // Write to buffer and send
     const buffer = await workbook.xlsx.writeBuffer();
     
+    // Create filename with period
+    const safePeriod = period.replace(/[^a-zA-Z0-9]/g, '_');
+    const filename = `sarawakeats-analytics-${safePeriod}-${Date.now()}.xlsx`;
+    
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=sarawakeats-analytics-${year}-${Date.now()}.xlsx`);
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
     res.send(buffer);
     
   } catch (error) {
@@ -344,13 +566,17 @@ async function exportAsExcel(res, data, year) {
 }
 
 // PDF Export Function
-async function exportAsPDF(res, data, year) {
+async function exportAsPDF(res, data, period) {
   try {
-    const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    
+    // Create filename with period
+    const safePeriod = period.replace(/[^a-zA-Z0-9]/g, '_');
+    const filename = `sarawakeats-analytics-${safePeriod}-${Date.now()}.pdf`;
     
     // Set headers
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=sarawakeats-analytics-${year}-${Date.now()}.pdf`);
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
     
     // Pipe PDF to response
     doc.pipe(res);
@@ -358,8 +584,8 @@ async function exportAsPDF(res, data, year) {
     // Title
     doc.fontSize(24).text('SarawakEats Analytics Report', { align: 'center' });
     doc.moveDown();
-    doc.fontSize(12).text(`Report for Year: ${year}`, { align: 'center' });
-    doc.fontSize(10).text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
+    doc.fontSize(14).text(`Period: ${period}`, { align: 'center' });
+    doc.fontSize(10).text(`Generated: ${data.reportInfo.generated}`, { align: 'center' });
     doc.moveDown(2);
     
     // 1. Summary Section
@@ -367,121 +593,125 @@ async function exportAsPDF(res, data, year) {
     doc.moveDown(0.5);
     
     doc.fontSize(12);
-    doc.text(`Total Recipes: ${data.summary.totalRecipes}`);
-    doc.text(`Total Stories: ${data.summary.totalStories}`);
+    doc.text(`Total Approved Recipes: ${data.summary.totalRecipes}`);
+    doc.text(`Total Approved Stories: ${data.summary.totalStories}`);
     doc.text(`Pending Recipes: ${data.summary.pendingRecipes}`);
     doc.text(`Pending Stories: ${data.summary.pendingStories}`);
     doc.text(`Total Content Items: ${data.summary.totalContent}`);
     doc.moveDown(2);
     
     // 2. Cultural Origins
-    doc.fontSize(16).text('2. Cultural Origins Distribution', { underline: true });
-    doc.moveDown(0.5);
-    
-    data.culturalOrigins.forEach((item, index) => {
-      doc.fontSize(12);
-      const percentage = ((item.count / data.culturalOrigins.reduce((sum, i) => sum + i.count, 0)) * 100).toFixed(1);
-      doc.text(`${index + 1}. ${item.origin}: ${item.count} items (${percentage}%)`);
-    });
-    doc.moveDown(2);
+    if (data.culturalOrigins.length > 0) {
+      doc.fontSize(16).text('2. Cultural Origins Distribution', { underline: true });
+      doc.moveDown(0.5);
+      
+      data.culturalOrigins.forEach((item, index) => {
+        doc.fontSize(12);
+        const total = data.culturalOrigins.reduce((sum, i) => sum + i.count, 0);
+        const percentage = total > 0 ? ((item.count / total) * 100).toFixed(1) : '0.0';
+        doc.text(`${index + 1}. ${item.origin}: ${item.count} items (${percentage}%)`);
+      });
+      doc.moveDown(2);
+    }
     
     // 3. Top Categories
-    doc.fontSize(16).text('3. Popular Food Categories', { underline: true });
-    doc.moveDown(0.5);
-    
-    data.categories.slice(0, 10).forEach((item, index) => {
-      doc.fontSize(12);
-      doc.text(`${index + 1}. ${item.category}: ${item.submissions} submissions`);
-    });
-    doc.moveDown(2);
+    if (data.categories.length > 0) {
+      doc.fontSize(16).text('3. Popular Food Categories', { underline: true });
+      doc.moveDown(0.5);
+      
+      data.categories.slice(0, 10).forEach((item, index) => {
+        doc.fontSize(12);
+        doc.text(`${index + 1}. ${item.category}: ${item.submissions} submissions`);
+      });
+      doc.moveDown(2);
+    }
     
     // 4. Monthly Overview Table
-    doc.fontSize(16).text('4. Monthly Contributions Overview', { underline: true });
-    doc.moveDown(0.5);
+    if (Object.keys(data.monthlyData).length > 0) {
+      doc.fontSize(16).text('4. Monthly Contributions Overview', { underline: true });
+      doc.moveDown(0.5);
 
-    // Table header
-    doc.fontSize(12);
-    const startX = 50;
-    const colWidths = [80, 100, 100];
-    const rowHeight = 25;
-    let currentY = doc.y;
+      // Table header
+      doc.fontSize(12);
+      const startX = 50;
+      const colWidths = [80, 100, 100];
+      const rowHeight = 25;
+      let currentY = doc.y;
 
-    const monthlyDataArray = Object.values(data.monthlyData);
+      const monthlyDataArray = Object.values(data.monthlyData);
 
-    // Draw complete table
-    const tableWidth = colWidths[0] + colWidths[1] + colWidths[2];
-    const totalRows = monthlyDataArray.length + 1;
-    const tableHeight = totalRows * rowHeight;
+      // Draw complete table
+      const tableWidth = colWidths[0] + colWidths[1] + colWidths[2];
+      const totalRows = monthlyDataArray.length + 1;
+      const tableHeight = totalRows * rowHeight;
 
-    // Draw all borders at once
-    doc.lineWidth(0.5);
-    doc.strokeColor('#333333');
+      // Draw all borders at once
+      doc.lineWidth(0.5);
+      doc.strokeColor('#333333');
 
-    // Outer border
-    doc.rect(startX, currentY, tableWidth, tableHeight).stroke();
+      // Outer border
+      doc.rect(startX, currentY, tableWidth, tableHeight).stroke();
 
-    // Vertical lines
-    let x = startX;
-    doc.moveTo(x + colWidths[0], currentY).lineTo(x + colWidths[0], currentY + tableHeight).stroke();
-    doc.moveTo(x + colWidths[0] + colWidths[1], currentY).lineTo(x + colWidths[0] + colWidths[1], currentY + tableHeight).stroke();
+      // Vertical lines
+      let x = startX;
+      doc.moveTo(x + colWidths[0], currentY).lineTo(x + colWidths[0], currentY + tableHeight).stroke();
+      doc.moveTo(x + colWidths[0] + colWidths[1], currentY).lineTo(x + colWidths[0] + colWidths[1], currentY + tableHeight).stroke();
 
-    // Header row - Center align the headers
-    currentY += 5;
-    doc.text('Month', startX + colWidths[0]/2 - 10, currentY); // Centered in column
-    doc.text('Posts', startX + colWidths[0] + colWidths[1]/2 - 10, currentY); // Centered
-    doc.text('Recipes', startX + colWidths[0] + colWidths[1] + colWidths[2]/2 - 15, currentY); // Centered
+      // Header row - Center align the headers
+      currentY += 5;
+      doc.text('Month', startX + colWidths[0]/2 - 10, currentY);
+      doc.text('Posts', startX + colWidths[0] + colWidths[1]/2 - 10, currentY);
+      doc.text('Recipes', startX + colWidths[0] + colWidths[1] + colWidths[2]/2 - 15, currentY);
 
-    currentY += rowHeight - 10;
+      currentY += rowHeight - 10;
 
-    // Horizontal line after header
-    doc.moveTo(startX, currentY).lineTo(startX + tableWidth, currentY).stroke();
+      // Horizontal line after header
+      doc.moveTo(startX, currentY).lineTo(startX + tableWidth, currentY).stroke();
 
-    // Data rows
-    monthlyDataArray.forEach((month, index) => {
-        currentY += 5;
-        
-        // Month column - left aligned
-        doc.text(month.month, startX + 5, currentY);
-        
-        // Posts column - center the number
-        const postsTotal = (month.posts.Approved || 0) + (month.posts.Pending || 0) + (month.posts.Rejected || 0);
-        const postsX = startX + colWidths[0] + colWidths[1]/2 - 5;
-        doc.text(postsTotal.toString(), postsX, currentY);
-        
-        // Recipes column - center the number
-        const recipesTotal = (month.recipes.Approved || 0) + (month.recipes.Pending || 0) + (month.recipes.Rejected || 0);
-        const recipesX = startX + colWidths[0] + colWidths[1] + colWidths[2]/2 - 5;
-        doc.text(recipesTotal.toString(), recipesX, currentY);
-        
-        currentY += rowHeight - 10;
-        
-        // Draw horizontal line after each row (except last)
-        if (index < monthlyDataArray.length - 1) {
-            doc.moveTo(startX, currentY).lineTo(startX + tableWidth, currentY).stroke();
-        }
-    });
+      // Data rows
+      monthlyDataArray.forEach((month, index) => {
+          currentY += 5;
+          
+          // Month column - left aligned
+          doc.text(month.month, startX + 5, currentY);
+          
+          // Posts column - center the number
+          const postsTotal = (month.posts.Approved || 0) + (month.posts.Pending || 0) + (month.posts.Rejected || 0);
+          const postsX = startX + colWidths[0] + colWidths[1]/2 - 5;
+          doc.text(postsTotal.toString(), postsX, currentY);
+          
+          // Recipes column - center the number
+          const recipesTotal = (month.recipes.Approved || 0) + (month.recipes.Pending || 0) + (month.recipes.Rejected || 0);
+          const recipesX = startX + colWidths[0] + colWidths[1] + colWidths[2]/2 - 5;
+          doc.text(recipesTotal.toString(), recipesX, currentY);
+          
+          currentY += rowHeight - 10;
+          
+          // Draw horizontal line after each row (except last)
+          if (index < monthlyDataArray.length - 1) {
+              doc.moveTo(startX, currentY).lineTo(startX + tableWidth, currentY).stroke();
+          }
+      });
 
-    doc.moveDown(2);
+      doc.moveDown(2);
+    }
     
     // 5. Top Contributors
-    const leftMargin = 50; 
+    if (data.topContributors.length > 0) {
+      doc.fontSize(16).text('5. Top Contributors', { underline: true });
+      doc.moveDown(0.5);
 
-    doc.fontSize(16).text('5. Top Contributors', leftMargin, doc.y, { 
-    underline: true 
-    });
-    doc.moveDown(0.5);
-
-    data.topContributors.forEach((contributor, index) => {
-    doc.fontSize(12);
-    doc.text(`${index + 1}. ${contributor.name} (${contributor.email})`, leftMargin);
-    doc.moveDown(0.3);
-    doc.text(`   Recipes: ${contributor.recipes}, Stories: ${contributor.stories}, Total: ${contributor.totalContributions}`, leftMargin);
-    doc.moveDown(0.5);
-    });
-    doc.moveDown(2);
+      data.topContributors.forEach((contributor, index) => {
+        doc.fontSize(12);
+        doc.text(`${index + 1}. ${contributor.name} (${contributor.email})`);
+        doc.moveDown(0.3);
+        doc.text(`   Recipes: ${contributor.recipes}, Stories: ${contributor.stories}, Total: ${contributor.totalContributions}`);
+        doc.moveDown(0.5);
+      });
+      doc.moveDown(2);
+    }
     
     // Footer
-    //doc.addPage();
     doc.fontSize(10).text('--- End of Report ---', { align: 'center' });
     
     // Finalize PDF
