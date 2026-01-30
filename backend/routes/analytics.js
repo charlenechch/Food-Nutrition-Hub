@@ -97,44 +97,41 @@ router.get('/metrics', async (req, res) => {
     const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
     const previousYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
-    let recipeWhere = '';
+    let recipeQuery = "SELECT COUNT(*) as count FROM recipe WHERE status = 'Approved'";
     let recipeParams = [];
-    let storyWhere = '';
+    
+    let storyQuery = "SELECT COUNT(*) as count FROM posts WHERE status = 'Approved'";
     let storyParams = [];
-
-    // For recipes
+    
     if (year && month) {
-      recipeWhere = 'AND YEAR(updatedAt) = ? AND MONTH(updatedAt) = ?';
-      recipeParams = [year, month];
+      recipeQuery += " AND YEAR(updatedAt) = ? AND MONTH(updatedAt) = ?";
+      recipeParams.push(parseInt(year), parseInt(month));
+      
+      storyQuery += " AND YEAR(updated_at) = ? AND MONTH(updated_at) = ?";
+      storyParams.push(parseInt(year), parseInt(month));
+      
+      console.log('📊 With month filter - Recipe query:', recipeQuery);
+      console.log('📊 With month filter - Recipe params:', recipeParams);
     } else if (year) {
-      recipeWhere = 'AND YEAR(updatedAt) = ?';
-      recipeParams = [year];
-    }
-
-    // For stories
-    if (year && month) {
-      storyWhere = 'AND YEAR(updated_at) = ? AND MONTH(updated_at) = ?';
-      storyParams = [year, month];
-    } else if (year) {
-      storyWhere = 'AND YEAR(updated_at) = ?';
-      storyParams = [year];
+      recipeQuery += " AND YEAR(updatedAt) = ?";
+      recipeParams.push(parseInt(year));
+      
+      storyQuery += " AND YEAR(updated_at) = ?";
+      storyParams.push(parseInt(year));
+      
+      console.log('📊 Year only - Recipe query:', recipeQuery);
+      console.log('📊 Year only - Recipe params:', recipeParams);
     }
 
     // Query for total approved recipes
-    const [totalRecipesResult] = await db.execute(`
-      SELECT COUNT(*) as count 
-      FROM recipe 
-      WHERE status = 'Approved'
-        ${recipeWhere}
-    `, recipeParams);
+    console.log('🚀 Executing recipe query...');
+    const [totalRecipesResult] = await db.execute(recipeQuery, recipeParams);
+    console.log('✅ Recipe count:', totalRecipesResult[0].count);
 
     // Query for total approved stories (posts)
-    const [totalStoriesResult] = await db.execute(`
-      SELECT COUNT(*) as count 
-      FROM posts 
-      WHERE status = 'Approved'
-        ${storyWhere}
-    `, storyParams);
+    console.log('🚀 Executing story query...');
+    const [totalStoriesResult] = await db.execute(storyQuery, storyParams);
+    console.log('✅ Story count:', totalStoriesResult[0].count);
 
     // Query for pending recipe reviews
     const [pendingRecipesResult] = await db.execute(`
@@ -150,51 +147,58 @@ router.get('/metrics', async (req, res) => {
       WHERE status = 'Pending'
     `);
 
-    // Query for current month approved recipes
-    const [currentMonthRecipesResult] = await db.execute(`
-      SELECT COUNT(*) as count 
-      FROM recipe 
-      WHERE status = 'Approved' 
-        AND MONTH(updatedAt) = ? 
-        AND YEAR(updatedAt) = ?
-    `, [currentMonth, currentYear]);
+    let currentMonthRecipes = 0;
+    let previousMonthRecipes = 0;
+    let currentMonthStories = 0;
+    let previousMonthStories = 0;
+    
+    if (month) {
+      // Query for current month approved recipes
+      const [currentMonthRecipesResult] = await db.execute(`
+        SELECT COUNT(*) as count 
+        FROM recipe 
+        WHERE status = 'Approved' 
+          AND MONTH(updatedAt) = ? 
+          AND YEAR(updatedAt) = ?
+      `, [currentMonth, currentYear]);
+      currentMonthRecipes = currentMonthRecipesResult[0].count;
 
-    // Query for previous month approved recipes
-    const [previousMonthRecipesResult] = await db.execute(`
-      SELECT COUNT(*) as count 
-      FROM recipe 
-      WHERE status = 'Approved' 
-        AND MONTH(updatedAt) = ? 
-        AND YEAR(updatedAt) = ?
-    `, [previousMonth, previousYear]);
+      // Query for previous month approved recipes
+      const [previousMonthRecipesResult] = await db.execute(`
+        SELECT COUNT(*) as count 
+        FROM recipe 
+        WHERE status = 'Approved' 
+          AND MONTH(updatedAt) = ? 
+          AND YEAR(updatedAt) = ?
+      `, [previousMonth, previousYear]);
+      previousMonthRecipes = previousMonthRecipesResult[0].count;
 
-    // Query for current month approved stories
-    const [currentMonthStoriesResult] = await db.execute(`
-      SELECT COUNT(*) as count 
-      FROM posts 
-      WHERE status = 'Approved' 
-        AND MONTH(updated_at) = ? 
-        AND YEAR(updated_at) = ?
-    `, [currentMonth, currentYear]);
+      // Query for current month approved stories
+      const [currentMonthStoriesResult] = await db.execute(`
+        SELECT COUNT(*) as count 
+        FROM posts 
+        WHERE status = 'Approved' 
+          AND MONTH(updated_at) = ? 
+          AND YEAR(updated_at) = ?
+      `, [currentMonth, currentYear]);
+      currentMonthStories = currentMonthStoriesResult[0].count;
 
-    // Query for previous month approved stories
-    const [previousMonthStoriesResult] = await db.execute(`
-      SELECT COUNT(*) as count 
-      FROM posts 
-      WHERE status = 'Approved' 
-        AND MONTH(updated_at) = ? 
-        AND YEAR(updated_at) = ?
-    `, [previousMonth, previousYear]);
+      // Query for previous month approved stories
+      const [previousMonthStoriesResult] = await db.execute(`
+        SELECT COUNT(*) as count 
+        FROM posts 
+        WHERE status = 'Approved' 
+          AND MONTH(updated_at) = ? 
+          AND YEAR(updated_at) = ?
+      `, [previousMonth, previousYear]);
+      previousMonthStories = previousMonthStoriesResult[0].count;
+    }
 
     // Calculate percentages
-    const currentMonthRecipes = currentMonthRecipesResult[0].count;
-    const previousMonthRecipes = previousMonthRecipesResult[0].count;
     const recipesPercentage = previousMonthRecipes > 0 
       ? Math.round(Math.min(((currentMonthRecipes - previousMonthRecipes) / previousMonthRecipes) * 100, 100))
       : currentMonthRecipes > 0 ? 100 : 0;
 
-    const currentMonthStories = currentMonthStoriesResult[0].count;
-    const previousMonthStories = previousMonthStoriesResult[0].count;
     const storiesPercentage = previousMonthStories > 0 
       ? Math.round(Math.min(((currentMonthStories - previousMonthStories) / previousMonthStories) * 100, 100))
       : currentMonthStories > 0 ? 100 : 0;
