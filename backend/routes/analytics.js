@@ -259,100 +259,172 @@ router.get('/cultural-origin', async (req, res) => {
 
 router.get('/posts-recipes-by-month', async (req, res) => {
   try {
-    // Use the year from query parameter, fallback to current year
     const year = parseInt(req.query.year) || new Date().getFullYear();
+    const month = req.query.month ? parseInt(req.query.month) : null;
     
-    console.log(`📊 Fetching data for year: ${year}`);
+    console.log(`📊 Fetching data for year: ${year}, month: ${month || 'all months'}`);
     
-    const query = `
-      SELECT 
-        'Posts' as type,
-        status,
-        MONTH(updated_at) as month,
-        COUNT(*) as count
-      FROM posts 
-      WHERE YEAR(updated_at) = ?
-      GROUP BY MONTH(updated_at), status
+    if (month) {
+      const daysInMonth = new Date(year, month, 0).getDate(); // Get number of days in month
       
-      UNION ALL
+      const query = `
+        SELECT 
+          'Posts' as type,
+          status,
+          DAY(updated_at) as day,
+          COUNT(*) as count
+        FROM posts 
+        WHERE YEAR(updated_at) = ?
+          AND MONTH(updated_at) = ?
+        GROUP BY DAY(updated_at), status
+        
+        UNION ALL
+        
+        SELECT 
+          'Recipes' as type,
+          status,
+          DAY(updatedAt) as day,
+          COUNT(*) as count
+        FROM recipe 
+        WHERE YEAR(updatedAt) = ?
+          AND MONTH(updatedAt) = ?
+        GROUP BY DAY(updatedAt), status
+        
+        ORDER BY day, type, status
+      `;
       
-      SELECT 
-        'Recipes' as type,
-        status,
-        MONTH(updatedAt) as month,
-        COUNT(*) as count
-      FROM recipe 
-      WHERE YEAR(updatedAt) = ?
-      GROUP BY MONTH(updatedAt), status
+      const params = [year, month, year, month];
+      const [results] = await db.execute(query, params);
       
-      ORDER BY month, type, status
-    `;
-    
-    const [results] = await db.execute(query, [year, year]);
-    
-    const monthlyData = {};
-    
-    const allMonths = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
-    ];
-    
-    allMonths.forEach(monthName => {
-      monthlyData[monthName] = {
-        month: monthName,
-        posts: { approved: 0, pending: 0, rejected: 0, total: 0 },
-        recipes: { approved: 0, pending: 0, rejected: 0, total: 0 },
-        total: 0
-      };
-    });
-    
-    results.forEach(item => {
-      const monthName = getMonthName(item.month);  
-      const status = item.status.toLowerCase();
+      // Create data for all days in the month
+      const dailyData = {};
+      const allDays = Array.from({length: daysInMonth}, (_, i) => i + 1);
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       
-      if (item.type === 'Posts') {
-        if (['approved', 'pending', 'rejected'].includes(status)) {
-          monthlyData[monthName].posts[status] = item.count;
+      allDays.forEach(day => {
+        const date = new Date(year, month - 1, day);
+        const dayName = dayNames[date.getDay()];
+        const displayName = `${dayName} ${day}`;
+        
+        dailyData[displayName] = {
+          day: displayName,
+          posts: { approved: 0, pending: 0, rejected: 0, total: 0 },
+          recipes: { approved: 0, pending: 0, rejected: 0, total: 0 },
+          total: 0
+        };
+      });
+      
+      // Process query results
+      results.forEach(item => {
+        const date = new Date(year, month - 1, item.day);
+        const dayName = dayNames[date.getDay()];
+        const displayName = `${dayName} ${item.day}`;
+        const status = item.status.toLowerCase();
+        
+        if (dailyData[displayName]) {
+          if (item.type === 'Posts') {
+            if (['approved', 'pending', 'rejected'].includes(status)) {
+              dailyData[displayName].posts[status] = item.count;
+            }
+            dailyData[displayName].posts.total += item.count;
+          } else if (item.type === 'Recipes') {
+            if (['approved', 'pending', 'rejected'].includes(status)) {
+              dailyData[displayName].recipes[status] = item.count;
+            }
+            dailyData[displayName].recipes.total += item.count;
+          }
+          
+          dailyData[displayName].total = dailyData[displayName].posts.total + dailyData[displayName].recipes.total;
         }
-        monthlyData[monthName].posts.total += item.count;
-      } else if (item.type === 'Recipes') {
-        if (['approved', 'pending', 'rejected'].includes(status)) {
-          monthlyData[monthName].recipes[status] = item.count;
-        }
-        monthlyData[monthName].recipes.total += item.count;
-      }
+      });
       
-      monthlyData[monthName].total = monthlyData[monthName].posts.total + monthlyData[monthName].recipes.total;
-    });
-    
-    const data = allMonths.map(monthName => monthlyData[monthName]);
-    
-    const totalPosts = data.reduce((sum, month) => sum + month.posts.total, 0);
-    const totalRecipes = data.reduce((sum, month) => sum + month.recipes.total, 0);
-    const totalCount = totalPosts + totalRecipes;
-    
-    const postsApproved = data.reduce((sum, month) => sum + month.posts.approved, 0);
-    const postsPending = data.reduce((sum, month) => sum + month.posts.pending, 0);
-    const postsRejected = data.reduce((sum, month) => sum + month.posts.rejected, 0);
-    
-    const recipesApproved = data.reduce((sum, month) => sum + month.recipes.approved, 0);
-    const recipesPending = data.reduce((sum, month) => sum + month.recipes.pending, 0);
-    const recipesRejected = data.reduce((sum, month) => sum + month.recipes.rejected, 0);
-    
-    res.json({ 
-      success: true, 
-      data,
-      totals: {
-        posts: totalPosts,
-        recipes: totalRecipes,
-        total: totalCount,
-        statusBreakdown: {
-          posts: { approved: postsApproved, pending: postsPending, rejected: postsRejected },
-          recipes: { approved: recipesApproved, pending: recipesPending, rejected: recipesRejected }
+      const data = Object.values(dailyData);
+      
+      res.json({ 
+        success: true, 
+        data,
+        viewType: 'daily',
+        timeframe: {
+          year: year,
+          month: month,
+          monthName: getMonthName(month)
+        },
+        totalDays: daysInMonth
+      });
+      
+    } else {
+      const query = `
+        SELECT 
+          'Posts' as type,
+          status,
+          MONTH(updated_at) as month,
+          COUNT(*) as count
+        FROM posts 
+        WHERE YEAR(updated_at) = ?
+        GROUP BY MONTH(updated_at), status
+        
+        UNION ALL
+        
+        SELECT 
+          'Recipes' as type,
+          status,
+          MONTH(updatedAt) as month,
+          COUNT(*) as count
+        FROM recipe 
+        WHERE YEAR(updatedAt) = ?
+        GROUP BY MONTH(updatedAt), status
+        
+        ORDER BY month, type, status
+      `;
+      
+      const [results] = await db.execute(query, [year, year]);
+      
+      const monthlyData = {};
+      const allMonths = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
+      ];
+      
+      allMonths.forEach(monthName => {
+        monthlyData[monthName] = {
+          month: monthName,
+          posts: { approved: 0, pending: 0, rejected: 0, total: 0 },
+          recipes: { approved: 0, pending: 0, rejected: 0, total: 0 },
+          total: 0
+        };
+      });
+      
+      results.forEach(item => {
+        const monthName = getMonthName(item.month);  
+        const status = item.status.toLowerCase();
+        
+        if (item.type === 'Posts') {
+          if (['approved', 'pending', 'rejected'].includes(status)) {
+            monthlyData[monthName].posts[status] = item.count;
+          }
+          monthlyData[monthName].posts.total += item.count;
+        } else if (item.type === 'Recipes') {
+          if (['approved', 'pending', 'rejected'].includes(status)) {
+            monthlyData[monthName].recipes[status] = item.count;
+          }
+          monthlyData[monthName].recipes.total += item.count;
         }
-      },
-      year: year // Return the actual year used
-    });
+        
+        monthlyData[monthName].total = monthlyData[monthName].posts.total + monthlyData[monthName].recipes.total;
+      });
+      
+      const data = allMonths.map(monthName => monthlyData[monthName]);
+      
+      res.json({ 
+        success: true, 
+        data,
+        viewType: 'monthly',
+        timeframe: {
+          year: year
+        }
+      });
+    }
+    
   } catch (error) {
     console.error('Error fetching posts and recipes data:', error);
     res.status(500).json({ 
