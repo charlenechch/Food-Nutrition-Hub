@@ -306,94 +306,86 @@ router.get('/posts-recipes-by-month', async (req, res) => {
         });
       }
       
-      const daysInMonth = new Date(year, month, 0).getDate();
+      const monthName = getMonthName(month);
       
       const query = `
         SELECT 
           'Posts' as type,
           status,
-          DAY(updated_at) as day,
           COUNT(*) as count
         FROM posts 
         WHERE YEAR(updated_at) = ?
           AND MONTH(updated_at) = ?
-        GROUP BY DAY(updated_at), status
+        GROUP BY status
         
         UNION ALL
         
         SELECT 
           'Recipes' as type,
           status,
-          DAY(updatedAt) as day,
           COUNT(*) as count
         FROM recipe 
         WHERE YEAR(updatedAt) = ?
           AND MONTH(updatedAt) = ?
-        GROUP BY DAY(updatedAt), status
+        GROUP BY status
         
-        ORDER BY day, type, status
+        ORDER BY type, status
       `;
       
       const params = [year, month, year, month];
       const [results] = await db.execute(query, params);
       
-      // Create data for all days in the month
-      const dailyData = {};
-      const allDays = Array.from({length: daysInMonth}, (_, i) => i + 1);
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      // Initialize counters
+      const monthlyData = {
+        approved: 0,
+        pending: 0,
+        rejected: 0,
+        total: 0
+      };
       
-      allDays.forEach(day => {
-        const date = new Date(year, month - 1, day);
-        const dayName = dayNames[date.getDay()];
-        const displayName = `${dayName} ${day}`;
-        
-        dailyData[displayName] = {
-          day: displayName,
-          posts: { approved: 0, pending: 0, rejected: 0, total: 0 },
-          recipes: { approved: 0, pending: 0, rejected: 0, total: 0 },
-          total: 0
-        };
-      });
-      
-      // Process query results
+      // Process query results - combine posts and recipes
       results.forEach(item => {
-        const date = new Date(year, month - 1, item.day);
-        const dayName = dayNames[date.getDay()];
-        const displayName = `${dayName} ${item.day}`;
         const status = item.status.toLowerCase();
-        
-        if (dailyData[displayName]) {
-          if (item.type === 'Posts') {
-            if (['approved', 'pending', 'rejected'].includes(status)) {
-              dailyData[displayName].posts[status] = item.count;
-            }
-            dailyData[displayName].posts.total += item.count;
-          } else if (item.type === 'Recipes') {
-            if (['approved', 'pending', 'rejected'].includes(status)) {
-              dailyData[displayName].recipes[status] = item.count;
-            }
-            dailyData[displayName].recipes.total += item.count;
-          }
-          
-          dailyData[displayName].total = dailyData[displayName].posts.total + dailyData[displayName].recipes.total;
+        if (['approved', 'pending', 'rejected'].includes(status)) {
+          monthlyData[status] += item.count;
         }
+        monthlyData.total += item.count;
       });
       
-      const data = Object.values(dailyData);
+      // Create single data point for the selected month
+      const data = [{
+        month: monthName,
+        posts: {
+          approved: results.filter(r => r.type === 'Posts' && r.status === 'Approved')[0]?.count || 0,
+          pending: results.filter(r => r.type === 'Posts' && r.status === 'Pending')[0]?.count || 0,
+          rejected: results.filter(r => r.type === 'Posts' && r.status === 'Rejected')[0]?.count || 0,
+          total: results.filter(r => r.type === 'Posts').reduce((sum, r) => sum + (r.count || 0), 0)
+        },
+        recipes: {
+          approved: results.filter(r => r.type === 'Recipes' && r.status === 'Approved')[0]?.count || 0,
+          pending: results.filter(r => r.type === 'Recipes' && r.status === 'Pending')[0]?.count || 0,
+          rejected: results.filter(r => r.type === 'Recipes' && r.status === 'Rejected')[0]?.count || 0,
+          total: results.filter(r => r.type === 'Recipes').reduce((sum, r) => sum + (r.count || 0), 0)
+        },
+        approved: monthlyData.approved,
+        pending: monthlyData.pending,
+        rejected: monthlyData.rejected,
+        total: monthlyData.total
+      }];
       
       res.json({ 
         success: true, 
         data,
-        viewType: 'daily',
+        viewType: 'single-month',
         timeframe: {
           year: year,
           month: month,
-          monthName: getMonthName(month)
-        },
-        totalDays: daysInMonth
+          monthName: monthName
+        }
       });
       
     } else {
+      // Original monthly view (when no specific month is selected)
       const query = `
         SELECT 
           'Posts' as type,
@@ -426,11 +418,14 @@ router.get('/posts-recipes-by-month', async (req, res) => {
         'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
       ];
       
-      allMonths.forEach(monthName => {
+      allMonths.forEach((monthName, index) => {
         monthlyData[monthName] = {
           month: monthName,
           posts: { approved: 0, pending: 0, rejected: 0, total: 0 },
           recipes: { approved: 0, pending: 0, rejected: 0, total: 0 },
+          approved: 0,
+          pending: 0,
+          rejected: 0,
           total: 0
         };
       });
@@ -442,11 +437,13 @@ router.get('/posts-recipes-by-month', async (req, res) => {
         if (item.type === 'Posts') {
           if (['approved', 'pending', 'rejected'].includes(status)) {
             monthlyData[monthName].posts[status] = item.count;
+            monthlyData[monthName][status] += item.count;
           }
           monthlyData[monthName].posts.total += item.count;
         } else if (item.type === 'Recipes') {
           if (['approved', 'pending', 'rejected'].includes(status)) {
             monthlyData[monthName].recipes[status] = item.count;
+            monthlyData[monthName][status] += item.count;
           }
           monthlyData[monthName].recipes.total += item.count;
         }
