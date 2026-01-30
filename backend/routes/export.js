@@ -697,8 +697,11 @@ async function exportAsPDF(res, data, period) {
     }
     
     // 5. Top Contributors
+    const leftMargin = 50;
     if (data.topContributors.length > 0) {
-      doc.fontSize(16).text('5. Top Contributors', { underline: true });
+      doc.fontSize(16).text('5. Top Contributors', leftMargin, doc.y, { 
+      underline: true 
+      });
       doc.moveDown(0.5);
 
       data.topContributors.forEach((contributor, index) => {
