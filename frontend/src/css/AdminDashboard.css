@@ -158,6 +158,22 @@
   vertical-align: middle;
 }
 
+.food-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.food-actions button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  height: 42px;
+  white-space: nowrap;
+  flex: 0 1 auto;
+}
+
 .food-actions button, .recipe-actions button {
   margin-left: 10px;
   border: none;
@@ -1894,4 +1910,31 @@
   font-size: 13px;
   color: #7b6148;
   line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .food-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .food-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .food-actions button {
+    width: 100%;     
+    margin-left: 0 !important; 
+    justify-content: center;   
+    font-size: 15px; 
+    height: 48px;   
+  }
+
+  .admin-food-btn-template {
+    grid-column: span 2;
+  }
 }
