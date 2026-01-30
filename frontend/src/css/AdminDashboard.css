@@ -1937,4 +1937,38 @@
   .admin-food-btn-template {
     grid-column: span 2;
   }
+  .food-filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 10px;
+  }
+
+  .search-box {
+    grid-column: span 2;
+    width: 100%;
+  }
+
+  .admin-beige-dropdown, 
+  .admin-beige-trigger {
+    width: 100% !important; 
+  }
+
+  .admin-food-btn-filter {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .advanced-filters {
+    padding: 15px;
+  }
+
+  .filter-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .food-database-slider-container {
+    padding: 10px 5px;
+  }
 }

@@ -777,7 +777,7 @@ const downloadTemplate = () => {
 
           <div className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`} ref={dropdownRef}>
             <button className="admin-beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
-              {category}
+              <span>{category}</span>
             </button>
             {dropdownOpen && (
               <ul className="admin-beige-list">
@@ -800,7 +800,7 @@ const downloadTemplate = () => {
           </div>
 
           <button className="admin-food-btn-filter" onClick={() => setShowFilters(!showFilters)}>
-            <CiFilter /> Filters
+            <CiFilter /> <span>Filters</span>
           </button>
         </div>
 
