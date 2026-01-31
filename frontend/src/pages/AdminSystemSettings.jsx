@@ -29,6 +29,11 @@ export default function AdminSystemSettings({
     const platformName = "SarawakEats";
     const platformemail = "info@sarawakeats.com";
 
+    const [availableYears, setAvailableYears] = useState([]);
+    const [loadingYears, setLoadingYears] = useState(false);
+    const [availableMonths, setAvailableMonths] = useState([]);
+    const [loadingMonths, setLoadingMonths] = useState(false);
+
     const t = {
         platform: "SarawakEats",
         backupRestore: "Backup/Restore",
@@ -37,6 +42,94 @@ export default function AdminSystemSettings({
         restore: "Restore",
     };
     
+    useEffect(() => {
+        fetchAvailableYears();
+    }, []);
+
+    const fetchAvailableYears = async () => {
+        try {
+            setLoadingYears(true);
+            const response = await fetch(`${API_URL}/api/export/available-years`);
+            
+            if (!response.ok) {
+                console.error('Failed to fetch available years:', response.status);
+                // Fallback to current year if API fails
+                setAvailableYears([new Date().getFullYear()]);
+                return;
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.years && data.years.length > 0) {
+                setAvailableYears(data.years);
+                // Set default year to the most recent year
+                const mostRecentYear = Math.max(...data.years);
+                setExportOptions(prev => ({ 
+                    ...prev, 
+                    year: mostRecentYear 
+                }));
+            } else {
+                // Fallback to current year if no years found
+                const currentYear = new Date().getFullYear();
+                setAvailableYears([currentYear]);
+                setExportOptions(prev => ({ 
+                    ...prev, 
+                    year: currentYear 
+                }));
+            }
+        } catch (error) {
+            console.error('Error fetching available years:', error);
+            // Fallback to current year
+            const currentYear = new Date().getFullYear();
+            setAvailableYears([currentYear]);
+        } finally {
+            setLoadingYears(false);
+        }
+    };
+
+    // Fetch available months when year changes
+    useEffect(() => {
+        if (exportOptions.rangeType === 'month') {
+            fetchAvailableMonths(exportOptions.year);
+        }
+    }, [exportOptions.year, exportOptions.rangeType]);
+
+    const fetchAvailableMonths = async (year) => {
+        try {
+            setLoadingMonths(true);
+            const response = await fetch(`${API_URL}/api/export/available-months?year=${year}`);
+            
+            if (!response.ok) {
+                console.error('Failed to fetch available months:', response.status);
+                // Fallback to all months if API fails
+                setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
+                return;
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.months && data.months.length > 0) {
+                setAvailableMonths(data.months.sort((a, b) => a - b));
+                
+                // If current month is not available, select the first available month
+                if (!data.months.includes(exportOptions.month)) {
+                    setExportOptions(prev => ({ 
+                        ...prev, 
+                        month: data.months[0] 
+                    }));
+                }
+            } else {
+                // Fallback to all months if no months found
+                setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
+            }
+        } catch (error) {
+            console.error('Error fetching available months:', error);
+            // Fallback to all months
+            setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
+        } finally {
+            setLoadingMonths(false);
+        }
+    };
 
     function formatNowKuching() {
         return new Intl.DateTimeFormat("en-MY", {
@@ -813,16 +906,28 @@ export default function AdminSystemSettings({
                                         className="umg-input"
                                         value={exportOptions.year}
                                         onChange={(e) => setExportOptions(prev => ({ ...prev, year: parseInt(e.target.value) }))}
+                                        disabled={loadingYears}
                                     >
-                                        {Array.from({ length: 5 }, (_, i) => {
-                                            const year = new Date().getFullYear() - i;
-                                            return (
+                                        {loadingYears ? (
+                                            <option value="">Loading years...</option>
+                                        ) : availableYears.length === 0 ? (
+                                            <option value="">No years available</option>
+                                        ) : (
+                                            availableYears.map(year => (
                                                 <option key={year} value={year}>
                                                     {year}
                                                 </option>
-                                            );
-                                        })}
+                                            ))
+                                        )}
                                     </select>
+                                    {loadingYears && (
+                                        <div className="text-xs text-gray-500 mt-1">Fetching years from database...</div>
+                                    )}
+                                    {!loadingYears && availableYears.length > 0 && (
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            Showing {availableYears.length} year{availableYears.length !== 1 ? 's' : ''} with data
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -834,30 +939,44 @@ export default function AdminSystemSettings({
                                         className="umg-input"
                                         value={exportOptions.month}
                                         onChange={(e) => setExportOptions(prev => ({ ...prev, month: parseInt(e.target.value) }))}
+                                        disabled={loadingMonths}
                                     >
-                                        {Array.from({ length: 12 }, (_, i) => {
-                                            const monthNum = i + 1;
-                                            const date = new Date(exportOptions.year, monthNum - 1);
-                                            const currentYear = new Date().getFullYear();
-                                            const currentMonth = new Date().getMonth() + 1;
-                                            
-                                            // Disable future months
-                                            const isFuture = exportOptions.year > currentYear || 
-                                                            (exportOptions.year === currentYear && monthNum > currentMonth);
-                                            
-                                            return (
-                                                <option 
-                                                    key={monthNum} 
-                                                    value={monthNum}
-                                                    disabled={isFuture}
-                                                    className={isFuture ? 'text-gray-400' : ''}
-                                                >
-                                                    {date.toLocaleString('default', { month: 'long' })}
-                                                    {isFuture && ' (Future)'}
-                                                </option>
-                                            );
-                                        })}
+                                        {loadingMonths ? (
+                                            <option value="">Loading months...</option>
+                                        ) : availableMonths.length === 0 ? (
+                                            <option value="">No months available for {exportOptions.year}</option>
+                                        ) : (
+                                            availableMonths.map(monthNum => {
+                                                const date = new Date(exportOptions.year, monthNum - 1);
+                                                const currentYear = new Date().getFullYear();
+                                                const currentMonth = new Date().getMonth() + 1;
+                                                
+                                                // Disable future months
+                                                const isFuture = exportOptions.year > currentYear || 
+                                                                (exportOptions.year === currentYear && monthNum > currentMonth);
+                                                
+                                                return (
+                                                    <option 
+                                                        key={monthNum} 
+                                                        value={monthNum}
+                                                        disabled={isFuture}
+                                                        className={isFuture ? 'text-gray-400' : ''}
+                                                    >
+                                                        {date.toLocaleString('default', { month: 'long' })}
+                                                        {isFuture && ' (Future)'}
+                                                    </option>
+                                                );
+                                            })
+                                        )}
                                     </select>
+                                    {loadingMonths && (
+                                        <div className="text-xs text-gray-500 mt-1">Fetching months from database...</div>
+                                    )}
+                                    {!loadingMonths && availableMonths.length > 0 && (
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            Showing {availableMonths.length} month{availableMonths.length !== 1 ? 's' : ''} with data in {exportOptions.year}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

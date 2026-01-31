@@ -20,6 +20,111 @@ function getMonthName(monthNumber) {
   return months[monthNumber - 1] || 'Unknown';
 }
 
+// to get available years from database
+router.get('/available-years', async (req, res) => {
+  try {
+    console.log('📅 Getting available years from database...');
+    
+    // Query to get distinct years from all relevant tables
+    const query = `
+      SELECT DISTINCT YEAR(updated_at) as year 
+      FROM posts
+      WHERE YEAR(updated_at) IS NOT NULL
+      
+      UNION
+      
+      SELECT DISTINCT YEAR(updatedAt) as year 
+      FROM recipe
+      WHERE YEAR(updatedAt) IS NOT NULL
+      
+      UNION
+      
+      SELECT DISTINCT YEAR(updatedAt) as year 
+      FROM food
+      WHERE YEAR(updatedAt) IS NOT NULL
+      
+      ORDER BY year DESC
+    `;
+    
+    const [yearsResult] = await db.execute(query);
+    
+    const years = yearsResult.map(row => row.year).filter(year => year);
+    
+    console.log('📅 Available years from database:', years);
+    
+    res.json({ 
+      success: true, 
+      years 
+    });
+    
+  } catch (error) {
+    console.error('Error getting available years:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get available years',
+      message: error.message 
+    });
+  }
+});
+
+// to get available months for a specific year
+router.get('/available-months', async (req, res) => {
+  try {
+    const { year } = req.query;
+    
+    if (!year) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Year parameter is required' 
+      });
+    }
+    
+    console.log(`📅 Getting available months for year ${year}...`);
+    
+    const query = `
+      SELECT DISTINCT MONTH(updated_at) as month 
+      FROM posts
+      WHERE YEAR(updated_at) = ?
+        AND MONTH(updated_at) IS NOT NULL
+      
+      UNION
+      
+      SELECT DISTINCT MONTH(updatedAt) as month 
+      FROM recipe
+      WHERE YEAR(updatedAt) = ?
+        AND MONTH(updatedAt) IS NOT NULL
+      
+      UNION
+      
+      SELECT DISTINCT MONTH(updatedAt) as month 
+      FROM food
+      WHERE YEAR(updatedAt) = ?
+        AND MONTH(updatedAt) IS NOT NULL
+      
+      ORDER BY month ASC
+    `;
+    
+    const [monthsResult] = await db.execute(query, [year, year, year]);
+    
+    const months = monthsResult.map(row => row.month).filter(month => month);
+    
+    console.log(`📅 Available months for year ${year}:`, months);
+    
+    res.json({ 
+      success: true, 
+      months 
+    });
+    
+  } catch (error) {
+    console.error('Error getting available months:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get available months',
+      message: error.message 
+    });
+  }
+});
+
 // 1. FOOD DATABASE CSV EXPORT
 router.get('/food-csv', async (req, res) => {
   try {
@@ -37,15 +142,15 @@ router.get('/food-csv', async (req, res) => {
         f.Fat_g,
         f.Carbohydrates_g,
         f.Fiber_g,
-        DATE_FORMAT(f.createdAt, '%Y-%m-%d %H:%i:%s') as createdAt,
+        DATE_FORMAT(f.updatedAt, '%Y-%m-%d %H:%i:%s') as updatedAt,
         GROUP_CONCAT(DISTINCT CONCAT(u.firstname, ' ', u.lastname)) as contributors
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
       LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
       GROUP BY f.foodID, f.name, f.category, f.origin, f.description, f.Energy_kcal, f.Protein_g, f.Fat_g, f.Carbohydrates_g, f.Fiber_g,
-               r.servings, f.difficulty, f.createdAt
-      ORDER BY f.createdAt DESC
+               r.servings, f.difficulty, f.updatedAt
+      ORDER BY f.updatedAt DESC
     `;
     
     const [foodItems] = await db.execute(query);
@@ -71,6 +176,14 @@ router.get('/food-csv', async (req, res) => {
 
 // 2. ANALYTICS REPORT EXPORT (Excel/PDF)
 router.get('/analytics-report', async (req, res) => {
+  console.log('📊 ANALYTICS EXPORT STARTED ========================');
+  console.log('Query params:', req.query);
+  console.log('Format:', req.query.format);
+  console.log('Year:', req.query.year);
+  console.log('Month:', req.query.month);
+  console.log('StartDate:', req.query.startDate);
+  console.log('EndDate:', req.query.endDate);
+
   try {
     const format = req.query.format || 'excel'; // 'excel' or 'pdf'
     const year = parseInt(req.query.year) || new Date().getFullYear();
@@ -79,7 +192,7 @@ router.get('/analytics-report', async (req, res) => {
     const endDate = req.query.endDate || null;
 
     // Helper function to build WHERE clause
-    const buildWhereClause = (tableAlias = '', dateColumn = 'created_at') => {
+    const buildWhereClause = (tableAlias = '', dateColumn = 'updated_at') => {
       let whereClause = '';
       let params = [];
       
@@ -101,9 +214,9 @@ router.get('/analytics-report', async (req, res) => {
     };
 
     // Build WHERE clauses for different tables
-    const recipeWhere = buildWhereClause('r', 'createdAt');
-    const postWhere = buildWhereClause('p', 'created_at');
-    const foodWhere = buildWhereClause('f', 'createdAt');
+    const recipeWhere = buildWhereClause('r', 'updatedAt');
+    const postWhere = buildWhereClause('p', 'updated_at');
+    const foodWhere = buildWhereClause('f', 'updatedAt');
 
     // Get metrics data
     const [totalRecipesResult] = await db.execute(`
@@ -160,22 +273,22 @@ router.get('/analytics-report', async (req, res) => {
         SELECT 
           'Posts' as type,
           status,
-          MONTH(created_at) as month,
+          MONTH(updated_at) as month,
           COUNT(*) as count
         FROM posts 
-        WHERE DATE(created_at) BETWEEN ? AND ?
-        GROUP BY MONTH(created_at), status
+        WHERE DATE(updated_at) BETWEEN ? AND ?
+        GROUP BY MONTH(updated_at), status
         
         UNION ALL
         
         SELECT 
           'Recipes' as type,
           status,
-          MONTH(createdAt) as month,
+          MONTH(updatedAt) as month,
           COUNT(*) as count
         FROM recipe 
-        WHERE DATE(createdAt) BETWEEN ? AND ?
-        GROUP BY MONTH(createdAt), status
+        WHERE DATE(updatedAt) BETWEEN ? AND ?
+        GROUP BY MONTH(updatedAt), status
         
         ORDER BY month, type, status
       `;
@@ -186,10 +299,10 @@ router.get('/analytics-report', async (req, res) => {
         SELECT 
           'Posts' as type,
           status,
-          MONTH(created_at) as month,
+          MONTH(updated_at) as month,
           COUNT(*) as count
         FROM posts 
-        WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?
+        WHERE YEAR(updated_at) = ? AND MONTH(updated_at) = ?
         GROUP BY status
         
         UNION ALL
@@ -197,10 +310,10 @@ router.get('/analytics-report', async (req, res) => {
         SELECT 
           'Recipes' as type,
           status,
-          MONTH(createdAt) as month,
+          MONTH(updatedAt) as month,
           COUNT(*) as count
         FROM recipe 
-        WHERE YEAR(createdAt) = ? AND MONTH(createdAt) = ?
+        WHERE YEAR(updatedAt) = ? AND MONTH(updatedAt) = ?
         GROUP BY status
         
         ORDER BY type, status
@@ -212,22 +325,22 @@ router.get('/analytics-report', async (req, res) => {
         SELECT 
           'Posts' as type,
           status,
-          MONTH(created_at) as month,
+          MONTH(updated_at) as month,
           COUNT(*) as count
         FROM posts 
-        WHERE YEAR(created_at) = ?
-        GROUP BY MONTH(created_at), status
+        WHERE YEAR(updated_at) = ?
+        GROUP BY MONTH(updated_at), status
         
         UNION ALL
         
         SELECT 
           'Recipes' as type,
           status,
-          MONTH(createdAt) as month,
+          MONTH(updatedAt) as month,
           COUNT(*) as count
         FROM recipe 
-        WHERE YEAR(createdAt) = ?
-        GROUP BY MONTH(createdAt), status
+        WHERE YEAR(updatedAt) = ?
+        GROUP BY MONTH(updatedAt), status
         
         ORDER BY month, type, status
       `;
@@ -254,10 +367,10 @@ router.get('/analytics-report', async (req, res) => {
         INNER JOIN userProfile up ON u.userID = up.userID
         LEFT JOIN recipe r ON up.userProfileID = r.userProfileID 
           AND r.status = 'Approved'
-          AND DATE(r.createdAt) BETWEEN ? AND ?
+          AND DATE(r.updatedAt) BETWEEN ? AND ?
         LEFT JOIN posts p ON up.userProfileID = p.userProfileID 
           AND p.status = 'Approved'
-          AND DATE(p.created_at) BETWEEN ? AND ?
+          AND DATE(p.updated_at) BETWEEN ? AND ?
         GROUP BY u.userID, u.firstname, u.lastname, u.email, up.userProfileID
         HAVING total > 0
         ORDER BY total DESC
@@ -278,12 +391,12 @@ router.get('/analytics-report', async (req, res) => {
         INNER JOIN userProfile up ON u.userID = up.userID
         LEFT JOIN recipe r ON up.userProfileID = r.userProfileID 
           AND r.status = 'Approved'
-          AND YEAR(r.createdAt) = ? 
-          AND MONTH(r.createdAt) = ?
+          AND YEAR(r.updatedAt) = ? 
+          AND MONTH(r.updatedAt) = ?
         LEFT JOIN posts p ON up.userProfileID = p.userProfileID 
           AND p.status = 'Approved'
-          AND YEAR(p.created_at) = ? 
-          AND MONTH(p.created_at) = ?
+          AND YEAR(p.updated_at) = ? 
+          AND MONTH(p.updated_at) = ?
         GROUP BY u.userID, u.firstname, u.lastname, u.email, up.userProfileID
         HAVING total > 0
         ORDER BY total DESC
@@ -304,10 +417,10 @@ router.get('/analytics-report', async (req, res) => {
         INNER JOIN userProfile up ON u.userID = up.userID
         LEFT JOIN recipe r ON up.userProfileID = r.userProfileID 
           AND r.status = 'Approved'
-          AND YEAR(r.createdAt) = ?
+          AND YEAR(r.updatedAt) = ?
         LEFT JOIN posts p ON up.userProfileID = p.userProfileID 
           AND p.status = 'Approved'
-          AND YEAR(p.created_at) = ?
+          AND YEAR(p.updated_at) = ?
         GROUP BY u.userID, u.firstname, u.lastname, u.email, up.userProfileID
         HAVING total > 0
         ORDER BY total DESC
@@ -796,7 +909,7 @@ router.post('/export/saved-foods', async (req, res) => {
     
     // Step 2: Get saved food IDs based on export type
     let savedFoodsQuery = `
-      SELECT sf.saveID, f.foodID as id, sf.recipeID, f.name, f.origin, sf.createdAt as savedDate
+      SELECT sf.saveID, f.foodID as id, sf.recipeID, f.name, f.origin, sf.updatedAt as savedDate
       FROM saveFood sf
       JOIN food f ON sf.foodID = f.foodID
       WHERE sf.userProfileID = ?
@@ -811,7 +924,7 @@ router.post('/export/saved-foods', async (req, res) => {
       queryParams.push(...saveIds);
     }
     
-    savedFoodsQuery += ' ORDER BY sf.createdAt DESC';
+    savedFoodsQuery += ' ORDER BY sf.updatedAt DESC';
     
     const [savedFoods] = await connection.execute(savedFoodsQuery, queryParams);
     
@@ -878,7 +991,7 @@ router.post('/export/saved-foods', async (req, res) => {
           r.servings,
           r.DidYouKnow,
           r.chefTips,
-          r.createdAt as recipeCreatedAt,
+          r.updatedAt as recipeUpdatedAt,
           r.admin_feedback,
           r.status,
           up.userProfileID,
