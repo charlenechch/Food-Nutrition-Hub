@@ -816,7 +816,7 @@ export default function AdminSystemSettings({
                                         open: true,
                                         title: "Announcement Sent",
                                         message: `Your message will be sent to ${recipients.length} recipient(s).`,
-                                        icon: <CheckIcon />,
+                                        icon: CheckIcon ? <CheckIcon /> : null, 
                                         primaryText: "Done",
                                         onPrimary: closeSysDialog,
                                     });
