@@ -163,9 +163,6 @@ export default function AdminSystemSettings({
                 
                 const response = await fetch(endpoint, {
                     method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    }
                 });
 
                 if (!response.ok) {
@@ -249,7 +246,6 @@ export default function AdminSystemSettings({
             const response = await fetch(endpoint, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Accept': exportOptions.format === 'excel' 
                         ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                         : 'application/pdf' 
