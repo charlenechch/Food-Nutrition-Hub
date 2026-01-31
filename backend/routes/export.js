@@ -10,11 +10,14 @@ const ExcelJS = require('exceljs');
 
 // Helper function to get month name
 function getMonthName(monthNumber) {  
+  if (!monthNumber || monthNumber < 1 || monthNumber > 12) {
+    return 'Unknown';
+  }
   const months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
   ];
-  return months[monthNumber - 1];
+  return months[monthNumber - 1] || 'Unknown';
 }
 
 // 1. FOOD DATABASE CSV EXPORT

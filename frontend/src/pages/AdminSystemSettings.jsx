@@ -192,6 +192,38 @@ export default function AdminSystemSettings({
     };
 
     const handleAnalyticsExport = async () => {
+        // Date validation for future months
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1; // JavaScript months are 0-11
+        
+        // Check if selected year is in the future
+        if (exportOptions.year > currentYear) {
+            setSysDialog({
+                open: true,
+                title: "Invalid Year",
+                message: `Year ${exportOptions.year} is in the future. Please select ${currentYear} or earlier.`,
+                icon: <AlertTriangle />,
+                primaryText: "OK",
+                onPrimary: closeSysDialog,
+            });
+            return;
+        }
+        
+        // Check if selected month is in the future
+        if (exportOptions.year === currentYear && exportOptions.month > currentMonth) {
+            const monthName = new Date(exportOptions.year, exportOptions.month - 1).toLocaleString('default', { month: 'long' });
+            setSysDialog({
+                open: true,
+                title: "Invalid Month",
+                message: `${monthName} ${exportOptions.year} hasn't occurred yet. Please select a month up to ${getMonthName(currentMonth)} ${currentYear}.`,
+                icon: <AlertTriangle />,
+                primaryText: "OK",
+                onPrimary: closeSysDialog,
+            });
+            return;
+        }
+
         if (exportOptions.rangeType === 'custom' && (!exportOptions.startDate || !exportOptions.endDate)) {
             setSysDialog({
                 open: true,
@@ -203,6 +235,40 @@ export default function AdminSystemSettings({
             });
             return;
         }
+
+        // Validate custom date range
+        if (exportOptions.rangeType === 'custom') {
+            const start = new Date(exportOptions.startDate);
+            const end = new Date(exportOptions.endDate);
+            const today = new Date();
+            
+            // Check if start date is after end date
+            if (start > end) {
+                setSysDialog({
+                    open: true,
+                    title: "Invalid Date Range",
+                    message: "Start date cannot be after end date.",
+                    icon: <AlertTriangle />,
+                    primaryText: "OK",
+                    onPrimary: closeSysDialog,
+                });
+                return;
+            }
+            
+            // Check if dates are in the future
+            if (start > today || end > today) {
+                setSysDialog({
+                    open: true,
+                    title: "Future Dates",
+                    message: "Cannot export data from future dates. Please select dates up to today.",
+                    icon: <AlertTriangle />,
+                    primaryText: "OK",
+                    onPrimary: closeSysDialog,
+                });
+                return;
+            }
+        }
+
         try {
             // Set loading based on format
             const loadingKey = exportOptions.format === 'pdf' ? 'reportPdf' : 'reportExcel';
@@ -289,6 +355,14 @@ export default function AdminSystemSettings({
             setExportLoading(prev => ({ ...prev, [loadingKey]: false }));
         }
     };
+
+    function getMonthName(monthNumber) {
+        const months = [
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
+        ];
+        return months[monthNumber - 1] || 'Unknown';
+    }
 
     // lock scroll like UM
     useEffect(() => {
@@ -764,9 +838,22 @@ export default function AdminSystemSettings({
                                         {Array.from({ length: 12 }, (_, i) => {
                                             const monthNum = i + 1;
                                             const date = new Date(exportOptions.year, monthNum - 1);
+                                            const currentYear = new Date().getFullYear();
+                                            const currentMonth = new Date().getMonth() + 1;
+                                            
+                                            // Disable future months
+                                            const isFuture = exportOptions.year > currentYear || 
+                                                            (exportOptions.year === currentYear && monthNum > currentMonth);
+                                            
                                             return (
-                                                <option key={monthNum} value={monthNum}>
+                                                <option 
+                                                    key={monthNum} 
+                                                    value={monthNum}
+                                                    disabled={isFuture}
+                                                    className={isFuture ? 'text-gray-400' : ''}
+                                                >
                                                     {date.toLocaleString('default', { month: 'long' })}
+                                                    {isFuture && ' (Future)'}
                                                 </option>
                                             );
                                         })}
