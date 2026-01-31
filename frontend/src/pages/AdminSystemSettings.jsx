@@ -435,7 +435,7 @@ export default function AdminSystemSettings({
                 open: true,
                 title: "Export Successful",
                 message: `Analytics report exported successfully as ${exportOptions.format.toUpperCase()}`,
-                icon: <CheckIcon />,
+                icon: CheckIcon ? <CheckIcon /> : null, 
                 primaryText: "OK",
                 onPrimary: closeSysDialog,
             });
