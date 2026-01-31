@@ -41,95 +41,6 @@ export default function AdminSystemSettings({
         backup: "Backup",
         restore: "Restore",
     };
-    
-    useEffect(() => {
-        fetchAvailableYears();
-    }, []);
-
-    const fetchAvailableYears = async () => {
-        try {
-            setLoadingYears(true);
-            const response = await fetch(`${API_URL}/api/export/available-years`);
-            
-            if (!response.ok) {
-                console.error('Failed to fetch available years:', response.status);
-                // Fallback to current year if API fails
-                setAvailableYears([new Date().getFullYear()]);
-                return;
-            }
-            
-            const data = await response.json();
-            
-            if (data.success && data.years && data.years.length > 0) {
-                setAvailableYears(data.years);
-                // Set default year to the most recent year
-                const mostRecentYear = Math.max(...data.years);
-                setExportOptions(prev => ({ 
-                    ...prev, 
-                    year: mostRecentYear 
-                }));
-            } else {
-                // Fallback to current year if no years found
-                const currentYear = new Date().getFullYear();
-                setAvailableYears([currentYear]);
-                setExportOptions(prev => ({ 
-                    ...prev, 
-                    year: currentYear 
-                }));
-            }
-        } catch (error) {
-            console.error('Error fetching available years:', error);
-            // Fallback to current year
-            const currentYear = new Date().getFullYear();
-            setAvailableYears([currentYear]);
-        } finally {
-            setLoadingYears(false);
-        }
-    };
-
-    // Fetch available months when year changes
-    useEffect(() => {
-        if (exportOptions.rangeType === 'month') {
-            fetchAvailableMonths(exportOptions.year);
-        }
-    }, [exportOptions.year, exportOptions.rangeType]);
-
-    const fetchAvailableMonths = async (year) => {
-        try {
-            setLoadingMonths(true);
-            const response = await fetch(`${API_URL}/api/export/available-months?year=${year}`);
-            
-            if (!response.ok) {
-                console.error('Failed to fetch available months:', response.status);
-                // Fallback to all months if API fails
-                setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
-                return;
-            }
-            
-            const data = await response.json();
-            
-            if (data.success && data.months && data.months.length > 0) {
-                setAvailableMonths(data.months.sort((a, b) => a - b));
-                
-                // If current month is not available, select the first available month
-                if (!data.months.includes(exportOptions.month)) {
-                    setExportOptions(prev => ({ 
-                        ...prev, 
-                        month: data.months[0] 
-                    }));
-                }
-            } else {
-                // Fallback to all months if no months found
-                setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
-            }
-        } catch (error) {
-            console.error('Error fetching available months:', error);
-            // Fallback to all months
-            setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
-        } finally {
-            setLoadingMonths(false);
-        }
-    };
 
     function formatNowKuching() {
         return new Intl.DateTimeFormat("en-MY", {
@@ -222,6 +133,95 @@ export default function AdminSystemSettings({
         startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], // Jan 1 of current year
         endDate: new Date().toISOString().split('T')[0], // Today
     });
+
+    useEffect(() => {
+        fetchAvailableYears();
+    }, []);
+
+    const fetchAvailableYears = async () => {
+        try {
+            setLoadingYears(true);
+            const response = await fetch(`${API_URL}/api/export/available-years`);
+            
+            if (!response.ok) {
+                console.error('Failed to fetch available years:', response.status);
+                // Fallback to current year if API fails
+                setAvailableYears([new Date().getFullYear()]);
+                return;
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.years && data.years.length > 0) {
+                setAvailableYears(data.years);
+                // Set default year to the most recent year
+                const mostRecentYear = Math.max(...data.years);
+                setExportOptions(prev => ({ 
+                    ...prev, 
+                    year: mostRecentYear 
+                }));
+            } else {
+                // Fallback to current year if no years found
+                const currentYear = new Date().getFullYear();
+                setAvailableYears([currentYear]);
+                setExportOptions(prev => ({ 
+                    ...prev, 
+                    year: currentYear 
+                }));
+            }
+        } catch (error) {
+            console.error('Error fetching available years:', error);
+            // Fallback to current year
+            const currentYear = new Date().getFullYear();
+            setAvailableYears([currentYear]);
+        } finally {
+            setLoadingYears(false);
+        }
+    };
+
+    // Fetch available months when year changes
+    useEffect(() => {
+        if (exportOptions.rangeType === 'month') {
+            fetchAvailableMonths(exportOptions.year);
+        }
+    }, [exportOptions.year, exportOptions.rangeType]);
+
+    const fetchAvailableMonths = async (year) => {
+        try {
+            setLoadingMonths(true);
+            const response = await fetch(`${API_URL}/api/export/available-months?year=${year}`);
+            
+            if (!response.ok) {
+                console.error('Failed to fetch available months:', response.status);
+                // Fallback to all months if API fails
+                setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
+                return;
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.months && data.months.length > 0) {
+                setAvailableMonths(data.months.sort((a, b) => a - b));
+                
+                // If current month is not available, select the first available month
+                if (!data.months.includes(exportOptions.month)) {
+                    setExportOptions(prev => ({ 
+                        ...prev, 
+                        month: data.months[0] 
+                    }));
+                }
+            } else {
+                // Fallback to all months if no months found
+                setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
+            }
+        } catch (error) {
+            console.error('Error fetching available months:', error);
+            // Fallback to all months
+            setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
+        } finally {
+            setLoadingMonths(false);
+        }
+    };
 
     useEffect(() => {
         if (!showExportModal) return;
