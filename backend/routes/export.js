@@ -299,7 +299,7 @@ router.get('/analytics-report', async (req, res) => {
         SELECT 
           'Posts' as type,
           status,
-          MONTH(updated_at) as month,
+          ${month} as month,
           COUNT(*) as count
         FROM posts 
         WHERE YEAR(updated_at) = ? AND MONTH(updated_at) = ?
@@ -310,7 +310,7 @@ router.get('/analytics-report', async (req, res) => {
         SELECT 
           'Recipes' as type,
           status,
-          MONTH(updatedAt) as month,
+          ${month} as month,
           COUNT(*) as count
         FROM recipe 
         WHERE YEAR(updatedAt) = ? AND MONTH(updatedAt) = ?
