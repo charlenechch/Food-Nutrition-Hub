@@ -458,6 +458,80 @@ ol {
     font-size: 13px;
     padding: 9px;
   }
+  .confirm-modal {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .confirm-buttons {
+    flex-direction: column; 
+  }
+
+  .confirm-buttons button {
+    width: 100%;
+    height: 48px; 
+  }
 }
 
+@media (max-width: 992px) {
+  .admin-review-header {
+    flex-direction: column; 
+    margin-top: 80px; 
+    padding: 0 15px;
+    gap: 15px;
+  }
 
+  .review-title {
+    order: -1; 
+  }
+
+  .rcp-edit-review-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .admin-recipe-edit-back-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .review-layout {
+    grid-template-columns: 1fr; 
+  }
+
+  .review-left-sidebar {
+    height: auto; 
+    order: 1;    
+  }
+}
+
+@media (max-width: 600px) {
+  .rcp-basic-info-grid .rcp-edit-info-grid {
+    grid-template-columns: 1fr; 
+    gap: 10px;
+  }
+
+  .rcp-edit-info-item p {
+    font-size: 16px; 
+    padding: 12px;
+  }
+
+  .uploaded-img {
+    max-width: 100%; 
+    height: auto;
+  }
+  
+  .rcp-edit-approve-btn, .rcp-edit-reject-btn {
+    padding: 12px;
+    font-size: 16px;
+    width: 100%;
+  }
+
+  .admin-feedback-input {
+    font-size: 16px; 
+  }
+  
+  .rcp-review-section {
+    padding: 15px; 
+  }
+}
