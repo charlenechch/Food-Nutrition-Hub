@@ -177,15 +177,16 @@ const EditRecipePage = () => {
           <p>{recipe.name}</p>
         </div>
 
-        {recipe.status !== "Approved" && (
-            <button
-              className="rcp-edit-approve-btn"
-              onClick={() => { setModalType("approve"); setShowModal(true); }}
-            >
-              <span className="recipe-edit-btn"><FaCheck /></span> Approve
-            </button>
-          )}
-        {recipe.status === "Pending" && (
+        <div className="rcp-edit-review-actions">
+          {recipe.status !== "Approved" && (
+              <button
+                className="rcp-edit-approve-btn"
+                onClick={() => { setModalType("approve"); setShowModal(true); }}
+              >
+                <span className="recipe-edit-btn"><FaCheck /></span> Approve
+              </button>
+            )}
+          {recipe.status === "Pending" && (
             <button
               className="rcp-edit-reject-btn"
               onClick={() => { setModalType("reject"); setShowModal(true); }}
@@ -194,6 +195,7 @@ const EditRecipePage = () => {
             </button>
           )}
         </div>
+      </div>
 
       <div className="review-container">
         <div className="review-layout">
