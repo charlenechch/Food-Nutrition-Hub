@@ -474,38 +474,6 @@ ol {
 }
 
 @media (max-width: 992px) {
-  .admin-review-header {
-    flex-direction: column; 
-    margin-top: 80px; 
-    padding: 0 15px;
-    gap: 15px;
-  }
-
-  .review-title {
-    order: -1; 
-  }
-
-  .rcp-edit-review-actions {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .admin-recipe-edit-back-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .review-layout {
-    grid-template-columns: 1fr; 
-  }
-
-  .review-left-sidebar {
-    height: auto; 
-    order: 1;    
-  }
-}
-
-@media (max-width: 600px) {
   .review-container {
     max-width: 100%; 
     padding: 0 10px;
@@ -558,8 +526,9 @@ ol {
   .rcp-review-section, .uploaded-image-card {
     padding: 15px 12px;
   }
+}
 
-  
+@media (max-width: 600px) { 
   .rcp-basic-info-grid .rcp-edit-info-grid {
     grid-template-columns: 1fr; 
     gap: 10px;
