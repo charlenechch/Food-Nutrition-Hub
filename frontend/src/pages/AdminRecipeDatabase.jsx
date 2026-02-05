@@ -248,7 +248,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
           <thead>
             <tr>
               <th>Recipe Name</th>
-              <th>Food Item</th>
+              <th className="hide-at-tablet">Food Item</th>
               <th>Author</th>
               
               {/* ✅ CHANGED 1: Dynamic Header */}
@@ -268,7 +268,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                     <small>{r.servings ? `${r.servings} servings` : ""}</small>
                   </span>
                 </td>
-                <td data-label="Food Item"><span className="category-tag">{r.foodType || r.category || "N/A"}</span></td>
+                <td data-label="Food Item" className="hide-at-tablet"><span className="category-tag">{r.foodType || r.category || "N/A"}</span></td>
                 <td data-label="Author">{r.author || "Unknown"}</td>
                 
                 {/* ✅ CHANGED 2: Dynamic Date Logic */}

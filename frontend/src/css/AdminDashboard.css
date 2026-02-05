@@ -1320,6 +1320,12 @@
   background: #fcf9f6;
 }
 
+@media (min-width: 721px) and (max-width: 780px) {
+  .hide-at-tablet {
+    display: none;
+  }
+}
+
 @media (max-width: 720px) {
 
   .content-table {
@@ -1392,6 +1398,12 @@
   }
   .recipe-servings {
     display: none;
+  }
+
+  .content-table tbody tr td.hide-at-tablet {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 }
 
@@ -1937,7 +1949,7 @@
     grid-column: span 2;
   }
 }
-  
+
 @media (max-width: 600px) {
   .food-filters {
     display: grid;
