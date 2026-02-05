@@ -362,25 +362,22 @@
 }
 
 .edit-food-nutrition-header {
-  display: flex;
-  align-items: baseline; 
-  gap: 12px;            
-  margin-bottom: 30px;
-  padding-bottom: 10px;
+  margin-bottom: 25px;
 }
 
 .edit-food-section-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: #3d2b1f;
+  display: inline-block;
   margin: 0;
 }
 
 .serving-note {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
   color: #7a6b5a;
-  font-style: italic;
+  margin-left: 8px;
 }
 
 .nutrition-grid {
@@ -501,15 +498,15 @@
 }
 
 @media (max-width: 600px) {
-  .edit-food-nutrition-header {
-    flex-direction: column; 
-    align-items: center;   
-    text-align: center;
-    gap: 4px;              
+.edit-food-nutrition-header {
+    text-align: center; 
   }
 
-  .edit-food-section-title {
-    font-size: 20px;
+  .serving-note {
+    display: block;   
+    margin-left: 0;
+    margin-top: 4px;
+    font-size: 14px;
   }
 
   .nutrition-grid {
