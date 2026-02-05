@@ -373,8 +373,8 @@
 
 .nutrition-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 0.8fr));
-  gap: 30px;
+  grid-template-columns: 1fr 1fr; 
+  gap: 20px 40px;
 }
 
 .edit-food-additional-info-card {
