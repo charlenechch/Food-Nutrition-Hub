@@ -473,9 +473,12 @@ const EditFoodPage = () => {
 
         {/* Nutritional Info */}
         <div className="edit-cultural-context-card">
-          <h3 className="edit-food-section-title">
-            Nutritional Information <span className="serving-note">(per serving)</span>
-          </h3>
+          <div className="edit-food-nutrition-header">
+            <h3 className="edit-food-section-title">
+              Nutritional Information
+            </h3>
+            <span className="serving-note">(per serving)</span>
+          </div>
           <div className="nutrition-grid">
             {[
               { label: "Calories", name: "calories" },
