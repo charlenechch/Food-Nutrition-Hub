@@ -488,6 +488,31 @@
   }
 }
 
+@media (max-width: 600px) {
+  .nutrition-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .nutrition-grid label {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 6px;
+    display: block;
+    color: #3d2b1f;
+  }
+
+  .nutrition-grid .edit-food-input {
+    background-color: #f3ece2;
+    border-radius: 12px;       
+    padding: 16px;            
+    border: none;
+    font-size: 16px;           
+    margin-bottom: 5px;      
+    height: auto;             
+  }
+}
+
 @media (max-width: 480px) {
   .confirm-modal h3 {
     font-size: 16px;
