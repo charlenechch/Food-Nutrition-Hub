@@ -484,6 +484,7 @@ ol {
     align-items: center;
     margin-top: 80px;
     gap: 15px;
+    padding: 0 10px;
   }
 
   .admin-recipe-edit-back-btn {
