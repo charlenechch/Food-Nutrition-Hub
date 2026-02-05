@@ -202,7 +202,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
               </ul>
             )}
           </div>
-          <button className="admin-recipe-btn-filter" onClick={() => setShowFilters(!showFilters)}>
+          <button className="admin-food-btn-filter" onClick={() => setShowFilters(!showFilters)}>
             <CiFilter className="filter-icon" /> Filters
           </button>
         </div>
