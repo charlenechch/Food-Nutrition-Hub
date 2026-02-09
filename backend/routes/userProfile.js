@@ -995,7 +995,7 @@ router.get("/:identifier", async (req, res) => {
       WHERE u.userID = ? 
          OR up.userProfileID = ? 
          OR u.firstname = ?`,
-      [cleanIdentifier, cleanIdentifier, cleanIdentifier] // Added 3rd parameter here
+      [identifier, identifier, identifier] 
     );
     
     console.log(`📄 Query returned ${rows.length} rows`);
