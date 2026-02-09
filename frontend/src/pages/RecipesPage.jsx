@@ -708,16 +708,35 @@ export default function RecipesPage() {
           })}
         </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="efp-pagination">
-            <button className="efp-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>‹ Prev</button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button key={i + 1} className={`efp-btn ${page === i + 1 ? "is-active" : ""}`} onClick={() => setPage(i + 1)}>{i + 1}</button>
-            ))}
-            <button className="efp-btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Next ›</button>
-          </div>
-        )}
+          {totalPages > 1 && (
+            <div className="community-pagination">
+              <button 
+                onClick={() => setPage(p => Math.max(p - 1, 1))} 
+                disabled={page === 1} 
+                className="community-page-btn nav-btn"
+              >
+                ← Prev
+              </button>
+              <div className="page-numbers">
+                {[...Array(totalPages)].map((_, i) => (
+                  <button 
+                    key={i + 1} 
+                    onClick={() => setPage(i + 1)} 
+                    className={`community-page-btn page-num ${page === i + 1 ? "active" : ""}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button 
+                onClick={() => setPage(p => Math.min(p + 1, totalPages))} 
+                disabled={page === totalPages} 
+                className="community-page-btn nav-btn"
+              >
+                Next →
+              </button>
+            </div>
+          )}
       </div>
       <Footer />
     </div>

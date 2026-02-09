@@ -824,37 +824,35 @@ const parseDietaryTags = (raw) => {
           </div>
         )}
 
-        {totalPages > 1 && (
-          <div className="efp-pagination">
-            <button
-              className="efp-btn"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              ‹ Prev
-            </button>
-
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i + 1}
-                className={`efp-btn ${
-                  currentPage === i + 1 ? "is-active" : ""
-                }`}
-                onClick={() => setCurrentPage(i + 1)}
+          {totalPages > 1 && (
+            <div className="community-pagination">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+                disabled={currentPage === 1} 
+                className="community-page-btn nav-btn"
               >
-                {i + 1}
+                ← Prev
               </button>
-            ))}
-
-            <button
-              className="efp-btn"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              Next ›
-            </button>
-          </div>
-        )}
+              <div className="page-numbers">
+                {[...Array(totalPages)].map((_, i) => (
+                  <button 
+                    key={i + 1} 
+                    onClick={() => setCurrentPage(i + 1)} 
+                    className={`community-page-btn page-num ${currentPage === i + 1 ? "active" : ""}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+                disabled={currentPage === totalPages} 
+                className="community-page-btn nav-btn"
+              >
+                Next →
+              </button>
+            </div>
+          )}
       </main>
 
       <Footer />
