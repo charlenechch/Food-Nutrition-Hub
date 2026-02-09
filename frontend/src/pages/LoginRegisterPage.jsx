@@ -647,6 +647,7 @@ export default function LoginRegisterPage() {
                     <div className="mh-password-hints">
                        <div className={regPasswordCriteria.length ? "valid" : "invalid"}>• 8+ Chars</div>
                        <div className={regPasswordCriteria.upper ? "valid" : "invalid"}>• Uppercase</div>
+                       <div className={regPasswordCriteria.lower ? "valid" : "invalid"}>• Lowercase</div>
                        <div className={regPasswordCriteria.number ? "valid" : "invalid"}>• Number</div>
                        <div className={regPasswordCriteria.special ? "valid" : "invalid"}>• Symbol</div>
                     </div>
