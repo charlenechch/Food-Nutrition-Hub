@@ -1325,8 +1325,10 @@
   .umg-table td {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
+    align-items: flex-start;
+    min-height: 40px;
+    height: auto;
+    padding: 10px 0;
     border-bottom: 1px dashed #f0e6da;
     white-space: normal;
     text-overflow: clip;
@@ -1341,13 +1343,37 @@
 
   .umg-table td::before {
     content: attr(data-label);
+    flex: 0 0 35%;
     font-weight: 700;
     color: #7b6148;
+    text-align: left;
     font-size: 13px;
   }
 
   .umg-subline {
     line-height: 1.4;
+  }
+
+  .umg-table td > div, .umg-table td > span {
+    flex: 1;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  .umg-ellipsis-td {
+    display: flex;
+    justify-content: center;
+    background: #fdfbf9; 
+    margin-top: 10px;
+    padding: 12px 0;
+    border-radius: 8px;
+    gap: 20px; 
+  }
+
+  .umg-ellipsis {
+    width: 44px; 
+    height: 44px;
+    font-size: 20px;
   }
 }
 
@@ -1360,6 +1386,15 @@
     flex-direction: column;
     text-align: center;
     gap: 10px;
+  }
+
+  .umg-table td[data-label="Last Login"], .umg-table td[data-label="Activity"] {
+    display: none;
+  }
+
+  .umg-name {
+    font-size: 16px;
+    margin-bottom: 4px;
   }
 }
 
