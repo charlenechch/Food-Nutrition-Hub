@@ -669,7 +669,7 @@ export default function UserManagement() {
                 ) : (
                   pageUsers.map(u => (
                     <tr key={u.id}>
-                      <td>
+                      <td data-label="User">
                         <div className="umg-name">{u.name}</div>
                         <div className="umg-subline">{u.email}</div>
                         <div className="umg-subline">{u.city}</div>
@@ -688,11 +688,11 @@ export default function UserManagement() {
                         </div>
                       </td>
 
-                      <td>
+                      <td data-label="Role">
                         <span className="umg-pill umg-pill-role">{u.role}</span>
                       </td>
 
-                      <td>
+                      <td data-label="Status">
                         <div className="umg-status-stack">
                           {/*  Show Activity pill (Active/Inactive) */}
                           {u.status === "Active" && (
@@ -719,16 +719,16 @@ export default function UserManagement() {
                         </div>
                       </td>
 
-                      <td>
+                      <td data-label="Activity">
                         <div className="umg-submissions">
                           {u.submissions} submissions
                         </div>
                         <div className="umg-subline">{u.approved} approved</div>
                       </td>
 
-                      <td>{u.lastLogin}</td>
+                      <td data-label="Last Login">{u.lastLogin}</td>
 
-                      <td className="umg-ellipsis-td">
+                      <td className="umg-ellipsis-td" data-label="Actions">
                           {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) ? (
                               <button
                                   className="umg-ellipsis umg-unsuspend-btn"

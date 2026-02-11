@@ -1211,7 +1211,6 @@
   background: #f7f2ec; 
 }
 
-/* Responsive modal width and spacing */
 @media (max-width: 540px) {
   .umg-modal {
     width: 96vw;
@@ -1235,8 +1234,11 @@
   }
 }
 
-/* Specific users mini picker */
-.umg-specific-list { display: grid; gap: 8px; }
+.umg-specific-list { 
+  display: grid; 
+  gap: 8px; 
+}
+
 .umg-specific-scroll {
   max-height: 220px;       
   overflow: auto;
@@ -1268,13 +1270,114 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  align-items: start; /* lines up labels nicely */
+  align-items: start; 
 }
 .umg-metric {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .umg-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .umg-card {
+    padding: 15px;
+  }
+  .umg-card-icon {
+    top: 15px;
+    right: 10px;
+  }
+
+  .umg-filterbar {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    gap: 10px;
+  }
+
+  .umg-search, .umg-select {
+    width: 100%;
+  }
+
+  .umg-table thead {
+    display: none;
+  }
+
+  .umg-table, .umg-table tbody, .umg-table tr, .umg-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .umg-table tr {
+    background: #fff;
+    border: 1px solid #eadfd3;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    padding: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  }
+
+  .umg-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed #f0e6da;
+    white-space: normal;
+    text-overflow: clip;
+  }
+  
+  .umg-table td:last-child {
+    border-bottom: none;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+  }
+
+  .umg-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #7b6148;
+    font-size: 13px;
+  }
+
+  .umg-subline {
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 480px) {
+  .umg-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .umg-header-row {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 740px) {
+  .umg-modal {
+    width: 95vw;
+    height: 90vh;
+    max-height: 90vh;
+  }
+
+  .umg-metrics-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .umg-modal-body {
+    padding: 15px;
+  }
 }
 
 /* === Content Moderation === */
