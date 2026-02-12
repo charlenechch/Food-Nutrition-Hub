@@ -283,12 +283,12 @@ app.use("/api/analytics", analyticsRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ---------- Health & Session ----------
-app.get("/api/auth/session", (req, res) => {
-  if (req.session && req.session.user) {
-    return res.status(200).json({ authenticated: true, user: req.session.user });
-  }
-  return res.status(401).json({ authenticated: false, message: "No active session" });
-});
+//app.get("/api/auth/session", (req, res) => {
+  //if (req.session && req.session.user) {
+    //return res.status(200).json({ authenticated: true, user: req.session.user });
+  //}
+  //return res.status(401).json({ authenticated: false, message: "No active session" });
+//});
 
 app.get("/", (req, res) => {
   res.send("🚀 Backend running with advanced security, MySQL & sessions!");
