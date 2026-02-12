@@ -94,7 +94,7 @@ export default function UserManagement() {
   const [roleFilter, setRoleFilter] = useState("All Roles");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
   const [page, setPage] = useState(1);
-  const initialPageSize = typeof window !== "undefined" && window.innerWidth <= 680 ? 4 : 10;
+  const initialPageSize = typeof window !== "undefined" && window.innerWidth <= 680 ? 6 : 10;
   const [pageSize, setPageSize] = useState(initialPageSize);
 
   //================
