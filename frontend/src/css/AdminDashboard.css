@@ -1280,78 +1280,77 @@
 }
 
 @media (max-width: 768px) {
-  .umg-table, 
-  .umg-table thead, 
-  .umg-table tbody, 
-  .umg-table th, 
-  .umg-table td, 
-  .umg-table tr { 
-    display: block; 
+  .umg-table, .umg-table tbody, .umg-table tr, .umg-table td {
+    display: block;
     width: 100%;
   }
 
-  .umg-table thead tr { 
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
+  .umg-table thead {
+    display: none; 
   }
 
   .umg-table tr {
-    background: #fff;
+    background: #ffffff;
     border: 1px solid #eadfd3;
-    border-radius: 12px;
+    border-radius: 16px; 
     margin-bottom: 20px;
-    padding: 10px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
   }
 
   .umg-table td {
-    border: none;
-    border-bottom: 1px solid #f7efe6;
-    position: relative;
-    padding: 12px 8px 12px 45%; 
-    white-space: normal;
-    text-align: right;
-    min-height: 45px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: flex-end;
-  }
-
-  .umg-table td:last-child {
-    border-bottom: 0;
-    justify-content: center;
-    padding-left: 10px;
-    background: #fdfbf9;
-    margin-top: 10px;
-    border-radius: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0e6da; 
+    min-height: 44px;
   }
 
   .umg-table td::before {
     content: attr(data-label);
-    position: absolute;
-    left: 12px;
-    width: 40%;
-    white-space: nowrap;
-    text-align: left;
     font-weight: 700;
-    color: #7b6148;
-    font-size: 13px;
-    text-transform: uppercase;
+    color: #5a3e1b;
+    font-size: 14px;
   }
 
-  .umg-actions-cell {
+  .umg-table td > div, 
+  .umg-table td > span {
+    text-align: right;
+    font-size: 14px;
+    color: #3b2a16;
+  }
+
+  .umg-actions-mobile-row {
+    border-bottom: none; 
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 15px;
+    padding-top: 5px;
+  }
+
+  .umg-mobile-action-btn {
     display: flex;
-    gap: 12px !important;
-    padding: 15px !important;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    background: #fffaf5;
+    border: 1px solid #eadfd3;
+    border-radius: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
   }
 
-  .umg-ellipsis {
-    flex: 1; 
-    height: 40px;
-    justify-content: center;
+  .umg-mobile-action-btn.edit { color: #5a3e1b; }
+  .umg-mobile-action-btn.delete { color: #dc2626; }
+
+  .umg-table td[data-label="Actions"] {
+    display: none; 
   }
 }
+
 @media (max-width: 480px) {
   .umg-cards {
     grid-template-columns: 1fr;
