@@ -1280,103 +1280,78 @@
 }
 
 @media (max-width: 768px) {
-  .umg-cards {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .umg-card {
-    padding: 15px;
-  }
-  .umg-card-icon {
-    top: 15px;
-    right: 10px;
-  }
-
-  .umg-filterbar {
-    display: flex;
-    flex-direction: column;
-    padding: 15px;
-    gap: 10px;
-  }
-
-  .umg-search, .umg-select {
+  .umg-table, 
+  .umg-table thead, 
+  .umg-table tbody, 
+  .umg-table th, 
+  .umg-table td, 
+  .umg-table tr { 
+    display: block; 
     width: 100%;
   }
 
-  .umg-table thead {
-    display: none;
-  }
-
-  .umg-table, .umg-table tbody, .umg-table tr, .umg-table td {
-    display: block;
-    width: 100%;
+  .umg-table thead tr { 
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
   }
 
   .umg-table tr {
     background: #fff;
     border: 1px solid #eadfd3;
     border-radius: 12px;
-    margin-bottom: 15px;
-    padding: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    margin-bottom: 20px;
+    padding: 10px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   }
 
   .umg-table td {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    min-height: 40px;
-    height: auto;
-    padding: 10px 0;
-    border-bottom: 1px dashed #f0e6da;
+    border: none;
+    border-bottom: 1px solid #f7efe6;
+    position: relative;
+    padding: 12px 8px 12px 45%; 
     white-space: normal;
-    text-overflow: clip;
+    text-align: right;
+    min-height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
   }
-  
+
   .umg-table td:last-child {
-    border-bottom: none;
+    border-bottom: 0;
     justify-content: center;
-    gap: 15px;
+    padding-left: 10px;
+    background: #fdfbf9;
     margin-top: 10px;
+    border-radius: 8px;
   }
 
   .umg-table td::before {
     content: attr(data-label);
-    flex: 0 0 35%;
+    position: absolute;
+    left: 12px;
+    width: 40%;
+    white-space: nowrap;
+    text-align: left;
     font-weight: 700;
     color: #7b6148;
-    text-align: left;
     font-size: 13px;
+    text-transform: uppercase;
   }
 
-  .umg-subline {
-    line-height: 1.4;
-  }
-
-  .umg-table td > div, .umg-table td > span {
-    flex: 1;
-    text-align: right;
-    word-break: break-word;
-  }
-
-  .umg-ellipsis-td {
+  .umg-actions-cell {
     display: flex;
-    justify-content: center;
-    background: #fdfbf9; 
-    margin-top: 10px;
-    padding: 12px 0;
-    border-radius: 8px;
-    gap: 20px; 
+    gap: 12px !important;
+    padding: 15px !important;
   }
 
   .umg-ellipsis {
-    width: 44px; 
-    height: 44px;
-    font-size: 20px;
+    flex: 1; 
+    height: 40px;
+    justify-content: center;
   }
 }
-
 @media (max-width: 480px) {
   .umg-cards {
     grid-template-columns: 1fr;
