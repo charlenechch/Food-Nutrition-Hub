@@ -1281,16 +1281,22 @@
 
 @media (max-width: 768px) {
   .umg-cards {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 
-  .umg-card {
-    padding: 15px;
+.umg-card {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
+
   .umg-card-icon {
-    top: 15px;
-    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 15px;
+    opacity: 0.3; 
   }
 
   .umg-filterbar {
@@ -1377,6 +1383,32 @@
   }
 }
 
+@media (max-width: 600px) {
+  .umg-cards {
+    grid-template-columns: 1fr; 
+    gap: 10px;
+  }
+
+  .umg-card {
+    display: flex;
+    align-items: center; 
+    padding: 12px 16px;
+  }
+
+  .umg-card-icon {
+    position: static;
+    order: -1; 
+    margin-right: 15px;
+    transform: none;
+    opacity: 1;
+  }
+  
+  .umg-card-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
 @media (max-width: 480px) {
   .umg-cards {
     grid-template-columns: 1fr;
@@ -1395,6 +1427,15 @@
   .umg-name {
     font-size: 16px;
     margin-bottom: 4px;
+  }
+
+  .umg-card-value {
+    font-size: 18px; 
+  }
+  
+  .umg-card-icon svg {
+    width: 30px; 
+    height: 30px;
   }
 }
 
