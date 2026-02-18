@@ -670,52 +670,58 @@ export default function UserManagement() {
                   pageUsers.map(u => (
                     <tr key={u.id}>
                       <td data-label="User">
-                        <div className="umg-name">{u.name}</div>
-                        <div className="umg-subline">{u.email}</div>
-                        <div className="umg-subline">{u.city}</div>
-                        
-                        {/* Corrected inline status for mobile */}
-                        <div className="umg-status-inline">
-                          {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) && (
-                            <span className="umg-pill umg-pill-suspended">Suspended</span>
-                          )}
-                          {u.status === "Active" && (
-                            <span className="umg-pill umg-pill-active">Active</span>
-                          )}
-                          {u.status === "Inactive" && (
-                            <span className="umg-pill umg-pill-inactive">Inactive</span>
-                          )}
+                        <div className="umg-mobile-content">
+                          <div className="umg-name">{u.name}</div>
+                          <div className="umg-subline">{u.email}</div>
+                          <div className="umg-subline">{u.city}</div>
+                          
+                          {/* Corrected inline status for mobile */}
+                          <div className="umg-status-inline">
+                            {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) && (
+                              <span className="umg-pill umg-pill-suspended">Suspended</span>
+                            )}
+                            {u.status === "Active" && (
+                              <span className="umg-pill umg-pill-active">Active</span>
+                            )}
+                            {u.status === "Inactive" && (
+                              <span className="umg-pill umg-pill-inactive">Inactive</span>
+                            )}
+                          </div>
                         </div>
                       </td>
 
                       <td data-label="Role">
-                        <span className="umg-pill umg-pill-role">{u.role}</span>
+                        <div className="umg-mobile-content">
+                          <span className="umg-pill umg-pill-role">{u.role}</span>
+                        </div>
                       </td>
 
                       <td data-label="Status">
-                        <div className="umg-status-stack">
-                          {/*  Show Activity pill (Active/Inactive) */}
-                          {u.status === "Active" && (
-                            <span className="umg-pill umg-pill-active">Active</span>
-                          )}
-                          {u.status === "Inactive" && (
-                            <span className="umg-pill umg-pill-inactive">Inactive</span>
-                          )}
+                        <div className="umg-mobile-content">
+                          <div className="umg-status-stack">
+                            {/*  Show Activity pill (Active/Inactive) */}
+                            {u.status === "Active" && (
+                              <span className="umg-pill umg-pill-active">Active</span>
+                            )}
+                            {u.status === "Inactive" && (
+                              <span className="umg-pill umg-pill-inactive">Inactive</span>
+                            )}
 
-                          {/* Show Suspension pill if they are suspended */}
-                          {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) && (
-                            <>
-                              <span className="umg-pill umg-pill-suspended">Suspended</span>
-                              <div className="umg-status-note">
-                                {u.suspensionReason && (
-                                  <div>Reason: {u.suspensionReason}</div>
-                                )}
-                                {u.suspendedUntil && (
-                                  <div>Until: {u.suspendedUntil.split('T')[0]}</div>
-                                )}
-                              </div>
-                            </>
-                          )}
+                            {/* Show Suspension pill if they are suspended */}
+                            {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) && (
+                              <>
+                                <span className="umg-pill umg-pill-suspended">Suspended</span>
+                                <div className="umg-status-note">
+                                  {u.suspensionReason && (
+                                    <div>Reason: {u.suspensionReason}</div>
+                                  )}
+                                  {u.suspendedUntil && (
+                                    <div>Until: {u.suspendedUntil.split('T')[0]}</div>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </td>
 
@@ -728,7 +734,7 @@ export default function UserManagement() {
 
                       <td data-label="Last Login">{u.lastLogin}</td>
 
-                      <td className="umg-ellipsis-td" data-label="Actions">
+                      <td className="umg-ellipsis-td umg-mobile-action-row" data-label="Actions">
                           {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) ? (
                               <button
                                   className="umg-ellipsis umg-unsuspend-btn"
@@ -748,14 +754,14 @@ export default function UserManagement() {
                           )}
 
                         <button
-                            className="umg-ellipsis"
+                            className="umg-ellipsis umg-mobile-action-btn"
                             title="Edit user"
                             onClick={() => openEditUser(u)}
                         >
                             <HiOutlinePencilAlt />
                         </button>
                         <button
-                            className="umg-ellipsis"
+                            className="umg-ellipsis umg-mobile-action-btn delete"
                             title="Delete user"
                             onClick={() => deleteUserById(u.id)}
                         >
