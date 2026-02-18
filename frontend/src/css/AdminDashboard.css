@@ -1280,31 +1280,32 @@
 }
 
 @media (max-width: 768px) {
+  .umg-table thead { 
+    display: none; 
+  }
+
   .umg-table, .umg-table tbody, .umg-table tr, .umg-table td {
     display: block;
     width: 100%;
   }
 
-  .umg-table thead {
-    display: none; 
-  }
-
   .umg-table tr {
-    background: #ffffff;
+    background: #fff;
     border: 1px solid #eadfd3;
-    border-radius: 16px; 
-    margin-bottom: 20px;
+    border-radius: 16px;
+    margin-bottom: 24px;
     padding: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
   .umg-table td {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; 
     align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #f0e6da; 
-    min-height: 44px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f2ede7; 
+    min-height: 50px;
+    white-space: normal; 
   }
 
   .umg-table td::before {
@@ -1312,45 +1313,52 @@
     font-weight: 700;
     color: #5a3e1b;
     font-size: 14px;
+    flex-shrink: 0;
   }
 
-  .umg-table td > div, 
-  .umg-table td > span {
+  .umg-mobile-user-info {
     text-align: right;
-    font-size: 14px;
-    color: #3b2a16;
+  }
+  
+  .umg-name { 
+    font-size: 15px; 
+    font-weight: 600; 
+  }
+  .umg-subline { 
+    font-size: 12px; 
+    color: #8d6a46; 
+    line-height: 1.2; 
   }
 
-  .umg-actions-mobile-row {
+  .umg-mobile-actions-container {
     border-bottom: none; 
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     gap: 12px;
-    margin-top: 15px;
-    padding-top: 5px;
+    padding-top: 16px;
+    justify-content: center;
   }
 
-  .umg-mobile-action-btn {
+  .umg-mobile-btn {
+    flex: 1; 
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 48px;
     background: #fffaf5;
     border: 1px solid #eadfd3;
-    border-radius: 10px;
-    font-size: 20px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: background 0.2s;
+    font-size: 20px;
   }
 
-  .umg-mobile-action-btn.edit { color: #5a3e1b; }
-  .umg-mobile-action-btn.delete { color: #dc2626; }
+  .umg-mobile-btn.delete {
+    color: #dc2626;
+  }
 
-  .umg-table td[data-label="Actions"] {
-    display: none; 
+  .umg-ellipsis-td { 
+    display: none !important; 
   }
 }
-
 @media (max-width: 480px) {
   .umg-cards {
     grid-template-columns: 1fr;
