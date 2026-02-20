@@ -1400,12 +1400,6 @@
   }
 }
 
-@media (min-width: 769px) {
-  .umg-mobile-email {
-    display: none;
-  }
-}
-
 @media (max-width: 480px) {
   .umg-cards {
     grid-template-columns: 1fr;
