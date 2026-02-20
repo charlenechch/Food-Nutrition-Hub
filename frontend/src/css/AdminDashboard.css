@@ -1281,9 +1281,10 @@
 
 @media (max-width: 768px) {
   .umg-table th,
-  .umg-table td[data-label="Contributions"],
+  .umg-table td[data-label="Activity"],
   .umg-table td[data-label="Last Login"],
-  .umg-city-desktop {
+  .umg-city-desktop,
+  .umg-mobile-email {
     display: none !important;
   }
 
