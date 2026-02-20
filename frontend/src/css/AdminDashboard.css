@@ -1279,6 +1279,10 @@
   gap: 6px;
 }
 
+.umg-mobile-only-row {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .umg-table th,
   .umg-table td[data-label="Activity"],
@@ -1377,6 +1381,22 @@
 
   .umg-table td.umg-mobile-action-row .umg-ellipsis.delete {
     color: #d9534f;
+  }
+
+  .umg-table td.umg-mobile-only-row {
+    display: flex ; 
+  }
+
+  .umg-truncate-email {
+    flex: 1;
+    min-width: 0; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #8d6a46; 
+    font-size: 14px;
+    text-align: right;
+    padding-left: 16px; 
   }
 }
 

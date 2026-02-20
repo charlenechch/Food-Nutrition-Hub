@@ -690,6 +690,12 @@ export default function UserManagement() {
                         </div>
                       </td>
 
+                      <td data-label="Email" className="umg-mobile-only-row">
+                        <div className="umg-mobile-content umg-truncate-email" title={u.email}>
+                          {u.email}
+                        </div>
+                      </td>
+
                       <td data-label="Role">
                         <div className="umg-mobile-content">
                           <span className="umg-pill umg-pill-role">{u.role}</span>
