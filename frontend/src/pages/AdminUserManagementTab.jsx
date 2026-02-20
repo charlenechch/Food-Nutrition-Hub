@@ -672,8 +672,8 @@ export default function UserManagement() {
                       <td data-label="User">
                         <div className="umg-mobile-content">
                           <div className="umg-name">{u.name}</div>
-                          <div className="umg-subline">{u.email}</div>
-                          <div className="umg-subline">{u.city}</div>
+                          <div className="umg-subline umg-mobile-email">{u.email}</div>
+                          <div className="umg-subline umg-city-desktop">{u.city}</div>
                           
                           {/* Corrected inline status for mobile */}
                           <div className="umg-status-inline">
@@ -699,7 +699,6 @@ export default function UserManagement() {
                       <td data-label="Status">
                         <div className="umg-mobile-content">
                           <div className="umg-status-stack">
-                            {/*  Show Activity pill (Active/Inactive) */}
                             {u.status === "Active" && (
                               <span className="umg-pill umg-pill-active">Active</span>
                             )}
@@ -734,7 +733,7 @@ export default function UserManagement() {
 
                       <td data-label="Last Login">{u.lastLogin}</td>
 
-                      <td className="umg-ellipsis-td umg-mobile-action-row" data-label="Actions">
+                      <td className="umg-ellipsis-td umg-mobile-action-row umg-mobile-actions" data-label="Actions">
                           {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) ? (
                               <button
                                   className="umg-ellipsis umg-unsuspend-btn"
