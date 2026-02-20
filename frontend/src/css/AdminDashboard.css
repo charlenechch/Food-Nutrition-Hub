@@ -1403,6 +1403,9 @@
   .umg-table thead {
     display: none;
   }
+
+  .umg-table tbody tr:first-child {
+    margin-top: 16px;
 }
 
 @media (max-width: 480px) {
