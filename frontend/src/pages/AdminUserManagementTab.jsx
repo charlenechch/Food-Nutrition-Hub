@@ -733,7 +733,7 @@ export default function UserManagement() {
 
                       <td data-label="Last Login">{u.lastLogin}</td>
 
-                      <td className="umg-ellipsis-td umg-mobile-action-row umg-mobile-actions" data-label="Actions">
+                      <td className="umg-ellipsis-td umg-mobile-action-row" data-label="Actions">
                           {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) ? (
                               <button
                                   className="umg-ellipsis umg-unsuspend-btn"
