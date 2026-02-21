@@ -1413,8 +1413,8 @@
     flex-direction: row;
     justify-content: space-between; 
     align-items: center;
-    width: 100%;
-    gap: 12px;
+    width: 100% !important;
+    gap: 12px !important;
     padding-top: 16px;
     padding-bottom: 0;
     border-bottom: none;
@@ -1427,8 +1427,8 @@
   }
 
   .umg-table td.umg-mobile-action-row .umg-ellipsis {
-    flex: 1 1 0%; 
-    width: 100%; 
+    flex: 1 1 0% !important; 
+    width: 100% !important; 
     height: 44px; 
     background: #ffffff;
     border: 1px solid #eadfd3;
