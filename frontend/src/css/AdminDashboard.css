@@ -1413,10 +1413,10 @@
     border-bottom: none;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
-    gap: 12px;
+    justify-content: flex-end; 
+    gap: 12px; 
     padding-top: 16px;
-    margin-top: 4px; 
+    margin-top: 8px;
     padding-bottom: 0;
   }
 
@@ -1425,38 +1425,20 @@
   }
 
   .umg-table td.umg-mobile-action-row .umg-ellipsis {
-    flex: 1;
-    height: 44px;
-    border: none; 
-    border-radius: 12px; 
+    flex: 0 0 42px; 
+    width: 42px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.1s ease; 
-  }
-
-  .umg-table td.umg-mobile-action-row .umg-ellipsis:active {
-    transform: scale(0.94);
-  }
-
-  .umg-table td.umg-mobile-action-row .umg-edit-btn {
-    background: #f7f1e9;
-    color: #7b4f1d;
+    background: transparent; 
+    border: 1px solid #eadfd3; 
+    border-radius: 8px;
+    color: #7b4f1d; 
   }
 
   .umg-table td.umg-mobile-action-row .umg-ellipsis.delete {
-    background: #fff0f0;
-    color: #dc2626;
-  }
-
-  .umg-table td.umg-mobile-action-row .umg-suspend-btn {
-    background: #fff6eb;
-    color: #c27803;
-  }
-
-  .umg-table td.umg-mobile-action-row .umg-unsuspend-btn {
-    background: #ecfdf5;
-    color: #059669;
+    color: #dc2626; 
   }
 }
 
