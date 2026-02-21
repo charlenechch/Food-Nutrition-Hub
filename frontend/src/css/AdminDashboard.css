@@ -1411,13 +1411,13 @@
   .umg-table td.umg-mobile-action-row {
     border-top: 1px solid #f5ede4; 
     border-bottom: none;
-    display: flex !important;
+    display: flex;
     flex-direction: row;
     justify-content: space-between;
     gap: 12px;
-    padding-top: 16px !important;
+    padding-top: 16px;
     margin-top: 4px; 
-    padding-bottom: 0 !important;
+    padding-bottom: 0;
   }
 
   .umg-table td.umg-mobile-action-row::before {
@@ -1432,7 +1432,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.1s ease; /* Smooth tap animation */
+    transition: transform 0.1s ease; 
   }
 
   .umg-table td.umg-mobile-action-row .umg-ellipsis:active {
