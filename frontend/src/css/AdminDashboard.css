@@ -1409,32 +1409,32 @@
   }
 
   .umg-table td.umg-mobile-action-row {
-    display: flex !important;
-    flex-direction: row !important;
-    width: 100% !important; 
-    gap: 12px !important;
-    padding-top: 16px !important;
-    padding-bottom: 0 !important;
-    border-bottom: none !important;
-    border-top: 1px dashed #f0e6da !important;
-    margin-top: 8px !important;
+    display: flex;
+    flex-direction: row;
+    width: 100%; 
+    gap: 12px;
+    padding-top: 16px;
+    padding-bottom: 0;
+    border-bottom: none;
+    border-top: 1px dashed #f0e6da;
+    margin-top: 8px;
   }
 
   .umg-table td.umg-mobile-action-row::before {
-    display: none !important;
+    display: none;
   }
 
   .umg-table td.umg-mobile-action-row .umg-ellipsis {
-    flex: 1 1 0% !important; 
-    width: 100% !important; 
-    max-width: none !important; 
-    height: 44px !important;
+    flex: 1 1 0%; 
+    width: 100%; 
+    max-width: none; 
+    height: 44px;
     background: #ffffff;
     border: 1px solid #eadfd3;
     border-radius: 8px;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #5a3e1b;
   }
 
@@ -1444,6 +1444,11 @@
 
   .umg-table td.umg-mobile-action-row .umg-ellipsis.delete {
     color: #dc2626;
+  }
+
+  .umg-table th:last-child,
+  .umg-table td:last-child {
+    max-width: auto;
   }
 }
 
