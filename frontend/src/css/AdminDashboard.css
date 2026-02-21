@@ -1448,7 +1448,7 @@
 
   .umg-table th:last-child,
   .umg-table td:last-child {
-    max-width: auto;
+    max-width: none;
   }
 }
 
