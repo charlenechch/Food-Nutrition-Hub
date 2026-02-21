@@ -1411,7 +1411,7 @@
   .umg-table td.umg-mobile-action-row {
     display: flex !important;
     flex-direction: row;
-    justify-content: flex-end; 
+    justify-content: space-between; 
     align-items: center;
     gap: 12px; 
     padding-top: 16px !important;
@@ -1419,6 +1419,7 @@
     border-bottom: none;
     border-top: 1px dashed #f0e6da; 
     margin-top: 8px;
+    width: 100%;
   }
 
   .umg-table td.umg-mobile-action-row::before {
@@ -1426,9 +1427,9 @@
   }
 
   .umg-table td.umg-mobile-action-row .umg-ellipsis {
-    flex: 0 0 auto; 
-    width: 44px; 
-    height: 44px;
+    flex: 1; 
+    width: auto; 
+    height: 44px; 
     background: #ffffff;
     border: 1px solid #eadfd3;
     border-radius: 8px;
