@@ -16,7 +16,7 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
 
   // === Pagination ===
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 1;
+  const itemsPerPage = 5;
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
