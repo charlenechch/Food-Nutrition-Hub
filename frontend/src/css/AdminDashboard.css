@@ -1175,21 +1175,48 @@
     width: 96vw;
     height: 88vh;        
   }
+  
   .umg-modal-body { 
-    padding: 12px; 
-    gap: 10px; 
+    padding: 16px; 
+    gap: 12px; 
   }
+
   .umg-modal-footer { 
-    padding: 10px 12px; 
-    flex-wrap: wrap;
+    display: flex;
+    flex-direction: column; 
+    padding: 16px; 
+    gap: 10px;
   }
-  .umg-footer-left { 
-    order: 1; 
-    width: 100%; 
-    justify-content: flex-start; 
+
+  .umg-modal-footer button {
+    width: 100%;
+    min-height: 48px;
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
   }
+
   .umg-footer-spacer { 
     display: none; 
+  }
+
+  .umg-modal-footer .umg-btn-primary { 
+    order: 1; 
+  }
+  .umg-modal-footer .umg-btn-ghost { 
+    order: 2; 
+  }
+  .umg-footer-left { 
+    display: flex;
+    width: 100%; 
+    order: 3; 
+  }
+
+  .umg-modal-footer .umg-btn-danger:not(.umg-footer-left .umg-btn-danger) { 
+    order: 1; 
+  }
+  .umg-modal-footer .umg-btn-secondary { 
+    order: 2; 
   }
 }
 
