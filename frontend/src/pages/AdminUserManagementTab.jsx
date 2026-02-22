@@ -778,7 +778,7 @@ export default function UserManagement() {
                 )}
               </tbody>
             </table>
-=            {totalPages > 1 && (
+            {totalPages > 1 && (
               <div className="admin-pagination" style={{ marginTop: "20px", marginBottom: "10px" }}>
                 <button 
                   onClick={goPrev} 
