@@ -107,6 +107,39 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
     sectionType === "approved"
       ? "Approved Community Posts"
       : "Pending / Rejected Community Posts";
+  
+  const renderPageNumbers = () => {
+    let pages = [];
+
+    if (totalPages <= 4) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      let start = Math.max(1, currentPage - 1);
+      let end = Math.min(totalPages, currentPage + 1);
+
+      if (currentPage === 1) end = 3;
+      if (currentPage === totalPages) start = totalPages - 2;
+
+      if (start > 1) pages.push('...');
+      
+      for (let i = start; i <= end; i++) pages.push(i);
+      
+      if (end < totalPages) pages.push('...');
+    }
+
+    return pages.map((p, index) => (
+      <button
+        key={index}
+        onClick={() => p !== '...' && handlePageChange(p)}
+        className={`${currentPage === p ? "active" : ""} ${p === '...' ? "umg-dots" : ""}`}
+        disabled={p === '...'}
+      >
+        {p}
+      </button>
+    ));
+  };
 
   const handleDeleteClick = (postId) => {
     setModal({
@@ -299,19 +332,27 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
         </table>
       </div>
 
-      <div className="admin-pagination" style={{ marginBottom: "20px" }}>
-          <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+      {totalPages > 1 && (
+        <div className="admin-pagination" style={{ marginBottom: "20px" }}>
+          <button
+            className="umg-prev-next"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
             ‹ Prev
           </button>
-          {[...Array(totalPages)].map((_, i) => (
-            <button key={i} onClick={() => handlePageChange(i + 1)} className={currentPage === i + 1 ? "active" : ""}>
-              {i + 1}
-            </button>
-          ))}
-          <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+
+          {renderPageNumbers()}
+
+          <button
+            className="umg-prev-next"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
             Next ›
           </button>
-      </div>
+        </div>
+      )}
 
       <Modal open={modal.open} title={modal.title} icon={modal.icon} primaryText={modal.primaryText} onClose={closeModal} onPrimary={modal.onPrimary}>
         {modal.message}
