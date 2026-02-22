@@ -554,20 +554,30 @@ export default function UserManagement() {
     }
 
     const renderPageNumbers = () => {
+      let start = page - 1;
+      let end = page + 1;
+
+      if (page === 1) {
+        end = 3;
+      } else if (page === totalPages) {
+        start = totalPages - 2;
+      }
+
+      start = Math.max(1, start);
+      end = Math.min(totalPages, end);
+
       let pages = [];
-      
-      if (totalPages <= 5) {
-        for (let i = 1; i <= totalPages; i++) pages.push(i);
-      } else {
-        if (page <= 3) {
-          pages = [1, 2, 3, 4, '...', totalPages];
-        } 
-        else if (page >= totalPages - 2) {
-          pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-        } 
-        else {
-          pages = [1, '...', page - 1, page, page + 1, '...', totalPages];
-        }
+
+      if (start > 1) {
+        pages.push('...');
+      }
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (end < totalPages) {
+        pages.push('...');
       }
 
       return pages.map((p, index) => (
