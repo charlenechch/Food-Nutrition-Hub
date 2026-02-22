@@ -143,7 +143,6 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
         </tbody>
       </table>
 
-      {/* === Pagination Controls === */}
       {totalPages > 1 && (
         <div className="admin-pagination">
           <button
