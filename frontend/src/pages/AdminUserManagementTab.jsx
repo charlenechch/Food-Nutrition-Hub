@@ -778,51 +778,33 @@ export default function UserManagement() {
                 )}
               </tbody>
             </table>
-            <div className="umg-pager">
-              <div className="umg-pager-left">
-                <label className="umg-pager-label">Rows per page:</label>
-                <select
-                  value={pageSize}
-                    onChange={(e) => {
-                      const size = Number(e.target.value);
-                      setPageSize(size); 
-                      setPage(1);        
-                    }}
-                  onBlur={(e) => setPageSize(Number(e.target.value))}
-                  className="umg-pager-select"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                </select>
-
-                <span className="umg-pager-range">
-                  {totalUsersFiltered === 0 ? "0-0 of 0" : `${startIdx + 1}–${endIdx} of ${totalUsersFiltered}`}
-                </span>
-              </div>
-
-              <div className="umg-pager-right">
-                <button
-                  className="umg-page-btn"
-                  onClick={goPrev}
+=            {totalPages > 1 && (
+              <div className="admin-pagination" style={{ marginTop: "20px", marginBottom: "10px" }}>
+                <button 
+                  onClick={goPrev} 
                   disabled={page === 1}
-                  aria-label="Previous page"
                 >
-                  ‹
+                  ‹ Prev
                 </button>
-
-                <span className="umg-page-indicator">{page} / {totalPages}</span>
-
-                <button
-                  className="umg-page-btn"
-                  onClick={goNext}
+                
+                {[...Array(totalPages)].map((_, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => setPage(i + 1)} 
+                    className={page === i + 1 ? "active" : ""}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                
+                <button 
+                  onClick={goNext} 
                   disabled={page === totalPages}
-                  aria-label="Next page"
                 >
-                  ›
+                  Next ›
                 </button>
               </div>
-            </div>
+            )}
           </div>
         {showUserModal && (
             <div
