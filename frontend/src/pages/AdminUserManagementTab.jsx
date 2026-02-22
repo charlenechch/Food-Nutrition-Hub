@@ -552,11 +552,39 @@ export default function UserManagement() {
         },
       });
     }
+
+    const renderPageNumbers = () => {
+      let pages = [];
+      
+      if (totalPages <= 5) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+      } else {
+        if (page <= 3) {
+          pages = [1, 2, 3, 4, '...', totalPages];
+        } 
+        else if (page >= totalPages - 2) {
+          pages = [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        } 
+        else {
+          pages = [1, '...', page - 1, page, page + 1, '...', totalPages];
+        }
+      }
+
+      return pages.map((p, index) => (
+        <button
+          key={index}
+          onClick={() => p !== '...' && setPage(p)}
+          className={`${page === p ? "active" : ""} ${p === '...' ? "umg-dots" : ""}`}
+          disabled={p === '...'}
+        >
+          {p}
+        </button>
+      ));
+    };
   
     return (
         // User Management
         <div className="user-mgmt">
-          {/* ✅ ADD THESE 3 BLOCKS HERE - RIGHT AFTER <div className="user-mgmt"> */}
           
           {/* Loading State */}
           {loading && (
@@ -778,33 +806,29 @@ export default function UserManagement() {
                 )}
               </tbody>
             </table>
+
             {totalPages > 1 && (
-              <div className="admin-pagination" style={{ marginTop: "20px", marginBottom: "10px" }}>
+              <div className="admin-pagination">
                 <button 
                   onClick={goPrev} 
                   disabled={page === 1}
+                  className="umg-prev-next"
                 >
                   ‹ Prev
                 </button>
                 
-                {[...Array(totalPages)].map((_, i) => (
-                  <button 
-                    key={i} 
-                    onClick={() => setPage(i + 1)} 
-                    className={page === i + 1 ? "active" : ""}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+                {renderPageNumbers()}
                 
                 <button 
                   onClick={goNext} 
                   disabled={page === totalPages}
+                  className="umg-prev-next"
                 >
                   Next ›
                 </button>
               </div>
             )}
+
           </div>
         {showUserModal && (
             <div
