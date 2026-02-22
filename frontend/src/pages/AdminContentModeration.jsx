@@ -32,6 +32,45 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
     ? "Approved Content Database"
     : "Pending / Rejected Content Review";
 
+  const renderPageNumbers = () => {
+    let start = currentPage - 1;
+    let end = currentPage + 1;
+
+    if (currentPage === 1) {
+      end = 3;
+    } else if (currentPage === totalPages) {
+      start = totalPages - 2;
+    }
+
+    start = Math.max(1, start);
+    end = Math.min(totalPages, end);
+
+    let pages = [];
+
+    if (start > 1) {
+      pages.push('...');
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    if (end < totalPages) {
+      pages.push('...');
+    }
+
+    return pages.map((p, index) => (
+      <button
+        key={index}
+        onClick={() => p !== '...' && handlePageChange(p)}
+        className={`${currentPage === p ? "active" : ""} ${p === '...' ? "umg-dots" : ""}`}
+        disabled={p === '...'}
+      >
+        {p}
+      </button>
+    ));
+  };
+
   // === Defensive check for empty content ===
   if (!formattedContent || formattedContent.length === 0) {
     return (
@@ -108,23 +147,17 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
       {totalPages > 1 && (
         <div className="admin-pagination">
           <button
+            className="umg-prev-next"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
             ‹ Prev
           </button>
 
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              onClick={() => handlePageChange(i + 1)}
-              className={currentPage === i + 1 ? "active" : ""}
-            >
-              {i + 1}
-            </button>
-          ))}
+          {renderPageNumbers()}
 
           <button
+            className="umg-prev-next"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
