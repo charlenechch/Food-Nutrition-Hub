@@ -202,62 +202,32 @@ export default function NutritionAnalyzerPage() {
     try {
       // IMAGE → GPT
       if (selectedFile) {
-        const gpt = await analyzeWithGPT(selectedFile);
+          const gpt = await analyzeWithGPT(selectedFile);
 
-        const normalisedAlts = (gpt.alternatives || []).map((alt) => ({
-          title: alt.title || alt.name || "",
-          description: alt.description || alt.details || alt.note || "",
-        }));
+          const detected = gpt.food_name || "Unknown Food";
+          const altNames = Array.isArray(gpt.alternative_names) ? gpt.alternative_names : [];
 
-        setResult({
-          source: "gpt",
-          food_name: gpt.food || gpt.food_name || "Unknown Food",
-          confidence: gpt.confidence,
-          nutrition: {
-            Energy_kcal:
-              gpt.nutrition?.Energy_kcal ??
-              gpt.Energy_kcal ??
-              null,
+          // 1) Try DB lookup using detected name
+          const dbRes = await fetch(
+            `${API_URL}/api/ai/lookup?name=${encodeURIComponent(detected)}`,
+            { credentials: "include" }
+          );
+          const dbData = await dbRes.json();
 
-            Protein_g:
-              gpt.nutrition?.Protein_g ??
-              gpt.Protein_g ??
-              null,
+          if (dbData.found && dbData.item) {
+            setSuggestions([]);
+            setResult(shapeResultFromDB(dbData.item));
+            return;
+          }
 
-            Fat_g:
-              gpt.nutrition?.Fat_g ??
-              gpt.Fat_g ??
-              null,
-
-            Carbohydrates_g:
-              gpt.nutrition?.Carbohydrates_g ??
-              gpt.Carbohydrates_g ??
-              null,
-
-            Fiber_g:
-              gpt.nutrition?.Fiber_g ??
-              gpt.Fiber_g ??
-              null,
-
-            VitaminC_mg:
-              gpt.nutrition?.VitaminC_mg ??
-              gpt.VitaminC_mg ??
-              null,
-          },
-
-
-          tips: gpt.health_notes ? [gpt.health_notes] : [],
-          alternatives: normalisedAlts,
-          meta: {
-            category: gpt.category,
-            commonIngredients: gpt.ingredients || [],
-            portion: gpt.portion_size,
-            imageUsed: true,
-          },
-        });
-
-        return;
-      }
+          // 2) If not found, show alternatives as suggestions (chips)
+          setResult(null);
+          setSuggestions([detected, ...altNames].filter(Boolean));
+          setError(
+            `Detected: ${detected}. Not found in database — please select a suggestion or type the exact food name.`
+          );
+          return;
+        }
 
       // TEXT MODE
       const dbRes = await fetch(`${API_URL}/api/ai/lookup?name=${encodeURIComponent(foodName)}`, {
