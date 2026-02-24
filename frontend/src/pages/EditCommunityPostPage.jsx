@@ -316,26 +316,6 @@ const EditCommunityPostPage = () => {
                   </button>
                 )}
             </div>
-            <div className="rcp-review-section">
-              <h3>Admin Feedback</h3>
-              <textarea
-                className="admin-feedback-input"
-                placeholder="Enter feedback..."
-                rows="4"
-                style={{ width: "100%", padding: "10px" }}
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-              />
-              {(post.status === "Approved" || post.status === "Rejected") && (
-                  <button
-                    className="approve-btn"
-                    style={{ marginTop: "10px" }}
-                    onClick={handleSendFeedback}
-                  >
-                    Send Feedback
-                  </button>
-                )}
-            </div>
           </div>
         </div>
 
