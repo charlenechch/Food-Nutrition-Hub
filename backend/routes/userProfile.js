@@ -1020,14 +1020,11 @@ router.get("/:identifier", async (req, res) => {
     const isOwner = requesterID === userID;
     const isAdmin = requesterRole === 'admin' || requesterRole === 'Admin';
 
-    // If it's private, and you aren't the owner or an admin -> Block it
-    if (!isPublic && !isOwner && !isAdmin) {
-      console.log(`🔒 Blocked access to private profile: ${identifier}`);
-      return res.status(403).json({ 
-        success: false,
-        isPrivate: true, 
-        message: "This account is set to private."
-      });
+    // If it's private, and you aren't the owner or an admin, return limited info
+    const isPrivateView = !isPublic && !isOwner && !isAdmin;
+    
+    if (isPrivateView) {
+      console.log(`🔒 Private profile accessed: Limiting data for ${identifier}`);
     }
 
     // Ensure userProfile exists for the requested user
@@ -1086,6 +1083,27 @@ router.get("/:identifier", async (req, res) => {
 
     console.log(`📝 Fetching contributions for user: ${userID}`);
     const contributions = await getUserContributions(userID);
+
+    if (isPrivateView) {
+      console.log("🔒 Sending limited private profile response");
+      return res.json({
+        isPrivateView: true,             // Let the frontend know it's limited
+        userID: profile.userID,
+        firstName: profile.firstName,    // Acts as their "Username"
+        lastName: "",                    // Hide their real last name
+        role: profile.role,
+        bio: profile.bio,                // Keep Bio visible
+        avatar: profile.avatar,          // Keep Avatar visible
+        status: contributions,           // Keep Contributions visible
+        stats: {
+          recipes: freshStats.recipes || profile.recipes || 0,
+          posts: freshStats.posts || profile.posts || 0,
+          likes: freshStats.likes || profile.likes || 0,
+        },
+        savedFoods: [],                  // Hide saved foods completely
+        prefs: { dietary: [], allergies: [], language: "en" } // Blank prefs
+      });
+    }
     
     console.log("📤 Sending user profile response");
     res.json({

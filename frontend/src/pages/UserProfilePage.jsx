@@ -1202,116 +1202,129 @@ const handleExportData = async () => {
                   <div className="upp-card">
                     <h3 className="upp-card-title">Personal Information</h3>
 
-                    {/* --- First Name & Last Name --- */}
-                    <div className="upp-form-grid">
-                      <label>
-                        <span>First Name</span>
-                        {isEditing ? (
-                          <input 
-                            value={form.firstName} 
-                            onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))} 
-                            className="upp-input-edit"
-                          />
-                        ) : (
-                          <div className="upp-read-only">{form.firstName}</div>
-                        )}
-                      </label>
-                      <label>
-                        <span>Last Name</span>
-                        {isEditing ? (
-                          <input 
-                            value={form.lastName} 
-                            onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))} 
-                            className="upp-input-edit"
-                          />
-                        ) : (
-                          <div className="upp-read-only">{form.lastName}</div>
-                        )}
-                      </label>
-                    </div>
-
-                    {/* --- Email & Location --- */}
-                    <div className="upp-form-grid">
-                      <label>
-                        <span>Email</span>
-                        {/* Email usually stays disabled for security */}
-                        <input 
-                          type="email" 
-                          value={form.email} 
-                          disabled 
-                          style={{ backgroundColor: "#f9f9f9", color: "#999", border: "1px solid #eee", cursor: "not-allowed" }} 
-                        />
-                      </label>
-                      <label>
-                        <span>Location</span>
-                        {isEditing ? (
-                          <input 
-                            value={form.location} 
-                            onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} 
-                            className="upp-input-edit"
-                          />
-                        ) : (
-                          <div className="upp-read-only">{form.location || "Not specified"}</div>
-                        )}
-                      </label>
-                    </div>
-
-                    {/* --- Bio --- */}
-                    <label className="upp-block">
-                      <span>Bio</span>
-                      {isEditing ? (
-                        <>
-                          <textarea 
-                            value={bio} 
-                            onChange={(e) => setBio(e.target.value)} 
-                            rows={3} 
-                            maxLength={200} 
-                            className="upp-textarea" 
-                          />
-                          <div className="upp-help">{bio.length}/200</div>
-                        </>
-                      ) : (
-                        <div className="upp-read-only" style={{ minHeight: "60px", whiteSpace: "pre-wrap" }}>
-                          {bio || "No bio yet."}
+                    {/* 👇 Check if we should show the limited Private View 👇 */}
+                    {user?.isPrivateView ? (
+                      <div className="upp-center upp-private-view">
+                        <Shield size={48} color="#d8c6b4" className="upp-private-icon" />
+                        <h4 className="upp-private-title">Private Profile</h4>
+                        <p className="upp-muted upp-private-text">
+                          {bio || "This user prefers to keep their details private."}
+                        </p>
+                      </div>
+                    ) : (
+                      /* 👇 Otherwise, show the full edit/view grid as normal 👇 */
+                      <>
+                        {/* --- First Name & Last Name --- */}
+                        <div className="upp-form-grid">
+                          <label>
+                            <span>First Name</span>
+                            {isEditing ? (
+                              <input 
+                                value={form.firstName} 
+                                onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))} 
+                                className="upp-input-edit"
+                              />
+                            ) : (
+                              <div className="upp-read-only">{form.firstName}</div>
+                            )}
+                          </label>
+                          <label>
+                            <span>Last Name</span>
+                            {isEditing ? (
+                              <input 
+                                value={form.lastName} 
+                                onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))} 
+                                className="upp-input-edit"
+                              />
+                            ) : (
+                              <div className="upp-read-only">{form.lastName}</div>
+                            )}
+                          </label>
                         </div>
-                      )}
-                    </label>
 
-                    {/* --- ACTION BUTTONS (Instagram Style) --- */}
-                    <div style={{ marginTop: "24px" }}>
-                      {!isEditing ? (
-                        // VIEW MODE: Big Edit Button
-                        <button 
-                          className="lrp-btn lrp-btn-outline" 
-                          style={{ width: "100%", padding: "12px", fontWeight: "bold", border: "1px solid #ccc" }}
-                          onClick={() => setIsEditing(true)}
-                        >
-                          Edit Profile
-                        </button>
-                      ) : (
-                        // EDIT MODE: Cancel + Save
-                        <div style={{ display: "flex", gap: "12px" }}>
-                          <button 
-                            className="lrp-btn lrp-btn-outline" 
-                            style={{ flex: 1 }}
-                            onClick={() => setIsEditing(false)}
-                          >
-                            Cancel
-                          </button>
-                          <button 
-                            className="lrp-btn lrp-btn-primary" 
-                            style={{ flex: 1 }}
-                            onClick={async () => {
-                              await savePersonal();
-                              setIsEditing(false);
-                            }}
-                          >
-                            Save Changes
-                          </button>
+                        {/* --- Email & Location --- */}
+                        <div className="upp-form-grid">
+                          <label>
+                            <span>Email</span>
+                            {/* Email usually stays disabled for security */}
+                            <input 
+                              type="email" 
+                              value={form.email} 
+                              disabled 
+                              style={{ backgroundColor: "#f9f9f9", color: "#999", border: "1px solid #eee", cursor: "not-allowed" }} 
+                            />
+                          </label>
+                          <label>
+                            <span>Location</span>
+                            {isEditing ? (
+                              <input 
+                                value={form.location} 
+                                onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} 
+                                className="upp-input-edit"
+                              />
+                            ) : (
+                              <div className="upp-read-only">{form.location || "Not specified"}</div>
+                            )}
+                          </label>
                         </div>
-                      )}
-                    </div>
 
+                        {/* --- Bio --- */}
+                        <label className="upp-block">
+                          <span>Bio</span>
+                          {isEditing ? (
+                            <>
+                              <textarea 
+                                value={bio} 
+                                onChange={(e) => setBio(e.target.value)} 
+                                rows={3} 
+                                maxLength={200} 
+                                className="upp-textarea" 
+                              />
+                              <div className="upp-help">{bio.length}/200</div>
+                            </>
+                          ) : (
+                            <div className="upp-read-only" style={{ minHeight: "60px", whiteSpace: "pre-wrap" }}>
+                              {bio || "No bio yet."}
+                            </div>
+                          )}
+                        </label>
+
+                        {/* --- ACTION BUTTONS (Instagram Style) --- */}
+                        <div style={{ marginTop: "24px" }}>
+                          {!isEditing ? (
+                            // VIEW MODE: Big Edit Button
+                            <button 
+                              className="lrp-btn lrp-btn-outline" 
+                              style={{ width: "100%", padding: "12px", fontWeight: "bold", border: "1px solid #ccc" }}
+                              onClick={() => setIsEditing(true)}
+                            >
+                              Edit Profile
+                            </button>
+                          ) : (
+                            // EDIT MODE: Cancel + Save
+                            <div style={{ display: "flex", gap: "12px" }}>
+                              <button 
+                                className="lrp-btn lrp-btn-outline" 
+                                style={{ flex: 1 }}
+                                onClick={() => setIsEditing(false)}
+                              >
+                                Cancel
+                              </button>
+                              <button 
+                                className="lrp-btn lrp-btn-primary" 
+                                style={{ flex: 1 }}
+                                onClick={async () => {
+                                  await savePersonal();
+                                  setIsEditing(false);
+                                }}
+                              >
+                                Save Changes
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 

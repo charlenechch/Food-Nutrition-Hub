@@ -733,3 +733,24 @@
     max-width: calc(100% - 70px);
   }
 }
+
+/* Private Profile View */
+.upp-private-view {
+    padding: 40px 20px;
+}
+
+.upp-private-icon {
+    margin-bottom: 16px;
+}
+
+.upp-private-title {
+    color: #6a4a2f;
+    margin: 0 0 8px 0;
+}
+
+.upp-private-text {
+    margin: 0;
+    white-space: pre-wrap;
+    max-width: 400px;
+    display: inline-block;
+}
