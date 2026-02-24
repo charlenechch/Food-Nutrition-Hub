@@ -1179,7 +1179,9 @@ const handleExportData = async () => {
               ["status", "Contributions"],
               ["prefs", "Preferences"],
               ["settings", "Settings"],
-            ].map(([val, label]) => (
+            ]
+            .filter(([val]) => !userProfileID || ["info", "status"].includes(val))
+            .map(([val, label]) => (
               <button
                 key={val}
                 className={`upp-tab lrp-tab ${tab === val ? "is-active" : ""}`}
@@ -1350,7 +1352,7 @@ const handleExportData = async () => {
             )}
 
             {/* ===== Saved Foods ===== */}
-            {tab === "saved" && (
+            {tab === "saved" && !userProfileID && (
               <>
                 {currentSaved?.length ? (
                   <>
@@ -1482,7 +1484,7 @@ const handleExportData = async () => {
             )}
 
             {/* ===== Preferences ===== */}
-            {tab === "prefs" && (
+            {tab === "prefs" && !userProfileID && (
               <div className="upp-stack">
                 {/* Dietary Card */}
                 <div className="upp-card">
@@ -1559,7 +1561,7 @@ const handleExportData = async () => {
               </div>
             )}
             {/* ===== Settings ===== */}
-            {tab === "settings" && (
+            {tab === "settings" && !userProfileID && (
               <div className="upp-stack">
                 <div className="upp-card">
                   <h3 className="upp-card-title"><Bell className="rdp-sec-icon" color={"#6a4a2f"} /> Notifications</h3>
