@@ -1522,6 +1522,49 @@
   background: #fcf9f6;
 }
 
+/* Moderation Action Buttons*/
+
+.mobile-actions {
+  display: none;
+}
+.desktop-actions {
+  display: flex;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .review-main .rcp-review-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .review-layout {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .mobile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-top: 16px; 
+    padding-top: 16px;
+    padding-bottom: 32px; 
+    border-top: 1px dashed #e2d5c4; 
+  }
+  .desktop-actions {
+    display: none;
+  }
+
+  .mobile-actions button {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
 @media (min-width: 721px) and (max-width: 780px) {
   .hide-at-tablet {
     display: none;

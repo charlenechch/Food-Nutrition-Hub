@@ -208,6 +208,32 @@ const EditCommunityPostPage = () => {
   // Button text logic
   const backButtonText = (post.status === "Approved") ? "Back to Dashboard" : "Back to Moderation";
 
+  // === Action Buttons Helper ===
+  const renderActionButtons = (isMobile = false) => {
+    // Hide buttons entirely if it's already approved
+    if (post.status === "Approved") return null;
+
+    return (
+      <div className={`moderation-actions ${isMobile ? "mobile-actions" : "desktop-actions"}`}>
+        <button
+          className="rcp-edit-approve-btn"
+          onClick={() => { setModalType("approve"); setShowModal(true); }}
+        >
+          <FaCheck /> Approve
+        </button>
+        
+        {post.status === "Pending" && (
+          <button
+            className="rcp-edit-reject-btn"
+            onClick={() => { setModalType("reject"); setShowModal(true); }}
+          >
+            <FaTimes /> Reject
+          </button>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="admin-review-page">
       <Header />
@@ -223,22 +249,7 @@ const EditCommunityPostPage = () => {
           <p>{post.title}</p>
         </div>
 
-        {post.status !== "Approved" && (
-          <button
-            className="rcp-edit-approve-btn"
-            onClick={() => { setModalType("approve"); setShowModal(true); }}
-          >
-            <FaCheck /> Approve
-          </button>
-        )}
-        {post.status === "Pending" && (
-          <button
-            className="rcp-edit-reject-btn"
-            onClick={() => { setModalType("reject"); setShowModal(true); }}
-          >
-            <FaTimes /> Reject
-          </button>
-        )}
+        {renderActionButtons(false)}
       </div>
 
       <div className="review-container">
@@ -307,6 +318,8 @@ const EditCommunityPostPage = () => {
             </div>
           </div>
         </div>
+
+        {renderActionButtons(true)}
       </div>
 
       {showModal && (
