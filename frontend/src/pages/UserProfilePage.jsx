@@ -1189,8 +1189,7 @@ const handleExportData = async () => {
             ]
             .filter(([val]) => {
               if (!userProfileID) return true; // Owner sees everything
-              if (user?.isPrivateView) return val === "status"; // Private profile: Only Contributions
-              return ["saved", "status"].includes(val); // Public profile: Info, Saved, Contributions
+              return val === "status";         // All visitors ONLY see Contributions
             })
             .map(([val, label]) => (
               <button
@@ -1363,7 +1362,7 @@ const handleExportData = async () => {
             )}
 
             {/* ===== Saved Foods ===== */}
-            {tab === "saved" && (!userProfileID || !user?.isPrivateView) && (
+            {tab === "saved" && !userProfileID && (
               <>
                 {currentSaved?.length ? (
                   <>
