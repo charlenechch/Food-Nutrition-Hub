@@ -1009,6 +1009,27 @@ router.get("/:identifier", async (req, res) => {
     const userID = profile.userID;
     console.log(`✅ User found: ${profile.firstName} ${profile.lastName} (ID: ${userID})`);
     
+    // Check if the profile is set to public
+    const isPublic = profile.profileVisibility === 1 || profile.profileVisibility === true;
+    
+    // Get the current user from the session
+    const requesterID = req.session?.user?.userID;
+    const requesterRole = req.session?.user?.role;
+    
+    // Check if the user is the profile owner or an admin
+    const isOwner = requesterID === userID;
+    const isAdmin = requesterRole === 'admin' || requesterRole === 'Admin';
+
+    // If it's private, and you aren't the owner or an admin -> Block it
+    if (!isPublic && !isOwner && !isAdmin) {
+      console.log(`🔒 Blocked access to private profile: ${identifier}`);
+      return res.status(403).json({ 
+        success: false,
+        isPrivate: true, 
+        message: "This account is set to private."
+      });
+    }
+
     // Ensure userProfile exists for the requested user
     if (!profile.userProfileID) {
       console.log(`🛠️ UserProfile missing, creating one...`);
