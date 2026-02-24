@@ -1533,19 +1533,26 @@
 }
 
 @media (max-width: 768px) {
-  .desktop-actions {
-    display: none;
+  .review-main .rcp-review-section:last-child {
+    margin-bottom: 0;
   }
-  
+
+  .review-layout {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
   .mobile-actions {
     display: flex;
     flex-direction: column;
     gap: 12px;
     width: 100%;
-    margin-top: 12px; 
+    margin-top: 16px; 
     padding-top: 16px;
-    padding-bottom: 32px; 
     border-top: 1px dashed #e2d5c4; 
+  }
+  .desktop-actions {
+    display: none;
   }
 
   .mobile-actions button {
