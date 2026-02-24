@@ -845,6 +845,13 @@ const handleExportData = async () => {
     });
   };
 
+  // Auto-switch ALL visitors away from the private "Personal Information" tab if they're viewing someone else's profile
+  useEffect(() => {
+    if (userProfileID && tab === "info") {
+      setTab("status"); // Instantly redirect them over to the Contributions tab
+    }
+  }, [userProfileID, tab]);
+
   // ✅ Pagination for saved foods
   useEffect(() => {
     const savedFoodsArray = user?.savedFoods || [];
@@ -1180,7 +1187,11 @@ const handleExportData = async () => {
               ["prefs", "Preferences"],
               ["settings", "Settings"],
             ]
-            .filter(([val]) => !userProfileID || ["info", "status"].includes(val))
+            .filter(([val]) => {
+              if (!userProfileID) return true; // Owner sees everything
+              if (user?.isPrivateView) return val === "status"; // Private profile: Only Contributions
+              return ["saved", "status"].includes(val); // Public profile: Info, Saved, Contributions
+            })
             .map(([val, label]) => (
               <button
                 key={val}
@@ -1352,7 +1363,7 @@ const handleExportData = async () => {
             )}
 
             {/* ===== Saved Foods ===== */}
-            {tab === "saved" && !userProfileID && (
+            {tab === "saved" && (!userProfileID || !user?.isPrivateView) && (
               <>
                 {currentSaved?.length ? (
                   <>
