@@ -1549,6 +1549,7 @@
     width: 100%;
     margin-top: 16px; 
     padding-top: 16px;
+    padding-bottom: 32px; 
     border-top: 1px dashed #e2d5c4; 
   }
   .desktop-actions {
