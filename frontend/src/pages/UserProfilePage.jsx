@@ -323,7 +323,41 @@ const toggleSelectAll = () => {
   });
 };
 
-  // ===== Save: Personal Info =====
+// Save: Auto-Save Individual Profile Settings
+  const toggleSetting = async (settingKey, newValue) => {
+    // 1. Update UI instantly
+    setPrefs((p) => ({ ...p, [settingKey]: newValue }));
+
+    // Prepare data for backend
+    const updateData = {
+      dietary: prefs.dietary,
+      allergies: prefs.allergies,
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language,
+      location: user?.location || "",
+      bio: user?.bio || "",
+      [settingKey]: newValue // Override with the exact toggle you just clicked
+    };
+
+    // Send to database silently
+    try {
+      await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken
+        },
+        credentials: "include",
+        body: JSON.stringify(updateData),
+      });
+    } catch (e) {
+      console.error("Failed to save setting", e);
+    }
+  };
+
+// ===== Save: Personal Info =====
 const savePersonal = async () => {
   try {
     const updateData = { 
@@ -1574,7 +1608,7 @@ const handleExportData = async () => {
                       <input
                         type="checkbox"
                         checked={prefs.profileVisibility}
-                        onChange={(e) => setPrefs((p) => ({ ...p, profileVisibility: e.target.checked }))}
+                        onChange={(e) => toggleSetting('profileVisibility', e.target.checked)}
                       />
                       <span />
                     </label>
