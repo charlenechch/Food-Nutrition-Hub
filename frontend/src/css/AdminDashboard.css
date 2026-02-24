@@ -1522,6 +1522,40 @@
   background: #fcf9f6;
 }
 
+/* Moderation Action Buttons*/
+
+.mobile-actions {
+  display: none;
+}
+.desktop-actions {
+  display: flex;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .desktop-actions {
+    display: none;
+  }
+  
+  .mobile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px dashed #e2d5c4;
+  }
+
+  .mobile-actions button {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
 @media (min-width: 721px) and (max-width: 780px) {
   .hide-at-tablet {
     display: none;
