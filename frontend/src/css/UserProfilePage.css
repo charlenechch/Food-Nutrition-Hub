@@ -734,23 +734,29 @@
   }
 }
 
-/* Private Profile View */
+/* ===== Private Profile View ===== */
 .upp-private-view {
-    padding: 40px 20px;
+    padding: 60px 20px;
+    margin-top: 20px;
+    text-align: center;
 }
 
 .upp-private-icon {
-    margin-bottom: 16px;
+    margin-bottom: 24px;
+    display: inline-block;
 }
 
 .upp-private-title {
     color: #6a4a2f;
-    margin: 0 0 8px 0;
+    margin: 0 0 12px 0;
+    font-size: 1.8rem;
+    font-weight: 700;
 }
 
 .upp-private-text {
-    margin: 0;
+    margin: 0 auto;
     white-space: pre-wrap;
-    max-width: 400px;
-    display: inline-block;
+    max-width: 420px;
+    font-size: 1.1rem;
+    line-height: 1.5;
 }

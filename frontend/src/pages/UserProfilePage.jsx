@@ -10,7 +10,7 @@ import { useAuth } from "../context/AuthContext";
 import "../css/UserProfilePage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Bell, Eye, Globe, Shield, ExternalLink, OctagonX, Camera, X, AlertTriangle, CheckCircle2, Trash2 } from "lucide-react";
+import { Bell, Eye, EyeOff, Globe, Shield, ExternalLink, OctagonX, Camera, X, AlertTriangle, CheckCircle2, Trash2, Lock } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
 import Modal from "../components/Modal";
 
@@ -1178,6 +1178,16 @@ const handleExportData = async () => {
             </p>
           </div>
 
+          {user?.isPrivateView ? (
+          <div className="upp-center upp-private-view">
+            <Lock size={80} color="#d8c6b4" className="upp-private-icon" />
+            <h2 className="upp-private-title">Private Profile</h2>
+            <p className="upp-muted upp-private-text">
+              {user.bio || "This account is private."}
+            </p>
+          </div>
+        ) : (
+          <>
           {/* ===== TABS ===== */}
           <div className="upp-tabs lrp-tabs">
             {[
@@ -1213,19 +1223,6 @@ const handleExportData = async () => {
                 <div className="upp-main">
                   <div className="upp-card">
                     <h3 className="upp-card-title">Personal Information</h3>
-
-                    {/* 👇 Check if we should show the limited Private View 👇 */}
-                    {user?.isPrivateView ? (
-                      <div className="upp-center upp-private-view">
-                        <Shield size={48} color="#d8c6b4" className="upp-private-icon" />
-                        <h4 className="upp-private-title">Private Profile</h4>
-                        <p className="upp-muted upp-private-text">
-                          {bio || "This user prefers to keep their details private."}
-                        </p>
-                      </div>
-                    ) : (
-                      /* 👇 Otherwise, show the full edit/view grid as normal 👇 */
-                      <>
                         {/* --- First Name & Last Name --- */}
                         <div className="upp-form-grid">
                           <label>
@@ -1335,8 +1332,6 @@ const handleExportData = async () => {
                             </div>
                           )}
                         </div>
-                      </>
-                    )}
                   </div>
                 </div>
 
@@ -1688,6 +1683,8 @@ const handleExportData = async () => {
               </div>
             )}
           </div>
+            </>
+          )}
         </div>
       )}
 
