@@ -1140,17 +1140,17 @@ const handleExportData = async () => {
           {/* ===== USER HEADER ===== */}
           <div className="upp-header">
             <div 
-              className="upp-avatar upp-avatar-editable" 
-              onClick={handleAvatarClick}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
+              className={`upp-avatar ${!userProfileID ? "upp-avatar-editable" : ""}`} 
+              onClick={!userProfileID ? handleAvatarClick : undefined}
+              role={!userProfileID ? "button" : "img"}
+              tabIndex={!userProfileID ? 0 : undefined}
+              onKeyDown={!userProfileID ? (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
                   handleAvatarClick();
                 }
-              }}
-              aria-label="Change avatar"
+              } : undefined}
+              aria-label={!userProfileID ? "Change avatar" : "Profile avatar"}
             >
               {user?.avatar && (
                 /\.(jpg|jpeg|png|gif|webp)$/i.test(user.avatar) || 
@@ -1158,21 +1158,27 @@ const handleExportData = async () => {
               ) ? (
                 <>
                   <img src={user.avatar} alt="Profile Avatar" />
-                  <div className="upp-avatar-overlay">
-                    <Camera size={20} />
-                  </div>
+                  {/* Hide camera overlay for visitors */}
+                  {!userProfileID && (
+                    <div className="upp-avatar-overlay">
+                      <Camera size={20} />
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="upp-avatar-initials">
                   {(user?.firstName?.[0] || "").toUpperCase()}
                   {(user?.lastName?.[0] || "").toUpperCase()}
-                  <div className="upp-avatar-overlay">
-                    <Camera size={16} />
-                  </div>
+                  {/* Hide camera overlay for visitors */}
+                  {!userProfileID && (
+                    <div className="upp-avatar-overlay">
+                      <Camera size={16} />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-            <h1 className="upp-title">My Profile</h1>
+            <h1 className="upp-title">{!userProfileID ? "My Profile" : `${user?.firstName}'s Profile`}</h1>
             <p className="upp-sub">
               {user?.firstName} {user?.lastName} • {user?.role || "Member"}
             </p>
