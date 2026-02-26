@@ -19,8 +19,12 @@ const PieChart = ({ data, width = 500, height = 350 }) => {
     const radius = Math.min(width, chartHeight) / 2;
     
     const svg = d3.select(svgRef.current)
-      .attr('width', width)
-      .attr('height', height);
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+      .style('width', '100%')
+      .style('height', 'auto')
+      .style('display', 'block')
+      .style('margin', '0 auto');
 
     const chartGroup = svg.append('g')
       .attr('transform', `translate(${width / 2}, ${chartHeight / 2})`);
@@ -182,7 +186,11 @@ const PieChart = ({ data, width = 500, height = 350 }) => {
 
   }, [data, width, height]);
 
-  return <svg ref={svgRef}></svg>;
+  return (
+    <div style={{ width: '100%', minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
+      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }}></svg>
+    </div>
+  );
 };
 
 export default PieChart;
