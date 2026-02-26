@@ -485,7 +485,7 @@ const Analytics = () => {
                   </div>
                 </div> */}
               </div>
-              <BarChart data={barChartData}/>
+              <BarChart data={barChartData} width={550} height={350} />
             </div>
           </div>
 
