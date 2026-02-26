@@ -236,8 +236,9 @@ router.post("/google-login", async (req, res) => {
         req.session.rememberMe = true;
         console.log("🕒 Google Login: Remember Me active → 7 Days session lifespan");
       } else {
-        req.session.cookie.maxAge = null;
-        req.session.cookie.expires = false;
+        const oneMin = 60 * 1000;
+        req.session.cookie.maxAge = oneMin;
+        req.session.cookie.expires = new Date(Date.now() + oneMin);
         req.session.rememberMe = false;
         console.log("🕒 Google Login: Standard session");
       }
