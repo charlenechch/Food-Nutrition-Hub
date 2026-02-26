@@ -848,8 +848,8 @@ export default function AdminSystemSettings({
                             {/* Format Selection */}
                             <div className="umg-field">
                                 <label className="umg-label">Export Format</label>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center gap-2 cursor-pointer">
+                                <div className="admset-format-list">
+                                    <label className="admset-format-option">
                                         <input
                                             type="radio"
                                             name="exportFormat"
@@ -861,7 +861,7 @@ export default function AdminSystemSettings({
                                         <FileText className="admset-ic-sm" />
                                         <span>Excel (.xlsx)</span>
                                     </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
+                                    <label className="admset-format-option">
                                         <input
                                             type="radio"
                                             name="exportFormat"
