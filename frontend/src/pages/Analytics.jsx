@@ -485,7 +485,11 @@ const Analytics = () => {
                   </div>
                 </div> */}
               </div>
-              <BarChart data={barChartData} width={550} height={350} />
+              <div className="responsive-chart-wrapper">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barChartData} />
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 

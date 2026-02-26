@@ -748,6 +748,12 @@ h2 {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.responsive-chart-wrapper {
+  width: 100%;
+  height: 350px; 
+  min-height: 350px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .metrics-grid {
@@ -899,6 +905,22 @@ h2 {
   .pie-chart-container .recharts-wrapper {
     aspect-ratio: 1 / 1.2; 
     margin: 0 auto;
+  }
+
+  .recharts-legend-wrapper {
+    position: relative !important;
+    bottom: 0 !important;
+    height: auto !important;
+    margin-top: 10px;
+  }
+
+  .responsive-chart-wrapper {
+    height: 300px;
+    min-height: 300px;
+  }
+
+  .pie-chart-container {
+    min-height: 450px !important; 
   }
 
   .card-header-with-toggle {
