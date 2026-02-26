@@ -2104,9 +2104,14 @@
     }
 
     .space-y-4 {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important; 
+        width: 100%;
+    }
+
+    .admset-block .space-y-4 {
+        margin-top: 12px;
     }
 
     .space-y-4 .admset-btn {
