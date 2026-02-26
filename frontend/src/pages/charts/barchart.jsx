@@ -25,10 +25,10 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
     // Create SVG
     const svg = d3.select(svgRef.current)
       .attr('viewBox', `0 0 ${width} ${height}`) 
+      .attr('preserveAspectRatio', 'xMidYMid meet')
       .style('width', '100%')
       .style('height', 'auto')
       .style('display', 'block')
-      .style('margin', '0 auto')
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
@@ -349,7 +349,11 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
     };
   }, [data, width, height]);
 
-  return <svg ref={svgRef}></svg>;
+  return (
+    <div style={{ width: '100%', minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
+      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }}></svg>
+    </div>
+  );
 };
 
 export default BarChart;
