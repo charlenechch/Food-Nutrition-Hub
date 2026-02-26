@@ -878,8 +878,25 @@ h2 {
   }
 
   .chart-card {
-    overflow-x: auto; 
-    -webkit-overflow-scrolling: touch;
+    padding: 16px; 
+    overflow: visible !important; 
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .chart-card svg,
+  .chart-card canvas,
+  .recharts-wrapper {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  .pie-chart-container {
+    min-height: 380px; 
+    height: auto !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .card-header-with-toggle {
