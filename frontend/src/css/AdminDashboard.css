@@ -2077,6 +2077,33 @@
         position: static;
         margin-left: 8px;
     }
+
+    .admset-card-title {
+        gap: 16px;
+        font-size: 1.1rem;
+        line-height: 1.4;
+    }
+
+    .admset-ic {
+        width: 22px;
+        height: 22px;
+    }
+
+    .space-y-4 {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .space-y-4 .admset-btn {
+        margin-bottom: 0; 
+        padding: 14px; 
+        text-align: left;
+    }
+
+    .admset-ic-sm {
+        margin-right: 12px; 
+    }
 }
 
 /* Loading and Error States for User Management */
