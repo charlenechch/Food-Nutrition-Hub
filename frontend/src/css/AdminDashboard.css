@@ -2103,11 +2103,14 @@
         height: 22px;
     }
 
+    .admset-block .space-y-4 .admset-btn:first-child {
+        margin-bottom: 16px !important;
+    }
+
     .space-y-4 {
         display: flex !important;
         flex-direction: column !important;
-        gap: 16px !important; 
-        width: 100%;
+        height: auto !important;
     }
 
     .admset-block .space-y-4 {
