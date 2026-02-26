@@ -2046,6 +2046,20 @@
   outline: none;
 }
 
+.admset-format-list {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.admset-format-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
 @media (max-width: 600px) {
     .admset-wrap {
         margin: 10px; 
@@ -2103,6 +2117,23 @@
 
     .admset-ic-sm {
         margin-right: 12px; 
+    }
+
+    .admset-format-list {
+        flex-direction: column; 
+        gap: 12px;
+    }
+
+    .admset-format-option {
+        padding: 10px; 
+        background: #fdfaf7; 
+        border-radius: 8px;
+        border: 1px solid #eadfd3;
+    }
+
+    .admset-format-option .admset-ic-sm {
+        margin-right: 4px;
+        margin-left: 4px;
     }
 }
 
