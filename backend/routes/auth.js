@@ -230,17 +230,15 @@ router.post("/google-login", async (req, res) => {
 
       // Remember Me logic
       if (rememberDevice) {
-        const twoMinutes = 2 * 60 * 1000;
-        req.session.cookie.maxAge = twoMinutes;
-        req.session.cookie.expires = new Date(Date.now() + twoMinutes);
+        const sevenDays = 7 * 24 * 60 * 60 * 1000;
+        req.session.cookie.maxAge = sevenDays;
+        req.session.cookie.expires = new Date(Date.now() + sevenDays);
         req.session.rememberMe = true;
-        console.log("🕒 Google Login: Remember Me active → 7 Days session lifespan");
       } else {
-        const oneMin = 60 * 1000;
-        req.session.cookie.maxAge = oneMin;
-        req.session.cookie.expires = new Date(Date.now() + oneMin);
+        const oneDay = 24 * 60 * 60 * 1000;
+        req.session.cookie.maxAge = oneDay;
+        req.session.cookie.expires = new Date(Date.now() + oneDay);
         req.session.rememberMe = false;
-        console.log("🕒 Google Login: Standard session");
       }
 
       // Fetch profile ID for session

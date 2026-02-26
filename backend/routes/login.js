@@ -273,13 +273,11 @@ router.post("/", async (req, res) => {
         req.session.cookie.maxAge = sevenDays;
         req.session.cookie.expires = new Date(Date.now() + sevenDays);
         req.session.rememberMe = true;
-        console.log("🕒 Remember Me active → 7 Days session lifespan");
       } else {
-        const oneMin = 60 * 1000;
-        req.session.cookie.maxAge = oneMin;
-        req.session.cookie.expires = new Date(Date.now() + oneMin);
+        const oneDay = 24 * 60 * 60 * 1000;
+        req.session.cookie.maxAge = oneDay;
+        req.session.cookie.expires = new Date(Date.now() + oneDay);
         req.session.rememberMe = false;
-        console.log("🕒 Standard session (browser-close expiry)");
       }
 
       req.session.user = {
