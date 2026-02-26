@@ -838,6 +838,65 @@ h2 {
   .posts-count {
     font-size: 14px;
   }
+
+  .metric-title {
+    justify-content: space-between; 
+  }
+
+  .icon-book, 
+  .icon-utensils, 
+  .icon-alert,
+  .icon-star,
+  .icon-flag {
+    margin-left: 0 !important;
+  }
+
+  .timeline-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+
+  .timeframe-tabs {
+    display: flex;
+    width: 100%;
+  }
+  
+  .timeframe-tab {
+    flex: 1;
+    text-align: center;
+  }
+
+  .year-select, 
+  .month-select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .chart-card {
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .card-header-with-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .view-toggle {
+    width: 100%;
+    display: flex;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    text-align: center;
+  }
 }
 
 @media (max-width: 480px) {
