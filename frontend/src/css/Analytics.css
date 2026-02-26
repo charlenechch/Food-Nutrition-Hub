@@ -878,27 +878,27 @@ h2 {
   }
 
   .chart-card {
-    padding: 16px; 
+    width: 100%;
+    padding: 16px;
     overflow: hidden !important; 
-    width: 100%;
     box-sizing: border-box;
-    min-height: 400px; 
+    min-height: auto; 
   }
 
-  .chart-card .recharts-wrapper,
-  .chart-card svg,
-  .chart-card canvas {
+  .chart-card .recharts-wrapper {
     width: 100% !important;
-    height: 300px !important; 
-    max-width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 550 / 350; 
   }
 
-  .pie-chart-container {
-    min-height: 380px; 
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  .chart-card .recharts-wrapper svg {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .pie-chart-container .recharts-wrapper {
+    aspect-ratio: 1 / 1.2; 
+    margin: 0 auto;
   }
 
   .card-header-with-toggle {
