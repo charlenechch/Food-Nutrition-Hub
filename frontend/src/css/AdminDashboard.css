@@ -1909,6 +1909,8 @@
 
 /* switch */
 .admset-switch {
+  cursor: pointer;
+  min-width: 46px;
   width: 46px;
   height: 26px;
   border-radius: 999px;
@@ -2042,6 +2044,39 @@
 }
 .admset-icon-btn:focus {
   outline: none;
+}
+
+@media (max-width: 600px) {
+    .admset-wrap {
+        margin: 10px; 
+    }
+
+    .admset-grid-2 {
+        grid-template-columns: 1fr; 
+        gap: 10px;
+    }
+
+    .admset-callout {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .admset-badge {
+        margin-left: 0; 
+    }
+
+    .admset-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px; 
+        font-size: 15px;
+    }
+
+    .admset-btn .admset-badge {
+        position: static;
+        margin-left: 8px;
+    }
 }
 
 /* Loading and Error States for User Management */
