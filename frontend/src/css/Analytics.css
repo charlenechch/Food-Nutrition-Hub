@@ -1070,3 +1070,17 @@ h2 {
   color: #92400e;
   font-weight: 500;
 }
+
+.d3-responsive-wrapper {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.d3-responsive-wrapper svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}

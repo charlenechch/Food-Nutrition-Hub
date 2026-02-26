@@ -187,8 +187,8 @@ const PieChart = ({ data, width = 500, height = 350 }) => {
   }, [data, width, height]);
 
   return (
-    <div style={{ width: '100%', minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
-      <svg ref={svgRef} style={{ width: '100%', height: 'auto' }}></svg>
+    <div className="d3-responsive-wrapper">
+      <svg ref={svgRef}></svg>
     </div>
   );
 };
