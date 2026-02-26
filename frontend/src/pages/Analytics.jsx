@@ -5,6 +5,7 @@ import BarChart from "./charts/barchart";
 import "../css/Analytics.css";
 import { FaUtensils, FaBook, FaUsers, FaExclamationTriangle, FaStar, FaFlag, FaChartLine } from "react-icons/fa";
 import { BsCheckCircle } from "react-icons/bs";
+import { ResponsiveContainer } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"
 
