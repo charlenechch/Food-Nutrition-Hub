@@ -878,38 +878,7 @@ h2 {
   }
 
   .chart-card {
-    width: 100%;
-    padding: 16px;
-    overflow: hidden !important; 
-    box-sizing: border-box;
-    min-height: auto; 
-  }
-
-  .chart-card .recharts-wrapper {
-    width: 100% !important;
-    height: auto !important;
-    aspect-ratio: 550 / 350; 
-  }
-
-  .chart-card .recharts-wrapper svg {
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  .pie-chart-container .recharts-wrapper {
-    aspect-ratio: 1 / 1.2; 
-    margin: 0 auto;
-  }
-
-  .recharts-legend-wrapper {
-    position: relative !important;
-    bottom: 0 !important;
-    height: auto !important;
-    margin-top: 10px;
-  }
-
-  .pie-chart-container {
-    min-height: 450px !important; 
+    -webkit-overflow-scrolling: touch;
   }
 
   .card-header-with-toggle {

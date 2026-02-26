@@ -24,8 +24,9 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
 
     // Create SVG
     const svg = d3.select(svgRef.current)
-      .attr('width', width)
-      .attr('height', height)
+      .attr('viewBox', `0 0 ${width} ${height}`) 
+      .style('width', '100%')
+      .style('height', 'auto')
       .style('display', 'block')
       .style('margin', '0 auto')
       .append('g')
