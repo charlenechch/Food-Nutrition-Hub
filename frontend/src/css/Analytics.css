@@ -879,21 +879,23 @@ h2 {
 
   .chart-card {
     padding: 16px; 
-    overflow: visible !important; 
+    overflow: hidden !important; 
     width: 100%;
     box-sizing: border-box;
+    min-height: 400px; 
   }
 
+  .chart-card .recharts-wrapper,
   .chart-card svg,
-  .chart-card canvas,
-  .recharts-wrapper {
+  .chart-card canvas {
+    width: 100% !important;
+    height: 300px !important; 
     max-width: 100% !important;
-    height: auto !important;
   }
 
   .pie-chart-container {
     min-height: 380px; 
-    height: auto !important;
+    width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
