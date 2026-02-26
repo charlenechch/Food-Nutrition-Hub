@@ -220,7 +220,7 @@ app.use(
       sameSite: 'lax', 
       secure: true,
       domain: '.sarawakeats.site',
-      maxAge: 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
