@@ -156,7 +156,7 @@ router.post("/login", async (req, res) => {
 
 // Google Login
 router.post("/google-login", async (req, res) => {
-  const { email, firstname, lastname, googlePhotoUrl, firebaseUID } = req.body;
+  const { email, firstname, lastname, googlePhotoUrl, firebaseUID, rememberDevice } = req.body;
 
   if (!email) {
     return res.status(400).json({ success: false, message: "Email is required" });
@@ -227,6 +227,20 @@ router.post("/google-login", async (req, res) => {
     // 2. Create Session (Same logic from login.js)
     req.session.regenerate(async (err) => {
       if (err) return res.status(500).json({ message: "Session error" });
+
+      // Remember Me logic
+      if (rememberDevice) {
+        const twoMinutes = 2 * 60 * 1000;
+        req.session.cookie.maxAge = twoMinutes;
+        req.session.cookie.expires = new Date(Date.now() + twoMinutes);
+        req.session.rememberMe = true;
+        console.log("🕒 Google Login: Remember Me active → 7 Days session lifespan");
+      } else {
+        req.session.cookie.maxAge = null;
+        req.session.cookie.expires = false;
+        req.session.rememberMe = false;
+        console.log("🕒 Google Login: Standard session");
+      }
 
       // Fetch profile ID for session
       const [profiles] = await db.execute("SELECT userProfileID FROM userProfile WHERE userID = ?", [user.userID]);

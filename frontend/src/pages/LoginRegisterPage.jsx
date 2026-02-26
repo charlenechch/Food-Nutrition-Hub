@@ -436,6 +436,7 @@ export default function LoginRegisterPage() {
           token: token,
           googlePhotoUrl: user.photoURL,
           firebaseUID: user.uid,
+          rememberDevice: rememberDevice,
         }),
       });
 
