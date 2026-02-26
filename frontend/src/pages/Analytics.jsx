@@ -5,7 +5,6 @@ import BarChart from "./charts/barchart";
 import "../css/Analytics.css";
 import { FaUtensils, FaBook, FaUsers, FaExclamationTriangle, FaStar, FaFlag, FaChartLine } from "react-icons/fa";
 import { BsCheckCircle } from "react-icons/bs";
-import { ResponsiveContainer } from 'recharts';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"
 
@@ -486,11 +485,7 @@ const Analytics = () => {
                   </div>
                 </div> */}
               </div>
-              <div className="responsive-chart-wrapper">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={barChartData} />
-                </ResponsiveContainer>
-              </div>
+              <BarChart data={barChartData} width={550} height={350} />
             </div>
           </div>
 
