@@ -432,6 +432,7 @@
 
   .admin-system-alerts-summary-grid {
     grid-template-columns: 1fr 1fr; 
+    gap: 10px;
   }
 
   .admin-system-alerts-table, 
@@ -459,13 +460,15 @@
   }
 
   .admin-system-alerts-table td {
-    border: none;
-    padding: 12px 15px; 
     display: flex;
-    justify-content: space-between; 
+    justify-content: flex-start; 
     align-items: flex-start; 
+    gap: 15px; 
+    padding: 12px 15px;
     border-bottom: 1px dashed #eee2cc;
-    gap: 20px;
+    min-height: 45px;
+    height: auto;
+    border-top: none;
   }
 
   .admin-system-alerts-table td::before {
@@ -475,71 +478,10 @@
     font-weight: 700;
     color: #9b855f;
     text-transform: uppercase;
-    width: 80px; 
+    width: 85px; /* Optimized label spine */
     font-size: 10px;
     letter-spacing: 0.5px;
-  }
-
-  .admin-system-alert-title,
-  .admin-alert-mobile-message-wrap,
-  .admin-timestamp-wrapper,
-  .admin-system-alerts-sev-badge,
-  .admin-system-alerts-status-badge {
-    flex: 1; 
-    max-width: 65%; 
-    word-wrap: break-word;
-    font-size: 13px;
-    line-height: 1.4;
-  }
-
-  .admin-system-alert-category,
-  .admin-system-alerts-tag-list {
-    display: none;
-  }
-
-  .admin-system-alerts-table td[data-label="Actions"] {
-    justify-content: center; 
-    background: #fdfaf7;
-    border-bottom: none;
-    padding: 15px 0;
-  }
-
-  .admin-system-alerts-table td[data-label="Actions"]::before {
-    display: none;
-  }
-
-  .admin-system-alerts-action-wrapper {
-    display: flex;
-    gap: 25px; 
-    justify-content: center;
-    width: 100%;
-  }
-
-  .admin-system-alerts-action-wrapper button {
-    font-size: 22px; 
-    color: #7c5c3a;
-    background: white;
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: 1px solid #eadfc5;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-
-  .admin-system-alerts-table td {
-    display: flex;
-    justify-content: flex-start; 
-    align-items: flex-start; 
-    text-align: left; 
-    gap: 15px; 
-    padding: 12px 15px;
-    border-bottom: 1px dashed #eee2cc;
-    min-height: 45px;
-    height: auto;
-    overflow: visible;
+    margin-top: 3px;
   }
 
   .admin-system-alert-title,
@@ -550,6 +492,7 @@
     color: #5a3c1e;
     font-size: 13px;
     line-height: 1.4;
+    overflow-wrap: break-word; 
   }
 
   .admin-system-alerts-sev-badge, 
@@ -557,30 +500,29 @@
     display: inline-flex; 
     align-items: center;
     justify-content: center;
-    width: fit-content;
-    min-width: 80px;
-    max-width: 100%;
-    flex-grow: 0; 
-    text-align: center;
-    padding: 6px 14px;
-    line-height: 1.2;
-    box-sizing: border-box;
-    white-space: normal;
-    word-break: break-word;
-    hyphens: auto;
-    -webkit-hyphens: auto;
-    overflow-wrap: break-word;
-  }
-
-  .admin-timestamp-wrapper {
-    text-align: left;
+    width: auto !important;
+    min-width: 90px;
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    white-space: nowrap; 
+    flex-shrink: 0;
+    line-height: 1;
   }
 
   .admin-system-alerts-table td[data-label="Actions"] {
-    justify-content: center; 
+    justify-content: center !important; 
     background: #fdfaf7;
     border-bottom: none;
-    padding: 15px 0;
+    padding: 15px 0 !important;
+  }
+
+  .admin-system-alerts-table td[data-label="Actions"]::before {
+    display: none !important;
+  }
+
+  .admin-system-alerts-action-wrapper {
+    gap: 25px; 
   }
 }
 
@@ -592,6 +534,14 @@
   .admin-system-alerts-filter-row {
     flex-direction: column; 
     align-items: stretch;
+  }
+}
+
+@media (max-width: 360px) {
+  .admin-system-alerts-status-badge {
+    white-space: normal;
+    word-break: break-all;
+    hyphens: auto;
   }
 }
 
