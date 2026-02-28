@@ -1845,6 +1845,10 @@
   will-change: transform;
 }
 
+.admset-btn-2 {
+  margin-top: 16px !important;
+}
+
 .admset-btn:active { 
   transform: translateY(1px); 
 }
@@ -2111,10 +2115,6 @@
         display: flex !important;
         flex-direction: column !important;
         height: auto !important;
-    }
-
-    .admset-btn-2 {
-        margin-top: 16px !important;
     }
 
     .admset-block .space-y-4 {
