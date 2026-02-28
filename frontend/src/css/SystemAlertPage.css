@@ -486,7 +486,6 @@
   .admin-system-alerts-status-badge {
     flex: 1; 
     max-width: 65%; 
-    text-align: right;
     word-wrap: break-word;
     color: #5a3c1e;
     font-size: 13px;
