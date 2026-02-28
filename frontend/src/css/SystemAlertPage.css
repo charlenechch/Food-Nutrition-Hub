@@ -562,10 +562,14 @@
     max-width: 100%;
     flex-grow: 0; 
     text-align: center;
-    padding: 6px 12px;
+    padding: 6px 14px;
+    line-height: 1.2;
     box-sizing: border-box;
     white-space: normal;
     word-break: break-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    overflow-wrap: break-word;
   }
 
   .admin-timestamp-wrapper {
