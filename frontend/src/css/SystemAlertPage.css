@@ -428,18 +428,19 @@
     width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr; 
+    gap: 10px;
   }
 
   .admin-system-alerts-summary-grid {
     grid-template-columns: 1fr 1fr; 
+    gap: 10px;
   }
 
   .admin-system-alerts-table, 
   .admin-system-alerts-table thead, 
   .admin-system-alerts-table tbody, 
-  .admin-system-alerts-table th, 
-  .admin-system-alerts-table td, 
-  .admin-system-alerts-table tr {
+  .admin-system-alerts-table tr, 
+  .admin-system-alerts-table td {
     display: block;
     width: 100%;
   }
@@ -452,7 +453,6 @@
     margin-bottom: 20px;
     border: 1px solid #eadfc5;
     border-radius: 12px;
-    padding: 0; 
     background: #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     overflow: hidden;
@@ -462,10 +462,10 @@
     border: none;
     padding: 12px 15px; 
     display: flex;
-    justify-content: space-between; 
-    align-items: flex-start; 
+    justify-content: flex-start; 
+    align-items: center;
     border-bottom: 1px dashed #eee2cc;
-    gap: 20px;
+    gap: 10px; 
   }
 
   .admin-system-alerts-table td::before {
@@ -475,26 +475,32 @@
     font-weight: 700;
     color: #9b855f;
     text-transform: uppercase;
-    width: 80px; 
+    width: 75px; 
     font-size: 10px;
     letter-spacing: 0.5px;
   }
 
   .admin-system-alert-title,
   .admin-alert-mobile-message-wrap,
-  .admin-timestamp-wrapper,
-  .admin-system-alerts-sev-badge,
-  .admin-system-alerts-status-badge {
+  .admin-timestamp-wrapper {
     flex: 1; 
-    max-width: 65%; 
-    word-wrap: break-word;
+    text-align: left; 
+    color: #5a3c1e;
     font-size: 13px;
     line-height: 1.4;
   }
 
-  .admin-system-alert-category,
-  .admin-system-alerts-tag-list {
-    display: none;
+  .admin-system-alerts-sev-badge, 
+  .admin-system-alerts-status-badge {
+    display: inline-flex; 
+    white-space: nowrap; 
+    width: auto !important; 
+    min-width: fit-content;
+    padding: 6px 12px;
+    font-size: 11px; 
+    border-radius: 6px;
+    line-height: 1;
+    flex-shrink: 0; 
   }
 
   .admin-system-alerts-table td[data-label="Actions"] {
@@ -512,15 +518,14 @@
     display: flex;
     gap: 25px; 
     justify-content: center;
-    width: 100%;
   }
 
   .admin-system-alerts-action-wrapper button {
-    font-size: 22px; 
+    font-size: 20px; 
     color: #7c5c3a;
     background: white;
-    width: 45px;
-    height: 45px;
+    width: 42px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -529,54 +534,9 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
 
-  .admin-system-alerts-table td {
-    display: flex;
-    justify-content: flex-start; 
-    align-items: flex-start; 
-    text-align: left; 
-    gap: 15px; 
-    padding: 12px 15px;
-    border-bottom: 1px dashed #eee2cc;
-    min-height: 45px;
-    height: auto;
-    overflow: visible;
-  }
-
-  .admin-system-alert-title,
-  .admin-alert-mobile-message-wrap,
-  .admin-timestamp-wrapper {
-    flex: 1; 
-    text-align: left; 
-    color: #5a3c1e;
-    font-size: 13px;
-    line-height: 1.4;
-  }
-
-  .admin-system-alerts-sev-badge, 
-  .admin-system-alerts-status-badge {
-    display: inline-flex; 
-    align-items: center;
-    justify-content: center;
-    width: fit-content;
-    min-width: 80px;
-    max-width: 100%;
-    flex-grow: 0; 
-    text-align: center;
-    padding: 6px 12px;
-    box-sizing: border-box;
-    white-space: normal;
-    word-break: break-word;
-  }
-
-  .admin-timestamp-wrapper {
-    text-align: left;
-  }
-
-  .admin-system-alerts-table td[data-label="Actions"] {
-    justify-content: center; 
-    background: #fdfaf7;
-    border-bottom: none;
-    padding: 15px 0;
+  .admin-system-alert-category,
+  .admin-system-alerts-tag-list {
+    display: none !important;
   }
 }
 
