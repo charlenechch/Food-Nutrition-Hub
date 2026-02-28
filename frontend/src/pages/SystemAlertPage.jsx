@@ -230,7 +230,16 @@ export default function SystemAlertsPage() {
                   </div>
                 </td>
 
-                <td className="admin-system-alerts-timestamp" data-label="Timestamp">{alert.timestamp}</td>
+                <td className="admin-system-alerts-timestamp" data-label="Timestamp">
+                  <div className="admin-timestamp-wrapper">
+                    <div className="admin-date-main">
+                        {alert.timestamp.split(' ')[0]} 
+                    </div>
+                    <div className="admin-time-sub">
+                        {alert.timestamp.split(' ')[1]} 
+                    </div>
+                  </div>
+                </td>
 
                 <td data-label="Status">
                   <span className={`admin-system-alerts-status-badge ${alert.status.toLowerCase()}`}>
