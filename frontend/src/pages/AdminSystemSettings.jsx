@@ -615,7 +615,7 @@ export default function AdminSystemSettings({
 
                                 {/* Analytics Report - Single button that opens modal */}
                                 <button 
-                                    className="admset-btn admset-btn-outline w-full justify-start"
+                                    className="admset-btn admset-btn-outline w-full justify-start admset-btn-2"
                                     onClick={() => handleExport('analytics-report')}
                                     disabled={exportLoading.reportExcel || exportLoading.reportPdf}
                                 >
