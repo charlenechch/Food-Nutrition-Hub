@@ -452,56 +452,69 @@
     margin-bottom: 20px;
     border: 1px solid #eadfc5;
     border-radius: 12px;
-    padding: 15px;
+    padding: 0; 
     background: #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
   }
 
   .admin-system-alerts-table td {
     border: none;
-    padding: 8px 0;
-    text-align: left !important;
+    padding: 12px 15px; 
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: space-between; 
+    align-items: flex-start; 
     border-bottom: 1px dashed #eee2cc;
-  }
-
-  .admin-system-alerts-table td:last-child {
-    border-bottom: none;
-    padding-top: 15px;
-    justify-content: center; 
+    gap: 20px;
   }
 
   .admin-system-alerts-table td::before {
     content: attr(data-label);
+    flex-shrink: 0; 
+    text-align: left;
     font-weight: 700;
     color: #9b855f;
     text-transform: uppercase;
     font-size: 11px;
+    width: 80px; 
     letter-spacing: 0.5px;
+  }
+
+  .admin-system-alert-title,
+  .admin-alert-mobile-message-wrap,
+  .admin-timestamp-wrapper,
+  .admin-system-alerts-sev-badge,
+  .admin-system-alerts-status-badge {
+    flex: 1; 
+    max-width: 65%; 
+    text-align: right;
+    word-wrap: break-word;
+    color: #5a3c1e;
+    font-size: 13px;
+    line-height: 1.4;
   }
 
   .admin-system-alert-category,
   .admin-system-alerts-tag-list {
-    display: none !important;
+    display: none;
+  }
+
+  .admin-system-alerts-table td[data-label="Actions"] {
+    justify-content: center; 
+    background: #fdfaf7;
+    border-bottom: none;
+    padding: 15px 0;
   }
 
   .admin-system-alerts-table td[data-label="Actions"]::before {
     display: none !important;
   }
 
-  .admin-system-alerts-table td[data-label="Actions"] {
-    justify-content: center;
-    background: #fdfaf7; 
-    margin-top: 10px;
-    padding: 15px 0;
-    border-radius: 0 0 12px 12px;
-    border-bottom: none;
-  }
-
   .admin-system-alerts-action-wrapper {
+    display: flex;
     gap: 25px; 
+    justify-content: center;
+    width: 100%;
   }
 
   .admin-system-alerts-action-wrapper button {
@@ -516,53 +529,6 @@
     border-radius: 50%;
     border: 1px solid #eadfc5;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-
-  .admin-system-alerts-table td[data-label="Message"] {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .admin-timestamp-wrapper {
-    text-align: left; 
-  }
-
-  .admin-system-alerts-table td {
-    display: flex;
-    justify-content: space-between; 
-    align-items: flex-start; 
-    text-align: right; 
-    gap: 20px; 
-    padding: 12px 0;
-  }
-
-  .admin-system-alert-title,
-  .admin-alert-mobile-message-wrap {
-    flex: 1; 
-    max-width: 65%; 
-    word-wrap: break-word;
-    color: #5a3c1e;
-    font-size: 13px;
-    line-height: 1.4;
-  }
-
-  .admin-system-alerts-table td::before {
-    content: attr(data-label);
-    flex-shrink: 0; 
-    text-align: left;
-    font-weight: 700;
-    color: #9b855f;
-    font-size: 11px;
-    width: 80px; 
-  }
-
-  .admin-system-alerts-table td[data-label="Actions"] {
-    justify-content: center; 
-    text-align: center;
-    background: #fdfaf7;
-    margin-top: 10px;
-    border-radius: 0 0 12px 12px;
   }
 }
 
