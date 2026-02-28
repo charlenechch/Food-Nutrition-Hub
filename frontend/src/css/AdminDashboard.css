@@ -2113,6 +2113,10 @@
         height: auto !important;
     }
 
+    .space-y-4 .admset-btn:last-child {
+        margin-top: 16px !important;
+    }
+
     .admset-block .space-y-4 {
         margin-top: 12px;
     }
