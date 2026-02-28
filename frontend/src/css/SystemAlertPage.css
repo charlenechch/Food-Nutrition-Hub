@@ -475,8 +475,8 @@
     font-weight: 700;
     color: #9b855f;
     text-transform: uppercase;
-    font-size: 11px;
     width: 80px; 
+    font-size: 10px;
     letter-spacing: 0.5px;
   }
 
@@ -537,17 +537,9 @@
     gap: 15px; 
     padding: 12px 15px;
     border-bottom: 1px dashed #eee2cc;
-  }
-
-  .admin-system-alerts-table td::before {
-    content: attr(data-label);
-    flex-shrink: 0;
-    width: 90px;
-    font-weight: 700;
-    color: #9b855f;
-    text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 0.5px;
+    min-height: 45px;
+    height: auto;
+    overflow: visible;
   }
 
   .admin-system-alert-title,
@@ -562,12 +554,18 @@
 
   .admin-system-alerts-sev-badge, 
   .admin-system-alerts-status-badge {
-    display: inline-block; 
-    width: auto !important; 
+    display: inline-flex; 
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    min-width: 80px;
+    max-width: 100%;
     flex-grow: 0; 
     text-align: center;
-    padding: 4px 12px;
-    white-space: nowrap; 
+    padding: 6px 12px;
+    box-sizing: border-box;
+    white-space: normal;
+    word-break: break-word;
   }
 
   .admin-timestamp-wrapper {
