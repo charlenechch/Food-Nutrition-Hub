@@ -240,6 +240,7 @@
 .admin-system-alerts-table-title, .admin-system-error-table-title {
   font-size: 18px;
   margin-bottom: 15px;
+  color: #5a3c1e;
 }
 
 /* Table */
@@ -487,7 +488,6 @@
     flex: 1; 
     max-width: 65%; 
     word-wrap: break-word;
-    color: #5a3c1e;
     font-size: 13px;
     line-height: 1.4;
   }
