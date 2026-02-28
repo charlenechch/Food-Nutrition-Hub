@@ -240,7 +240,6 @@
 .admin-system-alerts-table-title, .admin-system-error-table-title {
   font-size: 18px;
   margin-bottom: 15px;
-  color: #5a3c1e;
 }
 
 /* Table */
@@ -507,7 +506,7 @@
   }
 
   .admin-system-alerts-table td[data-label="Actions"]::before {
-    display: none !important;
+    display: none;
   }
 
   .admin-system-alerts-action-wrapper {
