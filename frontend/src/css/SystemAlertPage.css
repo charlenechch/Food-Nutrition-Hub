@@ -527,6 +527,43 @@
   .admin-timestamp-wrapper {
     text-align: left; 
   }
+
+  .admin-system-alerts-table td {
+    display: flex;
+    justify-content: space-between; 
+    align-items: flex-start; 
+    text-align: right; 
+    gap: 20px; 
+    padding: 12px 0;
+  }
+
+  .admin-system-alert-title,
+  .admin-alert-mobile-message-wrap {
+    flex: 1; 
+    max-width: 65%; 
+    word-wrap: break-word;
+    color: #5a3c1e;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .admin-system-alerts-table td::before {
+    content: attr(data-label);
+    flex-shrink: 0; 
+    text-align: left;
+    font-weight: 700;
+    color: #9b855f;
+    font-size: 11px;
+    width: 80px; 
+  }
+
+  .admin-system-alerts-table td[data-label="Actions"] {
+    justify-content: center; 
+    text-align: center;
+    background: #fdfaf7;
+    margin-top: 10px;
+    border-radius: 0 0 12px 12px;
+  }
 }
 
 @media (max-width: 600px) {
