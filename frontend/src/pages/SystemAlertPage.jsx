@@ -210,18 +210,18 @@ export default function SystemAlertsPage() {
           <tbody>
             {filteredAlerts.map((alert, index) => (
               <tr key={index}>
-                <td>
+                <td data-label="Severity">
                   <span className={`admin-system-alerts-sev-badge ${alert.severity.toLowerCase()}`}>
                     {alert.severity}
                   </span>
                 </td>
 
-                <td>
+                <td data-label="Type">
                   <div className="admin-system-alert-title">{alert.type}</div>
                   <div className="admin-system-alert-category">{alert.category}</div>
                 </td>
 
-                <td>
+                <td data-label="Message">
                   {alert.message}
                   <div className="admin-system-alerts-tag-list">
                     {alert.tags.map((tag, i) => (
@@ -230,15 +230,15 @@ export default function SystemAlertsPage() {
                   </div>
                 </td>
 
-                <td className="admin-system-alerts-timestamp">{alert.timestamp}</td>
+                <td className="admin-system-alerts-timestamp" data-label="Timestamp">{alert.timestamp}</td>
 
-                <td>
+                <td data-label="Status">
                   <span className={`admin-system-alerts-status-badge ${alert.status.toLowerCase()}`}>
                     {alert.status}
                   </span>
                 </td>
 
-                <td className="admin-system-alerts-action-icons">
+                <td className="admin-system-alerts-action-icons" data-label="Actions">
                     <div className="admin-system-alerts-action-wrapper">
                         <button className="admin-system-alerts-preview-btn"><IoEyeOutline /></button>
                         <button>↻</button>
