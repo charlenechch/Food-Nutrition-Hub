@@ -445,7 +445,7 @@
     width: 100%;
   }
 
-  .admin-system-alerts-table thead {
+  .admin-system-alerts-table thead, .admin-system-error-table thead {
     display: none;
   }
 
