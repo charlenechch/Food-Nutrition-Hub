@@ -556,7 +556,6 @@
   .admin-system-error-table td[data-label="Actions"]::before {
     display: none;
   }
-  
 }
 
 @media (max-width: 600px) {
