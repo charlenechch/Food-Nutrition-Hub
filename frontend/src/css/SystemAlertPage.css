@@ -449,7 +449,7 @@
     display: none;
   }
 
-  .admin-system-alerts-table tr {
+  .admin-system-alerts-table tr, .admin-system-error-table tr {
     margin-bottom: 20px;
     border: 1px solid #eadfc5;
     border-radius: 12px;
@@ -494,7 +494,7 @@
   .admin-system-alerts-status-badge {
     display: inline-flex; 
     white-space: nowrap; 
-    width: auto; 
+    width: auto !important; 
     min-width: fit-content;
     padding: 6px 12px;
     font-size: 11px; 
@@ -536,7 +536,7 @@
 
   .admin-system-alert-category,
   .admin-system-alerts-tag-list {
-    display: none;
+    display: none !important;
   }
   .admin-system-error-source, .admin-system-error-title, .admin-system-error-message {
     flex: 1;
@@ -556,29 +556,7 @@
   .admin-system-error-table td[data-label="Actions"]::before {
     display: none;
   }
-
-  .admin-system-error-table tr {
-    margin-bottom: 20px;
-    border: 1px solid #eadfc5; 
-    border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
-    display: block;
-    width: 100%;
-    overflow: hidden; 
-  }
-
-  .admin-system-error-table-box {
-    padding: 0; 
-    background: transparent;
-    border: none;
-    box-shadow: none;
-  }
-
-  .admin-system-error-table tbody {
-    display: block;
-    width: 100%;
-  }
+  
 }
 
 @media (max-width: 600px) {
