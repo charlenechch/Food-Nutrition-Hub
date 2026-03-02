@@ -412,18 +412,18 @@
 }
 
 @media (max-width: 992px) {
-  .admin-alerts-header {
+  .admin-alerts-header, .admin-error-header {
     grid-template-columns: 1fr; 
     gap: 15px;
     text-align: center;
   }
 
-  .admin-system-alert-back-btn-minimal {
+  .admin-system-alert-back-btn-minimal, .admin-system-error-back-btn-minimal {
     justify-self: center; 
     width: 100%;
   }
 
-  .admin-alerts-actions {
+  .admin-alerts-actions, .admin-error-actions {
     justify-self: center;
     width: 100%;
     display: grid;
@@ -436,11 +436,11 @@
     gap: 10px;
   }
 
-  .admin-system-alerts-table, 
-  .admin-system-alerts-table thead, 
-  .admin-system-alerts-table tbody, 
-  .admin-system-alerts-table tr, 
-  .admin-system-alerts-table td {
+  .admin-system-alerts-table, .admin-system-error-table,
+  .admin-system-alerts-table thead, .admin-system-error-table thead,
+  .admin-system-alerts-table tbody, .admin-system-error-table tbody,
+  .admin-system-alerts-table tr, .admin-system-error-table tr,
+  .admin-system-alerts-table td, .admin-system-error-table td {
     display: block;
     width: 100%;
   }
@@ -458,7 +458,7 @@
     overflow: hidden;
   }
 
-  .admin-system-alerts-table td {
+  .admin-system-alerts-table td, .admin-system-error-table td{
     border: none;
     padding: 12px 15px; 
     display: flex;
@@ -468,7 +468,7 @@
     gap: 10px; 
   }
 
-  .admin-system-alerts-table td::before {
+  .admin-system-alerts-table td::before, .admin-system-error-table td::before {
     content: attr(data-label);
     flex-shrink: 0; 
     text-align: left;
@@ -538,6 +538,24 @@
   .admin-system-alerts-tag-list {
     display: none !important;
   }
+  .admin-system-error-source, .admin-system-error-title, .admin-system-error-message {
+    flex: 1;
+    text-align: left;
+    color: #5a3c1e;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .admin-system-error-table td[data-label="Actions"] {
+    justify-content: center; 
+    background: #fdfaf7;
+    border-bottom: none;
+    padding: 15px 0;
+  }
+
+  .admin-system-error-table td[data-label="Actions"]::before {
+    display: none;
+  }
 }
 
 @media (max-width: 600px) {
@@ -545,7 +563,7 @@
     grid-template-columns: 1fr; 
   }
 
-  .admin-system-alerts-filter-row {
+  .admin-system-alerts-filter-row, .admin-system-error-filter-row {
     flex-direction: column; 
     align-items: stretch;
   }

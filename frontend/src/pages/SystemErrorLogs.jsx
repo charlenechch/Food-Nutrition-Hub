@@ -198,28 +198,28 @@ export default function SystemErrorLogsPage() {
           <tbody>
             {filteredLogs.map((logs, index) => (
               <tr key={index}>
-                <td>
+                <td data-label="Severity">
                   <span className={`admin-system-error-sev-badge ${logs.severity.toLowerCase()}`}>
                     {logs.severity}
                   </span>
                 </td>
 
-                <td>
+                <td data-label="Source">
                   <div className="admin-system-error-source">{logs.source}</div>
                 </td>
 
-                <td>
+                <td data-label="Type">
                   <div className="admin-system-error-title">{logs.type}</div>
                 </td>
 
-                <td>
+                <td data-label="Message">
                   <div className="admin-system-error-message">{logs.message}</div>
                 </td>
 
-                <td className="admin-system-error-timestamp">{logs.timestamp}</td>
+                <td data-label="Timestamp" className="admin-system-error-timestamp">{logs.timestamp}</td>
 
               
-                <td className="admin-system-error-action-icons">
+                <td className="admin-system-error-action-icons" data-label="Actions">
                     <div className="admin-system-error-action-wrapper">
                         <button className="admin-system-error-preview-btn"><IoEyeOutline /></button>
                     </div>
