@@ -536,8 +536,6 @@ export default function AdminSystemSettings({
                                 </button>
                             </div>
                         </div>
-
-                        <hr className="admset-sep" />
                     </div>
                 </div>
 
