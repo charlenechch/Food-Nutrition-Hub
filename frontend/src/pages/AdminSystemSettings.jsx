@@ -538,30 +538,6 @@ export default function AdminSystemSettings({
                         </div>
 
                         <hr className="admset-sep" />
-
-                        {/* Monitoring */}
-                        <div className="admset-block">
-                            <div className="admset-label mb-6">System Monitoring</div>
-                            <div className="admset-grid-2">
-                                <button
-                                    className="admset-btn admset-btn-outline justify-start relative"
-                                    onClick={() => navigate("/admin/systemalerts")}
-                                >
-                                    <Bell className="admset-ic-sm" />
-                                    View Alerts
-                                    <span className="admset-badge danger">12</span>
-                                </button>
-
-                                <button
-                                    className="admset-btn admset-btn-outline justify-start relative"
-                                    onClick={() => navigate("/admin/systemerrorlogs")}
-                                >
-                                    <AlertTriangle className="admset-ic-sm" />
-                                    Error Logs
-                                    <span className="admset-badge warn">8</span>
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 

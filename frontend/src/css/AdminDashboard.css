@@ -1902,14 +1902,6 @@
   color: black;
   font-weight: 300;
 }
-.admset-badge.warn {
-  background: orange;
-  color: white;
-}
-.admset-badge.danger {
-  background: red;
-  color: white;
-}
 
 /* switch */
 .admset-switch {
