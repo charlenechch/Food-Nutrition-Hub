@@ -494,7 +494,7 @@
   .admin-system-alerts-status-badge {
     display: inline-flex; 
     white-space: nowrap; 
-    width: auto !important; 
+    width: auto; 
     min-width: fit-content;
     padding: 6px 12px;
     font-size: 11px; 
@@ -536,7 +536,7 @@
 
   .admin-system-alert-category,
   .admin-system-alerts-tag-list {
-    display: none !important;
+    display: none;
   }
   .admin-system-error-source, .admin-system-error-title, .admin-system-error-message {
     flex: 1;
