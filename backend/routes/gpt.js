@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");
+const { many } = require("../config/db");
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -15,7 +16,6 @@ function normalizeImageBase64(imageBase64) {
   if (imageBase64.startsWith("data:")) {
     const match = imageBase64.match(/^data:image\/(png|jpe?g|gif|webp);base64,/i);
     if (!match) return null;
-
     return {
       format: match[1],
       dataUrl: imageBase64,
@@ -31,17 +31,28 @@ function normalizeImageBase64(imageBase64) {
 }
 
 function containsNutritionStuff(obj) {
-      const s = JSON.stringify(obj).toLowerCase();
-      return (
-        s.includes("kcal") ||
-        s.includes("calorie") ||
-        s.includes("protein") ||
-        s.includes("carb") ||
-        s.includes("fat") ||
-        s.includes("vitamin") ||
-        /\b\d+(\.\d+)?\s?(kcal|cal|g|mg)\b/i.test(s)
-      );
-    }
+  const s = JSON.stringify(obj).toLowerCase();
+  return (
+    s.includes("kcal") ||
+    s.includes("calorie") ||
+    s.includes("protein") ||
+    s.includes("carb") ||
+    s.includes("fat") ||
+    s.includes("vitamin") ||
+    /\b\d+(\.\d+)?\s?(kcal|cal|g|mg)\b/i.test(s)
+  );
+}
+
+// FETCH FOOD LIST FROM DB
+async function getFoodListFromDB() {
+  try {
+    const rows = await many(`SELECT food_name FROM foods`);
+    return rows.map(r => r.food_name).filter(Boolean);
+  } catch (err) {
+    console.error("Failed to fetch food list from DB:", err);
+    return [];
+  }
+}
 
 // MAIN GPT ROUTE
 router.post("/nutrition", async (req, res) => {
@@ -62,16 +73,29 @@ router.post("/nutrition", async (req, res) => {
       return res.status(400).json({ error: "Unsupported image format" });
     }
 
+    // FETCH FOOD LIST FROM DB
+    const foodList = await getFoodListFromDB();
+    const foodListStr =
+      foodList.length > 0
+        ? foodList.map(f => `"${f}"`).join(", ")
+        : "No list available — use your best judgment";
+
     // PROMPTS
     const systemPrompt = `
 You are a Sarawak Malaysian food identification assistant.
 
+You MUST identify the food from this approved list only:
+[${foodListStr}]
+
 Goal:
-- Identify the food/dish shown in the image.
+- Pick the closest matching food name from the approved list above.
 - Provide alternative names / spellings commonly used in Malaysia/Sarawak.
 - Provide a short assumptions note if uncertain.
 
 CRITICAL RULES:
+- food_name MUST be one of the names from the approved list above. Do not alter spelling or casing.
+- If the image clearly contains no food at all, return food_name as "not_food".
+- DO NOT invent or guess food names outside the approved list.
 - DO NOT provide any nutrition values (no calories, macros, vitamins, grams, kcal, etc.).
 - DO NOT estimate nutrition.
 - Return STRICT JSON ONLY.
@@ -79,7 +103,7 @@ CRITICAL RULES:
 
 REQUIRED JSON FORMAT:
 {
-  "food_name": "string",
+  "food_name": "string (must match exactly from approved list, or not_food)",
   "confidence": 0.0,
   "category": "string",
   "is_sarawak_local_dish": false,
@@ -94,7 +118,7 @@ Identify the dish in this image. Return ONLY JSON.
 ${foodName ? `User hint: ${foodName}` : ""}
 ${ingredients ? `User-provided ingredients: ${ingredients}` : ""}
 
-Prefer Sarawak/Malaysian interpretation.
+Prefer Sarawak/Malaysian interpretation. Pick from the approved list only.
 `;
 
     // GPT CALL
@@ -113,7 +137,6 @@ Prefer Sarawak/Malaysian interpretation.
       ],
     });
 
-  
     // CLEAN JSON OUTPUT
     let raw = completion.choices?.[0]?.message?.content || "";
     raw = raw.replace(/```json|```/g, "").trim();
@@ -134,30 +157,67 @@ Prefer Sarawak/Malaysian interpretation.
     if (containsNutritionStuff(gpt)) {
       return res.status(500).json({
         error: "Nutrition values returned by model (not allowed).",
-        raw: gpt
+        raw: gpt,
+      });
+    }
+
+    // VALIDATE food_name IS FROM APPROVED LIST
+    const returnedName = (gpt.food_name || "").trim();
+    const isNotFood = returnedName.toLowerCase() === "not_food";
+
+    const isApproved =
+      isNotFood ||
+      foodList.some(f => f.trim().toLowerCase() === returnedName.toLowerCase());
+
+    if (!isApproved) {
+      // Attempt fuzzy fallback
+      console.warn(`GPT returned off-list food: "${gpt.food_name}". Attempting fuzzy match.`);
+      const fuzzyMatch = foodList.find(
+        f =>
+          f.toLowerCase().includes(returnedName.toLowerCase()) ||
+          returnedName.toLowerCase().includes(f.toLowerCase())
+      );
+
+      if (fuzzyMatch) {
+        gpt.food_name = fuzzyMatch;
+        gpt.assumptions =
+          (gpt.assumptions || "") + " [Auto-corrected to closest DB match]";
+      } else {
+        return res.json({
+          ok: false,
+          error: "Food not recognized from the available database.",
+          gpt_returned: gpt.food_name,
+          suggestion: "Try a clearer image or check if this food is in our database.",
+        });
+      }
+    }
+
+    if (isNotFood) {
+      return res.json({
+        ok: false,
+        error: "No food detected in the image.",
       });
     }
 
     const conf = typeof gpt.confidence === "number" ? gpt.confidence : 0.5;
     const confidence = Math.max(0, Math.min(1, conf));
 
-    // BUILD FINAL RESPONSE OBJECT
+    // BUILD FINAL RESPONSE
     const standard = {
-    food_name: gpt.food_name || "Unknown Food",
-    confidence: confidence,
-    category: gpt.category || "",
-    is_sarawak_local_dish: !!gpt.is_sarawak_local_dish,
-    alternative_names: Array.isArray(gpt.alternative_names) ? gpt.alternative_names : [],
-    assumptions: gpt.assumptions || "",
-    meta: { imageUsed: true }
-  };
+      food_name: gpt.food_name,
+      confidence,
+      category: gpt.category || "",
+      is_sarawak_local_dish: !!gpt.is_sarawak_local_dish,
+      alternative_names: Array.isArray(gpt.alternative_names) ? gpt.alternative_names : [],
+      assumptions: gpt.assumptions || "",
+      meta: { imageUsed: true },
+    };
 
-  return res.json({ ok: true, data: standard });
+    return res.json({ ok: true, data: standard });
   } catch (err) {
     console.error("GPT Nutrition Error:", err);
     res.status(500).json({ error: "GPT analysis failed", details: err.message });
   }
 });
-
 
 module.exports = router;
