@@ -46,8 +46,8 @@ function containsNutritionStuff(obj) {
 // FETCH FOOD LIST FROM DB
 async function getFoodListFromDB() {
   try {
-    const rows = await many(`SELECT food_name FROM foods`);
-    return rows.map(r => r.food_name).filter(Boolean);
+    const rows = await many(`SELECT name FROM food`);
+    return rows.map(r => r.name).filter(Boolean);
   } catch (err) {
     console.error("Failed to fetch food list from DB:", err);
     return [];
