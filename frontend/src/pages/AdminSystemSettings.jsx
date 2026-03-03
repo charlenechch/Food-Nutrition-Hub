@@ -537,10 +537,7 @@ export default function AdminSystemSettings({
                             </div>
                         </div>
                     </div>
-                </div>
-
-                {/* ===== Right Card: Backup/Restore & Export ===== */}
-                <div className="admset-card">
+                    
                     <div className="admset-card-header">
                         <h3 className="admset-card-title">
                             <Archive className="admset-ic" />
