@@ -146,9 +146,7 @@ export default function NutritionAnalyzerPage() {
     });
 
     const data = await r.json();
-    if (!data.ok) throw new Error("GPT failed");
-
-    return data.data;
+    return data; // Return the full response, let the caller decide
   };
 
   // ----------------- EVENTS -----------------
@@ -202,8 +200,21 @@ export default function NutritionAnalyzerPage() {
     try {
       // IMAGE → GPT
       if (selectedFile) {
-          const gpt = await analyzeWithGPT(selectedFile);
+          const gptResponse = await analyzeWithGPT(selectedFile);
 
+          //  Handle not-found or no-food-detected gracefully
+          if (!gptResponse.ok) {
+            setError(
+              gptResponse.error ||
+              "Food not recognized. Please try a clearer image or type the food name manually."
+            );
+            setResult(null);
+            setSuggestions([]);
+            setLoading(false);
+            return;
+          }
+
+          const gpt = gptResponse.data;
           const detected = gpt.food_name || "Unknown Food";
           const altNames = Array.isArray(gpt.alternative_names) ? gpt.alternative_names : [];
 
