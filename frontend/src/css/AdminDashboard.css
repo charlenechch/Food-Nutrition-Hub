@@ -1717,18 +1717,6 @@
   margin: 16px;
 }
 
-/* grid */
-.admset-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-@media (min-width: 1024px) {
-  .admset-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
 /* card */
 .admset-card {
   background: #fff;
@@ -1810,6 +1798,11 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+
+.admset-single-card-container {
+    max-width: 800px;
+    margin: 0 auto;
 }
 .w-full { width: 100%; }
 .justify-start { justify-content: flex-start; }
@@ -2054,6 +2047,12 @@
     gap: 10px;
     cursor: pointer;
     padding: 4px 0;
+}
+
+@media (max-width: 992px) {
+    .admset-single-card-container {
+        max-width: 100%;
+    }
 }
 
 @media (max-width: 600px) {
