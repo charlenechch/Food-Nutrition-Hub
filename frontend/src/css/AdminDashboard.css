@@ -551,6 +551,10 @@
     gap: 10px;
   }
 
+  .food-header {
+    margin-right: 10px;
+  }
+
   .food-search-bar input,
   .food-filter,
   .lrp-btn {
