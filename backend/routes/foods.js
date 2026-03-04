@@ -674,34 +674,4 @@ router.post("/bulk-import", async (req, res) => {
   }
 });
 
-// ONE-TIME BACKFILL ROUTE
-router.post("/admin/backfill-embeddings", async (req, res) => {
-  try {
-    const [rows] = await db.execute(
-      `SELECT foodID, name, description FROM food WHERE embedding IS NULL`
-    );
-
-    console.log(`🚀 Backfilling embeddings for ${rows.length} foods...`);
-    const results = { success: 0, failed: 0, errors: [] };
-
-    for (const row of rows) {
-      try {
-        await embedFood(row.foodID, row.name, row.description || "");
-        console.log(`✅ Embedded: "${row.name}"`);
-        results.success++;
-        await new Promise(r => setTimeout(r, 200)); // avoid rate limits
-      } catch (err) {
-        console.warn(`⚠️ Failed: "${row.name}":`, err.message);
-        results.failed++;
-        results.errors.push({ name: row.name, error: err.message });
-      }
-    }
-
-    res.json({ success: true, message: "Backfill complete", results });
-  } catch (err) {
-    console.error("❌ Backfill error:", err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
 module.exports = router;
