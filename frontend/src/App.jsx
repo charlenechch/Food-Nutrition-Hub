@@ -203,6 +203,16 @@ function AppRoutes() {
           <Route path="/foods" element={<ExploreFoodsPage />} />
           <Route path="/fooddetail/:id" element={<FoodDetail />} />
           <Route path="/fooddiscussion/:foodId" element={<FoodDiscussionRoute />} />
+
+        {/* === Gated Tools (Protected) === */}
+        <Route
+          path="/analyzer"
+          element={
+            <ProtectedRoute allowedRoles={["member", "admin"]}>
+              <NutritionAnalyzerPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
   );
@@ -216,30 +226,16 @@ function AppRoutes() {
 //       <SessionChecker />
 //       <ScrollToTop />
 //       <Routes>
-//         {/* === Default Landing (GUEST FIRST) === */}
-//         <Route path="/" element={<UserHomepage />} />
-//         <Route path="/home" element={<UserHomepage />} />
         
 
 
 //         {/* === Public / User Pages === */}
-//         <Route path="/foods" element={<ExploreFoodsPage />} />
-//         <Route path="/fooddetail/:id" element={<FoodDetail />} />
-//         <Route path="/fooddiscussion/:foodId" element={<FoodDiscussionRoute />} />
 //         <Route path="/recipes" element={<RecipesPage />} />
 //         <Route path="/recipes/:id" element={<RecipeDetailPage />} />
 //         <Route path="/community" element={<CommunityPage />} />
 //         <Route path="/community/:id" element={<CommunityPost />} />
 
-//         {/* === Gated Tools (Protected) === */}
-//         <Route
-//           path="/analyzer"
-//           element={
-//             <ProtectedRoute allowedRoles={["member", "admin"]}>
-//               <NutritionAnalyzerPage />
-//             </ProtectedRoute>
-//           }
-//         />
+
 //         <Route
 //           path="/analytics"
 //           element={
