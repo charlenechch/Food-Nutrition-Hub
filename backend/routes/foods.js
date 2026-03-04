@@ -4,6 +4,7 @@ const { pool: db } = require("../config/db");
 const { requireAuth, requireAdmin } = require("../middleware/auth");
 const cloudinary = require("cloudinary").v2;
 const { sendEmail } = require("../config/mailer");
+const { embedFood } = require("../utils/embeddings");
 
 // ============================
 // 📂 CLOUDINARY CONFIG
@@ -200,6 +201,13 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     const [result] = await db.query(sql, values);
 
     console.log("✅ [POST] Food Created, ID:", result.insertId);
+    try {
+      await embedFood(result.insertId, name, description || "");
+      console.log(`✅ Embedding generated for new food: "${name}"`);
+    } catch (embedErr) {
+      // Non-fatal — food still created, embedding can be backfilled later
+      console.warn(`⚠️ Could not generate embedding for "${name}":`, embedErr.message);
+    }
     
     res.json({
       success: true,
@@ -623,6 +631,13 @@ router.post("/bulk-import", async (req, res) => {
           // Commit transaction
           await connection.commit();
           connection.release();
+
+          // Auto-embed after bulk import
+        try {
+          await embedFood(foodID, foodItem.name, foodItem.description || "");
+        } catch (embedErr) {
+          console.warn(`⚠️ Embedding failed for "${foodItem.name}":`, embedErr.message);
+        }
 
         } catch (dbError) {
           // Rollback on error
