@@ -808,15 +808,22 @@
     height: 30px;
     font-size: 0.8rem;
   }
+
+  .filter-group {
+    flex-direction: column;
+  }
+  
+  .custom-dropdown-wrapper {
+    width: 100%;
+  }
 }
 
 @media (max-width: 900px) {
   .sticky-filter-bar {
-    top: 75px;
     flex-direction: column; 
     align-items: stretch;   
     padding: 15px;
-    gap: 10px;
+    gap: 15px;
   }
 
   .search-pill {
@@ -829,9 +836,9 @@
     gap: 10px;
   }
 
-  .select-wrapper {
-    flex: 1; 
-    width: 50%;
+  .custom-dropdown-wrapper {
+    flex: 1;
+    min-width: unset; 
   }
 
   .community-filter-select {
