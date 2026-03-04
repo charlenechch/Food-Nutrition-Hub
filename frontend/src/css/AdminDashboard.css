@@ -1300,7 +1300,7 @@
   .umg-table td[data-label="Last Login"],
   .umg-city-desktop,
   .umg-mobile-email {
-    display: none !important;
+    display: none;
   }
 
   .umg-table, .umg-table tbody, .umg-table tr {
@@ -1318,7 +1318,7 @@
   }
 
   .umg-table td {
-    display: flex !important;
+    display: flex;
     justify-content: space-between;
     align-items: center; 
     padding: 12px 0;
@@ -1361,12 +1361,12 @@
 
   .umg-table td.umg-mobile-action-row {
     border-bottom: none;
-    display: flex !important;
+    display: flex;
     flex-direction: row;
     justify-content: space-between;
     gap: 12px;
-    padding-top: 16px !important;
-    padding-bottom: 0 !important;
+    padding-top: 16px;
+    padding-bottom: 0;
   }
 
   .umg-table td.umg-mobile-action-row::before {
@@ -1399,7 +1399,7 @@
   }
 
   .umg-truncate-email {
-    display: block !important; 
+    display: block; 
     flex: 1;
     min-width: 0;
     max-width: 60%;
