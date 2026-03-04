@@ -1003,7 +1003,7 @@
 .umg-modal {
   width: 720px;           
   height: 560px;          
-  max-width: 96vw;       
+  max-width: 500px;       
   max-height: 92vh;
   background: #fffaf2;
   border: 1px solid #eadfd3;
