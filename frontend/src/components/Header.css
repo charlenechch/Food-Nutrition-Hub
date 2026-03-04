@@ -166,6 +166,11 @@
   color: #8b5e3c;
 }
 
+.navbar-actions button:focus, .navbar-actions button:focus-visible, .navbar-actions button:active {
+  outline: 2px solid #8b5e3c;
+  outline-offset: 2px;  
+}
+
 /* HAMBURGER MENU (Hidden by Default) */
 .hamburger {
   display: none;
