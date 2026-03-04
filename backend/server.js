@@ -231,7 +231,8 @@ const csrfExclude = [
   '/api/ai/gpt/nutrition',
   '/api/login',     
   '/api/register',
-  '/api/otp/verifyLogin' 
+  '/api/otp/verifyLogin', 
+  '/api/foods/admin/backfill-embeddings'
 ];
 
 app.use((req, res, next) => {
