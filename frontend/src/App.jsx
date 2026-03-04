@@ -16,8 +16,8 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 // // === User & Public Pages ===
 // import LoginRegisterPage from "./pages/LoginRegisterPage";
 import UserHomepage from "./pages/UserHomepage";
-// import ExploreFoodsPage from "./pages/ExploreFoodPage";
-// import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
+import ExploreFoodsPage from "./pages/ExploreFoodPage";
+import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
 // import RecipesPage from "./pages/RecipesPage";
 // import RecipeDetailPage from "./pages/RecipeDetailPage";
 // import CommunityPage from "./pages/CommunityPage";
@@ -45,8 +45,8 @@ import UserHomepage from "./pages/UserHomepage";
 // import OTPVerification from "./pages/OTPVerificationPage";
 
 // // === Food Detail & Discussion ===
-// import FoodDetail from "./pages/FoodDetailPage";
-// import FoodDiscussion from "./pages/FoodDiscussionPage";
+import FoodDetail from "./pages/FoodDetailPage";
+import FoodDiscussion from "./pages/FoodDiscussionPage";
 
 // // === Shared Components ===
 // import ProtectedRoute from "./components/ProtectedRoute";
@@ -190,6 +190,11 @@ function AppRoutes() {
         {/* === Default Landing (GUEST FIRST) === */}
           <Route path="/" element={<UserHomepage />} />
           <Route path="/home" element={<UserHomepage />} />
+
+        {/* === Public / User Pages === */}
+          <Route path="/foods" element={<ExploreFoodsPage />} />
+          <Route path="/fooddetail/:id" element={<FoodDetail />} />
+          <Route path="/fooddiscussion/:foodId" element={<FoodDiscussionRoute />} />
       </Routes>
     </Router>
   );
