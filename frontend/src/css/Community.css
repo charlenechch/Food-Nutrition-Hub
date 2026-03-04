@@ -811,6 +811,7 @@
 
   .filter-group {
     flex-direction: column;
+    width: 100%;
   }
   
   .custom-dropdown-wrapper {
