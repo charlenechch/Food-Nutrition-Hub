@@ -434,7 +434,6 @@ ol {
 
   .confirm-overlay {
     padding: 0 10px;
-    align-items: flex-end; /* slide-up modal style for mobile */
   }
 
   .confirm-modal {
