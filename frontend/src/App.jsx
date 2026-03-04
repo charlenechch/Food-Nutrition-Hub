@@ -15,7 +15,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // // === User & Public Pages ===
 // import LoginRegisterPage from "./pages/LoginRegisterPage";
-// import UserHomepage from "./pages/UserHomepage";
+import UserHomepage from "./pages/UserHomepage";
 // import ExploreFoodsPage from "./pages/ExploreFoodPage";
 // import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
 // import RecipesPage from "./pages/RecipesPage";
@@ -187,7 +187,9 @@ function AppRoutes() {
       <SessionChecker />
       {/* <ScrollToTop /> */}
       <Routes>
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* === Default Landing (GUEST FIRST) === */}
+          <Route path="/" element={<UserHomepage />} />
+          <Route path="/home" element={<UserHomepage />} />
       </Routes>
     </Router>
   );
