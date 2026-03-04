@@ -200,45 +200,50 @@ export default function NutritionAnalyzerPage() {
     try {
       // IMAGE → GPT
       if (selectedFile) {
-          const gptResponse = await analyzeWithGPT(selectedFile);
+        const gptResponse = await analyzeWithGPT(selectedFile);
 
-          //  Handle not-found or no-food-detected gracefully
-          if (!gptResponse.ok) {
-            setError(
-              gptResponse.error ||
-              "Food not recognized. Please try a clearer image or type the food name manually."
-            );
+        if (!gptResponse.ok) {
+          if (gptResponse.suggest) {
+            setSuggestions([gptResponse.suggested_name]);
+            setError(`We think this might be "${gptResponse.suggested_name}". Is that correct?`);
             setResult(null);
-            setSuggestions([]);
             setLoading(false);
             return;
           }
 
-          const gpt = gptResponse.data;
-          const detected = gpt.food_name || "Unknown Food";
-          const altNames = Array.isArray(gpt.alternative_names) ? gpt.alternative_names : [];
-
-          // 1) Try DB lookup using detected name
-          const dbRes = await fetch(
-            `${API_URL}/api/ai/lookup?name=${encodeURIComponent(detected)}`,
-            { credentials: "include" }
-          );
-          const dbData = await dbRes.json();
-
-          if (dbData.found && dbData.item) {
-            setSuggestions([]);
-            setResult(shapeResultFromDB(dbData.item));
-            return;
-          }
-
-          // 2) If not found, show alternatives as suggestions (chips)
-          setResult(null);
-          setSuggestions([detected, ...altNames].filter(Boolean));
+          // No match at all
           setError(
-            `Detected: ${detected}. Not found in database — please select a suggestion or type the exact food name.`
+            gptResponse.error ||
+            "Food not recognized. Please try a clearer image or type the food name manually."
           );
+          setResult(null);
+          setSuggestions([]);
+          setLoading(false);
           return;
         }
+
+        // High confidence match — use food_name from DB
+        const gpt = gptResponse.data;
+        const detected = gpt.food_name;
+
+        const dbRes = await fetch(
+          `${API_URL}/api/ai/lookup?name=${encodeURIComponent(detected)}`,
+          { credentials: "include" }
+        );
+        const dbData = await dbRes.json();
+
+        if (dbData.found && dbData.item) {
+          setSuggestions([]);
+          setResult(shapeResultFromDB(dbData.item));
+          return;
+        }
+
+        // Fallback if DB lookup still fails
+        setResult(null);
+        setSuggestions([detected]);
+        setError(`Detected: "${detected}" — not found in our database. Try selecting the suggestion or type the food name manually.`);
+        return;
+      }
 
       // TEXT MODE
       const dbRes = await fetch(`${API_URL}/api/ai/lookup?name=${encodeURIComponent(foodName)}`, {
