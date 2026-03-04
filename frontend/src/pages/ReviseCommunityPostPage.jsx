@@ -3,27 +3,23 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Modal from "../components/Modal";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { FaCamera } from "react-icons/fa";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const ORIGIN_OPTIONS = [
-  "Iban",
-  "Melanau",
-  "Bidayuh",
-  "Dayak",
-  "Malay",
-  "Chinese",
-  "Indigenous",
-  "Multi-ethnic",
+  "Iban", "Melanau", "Bidayuh", "Dayak",
+  "Malay", "Chinese", "Indigenous", "Multi-ethnic",
 ];
 
 export default function ReviseCommunityPostPage() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   //====================
   // CSRF
   //====================
@@ -42,34 +38,22 @@ export default function ReviseCommunityPostPage() {
     fetchCsrfToken();
   }, []);
 
-
-  // 1. Get initial data from navigation state (if available)
   const stateData = location.state || {};
 
-  // 2. State for form and UI
   const [form, setForm] = useState({
-    title: "",
-    culturalOrigin: "",
-    content: "",
-    recipe: "",
-    image: ""
+    title: "", culturalOrigin: "", content: "", recipe: "", image: ""
   });
-  
-  // 3. New State variables for data fetching
+
   const [adminFeedback, setAdminFeedback] = useState(stateData.adminFeedback || "");
   const [fieldsWithIssues, setFieldsWithIssues] = useState(stateData.fieldsWithIssues || []);
-  const [isLoading, setIsLoading] = useState(!stateData.contribution); // Load if no state data
+  const [isLoading, setIsLoading] = useState(!stateData.contribution);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
 
   const [infoDlg, setInfoDlg] = useState({
-    open: false,
-    title: "",
-    message: "",
-    icon: null,
-    primaryText: "OK",
+    open: false, title: "", message: "", icon: null, primaryText: "OK",
   });
 
   const openInfo = ({ title, message, icon, primaryText = "OK" }) =>
@@ -77,7 +61,6 @@ export default function ReviseCommunityPostPage() {
 
   const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false }));
 
-  // 4. Effect: Initialize form (Handle both Navigation State AND API Fetch)
   useEffect(() => {
     if (stateData.contribution) {
       console.log("📝 Initializing form with navigation state:", stateData.contribution);
@@ -89,17 +72,16 @@ export default function ReviseCommunityPostPage() {
         image: stateData.contribution.image || ""
       });
       setIsLoading(false);
-    } 
-    else {
+    } else {
       console.log("🌍 No state found. Fetching from API for ID:", id);
       const fetchPost = async () => {
         try {
           const res = await fetch(`${API_BASE_URL}/api/communityPost/${id}`, {
-            credentials: "include", 
+            credentials: "include",
           });
-          
+
           if (!res.ok) throw new Error("Failed to load post data.");
-          
+
           const result = await res.json();
           if (!result.success || !result.data) throw new Error("Post not found.");
 
@@ -115,17 +97,16 @@ export default function ReviseCommunityPostPage() {
           });
 
           if (data.admin_feedback || data.adminFeedback) {
-             setAdminFeedback(data.admin_feedback || data.adminFeedback);
+            setAdminFeedback(data.admin_feedback || data.adminFeedback);
           }
-
         } catch (err) {
           console.error("❌ Error loading post:", err);
-          setError("Could not load community post. It may have been deleted.");
+          setError(t("revisePost.couldNotLoad"));
         } finally {
           setIsLoading(false);
         }
       };
-      
+
       fetchPost();
     }
   }, [id, stateData.contribution]);
@@ -138,12 +119,12 @@ export default function ReviseCommunityPostPage() {
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       openInfo({
-        title: "Invalid image file type",
-        message: "Please select a valid image file (JPEG, PNG, GIF, WebP)",
+        title: t("revisePost.invalidImageType"),
+        message: t("revisePost.invalidImageTypeMsg"),
         icon: <AlertTriangle />,
       });
       return;
@@ -151,8 +132,8 @@ export default function ReviseCommunityPostPage() {
 
     if (file.size > 5 * 1024 * 1024) {
       openInfo({
-        title: "Invalid image size",
-        message: "Image size should be less than 5MB",
+        title: t("revisePost.invalidImageSize"),
+        message: t("revisePost.invalidImageSizeMsg"),
         icon: <AlertTriangle />,
       });
       return;
@@ -182,9 +163,7 @@ export default function ReviseCommunityPostPage() {
 
       const res = await fetch(`${API_BASE_URL}/api/communityPost/revise/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
-         },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
         credentials: "include",
         body: JSON.stringify(revisedData),
       });
@@ -195,18 +174,17 @@ export default function ReviseCommunityPostPage() {
       }
 
       const result = await res.json();
-      
+
       if (result.success) {
-        setSuccess("Community post revised successfully! It has been resubmitted for admin review.");
+        setSuccess(t("revisePost.revisedSuccessMsg"));
         openInfo({
-           title: "Post Revised Successfully!",
-           message: "Your community contribution has been resubmitted and is awaiting admin review.",
-           icon: <CheckCircle2 />,
-         });
+          title: t("revisePost.revisedSuccessTitle"),
+          message: t("revisePost.revisedSuccessMsg"),
+          icon: <CheckCircle2 />,
+        });
         setTimeout(() => {
-          // 🛠️ FIX: Navigate explicitly to contributions tab
-          navigate("/profile?tab=status"); 
-        }, 2000);      
+          navigate("/profile?tab=status");
+        }, 2000);
       } else {
         throw new Error(result.error || "Update failed");
       }
@@ -226,8 +204,8 @@ export default function ReviseCommunityPostPage() {
         <Header />
         <div className="upp-page">
           <div className="upp-wrap" style={{ textAlign: 'center', padding: '50px' }}>
-            <h2>Loading Contribution...</h2>
-            <p>Please wait while we fetch your data.</p>
+            <h2>{t("revisePost.loadingTitle")}</h2>
+            <p>{t("revisePost.loadingSubtitle")}</p>
           </div>
         </div>
         <Footer />
@@ -242,14 +220,13 @@ export default function ReviseCommunityPostPage() {
         <div className="upp-page">
           <div className="upp-wrap">
             <div className="rcp-error">
-              <h2>Error</h2>
+              <h2>{t("revisePost.errorTitle")}</h2>
               <p>{error}</p>
-              {/* 🛠️ FIX: Navigate explicitly to contributions tab */}
-              <button 
+              <button
                 className="lrp-btn lrp-btn-primary"
                 onClick={() => navigate("/profile?tab=status")}
               >
-                Back to Profile
+                {t("revisePost.backToProfile")}
               </button>
             </div>
           </div>
@@ -265,35 +242,31 @@ export default function ReviseCommunityPostPage() {
 
       <div className="upp-page">
         <div className="upp-wrap">
-          {/* 🛠️ FIX: Navigate explicitly to contributions tab */}
           <button
             className="lrp-btn lrp-btn-outline rcp-back"
             onClick={() => navigate("/profile?tab=status")}
           >
-            ← Back to Contributions
+            {t("revisePost.backToContributions")}
           </button>
 
           <div className="rcp-wrap">
-            <h2 className="rp-title">Revise Community Contribution</h2>
+            <h2 className="rp-title">{t("revisePost.pageTitle")}</h2>
             <p className="upp-muted" style={{ marginBottom: 16 }}>
-              Fix the highlighted fields and resubmit.
+              {t("revisePost.fixAndResubmit")}
             </p>
 
             {/* Admin Feedback */}
             {adminFeedback && (
-              <div
-                className="upp-card"
-                style={{ borderColor: "#ffd6d6", background: "#fff8f8" }}
-              >
+              <div className="upp-card" style={{ borderColor: "#ffd6d6", background: "#fff8f8" }}>
                 <div className="upp-strong" style={{ marginBottom: 6 }}>
-                  Admin Feedback
+                  {t("revisePost.adminFeedbackTitle")}
                 </div>
                 <div style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", overflowWrap: "break-word" }}>
                   {adminFeedback}
                 </div>
                 {fieldsWithIssues.length > 0 && (
                   <div style={{ marginTop: "10px" }}>
-                    <div className="upp-strong">Areas needing improvement:</div>
+                    <div className="upp-strong">{t("revisePost.areasNeedingImprovement")}</div>
                     <ul>
                       {fieldsWithIssues.map((field, index) => (
                         <li key={index}>{field}</li>
@@ -304,68 +277,56 @@ export default function ReviseCommunityPostPage() {
               </div>
             )}
 
-            {/* Error/Success Messages */}
             {error && <div className="rcp-error-message">{error}</div>}
             {success && <div className="rcp-success-message">{success}</div>}
 
             <form className="rp-form" onSubmit={submitRevision}>
-              {/* Food Name + Cultural Origin */}
               <div className="rp-grid-2">
                 <div className={`rp-field ${needsFix.has("title") ? "needs-fix" : ""}`}>
-                  <label>Food Name *</label>
+                  <label>{t("revisePost.foodNameLabel")}</label>
                   <input
                     name="title"
                     value={form.title}
                     onChange={onChangeForm}
-                    placeholder="e.g., Manok Pansoh"
+                    placeholder={t("revisePost.foodNamePlaceholder")}
                     required
                   />
                 </div>
 
                 <div className={`rp-field ${needsFix.has("culturalOrigin") ? "needs-fix" : ""}`}>
-                  <label>Cultural Origin *</label>
-                  <select
-                    name="culturalOrigin"
-                    value={form.culturalOrigin}
-                    onChange={onChangeForm}
-                    required
-                  >
-                    <option value="">Select Origin</option>
+                  <label>{t("revisePost.culturalOriginLabel")}</label>
+                  <select name="culturalOrigin" value={form.culturalOrigin} onChange={onChangeForm} required>
+                    <option value="">{t("revisePost.selectOrigin")}</option>
                     {ORIGIN_OPTIONS.map((o) => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
+                      <option key={o} value={o}>{o}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* Cultural Story */}
               <div className={`rp-field ${needsFix.has("content") ? "needs-fix" : ""}`}>
-                <label>Cultural Story *</label>
+                <label>{t("revisePost.culturalStoryLabel")}</label>
                 <textarea
                   name="content"
                   value={form.content}
                   onChange={onChangeForm}
-                  placeholder="Tell us the story behind this dish..."
+                  placeholder={t("revisePost.culturalStoryPlaceholder")}
                   required
                 />
               </div>
 
-              {/* Recipe (Optional) */}
               <div className="rp-field">
-                <label>Recipe (Optional)</label>
+                <label>{t("revisePost.recipeLabel")}</label>
                 <textarea
                   name="recipe"
                   value={form.recipe}
                   onChange={onChangeForm}
-                  placeholder="Share the recipe if you'd like (optional)"
+                  placeholder={t("revisePost.recipePlaceholder")}
                 />
               </div>
 
-              {/* Upload Photo */}
               <div className={`rp-field ${needsFix.has("image") ? "needs-fix" : ""}`}>
-                <label>Upload Photo *</label>
+                <label>{t("revisePost.uploadPhotoLabel")}</label>
                 <div
                   className="upload-box"
                   onClick={() => document.getElementById("ccp-file-input").click()}
@@ -377,7 +338,7 @@ export default function ReviseCommunityPostPage() {
                   ) : (
                     <div className="upload-placeholder">
                       <FaCamera className="camera-icon" />
-                      <p>Click to upload</p>
+                      <p>{t("revisePost.clickToUpload")}</p>
                     </div>
                   )}
                 </div>
@@ -389,34 +350,30 @@ export default function ReviseCommunityPostPage() {
                   onChange={handleImageUpload}
                 />
                 <div className="upp-muted" style={{ marginTop: "4px", fontSize: "0.875rem" }}>
-                  {selectedFile ? `New file: ${selectedFile.name}` : "Current image will be kept if no new file selected"}
+                  {selectedFile
+                    ? t("revisePost.newFile", { name: selectedFile.name })
+                    : t("revisePost.keepCurrentImage")}
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="rp-actions">
-                <button 
-                  className="rp-btn rp-submit" 
-                  type="submit"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Submitting..." : "Submit Revision"}
+                <button className="rp-btn rp-submit" type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? t("revisePost.submitting") : t("revisePost.submitRevision")}
                 </button>
-                
-                {/* 🛠️ FIX: Navigate explicitly to contributions tab */}
                 <button
                   className="rp-btn rp-btn-muted"
                   type="button"
                   onClick={() => navigate("/profile?tab=status")}
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  {t("revisePost.cancelBtn")}
                 </button>
               </div>
             </form>
           </div>
         </div>
       </div>
+
       <Modal
         open={infoDlg.open}
         title={infoDlg.title}

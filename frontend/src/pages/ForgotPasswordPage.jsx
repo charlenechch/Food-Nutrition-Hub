@@ -1,6 +1,7 @@
 /* src/pages/ForgotPasswordPage.jsx */
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import LoginFood from "../assets/LoginFood.png";
 import "../css/ForgotPasswordPage.css";
 
@@ -13,6 +14,7 @@ import { auth } from "../config/firebase";
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -23,7 +25,7 @@ export default function ForgotPasswordPage() {
     setError("");
 
     if (!email) {
-      setError("Please enter your email.");
+      setError(t("forgotPassword.enterEmail"));
       return;
     }
 
@@ -42,7 +44,7 @@ export default function ForgotPasswordPage() {
       setSubmitted(true);
     } catch (err) {
       console.error(err);
-      setError("Failed to send reset email. Please check the email provided.");
+      setError(t("forgotPassword.sendFailed"));
     } finally {
       setLoading(false);
     }
@@ -61,12 +63,9 @@ export default function ForgotPasswordPage() {
         
         {/* Left Side: Brand Text */}
         <div className="mh-brand-section">
-          <h1 className="mh-title">Recover<br/>Your Account</h1>
+          <h1 className="mh-title">{t("forgotPassword.brandTitle")}</h1>
           <div className="mh-divider"></div>
-          <p className="mh-subtitle">
-            Don't worry, it happens. <br/>
-            We'll help you get back to exploring Sarawak's finest flavors in no time.
-          </p>
+          <p className="mh-subtitle">{t("forgotPassword.brandSubtitle")}</p>
         </div>
 
         {/* Right Side: Glass Card */}
@@ -75,8 +74,8 @@ export default function ForgotPasswordPage() {
           {!submitted ? (
             <>
               <div className="mh-card-header">
-                <h3>Forgot Password?</h3>
-                <p>Enter your email to receive a reset link</p>
+                <h3>{t("forgotPassword.cardTitle")}</h3>
+                <p>{t("forgotPassword.cardSubtitle")}</p>
               </div>
 
               <form onSubmit={handleSubmit} className="mh-form-body">
@@ -86,7 +85,7 @@ export default function ForgotPasswordPage() {
                   <FaEnvelope className="mh-icon" />
                   <input
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={t("auth.emailPlaceholder")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
@@ -98,17 +97,17 @@ export default function ForgotPasswordPage() {
                   className="mh-btn-primary" 
                   disabled={loading}
                 >
-                  {loading ? "Sending..." : "Send Reset Link"}
+                  {loading ? t("forgotPassword.sending") : t("forgotPassword.sendResetLink")}
                 </button>
 
-                <div className="mh-separator"><span>or</span></div>
+                <div className="mh-separator"><span>{t("auth.or")}</span></div>
 
                 <button
                   type="button"
                   className="mh-back-btn"
                   onClick={() => navigate("/loginregister")}
                 >
-                  <FaArrowLeft /> Back to Login
+                  <FaArrowLeft /> {t("auth.backToLogin")}
                 </button>
               </form>
             </>
@@ -118,14 +117,14 @@ export default function ForgotPasswordPage() {
               <div className="mh-success-icon">
                 <FaCheckCircle />
               </div>
-              <h3>Check your inbox</h3>
+              <h3>{t("forgotPassword.checkInbox")}</h3>
               <p>
-                We've sent a secure reset link to <br/><strong>{email}</strong>
+                {t("forgotPassword.sentTo")} <br/><strong>{email}</strong>
               </p>
               
               <div className="mh-tips-box">
-                <p>• Check your spam folder if you don't see it.</p>
-                <p>• The link expires in 1 hour.</p>
+                <p>{t("forgotPassword.tipSpam")}</p>
+                <p>{t("forgotPassword.tipExpiry")}</p>
               </div>
 
               <button
@@ -133,7 +132,7 @@ export default function ForgotPasswordPage() {
                 className="mh-btn-primary"
                 onClick={() => navigate("/loginregister")}
               >
-                Back to Login
+                {t("auth.backToLogin")}
               </button>
             </div>
           )}

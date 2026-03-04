@@ -13,8 +13,10 @@ import Footer from "../components/Footer";
 import { Bell, Eye, EyeOff, Globe, Shield, ExternalLink, OctagonX, Camera, X, AlertTriangle, CheckCircle2, Trash2, Lock } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
 import Modal from "../components/Modal";
+import { useTranslation } from "react-i18next";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const { t } = useTranslation();
 
 // Options
 const DIETARY_OPTIONS = [
@@ -33,7 +35,7 @@ const DEFAULT_PREFS = {
   language: "en"
 };
 
-// ✅Better normalization that ensures clean string arrays
+// Better normalization that ensures clean string arrays
 const normalizePrefs = (data = {}) => {
   const prefsData = data.prefs || data;
 
@@ -94,29 +96,6 @@ const normalizePrefs = (data = {}) => {
 const toggleInArray = (arr, value) =>
   arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 
-const fmtStatus = (s) => {
-  if (!s) return "Unknown";
-  
-  const statusMap = {
-    "approved": "Approved",
-    "pending": "Pending Review", 
-    "rejected": "Rejected",
-    "Approved": "Approved",
-    "Pending": "Pending Review",
-    "Rejected": "Rejected"
-  };
-  
-  return statusMap[s] || "Unknown";
-};
-
-const formatContributionDate = (dateString) => {
-  if (!dateString) return "Date not available";
-  const d = new Date(dateString);
-  return isNaN(d.getTime())
-    ? "Date not available"
-    : d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-};
-
 const isCommunity = (c) => {
   const type = (c?.type || "").toLowerCase();
   return type === "community";
@@ -152,9 +131,7 @@ export default function UserProfilePage() {
   //Controls view and edit mode
   const [isEditing, setIsEditing] = useState(false);
 
-  //====================
-  //CSRF
-  //======================
+  //CSRF Token State
   const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
@@ -171,12 +148,34 @@ export default function UserProfilePage() {
     fetchCsrfToken();
   }, []);
 
+  const fmtStatus = (s) => {
+    if (!s) return t("profile.unknown");
+    
+    const statusMap = {
+        "approved": t("profile.statusApproved"),
+        "pending": t("profile.statusPending"),
+        "rejected": t("profile.statusRejected"),
+        "Approved": t("profile.statusApproved"),
+        "Pending": t("profile.statusPending"),
+        "Rejected": t("profile.statusRejected")
+      };
+      
+      return statusMap[s] || t("profile.unknown");
+  };
+
+const formatContributionDate = (dateString) => {
+  if (!dateString) return t("profile.dateNotAvailable");
+  const d = new Date(dateString);
+  return isNaN(d.getTime())
+    ? t("profile.dateNotAvailable")
+    : d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+};
 
   // Export State
   const [exportModal, setExportModal] = useState({
     open: false,
-    title: "Export Saved Foods",
-    message: "Select which saved foods you want to export:",
+    title: "",
+    message: "",
     selectedFoods: [],
     selectAll: false,
     loading: false
@@ -200,7 +199,7 @@ export default function UserProfilePage() {
   const [error, setError] = useState("");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false); // ✅ Guest popup control
 
-  // ✅ Avatar Upload State
+  // Avatar Upload State
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -225,14 +224,14 @@ export default function UserProfilePage() {
     title: "",
     message: "",
     icon: null,
-    primaryText: "OK",
+    primaryText: "",
     onPrimary: null,
   });
   const closeDlg = () =>
     setDlg(m => ({ ...m, open: false, onPrimary: null }));
 
   const openAlert = (title, message, icon, onPrimary) =>
-    setDlg({ open: true, title, message, icon, primaryText: "OK", onPrimary: () => {try { onPrimary?.(); } finally { closeDlg(); }},});
+    setDlg({ open: true, title, message, icon, primaryText: t("profile.ok"), onPrimary: () => {try { onPrimary?.(); } finally { closeDlg(); }},});
 
   // Confirm dialog
   const [confirm, setConfirm] = useState({
@@ -240,8 +239,8 @@ export default function UserProfilePage() {
     title: "",
     message: "",
     icon: null,
-    confirmText: "Confirm",
-    cancelText: "Cancel",
+    confirmText: "",
+    cancelText: "",
     onConfirm: null,
   });
   const closeConfirm = () =>
@@ -250,10 +249,10 @@ export default function UserProfilePage() {
   const openConfirm = (opts) =>
     setConfirm({
       open: true,
-      title: opts.title || "Confirm",
+      title: opts.title || t("profile.confirm"),
       message: opts.message || "",
-      confirmText: opts.confirmText || "Confirm",
-      cancelText: opts.cancelText || "Cancel",
+      confirmText: opts.confirmText || t("profile.confirm"),
+      cancelText: opts.cancelText || t("profile.cancel"),
       onConfirm: async () => {
         closeConfirm();
         await opts.onConfirm?.();
@@ -263,13 +262,13 @@ export default function UserProfilePage() {
   // Password modal (for account deletion)
   const [pwModal, setPwModal] = useState({
     open: false,
-    title: "Confirm Account Deletion",
-    message: "For security, please enter your password to confirm.",
+    title: "",
+    message: "",
     password: "",
     onSubmit: null,
   });
   const openPasswordModal = (onSubmit) =>
-    setPwModal({ open: true, title: "Confirm Account Deletion", message: "For security, please enter your password to confirm.", password: "", onSubmit });
+    setPwModal({ open: true, title: t("profile.confirmDeletion"), message: t("profile.confirmDeletionMsg"), password: "", onSubmit });
   const closePasswordModal = () =>
     setPwModal(m => ({ ...m, open: false, onSubmit: null, password: "" }));
 
@@ -277,8 +276,8 @@ const openExportModal = () => {
   const savedFoodsArray = user?.savedFoods || [];
   setExportModal({
     open: true,
-    title: "Export Saved Foods",
-    message: "Select which saved foods you want to export:",
+    title: t("profile.exportTitle"),
+    message: t("profile.exportMsg"),
     selectedFoods: [], // Start with none selected
     selectAll: false,
     loading: false
@@ -394,14 +393,14 @@ const savePersonal = async () => {
     console.log("✅ Personal info update result:", result);
     
     if (result.success) {
-      openAlert("Saved", "Profile updated successfully!", <CheckCircle2 />);
+      oopenAlert(t("profile.saved"), t("profile.profileUpdated"), <CheckCircle2 />);
       setUser(prev => ({ ...prev, location: form.location, bio: bio }));
     } else {
       throw new Error(result.error || "Update failed");
     }
   } catch (e) {
     console.error("Personal info update error:", e);
-    openAlert("Update Failed", e.message || "Failed to update profile", <AlertTriangle />);
+    openAlert(t("profile.updateFailed"), e.message || t("profile.failedUpdateProfile"), <AlertTriangle />);
   }
 };
 
@@ -442,13 +441,13 @@ const savePrefs = async () => {
     console.log("✅ Preferences update result:", result);
     
     if (result.success) {
-      openAlert("Saved", "Preferences updated successfully!", <CheckCircle2 />);
+      openAlert(t("profile.saved"), t("profile.prefsUpdated"), <CheckCircle2 />);
     } else {
       throw new Error(result.error || "Update failed");
     }
   } catch (e) {
     console.error("Preferences update error:", e);
-    openAlert("Update Failed", e.message || "Failed to update preferences", <AlertTriangle />);
+    openAlert(t("profile.updateFailed"), e.message || t("profile.failedUpdatePrefs"), <AlertTriangle />);
   }
 };
 
@@ -478,7 +477,7 @@ const handleExportData = async () => {
       };
     } else {
       // No selection
-      openAlert("No Selection", "Please select at least one food to export, or choose 'All'.", <AlertTriangle />);
+      openAlert(t("profile.noSelection"), t("profile.noSelectionMsg"), <AlertTriangle />);
       setExportModal(m => ({ ...m, loading: false }));
       return;
     }
@@ -519,18 +518,18 @@ const handleExportData = async () => {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
     
-    openAlert("Export Complete", "Your saved foods have been exported successfully!", <CheckCircle2 />);
+    openAlert(t("profile.exportComplete"), t("profile.exportCompleteMsg"), <CheckCircle2 />);
     closeExportModal();
     
   } catch (error) {
     console.error("Export error:", error);
-    openAlert("Export Failed", error.message || "Failed to export data. Please try again.", <AlertTriangle />);
+    openAlert(t("profile.exportFailed"), error.message || t("profile.exportFailedMsg"), <AlertTriangle />);
     setExportModal(m => ({ ...m, loading: false }));
   }
 };
 
-  const ContributionRow = ({ c }) => {
-    const navigate = useNavigate();
+const ContributionRow = ({ c }) => {
+  const navigate = useNavigate();
 
     // 1. Logic to determine if item is Recipe or Community Post
     const isRecipeItem = c?.foodName !== undefined;
@@ -614,14 +613,14 @@ const handleExportData = async () => {
               wordBreak: "break-word",   
               overflowWrap: "break-word" 
             }}>
-              <strong>Admin Feedback:</strong> {feedbackText}
+              <strong>{t("profile.adminFeedback")}:</strong> {feedbackText}
             </div>
           )}
           {/* 👆 END MODIFIED BLOCK 👆 */}
 
           <div className="upp-row-meta">
             <div className="upp-muted">
-              {c.culturalOrigin} • Submitted on{" "}
+              {c.culturalOrigin} • {t("profile.submittedOn")}{" "}
               {c.createdAt ? formatContributionDate(c.createdAt) :
                 c.submittedDate ? formatContributionDate(c.submittedDate) :
                   'Date not available'}
@@ -634,7 +633,7 @@ const handleExportData = async () => {
                 onClick={handleRevise}
                 type="button"
               >
-                Revise
+                {t("profile.revise")}
               </button>
             )}
           </div>
@@ -643,7 +642,7 @@ const handleExportData = async () => {
     );
   };
 
-  // ✅ Fetch Profile Data
+  // Fetch Profile Data
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -739,7 +738,7 @@ const handleExportData = async () => {
     fetchRecipeContributions();
   }, [tab, user]);
 
-  // ✅ Fetch Community Posts separately
+  // Fetch Community Posts separately
   useEffect(() => {
     const fetchCommunityPosts = async () => {
       if (tab === 'status' && user) {
@@ -778,10 +777,10 @@ const handleExportData = async () => {
   // Delete account handler - Backend password verification
   const handleDeleteAccount = async () => {
     openConfirm({
-      title: "Delete Account",
-      message: "Are you sure you want to delete your account? This action cannot be undone and will remove all your data.",
-      confirmText: "Delete",
-      cancelText: "Cancel",
+      title: t("profile.deleteAccount"),
+      message: t("profile.deleteAccountConfirm"),
+      confirmText: t("profile.delete"),
+      cancelText: t("profile.cancel"),
       onConfirm: () => {
         // Step 2: ask for password in controlled modal
         openPasswordModal(async (password) => {
@@ -805,8 +804,8 @@ const handleExportData = async () => {
                   closePasswordModal(); 
 
                   openAlert(
-                      "Verification Failed",
-                      verifyData.error || "Incorrect password. Please try again.",
+                      t("profile.verificationFailed"),
+                      verifyData.error || t("profile.incorrectPassword"),
                       <AlertTriangle />
                   );
                     return;
@@ -826,17 +825,17 @@ const handleExportData = async () => {
             const data = await res.json().catch(() => ({}));
             
             if (res.ok && data.success) {
-                openAlert("Account Deleted", "Your account has been deleted successfully.", <CheckCircle2 />, () => {
+                openAlert(t("profile.accountDeleted"), t("profile.accountDeletedMsg"), <CheckCircle2 />, () => {
                   closeDlg();
                   window.location.href = '/';
                 });
             } else {
-              openAlert("Delete Failed", data.error || "Failed to delete account. ", <AlertTriangle />);
+              openAlert(t("profile.deleteFailed"), data.error || t("profile.deleteFailedMsg"), <AlertTriangle />);
             }
             
           } catch (error) {
             console.error('Error deleting account:', error);
-            openAlert("Delete Failed", "Failed to delete account. Please try again.", <AlertTriangle />);
+            openAlert(t("profile.deleteFailed"), t("profile.deleteFailedMsg"), <AlertTriangle />);
           }finally {
             closePasswordModal();
           }
@@ -852,7 +851,7 @@ const handleExportData = async () => {
     }
   }, [userProfileID, tab]);
 
-  // ✅ Pagination for saved foods
+  // Pagination for saved foods
   useEffect(() => {
     const savedFoodsArray = user?.savedFoods || [];
     if (Array.isArray(savedFoodsArray)) {
@@ -867,7 +866,7 @@ const handleExportData = async () => {
     }
   }, [user, user?.savedFoods, savedPage]);
 
-  // ===== ✅ Avatar Upload Functions =====
+  // Avatar Upload Functions 
   const handleAvatarClick = () => {
     setShowAvatarModal(true);
   };
@@ -887,14 +886,14 @@ const handleExportData = async () => {
     };
 
     if (!validTypes.includes(file.type)) {
-      openAlert("Invalid File", "Please select a valid image file (JPEG, PNG, GIF, WebP)", <AlertTriangle />, resetPicker);
+      openAlert(t("profile.invalidFile"), t("profile.invalidFileMsg"), <AlertTriangle />, resetPicker);
       resetPicker();
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      openAlert("File Too Large", "Image size should be less than 5MB", <AlertTriangle />, resetPicker);
+      openAlert(t("profile.fileTooLarge"), t("profile.fileTooLargeMsg"), <AlertTriangle />, resetPicker);
       resetPicker();
       return;
     }
@@ -909,7 +908,7 @@ const handleExportData = async () => {
 
   const uploadAvatar = async () => {
     if (!avatarFile) {
-      openAlert("No Image", "Please select an image first", <AlertTriangle />);
+      openAlert(t("profile.noImage"), t("profile.noImageMsg"), <AlertTriangle />);
       return;
     }
 
@@ -937,7 +936,7 @@ const handleExportData = async () => {
       if (result.success) {
         // Update user state with new avatar
         setUser(prev => ({ ...prev, avatar: result.avatarUrl }));
-        openAlert("Avatar Updated", "Your avatar was updated successfully.", <CheckCircle2 />);
+        openAlert(t("profile.avatarUpdated"), t("profile.avatarUpdatedMsg"), <CheckCircle2 />)
         closeAvatarModal();
         
         // Reload the profile to get updated data
@@ -954,7 +953,7 @@ const handleExportData = async () => {
       }
     } catch (error) {
       console.error('Avatar upload error:', error);
-      openAlert("Upload Failed", error.message || "Failed to upload avatar", <AlertTriangle />);
+      openAlert(t("profile.uploadFailed"), error.message || t("profile.uploadFailedMsg"), <AlertTriangle />);
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -962,10 +961,10 @@ const handleExportData = async () => {
 
   const removeAvatar = async () => {
     openConfirm({
-      title: "Remove Avatar",
-      message: "Are you sure you want to remove your avatar?",
-      confirmText: "Remove",
-      cancelText: "Cancel",
+      title: t("profile.removeAvatar"),
+      message: t("profile.removeAvatarConfirm"),
+      confirmText: t("profile.remove"),
+      cancelText: t("profile.cancel"),
       onConfirm: async () => {
         try {
           const res = await fetch(`${API_BASE_URL}/api/userProfile/avatar`, {
@@ -986,7 +985,7 @@ const handleExportData = async () => {
           if (result.success) {
             // Update user state to remove avatar
             setUser(prev => ({ ...prev, avatar: null }));
-            openAlert("Avatar Removed", "Your avatar was removed successfully.", <CheckCircle2 />);
+            openAlert(t("profile.avatarRemoved"), t("profile.avatarRemovedMsg"), <CheckCircle2 />);
             closeAvatarModal();
             
             // Reload the profile
@@ -1003,7 +1002,7 @@ const handleExportData = async () => {
           }
         } catch (error) {
           console.error('Avatar remove error:', error);
-          openAlert("Remove Failed", error.message || "Failed to remove avatar", <AlertTriangle />);
+          openAlert(t("profile.removeFailed"), error.message || t("profile.removeFailedMsg"), <AlertTriangle />);
         }
       }
     });
@@ -1023,7 +1022,7 @@ const handleExportData = async () => {
     return (
       <div className="user-profile-page">
         <Header />
-        <div className="upp-page"><div className="upp-loading">Loading profile…</div></div>
+        <div className="upp-page"><div className="upp-loading">{t("profile.loading")}</div></div>
         <Footer />
       </div>
     );
@@ -1035,10 +1034,10 @@ const handleExportData = async () => {
       <div className="user-profile-page">
         <Header />
         <div className="upp-page">
-          <h2 className="upp-404-h2">Error Loading Profile</h2>
+          <h2 className="upp-404-h2">{t("profile.errorTitle")}</h2>
           <p className="upp-error-message">{error}</p>
           <button className="lrp-btn lrp-btn-primary" onClick={() => window.location.reload()}>
-            Retry
+            {t("profile.retry")}
           </button>
         </div>
         <Footer />
@@ -1051,21 +1050,21 @@ const handleExportData = async () => {
     <div className="user-profile-page">
       <Header />
 
-      {/* ✅ If guest, show pop-up modal instead of redirect */}
+      {/* If guest, show pop-up modal instead of redirect */}
       {showLoginPrompt && (
         <LoginPromptModal
-          message="Please login or register to view your profile."
+          message={t("profile.loginToView")}
           onClose={() => setShowLoginPrompt(false)}
           onLogin={() => navigate("/loginregister")}
         />
       )}
 
-      {/* ✅ Avatar Upload Modal */}
+      {/* Avatar Upload Modal */}
       {showAvatarModal && (
         <div className="upp-modal-overlay">
           <div className="upp-modal">
             <div className="upp-modal-header">
-              <h3>Change Avatar</h3>
+              <h3>{t("profile.changeAvatar")}</h3>
               <button className="upp-modal-close" onClick={closeAvatarModal}>
                 <X size={20} />
               </button>
@@ -1087,7 +1086,7 @@ const handleExportData = async () => {
               
               <div className="upp-avatar-actions">
                 <label htmlFor="avatar-upload" className="lrp-btn lrp-btn-primary">
-                  <span><Camera size={16} /> Choose Image</span>
+                  <span><Camera size={16} />{t("profile.chooseImage")}</span>
                 </label>
                 <input
                   id="avatar-upload"
@@ -1103,14 +1102,14 @@ const handleExportData = async () => {
                     onClick={removeAvatar}
                     type="button"
                   >
-                    Remove Current
+                    {t("profile.removeCurrent")}
                   </button>
                 )}
               </div>
               
               <div className="upp-avatar-help">
-                <p>Supported formats: JPEG, JPG, PNG, GIF, WebP</p>
-                <p>Max file size: 5MB</p>
+                <p>{t("profile.supportedFormats")}</p>
+                <p>{t("profile.maxSize")}</p>
               </div>
             </div>
             
@@ -1120,21 +1119,21 @@ const handleExportData = async () => {
                 onClick={closeAvatarModal}
                 disabled={isUploadingAvatar}
               >
-                Cancel
+                {t("profile.cancel")}
               </button>
               <button 
                 className="lrp-btn lrp-btn-primary" 
                 onClick={uploadAvatar}
                 disabled={!avatarFile || isUploadingAvatar}
               >
-                {isUploadingAvatar ? 'Uploading...' : 'Save Avatar'}
+                {isUploadingAvatar ? t("profile.uploading") : t("profile.saveAvatar")}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ✅ Only render profile if user exists & not guest */}
+      {/* Only render profile if user exists & not guest */}
       {!showLoginPrompt && user && (
         <div className="upp-page">
           {/* ===== USER HEADER ===== */}
@@ -1178,18 +1177,18 @@ const handleExportData = async () => {
                 </div>
               )}
             </div>
-            <h1 className="upp-title">{!userProfileID ? "My Profile" : `${user?.firstName}'s Profile`}</h1>
+            <h1 className="upp-title">{!userProfileID ? t("profile.myProfile") : t("profile.othersProfile", { name: user?.firstName })}</h1>
             <p className="upp-sub">
-              {user?.firstName} {user?.lastName} • {user?.role || "Member"}
+              {user?.firstName} {user?.lastName} • {user?.role || t("profile.member")}
             </p>
           </div>
 
           {user?.isPrivateView ? (
           <div className="upp-center upp-private-view">
             <Lock size={80} color="#d8c6b4" className="upp-private-icon" />
-            <h2 className="upp-private-title">Private Profile</h2>
+            <h2 className="upp-private-title">{t("profile.privateProfile")}</h2>
             <p className="upp-muted upp-private-text">
-              {user.bio || "This account is private."}
+              {user.bio || t("profile.accountIsPrivate")}
             </p>
           </div>
         ) : (
@@ -1197,11 +1196,11 @@ const handleExportData = async () => {
           {/* ===== TABS ===== */}
           <div className="upp-tabs lrp-tabs">
             {[
-              ["info", "Personal Information"],
-              ["saved", "Saved Foods"],
-              ["status", "Contributions"],
-              ["prefs", "Preferences"],
-              ["settings", "Settings"],
+              ["info", t("profile.tabInfo")],
+              ["saved", t("profile.tabSaved")],
+              ["status", t("profile.tabStatus")],
+              ["prefs", t("profile.tabPrefs")],
+              ["settings", t("profile.tabSettings")],
             ]
             .filter(([val]) => {
               if (!userProfileID) return true; // Owner sees everything
@@ -1228,11 +1227,11 @@ const handleExportData = async () => {
               <div className="upp-grid">
                 <div className="upp-main">
                   <div className="upp-card">
-                    <h3 className="upp-card-title">Personal Information</h3>
+                    <h3 className="upp-card-title">{t("profile.tabInfo")}</h3>
                         {/* --- First Name & Last Name --- */}
                         <div className="upp-form-grid">
                           <label>
-                            <span>First Name</span>
+                            <span>{t("profile.firstName")}</span>
                             {isEditing ? (
                               <input 
                                 value={form.firstName} 
@@ -1244,7 +1243,7 @@ const handleExportData = async () => {
                             )}
                           </label>
                           <label>
-                            <span>Last Name</span>
+                            <span>{t("profile.lastName")}</span>
                             {isEditing ? (
                               <input 
                                 value={form.lastName} 
@@ -1260,7 +1259,7 @@ const handleExportData = async () => {
                         {/* --- Email & Location --- */}
                         <div className="upp-form-grid">
                           <label>
-                            <span>Email</span>
+                            <span>{t("profile.email")}</span>
                             {/* Email usually stays disabled for security */}
                             <input 
                               type="email" 
@@ -1270,7 +1269,7 @@ const handleExportData = async () => {
                             />
                           </label>
                           <label>
-                            <span>Location</span>
+                            <span>{t("profile.location")}</span>
                             {isEditing ? (
                               <input 
                                 value={form.location} 
@@ -1278,14 +1277,14 @@ const handleExportData = async () => {
                                 className="upp-input-edit"
                               />
                             ) : (
-                              <div className="upp-read-only">{form.location || "Not specified"}</div>
+                              <div className="upp-read-only">{form.location || t("profile.notSpecified")}</div>
                             )}
                           </label>
                         </div>
 
                         {/* --- Bio --- */}
                         <label className="upp-block">
-                          <span>Bio</span>
+                          <span>{t("profile.bio")}</span>
                           {isEditing ? (
                             <>
                               <textarea 
@@ -1299,7 +1298,7 @@ const handleExportData = async () => {
                             </>
                           ) : (
                             <div className="upp-read-only" style={{ minHeight: "60px", whiteSpace: "pre-wrap" }}>
-                              {bio || "No bio yet."}
+                              {bio || t("profile.noBio")}
                             </div>
                           )}
                         </label>
@@ -1313,7 +1312,7 @@ const handleExportData = async () => {
                               style={{ width: "100%", padding: "12px", fontWeight: "bold", border: "1px solid #ccc" }}
                               onClick={() => setIsEditing(true)}
                             >
-                              Edit Profile
+                              {t("profile.editProfile")}
                             </button>
                           ) : (
                             // EDIT MODE: Cancel + Save
@@ -1323,7 +1322,7 @@ const handleExportData = async () => {
                                 style={{ flex: 1 }}
                                 onClick={() => setIsEditing(false)}
                               >
-                                Cancel
+                                {t("profile.cancel")}
                               </button>
                               <button 
                                 className="lrp-btn lrp-btn-primary" 
@@ -1333,7 +1332,7 @@ const handleExportData = async () => {
                                   setIsEditing(false);
                                 }}
                               >
-                                Save Changes
+                                {t("profile.saveChanges")}
                               </button>
                             </div>
                           )}
@@ -1344,18 +1343,18 @@ const handleExportData = async () => {
                 {/* Sidebar Stats (Unchanged) */}
                 <aside className="upp-sticky">
                   <div className="upp-card">
-                    <h3 className="upp-card-title">My Contributions</h3>
+                    <h3 className="upp-card-title">{t("profile.myContributions")}</h3>
                     <div className="upp-stat">
                       <div className="upp-stat-val">{user?.stats?.recipes || 0}</div>
-                      <div className="upp-muted">recipes shared</div>
+                      <div className="upp-muted">{t("profile.recipesShared")}</div>
                     </div>
                     <div className="upp-stat">
                       <div className="upp-stat-val">{user?.stats?.posts || 0}</div>
-                      <div className="upp-muted">stories shared</div>
+                      <div className="upp-muted">{t("profile.storiesShared")}</div>
                     </div>
                     <div className="upp-stat">
                       <div className="upp-stat-val">{user?.stats?.likes || 0}</div>
-                      <div className="upp-muted">likes received</div>
+                      <div className="upp-muted">{t("profile.likesReceived")}</div>
                     </div>
                   </div>
                 </aside>
@@ -1427,8 +1426,8 @@ const handleExportData = async () => {
                   </>
                 ) : (
                   <div className="upp-center">
-                    <p className="upp-muted">No saved foods yet</p>
-                    <p className="upp-muted">Explore foods to start saving your favorites</p>
+                    <p className="upp-muted">{t("profile.noSavedFoods")}</p>
+                    <p className="upp-muted">{t("profile.exploreFoods")}</p>
                   </div>
                 )}
               </>
@@ -1459,32 +1458,32 @@ const handleExportData = async () => {
                     <div className="upp-stack">
                       {/* Recipes Section */}
                       <div className="upp-card">
-                        <h3 className="upp-card-title">Recipes ({recipeData.length})</h3>
+                        <h3 className="upp-card-title">{t("profile.recipes")} ({recipeData.length})</h3>
                         {isLoadingRecipes ? (
-                          <div className="upp-muted">Loading recipes...</div>
+                          <div className="upp-muted">{t("profile.loadingRecipes")}</div>
                         ) : recipeData.length ? (
                           <div className="upp-stack">
                             {recipeData.map((c) => <ContributionRow key={`recipe-${c.id}`} c={c} />)}
                           </div>
                         ) : (
                           <div className="upp-muted">
-                            {recipeContributions?.length > 0 ? `${recipeContributions.length} recipes found but not displaying` : 'No recipe contributions yet'}
+                            {recipeContributions?.length > 0 ? `${recipeContributions.length} recipes found but not displaying` : t("profile.noRecipes")}
                           </div>
                         )}
                       </div>
 
                       {/* Community Posts Section (REAL) */}
                       <div className="upp-card">
-                        <h3 className="upp-card-title">Community Posts ({communityData.length})</h3>
+                        <h3 className="upp-card-title">{t("profile.communityPosts")} ({communityData.length})</h3>
                         {isLoadingCommunity ? (
-                          <div className="upp-muted">Loading community posts...</div>
+                          <div className="upp-muted">{t("profile.loadingPosts")}</div>
                         ) : communityData.length ? (
                           <div className="upp-stack">
                             {communityData.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
                           </div>
                         ) : (
                           <div className="upp-muted">
-                            {communityPosts?.length > 0 ? `${communityPosts.length} community posts found but not displaying` : 'No community posts yet'}
+                            {communityPosts?.length > 0 ? `${communityPosts.length} community posts found but not displaying` : t("profile.noCommunityPosts")}
                           </div>
                         )}
                       </div>
@@ -1499,7 +1498,7 @@ const handleExportData = async () => {
               <div className="upp-stack">
                 {/* Dietary Card */}
                 <div className="upp-card">
-                  <h3 className="upp-card-title">Dietary Preferences</h3>
+                  <h3 className="upp-card-title">{t("profile.dietaryPrefs")}</h3>
                   <div className="upp-choice-grid">
                     {DIETARY_OPTIONS.map((id) => (
                       <label key={id} className={`upp-choice ${prefs.dietary.includes(id) ? "is-on" : ""}`}>
@@ -1512,13 +1511,13 @@ const handleExportData = async () => {
                         {id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                       </label>
                     ))}
-                    {prefs.dietary.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No dietary preferences selected</div>}
+                    {prefs.dietary.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>{t("profile.noDietaryPrefs")}</div>}
                   </div>
                 </div>
 
                 {/* Allergies Card */}
                 <div className="upp-card">
-                  <h3 className="upp-card-title">Allergies / Restrictions</h3>
+                  <h3 className="upp-card-title">{t("profile.allergies")}</h3>
                   <div className="upp-choice-grid">
                     {ALLERGY_OPTIONS.map((id) => (
                       <label key={id} className={`upp-choice ${prefs.allergies.includes(id) ? "is-on" : ""}`}>
@@ -1531,7 +1530,7 @@ const handleExportData = async () => {
                         {id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                       </label>
                     ))}
-                    {prefs.allergies.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>No allergies selected</div>}
+                    {prefs.allergies.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>{t("profile.noAllergies")}</div>}
                   </div>
                 </div>
 
@@ -1544,7 +1543,7 @@ const handleExportData = async () => {
                       style={{ width: "100%", padding: "12px", fontWeight: "bold", border: "1px solid #ccc" }}
                       onClick={() => setIsEditing(true)}
                     >
-                      Edit Preferences
+                      {t("profile.editPreferences")}
                     </button>
                   ) : (
                     // EDIT MODE: Show Cancel + Save
@@ -1554,7 +1553,7 @@ const handleExportData = async () => {
                         style={{ flex: 1 }}
                         onClick={() => setIsEditing(false)}
                       >
-                        Cancel
+                        {t("profile.cancel")}
                       </button>
                       <button 
                         className="lrp-btn lrp-btn-primary" 
@@ -1564,13 +1563,14 @@ const handleExportData = async () => {
                           setIsEditing(false); // Exit edit mode on success
                         }}
                       >
-                        Save Preferences
+                        {t("profile.savePreferences")}
                       </button>
                     </div>
                   )}
                 </div>
               </div>
             )}
+
             {/* ===== Settings ===== */}
             {tab === "settings" && !userProfileID && (
               <div className="upp-stack">
@@ -1578,8 +1578,8 @@ const handleExportData = async () => {
                   <h3 className="upp-card-title"><Bell className="rdp-sec-icon" color={"#6a4a2f"} /> Notifications</h3>
                   <div className="upp-row between">
                     <div>
-                      <div className="upp-strong">Email Notifications</div>
-                      <div className="upp-muted2">Receive updates about new recipes and foods</div>
+                      <div className="upp-strong">{t("profile.emailNotifications")}</div>
+                      <div className="upp-muted2">{t("profile.receiveUpdates")}</div>
                     </div>
                     <label className="upp-switch">
                       <input
@@ -1593,8 +1593,8 @@ const handleExportData = async () => {
                   <hr className="upp-sep" />
                   <div className="upp-row between">
                     <div>
-                      <div className="upp-strong">Push Notifications</div>
-                      <div className="upp-muted2">Get notified about community activities</div>
+                      <div className="upp-strong">{t("profile.pushNotifications")}</div>
+                      <div className="upp-muted2">{t("profile.communityActivities")}</div>
                     </div>
                     <label className="upp-switch">
                       <input
@@ -1611,14 +1611,14 @@ const handleExportData = async () => {
                   <h3 className="upp-card-title"><Globe className="rdp-sec-icon" color={"#6a4a2f"} /> Language</h3>
                   <div className="upp-row between">
                     <div>
-                      <div className="upp-strong">Language</div>
-                      <div className="upp-muted2">Choose your preferred language</div>
+                      <div className="upp-strong">{t("profile.language")}</div>
+                      <div className="upp-muted2">{t("profile.chooseLanguage")}</div>
                     </div>
                     <button
                       className="lrp-btn lrp-btn-outline upp-btn"
                       onClick={() => setPrefs((p) => ({ ...p, language: p.language === "en" ? "ms" : "en" }))}
                     >
-                      {prefs.language === "en" ? "Bahasa Malaysia" : "English"}
+                      {prefs.language === "en" ? t("profile.switchToBM") : t("profile.switchToEN")}
                     </button>
                   </div>
                 </div>
@@ -1627,8 +1627,8 @@ const handleExportData = async () => {
                   <h3 className="upp-card-title"><Eye className="rdp-sec-icon" color={"#6a4a2f"}/> Privacy</h3>
                   <div className="upp-row between">
                     <div>
-                      <div className="upp-strong">Profile Visibility</div>
-                      <div className="upp-muted2">Allow others to see your profile</div>
+                      <div className="upp-strong">{t("profile.profileVisibility")}</div>
+                      <div className="upp-muted2">{t("profile.allowOthers")}</div>
                     </div>
                     <label className="upp-switch">
                       <input
@@ -1642,15 +1642,15 @@ const handleExportData = async () => {
                   <hr className="upp-sep" />
                   <div className="upp-row between">
                     <div>
-                      <div className="upp-strong">Data Export</div>
-                      <div className="upp-muted2">Download your saved foods data</div>
+                      <div className="upp-strong">{t("profile.dataExport")}</div>
+                      <div className="upp-muted2">{t("profile.downloadData")}</div>
                     </div>
                     <button 
                       className="lrp-btn lrp-btn-outline upp-btn" 
                       onClick={openExportModal}
                       disabled={!user?.savedFoods || user.savedFoods.length === 0}
                     >
-                      Export Data
+                      {t("profile.exportDataBtn")}
                     </button>
                   </div>
                 </div>
@@ -1660,11 +1660,11 @@ const handleExportData = async () => {
                     <h3 className="upp-card-title"><Shield className="rdp-sec-icon" color={"#6a4a2f"} /> Admin Access</h3>
                     <div className="upp-row between">
                       <div>
-                        <div className="upp-strong">Admin Panel</div>
-                        <div className="upp-muted2">Access administrative features and management tools</div>
+                        <div className="upp-strong">{t("profile.adminPanel")}</div>
+                        <div className="upp-muted2">{t("profile.adminDesc")}</div>
                       </div>
                       <button className="lrp-btn lrp-btn-outline upp-btn" onClick={() => navigate("/admin")}>
-                        <ExternalLink className="rdp-sec-icon" /> Open Admin Dashboard
+                        <ExternalLink className="rdp-sec-icon" /> {t("profile.openAdminDashboard")}
                       </button>
                     </div>
                   </div>
@@ -1674,15 +1674,15 @@ const handleExportData = async () => {
                   <h3 className="upp-card-title"><OctagonX className="rdp-sec-icon" color={"#6a4a2f"}/> Account Deletion</h3>
                   <div className="upp-row between">
                     <div>
-                      <div className="upp-strong">Delete Account</div>
-                      <div className="upp-muted2">Permanently remove your account and all associated data.</div>
+                      <div className="upp-strong">{t("profile.deleteAccount")}</div>
+                      <div className="upp-muted2">{t("profile.deleteAccountDesc")}</div>
                     </div>
                     <button
                       type="button"
                       className="lrp-btn lrp-btn-outline upp-btn upp-btn--danger"
                       onClick={handleDeleteAccount}
                     >
-                      Delete Account
+                      {t("profile.deleteAccount")}
                     </button>
                   </div>
                 </div>
@@ -1719,7 +1719,7 @@ const handleExportData = async () => {
                     onChange={toggleSelectAll}
                     style={{ marginRight: 8 }}
                   />
-                  <span style={{ fontWeight: "bold" }}>Select All</span>
+                  <span style={{ fontWeight: "bold" }}>{t("profile.selectAll")}</span>
                 </label>
               </div>
               
@@ -1748,9 +1748,9 @@ const handleExportData = async () => {
                       style={{ marginRight: "12px" }}
                     />
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: "500" }}>{food.name || "Unnamed Food"}</div>
+                        <div style={{ fontWeight: "500" }}>{food.name || t("profile.unnamedFood")}</div>
                         <div style={{ fontSize: "0.85rem", color: "#666" }}>
-                          {food.origin || "Unknown origin"} • Saved: {food.savedDate || "Unknown date"}
+                          {food.origin || t("profile.unknownOrigin")} • {t("profile.savedLabel")} {food.savedDate || t("profile.unknownDate")}
                         </div>
                       </div>
                       {food.image && (
@@ -1770,7 +1770,7 @@ const handleExportData = async () => {
                   ))
                 ) : (
                   <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>
-                    No saved foods to export
+                    {t("profile.noSavedFoodsExport")}
                   </div>
                 )}
               </div>
@@ -1786,14 +1786,14 @@ const handleExportData = async () => {
                 onClick={closeExportModal}
                 disabled={exportModal.loading}
               >
-                Cancel
+                {t("profile.cancel")}
               </button>
               <button
                 className="lrp-btn lrp-btn-primary"
                 onClick={handleExportData}
                 disabled={exportModal.loading || exportModal.selectedFoods.length === 0}
               >
-                {exportModal.loading ? "Exporting..." : `Export (${exportModal.selectedFoods.length})`}
+                {exportModal.loading ? t("profile.exporting") : `${t("profile.exportBtn")} (${exportModal.selectedFoods.length})`}
               </button>
             </div>
           </div>
@@ -1816,8 +1816,8 @@ const handleExportData = async () => {
         open={confirm.open}
         title={confirm.title}
         icon={confirm.icon}
-        primaryText={confirm.confirmText || "Confirm"}
-        secondaryText={confirm.cancelText || "Cancel"}
+        primaryText={confirm.confirmText || t("profile.confirm")}
+        secondaryText={confirm.cancelText || t("profile.cancel")}
         onPrimary={confirm.onConfirm}
         onSecondary={closeConfirm}
         onClose={closeConfirm}
@@ -1836,12 +1836,12 @@ const handleExportData = async () => {
             <div className="upp-modal-body">
               <p className="upp-muted" style={{ marginBottom: 12 }}>{pwModal.message}</p>
               <label className="upp-block">
-                <span>Password</span>
+                <span>{t("profile.password")}</span>
                 <input
                   type="password"
                   value={pwModal.password}
                   onChange={(e) => setPwModal(m => ({ ...m, password: e.target.value }))}
-                  placeholder="Enter your password"
+                  placeholder={t("profile.enterPassword")}
                 />
               </label>
 
@@ -1853,14 +1853,14 @@ const handleExportData = async () => {
             </div>
             <div className="upp-modal-footer">
               <button className="lrp-btn lrp-btn-outline" onClick={closePasswordModal}>
-                Cancel
+                {t("profile.cancel")}
               </button>
               <button
                 className="lrp-btn lrp-btn-primary"
                 onClick={() => pwModal.onSubmit?.(pwModal.password)}
                 disabled={!pwModal.password}
               >
-                Confirm Delete
+                {t("profile.confirmDelete")}
               </button>
             </div>
           </div>

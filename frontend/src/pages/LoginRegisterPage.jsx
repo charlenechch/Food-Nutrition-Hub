@@ -1,6 +1,7 @@
 /* src/pages/LoginRegisterPage.jsx */
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import "../css/LoginRegisterPage.css";
 import LoginFood from "../assets/LoginFood.png";
@@ -21,6 +22,8 @@ import { auth } from "../config/firebase";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function LoginRegisterPage() {
+  const { t } = useTranslation();
+
   // ------------------------------
   // State
   // ------------------------------
@@ -183,7 +186,7 @@ export default function LoginRegisterPage() {
     setIsResending(true);
     setLoginError("");
     if (!storedPassword) {
-      setLoginError("Session expired. Please try logging in again.");
+      setLoginError(t("auth.sessionExpired"));
       setIsResending(false);
       setShowResendButton(false);
       return;
@@ -199,9 +202,9 @@ export default function LoginRegisterPage() {
       if (!checkRes.ok) {
         if (checkRes.status === 429 && checkData.remainingSeconds) {
           setResendCooldown(checkData.remainingSeconds);
-          setLoginError(`Please wait ${checkData.remainingSeconds} seconds.`);
+          setLoginError(t("auth.waitSeconds", { seconds: checkData.remainingSeconds }));
         } else {
-          setLoginError(checkData.error || "Failed to resend verification email");
+          setLoginError(checkData.error || t("auth.resendFailed"));
         }
         setIsResending(false);
         return;
@@ -216,11 +219,11 @@ export default function LoginRegisterPage() {
       setStoredPassword("");
     } catch (err) {
       if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
-        setLoginError("Session expired. Please try logging in again.");
+        setLoginError(t("auth.sessionExpired"));
         setShowResendButton(false);
         setStoredPassword("");
       } else {
-        setLoginError("Failed to resend verification email.");
+        setLoginError(t("auth.resendFailed"));
       }
     } finally {
       setIsResending(false);
@@ -229,7 +232,7 @@ export default function LoginRegisterPage() {
 
   const handleVerifyOtp = async () => {
     if (!otpCode || otpCode.length !== 6) {
-      setLoginError("Please enter a valid 6-digit code.");
+      setLoginError(t("auth.invalidOtp"));
       return;
     }
     setIsVerifyingOtp(true);
@@ -248,10 +251,10 @@ export default function LoginRegisterPage() {
         setUser(data.user);
         navigate(data.user.role === "admin" ? "/admin" : "/home");
       } else {
-        setLoginError(data.message || "Invalid code. Please try again.");
+        setLoginError(data.message || t("auth.invalidCode"));
       }
     } catch (err) {
-      setLoginError("Verification failed. Please try again.");
+      setLoginError(t("auth.verificationFailed"));
     } finally {
       setIsVerifyingOtp(false);
     }
@@ -272,13 +275,13 @@ export default function LoginRegisterPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        setLoginError("A new code has been sent to your email.");
+        setLoginError(t("auth.newCodeSent"));
         setResendCooldown(60); 
       } else {
-        setLoginError(data.message || "Failed to resend code.");
+        setLoginError(data.message || t("auth.resendCodeFailed"));
       }
     } catch (err) {
-      setLoginError("Network error. Please try again.");
+      setLoginError(t("auth.networkError"));
     } finally {
       setIsResending(false);
     }
@@ -290,11 +293,11 @@ export default function LoginRegisterPage() {
   const handleLogin = async () => {
     setLoginError("");
     if (serverLockoutTimer > 0) {
-       setLoginError(`Account locked. Try again in ${formatTime(serverLockoutTimer)}.`);
+       setLoginError(t("auth.accountLocked", { time: formatTime(serverLockoutTimer) }));
        return;
     }
     if (!email || !password) {
-      setLoginError("Please fill in all fields.");
+      setLoginError(t("auth.fillAllFields"));
       return;
     }
 
@@ -309,7 +312,7 @@ export default function LoginRegisterPage() {
 
       if (res.status === 429 && data.lockoutRemaining) {
           setServerLockoutTimer(data.lockoutRemaining);
-          setLoginError(`Too many attempts. Account locked for ${formatTime(data.lockoutRemaining)}.`);
+          setLoginError(t("auth.tooManyAttempts", { time: formatTime(data.lockoutRemaining) }));
           return;
       }
       if (data.requires2FA) {
@@ -325,15 +328,15 @@ export default function LoginRegisterPage() {
         return;
       }
       if (data.notVerified) {
-        setLoginError("Email is not verified. Please check your inbox.");
+        setLoginError(t("auth.emailNotVerified"));
         setShowResendButton(true);
         setStoredPassword(password);
         return;
       }
-      setLoginError(data.message || "Invalid email or password.");
+      setLoginError(data.message || t("auth.invalidCredentials"));
     } catch (err) {
       console.error("Login error:", err);
-      setLoginError("Login failed. Please try again.");
+      setLoginError(t("auth.loginFailed"));
     }
   };
 
@@ -343,23 +346,23 @@ export default function LoginRegisterPage() {
     const hasLower = /[a-z]/.test(password);
     const hasNum = /[0-9]/.test(password);
     const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    if (password.length < minLength) return `Password must be at least ${minLength} characters long`;
-    if (!hasUpper) return "Password must contain an uppercase letter";
-    if (!hasLower) return "Password must contain a lowercase letter";
-    if (!hasNum) return "Password must contain a number";
-    if (!hasSpecial) return "Password must contain a special character";
+    if (password.length < minLength) return t("auth.pwdMinLength", { n: minLength });
+    if (!hasUpper) return t("auth.pwdNeedsUpper");
+    if (!hasLower) return t("auth.pwdNeedsLower");
+    if (!hasNum) return t("auth.pwdNeedsNumber");
+    if (!hasSpecial) return t("auth.pwdNeedsSpecial");
     return null;
   };
 
   const handleRegister = async () => {
     setRegisterError("");
     if (!firstName || !lastName || !regEmail || !regPassword) {
-      setRegisterError("Please fill in all fields.");
+      setRegisterError(t("auth.fillAllFields"));
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(regEmail)) {
-      setRegisterError("Please enter a valid email address.");
+      setRegisterError(t("auth.invalidEmail"));
       return;
     }
     const passwordError = validatePassword(regPassword);
@@ -387,7 +390,7 @@ export default function LoginRegisterPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setRegisterError(data.message || "Registration failed");
+        setRegisterError(data.message || t("auth.registrationFailed"));
         return;
       }
       setShowRegSuccess(true);
@@ -399,7 +402,7 @@ export default function LoginRegisterPage() {
       setRegPasswordCriteria({ length: false, upper: false, lower: false, number: false, special: false });
     } catch (err) {
       console.error("Register error:", err);
-      setRegisterError("Registration failed. Please try again.");
+      setRegisterError(t("auth.registrationFailed"));
     }
   };
 
@@ -412,16 +415,15 @@ export default function LoginRegisterPage() {
   // Google Login Handler
   // ------------------------------
   const handleGoogleLogin = async () => {
-    setLoginError(""); // Clear previous errors
+    setLoginError("");
     
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      const user = result.user; // Firebase User
+      const user = result.user;
 
       const token = await user.getIdToken();
 
-      // Send to Backend
       const res = await fetch(`${API_URL}/api/auth/google-login`, {
         method: "POST",
         credentials: "include",
@@ -446,12 +448,12 @@ export default function LoginRegisterPage() {
         setUser(data.user);
         navigate(data.user.role === "admin" ? "/admin" : "/home");
       } else {
-        setLoginError(data.message || "Google Login failed.");
+        setLoginError(data.message || t("auth.googleLoginFailed"));
       }
 
     } catch (err) {
       console.error("Google Login Error:", err);
-      setLoginError("Popup closed or network error.");
+      setLoginError(t("auth.popupError"));
     }
   };
 
@@ -469,12 +471,9 @@ export default function LoginRegisterPage() {
       <div className="mh-content-wrapper">
         {/* Left Side: Brand */}
         <div className="mh-brand-section">
-          <h1 className="mh-title">Sarawak<br/>Food Heritage</h1>
+          <h1 className="mh-title">{t("auth.brandTitle")}</h1>
           <div className="mh-divider"></div>
-          <p className="mh-subtitle">
-            Preserving the legacy of culinary traditions.<br/>
-            Taste the history, share the culture.
-          </p>
+          <p className="mh-subtitle">{t("auth.brandSubtitle")}</p>
         </div>
 
         {/* Right Side: Card */}
@@ -483,12 +482,12 @@ export default function LoginRegisterPage() {
           {/* Dynamic Header */}
           <div className="mh-card-header">
             <h3>
-              {activeTab === "register" ? "Create Account" : 
-               showOtpInput ? "Verify It's You" : "Welcome Back"}
+              {activeTab === "register" ? t("auth.createAccount") : 
+               showOtpInput ? t("auth.verifyIdentity") : t("auth.welcomeBack")}
             </h3>
             <p>
-              {activeTab === "register" ? "Join us to explore Sarawak's cuisine" : 
-               showOtpInput ? "Enter the code sent to your email" : "Enter your details to explore"}
+              {activeTab === "register" ? t("auth.registerSubtitle") : 
+               showOtpInput ? t("auth.otpSubtitle") : t("auth.loginSubtitle")}
             </p>
           </div>
 
@@ -496,8 +495,8 @@ export default function LoginRegisterPage() {
           {!showOtpInput && (
             <div className="mh-tabs">
               <div className="mh-tab-pill" style={{ transform: activeTab === "login" ? "translateX(0)" : "translateX(100%)" }} />
-              <button className={`mh-tab-btn ${activeTab === "login" ? "active" : ""}`} onClick={() => setActiveTab("login")}>Login</button>
-              <button className={`mh-tab-btn ${activeTab === "register" ? "active" : ""}`} onClick={() => setActiveTab("register")}>Register</button>
+              <button className={`mh-tab-btn ${activeTab === "login" ? "active" : ""}`} onClick={() => setActiveTab("login")}>{t("auth.tabLogin")}</button>
+              <button className={`mh-tab-btn ${activeTab === "register" ? "active" : ""}`} onClick={() => setActiveTab("register")}>{t("auth.tabRegister")}</button>
             </div>
           )}
 
@@ -509,7 +508,7 @@ export default function LoginRegisterPage() {
                   /* OTP SECTION */
                   <div className="mh-otp-section">
                     <p className="mh-otp-label">
-                      Code sent to <strong>{email}</strong>
+                      {t("auth.codeSentTo")} <strong>{email}</strong>
                     </p>
                     
                     <div className="mh-otp-input-wrapper">
@@ -529,7 +528,7 @@ export default function LoginRegisterPage() {
                       className="mh-btn-primary" 
                       disabled={isVerifyingOtp}
                     >
-                      {isVerifyingOtp ? "Verifying..." : "Verify Code"}
+                      {isVerifyingOtp ? t("auth.verifying") : t("auth.verifyCode")}
                     </button>
 
                     <button 
@@ -537,11 +536,11 @@ export default function LoginRegisterPage() {
                       className="mh-btn-text" 
                       disabled={resendCooldown > 0}
                     >
-                      {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend Code"}
+                      {resendCooldown > 0 ? t("auth.resendCodeIn", { seconds: resendCooldown }) : t("auth.resendCode")}
                     </button>
                     
                     <button onClick={() => setShowOtpInput(false)} className="mh-btn-text-small">
-                      <FaArrowRight style={{ transform: "rotate(180deg)" }}/> Back to Login
+                      <FaArrowRight style={{ transform: "rotate(180deg)" }}/> {t("auth.backToLogin")}
                     </button>
                   </div>
                ) : (
@@ -549,14 +548,29 @@ export default function LoginRegisterPage() {
                  <>
                   {loginError && <div className="mh-error-msg">{loginError}</div>}
                   
+                  {showResendButton && (
+                    <button
+                      type="button"
+                      className="mh-btn-text"
+                      onClick={handleResendVerification}
+                      disabled={resendCooldown > 0 || isResending}
+                    >
+                      {isResending
+                        ? t("auth.resending")
+                        : resendCooldown > 0
+                        ? t("auth.resendIn", { seconds: resendCooldown })
+                        : t("auth.resendVerification")}
+                    </button>
+                  )}
+
                   <div className="mh-input-group">
                     <FaUser className="mh-icon" />
-                    <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} />
+                    <input type="email" placeholder={t("auth.emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
                   
                   <div className="mh-input-group">
                     <FaLock className="mh-icon" />
-                    <input type={showLoginPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <input type={showLoginPassword ? "text" : "password"} placeholder={t("auth.passwordPlaceholder")} value={password} onChange={(e) => setPassword(e.target.value)} />
                     <div className="mh-eye" onClick={() => setShowLoginPassword(!showLoginPassword)}>{showLoginPassword ? <FaEyeSlash/> : <FaEye/>}</div>
                   </div>
 
@@ -568,7 +582,7 @@ export default function LoginRegisterPage() {
                           checked={rememberDevice} 
                           onChange={(e) => setRememberDevice(e.target.checked)} 
                         />
-                        <span>Remember me</span>
+                        <span>{t("auth.rememberMe")}</span>
                       </label>
                       
                       <div 
@@ -581,16 +595,16 @@ export default function LoginRegisterPage() {
                         
                         {showTooltip && (
                           <div className="mh-custom-tooltip">
-                            Stay Logged in for 7 days
+                            {t("auth.rememberTooltip")}
                           </div>
                         )}
                       </div>
                     </div>
-                    <span onClick={() => navigate("/forgotpassword")} className="mh-forgot">Forgot Password?</span>
+                    <span onClick={() => navigate("/forgotpassword")} className="mh-forgot">{t("auth.forgotPassword")}</span>
                   </div>
 
                   <button onClick={handleLogin} className="mh-btn-primary">
-                    Sign In <FaArrowRight className="btn-arrow"/>
+                    {t("auth.signIn")} <FaArrowRight className="btn-arrow"/>
                   </button>
 
                   <div className="mh-google-wrapper">
@@ -604,7 +618,7 @@ export default function LoginRegisterPage() {
                         alt="G" 
                         className="mh-google-icon"
                       />
-                      Sign in with Google
+                      {t("auth.signInGoogle")}
                     </button>
                   </div>
                  </>
@@ -619,16 +633,16 @@ export default function LoginRegisterPage() {
                 
                 <div className="mh-grid-inputs">
                   <div className="mh-input-group">
-                    <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                    <input type="text" placeholder={t("auth.firstNamePlaceholder")} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
                   </div>
                   <div className="mh-input-group">
-                     <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                     <input type="text" placeholder={t("auth.lastNamePlaceholder")} value={lastName} onChange={(e) => setLastName(e.target.value)} />
                   </div>
                 </div>
 
                 <div className="mh-input-group">
                   <FaEnvelope className="mh-icon" />
-                  <input type="email" placeholder="Email Address" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} />
+                  <input type="email" placeholder={t("auth.emailPlaceholder")} value={regEmail} onChange={(e) => setRegEmail(e.target.value)} />
                 </div>
 
                 <div ref={passwordHintRef} className="mh-password-wrapper">
@@ -636,7 +650,7 @@ export default function LoginRegisterPage() {
                     <FaLock className="mh-icon" />
                     <input 
                       type={showRegPassword ? "text" : "password"} 
-                      placeholder="Create Password" 
+                      placeholder={t("auth.createPasswordPlaceholder")} 
                       value={regPassword} 
                       onFocus={() => setShowPasswordHint(true)}
                       onChange={(e) => { setRegPassword(e.target.value); updatePasswordCriteria(e.target.value); setShowPasswordHint(true); }}
@@ -646,31 +660,31 @@ export default function LoginRegisterPage() {
                   
                   {showPasswordHint && (
                     <div className="mh-password-hints">
-                       <div className={regPasswordCriteria.length ? "valid" : "invalid"}>• 8+ Chars</div>
-                       <div className={regPasswordCriteria.upper ? "valid" : "invalid"}>• Uppercase</div>
-                       <div className={regPasswordCriteria.lower ? "valid" : "invalid"}>• Lowercase</div>
-                       <div className={regPasswordCriteria.number ? "valid" : "invalid"}>• Number</div>
-                       <div className={regPasswordCriteria.special ? "valid" : "invalid"}>• Symbol</div>
+                       <div className={regPasswordCriteria.length ? "valid" : "invalid"}>• {t("auth.hint8Chars")}</div>
+                       <div className={regPasswordCriteria.upper ? "valid" : "invalid"}>• {t("auth.hintUppercase")}</div>
+                       <div className={regPasswordCriteria.lower ? "valid" : "invalid"}>• {t("auth.hintLowercase")}</div>
+                       <div className={regPasswordCriteria.number ? "valid" : "invalid"}>• {t("auth.hintNumber")}</div>
+                       <div className={regPasswordCriteria.special ? "valid" : "invalid"}>• {t("auth.hintSymbol")}</div>
                     </div>
                   )}
                 </div>
 
-                <button onClick={handleRegister} className="mh-btn-primary">Create Account</button>
+                <button onClick={handleRegister} className="mh-btn-primary">{t("auth.createAccount")}</button>
               </>
             )}
 
             {!showOtpInput && (
               <>
-                <div className="mh-separator"><span>or</span></div>
-                <button onClick={handleGuest} className="mh-btn-outline">Continue as Guest</button>
+                <div className="mh-separator"><span>{t("auth.or")}</span></div>
+                <button onClick={handleGuest} className="mh-btn-outline">{t("auth.continueAsGuest")}</button>
               </>
             )}
           </div>
         </div>
       </div>
 
-      <Modal open={showRegSuccess} title="Registration Successful" icon={<FaEnvelopeOpenText />} primaryText="Close" onClose={() => setShowRegSuccess(false)} onPrimary={() => setShowRegSuccess(false)}>
-        Please verify your email to continue.
+      <Modal open={showRegSuccess} title={t("auth.regSuccessTitle")} icon={<FaEnvelopeOpenText />} primaryText={t("auth.close")} onClose={() => setShowRegSuccess(false)} onPrimary={() => setShowRegSuccess(false)}>
+        {t("auth.regSuccessMsg")}
       </Modal>
     </div>
   );

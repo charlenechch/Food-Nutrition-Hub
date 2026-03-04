@@ -1,5 +1,6 @@
 // AdminSystemSettings.jsx
 import React, { useMemo, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
     FiSettings as Settings,
     FiBell as Bell,
@@ -24,6 +25,7 @@ export default function AdminSystemSettings({
     language = "en",
     users = [],
 }) {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [emailEnabled, setEmailEnabled] = useState(true);
     const platformName = "SarawakEats";
@@ -34,19 +36,11 @@ export default function AdminSystemSettings({
     const [availableMonths, setAvailableMonths] = useState([]);
     const [loadingMonths, setLoadingMonths] = useState(false);
 
-    const t = {
-        platform: "SarawakEats",
-        backupRestore: "Backup/Restore",
-        dataExport: "Data Export",
-        backup: "Backup",
-        restore: "Restore",
-    };
-
     function formatNowKuching() {
         return new Intl.DateTimeFormat("en-MY", {
             timeZone: "Asia/Kuching",
-            dateStyle: "long",   // e.g., 3 November 2025
-            timeStyle: "short",  // e.g., 10:35 PM
+            dateStyle: "long",
+            timeStyle: "short",
         }).format(new Date());
     }
 
@@ -56,7 +50,6 @@ export default function AdminSystemSettings({
         return str.replaceAll("{DATE}", now);
     }
 
-    
     const SYSTEM_EMAIL_TEMPLATES = {
         "Custom message": { subject: "", message: "" },
         "Maintenance Notice": {
@@ -67,12 +60,12 @@ export default function AdminSystemSettings({
         "Policy Update": {
             subject: "Platform Policy Update - {DATE}",
             message:
-                `Hello,\n\nWe've updated our community guidelines and privacy policyon {DATE}. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWe've updated our community guidelines and privacy policy on {DATE}. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSystem Admin`,
         },
         "System Update": {
             subject: `${platformName} Platform Update - {DATE}`,
             message:
-                `Hello,\n\nWeve made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on {DATE}.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWe've made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on {DATE}.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSystem Admin`,
         },
         "Outage Resolved": {
             subject: `${platformName} Service Restored - {DATE}`,
@@ -100,11 +93,11 @@ export default function AdminSystemSettings({
             .filter(s => (seen.has(s) ? false : (seen.add(s), true)));
     };
 
-    // --- modal state (System Settings copy) ---
+    // --- modal state ---
     const [showSysEmailModal, setShowSysEmailModal] = useState(false);
     const [sysSpecificSearch, setSysSpecificSearch] = useState("");
     const [sysEmailForm, setSysEmailForm] = useState({
-        recipientsOption: "All users",     // same options as UM
+        recipientsOption: "All users",
         selectedUserIds: [],
         customEmails: "",
         template: "Custom message",
@@ -130,8 +123,8 @@ export default function AdminSystemSettings({
         rangeType: 'year',
         year: new Date().getFullYear(),
         month: new Date().getMonth() + 1,
-        startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0], // Jan 1 of current year
-        endDate: new Date().toISOString().split('T')[0], // Today
+        startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0],
     });
 
     useEffect(() => {
@@ -142,36 +135,26 @@ export default function AdminSystemSettings({
         try {
             setLoadingYears(true);
             const response = await fetch(`${API_URL}/api/export/available-years`);
-            
+
             if (!response.ok) {
                 console.error('Failed to fetch available years:', response.status);
-                // Fallback to current year if API fails
                 setAvailableYears([new Date().getFullYear()]);
                 return;
             }
-            
+
             const data = await response.json();
-            
+
             if (data.success && data.years && data.years.length > 0) {
                 setAvailableYears(data.years);
-                // Set default year to the most recent year
                 const mostRecentYear = Math.max(...data.years);
-                setExportOptions(prev => ({ 
-                    ...prev, 
-                    year: mostRecentYear 
-                }));
+                setExportOptions(prev => ({ ...prev, year: mostRecentYear }));
             } else {
-                // Fallback to current year if no years found
                 const currentYear = new Date().getFullYear();
                 setAvailableYears([currentYear]);
-                setExportOptions(prev => ({ 
-                    ...prev, 
-                    year: currentYear 
-                }));
+                setExportOptions(prev => ({ ...prev, year: currentYear }));
             }
         } catch (error) {
             console.error('Error fetching available years:', error);
-            // Fallback to current year
             const currentYear = new Date().getFullYear();
             setAvailableYears([currentYear]);
         } finally {
@@ -179,7 +162,6 @@ export default function AdminSystemSettings({
         }
     };
 
-    // Fetch available months when year changes
     useEffect(() => {
         if (exportOptions.rangeType === 'month') {
             fetchAvailableMonths(exportOptions.year);
@@ -190,34 +172,26 @@ export default function AdminSystemSettings({
         try {
             setLoadingMonths(true);
             const response = await fetch(`${API_URL}/api/export/available-months?year=${year}`);
-            
+
             if (!response.ok) {
                 console.error('Failed to fetch available months:', response.status);
-                // Fallback to all months if API fails
-                setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
+                setAvailableMonths([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
                 return;
             }
-            
+
             const data = await response.json();
-            
+
             if (data.success && data.months && data.months.length > 0) {
                 setAvailableMonths(data.months.sort((a, b) => a - b));
-                
-                // If current month is not available, select the first available month
                 if (!data.months.includes(exportOptions.month)) {
-                    setExportOptions(prev => ({ 
-                        ...prev, 
-                        month: data.months[0] 
-                    }));
+                    setExportOptions(prev => ({ ...prev, month: data.months[0] }));
                 }
             } else {
-                // Fallback to all months if no months found
-                setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
+                setAvailableMonths([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
             }
         } catch (error) {
             console.error('Error fetching available months:', error);
-            // Fallback to all months
-            setAvailableMonths([1,2,3,4,5,6,7,8,9,10,11,12]);
+            setAvailableMonths([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         } finally {
             setLoadingMonths(false);
         }
@@ -235,10 +209,10 @@ export default function AdminSystemSettings({
         };
     }, [showExportModal]);
 
-    const [exportLoading, setExportLoading] = useState({ 
-        csv: false, 
+    const [exportLoading, setExportLoading] = useState({
+        csv: false,
         reportExcel: false,
-        reportPdf: false 
+        reportPdf: false
     });
 
     const handleExport = async (type) => {
@@ -246,35 +220,28 @@ export default function AdminSystemSettings({
             setShowExportModal(true);
             return;
         }
-        
-        // Original food CSV export logic
+
         if (type === 'food-csv') {
             try {
                 setExportLoading(prev => ({ ...prev, csv: true }));
                 const endpoint = `${API_URL}/api/export/food-csv`;
                 const filename = `food-database-${new Date().toISOString().split('T')[0]}.csv`;
-                
-                const response = await fetch(endpoint, {
-                    method: 'GET',
-                });
+
+                const response = await fetch(endpoint, { method: 'GET' });
 
                 if (!response.ok) {
-                    const errorText = await response.text();
                     throw new Error(`Export failed: ${response.status} ${response.statusText}`);
                 }
 
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
-                
                 link.href = url;
                 link.download = filename;
                 document.body.appendChild(link);
                 link.click();
-                
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(url);
-
             } catch (error) {
                 console.error('Export error:', error);
                 toast.error(`Failed to export: ${error.message}`);
@@ -285,33 +252,35 @@ export default function AdminSystemSettings({
     };
 
     const handleAnalyticsExport = async () => {
-        // Date validation for future months
         const now = new Date();
         const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth() + 1; // JavaScript months are 0-11
-        
-        // Check if selected year is in the future
+        const currentMonth = now.getMonth() + 1;
+
         if (exportOptions.year > currentYear) {
             setSysDialog({
                 open: true,
-                title: "Invalid Year",
-                message: `Year ${exportOptions.year} is in the future. Please select ${currentYear} or earlier.`,
+                title: t("adminSettings.invalidYear"),
+                message: t("adminSettings.invalidYearMsg", { year: exportOptions.year, currentYear }),
                 icon: <AlertTriangle />,
-                primaryText: "OK",
+                primaryText: t("adminSettings.ok"),
                 onPrimary: closeSysDialog,
             });
             return;
         }
-        
-        // Check if selected month is in the future
+
         if (exportOptions.year === currentYear && exportOptions.month > currentMonth) {
             const monthName = new Date(exportOptions.year, exportOptions.month - 1).toLocaleString('default', { month: 'long' });
             setSysDialog({
                 open: true,
-                title: "Invalid Month",
-                message: `${monthName} ${exportOptions.year} hasn't occurred yet. Please select a month up to ${getMonthName(currentMonth)} ${currentYear}.`,
+                title: t("adminSettings.invalidMonth"),
+                message: t("adminSettings.invalidMonthMsg", {
+                    month: monthName,
+                    year: exportOptions.year,
+                    maxMonth: getMonthName(currentMonth),
+                    currentYear,
+                }),
                 icon: <AlertTriangle />,
-                primaryText: "OK",
+                primaryText: t("adminSettings.ok"),
                 onPrimary: closeSysDialog,
             });
             return;
@@ -320,42 +289,39 @@ export default function AdminSystemSettings({
         if (exportOptions.rangeType === 'custom' && (!exportOptions.startDate || !exportOptions.endDate)) {
             setSysDialog({
                 open: true,
-                title: "Missing Dates",
-                message: "Please select both start and end dates for custom range.",
+                title: t("adminSettings.missingDates"),
+                message: t("adminSettings.missingDatesMsg"),
                 icon: <AlertTriangle />,
-                primaryText: "OK",
+                primaryText: t("adminSettings.ok"),
                 onPrimary: closeSysDialog,
             });
             return;
         }
 
-        // Validate custom date range
         if (exportOptions.rangeType === 'custom') {
             const start = new Date(exportOptions.startDate);
             const end = new Date(exportOptions.endDate);
             const today = new Date();
-            
-            // Check if start date is after end date
+
             if (start > end) {
                 setSysDialog({
                     open: true,
-                    title: "Invalid Date Range",
-                    message: "Start date cannot be after end date.",
+                    title: t("adminSettings.invalidDateRange"),
+                    message: t("adminSettings.invalidDateRangeMsg"),
                     icon: <AlertTriangle />,
-                    primaryText: "OK",
+                    primaryText: t("adminSettings.ok"),
                     onPrimary: closeSysDialog,
                 });
                 return;
             }
-            
-            // Check if dates are in the future
+
             if (start > today || end > today) {
                 setSysDialog({
                     open: true,
-                    title: "Future Dates",
-                    message: "Cannot export data from future dates. Please select dates up to today.",
+                    title: t("adminSettings.futureDates"),
+                    message: t("adminSettings.futureDatesMsg"),
                     icon: <AlertTriangle />,
-                    primaryText: "OK",
+                    primaryText: t("adminSettings.ok"),
                     onPrimary: closeSysDialog,
                 });
                 return;
@@ -363,34 +329,25 @@ export default function AdminSystemSettings({
         }
 
         try {
-            // Set loading based on format
             const loadingKey = exportOptions.format === 'pdf' ? 'reportPdf' : 'reportExcel';
             setExportLoading(prev => ({ ...prev, [loadingKey]: true }));
-            
-            // Build query parameters based on selected options
+
             let queryParams = new URLSearchParams();
             queryParams.append('format', exportOptions.format);
-            
+
             if (exportOptions.rangeType === 'year') {
                 queryParams.append('year', exportOptions.year);
             } else if (exportOptions.rangeType === 'month') {
-                // For month, we'll use year and month parameters
                 queryParams.append('year', exportOptions.year);
                 queryParams.append('month', exportOptions.month);
             } else if (exportOptions.rangeType === 'custom') {
-                // For custom range, we'll need to update backend to handle date ranges
-                if (exportOptions.startDate) {
-                    queryParams.append('startDate', exportOptions.startDate);
-                }
-                if (exportOptions.endDate) {
-                    queryParams.append('endDate', exportOptions.endDate);
-                }
+                if (exportOptions.startDate) queryParams.append('startDate', exportOptions.startDate);
+                if (exportOptions.endDate) queryParams.append('endDate', exportOptions.endDate);
             }
-            
+
             const endpoint = `${API_URL}/api/export/analytics-report?${queryParams.toString()}`;
             const extension = exportOptions.format === 'pdf' ? 'pdf' : 'xlsx';
-            
-            // Generate filename based on options
+
             let filename = `sarawakeats-analytics-report`;
             if (exportOptions.rangeType === 'year') {
                 filename += `-${exportOptions.year}`;
@@ -405,41 +362,36 @@ export default function AdminSystemSettings({
             const response = await fetch(endpoint, {
                 method: 'GET',
                 headers: {
-                    'Accept': exportOptions.format === 'excel' 
+                    'Accept': exportOptions.format === 'excel'
                         ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                        : 'application/pdf' 
+                        : 'application/pdf'
                 }
             });
 
             if (!response.ok) {
-                const errorText = await response.text();
                 throw new Error(`Export failed: ${response.status} ${response.statusText}`);
             }
 
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
-            
             link.href = url;
             link.download = filename;
             document.body.appendChild(link);
             link.click();
-            
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
-            
+
             setShowExportModal(false);
-            
-            // Show success message
+
             setSysDialog({
                 open: true,
-                title: "Export Successful",
-                message: `Analytics report exported successfully as ${exportOptions.format.toUpperCase()}`,
-                icon: CheckIcon ? <CheckIcon /> : null, 
-                primaryText: "OK",
+                title: t("adminSettings.exportSuccessful"),
+                message: t("adminSettings.exportSuccessfulMsg", { format: exportOptions.format.toUpperCase() }),
+                icon: CheckIcon ? <CheckIcon /> : null,
+                primaryText: t("adminSettings.ok"),
                 onPrimary: closeSysDialog,
             });
-
         } catch (error) {
             console.error('Export error:', error);
             toast.error(`Failed to export: ${error.message}`);
@@ -457,7 +409,6 @@ export default function AdminSystemSettings({
         return months[monthNumber - 1] || 'Unknown';
     }
 
-    // lock scroll like UM
     useEffect(() => {
         if (!showSysEmailModal) return;
         const onKey = (e) => e.key === "Escape" && setShowSysEmailModal(false);
@@ -494,22 +445,22 @@ export default function AdminSystemSettings({
         <div className="admset-wrap">
             <div className="admset-single-card-container">
                 <div className="admset-card">
-                    {/* Unified Single Header */}
+                    {/* Header */}
                     <div className="admset-card-header">
                         <h3 className="admset-card-title">
                             <Settings className="admset-ic" />
-                            {t.platform} System Management
+                            {t("adminSettings.pageTitle")}
                         </h3>
                     </div>
 
-                    {/* Unified Single Content Area */}
+                    {/* Content */}
                     <div className="admset-card-content">
-                        
+
                         {/* Section 1: Email notifications switch */}
                         <div className="admset-block">
                             <div className="admset-row between">
                                 <label htmlFor="admset-notif" className="admset-label">
-                                    Email Notifications
+                                    {t("adminSettings.emailNotifications")}
                                 </label>
                                 <button
                                     id="admset-notif"
@@ -527,14 +478,14 @@ export default function AdminSystemSettings({
 
                         {/* Section 2: Communication */}
                         <div className="admset-block">
-                            <div className="admset-label mb-6">Communication</div>
+                            <div className="admset-label mb-6">{t("adminSettings.communication")}</div>
                             <div className="admset-grid-1">
                                 <button
                                     className="admset-btn admset-btn-outline justify-start"
                                     onClick={() => setShowSysEmailModal(true)}
                                 >
                                     <Mail className="admset-ic-sm" />
-                                    Send Announcement
+                                    {t("adminSettings.sendAnnouncement")}
                                 </button>
                             </div>
                         </div>
@@ -543,23 +494,23 @@ export default function AdminSystemSettings({
 
                         {/* Section 3: Backup & Maintenance */}
                         <div className="admset-block">
-                            <div className="admset-label mb-6">Backup & Maintenance</div>
+                            <div className="admset-label mb-6">{t("adminSettings.backupMaintenance")}</div>
                             <div className="admset-callout">
                                 <div>
-                                    <p>Last Backup</p>
-                                    <p className="muted">January 15, 2024</p>
+                                    <p>{t("adminSettings.lastBackup")}</p>
+                                    <p className="muted">{t("adminSettings.lastBackupDate")}</p>
                                 </div>
-                                <span className="admset-badge good">Success</span>
+                                <span className="admset-badge good">{t("adminSettings.backupSuccess")}</span>
                             </div>
 
                             <div className="admset-grid-2 mt-12">
                                 <button className="admset-btn admset-btn-primary">
                                     <Archive className="admset-ic-sm" />
-                                    {t.backup}
+                                    {t("adminSettings.backup")}
                                 </button>
                                 <button className="admset-btn admset-btn-outline primary-outline">
                                     <Download className="admset-ic-sm" />
-                                    {t.restore}
+                                    {t("adminSettings.restore")}
                                 </button>
                             </div>
                         </div>
@@ -568,33 +519,35 @@ export default function AdminSystemSettings({
 
                         {/* Section 4: Data Export Options */}
                         <div className="admset-block">
-                            <div className="admset-label mb-6">Data Export Options</div>
+                            <div className="admset-label mb-6">{t("adminSettings.dataExportOptions")}</div>
                             <div className="space-y-4">
-                                <button 
+                                <button
                                     className="admset-btn admset-btn-outline w-full justify-start"
                                     onClick={() => handleExport('food-csv')}
                                     disabled={exportLoading.csv}
                                 >
                                     <Download className="admset-ic-sm" />
-                                    {exportLoading.csv ? 'Exporting...' : 'Export Food Database (CSV)'}
+                                    {exportLoading.csv ? t("adminSettings.exporting") : t("adminSettings.exportFoodCSV")}
                                 </button>
 
-                                <button 
+                                <button
                                     className="admset-btn admset-btn-outline w-full justify-start admset-btn-2"
                                     onClick={() => handleExport('analytics-report')}
                                     disabled={exportLoading.reportExcel || exportLoading.reportPdf}
                                 >
                                     <Download className="admset-ic-sm" />
-                                    {exportLoading.reportExcel || exportLoading.reportPdf 
-                                        ? 'Exporting...' 
-                                        : 'Export Analytics Report'}
-                                </button>               
-                            </div>        
+                                    {exportLoading.reportExcel || exportLoading.reportPdf
+                                        ? t("adminSettings.exporting")
+                                        : t("adminSettings.exportAnalyticsReport")}
+                                </button>
+                            </div>
                         </div>
 
                     </div>
                 </div>
             </div>
+
+            {/* Send Announcement Modal */}
             {showSysEmailModal && (
                 <div
                     className="umg-modal-backdrop"
@@ -605,7 +558,7 @@ export default function AdminSystemSettings({
                     <div className="umg-modal" onClick={(e) => e.stopPropagation()}>
                         {/* Header */}
                         <div className="umg-modal-header">
-                            <h3><Mail size={18} /> Send System Announcement</h3>
+                            <h3><Mail size={18} /> {t("adminSettings.sendSystemAnnouncementTitle")}</h3>
                             <button className="umg-modal-close" onClick={() => setShowSysEmailModal(false)} aria-label="Close">×</button>
                         </div>
 
@@ -613,17 +566,16 @@ export default function AdminSystemSettings({
                         <div className="umg-modal-body">
                             {/* Recipients */}
                             <div className="umg-field">
-                                <label className="umg-label">Recipients</label>
+                                <label className="umg-label">{t("adminSettings.recipients")}</label>
                                 <select
                                     className="umg-input"
                                     value={sysEmailForm.recipientsOption}
                                     onChange={(e) => setSysEmailForm({ ...sysEmailForm, recipientsOption: e.target.value })}
                                 >
-                                    <option>All users</option>
-                                    <option>Administrators only</option>
-                                    {/* If you want to allow picking specific users from Settings, keep this next option */}
-                                    <option>Specific users</option>
-                                    <option>Custom Email Addresses</option>
+                                    <option>{t("adminSettings.allUsers")}</option>
+                                    <option>{t("adminSettings.administratorsOnly")}</option>
+                                    <option>{t("adminSettings.specificUsers")}</option>
+                                    <option>{t("adminSettings.customEmailAddresses")}</option>
                                 </select>
 
                                 {/* Specific users */}
@@ -631,13 +583,13 @@ export default function AdminSystemSettings({
                                     <div className="umg-specific-list">
                                         <input
                                             className="umg-input"
-                                            placeholder="Search users to select…"
+                                            placeholder={t("adminSettings.searchUsersPlaceholder")}
                                             value={sysSpecificSearch}
                                             onChange={(e) => setSysSpecificSearch(e.target.value)}
                                         />
                                         <div className="umg-specific-scroll">
                                             {filteredSysUsers.length === 0 ? (
-                                                <div className="umg-empty">No matches.</div>
+                                                <div className="umg-empty">{t("adminSettings.noMatches")}</div>
                                             ) : (
                                                 filteredSysUsers.map(u => (
                                                     <label key={u.id} className="umg-specific-row">
@@ -670,22 +622,22 @@ export default function AdminSystemSettings({
                                 {/* Custom emails */}
                                 {sysEmailForm.recipientsOption === "Custom Email Addresses" && (
                                     <div className="umg-field">
-                                        <label className="umg-label">Enter email addresses</label>
+                                        <label className="umg-label">{t("adminSettings.enterEmailAddresses")}</label>
                                         <textarea
                                             className="umg-input umg-textarea"
-                                            placeholder="alice@mail.com, bob@mail.com"
+                                            placeholder={t("adminSettings.emailAddressesPlaceholder")}
                                             value={sysEmailForm.customEmails}
                                             onChange={(e) => setSysEmailForm({ ...sysEmailForm, customEmails: e.target.value })}
                                         />
                                     </div>
                                 )}
 
-                                <div className="umg-hint">Total Recipients: {sysTotalRecipients}</div>
+                                <div className="umg-hint">{t("adminSettings.totalRecipients", { count: sysTotalRecipients })}</div>
                             </div>
 
                             {/* Template */}
                             <div className="umg-field">
-                                <label className="umg-label">Email Template</label>
+                                <label className="umg-label">{t("adminSettings.emailTemplate")}</label>
                                 <select
                                     className="umg-input"
                                     value={sysEmailForm.template}
@@ -708,10 +660,10 @@ export default function AdminSystemSettings({
 
                             {/* Subject */}
                             <div className="umg-field">
-                                <label className="umg-label">Subject</label>
+                                <label className="umg-label">{t("adminSettings.subject")}</label>
                                 <input
                                     className="umg-input"
-                                    placeholder="Enter email subject"
+                                    placeholder={t("adminSettings.subjectPlaceholder")}
                                     value={sysEmailForm.subject}
                                     onChange={(e) => setSysEmailForm(prev => ({ ...prev, subject: e.target.value }))}
                                 />
@@ -719,16 +671,16 @@ export default function AdminSystemSettings({
 
                             {/* Message */}
                             <div className="umg-field">
-                                <label className="umg-label">Message</label>
+                                <label className="umg-label">{t("adminSettings.message")}</label>
                                 <textarea
                                     className="umg-input umg-textarea"
-                                    placeholder="Enter your message"
+                                    placeholder={t("adminSettings.messagePlaceholder")}
                                     value={sysEmailForm.message}
                                     onChange={(e) => setSysEmailForm(prev => ({ ...prev, message: e.target.value }))}
                                 />
                             </div>
 
-                            {/* Announcement */}
+                            {/* Mark as Announcement */}
                             <label className="umg-check">
                                 <input
                                     type="checkbox"
@@ -736,29 +688,32 @@ export default function AdminSystemSettings({
                                     onChange={(e) => setSysEmailForm({ ...sysEmailForm, markAnnouncement: e.target.checked })}
                                 />
                                 <div>
-                                    <div><Bell size={16} /> Mark as Announcement</div>
-                                    <div className="umg-check-hint">Announcements appear in user notifications</div>
+                                    <div><Bell size={16} /> {t("adminSettings.markAsAnnouncement")}</div>
+                                    <div className="umg-check-hint">{t("adminSettings.announcementHint")}</div>
                                 </div>
                             </label>
                         </div>
 
                         {/* Footer */}
                         <div className="umg-modal-footer">
-                            <button className="umg-btn-secondary" onClick={() => setShowSysEmailModal(false)}>Cancel</button>
+                            <button className="umg-btn-secondary" onClick={() => setShowSysEmailModal(false)}>
+                                {t("adminSettings.cancel")}
+                            </button>
                             <button
                                 className="umg-btn-primary"
                                 onClick={() => {
-                                        if (!sysEmailForm.subject.trim() || !sysEmailForm.message.trim()) {
+                                    if (!sysEmailForm.subject.trim() || !sysEmailForm.message.trim()) {
                                         setSysDialog({
                                             open: true,
-                                            title: "Missing Required Fields",
-                                            message: "Please provide a subject and message.",
+                                            title: t("adminSettings.missingRequiredFields"),
+                                            message: t("adminSettings.provideSubjectAndMessage"),
                                             icon: <AlertTriangle />,
-                                            primaryText: "OK",
+                                            primaryText: t("adminSettings.ok"),
                                             onPrimary: closeSysDialog,
                                         });
                                         return;
                                     }
+
                                     let recipients = [];
                                     if (sysEmailForm.recipientsOption === "All users") {
                                         recipients = allUsers.map(u => u.email);
@@ -780,21 +735,22 @@ export default function AdminSystemSettings({
                                     setShowSysEmailModal(false);
                                     setSysDialog({
                                         open: true,
-                                        title: "Announcement Sent",
-                                        message: `Your message will be sent to ${recipients.length} recipient(s).`,
-                                        icon: CheckIcon ? <CheckIcon /> : null, 
-                                        primaryText: "Done",
+                                        title: t("adminSettings.announcementSent"),
+                                        message: t("adminSettings.announcementSentMsg", { count: recipients.length }),
+                                        icon: CheckIcon ? <CheckIcon /> : null,
+                                        primaryText: t("adminSettings.done"),
                                         onPrimary: closeSysDialog,
                                     });
                                 }}
                             >
-                                Send Email
+                                {t("adminSettings.sendEmail")}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* Export Analytics Report Modal */}
             {showExportModal && (
                 <div
                     className="umg-modal-backdrop"
@@ -805,7 +761,7 @@ export default function AdminSystemSettings({
                     <div className="umg-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                         {/* Header */}
                         <div className="umg-modal-header">
-                            <h3><FileText size={18} /> Export Analytics Report</h3>
+                            <h3><FileText size={18} /> {t("adminSettings.exportAnalyticsReportTitle")}</h3>
                             <button className="umg-modal-close" onClick={() => setShowExportModal(false)} aria-label="Close">×</button>
                         </div>
 
@@ -813,7 +769,7 @@ export default function AdminSystemSettings({
                         <div className="umg-modal-body">
                             {/* Format Selection */}
                             <div className="umg-field">
-                                <label className="umg-label">Export Format</label>
+                                <label className="umg-label">{t("adminSettings.exportFormat")}</label>
                                 <div className="admset-format-list">
                                     <label className="admset-format-option">
                                         <input
@@ -825,7 +781,7 @@ export default function AdminSystemSettings({
                                             className="w-4 h-4"
                                         />
                                         <FileText className="admset-ic-sm" />
-                                        <span>Excel (.xlsx)</span>
+                                        <span>{t("adminSettings.excelFormat")}</span>
                                     </label>
                                     <label className="admset-format-option">
                                         <input
@@ -837,37 +793,36 @@ export default function AdminSystemSettings({
                                             className="w-4 h-4"
                                         />
                                         <FileText className="admset-ic-sm" />
-                                        <span>PDF (.pdf)</span>
+                                        <span>{t("adminSettings.pdfFormat")}</span>
                                     </label>
                                 </div>
                             </div>
 
                             {/* Date Range Selection */}
                             <div className="umg-field">
-                                <label className="umg-label">Date Range</label>
+                                <label className="umg-label">{t("adminSettings.dateRange")}</label>
                                 <select
                                     className="umg-input"
                                     value={exportOptions.rangeType}
                                     onChange={(e) => {
                                         const value = e.target.value;
-                                        setExportOptions(prev => ({ 
-                                            ...prev, 
+                                        setExportOptions(prev => ({
+                                            ...prev,
                                             rangeType: value,
-                                            // Reset custom dates when changing range type
                                             ...(value !== 'custom' && { startDate: '', endDate: '' })
                                         }));
                                     }}
                                 >
-                                    <option value="year">Full Year</option>
-                                    <option value="month">Specific Month</option>
-                                    <option value="custom">Custom Range</option>
+                                    <option value="year">{t("adminSettings.fullYear")}</option>
+                                    <option value="month">{t("adminSettings.specificMonth")}</option>
+                                    <option value="custom">{t("adminSettings.customRange")}</option>
                                 </select>
                             </div>
 
                             {/* Year Selection */}
                             {(exportOptions.rangeType === 'year' || exportOptions.rangeType === 'month') && (
                                 <div className="umg-field">
-                                    <label className="umg-label">Select Year</label>
+                                    <label className="umg-label">{t("adminSettings.selectYear")}</label>
                                     <select
                                         className="umg-input"
                                         value={exportOptions.year}
@@ -875,23 +830,21 @@ export default function AdminSystemSettings({
                                         disabled={loadingYears}
                                     >
                                         {loadingYears ? (
-                                            <option value="">Loading years...</option>
+                                            <option value="">{t("adminSettings.loadingYears")}</option>
                                         ) : availableYears.length === 0 ? (
-                                            <option value="">No years available</option>
+                                            <option value="">{t("adminSettings.noYearsAvailable")}</option>
                                         ) : (
                                             availableYears.map(year => (
-                                                <option key={year} value={year}>
-                                                    {year}
-                                                </option>
+                                                <option key={year} value={year}>{year}</option>
                                             ))
                                         )}
                                     </select>
                                     {loadingYears && (
-                                        <div className="text-xs text-gray-500 mt-1">Fetching years from database...</div>
+                                        <div className="text-xs text-gray-500 mt-1">{t("adminSettings.fetchingYears")}</div>
                                     )}
                                     {!loadingYears && availableYears.length > 0 && (
                                         <div className="text-xs text-gray-500 mt-1">
-                                            Showing {availableYears.length} year{availableYears.length !== 1 ? 's' : ''} with data
+                                            {t("adminSettings.showingYearsWithData", { count: availableYears.length })}
                                         </div>
                                     )}
                                 </div>
@@ -900,7 +853,7 @@ export default function AdminSystemSettings({
                             {/* Month Selection */}
                             {exportOptions.rangeType === 'month' && (
                                 <div className="umg-field">
-                                    <label className="umg-label">Select Month</label>
+                                    <label className="umg-label">{t("adminSettings.selectMonth")}</label>
                                     <select
                                         className="umg-input"
                                         value={exportOptions.month}
@@ -908,39 +861,37 @@ export default function AdminSystemSettings({
                                         disabled={loadingMonths}
                                     >
                                         {loadingMonths ? (
-                                            <option value="">Loading months...</option>
+                                            <option value="">{t("adminSettings.loadingMonths")}</option>
                                         ) : availableMonths.length === 0 ? (
-                                            <option value="">No months available for {exportOptions.year}</option>
+                                            <option value="">{t("adminSettings.noMonthsAvailable", { year: exportOptions.year })}</option>
                                         ) : (
                                             availableMonths.map(monthNum => {
                                                 const date = new Date(exportOptions.year, monthNum - 1);
                                                 const currentYear = new Date().getFullYear();
                                                 const currentMonth = new Date().getMonth() + 1;
-                                                
-                                                // Disable future months
-                                                const isFuture = exportOptions.year > currentYear || 
-                                                                (exportOptions.year === currentYear && monthNum > currentMonth);
-                                                
+                                                const isFuture = exportOptions.year > currentYear ||
+                                                    (exportOptions.year === currentYear && monthNum > currentMonth);
+
                                                 return (
-                                                    <option 
-                                                        key={monthNum} 
+                                                    <option
+                                                        key={monthNum}
                                                         value={monthNum}
                                                         disabled={isFuture}
                                                         className={isFuture ? 'text-gray-400' : ''}
                                                     >
                                                         {date.toLocaleString('default', { month: 'long' })}
-                                                        {isFuture && ' (Future)'}
+                                                        {isFuture && ` ${t("adminSettings.futureSuffix")}`}
                                                     </option>
                                                 );
                                             })
                                         )}
                                     </select>
                                     {loadingMonths && (
-                                        <div className="text-xs text-gray-500 mt-1">Fetching months from database...</div>
+                                        <div className="text-xs text-gray-500 mt-1">{t("adminSettings.fetchingMonths")}</div>
                                     )}
                                     {!loadingMonths && availableMonths.length > 0 && (
                                         <div className="text-xs text-gray-500 mt-1">
-                                            Showing {availableMonths.length} month{availableMonths.length !== 1 ? 's' : ''} with data in {exportOptions.year}
+                                            {t("adminSettings.showingMonthsWithData", { count: availableMonths.length, year: exportOptions.year })}
                                         </div>
                                     )}
                                 </div>
@@ -950,7 +901,7 @@ export default function AdminSystemSettings({
                             {exportOptions.rangeType === 'custom' && (
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="umg-field">
-                                        <label className="umg-label">Start Date</label>
+                                        <label className="umg-label">{t("adminSettings.startDate")}</label>
                                         <input
                                             type="date"
                                             className="umg-input"
@@ -960,7 +911,7 @@ export default function AdminSystemSettings({
                                         />
                                     </div>
                                     <div className="umg-field">
-                                        <label className="umg-label">End Date</label>
+                                        <label className="umg-label">{t("adminSettings.endDate")}</label>
                                         <input
                                             type="date"
                                             className="umg-input"
@@ -973,19 +924,29 @@ export default function AdminSystemSettings({
                                 </div>
                             )}
 
-                            {/* Preview Info */}
+                            {/* Export Summary */}
                             <div className="umg-field p-3 bg-gray-50 rounded">
                                 <div className="text-sm text-gray-600">
-                                    <div className="font-medium mb-1">Export Summary:</div>
-                                    <div>Format: {exportOptions.format.toUpperCase()}</div>
+                                    <div className="font-medium mb-1">{t("adminSettings.exportSummary")}</div>
+                                    <div>{t("adminSettings.format", { format: exportOptions.format.toUpperCase() })}</div>
                                     {exportOptions.rangeType === 'year' && (
-                                        <div>Period: Full Year {exportOptions.year}</div>
+                                        <div>{t("adminSettings.periodFullYear", { year: exportOptions.year })}</div>
                                     )}
                                     {exportOptions.rangeType === 'month' && (
-                                        <div>Period: {new Date(exportOptions.year, exportOptions.month - 1).toLocaleString('default', { month: 'long' })} {exportOptions.year}</div>
+                                        <div>
+                                            {t("adminSettings.periodMonth", {
+                                                month: new Date(exportOptions.year, exportOptions.month - 1).toLocaleString('default', { month: 'long' }),
+                                                year: exportOptions.year
+                                            })}
+                                        </div>
                                     )}
                                     {exportOptions.rangeType === 'custom' && (
-                                        <div>Period: {exportOptions.startDate || 'Start'} to {exportOptions.endDate || 'End'}</div>
+                                        <div>
+                                            {t("adminSettings.periodCustom", {
+                                                start: exportOptions.startDate || t("adminSettings.periodStart"),
+                                                end: exportOptions.endDate || t("adminSettings.periodEnd")
+                                            })}
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -994,7 +955,7 @@ export default function AdminSystemSettings({
                         {/* Footer */}
                         <div className="umg-modal-footer">
                             <button className="umg-btn-secondary" onClick={() => setShowExportModal(false)}>
-                                Cancel
+                                {t("adminSettings.cancel")}
                             </button>
                             <button
                                 className="umg-btn-primary"
@@ -1004,12 +965,12 @@ export default function AdminSystemSettings({
                                 {exportLoading.reportExcel || exportLoading.reportPdf ? (
                                     <>
                                         <span className="animate-spin mr-2">⏳</span>
-                                        Exporting...
+                                        {t("adminSettings.exporting")}
                                     </>
                                 ) : (
                                     <>
                                         <Download className="admset-ic-sm mr-2" />
-                                        Export Report
+                                        {t("adminSettings.exportReport")}
                                     </>
                                 )}
                             </button>
@@ -1017,7 +978,7 @@ export default function AdminSystemSettings({
                     </div>
                 </div>
             )}
-            
+
             <Modal
                 open={sysDialog.open}
                 title={sysDialog.title}

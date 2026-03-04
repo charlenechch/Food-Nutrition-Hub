@@ -1,8 +1,11 @@
 import React from "react";
 import "./Footer.css";
 import { FaEnvelope, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 export default function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="footer">
       <div className="footer-container">
@@ -11,29 +14,25 @@ export default function Footer() {
           <h3>
             <span className="logo-icon">S</span> SarawakEats
           </h3>
-          <h4>About SarawakEats</h4>
-          <p>
-            Preserving and celebrating the rich culinary heritage of Sarawak
-            through traditional recipes, cultural stories, and community
-            contributions.
-          </p>
+          <h4>{t("footer.aboutTitle")}</h4>
+          <p>{t("footer.aboutDesc")}</p>
         </div>
 
         {/* Quick Links */}
         <div className="footer-links">
-          <h4>Quick Links</h4>
+          <h4>{t("footer.quickLinks")}</h4>
           <ul>
-            <li><a href="/home">Home</a></li>
-            <li><a href="/foods">Explore Foods</a></li>
-            <li><a href="/analyzer">Nutrition Analyzer</a></li>
-            <li><a href="/recipes">Recipes</a></li>
-            <li><a href="/community">Community</a></li>
+            <li><a href="/home">{t("nav.home")}</a></li>
+            <li><a href="/foods">{t("nav.explore")}</a></li>
+            <li><a href="/analyzer">{t("nav.analyzer")}</a></li>
+            <li><a href="/recipes">{t("nav.recipes")}</a></li>
+            <li><a href="/community">{t("nav.community")}</a></li>
           </ul>
         </div>
 
         {/* Contact Section */}
         <div className="footer-contact">
-          <h4>Contact</h4>
+          <h4>{t("footer.contact")}</h4>
           <p><FaEnvelope className="footer-icon" /> info@sarawakeats.com</p>
           <p><FaPhone className="footer-icon" /> +60 82-123456</p>
           <p><FaMapMarkerAlt className="footer-icon" /> Kuching, Sarawak, Malaysia</p>
@@ -42,15 +41,12 @@ export default function Footer() {
 
       {/* Footer Bottom */}
       <div className="footer-bottom">
-        <p>© 2024 SarawakEats. All rights reserved.</p>
+        <p>{t("footer.rights")}</p>
         <div className="footer-bottom-links">
-          <a href="/privacy">Privacy Policy</a>
-          <a href="/terms">Terms of Service</a>
+          <a href="/privacy">{t("footer.privacy")}</a>
+          <a href="/terms">{t("footer.terms")}</a>
         </div>
       </div>
-      
     </footer>
   );
 }
-
-

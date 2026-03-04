@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "../css/EditFoodPage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -8,9 +9,10 @@ import { FaArrowLeftLong } from "react-icons/fa6";
 import { FiSave } from "react-icons/fi";
 
 const AddRecipePage = () => {
-    const navigate = useNavigate();
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
   const [food, setFood] = useState({
     name_en: "Ayam Pansuh",
@@ -29,7 +31,6 @@ const AddRecipePage = () => {
     serving: "",
     time: "",
     difficulty: "",
-    //ingredients: "",
     benefits: "",
     tags: "",
   });
@@ -39,19 +40,19 @@ const AddRecipePage = () => {
   };
 
   const handleSaveClick = () => {
-        setShowSaveConfirm(true);
-    };
+    setShowSaveConfirm(true);
+  };
 
-    const handleCancelSave = () => {
-        setShowSaveConfirm(false);
-    };
+  const handleCancelSave = () => {
+    setShowSaveConfirm(false);
+  };
 
-    const handleConfirmSave = () => {
-        console.log("✅ Changes saved:", food);
-        // TODO: Add actual save logic here (API call, database update, etc.)
-        setShowSaveConfirm(false);
-        navigate("/admin"); // redirect to dashboard after saving
-    };
+  const handleConfirmSave = () => {
+    console.log("✅ Changes saved:", food);
+    // TODO: Add actual save logic here (API call, database update, etc.)
+    setShowSaveConfirm(false);
+    navigate("/admin");
+  };
 
   return (
     <div className="edit-food-page">
@@ -59,57 +60,57 @@ const AddRecipePage = () => {
 
       <div className="edit-food-container">
         <div className="edit-topbar">
-            <button className="admin-edit-food-back-btn" onClick={() => navigate("/admin")}>
-                <span className="admin-edit-food-back-icon"><FaArrowLeftLong /></span>
-                 Back to Dashboard
-             </button>
+          <button className="admin-edit-food-back-btn" onClick={() => navigate("/admin")}>
+            <span className="admin-edit-food-back-icon"><FaArrowLeftLong /></span>
+            {t("addFood.backToDashboard")}
+          </button>
 
-            <div className="edit-title">
-                <h2>Add New Recipe</h2>
-            </div>
+          <div className="edit-title">
+            <h2>{t("addRecipe.pageTitle")}</h2>
+          </div>
 
-            <button className="admin-edit-food-save-btn" onClick={handleSaveClick}>
-                <span className="admin-edit-food-save-icon"><FiSave /></span>
-                Save Changes
-            </button>
+          <button className="admin-edit-food-save-btn" onClick={handleSaveClick}>
+            <span className="admin-edit-food-save-icon"><FiSave /></span>
+            {t("addRecipe.saveChanges")}
+          </button>
         </div>
 
         <div className="edit-grid">
           {/* === Food Image Section === */}
           <div className="edit-food-image-upload-section">
-            <h3>Food Image</h3>
+            <h3>{t("addFood.foodImage")}</h3>
             <div className="image-preview">
-                {selectedImage ? (
+              {selectedImage ? (
                 <img src={URL.createObjectURL(selectedImage)} alt="Preview" />
-                ) : (
-                <p>No Image</p>
-                )}
+              ) : (
+                <p>{t("addRecipe.noImage")}</p>
+              )}
             </div>
 
             <input 
-                className="edit-food-input"
-                type="file"
-                id="fileInput"
-                accept="image/*"
-                onChange={(e) => setSelectedImage(e.target.files[0])}
-                style={{ display: "none" }}
+              className="edit-food-input"
+              type="file"
+              id="fileInput"
+              accept="image/*"
+              onChange={(e) => setSelectedImage(e.target.files[0])}
+              style={{ display: "none" }}
             />
             
             <button
-                className="admin-edit-food-upload-btn"
-                onClick={() => document.getElementById("fileInput").click()}
+              className="admin-edit-food-upload-btn"
+              onClick={() => document.getElementById("fileInput").click()}
             >
-                <span className="admin-edit-food-upload-icon"><MdOutlineFileUpload /></span>
-                Upload New Image
+              <span className="admin-edit-food-upload-icon"><MdOutlineFileUpload /></span>
+              {t("addRecipe.uploadNewImage")}
             </button>
-            </div>
+          </div>
 
           {/* === Basic Info Section === */}
           <div className="edit-food-basic-info-card">
-            <h3>Basic Information</h3>
+            <h3>{t("addFood.basicInfo")}</h3>
             <div className="edit-food-basic-info-two-col">
               <div>
-                <label className="basic-info-label">Food Name</label>
+                <label className="basic-info-label">{t("addFood.foodName")}</label>
                 <input
                   className="edit-food-input"
                   name="name_en"
@@ -118,7 +119,7 @@ const AddRecipePage = () => {
                 />
               </div>
               <div>
-                <label className="basic-info-label">Name (Bahasa Malaysia)</label>
+                <label className="basic-info-label">{t("addRecipe.nameBM")}</label>
                 <input
                   className="edit-food-input"
                   name="name_ms"
@@ -129,14 +130,14 @@ const AddRecipePage = () => {
             </div>
 
             <div className="food-category-field">
-              <label className="basic-info-label">Category</label>
+              <label className="basic-info-label">{t("addRecipe.category")}</label>
               <select
                 className="edit-food-select"
                 name="category"
                 value={food.category}
                 onChange={handleChange}
               >
-                <option value="">Select category</option>
+                <option value="">{t("addRecipe.selectCategory")}</option>
                 <option value="Poultry">Poultry</option>
                 <option value="Seafood">Seafood</option>
                 <option value="Vegetables">Vegetables</option>
@@ -150,13 +151,13 @@ const AddRecipePage = () => {
             </div>
 
             <div className="food-origin-field">
-              <label className="basic-info-label">Region of Origin</label>
+              <label className="basic-info-label">{t("addFood.regionOfOrigin")}</label>
               <input
                 className="edit-food-input"
                 name="origin"
                 value={food.origin}
                 onChange={handleChange}
-                placeholder="e.g., Kuching, Sibu, Miri"
+                placeholder={t("addRecipe.originPlaceholder")}
               />
             </div>
           </div>
@@ -164,116 +165,103 @@ const AddRecipePage = () => {
 
         {/* === Cultural Context === */}
         <div className="edit-cultural-context-card">
-          <h3>Cultural Context</h3>
+          <h3>{t("addFood.culturalContext")}</h3>
 
-          <label className="basic-info-label">Description</label>
-            <textarea
-              className="edit-food-textarea"
-              name="description_en"
-              value={food.description_en}
-              onChange={handleChange}
-            />
+          <label className="basic-info-label">{t("addFood.description")}</label>
+          <textarea
+            className="edit-food-textarea"
+            name="description_en"
+            value={food.description_en}
+            onChange={handleChange}
+          />
 
-          <label className="basic-info-label">Ingredients</label>
+          <label className="basic-info-label">{t("addRecipe.ingredients")}</label>
           <textarea
             className="edit-food-textarea"
             name="ingredients"
             value={food.ingredients}
             onChange={handleChange}
-            placeholder={`List the ingredients for this dish...\n1) 1 clove of garlic\n2) 1kg of chicken breast`}
+            placeholder={t("addRecipe.ingredientsPlaceholder")}
             rows="5"
           />
 
-          <label className="basic-info-label">Instructions</label>
+          <label className="basic-info-label">{t("addRecipe.instructions")}</label>
           <textarea
             className="edit-food-textarea"
             name="instructions"
             value={food.instructions}
             onChange={handleChange}
-            placeholder="Describe how this dish is traditionally prepared — cooking method, tools, rituals, etc."
+            placeholder={t("addRecipe.instructionsPlaceholder")}
           />
         </div>
 
-
         <div className="edit-cultural-context-card">
-            <h3 className="edit-food-section-title">Cooking Information</h3>
-            <div className="nutrition-grid">
-                {[
-                "Serving",
-                "Prep Time (min)",
-                "Cook Time (min)",
-                "Difficulty",
-                ].map((label, index) => (
-                <div key={index}>
-                    <label className="basic-info-label">{label}</label>
-
-                    {label === "Difficulty" ? (
-                    <select className="edit-food-input">
-                        <option value="">Select difficulty...</option>
-                        <option value="Easy">Easy</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
-                    </select>
-                    ) : (
-                    <input className="edit-food-input" />
-                    )}
-                </div>
-                ))}
-            </div>
+          <h3 className="edit-food-section-title">{t("addRecipe.cookingInfo")}</h3>
+          <div className="nutrition-grid">
+            {[
+              { labelKey: "addRecipe.serving",     field: "serving" },
+              { labelKey: "addRecipe.prepTime",     field: "time" },
+              { labelKey: "addRecipe.cookTime",     field: null },
+              { labelKey: "addRecipe.difficulty",   field: null },
+            ].map((item, index) => (
+              <div key={index}>
+                <label className="basic-info-label">{t(item.labelKey)}</label>
+                {t(item.labelKey) === t("addRecipe.difficulty") ? (
+                  <select className="edit-food-input">
+                    <option value="">{t("addRecipe.selectDifficulty")}</option>
+                    <option value="Easy">{t("explore.easy")}</option>
+                    <option value="Medium">{t("explore.medium")}</option>
+                    <option value="Hard">{t("explore.hard")}</option>
+                  </select>
+                ) : (
+                  <input className="edit-food-input" />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-
 
         {/* === Additional Info === */}
         <div className="edit-food-additional-info-card">
-          <h3>Additional Information</h3>
+          <h3>{t("addRecipe.additionalInfo")}</h3>
 
-          <label className="basic-info-label">Fun Fact</label>
-          <textarea className="edit-food-textarea" placeholder="Fun Fact about the dish" />
+          <label className="basic-info-label">{t("addRecipe.funFact")}</label>
+          <textarea className="edit-food-textarea" placeholder={t("addRecipe.funFactPlaceholder")} />
 
-          <label className="basic-info-label">Tips</label>
+          <label className="basic-info-label">{t("addRecipe.tips")}</label>
           <textarea className="edit-food-textarea" />
 
-          <label className="basic-info-label">Dietary Preferences</label>
-            <div className="dietary-preferences-grid">
+          <label className="basic-info-label">{t("addFood.dietaryPreferences")}</label>
+          <div className="dietary-preferences-grid">
             {[
-                "Vegetarian",
-                "Gluten Free",
-                "Dairy Free",
-                "Spicy",
-                "Paleo",
-                "Halal",
-                "Keto",
-                "Nut Free",
-                "Other",
+              "Vegetarian", "Gluten Free", "Dairy Free", "Spicy",
+              "Paleo", "Halal", "Keto", "Nut Free", "Other",
             ].map((option, index) => (
-                <label key={index} className="dietary-option">
+              <label key={index} className="dietary-option">
                 <input type="checkbox" name="dietary" value={option} />
                 {option}
-                </label>
+              </label>
             ))}
-            </div>
+          </div>
         </div>
       </div>
 
       {showSaveConfirm && (
         <div className="modal-overlay">
-            <div className="delete-modal">
-            <h3>Confirmation</h3>
-            <p>
-                Are you sure you want to <strong>save these changes</strong>?<br />
-                This will overwrite the existing food information.
-            </p>
+          <div className="delete-modal">
+            <h3>{t("addRecipe.confirmTitle")}</h3>
+            <p>{t("addRecipe.confirmMsg")}</p>
             <div className="modal-actions">
-                <button className="save-cancel-btn" onClick={handleCancelSave}>
-                Cancel
-                </button>
-                <button className="confirm-save-btn" onClick={handleConfirmSave}>
-                Save
-                </button>
+              <button className="save-cancel-btn" onClick={handleCancelSave}>
+                {t("addFood.cancel")}
+              </button>
+              <button className="confirm-save-btn" onClick={handleConfirmSave}>
+                {t("addRecipe.save")}
+              </button>
             </div>
-            </div>
+          </div>
         </div>
-        )}
+      )}
 
       <Footer />
     </div>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import PieChart from "./charts/piechart";
 import BarChart from "./charts/barchart";
 import "../css/Analytics.css";
+import { useTranslation } from "react-i18next";
 import { FaUtensils, FaBook, FaUsers, FaExclamationTriangle, FaStar, FaFlag, FaChartLine } from "react-icons/fa";
 import { BsCheckCircle } from "react-icons/bs";
 
@@ -119,6 +120,7 @@ export const analyticsApi = {
 };
 
 const Analytics = () => {
+  const { t } = useTranslation();
   const [barChartData, setBarChartData] = useState([]);
   const [totals, setTotals] = useState({});
   const [loading, setLoading] = useState(true);
@@ -174,12 +176,12 @@ const Analytics = () => {
       ].filter(response => !response?.success);
       
       if (failedRequests.length > 0) {
-        setError(`Some data failed to load: ${failedRequests.length} endpoints failed`);
+        setError(t("analytics.someDataFailed", { count: failedRequests.length }));
       }
       
     } catch (error) {
       console.error('Error fetching analytics data:', error);
-      setError('Error loading analytics data. Please try again later.');
+      setError(t("analytics.errorLoadingAnalytics"));
     } finally {
       setLoading(false);
     }
@@ -205,12 +207,12 @@ const Analytics = () => {
           // Fetch initial data
           await fetchAllAnalyticsData(defaultYear, null);
         } else {
-          setError('No data available');
+          setError(t("analytics.noDataAvailable"));
           setLoading(false);
         }
       } catch (error) {
         console.error('Error fetching initial data:', error);
-        setError('Error loading initial data.');
+        setError(t("analytics.errorLoadingInitial"));
         setLoading(false);
       }
     };
@@ -287,7 +289,7 @@ const Analytics = () => {
   if (loading && !selectedYear) {
     return (
       <div className="analytics">
-        <div className="loading">Loading analytics data...</div>
+        <div className="loading">{t("analytics.loadingAnalytics")}</div>
       </div>
     );
   }
@@ -299,37 +301,37 @@ const Analytics = () => {
   return (
     <div className="analytics">
       <header className="analytics-header">
-        <h1><FaUsers className="icon-user" /> Community Analytics</h1>
-        <p>Monitor community contributions and engagement metrics</p>
+        <h1><FaUsers className="icon-user" /> {t("analytics.communityAnalytics")}</h1>
+        <p>{t("analytics.monitorMetrics")}</p>
       </header>
 
-      {/* Timeline Controls Section - ADD THIS */}
+      {/* Timeline Controls Section */}
       <div className="timeline-controls">
         <h2 className="timeline-title">
-          <FaChartLine className="icon-chartLine" /> Analytics Timeline
+          <FaChartLine className="icon-chartLine" /> {t("analytics.analyticsTimeline")}
         </h2>
         
         <div className="timeline-filters">
           <div className="filter-group">
-            <label className="filter-label">View Type</label>
+            <label className="filter-label">{t("analytics.viewType")}</label>
             <div className="timeframe-tabs">
               <button 
                 className={`timeframe-tab ${timeframeType === 'yearly' ? 'active' : ''}`}
                 onClick={() => handleTimeframeTypeChange('yearly')}
               >
-                Yearly View
+                {t("analytics.yearlyView")}
               </button>
               <button 
                 className={`timeframe-tab ${timeframeType === 'monthly' ? 'active' : ''}`}
                 onClick={() => handleTimeframeTypeChange('monthly')}
               >
-                Monthly View
+                {t("analytics.monthlyView")}
               </button>
             </div>
           </div>
           
           <div className="filter-group">
-            <label className="filter-label">Year</label>
+            <label className="filter-label">{t("analytics.year")}</label>
             <select 
               value={selectedYear} 
               onChange={(e) => setSelectedYear(e.target.value)}
@@ -344,14 +346,14 @@ const Analytics = () => {
           
           {timeframeType === 'monthly' && (
             <div className="filter-group">
-              <label className="filter-label">Month</label>
+              <label className="filter-label">{t("analytics.month")}</label>
               <select 
                 value={selectedMonth} 
                 onChange={(e) => setSelectedMonth(e.target.value)}
                 className="month-select"
                 disabled={availableMonths.length === 0 || loading}
               >
-                <option value="">Select Month</option>
+                <option value="">{t("analytics.selectMonth")}</option>
                 {availableMonths.map(month => (
                   <option key={month.value} value={month.value}>
                     {month.name}
@@ -364,12 +366,12 @@ const Analytics = () => {
         
         <div className="current-timeframe">
           <div className="timeframe-text">
-            Currently viewing: <strong>
+            {t("analytics.currentlyViewing")} <strong>
               {timeframeType === 'yearly' 
-                ? `${selectedYear} (Yearly Overview)`
+                ? t("analytics.yearlyOverview", { year: selectedYear })
                 : selectedMonth 
-                  ? `${getMonthName(selectedMonth)} ${selectedYear}`
-                  : `Select a month for ${selectedYear}`
+                  ? t("analytics.monthYear", { month: getMonthName(selectedMonth), year: selectedYear })
+                  : t("analytics.selectMonthFor", { year: selectedYear })
               }
             </strong>
           </div>
@@ -384,7 +386,7 @@ const Analytics = () => {
 
       {loading && selectedYear && (
         <div className="loading-indicator">
-          Loading data for {selectedYear}{selectedMonth ? `, ${getMonthName(selectedMonth)}` : ''}...
+          {t("analytics.loadingData")} {selectedYear}{selectedMonth ? `, ${getMonthName(selectedMonth)}` : ''}...
         </div>
       )}
 
@@ -392,48 +394,48 @@ const Analytics = () => {
         <div className="metrics-grid">
           {/* Total Recipes Card */}
           <div className="metric-card">
-            <h3 className="metric-title">Total Recipes Shared <FaUtensils className="icon-utensils" /></h3>
+            <h3 className="metric-title">{t("analytics.totalRecipesShared")} <FaUtensils className="icon-utensils" /></h3>
             <div className="metric-value">{metrics.totalRecipes?.toLocaleString() || '0'}</div>
             <div className="metric-change">
               {metrics.percentages?.recipes !== undefined ? (
                 <span className={metrics.percentages.recipes >= 0 ? 'positive' : 'negative'}>
-                  {metrics.percentages.recipes >= 0 ? '+' : ''}{metrics.percentages.recipes}% from last month
+                  {metrics.percentages.recipes >= 0 ? '+' : ''}{metrics.percentages.recipes}{t("analytics.fromLastMonth")}
                 </span>
               ) : (
-                'No data'
+                t("analytics.noData")
               )}
             </div>
           </div>
 
           {/* Total Stories Card */}
           <div className="metric-card">
-            <h3 className="metric-title">Total Stories Shared <FaBook className="icon-book" /></h3>     
+            <h3 className="metric-title">{t("analytics.totalStoriesShared")} <FaBook className="icon-book" /></h3>     
             <div className="metric-value">{metrics.totalStories?.toLocaleString() || '0'}</div>
             <div className="metric-change">
               {metrics.percentages?.stories !== undefined ? (
                 <span className={metrics.percentages.stories >= 0 ? 'positive' : 'negative'}>
-                  {metrics.percentages.stories >= 0 ? '+' : ''}{metrics.percentages.stories}% from last month
+                  {metrics.percentages.stories >= 0 ? '+' : ''}{metrics.percentages.stories}{t("analytics.fromLastMonth")}
                 </span>
               ) : (
-                'No data'
+                t("analytics.noData")
               )}
             </div>
           </div>
 
           {/* Pending Recipes Card */}
           <div className="metric-card">
-            <h3 className="metric-title">Recipe Pending Reviews<FaExclamationTriangle className="icon-alert" /></h3>
+            <h3 className="metric-title">{t("analytics.recipePendingReviews")}<FaExclamationTriangle className="icon-alert" /></h3>
             <div className="metric-value">{metrics.pendingRecipes?.toLocaleString() || '0'}</div>
             <div className="metric-change">
               {metrics.pendingRecipes > 0 ? (
                 <span className="attention-tag">
                   <FaExclamationTriangle className="tag-icon" />
-                  Requires attention
+                  {t("analytics.requiresAttention")}
                 </span>
               ) : (
                 <span className="all-caught-tag">
                   <BsCheckCircle className="tag-icon" />
-                  All caught up!
+                  {t("analytics.allCaughtUp")}
                 </span>
               )}
             </div>
@@ -441,18 +443,18 @@ const Analytics = () => {
 
           {/* Pending Stories Card */}
           <div className="metric-card">
-            <h3 className="metric-title">Stories Pending Reviews <FaExclamationTriangle className="icon-alert" /></h3>
+            <h3 className="metric-title">{t("analytics.storiesPendingReviews")} <FaExclamationTriangle className="icon-alert" /></h3>
             <div className="metric-value">{metrics.pendingStories?.toLocaleString() || '0'}</div>
             <div className="metric-change">
               {metrics.pendingStories > 0 ? (
                 <span className="attention-tag">
                   <FaExclamationTriangle className="tag-icon" />
-                  Requires attention
+                  {t("analytics.requiresAttention")}
                 </span>
               ) : (
                 <span className="all-caught-tag">
                   <BsCheckCircle className="tag-icon" />
-                  All caught up!
+                  {t("analytics.allCaughtUp")}
                 </span>
               )}
             </div>
@@ -464,7 +466,7 @@ const Analytics = () => {
             {/* Pie Chart Card */}
             <div className="chart-card">
               <div className="pie-chart-container">
-                <h3 className="chart-title">Food Submissions by Cultural Origin</h3>
+                <h3 className="chart-title">{t("analytics.foodSubmissionsByCulturalOrigin")}</h3>
                 <PieChart data={culturalOriginData} />
               </div>
             </div>
@@ -472,18 +474,7 @@ const Analytics = () => {
             {/* Bar Chart Card */}
             <div className="chart-card">
               <div className="chart-header">
-                <h3 className="chart-title">Monthly Community Contribution Trends</h3>
-                {/* <div className="year-filter">
-                  <span className="filter-label">Data for:</span>
-                  <div className="timeframe-display">
-                    {timeframeType === 'yearly' 
-                      ? `${selectedYear} (Yearly)`
-                      : selectedMonth 
-                        ? `${getMonthName(selectedMonth)} ${selectedYear}`
-                        : `${selectedYear} (Select Month)`
-                    }
-                  </div>
-                </div> */}
+                <h3 className="chart-title">{t("analytics.monthlyCommunityContributionTrends")}</h3>
               </div>
               <BarChart data={barChartData} width={550} height={350} />
             </div>
@@ -493,14 +484,14 @@ const Analytics = () => {
           <div className="additional-cards-grid">
             {/* Popular Food Categories Card */}
             <div className="additional-card">
-              <h3 className="additional-card-title"><FaFlag className="icon-flag" /> Popular Food Categories</h3>
+              <h3 className="additional-card-title"><FaFlag className="icon-flag" /> {t("analytics.popularFoodCategories")}</h3>
               <div className="categories-list">
                 {popularCategories.length > 0 ? (
                   popularCategories.map((category, index) => (
                     <div key={index} className={`category-item ${index === 0 ? 'category-main' : ''}`}>
                       <div className="category-info">
                         <span className="category-name">{category.name}</span>
-                        <span className="category-submissions">{category.submissions} submissions</span>
+                        <span className="category-submissions">{category.submissions} {t("analytics.submissions")}</span>
                       </div>
                       <div className="category-bar-container">
                         <div 
@@ -513,7 +504,7 @@ const Analytics = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="no-data">No category data available</div>
+                  <div className="no-data">{t("analytics.noCategoryData")}</div>
                 )}
               </div>
             </div>
@@ -522,20 +513,20 @@ const Analytics = () => {
             <div className="additional-card">
               <div className="card-header-with-toggle">
                 <h3 className="additional-card-title">
-                  <FaStar className="icon-star" /> Top 5 Contributors
+                  <FaStar className="icon-star" /> {t("analytics.top5Contributors")}
                 </h3>
                 <div className="view-toggle">
                   <button 
                     className={`toggle-btn ${viewMode === 'recipes' ? 'active' : ''}`}
                     onClick={() => handleViewModeChange('recipes')}
                   >
-                    Recipes
+                    {t("analytics.recipes")}
                   </button>
                   <button 
                     className={`toggle-btn ${viewMode === 'stories' ? 'active' : ''}`}
                     onClick={() => handleViewModeChange('stories')}
                   >
-                    Stories
+                    {t("analytics.stories")}
                   </button>
                 </div>
               </div>
@@ -555,14 +546,14 @@ const Analytics = () => {
                           {viewMode === 'recipes' ? (contributor.recipes || 0) : (contributor.stories || 0)}
                         </span>
                         <span className="posts-label">
-                          {viewMode === 'recipes' ? 'RECIPES' : 'STORIES'}
+                          {viewMode === 'recipes' ? t("analytics.recipes_label") : t("analytics.stories_label")}
                         </span>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="no-contributors">
-                    No {viewMode} contributors found
+                    {t("analytics.noContributorsFound", { viewMode })}
                   </div>
                 )}
               </div>

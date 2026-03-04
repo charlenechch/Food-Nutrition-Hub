@@ -1,6 +1,7 @@
 /* src/pages/ResetPasswordPage.jsx */
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "../css/ResetPasswordPage.css";
 import LoginFood from "../assets/LoginFood.png";
 
@@ -16,6 +17,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export default function ResetPasswordPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const oobCode = params.get("oobCode");
 
   const [email, setEmail] = useState("");
@@ -49,11 +51,11 @@ export default function ResetPasswordPage() {
 
   // Password Rules
   const passwordRules = [
-    { regex: /.{8,}/, label: "At least 8 characters" },
-    { regex: /[A-Z]/, label: "Uppercase letter" },
-    { regex: /[a-z]/, label: "Lowercase letter" },
-    { regex: /[0-9]/, label: "Number" },
-    { regex: /[!@#$%^&*(),.?":{}|<>]/, label: "Special symbol (!@#$)" },
+    { regex: /.{8,}/, label: t("auth.rule8Chars") },
+    { regex: /[A-Z]/, label: t("auth.ruleUppercase") },
+    { regex: /[a-z]/, label: t("auth.ruleLowercase") },
+    { regex: /[0-9]/, label: t("auth.ruleNumber") },
+    { regex: /[!@#$%^&*(),.?":{}|<>]/, label: t("auth.ruleSpecial") },
   ];
 
   const getPasswordStatus = (password) =>
@@ -71,11 +73,11 @@ export default function ResetPasswordPage() {
           setLoading(false);
         })
         .catch(() => {
-          setError("Invalid or expired reset link. Please request a new one.");
+          setError(t("resetPassword.invalidLink"));
           setLoading(false);
         });
     } else {
-      setError("Invalid or missing reset link.");
+      setError(t("resetPassword.missingLink"));
       setLoading(false);
     }
   }, [oobCode]);
@@ -92,13 +94,13 @@ export default function ResetPasswordPage() {
 
     for (let rule of passwordRules) {
       if (!rule.regex.test(pwd)) {
-        setError(`Requirement missing: ${rule.label}`);
+        setError(t("resetPassword.requirementMissing", { label: rule.label }));
         return;
       }
     }
 
     if (pwd !== confirm) {
-      setError("Passwords do not match.");
+      setError(t("resetPassword.passwordsMismatch"));
       return;
     }
 
@@ -122,7 +124,7 @@ export default function ResetPasswordPage() {
       setTimeout(() => navigate("/loginregister"), 3000);
     } catch (err) {
       console.error(err);
-      setError(err.message || "Something went wrong. Please try again.");
+      setError(err.message || t("resetPassword.genericError"));
     }
   };
 
@@ -133,19 +135,19 @@ export default function ResetPasswordPage() {
     content = (
       <div className="mh-status-view">
         <div className="mh-spinner"></div>
-        <h3>Verifying Link...</h3>
-        <p>Please wait a moment.</p>
+        <h3>{t("resetPassword.verifyingLink")}</h3>
+        <p>{t("resetPassword.pleaseWait")}</p>
       </div>
     );
   } else if (success) {
     content = (
       <div className="mh-status-view">
         <div className="mh-success-icon"><FaCheckCircle /></div>
-        <h3>Password Reset!</h3>
-        <p>Your password has been updated successfully.</p>
-        <p className="mh-redirect-text">Redirecting to login...</p>
+        <h3>{t("resetPassword.successTitle")}</h3>
+        <p>{t("resetPassword.successMsg")}</p>
+        <p className="mh-redirect-text">{t("resetPassword.redirecting")}</p>
         <button className="mh-btn-primary" onClick={() => navigate("/loginregister")}>
-          Login Now
+          {t("resetPassword.loginNow")}
         </button>
       </div>
     );
@@ -154,10 +156,10 @@ export default function ResetPasswordPage() {
     content = (
       <div className="mh-status-view">
         <div className="mh-error-icon"><FaExclamationCircle /></div>
-        <h3>Link Expired</h3>
+        <h3>{t("resetPassword.linkExpiredTitle")}</h3>
         <p>{error}</p>
         <button className="mh-btn-primary" onClick={() => navigate("/forgotpassword")}>
-          Request New Link
+          {t("resetPassword.requestNewLink")}
         </button>
       </div>
     );
@@ -166,8 +168,8 @@ export default function ResetPasswordPage() {
     content = (
       <>
         <div className="mh-card-header">
-          <h3>Set New Password</h3>
-          <p>Resetting for <strong>{email}</strong></p>
+          <h3>{t("resetPassword.setNewPassword")}</h3>
+          <p>{t("resetPassword.resettingFor")} <strong>{email}</strong></p>
         </div>
 
         <form onSubmit={handleSubmit} className="mh-form-body">
@@ -179,11 +181,10 @@ export default function ResetPasswordPage() {
               <FaLock className="mh-icon" />
               <input
                 type={showPwd ? "text" : "password"}
-                placeholder="New Password"
+                placeholder={t("resetPassword.newPasswordPlaceholder")}
                 value={pwd}
                 onChange={(e) => setPwd(e.target.value)}
                 onFocus={() => setShowHint(true)}
-                // onBlur={() => setShowHint(false)} // Optional: keep open to see checks
               />
               <div className="mh-eye" onClick={() => setShowPwd(!showPwd)}>
                 {showPwd ? <FaEyeSlash /> : <FaEye />}
@@ -210,7 +211,7 @@ export default function ResetPasswordPage() {
             <FaLock className="mh-icon" />
             <input
               type={showConfirm ? "text" : "password"}
-              placeholder="Confirm Password"
+              placeholder={t("resetPassword.confirmPasswordPlaceholder")}
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
             />
@@ -220,7 +221,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <button type="submit" className="mh-btn-primary">
-            Save New Password
+            {t("resetPassword.saveNewPassword")}
           </button>
           
           <button 
@@ -228,7 +229,7 @@ export default function ResetPasswordPage() {
             className="mh-btn-text"
             onClick={() => navigate("/loginregister")}
           >
-            Cancel
+            {t("auth.cancel")}
           </button>
         </form>
       </>
@@ -247,12 +248,9 @@ export default function ResetPasswordPage() {
       <div className="mh-content-wrapper">
         {/* Brand Text */}
         <div className="mh-brand-section">
-          <h1 className="mh-title">Secure<br/>Your Account</h1>
+          <h1 className="mh-title">{t("resetPassword.brandTitle")}</h1>
           <div className="mh-divider"></div>
-          <p className="mh-subtitle">
-            Create a strong password to protect your journey<br/>
-            through Sarawak's culinary heritage.
-          </p>
+          <p className="mh-subtitle">{t("resetPassword.brandSubtitle")}</p>
         </div>
 
         {/* Glass Card */}

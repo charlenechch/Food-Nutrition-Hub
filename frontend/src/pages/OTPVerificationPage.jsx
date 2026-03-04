@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 import "../css/OTPVerificationPage.css";
@@ -8,6 +9,7 @@ export default function OTPVerificationPage({ email: emailProp }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { login } = useAuth();
+  const { t } = useTranslation();
   const initialEmail = emailProp || params.get("email") || "";
   const [email, setEmail] = useState(initialEmail);
 
@@ -30,30 +32,29 @@ export default function OTPVerificationPage({ email: emailProp }) {
     setOtp(clean);
     setError("");
   };
-//===========
-//CSRF
-//============
-const [csrfToken, setCsrfToken] = useState("");
 
-useEffect(() => {
-  const fetchCsrfToken = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-      const data = await res.json();
-      setCsrfToken(data.csrfToken);
-    } catch (err) {
-      console.error("Failed to fetch CSRF token", err);
-    }
-  };
-  fetchCsrfToken();
-}, []);
+  // CSRF
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   // Handle verify
   const handleVerify = async (e) => {
     e?.preventDefault();
     if (otp.length !== 6) { 
-      setError("Please enter the 6-digit code."); 
+      setError(t("otp.enter6Digits")); 
       return; 
     }
     
@@ -61,7 +62,6 @@ useEffect(() => {
     setError("");
     
     try {
-      // Call backend to verify OTP
       const res = await fetch(`${API_URL}/api/otp/verifyLogin`, {
         method: "POST",
         credentials: "include",
@@ -74,24 +74,22 @@ useEffect(() => {
       const data = await res.json();
 
       if (res.ok && data.success) {
-      setSuccess(true);
-      
-      // Redirect to login page after verification
-      setTimeout(() => {
-        login(data.user);
-        navigate("/dashboard");
-      }, 2000);
-    } else {
-        setError(data.error || "Invalid verification code");
+        setSuccess(true);
+        setTimeout(() => {
+          login(data.user);
+          navigate("/dashboard");
+        }, 2000);
+      } else {
+        setError(data.error || t("otp.invalidCode"));
       }
     } catch (err) {
-      setError("Verification failed. Please try again.");
+      setError(t("otp.verificationFailed"));
     } finally {
       setIsLoading(false);
     }
   };
 
-  //Handle resend OTP
+  // Handle resend OTP
   const handleResend = async () => {
     setResendCooldown(60);
     setError("");
@@ -115,7 +113,7 @@ useEffect(() => {
       }
     } catch (err) {
       console.error("Failed to resend OTP:", err);
-      setError("Failed to resend code. Please try again.");
+      setError(t("otp.resendFailed"));
     }
   };
 
@@ -124,8 +122,8 @@ useEffect(() => {
       <div className="otp-container">
         <div className="otp-card otp-center">
           <div className="otp-success-icon" aria-hidden>✓</div>
-          <h2 className="otp-title">Login successful!</h2>
-          <p className="otp-muted">Redirecting to dashboard…</p>
+          <h2 className="otp-title">{t("otp.loginSuccess")}</h2>
+          <p className="otp-muted">{t("otp.redirecting")}</p>
         </div>
       </div>
     );
@@ -136,20 +134,19 @@ useEffect(() => {
       <div className="otp-card">
         <div className="otp-header">
           <div className="otp-logo">✉️</div>
-          <h2 className="otp-title">Login Verification</h2>
-          <p className="otp-subtitle">We've sent a 6-digit verification code to your email address.</p>
-          <p className="otp-subtitle">Please enter it below to complete your login.</p>
+          <h2 className="otp-title">{t("otp.title")}</h2>
+          <p className="otp-subtitle">{t("otp.subtitle1")}</p>
+          <p className="otp-subtitle">{t("otp.subtitle2")}</p>
         </div>
 
         <div className="otp-body">
           <div className="otp-email-block">
-            <p className="otp-muted">Code sent to:</p>
-            {/* remember to change your email to a variable that shows what their email is !!! */}
-            <span className="otp-badge">{email || "your email"}</span>
+            <p className="otp-muted">{t("otp.codeSentTo")}</p>
+            <span className="otp-badge">{email || t("otp.yourEmail")}</span>
           </div>
 
           <form onSubmit={handleVerify} className="otp-form" noValidate>
-            <label htmlFor="otp-input" className="otp-label">Enter 6-digit code</label>
+            <label htmlFor="otp-input" className="otp-label">{t("otp.enterCode")}</label>
             <input
               id="otp-input"
               type="text"
@@ -167,7 +164,7 @@ useEffect(() => {
             {error && <div className="otp-error" role="alert">{error}</div>}
 
             <button type="submit" className="lrp-btn lrp-btn-primary" disabled={otp.length !== 6 || isLoading}>
-              {isLoading ? "Verifying…" : "Verify"}
+              {isLoading ? t("otp.verifying") : t("otp.verify")}
             </button>
 
             <div className="otp-actions">
@@ -177,14 +174,14 @@ useEffect(() => {
                 onClick={handleResend}
                 disabled={resendCooldown > 0 || isLoading}
               >
-                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
+                {resendCooldown > 0 ? t("otp.resendIn", { seconds: resendCooldown }) : t("otp.resendCode")}
               </button>
               <button
                 type="button"
                 className="lrp-btn lrp-btn-outline"
                 onClick={() => navigate("/loginregister")}
               >
-                Back to Login
+                {t("auth.backToLogin")}
               </button>
             </div>
           </form>

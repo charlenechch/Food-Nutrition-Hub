@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaRegFlag } from "react-icons/fa6";
 import { CiSearch, CiFilter } from "react-icons/ci";
 import { HiOutlinePencilAlt } from "react-icons/hi";
@@ -10,6 +11,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sectionType = "approved" }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // --- States ---
   const [localRecipes, setLocalRecipes] = useState(recipesProp);
@@ -38,7 +40,6 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
   const formatDate = (dateString) => {
     if (!dateString) return "—";
     const date = new Date(dateString);
-    // Formats as DD/MM/YYYY (e.g. 11/06/2025)
     return date.toLocaleDateString("en-GB"); 
   };
 
@@ -50,11 +51,8 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
     const matchesSearch = name.includes(term) || author.includes(term);
     const matchesCategory = category === "All Categories" || (r.foodType === category || r.category === category);
     const matchesDifficulty = difficulty === "All" || (r.difficulty || "Medium") === difficulty;
-    
-    // Status Filter: Only apply if sectionType is NOT 'approved' OR if filter is set to something specific
     const statusToCheck = sectionType === "approved" ? "Approved" : statusFilter;
     const matchesStatus = statusToCheck === "All" || r.status === statusToCheck;
-
     return matchesSearch && matchesCategory && matchesDifficulty && matchesStatus;
   });
 
@@ -103,15 +101,17 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
     return () => document.removeEventListener("click", closeDropdown);
   }, []);
 
-  const sectionTitle = sectionType === "approved" ? "Approved Recipe Database" : "Pending / Rejected Recipes";
+  const sectionTitle = sectionType === "approved"
+    ? t("adminRcpDB.titleApproved")
+    : t("adminRcpDB.titlePending");
 
   const handleDeleteClick = (recipeId) => {
     setModal({
       open: true,
-      title: "Confirm Deletion",
-      message: "Are you sure you want to delete this recipe? This action cannot be undone.",
+      title: t("adminRcpDB.confirmDeletion"),
+      message: t("adminRcpDB.confirmDeletionMsg"),
       icon: <RiDeleteBin5Line size={30} color="#dc3545" />,
-      primaryText: "Yes, Delete",
+      primaryText: t("adminRcpDB.yesDelete"),
       onPrimary: () => performDelete(recipeId),
     });
   };
@@ -129,18 +129,18 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
         setLocalRecipes((prev) => prev.filter((r) => r.id !== recipeId));
         setModal({
           open: true,
-          title: "Deleted!",
-          message: "The recipe has been successfully removed.",
+          title: t("adminRcpDB.deletedTitle"),
+          message: t("adminRcpDB.deletedMsg"),
           icon: <FaRegFlag size={30} color="green" />,
-          primaryText: "OK",
+          primaryText: t("adminRcpDB.ok"),
           onPrimary: closeModal,
         });
       } else {
         setModal({
           open: true,
-          title: "Error",
-          message: result.message || "Failed to delete recipe.",
-          primaryText: "Close",
+          title: t("adminRcpDB.errorTitle"),
+          message: result.message || t("adminRcpDB.deleteFailed"),
+          primaryText: t("adminRcpDB.close"),
           onPrimary: closeModal,
         });
       }
@@ -164,9 +164,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
       if (currentPage === totalPages) start = totalPages - 2;
 
       if (start > 1) pages.push('...');
-      
       for (let i = start; i <= end; i++) pages.push(i);
-      
       if (end < totalPages) pages.push('...');
     }
 
@@ -184,10 +182,10 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
 
   if (!localRecipes || localRecipes.length === 0) {
     return (
-     <div className="recipe-database-section" style={{ backgroundColor: "white", minHeight: showFilters ? "850px" : "600px", transition: "min-height 0.3s ease" }}>
-      <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
+      <div className="recipe-database-section" style={{ backgroundColor: "white", minHeight: showFilters ? "850px" : "600px", transition: "min-height 0.3s ease" }}>
+        <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
         <p style={{ textAlign: "center", marginTop: 20, color: "#999" }}>
-          No recipes found.
+          {t("adminRcpDB.noRecipes")}
         </p>
       </div>
     );
@@ -216,7 +214,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
             <CiSearch className="search-icon" />
             <input 
               type="text" 
-              placeholder="Search recipes..." 
+              placeholder={t("adminRcpDB.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -236,27 +234,27 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
             )}
           </div>
           <button className="admin-recipe-btn-filter" onClick={() => setShowFilters(!showFilters)}>
-            <CiFilter className="filter-icon" /> Filters
+            <CiFilter className="filter-icon" /> {t("explore.filters")}
           </button>
         </div>
 
         {showFilters && (
           <div className="advanced-filters">
-            <h4><CiFilter /> Advanced Filters</h4>
+            <h4><CiFilter /> {t("adminFoodDB.advancedFilters")}</h4>
             <div className="filter-grid">
               <div className="filter-item">
-                <label>Difficulty</label>
+                <label>{t("explore.difficulty")}</label>
                 <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                  <option value="All">All</option>
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
+                  <option value="All">{t("adminFoodDB.all")}</option>
+                  <option value="Easy">{t("explore.easy")}</option>
+                  <option value="Medium">{t("explore.medium")}</option>
+                  <option value="Hard">{t("explore.hard")}</option>
                 </select>
               </div>
               <div className="filter-item">
-                <label>Category</label>
+                <label>{t("adminFoodDB.colCategory")}</label>
                 <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                  <option>All Categories</option>
+                  <option>{t("explore.allCategories")}</option>
                   {categories.filter(c => c !== "All Categories").map((cat) => (
                     <option key={cat}>{cat}</option>
                   ))}
@@ -265,11 +263,11 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
               
               {sectionType !== "approved" && (
                 <div className="filter-item">
-                  <label>Status</label>
+                  <label>{t("adminRcpDB.colStatus")}</label>
                   <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                    <option value="All">All</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Rejected">Rejected</option>
+                    <option value="All">{t("adminFoodDB.all")}</option>
+                    <option value="Pending">{t("adminRcpDB.statusPending")}</option>
+                    <option value="Rejected">{t("adminRcpDB.statusRejected")}</option>
                   </select>
                 </div>
               )}
@@ -280,46 +278,41 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
         <table className="content-table">
           <thead>
             <tr>
-              <th>Recipe Name</th>
-              <th className="hide-at-tablet">Food Item</th>
-              <th>Author</th>
-              
-              {/* ✅ CHANGED 1: Dynamic Header */}
-              <th>{sectionType === "approved" ? "Date Approved" : "Date Created"}</th> 
-              
-              <th>Status</th>
-              <th>Actions</th>
+              <th>{t("adminRcpDB.colName")}</th>
+              <th className="hide-at-tablet">{t("adminRcpDB.colFoodItem")}</th>
+              <th>{t("adminRcpDB.colAuthor")}</th>
+              <th>{sectionType === "approved" ? t("adminRcpDB.colDateApproved") : t("adminRcpDB.colDateCreated")}</th>
+              <th>{t("adminRcpDB.colStatus")}</th>
+              <th>{t("adminRcpDB.colActions")}</th>
             </tr>
           </thead>
           <tbody>
             {currentRecipes.map((r, i) => (
               <tr key={r.id || i}>
-                <td data-label="Recipe Name">
-                  {r.name || "Unnamed Recipe"}
+                <td data-label={t("adminRcpDB.colName")}>
+                  {r.name || t("adminRcpDB.unnamedRecipe")}
                   <br />
                   <span className="recipe-servings">
-                    <small>{r.servings ? `${r.servings} servings` : ""}</small>
+                    <small>{r.servings ? t("adminRcpDB.servings", { count: r.servings }) : ""}</small>
                   </span>
                 </td>
-                <td data-label="Food Item" className="hide-at-tablet"><span className="category-tag">{r.foodType || r.category || "N/A"}</span></td>
-                <td data-label="Author">{r.author || "Unknown"}</td>
-                
-                {/* ✅ CHANGED 2: Dynamic Date Logic */}
-                {/* Shows 'updatedAt' if Approved, otherwise shows 'date/createdAt' */}
-                <td data-label={sectionType === "approved" ? "Date Approved" : "Date Created"}>
+                <td data-label={t("adminRcpDB.colFoodItem")} className="hide-at-tablet">
+                  <span className="category-tag">{r.foodType || r.category || "N/A"}</span>
+                </td>
+                <td data-label={t("adminRcpDB.colAuthor")}>{r.author || t("adminRcpDB.unknown")}</td>
+                <td data-label={sectionType === "approved" ? t("adminRcpDB.colDateApproved") : t("adminRcpDB.colDateCreated")}>
                   {formatDate(
                     sectionType === "approved" 
                       ? (r.updatedAt || r.date) 
                       : (r.date || r.createdAt)
                   )}
                 </td>
-                
-                <td data-label="Status">
+                <td data-label={t("adminRcpDB.colStatus")}>
                   <span className={`recipe-status-tag ${r.status === "Pending" ? "pending" : r.status === "Rejected" ? "rejected" : "approved"}`}>
                     {r.status}
                   </span>
                 </td>
-                <td data-label="Actions" className="admin-recipe-action-buttons">
+                <td data-label={t("adminRcpDB.colActions")} className="admin-recipe-action-buttons">
                   {r.status === "Approved" ? (
                     <>
                       <button className="food-database-btn-edit" onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}>
@@ -331,7 +324,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                     </>
                   ) : (
                     <button className="review-btn" onClick={() => navigate(`/admin/edit/recipe/${r.id || i}`)}>
-                      Review
+                      {t("adminRcpDB.review")}
                     </button>
                   )}
                 </td>
@@ -348,7 +341,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
-            ‹ Prev
+            ‹ {t("explore.prev")}
           </button>
 
           {renderPageNumbers()}
@@ -358,7 +351,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
-            Next ›
+            {t("explore.next")} ›
           </button>
         </div>
       )}

@@ -4,75 +4,52 @@ import { useNavigate } from "react-router-dom";
 import "../css/UserHomepage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios"; 
+import axios from "axios";
+import { useTranslation } from "react-i18next";
 
 // --- IMAGES ---
-import LoginFood from "../assets/LoginFood.png"; 
-import LaksaImg from "../assets/laksa.jpg";     
-import KoloImg from "../assets/kolomee.jpg";   
-import KekImg from "../assets/keklapis.jpg";    
+import LoginFood from "../assets/LoginFood.png";
+import LaksaImg from "../assets/laksa.jpg";
+import KoloImg from "../assets/kolomee.jpg";
+import KekImg from "../assets/keklapis.jpg";
 
 // Icons
-import { FaSearch, FaChevronLeft, FaChevronRight, FaStar, FaLightbulb, FaSyncAlt } from "react-icons/fa";      
-import { FaAnglesDown, FaUtensils } from "react-icons/fa6"; 
+import { FaSearch, FaChevronLeft, FaChevronRight, FaStar, FaLightbulb, FaSyncAlt } from "react-icons/fa";
+import { FaAnglesDown, FaUtensils } from "react-icons/fa6";
 
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
-// SLIDESHOW IMAGES
-const HERO_IMAGES = [
-  LoginFood, 
-  LaksaImg,
-  KoloImg
-];
+const HERO_IMAGES = [LoginFood, LaksaImg, KoloImg];
 
 export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+  const { t } = useTranslation();
+
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  
-  // Database Data
-  const [allFoods, setAllFoods] = useState([]); 
-  
-  const [suggestions, setSuggestions] = useState([]); 
+  const [allFoods, setAllFoods] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const searchRef = useRef(null); 
-
-  // SLIDESHOW STATE
+  const searchRef = useRef(null);
   const [currentSlide, setCurrentSlide] = useState(0);
-
-  // FACTS STATE
   const [currentFact, setCurrentFact] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // --- HERITAGE FACTS DATA ---
+  // --- HERITAGE FACTS — keys map to en.json ---
   const heritageFacts = [
-    {
-      title: "Bamboo Cooking",
-      text: "\"Manok Pansoh\" is a traditional Iban delicacy where chicken is cooked inside freshly cut bamboo over an open fire, sealing in moisture and flavor."
-    },
-    {
-      title: "Melanau Sushi?",
-      text: "\"Umai\" is a traditional Melanau dish of raw sliced fish marinated with limau kasturi, onions, and chilies—Sarawak's ancient answer to ceviche."
-    },
-    {
-      title: "The Red Noodles",
-      text: "The red color in traditional Kuching Kolo Mee often comes from 'Char Siu' oil, giving it a distinct savory sweetness compared to the white version."
-    },
-    {
-      title: "Liquid Gold",
-      text: "\"Gula Apong\" is a natural palm sugar made from the Nipah palm found in Sarawak's coastal areas. It has a unique caramel-salty flavor profile."
-    }
+    { titleKey: "home.fact1Title", textKey: "home.fact1Text" },
+    { titleKey: "home.fact2Title", textKey: "home.fact2Text" },
+    { titleKey: "home.fact3Title", textKey: "home.fact3Text" },
+    { titleKey: "home.fact4Title", textKey: "home.fact4Text" },
   ];
 
-  // --- SIGNATURE DISHES (Static + DB Connection) ---
   const PRESET_SIGNATURES = [
-    { name: "Sarawak Laksa", image: LaksaImg, tag: "Must Try" },
-    { name: "Kolo Mee", image: KoloImg, tag: "Local Fav" },
-    { name: "Kek Lapis", image: KekImg, tag: "Sweet" }
+    { name: "Sarawak Laksa", image: LaksaImg, tagKey: "home.tagMustTry" },
+    { name: "Kolo Mee",      image: KoloImg,  tagKey: "home.tagLocalFav" },
+    { name: "Kek Lapis",     image: KekImg,   tagKey: "home.tagSweet" },
   ];
 
   const signatureDishes = useMemo(() => {
@@ -82,12 +59,11 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     });
   }, [allFoods]);
 
-  // --- FETCH DATA ---
   useEffect(() => {
     const fetchFoods = async () => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-        const res = await axios.get(`${API_BASE_URL}/api/exploreFood`); 
+        const res = await axios.get(`${API_BASE_URL}/api/exploreFood`);
         if (Array.isArray(res.data)) setAllFoods(res.data);
         else if (res.data && res.data.success) setAllFoods(res.data.data);
       } catch (err) {
@@ -97,7 +73,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     fetchFoods();
   }, []);
 
-  // --- HANDLERS ---
   const handleDishClick = (dish) => {
     if (dish.dbId) navigate(`/fooddetail/${dish.dbId}`);
     else navigate(`/foods?search=${encodeURIComponent(dish.name)}`);
@@ -115,13 +90,14 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     const value = e.target.value;
     setSearchTerm(value);
     if (value.length > 0) {
-      const matches = allFoods.filter(food => 
+      const matches = allFoods.filter(food =>
         food.name.toLowerCase().includes(value.toLowerCase())
       );
-      setSuggestions(matches.slice(0, 6)); 
+      setSuggestions(matches.slice(0, 6));
       setShowSuggestions(true);
     } else {
-      setSuggestions([]); setShowSuggestions(false);
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
   };
 
@@ -138,26 +114,22 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
-  // ✅ FIXED: Helper to safely determine the Hero Title
   const getHeroTitle = () => {
-    if (!user) return "Discover Sarawak's Culinary Heritage";
-    // Check if role is guest OR if firstname is missing (common for guest objects)
-    if (user.role === "guest" || !user.firstname) return "Welcome, Guest!";
-    return `Welcome back, ${user.firstname}!`;
+    if (!user) return t("home.heroTitle");
+    if (user.role === "guest" || !user.firstname) return t("home.heroGuest");
+    return t("home.heroUser", { name: user.firstname });
   };
 
-  // Slideshow
   useEffect(() => {
     const slideInterval = setInterval(() => {
       setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
-    }, 6000); 
+    }, 6000);
     return () => clearInterval(slideInterval);
   }, [currentSlide]);
 
   const nextSlide = () => setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? HERO_IMAGES.length - 1 : prev - 1));
 
-  // Click Outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) setShowSuggestions(false);
@@ -166,9 +138,9 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleProtectedAction = (path, featureName) => {
+  const handleProtectedAction = (path, featureKey) => {
     if (!user || user.role === "guest") {
-      setModalMessage(`Please login or register to use the ${featureName}.`);
+      setModalMessage(t("home.loginPrompt", { feature: t(featureKey) }));
       setShowLoginPrompt(true);
     } else {
       navigate(path);
@@ -177,55 +149,49 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
   return (
     <div className="homepage">
-      <Header transparent={true} /> 
+      <Header transparent={true} />
 
       {/* HERO SECTION */}
-      <header 
+      <header
         className="hero-section"
-        style={{ 
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${HERO_IMAGES[currentSlide]})` 
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${HERO_IMAGES[currentSlide]})`
         }}
       >
-        <button className="hero-arrow arrow-left" onClick={prevSlide}>
-          <FaChevronLeft />
-        </button>
+        <button className="hero-arrow arrow-left" onClick={prevSlide}><FaChevronLeft /></button>
 
         <div className="hero-content-wrapper">
-          {/* ✅ FIXED TITLE CALL */}
           <h1 className="hero-title">{getHeroTitle()}</h1>
-          
-          <p className="hero-subtitle">
-            Preserving traditional dishes through AI-powered nutrition analysis and cultural storytelling.
-          </p>
+          <p className="hero-subtitle">{t("home.heroSubtitle")}</p>
 
           <div className="hero-search-container" ref={searchRef}>
             <form className="hero-search-form" onSubmit={handleSearchSubmit}>
               <div className="search-input-wrapper">
                 <FaSearch className="search-icon" />
-                <input 
-                  type="text" 
-                  placeholder="Search for a dish (e.g., Laksa, Kolo Mee)..." 
+                <input
+                  type="text"
+                  placeholder={t("home.searchPlaceholder")}
                   value={searchTerm}
                   onChange={handleSearchChange}
                   onFocus={() => searchTerm && setShowSuggestions(true)}
                   autoComplete="off"
                 />
               </div>
-              <button type="submit" className="search-button">Search</button>
+              <button type="submit" className="search-button">{t("home.searchBtn")}</button>
             </form>
 
             {showSuggestions && suggestions.length > 0 && (
               <div className="search-dropdown">
                 {suggestions.map((food) => (
-                  <div 
-                    key={food.foodID || food.id} 
+                  <div
+                    key={food.foodID || food.id}
                     className="search-suggestion-item"
                     onClick={() => handleSuggestionClick(food.foodID || food.id)}
                   >
                     <div className="suggestion-icon"><FaUtensils /></div>
                     <div className="suggestion-text">
                       <span className="suggestion-name">{food.name}</span>
-                      <span className="suggestion-category">{food.category || "Traditional Dish"}</span>
+                      <span className="suggestion-category">{food.category || t("home.traditionalDish")}</span>
                     </div>
                   </div>
                 ))}
@@ -234,18 +200,16 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
 
           <div className="scroll-hint-container">
-             <FaAnglesDown className="bounce-icon" />
+            <FaAnglesDown className="bounce-icon" />
           </div>
         </div>
 
-        <button className="hero-arrow arrow-right" onClick={nextSlide}>
-          <FaChevronRight />
-        </button>
+        <button className="hero-arrow arrow-right" onClick={nextSlide}><FaChevronRight /></button>
 
         <div className="hero-dots">
           {HERO_IMAGES.map((_, idx) => (
-            <span 
-              key={idx} 
+            <span
+              key={idx}
               className={`hero-dot ${idx === currentSlide ? "active" : ""}`}
               onClick={() => setCurrentSlide(idx)}
             ></span>
@@ -254,78 +218,73 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       </header>
 
       <main className="features-layout-wrapper">
-        
+
         {/* Core Features Grid */}
         <section className="features-grid">
           <div className="feature-card public-card">
             <div className="card-content-top">
-                <div className="feature-icon">🔍</div>
-                <h3>Explore Foods</h3>
-                <p>Discover traditional Sarawakian dishes and the unique stories behind them.</p>
+              <div className="feature-icon">🔍</div>
+              <h3>{t("home.exploreTitle")}</h3>
+              <p>{t("home.exploreDesc")}</p>
             </div>
             <button className="feature-btn" onClick={() => navigate("/foods")}>
-              Explore Now
+              {t("home.exploreBtn")}
             </button>
           </div>
 
           <div className="feature-card restricted-card">
             <div className="card-content-top">
-                {(!user || user.role === "guest") && (
-                  <div className="lock-badge">🔒 Member Only</div>
-                )}
-                <div className="feature-icon">🧠</div>
-                <h3>Nutrition Analyzer</h3>
-                <p>Get AI-powered nutrition analysis and healthy traditional alternatives.</p>
+              {(!user || user.role === "guest") && (
+                <div className="lock-badge">🔒 {t("home.memberOnly")}</div>
+              )}
+              <div className="feature-icon">🧠</div>
+              <h3>{t("nav.analyzer")}</h3>
+              <p>{t("home.analyzerDesc")}</p>
             </div>
-            <button 
-              className="feature-btn btn-accent" 
-              onClick={() => handleProtectedAction("/analyzer", "Nutrition Analyzer")}
+            <button
+              className="feature-btn btn-accent"
+              onClick={() => handleProtectedAction("/analyzer", "nav.analyzer")}
             >
-              Start Analysis
+              {t("home.analyzerBtn")}
             </button>
           </div>
 
           <div className="feature-card restricted-card">
             <div className="card-content-top">
-                {(!user || user.role === "guest") && (
-                  <div className="lock-badge">🔒 Member Only</div>
-                )}
-                <div className="feature-icon">👤</div>
-                <h3>My Profile</h3>
-                <p>Manage your dietary preferences and keep track of your saved heritage foods.</p>
+              {(!user || user.role === "guest") && (
+                <div className="lock-badge">🔒 {t("home.memberOnly")}</div>
+              )}
+              <div className="feature-icon">👤</div>
+              <h3>{t("home.profileTitle")}</h3>
+              <p>{t("home.profileDesc")}</p>
             </div>
-            <button 
-              className="feature-btn" 
-              onClick={() => handleProtectedAction("/profile", "Profile")}
+            <button
+              className="feature-btn"
+              onClick={() => handleProtectedAction("/profile", "home.profileTitle")}
             >
-              View Profile
+              {t("home.profileBtn")}
             </button>
           </div>
         </section>
 
-        {/* --- CINEMATIC SHOWCASE --- */}
+        {/* Cinematic Showcase */}
         <section className="showcase-section">
           <div className="section-header center-header">
-            <h2>Taste of Sarawak</h2>
-            <p className="section-subtext">Click a dish to uncover its history</p>
+            <h2>{t("home.showcaseTitle")}</h2>
+            <p className="section-subtext">{t("home.showcaseSubtext")}</p>
           </div>
 
           <div className="cinema-grid-wrapper">
             <div className="cinema-grid">
               {signatureDishes.map((dish) => (
-                <div 
-                  key={dish.name} 
-                  className="cinema-item" 
-                  onClick={() => handleDishClick(dish)}
-                >
+                <div key={dish.name} className="cinema-item" onClick={() => handleDishClick(dish)}>
                   <div className="plate-container">
                     <img src={dish.image} alt={dish.name} className="real-plate-img" />
                     <div className="plate-glare"></div>
                   </div>
-                  
                   <div className="floating-label">
                     <span className="dish-tag">
-                      <FaStar className="star-icon"/> {dish.tag}
+                      <FaStar className="star-icon" /> {t(dish.tagKey)}
                     </span>
                     <h3>{dish.name}</h3>
                   </div>
@@ -339,18 +298,19 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         {recentFoods && recentFoods.length > 0 && (
           <section className="recent-section">
             <div className="section-header">
-              <h2>Fresh from the Kitchen</h2>
-              <button className="view-all-link" onClick={() => navigate('/foods')}>View All &rarr;</button>
+              <h2>{t("home.recentTitle")}</h2>
+              <button className="view-all-link" onClick={() => navigate("/foods")}>
+                {t("home.viewAll")} →
+              </button>
             </div>
-            
             <div className="food-carousel">
               {recentFoods.slice(0, 4).map((food) => (
-                <div 
-                  key={food.id} 
-                  className="mini-food-card" 
+                <div
+                  key={food.id}
+                  className="mini-food-card"
                   onClick={() => navigate(`/fooddetail/${food.id}`)}
                 >
-                  <div className="mini-card-image" style={{backgroundImage: `url(${food.imageUrl})`}}></div>
+                  <div className="mini-card-image" style={{ backgroundImage: `url(${food.imageUrl})` }}></div>
                   <div className="mini-card-info">
                     <h4>{food.name}</h4>
                     <span className="category-tag">{food.category}</span>
@@ -361,24 +321,19 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </section>
         )}
 
-        {/* --- ✅ UPDATED: INTERACTIVE TRIVIA CARD --- */}
+        {/* Heritage Fact Banner */}
         <section className="heritage-fact-banner">
           <div className="fact-decoration-circle"></div>
-          
           <div className="fact-content-wrapper">
-            <div className="fact-icon-box">
-              <FaLightbulb />
-            </div>
-            
+            <div className="fact-icon-box"><FaLightbulb /></div>
             <div className={`fact-text-area ${isAnimating ? "fade-out" : "fade-in"}`}>
-              <span className="fact-label">Did You Know?</span>
-              <h3 className="fact-title">{heritageFacts[currentFact].title}</h3>
-              <p className="fact-body">{heritageFacts[currentFact].text}</p>
+              <span className="fact-label">{t("home.didYouKnow")}</span>
+              <h3 className="fact-title">{t(heritageFacts[currentFact].titleKey)}</h3>
+              <p className="fact-body">{t(heritageFacts[currentFact].textKey)}</p>
             </div>
-
             <button className="fact-refresh-btn" onClick={handleNextFact} aria-label="Next Fact">
               <FaSyncAlt className={isAnimating ? "spin-icon" : ""} />
-              <span>Next Fact</span>
+              <span>{t("home.nextFact")}</span>
             </button>
           </div>
         </section>

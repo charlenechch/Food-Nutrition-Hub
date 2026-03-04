@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import "../css/EditFoodPage.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { useTranslation } from "react-i18next";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { FiSave } from "react-icons/fi";
@@ -22,6 +23,7 @@ const ORIGIN_OPTIONS = [
 ];
 
 const EditFoodPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
   const fileInputRef = useRef(null);
@@ -38,23 +40,23 @@ const EditFoodPage = () => {
   const [food, setFood] = useState(null);
 
   //================
-    //CSRF
-    //================
-      const [csrfToken, setCsrfToken] = useState("");
-    
-      useEffect(() => {
-        const fetchCsrfToken = async () => {
-          try {
-            const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-            const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-            const data = await res.json();
-            setCsrfToken(data.csrfToken);
-          } catch (err) {
-            console.error("Failed to fetch CSRF token", err);
-          }
-        };
-        fetchCsrfToken();
-      }, []);
+  // CSRF
+  //================
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   // --- Fetch Food Data on Load ---
   useEffect(() => {
@@ -127,7 +129,7 @@ const EditFoodPage = () => {
     if (file.size > maxBytes) {
       setShowNotification({
         visible: true,
-        message: "Selected image is too large (max 10MB).",
+        message: t("editFood.imageTooLarge"),
         type: "error",
       });
       throw new Error("File too large");
@@ -135,7 +137,7 @@ const EditFoodPage = () => {
     if (!file.type.startsWith("image/")) {
       setShowNotification({
         visible: true,
-        message: "Please select a valid image file.",
+        message: t("editFood.invalidImageType"),
         type: "error",
       });
       throw new Error("Invalid file type");
@@ -148,7 +150,7 @@ const EditFoodPage = () => {
         console.error("[upload] FileReader error:", err);
         setShowNotification({
           visible: true,
-          message: "Failed to read the selected image.",
+          message: t("editFood.failedToReadImage"),
           type: "error",
         });
         reject(new Error("FileReader failed"));
@@ -162,7 +164,7 @@ const EditFoodPage = () => {
           console.error("[upload] invalid base64 produced:", base64Image && base64Image.slice(0, 50));
           setShowNotification({
             visible: true,
-            message: "Could not convert image to base64.",
+            message: t("editFood.couldNotConvertBase64"),
             type: "error",
           });
           return reject(new Error("Invalid base64"));
@@ -172,9 +174,10 @@ const EditFoodPage = () => {
           const uploadRes = await fetch(`${API_URL}/api/foods/upload/food-image`, {
             method: "POST",
             credentials: "include",
-            headers: { "Content-Type": "application/json",
-            "X-CSRF-Token": csrfToken
-             },
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": csrfToken,
+            },
             body: JSON.stringify({ image: base64Image }),
           });
 
@@ -185,7 +188,7 @@ const EditFoodPage = () => {
             console.error("[upload] failed to parse JSON response:", jsonErr);
             setShowNotification({
               visible: true,
-              message: "Server response was not valid JSON.",
+              message: t("editFood.serverResponseInvalid"),
               type: "error",
             });
             return reject(new Error("Invalid server response"));
@@ -208,7 +211,7 @@ const EditFoodPage = () => {
           console.error("[upload] network or server error:", err);
           setShowNotification({
             visible: true,
-            message: "Server error during image upload.",
+            message: t("editFood.serverErrorDuringUpload"),
             type: "error",
           });
           return reject(err);
@@ -237,29 +240,30 @@ const EditFoodPage = () => {
       return;
     }
 
-      const dataToSave = {
-        name: food.name,
-        origin: food.origin,
-        category: food.category,
-        description: food.description,
-        culturalSignificance: food.culturalSignificance,
-        traditionalPreparation: food.traditionalPreparation,
-        Energy_kcal: Number(food.calories) || 0,
-        Protein_g: Number(food.protein) || 0,
-        Carbohydrates_g: Number(food.carbs) || 0,
-        Fat_g: Number(food.fat) || 0,
-        Fiber_g: Number(food.fiber) || 0,
-        VitaminC_mg: Number(food.vitaminc) || 0,
-        image: finalImageUrl,
-  };
+    const dataToSave = {
+      name: food.name,
+      origin: food.origin,
+      category: food.category,
+      description: food.description,
+      culturalSignificance: food.culturalSignificance,
+      traditionalPreparation: food.traditionalPreparation,
+      Energy_kcal: Number(food.calories) || 0,
+      Protein_g: Number(food.protein) || 0,
+      Carbohydrates_g: Number(food.carbs) || 0,
+      Fat_g: Number(food.fat) || 0,
+      Fiber_g: Number(food.fiber) || 0,
+      VitaminC_mg: Number(food.vitaminc) || 0,
+      image: finalImageUrl,
+    };
 
     try {
       console.log("[save] updating food with:", dataToSave);
       const res = await fetch(`${API_URL}/api/foods/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken
-         },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+        },
         credentials: "include",
         body: JSON.stringify(dataToSave),
       });
@@ -272,7 +276,7 @@ const EditFoodPage = () => {
         setSelectedImage(null);
         setShowNotification({
           visible: true,
-          message: "Changes saved successfully! All data updated.",
+          message: t("editFood.savedSuccessfully"),
           type: "success",
         });
       } else {
@@ -287,7 +291,7 @@ const EditFoodPage = () => {
       console.error("[save] Error saving:", err);
       setShowNotification({
         visible: true,
-        message: "An unknown error occurred while updating the food item.",
+        message: t("editFood.unknownSaveError"),
         type: "error",
       });
     }
@@ -297,11 +301,11 @@ const EditFoodPage = () => {
   if (loading) {
     return (
       <>
-      <div className="edit-food-page">
-        <Header />
-        <p style={{ textAlign: "center", marginTop: "2rem" }}>Loading food data...</p>
-      </div>
-      <Footer />
+        <div className="edit-food-page">
+          <Header />
+          <p style={{ textAlign: "center", marginTop: "2rem" }}>{t("editFood.loadingFood")}</p>
+        </div>
+        <Footer />
       </>
     );
   }
@@ -309,11 +313,11 @@ const EditFoodPage = () => {
   if (!food) {
     return (
       <>
-      <div className="edit-food-page">
-        <Header />
-        <p style={{ textAlign: "center", marginTop: "2rem" }}>Food not found.</p>
-      </div>
-      <Footer />
+        <div className="edit-food-page">
+          <Header />
+          <p style={{ textAlign: "center", marginTop: "2rem" }}>{t("editFood.foodNotFound")}</p>
+        </div>
+        <Footer />
       </>
     );
   }
@@ -328,36 +332,36 @@ const EditFoodPage = () => {
   // --- Render Page ---
   return (
     <>
-    <div className="edit-food-page">
-      <Header />
+      <div className="edit-food-page">
+        <Header />
 
-      <div className="edit-food-container">
-        <div className="edit-topbar">
-          <button className="admin-edit-food-back-btn" onClick={() => navigate("/admin")}>
-            <span className="admin-edit-food-back-icon">
-              <FaArrowLeftLong />
-            </span>
-            Back to Dashboard
-          </button>
+        <div className="edit-food-container">
+          <div className="edit-topbar">
+            <button className="admin-edit-food-back-btn" onClick={() => navigate("/admin")}>
+              <span className="admin-edit-food-back-icon">
+                <FaArrowLeftLong />
+              </span>
+              {t("editFood.backToDashboard")}
+            </button>
 
-          <div className="edit-title">
-            <h2>Edit Food Item</h2>
-            <p>{food.name}</p>
+            <div className="edit-title">
+              <h2>{t("editFood.editFoodItem")}</h2>
+              <p>{food.name}</p>
+            </div>
+
+            <button className="admin-edit-food-save-btn" onClick={handleSaveClick}>
+              <span className="admin-edit-food-save-icon">
+                <FiSave />
+              </span>
+              {t("editFood.saveChanges")}
+            </button>
           </div>
 
-          <button className="admin-edit-food-save-btn" onClick={handleSaveClick}>
-            <span className="admin-edit-food-save-icon">
-              <FiSave />
-            </span>
-            Save Changes
-          </button>
-        </div>
-
-        <div className="edit-grid">
-          {/* Image Section */}
-          <div className="edit-food-image-upload-section">
-            <h3>Food Image</h3>
-            <div className="image-preview">
+          <div className="edit-grid">
+            {/* Image Section */}
+            <div className="edit-food-image-upload-section">
+              <h3>{t("editFood.foodImage")}</h3>
+              <div className="image-preview">
                 {selectedImage ? (
                   <img src={URL.createObjectURL(selectedImage)} alt="New Image Preview" />
                 ) : existingImageUrl ? (
@@ -366,180 +370,175 @@ const EditFoodPage = () => {
                     alt={food.name}
                   />
                 ) : (
-                  <p>No Image</p>
+                  <p>{t("editFood.noImage")}</p>
                 )}
               </div>
-            <input
-              ref={fileInputRef}
-              className="edit-food-input"
-              type="file"
-              id="fileInput"
-              accept="image/*"
-              onChange={(e) => {
-                console.log("[input] onChange, files:", e.target.files);
-                const file = e.target.files && e.target.files[0];
-                setSelectedImage(file || null);
-              }}
-              style={{ display: "none" }}
-            />
-            <button
-              className="admin-edit-food-upload-btn"
-              onClick={() => fileInputRef.current && fileInputRef.current.click()}
-            >
-              <span className="admin-edit-food-upload-icon">
-                <MdOutlineFileUpload />
-              </span>
-              Upload New Image
-            </button>
-          </div>
-
-          {/* Basic Info Section */}
-          <div className="edit-food-basic-info-card">
-            <h3>Basic Information</h3>
-            <div className="edit-food-basic-info-two-col">
-              <div>
-                <label className="basic-info-label">Food Name</label>
-                <input className="edit-food-input" name="name" value={food.name} onChange={handleChange} />
-              </div>
-            </div>
-
-            {/* Category */}
-            <div className="food-category-field">
-              <label className="basic-info-label">Category</label>
-              <div className="custom-select-wrapper">
-                <select className="edit-food-select" name="category" value={food.category} onChange={handleChange}>
-                  <option value="">Select category</option>
-                  <option value="Poultry">Poultry</option>
-                  <option value="Seafood">Seafood</option>
-                  <option value="Vegetables">Vegetables</option>
-                  <option value="Rice Dish">Rice Dish</option>
-                  <option value="Dessert">Dessert</option>
-                  <option value="Fermented">Fermented</option>
-                  <option value="Noodles">Noodles</option>
-                  <option value="Soup">Soup</option>
-                  <option value="Meat">Meat</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Origin */}
-            <div className="food-origin-field">
-              <label className="basic-info-label">Region of Origin</label>
-              <div className="custom-select-wrapper">
-                <select className="edit-food-select" name="origin" value={food.origin} onChange={handleChange}>
-                  <option value="">Select an origin</option>
-                  {ORIGIN_OPTIONS.map((origin) => (
-                    <option key={origin} value={origin}>
-                      {origin}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Cultural Context */}
-        <div className="edit-cultural-context-card">
-          <h3>Cultural Context</h3>
-          <label className="basic-info-label">Description</label>
-          <textarea
-            className="edit-food-textarea"
-            name="culturalContext"
-            value={food.traditionalPreparation}
-            onChange={handleChange}
-            placeholder="Describe the origin of this food culture"
-            rows={5}
-          />
-          <label className="basic-info-label">Cultural Significance</label>
-          <textarea
-            className="edit-food-textarea"
-            name="culturalSignificance"
-            value={food.culturalSignificance}
-            onChange={handleChange}
-            placeholder="Describe the cultural background behind this dish"
-            rows={5}
-          />
-          <label className="basic-info-label">Traditional Preparation</label>
-          <textarea
-            className="edit-food-textarea"
-            name="traditionalPreparation"
-            value={food.traditionalPreparation}
-            onChange={handleChange}
-            placeholder="Describe how this dish is traditionally prepared"
-            rows={5}
-          />
-        </div>
-
-        {/* Nutritional Info */}
-        <div className="edit-cultural-context-card">
-          <div className="edit-food-nutrition-header">
-            <h3 className="edit-food-section-title">
-              Nutritional Information
-            </h3>
-            <span className="serving-note">(per serving)</span>
-          </div>
-          <div className="nutrition-grid">
-            {[
-              { label: "Calories", name: "calories" },
-              { label: "Protein (g)", name: "protein" },
-              { label: "Carbohydrates (g)", name: "carbs" },
-              { label: "Total Fat (g)", name: "fat" },
-              { label: "Dietary Fiber (g)", name: "fiber" },
-              { label: "Vitamin C (g)", name: "vitaminc" },
-            ].map((item) => (
-              <div key={item.name}>
-                <label className="basic-info-label">{item.label}</label>
-                <input className="edit-food-input" name={item.name} value={food[item.name]} onChange={handleChange} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Confirmation Modal */}
-      {showSaveConfirm && (
-        <div className="modal-overlay">
-          <div className="delete-modal">
-            <h3>Confirmation</h3>
-            <p>
-              Are you sure you want to <strong>save these changes</strong>?
-              <br />
-              This will overwrite the existing food information.
-            </p>
-            <div className="modal-actions">
-              <button className="save-cancel-btn" onClick={handleCancelSave}>
-                Cancel
-              </button>
-              <button className="confirm-save-btn" onClick={handleConfirmSave}>
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Notification Modal */}
-      {showNotification.visible && (
-        <div className="modal-overlay">
-          <div className={`notification-modal ${showNotification.type}`}>
-            <h3 style={{ color: showNotification.type === "error" ? "#a33b3b" : "#387346" }}>
-              {showNotification.type === "success" ? "Success!" : "Error!"}
-            </h3>
-            <p>{showNotification.message}</p>
-            <div className="modal-actions" style={{ justifyContent: "center" }}>
+              <input
+                ref={fileInputRef}
+                className="edit-food-input"
+                type="file"
+                id="fileInput"
+                accept="image/*"
+                onChange={(e) => {
+                  console.log("[input] onChange, files:", e.target.files);
+                  const file = e.target.files && e.target.files[0];
+                  setSelectedImage(file || null);
+                }}
+                style={{ display: "none" }}
+              />
               <button
-                className="confirm-save-btn"
-                onClick={handleCloseNotification}
-                style={{ backgroundColor: showNotification.type === "error" ? "#a33b3b" : "#7b4b26" }}
+                className="admin-edit-food-upload-btn"
+                onClick={() => fileInputRef.current && fileInputRef.current.click()}
               >
-                OK
+                <span className="admin-edit-food-upload-icon">
+                  <MdOutlineFileUpload />
+                </span>
+                {t("editFood.uploadNewImage")}
               </button>
+            </div>
+
+            {/* Basic Info Section */}
+            <div className="edit-food-basic-info-card">
+              <h3>{t("editFood.basicInformation")}</h3>
+              <div className="edit-food-basic-info-two-col">
+                <div>
+                  <label className="basic-info-label">{t("editFood.foodName")}</label>
+                  <input className="edit-food-input" name="name" value={food.name} onChange={handleChange} />
+                </div>
+              </div>
+
+              {/* Category */}
+              <div className="food-category-field">
+                <label className="basic-info-label">{t("editFood.category")}</label>
+                <div className="custom-select-wrapper">
+                  <select className="edit-food-select" name="category" value={food.category} onChange={handleChange}>
+                    <option value="">{t("editFood.selectCategory")}</option>
+                    <option value="Poultry">Poultry</option>
+                    <option value="Seafood">Seafood</option>
+                    <option value="Vegetables">Vegetables</option>
+                    <option value="Rice Dish">Rice Dish</option>
+                    <option value="Dessert">Dessert</option>
+                    <option value="Fermented">Fermented</option>
+                    <option value="Noodles">Noodles</option>
+                    <option value="Soup">Soup</option>
+                    <option value="Meat">Meat</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Origin */}
+              <div className="food-origin-field">
+                <label className="basic-info-label">{t("editFood.regionOfOrigin")}</label>
+                <div className="custom-select-wrapper">
+                  <select className="edit-food-select" name="origin" value={food.origin} onChange={handleChange}>
+                    <option value="">{t("editFood.selectOrigin")}</option>
+                    {ORIGIN_OPTIONS.map((origin) => (
+                      <option key={origin} value={origin}>
+                        {origin}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Cultural Context */}
+          <div className="edit-cultural-context-card">
+            <h3>{t("editFood.culturalContext")}</h3>
+            <label className="basic-info-label">{t("editFood.descriptionLabel")}</label>
+            <textarea
+              className="edit-food-textarea"
+              name="culturalContext"
+              value={food.traditionalPreparation}
+              onChange={handleChange}
+              placeholder={t("editFood.descriptionPlaceholder")}
+              rows={5}
+            />
+            <label className="basic-info-label">{t("editFood.culturalSignificance")}</label>
+            <textarea
+              className="edit-food-textarea"
+              name="culturalSignificance"
+              value={food.culturalSignificance}
+              onChange={handleChange}
+              placeholder={t("editFood.culturalSignificancePlaceholder")}
+              rows={5}
+            />
+            <label className="basic-info-label">{t("editFood.traditionalPreparation")}</label>
+            <textarea
+              className="edit-food-textarea"
+              name="traditionalPreparation"
+              value={food.traditionalPreparation}
+              onChange={handleChange}
+              placeholder={t("editFood.traditionalPreparationPlaceholder")}
+              rows={5}
+            />
+          </div>
+
+          {/* Nutritional Info */}
+          <div className="edit-cultural-context-card">
+            <div className="edit-food-nutrition-header">
+              <h3 className="edit-food-section-title">
+                {t("editFood.nutritionalInformation")}
+              </h3>
+              <span className="serving-note">{t("editFood.perServing")}</span>
+            </div>
+            <div className="nutrition-grid">
+              {[
+                { label: t("editFood.calories"), name: "calories" },
+                { label: t("editFood.protein"), name: "protein" },
+                { label: t("editFood.carbohydrates"), name: "carbs" },
+                { label: t("editFood.totalFat"), name: "fat" },
+                { label: t("editFood.dietaryFiber"), name: "fiber" },
+                { label: t("editFood.vitaminC"), name: "vitaminc" },
+              ].map((item) => (
+                <div key={item.name}>
+                  <label className="basic-info-label">{item.label}</label>
+                  <input className="edit-food-input" name={item.name} value={food[item.name]} onChange={handleChange} />
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      )}
 
+        {/* Confirmation Modal */}
+        {showSaveConfirm && (
+          <div className="modal-overlay">
+            <div className="delete-modal">
+              <h3>{t("editFood.confirmationTitle")}</h3>
+              <p>{t("editFood.confirmSaveMessage")}</p>
+              <div className="modal-actions">
+                <button className="save-cancel-btn" onClick={handleCancelSave}>
+                  {t("editFood.cancel")}
+                </button>
+                <button className="confirm-save-btn" onClick={handleConfirmSave}>
+                  {t("editFood.save")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Notification Modal */}
+        {showNotification.visible && (
+          <div className="modal-overlay">
+            <div className={`notification-modal ${showNotification.type}`}>
+              <h3 style={{ color: showNotification.type === "error" ? "#a33b3b" : "#387346" }}>
+                {showNotification.type === "success" ? t("editFood.successTitle") : t("editFood.errorTitle")}
+              </h3>
+              <p>{showNotification.message}</p>
+              <div className="modal-actions" style={{ justifyContent: "center" }}>
+                <button
+                  className="confirm-save-btn"
+                  onClick={handleCloseNotification}
+                  style={{ backgroundColor: showNotification.type === "error" ? "#a33b3b" : "#7b4b26" }}
+                >
+                  {t("editFood.ok")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <Footer />
     </>

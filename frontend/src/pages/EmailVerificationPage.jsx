@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { auth } from "../config/firebase";
 import "../css/EmailVerificationPage.css";
 import { applyActionCode, checkActionCode } from "firebase/auth";
@@ -9,14 +10,13 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export default function EmailVerificationPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const oobCode = searchParams.get('oobCode');
   
   const [status, setStatus] = useState('verifying'); // verifying, success, error
-  const [message, setMessage] = useState('Verifying your email...');
-  
-//================
-//CSRF
-//=============
+  const [message, setMessage] = useState('');
+
+  // CSRF
   const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
@@ -36,11 +36,10 @@ export default function EmailVerificationPage() {
   useEffect(() => {
     if (!oobCode) {
         setStatus("error");
-        setMessage("Invalid verification link. Please check your email and try again.");
+        setMessage(t("emailVerification.invalidLink"));
         return;
     }
     
-    // ✅ 1. WAIT for the token to load before running
     if (!csrfToken) return;
 
     const verifyEmail = async () => {
@@ -58,7 +57,7 @@ export default function EmailVerificationPage() {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
-                "X-CSRF-Token": csrfToken // ✅ Token is now guaranteed to exist
+                "X-CSRF-Token": csrfToken
              },
             credentials: "include",
             body: JSON.stringify({ email })
@@ -75,24 +74,23 @@ export default function EmailVerificationPage() {
         
         // Step 4: Show success
         setStatus("success");
-        setMessage("Email verified successfully!");
+        setMessage(t("emailVerification.successMsg"));
         setTimeout(() => navigate("/loginregister"), 3000);
         
         } catch (error) {
             setStatus("error");
-            // ... existing error handling ...
             if (error.code === "auth/invalid-action-code") {
-                setMessage("This link is invalid or has already been used...");
+                setMessage(t("emailVerification.invalidActionCode"));
             } else if (error.code === "auth/expired-action-code") {
-                setMessage("This verification link has expired...");
+                setMessage(t("emailVerification.expiredActionCode"));
             } else {
-                setMessage("An unexpected error occurred. Please try again or contact support.");
+                setMessage(t("emailVerification.unexpectedError"));
             }
         }
     };
     
     verifyEmail();
-    }, [oobCode, navigate, csrfToken]);
+    }, [oobCode, navigate, csrfToken, t]);
   
   return (
     <div className="ev-container">
@@ -101,14 +99,14 @@ export default function EmailVerificationPage() {
           <>
             <div className="ev-header">
               <div className="ev-logo">📧</div>
-              <h2 className="ev-title">Email Verification</h2>
-              <p className="ev-subtitle">Please wait while we verify your email address.</p>
+              <h2 className="ev-title">{t("emailVerification.title")}</h2>
+              <p className="ev-subtitle">{t("emailVerification.pleaseWait")}</p>
             </div>
             
             <div className="ev-body">
               <div className="ev-spinner-wrapper">
                 <div className="ev-spinner"></div>
-                <p className="ev-muted">{message}</p>
+                <p className="ev-muted">{message || t("emailVerification.verifying")}</p>
               </div>
             </div>
           </>
@@ -118,13 +116,13 @@ export default function EmailVerificationPage() {
           <>
             <div className="ev-header">
               <div className="ev-success-icon">✓</div>
-              <h2 className="ev-title">Verification Successful!</h2>
+              <h2 className="ev-title">{t("emailVerification.successTitle")}</h2>
               <p className="ev-subtitle">{message}</p>
             </div>
             
             <div className="ev-body">
-              <p className="ev-muted">You can now log in with your account.</p>
-              <p className="ev-redirect-text">Redirecting to login page...</p>
+              <p className="ev-muted">{t("emailVerification.canLogin")}</p>
+              <p className="ev-redirect-text">{t("emailVerification.redirecting")}</p>
             </div>
           </>
         )}
@@ -133,7 +131,7 @@ export default function EmailVerificationPage() {
           <>
             <div className="ev-header">
               <div className="ev-error-icon">✗</div>
-              <h2 className="ev-title">Verification Failed</h2>
+              <h2 className="ev-title">{t("emailVerification.failedTitle")}</h2>
               <p className="ev-subtitle">{message}</p>
             </div>
             
@@ -143,13 +141,13 @@ export default function EmailVerificationPage() {
                   className="lrp-btn lrp-btn-primary"
                   onClick={() => navigate('/loginregister')}
                 >
-                  Back to Login
+                  {t("auth.backToLogin")}
                 </button>
                 <button
                   className="lrp-btn lrp-btn-outline"
                   onClick={() => window.location.reload()}
                 >
-                  Try Again
+                  {t("emailVerification.tryAgain")}
                 </button>
               </div>
             </div>

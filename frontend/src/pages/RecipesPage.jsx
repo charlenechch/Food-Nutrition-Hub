@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/RecipesPage.css";
@@ -18,6 +19,7 @@ const PER_PAGE = 9;
 export default function RecipesPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { t } = useTranslation();
 
   // Guest detection
   const { user } = useAuth();
@@ -62,7 +64,7 @@ export default function RecipesPage() {
     setSearchQuery(searchParams.get("q") || "");
   }, [searchParams]);
 
-  // Fetch recipes (Logs Restored)
+  // Fetch recipes
   const fetchRecipes = async () => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -210,7 +212,7 @@ export default function RecipesPage() {
       open: true, 
       title: "", 
       body: "", 
-      confirmText: "OK", 
+      confirmText: t("recipes.ok"), 
       icon: null, 
       onPrimary: null,
       secondaryText: null,
@@ -253,8 +255,8 @@ export default function RecipesPage() {
     const origin = form.origin.trim();
     if (!name || !origin) {
       showInfo({
-        title: "Missing Required Fields",
-        body: "Please fill at least Name and Origin to continue.",
+        title: t("recipes.missingFields"),
+        body: t("recipes.missingFieldsMsg"),
         icon: <GrDocumentMissing />,
       });
       setIsSubmitting(false);
@@ -318,13 +320,12 @@ export default function RecipesPage() {
             
       setInfo({
         open: true,
-        title: "Recipe Submitted Successfully!",
-        // Educational message
-        body: "Thanks for sharing! Your recipe has been sent to the Admins for approval. It is currently in Pending. You can track its progress in your Profile under the Contributions tab.",
+        title: t("recipes.submitSuccess"),
+        body: t("recipes.submitSuccessMsg"),
         icon: <PiChefHat />,
         
         // Primary Action
-        confirmText: "Track My Post",
+        confirmText: t("recipes.trackMyPost"),
         onPrimary: () => {
           closeInfo();
           if (user?.id || user?.userID) {
@@ -336,7 +337,7 @@ export default function RecipesPage() {
         },
 
         // Secondary Action
-        secondaryText: "Close",
+        secondaryText: t("recipes.close"),
         onSecondary: () => {
           closeInfo();
         }
@@ -345,8 +346,8 @@ export default function RecipesPage() {
     } catch (err) {
       console.error('Error creating recipe:', err);
       showInfo({
-        title: "Failed to create recipe.",
-        body: "Please try again.",
+        title: t("recipes.submitError"),
+        body: t("recipes.submitErrorMsg"),
         icon: <FaTimes />,
       });
     } finally {
@@ -362,13 +363,13 @@ export default function RecipesPage() {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 
     if (file.size > maxSize) {
-      showInfo({ title: "Image Too Large!", body: "Please choose an image smaller than 2 MB.", icon: <FaCamera /> });
+      showInfo({ title: t("recipes.imageTooLarge"), body: t("recipes.imageTooLargeMsg"), icon: <FaCamera /> });
       e.target.value = ''; 
       return;
     }
 
     if (!allowedTypes.includes(file.type)) {
-      showInfo({ title: "Invalid image type!", body: "Please select a valid image (JPEG, JPG, PNG, or WebP).", icon: <FaCamera /> });
+      showInfo({ title: t("recipes.invalidImageType"), body: t("recipes.invalidImageTypeMsg"), icon: <FaCamera /> });
       e.target.value = ''; 
       return;
     }
@@ -399,7 +400,7 @@ export default function RecipesPage() {
     });
   }
 
-  if (loading) return <div className="loading">Loading recipes...</div>;
+  if (loading) return <div className="loading">{t("recipes.loading")}</div>;
 
   return (
     <div>
@@ -408,13 +409,12 @@ export default function RecipesPage() {
 
         {showLoginModal && (
           <LoginPromptModal
-            message="Please log in or register to share your recipe."
+            message={t("recipes.loginToShare")}
             onClose={() => setShowLoginModal(false)}
             onLogin={() => navigate("/loginregister")}
           />
         )}
 
-        {/* UPDATED MODAL: Now accepts secondary buttons and dynamic actions */}
         <Modal
           open={info.open}
           title={info.title}
@@ -430,17 +430,17 @@ export default function RecipesPage() {
         </Modal>
 
         <div className="rp-header">
-          <h1 className="rp-title">Traditional Recipes</h1>
-          <p className="rp-sub">Authentic Sarawakian recipes with cultural stories</p>
+          <h1 className="rp-title">{t("recipes.pageTitle")}</h1>
+          <p className="rp-sub">{t("recipes.pageSubtitle")}</p>
         </div>
 
         {/* Add form (expandable) */}
         <section className={`rp-card ${expanded ? "is-open" : ""}`}>
           <div className="rp-card-head">
-            <h3>Share Your Recipe</h3>
-            <p>Every dish tells a story. Share yours with the world!</p>
+            <h3>{t("recipes.shareTitle")}</h3>
+            <p>{t("recipes.shareSubtitle")}</p>
             {!expanded && (
-              <button className="share-btn" onClick={handleExpand}>Add Recipe</button>
+              <button className="share-btn" onClick={handleExpand}>{t("recipes.addRecipeBtn")}</button>
             )}
           </div>
 
@@ -448,13 +448,13 @@ export default function RecipesPage() {
             <form className="rp-form" onSubmit={addRecipe}>
               <div className="rp-grid-2">
                 <div className="rp-field">
-                  <label>Name *</label>
-                  <input name="name" value={form.name} onChange={onChangeForm} placeholder="e.g., Manok Pansoh" required />
+                  <label>{t("recipes.formName")}</label>
+                  <input name="name" value={form.name} onChange={onChangeForm} placeholder={t("recipes.formNamePlaceholder")} required />
                 </div>
                 <div className="rp-field">
-                  <label>Origin *</label>
+                  <label>{t("recipes.formOrigin")}</label>
                   <select name="origin" value={form.origin} onChange={onChangeForm} required>
-                    <option value="">Select Origin</option>
+                    <option value="">{t("recipes.selectOrigin")}</option>
                     <option value="Malay">Malay</option>
                     <option value="Chinese">Chinese</option>
                     <option value="Iban">Iban</option>
@@ -467,26 +467,26 @@ export default function RecipesPage() {
 
               <div className="rp-grid-3">
                 <div className="rp-field">
-                  <label>Difficulty *</label>
+                  <label>{t("recipes.formDifficulty")}</label>
                   <select name="difficulty" value={form.difficulty} onChange={onChangeForm} required>
-                    <option>Easy</option>
-                    <option>Medium</option>
-                    <option>Hard</option>
+                    <option>{t("explore.easy")}</option>
+                    <option>{t("explore.medium")}</option>
+                    <option>{t("explore.hard")}</option>
                   </select>
                 </div>
                 <div className="rp-field">
-                  <label>Prep Time (min) *</label>
+                  <label>{t("recipes.formPrepTime")}</label>
                   <input type="number" name="prepTime" value={form.prepTime} onChange={onChangeForm} required/>
                 </div>
                 <div className="rp-field">
-                  <label>Cook Time (min) *</label>
+                  <label>{t("recipes.formCookTime")}</label>
                   <input type="number" name="cookTime" value={form.cookTime} onChange={onChangeForm} required/>
                 </div>
               </div>
 
               <div className="rp-grid-2">
                 <div className="rp-field">
-                  <label>Food Type</label>
+                  <label>{t("recipes.formFoodType")}</label>
                   <select name="foodType" value={form.foodType} onChange={(e) => {
                       const v = e.target.value;
                       if (v === "__other__") {
@@ -499,32 +499,32 @@ export default function RecipesPage() {
                     {["Poultry","Seafood","Vegetables","Fermented","Dessert","Rice Dish","Noodles","Soup","Meat"].map(opt => (
                       <option key={opt} value={opt}>{opt}</option>
                     ))}
-                    <option value="__other__">Other…</option>
+                    <option value="__other__">{t("recipes.otherOption")}</option>
                   </select>
                 </div>
 
                 {form.otherFoodEnabled && (
                   <div className="rp-field">
-                    <label>Specify Food Type</label>
-                    <input type="text" placeholder="e.g., Beverage, Snack" value={form.otherFoodText} onChange={(e) => setForm(prev => ({ ...prev, otherFoodText: e.target.value }))} />
+                    <label>{t("recipes.specifyFoodType")}</label>
+                    <input type="text" placeholder={t("recipes.specifyFoodTypePlaceholder")} value={form.otherFoodText} onChange={(e) => setForm(prev => ({ ...prev, otherFoodText: e.target.value }))} />
                   </div>
                 )}
               </div>
 
               <div className="rp-grid-2">
                 <div className="rp-field">
-                  <label>Description *</label>
-                  <textarea name="description" className="rp-desc" value={form.description} onChange={onChangeForm} placeholder="A short description about the dish" required/>
+                  <label>{t("recipes.formDescription")}</label>
+                  <textarea name="description" className="rp-desc" value={form.description} onChange={onChangeForm} placeholder={t("recipes.formDescriptionPlaceholder")} required/>
                 </div>
                 <div className="rp-field">
-                  <label>Upload Photo *</label>
+                  <label>{t("recipes.uploadPhoto")}</label>
                   <div className="upload-box" onClick={() => document.getElementById("recipe-file-input").click()} role="button" tabIndex={0}>
                     {form.imageData ? (
                       <img src={form.imageData} alt="Preview" className="preview-img" />
                     ) : (
                       <div className="upload-placeholder">
                         <FaCamera className="camera-icon" />
-                        <p>Upload Photo</p>
+                        <p>{t("recipes.uploadPhoto")}</p>
                       </div>
                     )}
                   </div>
@@ -533,23 +533,23 @@ export default function RecipesPage() {
               </div>
 
               <div className="rp-field">
-                <label>Servings *</label>
+                <label>{t("recipes.formServings")}</label>
                 <input type="number" name="servings" value={form.servings} onChange={onChangeForm} required/>
               </div>
 
               <div className="rp-grid-2">
                 <div className="rp-field">
-                  <label>Ingredients *</label>
-                  <textarea name="ingredients" value={form.ingredients} onChange={onChangeForm} placeholder={"One per line, e.g.\n1kg chicken\n3 stalks lemongrass\n2-inch ginger"} required />
+                  <label>{t("recipes.formIngredients")}</label>
+                  <textarea name="ingredients" value={form.ingredients} onChange={onChangeForm} placeholder={t("recipes.formIngredientsPlaceholder")} required />
                 </div>
                 <div className="rp-field">
-                  <label>Instructions *</label>
-                  <textarea name="instructions" value={form.instructions} onChange={onChangeForm} placeholder={"One step per line, e.g.\n1) Clean and cut chicken\n2) Marinate for 30 min\n3) Cook in bamboo 2-3h"} required />
+                  <label>{t("recipes.formInstructions")}</label>
+                  <textarea name="instructions" value={form.instructions} onChange={onChangeForm} placeholder={t("recipes.formInstructionsPlaceholder")} required />
                 </div>
               </div>
 
               <div className="rp-field">
-                <label>Dietary Preferences</label>
+                <label>{t("explore.dietaryPrefs")}</label>
                 <div className="rp-diet-grid">
                   {DIET_OPTIONS.map(tag => (
                     <label key={tag} className="rp-diet-item">
@@ -561,33 +561,33 @@ export default function RecipesPage() {
                 <div className="rp-diet-other">
                   <label className="rp-diet-item">
                     <input type="checkbox" checked={form.otherDietEnabled} onChange={(e) => setForm(prev => ({ ...prev, otherDietEnabled: e.target.checked }))} />
-                    <span>Other</span>
+                    <span>{t("recipes.other")}</span>
                   </label>
                   {form.otherDietEnabled && (
-                    <input className="rp-input rp-input--sm" type="text" placeholder="Type custom tags, comma-separated (e.g. halal, keto)" value={form.otherDietText} onChange={(e) => setForm(prev => ({ ...prev, otherDietText: e.target.value }))} />
+                    <input className="rp-input rp-input--sm" type="text" placeholder={t("recipes.otherDietPlaceholder")} value={form.otherDietText} onChange={(e) => setForm(prev => ({ ...prev, otherDietText: e.target.value }))} />
                   )}
                 </div>
               </div>
 
               <div className="rp-grid-2">
                 <div className="rp-field">
-                  <label>Fun Fact</label>
-                  <textarea name="funFact" value={form.funFact} onChange={onChangeForm} placeholder="Any surprising or interesting facts?" />
+                  <label>{t("recipes.formFunFact")}</label>
+                  <textarea name="funFact" value={form.funFact} onChange={onChangeForm} placeholder={t("recipes.formFunFactPlaceholder")} />
                 </div>
                 <div className="rp-field">
-                  <label>Tips</label>
-                  <textarea name="chefTips" value={form.chefTips} onChange={onChangeForm} placeholder="E.g., best cut, heat control, or prep secrets…" />
+                  <label>{t("recipes.formTips")}</label>
+                  <textarea name="chefTips" value={form.chefTips} onChange={onChangeForm} placeholder={t("recipes.formTipsPlaceholder")} />
                 </div>
               </div>
               
               <div className="rp-actions">
                 <button className="rp-btn rp-submit" type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting..." : "Submit Recipe"}
+                  {isSubmitting ? t("recipes.submitting") : t("recipes.submitBtn")}
                 </button>
                 <button className="rp-btn rp-btn-muted" type="button" onClick={() => setForm({
                   name: "", origin: "", difficulty: "Easy", prepTime: "", cookTime: "", servings: "", imageData: "", description: "", ingredients: "", instructions: "", funFact: "", chefTips: "", dietaryTags: [], otherDietEnabled: false, otherDietText: "", foodType: "Poultry", otherFoodEnabled: false, otherFoodText: "", 
-                })} disabled={isSubmitting}>Clear</button>
-                <button className="rp-btn rp-btn-muted" type="button" onClick={() => setExpanded(false)}>Close</button>
+                })} disabled={isSubmitting}>{t("recipes.clear")}</button>
+                <button className="rp-btn rp-btn-muted" type="button" onClick={() => setExpanded(false)}>{t("recipes.close")}</button>
               </div>
             </form>
           )}
@@ -596,16 +596,16 @@ export default function RecipesPage() {
         {/* Filters */}
         <div className="rp-filter-card efp-controls">
           <div className="efp-search-row">
-            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search recipes, origins, or descriptions..." className="efp-input" />
+            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t("recipes.searchPlaceholder")} className="efp-input" />
             <div className="efp-btn-group">
-              <button type="button" className="efp-btn" onClick={() => setShowFilters(v => !v)}><Sliders size={18} /> Filters</button>
-              <button type="button" className="efp-btn" onClick={clearAll}><X size={18} /> Clear All</button>
+              <button type="button" className="efp-btn" onClick={() => setShowFilters(v => !v)}><Sliders size={18} /> {t("explore.filters")}</button>
+              <button type="button" className="efp-btn" onClick={clearAll}><X size={18} /> {t("explore.clearAll")}</button>
             </div>
           </div>
           <div className="rp-tags-row">
             {["all","Poultry","Seafood","Vegetables","Fermented","Dessert","Rice Dish","Noodles","Soup","Meat","Other"].map((ft) => (
               <button key={ft} type="button" className={`efp-chip ${selectedType === ft ? "is-active" : ""}`} onClick={() => setSelectedType(ft)}>
-                {ft === "all" ? "All Categories" : ft}
+                {ft === "all" ? t("explore.allCategories") : ft}
               </button>
             ))}
           </div>
@@ -614,48 +614,48 @@ export default function RecipesPage() {
         {showFilters && (
           <div className="rp-filter-card efp-card efp-filters-card">
             <div className="efp-filters">
-              <div className="efp-filters-header"><Filter className="efp-filter-icon" size={18} /><h2 className="efp-filters-title">Filter</h2></div>
+              <div className="efp-filters-header"><Filter className="efp-filter-icon" size={18} /><h2 className="efp-filters-title">{t("explore.filter")}</h2></div>
               <div className="efp-grid-2">
                 <div className="efp-filter-item">
-                  <label className="efp-label">Cultural Origin</label>
+                  <label className="efp-label">{t("explore.culturalOrigin")}</label>
                   <select value={selectedOrigin} onChange={(e) => setSelectedOrigin(e.target.value)} className="efp-select">
-                    {origins.map(o => <option key={o} value={o}>{o === "all" ? "All Origins" : o}</option>)}
+                    {origins.map(o => <option key={o} value={o}>{o === "all" ? t("explore.allOrigins") : o}</option>)}
                   </select>
                 </div>
                 <div className="efp-filter-item">
-                  <label className="efp-label">Difficulty</label>
+                  <label className="efp-label">{t("explore.difficulty")}</label>
                   <select value={selectedDifficulty} onChange={(e) => setSelectedDifficulty(e.target.value)} className="efp-select">
-                    <option value="all">All Difficulties</option>
-                    <option>Easy</option>
-                    <option>Medium</option>
-                    <option>Hard</option>
+                    <option value="all">{t("recipes.allDifficulties")}</option>
+                    <option value="Easy">{t("explore.easy")}</option>
+                    <option value="Medium">{t("explore.medium")}</option>
+                    <option value="Hard">{t("explore.hard")}</option>
                   </select>
                 </div>
               </div>
               <hr className="efp-sep" />
               <div className="efp-grid-2">
                 <div className="efp-filter-item">
-                  <label className="efp-label">Prep Time</label>
+                  <label className="efp-label">{t("explore.prepTime")}</label>
                   <select className="efp-select" value={selectedPrepTime} onChange={(e) => setSelectedPrepTime(e.target.value)}>
-                    <option value="all">All Categories</option>
-                    <option value="under30">Under 30 minutes</option>
-                    <option value="under120">Under 2 hours</option>
-                    <option value="over120">Over 2 hours</option>
+                    <option value="all">{t("explore.allCategories")}</option>
+                    <option value="under30">{t("explore.under30")}</option>
+                    <option value="under120">{t("explore.under120")}</option>
+                    <option value="over120">{t("explore.over120")}</option>
                   </select>
                 </div>
                 <div className="efp-filter-item">
-                  <label className="efp-label">Cook Time</label>
+                  <label className="efp-label">{t("recipes.cookTime")}</label>
                   <select className="efp-select" value={selectedCookTime} onChange={(e) => setSelectedCookTime(e.target.value)}>
-                    <option value="all">All Categories</option>
-                    <option value="under30">Under 30 minutes</option>
-                    <option value="under120">Under 2 hours</option>
-                    <option value="over120">Over 2 hours</option>
+                    <option value="all">{t("explore.allCategories")}</option>
+                    <option value="under30">{t("explore.under30")}</option>
+                    <option value="under120">{t("explore.under120")}</option>
+                    <option value="over120">{t("explore.over120")}</option>
                   </select>
                 </div>
               </div>
               <hr className="efp-sep" />
               <div>
-                <label className="efp-label">Dietary Preferences</label>
+                <label className="efp-label">{t("explore.dietaryPrefs")}</label>
                 <div className="efp-checkbox-grid">
                   {DIET_OPTIONS.map(tag => (
                     <label key={tag} className="efp-checkbox-item">
@@ -671,7 +671,7 @@ export default function RecipesPage() {
 
         {/* Results */}
         <div className="rp-results-head">
-          <p className="efp-results-count">{filtered.length} recipes found</p>
+          <p className="efp-results-count">{t("recipes.recipesFound", { count: filtered.length })}</p>
           {dietFilters.length > 0 && (
             <div className="efp-active-filters">
               {dietFilters.map((tag) => (
@@ -695,13 +695,13 @@ export default function RecipesPage() {
               <div key={`recipe-${recipeId}-${index}`} className="efp-food-card">
                 <div className="efp-food-media">
                   <img src={r.image || 'https://via.placeholder.com/300x200?text=No+Image'} alt={r.name} className="efp-image" loading="lazy" />
-                  <div className="efp-badges"><span className={diffClass}>{r.difficulty || 'Easy'}</span></div>
+                  <div className="efp-badges"><span className={diffClass}>{r.difficulty || t("explore.easy")}</span></div>
                   {Array.isArray(r.dietaryTags) && r.dietaryTags.includes("vegetarian") && <span className="efp-badge-topright">V</span>}
                 </div>
                 <div className="efp-food-body">
-                  <div className="efp-food-headline"><h3 className="efp-food-title">{r.name || 'Unknown Recipe'}</h3></div>
-                  <p className="efp-desc">{r.description || 'No description available'}</p>
-                  <button className="efp-card-cta" onClick={() => navigate(`/recipes/${recipeId}`)}>View Recipe</button>
+                  <div className="efp-food-headline"><h3 className="efp-food-title">{r.name || t("recipes.unknownRecipe")}</h3></div>
+                  <p className="efp-desc">{r.description || t("recipes.noDescription")}</p>
+                  <button className="efp-card-cta" onClick={() => navigate(`/recipes/${recipeId}`)}>{t("recipes.viewRecipe")}</button>
                 </div>
               </div>
             );
@@ -715,7 +715,7 @@ export default function RecipesPage() {
                 disabled={page === 1} 
                 className="community-page-btn nav-btn"
               >
-                ← Prev
+                {t("explore.prev")}
               </button>
               <div className="page-numbers">
                 {[...Array(totalPages)].map((_, i) => (
@@ -733,7 +733,7 @@ export default function RecipesPage() {
                 disabled={page === totalPages} 
                 className="community-page-btn nav-btn"
               >
-                Next →
+                {t("explore.next")}
               </button>
             </div>
           )}

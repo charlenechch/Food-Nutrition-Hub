@@ -1,15 +1,16 @@
-// ✅ FULL RecipeDetailPage.jsx — Part 1/3
+// ✅ FULL RecipeDetailPage.jsx — i18n converted
 // ✅ All original code kept, only guest-save logic added
 
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/RecipeDetailPage.css";
 import Modal from "../components/Modal";
 import { Info, NotebookText, Share2, ShoppingBasket, CheckCircle2, AlertTriangle  } from "lucide-react";
 
-// ✅ NEW — Import Auth & Login Modal
+// ✅ Import Auth & Login Modal
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
@@ -17,30 +18,26 @@ import LoginPromptModal from "../components/LoginPromptModal";
 const formatTextForDisplay = (text, type = 'instructions') => {
   if (!text) return '';
   
-  // First clean the text
   let cleanedText = text
-    .replace(/\\t/g, ' ')          // Replace literal \t with space
-    .replace(/\t/g, ' ')           // Replace actual tabs with space
-    .replace(/\\n/g, '\n')         // Replace literal \n with actual newline
-    .replace(/\n\s*\n/g, '\n\n')   // Preserve paragraph breaks
+    .replace(/\\t/g, ' ')
+    .replace(/\t/g, ' ')
+    .replace(/\\n/g, '\n')
+    .replace(/\n\s*\n/g, '\n\n')
     .trim();
 
   if (type === 'ingredients') {
-    // For ingredients: convert to proper list with bullets
     const lines = cleanedText.split('\n').filter(line => line.trim());
     return lines.map(line => {
       const cleanedLine = line.trim();
       return `<div class="rdp-ingredient-item">${cleanedLine}</div>`;
     }).join('');
   } else {
-    // For instructions: handle section headers and numbered steps
     const lines = cleanedText.split('\n').filter(line => line.trim());
     let html = '';
     
     lines.forEach(line => {
       const trimmedLine = line.trim();
       
-      // Check for section headers (lines that are bolded or have ** **)
       const boldMatch = trimmedLine.match(/\*\*(.*?)\*\*/);
       if (boldMatch) {
         const headerText = boldMatch[1];
@@ -48,7 +45,6 @@ const formatTextForDisplay = (text, type = 'instructions') => {
         return;
       }
       
-      // Check for numbered steps (like "1.", "2.", etc.)
       const numberedMatch = trimmedLine.match(/^(\d+)\.\s*(.*)/);
       if (numberedMatch) {
         const [, number, content] = numberedMatch;
@@ -59,13 +55,11 @@ const formatTextForDisplay = (text, type = 'instructions') => {
         return;
       }
       
-      // Check for regular section headers (lines ending with colon)
       if (trimmedLine.endsWith(':') && !trimmedLine.match(/^\d/)) {
         html += `<div class="rdp-section-header">${trimmedLine}</div>`;
         return;
       }
       
-      // Regular text line
       if (trimmedLine) {
         html += `<div class="rdp-step">
                   <span class="rdp-step-number"></span>
@@ -89,7 +83,7 @@ const fmtTime = (n, label) => {
   return `${m} min`;
 };
 
-// tiny inline icons so we don't import any libs
+// tiny inline icons
 const Lightbulb = (props) => (
   <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" {...props}>
     <path d="M9 21h6v-1H9v1Zm3-20a7 7 0 0 0-4 12.9V16a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.1A7 7 0 0 0 12 1Zm3 11.2V15h-6v-2.8a1 1 0 0 0-.4-.8A5 5 0 1 1 15.4 11a1 1 0 0 0-.4 1.2Z"/>
@@ -105,6 +99,7 @@ const ChefHat = (props) => (
 export default function RecipeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // ✅ Access logged in user or guest
   const { user } = useAuth();
@@ -114,21 +109,21 @@ export default function RecipeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-const [csrfToken, setCsrfToken] = useState("");
+  const [csrfToken, setCsrfToken] = useState("");
 
-useEffect(() => {
-  const fetchCsrfToken = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-      const data = await res.json();
-      setCsrfToken(data.csrfToken);
-    } catch (err) {
-      console.error("Failed to fetch CSRF token", err);
-    }
-  };
-  fetchCsrfToken();
-}, []);
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   // control show login popup for guests
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -159,7 +154,7 @@ useEffect(() => {
     return loggedIn;
   };
 
-  // ✅ MOVED UP: checkSavedStatus function must be defined before useEffect
+  // ✅ checkSavedStatus defined before useEffect
   const checkSavedStatus = async () => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -192,14 +187,13 @@ useEffect(() => {
     }
   };
 
-  // ✅ Now this useEffect can safely use checkSavedStatus
   useEffect(() => {
     if (id && isLoggedIn()) {
       checkSavedStatus();
     }
   }, [id, isLoggedIn()]);
 
-  // Fetch recipe from backend (ORIGINAL CODE KEPT)
+  // Fetch recipe from backend
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
@@ -223,7 +217,7 @@ useEffect(() => {
     }
   }, [id]);
 
-  // ✅ FIXED: Use correct endpoint and simplified logic
+  // ✅ Save recipe handler
   const handleSaveRecipe = async () => {
     if (!isLoggedIn()) {
       setShowLoginPrompt(true);
@@ -240,8 +234,6 @@ useEffect(() => {
 
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      
-      // ✅ CORRECT ENDPOINT: Remove "/save" from the URL
       const url = `${API_BASE_URL}/api/saveFood/${id}`;
       
       console.log('📤 Making request to:', url);
@@ -280,7 +272,7 @@ useEffect(() => {
         <Header />
         <div className="rdp-wrap">
           <button className="lrp-btn lrp-btn-outline fdp-back rdp-back" onClick={() => navigate(-1)}>
-            ← Back
+            {t("recipeDetail.back")}
           </button>
         </div>
         <Footer />
@@ -294,10 +286,10 @@ useEffect(() => {
         <Header />
         <div className="rdp-wrap">
           <button className="lrp-btn lrp-btn-outline fdp-back rdp-back" onClick={() => navigate(-1)}>
-            ← Back
+            {t("recipeDetail.back")}
           </button>
-          <h2 style={{ marginTop: 12 }}>Recipe not found</h2>
-          <p>{error || "The recipe you're looking for doesn't exist."}</p>
+          <h2 style={{ marginTop: 12 }}>{t("recipeDetail.notFound")}</h2>
+          <p>{error || t("recipeDetail.notFoundMsg")}</p>
         </div>
         <Footer />
       </div>
@@ -349,15 +341,15 @@ useEffect(() => {
       if (window.isSecureContext && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(`${title} — ${text}\n${url}`);
         openInfo({
-          title: "Link copied",
-          message: "The link to this recipe has been copied to your clipboard.",
+          title: t("recipeDetail.linkCopied"),
+          message: t("recipeDetail.linkCopiedMsg"),
           icon: <CheckCircle2 />,
         });
         return;
       }
 
       openInfo({
-        title: "Copy this link",
+        title: t("recipeDetail.copyLink"),
         message: `${title} — ${text}\n${url}`,
         icon: <AlertTriangle />,
       });
@@ -374,10 +366,11 @@ useEffect(() => {
           className="lrp-btn lrp-btn-outline fdp-back rdp-back"
           onClick={() => navigate(-1)}
         >
-          ← Back
+          {t("recipeDetail.back")}
         </button>
 
-        <div className={`rdp-grid ${!hasSideNotes ? "rdp-grid--single" : ""}`}>          {/* LEFT: main column */}
+        <div className={`rdp-grid ${!hasSideNotes ? "rdp-grid--single" : ""}`}>
+          {/* LEFT: main column */}
           <div className="rdp-main">
             <div className="rdp-card">
               <div className="rdp-hero">
@@ -394,19 +387,19 @@ useEffect(() => {
 
               <div className="rdp-card2 rdp-meta">
                 <div className="rdp-meta-item">
-                  <div className="rdp-meta-label">Prep Time</div>
+                  <div className="rdp-meta-label">{t("recipeDetail.prepTime")}</div>
                   <div className="rdp-meta-val">{fmtTime(recipe.prepTime, recipe.prepTimeLabel)}</div>
                 </div>
                 <div className="rdp-meta-item">
-                  <div className="rdp-meta-label">Cook Time</div>
+                  <div className="rdp-meta-label">{t("recipeDetail.cookTime")}</div>
                   <div className="rdp-meta-val">{fmtTime(recipe.cookTime, recipe.cookTimeLabel)}</div>
                 </div>
                 <div className="rdp-meta-item">
-                  <div className="rdp-meta-label">Servings</div>
+                  <div className="rdp-meta-label">{t("recipeDetail.servings")}</div>
                   <div className="rdp-meta-val">{recipe.servings || 1}</div>
                 </div>
                 <div className="rdp-meta-item">
-                  <div className="rdp-meta-label">Difficulty</div>
+                  <div className="rdp-meta-label">{t("recipeDetail.difficulty")}</div>
                   <div className="rdp-meta-val">{recipe.difficulty || ""}</div>
                 </div>
               </div>
@@ -414,9 +407,9 @@ useEffect(() => {
 
             {tags.length > 0 && (
               <div className="rdp-tags">
-                {tags.map((t) => (
-                  <span key={t} className="rdp-tag">
-                    {t.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                {tags.map((tag) => (
+                  <span key={tag} className="rdp-tag">
+                    {tag.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                   </span>
                 ))}
               </div>
@@ -429,7 +422,7 @@ useEffect(() => {
                   className="lrp-btn lrp-btn-primary fdp-save"
                   onClick={handleSaveRecipe}
                 >
-                  {saved ? "✓ Saved" : "❤ Save Recipe"}
+                  {saved ? t("recipeDetail.saved") : t("recipeDetail.saveRecipe")}
                 </button>
                 <button
                   type="button"
@@ -443,16 +436,15 @@ useEffect(() => {
 
             <div className="rdp-card3">
               <h3 className="rdp-sec-title">
-                <Info className="rdp-sec-icon" color="#6a4a2f" /> Description
+                <Info className="rdp-sec-icon" color="#6a4a2f" /> {t("recipeDetail.description")}
               </h3>
               {recipe.description && <p className="rdp-sub">{recipe.description}</p>}
             </div>
 
             <div className="rdp-card3">
               <h3 className="rdp-sec-title">
-                <ShoppingBasket className="rdp-sec-icon" color="#6a4a2f" /> Ingredients
+                <ShoppingBasket className="rdp-sec-icon" color="#6a4a2f" /> {t("recipeDetail.ingredients")}
               </h3>
-              {/* ✅ UPDATED: Use formatTextForDisplay for ingredients */}
               <div 
                   className="rdp-ingredients-formatted"
                   dangerouslySetInnerHTML={{ 
@@ -463,9 +455,8 @@ useEffect(() => {
 
             <div className="rdp-card3">
               <h3 className="rdp-sec-title">
-                <NotebookText className="rdp-sec-icon" color="#6a4a2f" /> Instructions
+                <NotebookText className="rdp-sec-icon" color="#6a4a2f" /> {t("recipeDetail.instructions")}
               </h3>
-              {/* ✅ UPDATED: Use formatTextForDisplay for instructions */}
               <div 
                 className="rdp-instructions-formatted"
                 dangerouslySetInnerHTML={{ 
@@ -484,7 +475,7 @@ useEffect(() => {
                   className="lrp-btn lrp-btn-primary fdp-save"
                   onClick={handleSaveRecipe}
                 >
-                  {saved ? "✓ Saved" : "❤ Save Recipe"}
+                  {saved ? t("recipeDetail.saved") : t("recipeDetail.saveRecipe")}
                 </button>
                 <button
                   type="button"
@@ -497,7 +488,7 @@ useEffect(() => {
               {recipe.funFact && (
                 <div className="rdp-card3 rdp-note rdp-note-warm">
                   <div className="rdp-note-head">
-                    <Lightbulb className="rdp-sec-icon" color="#6a4a2f" /> <span>Did You Know?</span>
+                    <Lightbulb className="rdp-sec-icon" color="#6a4a2f" /> <span>{t("recipeDetail.didYouKnow")}</span>
                   </div>
                   <p className="rdp-note-text">{recipe.funFact}</p>
                 </div>
@@ -506,7 +497,7 @@ useEffect(() => {
               {recipe.chefTips && (
                 <div className="rdp-card3 rdp-note">
                   <div className="rdp-note-head">
-                    <ChefHat className="rdp-sec-icon" color="#6a4a2f" /> <span>Chef's Tips</span>
+                    <ChefHat className="rdp-sec-icon" color="#6a4a2f" /> <span>{t("recipeDetail.chefTips")}</span>
                   </div>
                   <p className="rdp-note-text">{recipe.chefTips}</p>
                 </div>
@@ -520,7 +511,7 @@ useEffect(() => {
       {/* ✅ Show LoginPromptModal if guest tries to save */}
       {showLoginPrompt && (
         <LoginPromptModal
-          message="Please login or register to save this recipe."
+          message={t("recipeDetail.loginToSave")}
           onClose={() => setShowLoginPrompt(false)}
           onLogin={() => navigate("/loginregister")}
         />

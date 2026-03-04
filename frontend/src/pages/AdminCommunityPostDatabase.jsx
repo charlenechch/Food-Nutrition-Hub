@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaRegFlag } from "react-icons/fa6";
 import { CiSearch, CiFilter } from "react-icons/ci";
 import { HiOutlinePencilAlt } from "react-icons/hi";
@@ -10,14 +11,13 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "approved" }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // --- States ---
   const [localPosts, setLocalPosts] = useState(postsProp);
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("All Categories");
   const [statusFilter, setStatusFilter] = useState("All");
-  
-  // ✅ Origin Filter State
   const [originFilter, setOriginFilter] = useState("All Origins");
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -26,7 +26,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 5;
 
-  // ✅ Define Origin Options
   const originOptions = ["All Origins", "Malay", "Chinese", "Iban", "Melanau", "Bidayuh", "Dayak"];
 
   // --- Sync Props ---
@@ -34,7 +33,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
     setLocalPosts(postsProp);
   }, [postsProp]);
 
-  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, category, statusFilter, originFilter]);
@@ -46,15 +44,10 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
     const author = (post.author || "").toLowerCase();
     const matchesSearch = title.includes(term) || author.includes(term);
     const matchesCategory = category === "All Categories" || post.category === category;
-    
-    // ✅ Origin Logic
     const postOrigin = post.origin || post.culturalOrigin || "";
     const matchesOrigin = originFilter === "All Origins" || postOrigin === originFilter;
-    
-    // Determine status
     const requiredStatus = sectionType === "approved" ? "Approved" : statusFilter;
     const matchesStatus = requiredStatus === "All" || post.status === requiredStatus;
-
     return matchesSearch && matchesCategory && matchesStatus && matchesOrigin;
   });
 
@@ -103,32 +96,23 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
     return () => document.removeEventListener("click", closeDropdown);
   }, []);
 
-  const sectionTitle =
-    sectionType === "approved"
-      ? "Approved Community Posts"
-      : "Pending / Rejected Community Posts";
-  
+  const sectionTitle = sectionType === "approved"
+    ? t("adminPostDB.titleApproved")
+    : t("adminPostDB.titlePending");
+
   const renderPageNumbers = () => {
     let pages = [];
-
     if (totalPages <= 4) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       let start = Math.max(1, currentPage - 1);
       let end = Math.min(totalPages, currentPage + 1);
-
       if (currentPage === 1) end = 3;
       if (currentPage === totalPages) start = totalPages - 2;
-
       if (start > 1) pages.push('...');
-      
       for (let i = start; i <= end; i++) pages.push(i);
-      
       if (end < totalPages) pages.push('...');
     }
-
     return pages.map((p, index) => (
       <button
         key={index}
@@ -144,10 +128,10 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   const handleDeleteClick = (postId) => {
     setModal({
       open: true,
-      title: "Confirm Deletion",
-      message: "Are you sure you want to delete this post? This action cannot be undone.",
+      title: t("adminPostDB.confirmDeletion"),
+      message: t("adminPostDB.confirmDeletionMsg"),
       icon: <RiDeleteBin5Line size={30} color="#dc3545" />, 
-      primaryText: "Yes, Delete",
+      primaryText: t("adminPostDB.yesDelete"),
       onPrimary: () => performDelete(postId), 
     });
   };
@@ -165,18 +149,18 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
         setLocalPosts((prev) => prev.filter((post) => post.id !== postId));
         setModal({
           open: true,
-          title: "Deleted!",
-          message: "The post has been successfully removed.",
+          title: t("adminPostDB.deletedTitle"),
+          message: t("adminPostDB.deletedMsg"),
           icon: <FaRegFlag size={30} color="green" />,
-          primaryText: "OK",
+          primaryText: t("adminPostDB.ok"),
           onPrimary: closeModal,
         });
       } else {
         setModal({
           open: true,
-          title: "Error",
-          message: result.message || "Failed to delete post.",
-          primaryText: "Close",
+          title: t("adminPostDB.errorTitle"),
+          message: result.message || t("adminPostDB.deleteFailed"),
+          primaryText: t("adminPostDB.close"),
           onPrimary: closeModal,
         });
       }
@@ -190,7 +174,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
       <div className="recipe-database-section" style={{ backgroundColor: "white", minHeight: showFilters ? "850px" : "600px", transition: "min-height 0.3s ease" }}>
         <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
         <p style={{ textAlign: "center", marginTop: 20, color: "#999" }}>
-          No community posts found.
+          {t("adminPostDB.noPosts")}
         </p>
       </div>
     );
@@ -221,12 +205,11 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             <CiSearch className="search-icon" />
             <input 
               type="text" 
-              placeholder="Search community posts..." 
+              placeholder={t("adminPostDB.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          {/* Main Category Dropdown - This remains */}
           <div className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`} ref={dropdownRef}>
             <button className="admin-beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
               {category}
@@ -242,18 +225,17 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             )}
           </div>
           <button className="admin-recipe-btn-filter" onClick={() => setShowFilters(!showFilters)}>
-            <CiFilter className="filter-icon" /> Filters
+            <CiFilter className="filter-icon" /> {t("explore.filters")}
           </button>
         </div>
 
         {showFilters && (
           <div className="advanced-filters">
-            <h4><CiFilter /> Advanced Filters</h4>
+            <h4><CiFilter /> {t("adminFoodDB.advancedFilters")}</h4>
             <div className="filter-grid">
               
-              {/* Cultural Origin Dropdown */}
               <div className="filter-item">
-                <label>Cultural Origin</label>
+                <label>{t("explore.culturalOrigin")}</label>
                 <select 
                   value={originFilter} 
                   onChange={(e) => setOriginFilter(e.target.value)}
@@ -264,15 +246,13 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
                 </select>
               </div>
 
-              {/* ❌ REMOVED: Redundant Topic Filter */}
-              
               {sectionType !== "approved" && (
                 <div className="filter-item">
-                  <label>Status</label>
+                  <label>{t("adminRcpDB.colStatus")}</label>
                   <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                    <option value="All">All</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Rejected">Rejected</option>
+                    <option value="All">{t("adminFoodDB.all")}</option>
+                    <option value="Pending">{t("adminRcpDB.statusPending")}</option>
+                    <option value="Rejected">{t("adminRcpDB.statusRejected")}</option>
                   </select>
                 </div>
               )}
@@ -283,20 +263,20 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
         <table className="content-table" style={{ width: "100%" }}>
           <thead>
             <tr>
-              <th>Title</th>
-              <th>Author</th>
-              <th>{sectionType === "approved" ? "Date Approved" : "Date Posted"}</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>{t("adminPostDB.colTitle")}</th>
+              <th>{t("adminPostDB.colAuthor")}</th>
+              <th>{sectionType === "approved" ? t("adminPostDB.colDateApproved") : t("adminPostDB.colDatePosted")}</th>
+              <th>{t("adminRcpDB.colStatus")}</th>
+              <th>{t("adminRcpDB.colActions")}</th>
             </tr>
           </thead>
           <tbody>
             {currentPosts.map((p, i) => (
               <tr key={p.id || i}>
-                <td data-label="Title">{p.foodName || p.title || "Untitled"}</td>
-                <td data-label="Author">{p.author || "Anonymous"}</td>
+                <td data-label={t("adminPostDB.colTitle")}>{p.foodName || p.title || t("adminPostDB.untitled")}</td>
+                <td data-label={t("adminPostDB.colAuthor")}>{p.author || t("adminPostDB.anonymous")}</td>
                 
-                <td data-label="Date Approved">
+                <td data-label={sectionType === "approved" ? t("adminPostDB.colDateApproved") : t("adminPostDB.colDatePosted")}>
                   {sectionType === "approved" && p.updatedAt
                     ? new Date(p.updatedAt).toLocaleDateString('en-GB')
                     : p.createdAt 
@@ -305,12 +285,12 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
                   }
                 </td>
 
-                <td data-label="Status">
+                <td data-label={t("adminRcpDB.colStatus")}>
                   <span className={`recipe-status-tag ${p.status === "Pending" ? "pending" : p.status === "Rejected" ? "rejected" : "approved"}`}>
                     {p.status}
                   </span>
                 </td>
-                <td data-label="Actions" className="admin-recipe-action-buttons">
+                <td data-label={t("adminRcpDB.colActions")} className="admin-recipe-action-buttons">
                   {p.status === "Approved" ? (
                     <>
                       <button className="food-database-btn-edit" onClick={() => navigate(`/admin/edit/community/${p.id}`)}>
@@ -322,7 +302,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
                     </>
                   ) : (
                     <button className="review-btn" onClick={() => navigate(`/admin/edit/community/${p.id}`)}>
-                      Review
+                      {t("adminRcpDB.review")}
                     </button>
                   )}
                 </td>
@@ -339,7 +319,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
-            ‹ Prev
+            ‹ {t("explore.prev")}
           </button>
 
           {renderPageNumbers()}
@@ -349,7 +329,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
-            Next ›
+            {t("explore.next")} ›
           </button>
         </div>
       )}

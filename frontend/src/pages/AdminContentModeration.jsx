@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { BsFileEarmarkCheck } from "react-icons/bs";
 
 const ContentModerationSection = ({ pendingContent = [], onlyApproved = false }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
-  // ✅ Normalize incoming data (works for live recipes or old dummy content)
+  // Normalize incoming data
   const formattedContent = pendingContent.map((item) => ({
-    id: item.id || item.recipeID || item.ID || Math.random(), // fallback ID
-    name: item.name || item.recipe_name || "Untitled Recipe",
-    submitter: item.submitter || item.author || "Unknown Author",
+    id: item.id || item.recipeID || item.ID || Math.random(),
+    name: item.name || item.recipe_name || t("adminContentMode.untitledRecipe"),
+    submitter: item.submitter || item.author || t("adminContentMode.unknownAuthor"),
     date: item.date || item.updated || item.updatedAt || "—",
     status: item.status || "Pending",
   }));
@@ -29,8 +31,8 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
 
   // === Dynamic Title ===
   const title = onlyApproved
-    ? "Approved Content Database"
-    : "Pending / Rejected Content Review";
+    ? t("adminContentMode.titleApproved")
+    : t("adminContentMode.titlePending");
 
   const renderPageNumbers = () => {
     let start = currentPage - 1;
@@ -46,18 +48,9 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
     end = Math.min(totalPages, end);
 
     let pages = [];
-
-    if (start > 1) {
-      pages.push('...');
-    }
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-
-    if (end < totalPages) {
-      pages.push('...');
-    }
+    if (start > 1) pages.push('...');
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < totalPages) pages.push('...');
 
     return pages.map((p, index) => (
       <button
@@ -80,7 +73,7 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
           {title}
         </h2>
         <p style={{ textAlign: "center", marginTop: "20px" }}>
-          No content available.
+          {t("adminContentMode.noContent")}
         </p>
       </div>
     );
@@ -101,11 +94,11 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
       >
         <thead>
           <tr>
-            <th>Content</th>
-            <th>Submitter</th>
-            <th>Date</th>
-            <th>Status</th>
-            {!onlyApproved && <th>Actions</th>}
+            <th>{t("adminContentMode.colContent")}</th>
+            <th>{t("adminContentMode.colSubmitter")}</th>
+            <th>{t("adminContentMode.colDate")}</th>
+            <th>{t("adminRcpDB.colStatus")}</th>
+            {!onlyApproved && <th>{t("adminRcpDB.colActions")}</th>}
           </tr>
         </thead>
 
@@ -125,16 +118,13 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
                 </span>
               </td>
 
-              {/* Actions only for pending/rejected items */}
               {!onlyApproved && (
                 <td className="admin-recipe-action-buttons">
                   <button
                     className="review-btn"
-                    onClick={() =>
-                      navigate(`/admin/reviewcontent/${item.id}`)
-                    }
+                    onClick={() => navigate(`/admin/reviewcontent/${item.id}`)}
                   >
-                    Review
+                    {t("adminRcpDB.review")}
                   </button>
                 </td>
               )}
@@ -150,7 +140,7 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
-            ‹ Prev
+            ‹ {t("explore.prev")}
           </button>
 
           {renderPageNumbers()}
@@ -160,7 +150,7 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
-            Next ›
+            {t("explore.next")} ›
           </button>
         </div>
       )}

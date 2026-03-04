@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "../css/EditFoodPage.css"; 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -9,12 +10,9 @@ import { FiPlus, FiCheck } from "react-icons/fi";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// Standard options matching your database
 const ORIGIN_OPTIONS = [
   "Malay", "Chinese", "Iban", "Melanau", "Kadazan", "Bidayuh", "Dayak",
 ];
-
-// Removed CATEGORY_OPTIONS as we are using Food Type to handle this now
 
 const FOOD_TYPE_OPTIONS = [
   "Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", 
@@ -23,7 +21,6 @@ const FOOD_TYPE_OPTIONS = [
 
 const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"];
 
-// Predefined lists for Tags and Ingredients
 const DIETARY_TAG_OPTIONS = [
   "Vegetarian", "Vegan", "Halal", "Gluten Free", 
   "Dairy Free", "Low Fat", "High Protein", "Spicy"
@@ -36,6 +33,7 @@ const COMMON_INGREDIENTS_LIST = [
 
 const AddFoodPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const fileInputRef = useRef(null);
 
   // --- States ---
@@ -52,7 +50,6 @@ const AddFoodPage = () => {
   // Main Food State
   const [food, setFood] = useState({
     name: "",
-    // category removed (derived from foodType)
     origin: "",
     description: "",
     culturalSignificance: "",
@@ -63,7 +60,6 @@ const AddFoodPage = () => {
     fat: "",
     fiber: "",
     vitaminc: "",
-    // Visible fields
     foodType: "Poultry", 
     customFoodType: "", 
     difficulty: "Medium", 
@@ -91,12 +87,10 @@ const AddFoodPage = () => {
     fetchCsrfToken();
   }, []);
 
-  // --- Input Change Handler ---
   const handleChange = (e) => {
     setFood({ ...food, [e.target.name]: e.target.value });
   };
 
-  // --- Toggle Handlers for Multi-Select ---
   const toggleDietary = (tag) => {
     setSelectedDietary((prev) => 
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
@@ -145,21 +139,20 @@ const AddFoodPage = () => {
   const handleConfirmAdd = async () => {
     setShowSaveConfirm(false);
 
-    // Validation
     if (!food.origin) {
-        setShowNotification({
-            visible: true,
-            message: "Please select a Region of Origin.",
-            type: "error"
-        });
-        return;
+      setShowNotification({
+        visible: true,
+        message: t("addFood.selectOrigin"),
+        type: "error"
+      });
+      return;
     }
 
     if (food.foodType === "Other..." && !food.customFoodType.trim()) {
       setShowNotification({
-          visible: true,
-          message: "Please specify the food type.",
-          type: "error"
+        visible: true,
+        message: t("addFood.specifyFoodType"),
+        type: "error"
       });
       return;
     }
@@ -168,34 +161,28 @@ const AddFoodPage = () => {
       let finalImageUrl = "";
       if (selectedImage) {
         try {
-            finalImageUrl = await handleImageUpload(selectedImage);
+          finalImageUrl = await handleImageUpload(selectedImage);
         } catch (error) {
-            setShowNotification({
-                visible: true, 
-                message: "Image upload failed. Try a smaller image.", 
-                type: "error"
-            });
-            return;
+          setShowNotification({
+            visible: true, 
+            message: t("addFood.imageUploadFailed"), 
+            type: "error"
+          });
+          return;
         }
       }
 
-      // 1. Process Custom Food Type
       const finalFoodType = food.foodType === "Other..." ? food.customFoodType : food.foodType;
-
-      // 2. Process Multi-Selects into Strings
       const dietaryString = selectedDietary.join(", ");
       
-      // Combine selected ingredients + custom "Other" text
       let ingredientsString = selectedIngredients.join(", ");
       if (showOtherIngredient && otherIngredientText.trim()) {
         if (ingredientsString) ingredientsString += ", ";
         ingredientsString += otherIngredientText.trim();
       }
 
-      // 3. Prepare Data Object
       const newFoodData = {
         name: food.name,
-        // Map "Category" to be the same as "Food Type" since they are redundant
         category: finalFoodType,
         origin: food.origin,
         description: food.description,
@@ -208,12 +195,9 @@ const AddFoodPage = () => {
         Fiber_g: Number(food.fiber) || 0,
         VitaminC_mg: Number(food.vitaminc) || 0,
         image: finalImageUrl,
-        
         difficulty: food.difficulty,
         prepTime: food.prepTime || "0",
         foodType: finalFoodType,
-
-        // Use our processed strings
         commonIngredients: ingredientsString,
         dietaryTags: dietaryString,
         healthTips: food.healthTips
@@ -233,16 +217,16 @@ const AddFoodPage = () => {
 
       if (data.success) {
         setShowNotification({
-            visible: true,
-            message: "Food added successfully!",
-            type: "success"
+          visible: true,
+          message: t("addFood.addedSuccess"),
+          type: "success"
         });
         setTimeout(() => navigate("/admin"), 1500);
       } else {
         setShowNotification({
-            visible: true,
-            message: "Failed to add food: " + (data.error || "Unknown error"),
-            type: "error"
+          visible: true,
+          message: t("addFood.addFailed", { error: data.error || t("addFood.unknownError") }),
+          type: "error"
         });
       }
 
@@ -250,14 +234,14 @@ const AddFoodPage = () => {
       console.error("Network error:", error);
       setShowNotification({
         visible: true,
-        message: "Network error. Could not connect to server.",
+        message: t("addFood.networkError"),
         type: "error"
       });
     }
   };
 
   const handleCloseNotification = () => {
-      setShowNotification({ visible: false, message: "", type: "" });
+    setShowNotification({ visible: false, message: "", type: "" });
   };
 
   // --- Inline Styles for Chip Selection ---
@@ -293,28 +277,28 @@ const AddFoodPage = () => {
         <div className="edit-topbar">
           <button className="admin-edit-food-back-btn" onClick={() => navigate("/admin")}>
             <span className="admin-edit-food-back-icon"><FaArrowLeftLong /></span>
-            Back to Dashboard
+            {t("addFood.backToDashboard")}
           </button>
 
           <div className="edit-title">
-            <h2>Add New Food Item</h2>
+            <h2>{t("addFood.pageTitle")}</h2>
           </div>
 
           <button className="admin-edit-food-save-btn" onClick={() => setShowSaveConfirm(true)}>
             <span className="admin-edit-food-save-icon"><FiPlus /></span>
-            Add Food
+            {t("addFood.addFoodBtn")}
           </button>
         </div>
 
         <div className="edit-grid">
           {/* === Image Section === */}
           <div className="edit-food-image-upload-section">
-            <h3>Food Image</h3>
+            <h3>{t("addFood.foodImage")}</h3>
             <div className="image-preview">
               {selectedImage ? (
                 <img src={URL.createObjectURL(selectedImage)} alt="Preview" />
               ) : (
-                <p>No Image Selected</p>
+                <p>{t("addFood.noImageSelected")}</p>
               )}
             </div>
 
@@ -331,48 +315,44 @@ const AddFoodPage = () => {
               onClick={() => fileInputRef.current.click()}
             >
               <span className="admin-edit-food-upload-icon"><MdOutlineFileUpload /></span>
-              Select Image
+              {t("addFood.selectImage")}
             </button>
           </div>
 
           {/* === Basic Info === */}
           <div className="edit-food-basic-info-card">
-            <h3>Basic Information</h3>
+            <h3>{t("addFood.basicInfo")}</h3>
             
-            <label className="basic-info-label">Food Name</label>
+            <label className="basic-info-label">{t("addFood.foodName")}</label>
             <input
               className="edit-food-input"
               name="name"
               value={food.name}
               onChange={handleChange}
-              placeholder="e.g. Laksa Sarawak"
+              placeholder={t("addFood.foodNamePlaceholder")}
             />
 
-            {/* REMOVED: Redundant Category Dropdown */}
-
-            {/* Origin Dropdown */}
             <div className="food-origin-field">
-              <label className="basic-info-label">Region of Origin</label>
+              <label className="basic-info-label">{t("addFood.regionOfOrigin")}</label>
               <div className="custom-select-wrapper">
                 <select 
-                    className="edit-food-select" 
-                    name="origin" 
-                    value={food.origin} 
-                    onChange={handleChange}
+                  className="edit-food-select" 
+                  name="origin" 
+                  value={food.origin} 
+                  onChange={handleChange}
                 >
-                    <option value="">Select an origin</option>
-                    {ORIGIN_OPTIONS.map((origin) => (
-                        <option key={origin} value={origin}>{origin}</option>
-                    ))}
+                  <option value="">{t("addFood.selectOriginOption")}</option>
+                  {ORIGIN_OPTIONS.map((origin) => (
+                    <option key={origin} value={origin}>{origin}</option>
+                  ))}
                 </select>
               </div>
             </div>
 
-            {/* Food Type Dropdown (Acts as Category) */}
             {food.foodType === "Other..." ? (
               <div className="edit-food-basic-info-two-col" style={{ marginTop: "1rem" }}>
                 <div>
-                  <label className="basic-info-label">Food Type</label>
+                  <label className="basic-info-label">{t("addFood.foodType")}</label>
                   <div className="custom-select-wrapper">
                     <select
                       className="edit-food-select"
@@ -387,19 +367,19 @@ const AddFoodPage = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="basic-info-label">Specify Food Type</label>
+                  <label className="basic-info-label">{t("addFood.specifyFoodTypeLabel")}</label>
                   <input
                     className="edit-food-input"
                     name="customFoodType"
                     value={food.customFoodType}
                     onChange={handleChange}
-                    placeholder="e.g. Beverage, Snack"
+                    placeholder={t("addFood.specifyFoodTypePlaceholder")}
                   />
                 </div>
               </div>
             ) : (
               <div className="food-origin-field" style={{ marginTop: "1rem" }}>
-                <label className="basic-info-label">Food Type</label>
+                <label className="basic-info-label">{t("addFood.foodType")}</label>
                 <div className="custom-select-wrapper">
                   <select
                     className="edit-food-select"
@@ -419,10 +399,10 @@ const AddFoodPage = () => {
 
         {/* === Recipe Details === */}
         <div className="edit-cultural-context-card">
-          <h3>Recipe Details</h3>
+          <h3>{t("addFood.recipeDetails")}</h3>
           <div className="edit-food-basic-info-two-col">
             <div>
-              <label className="basic-info-label">Difficulty Level</label>
+              <label className="basic-info-label">{t("addFood.difficultyLevel")}</label>
               <div className="custom-select-wrapper">
                 <select 
                   className="edit-food-select" 
@@ -437,14 +417,14 @@ const AddFoodPage = () => {
               </div>
             </div>
             <div>
-              <label className="basic-info-label">Prep Time (minutes)</label>
+              <label className="basic-info-label">{t("addFood.prepTime")}</label>
               <input
                 type="number"
                 className="edit-food-input"
                 name="prepTime"
                 value={food.prepTime}
                 onChange={handleChange}
-                placeholder="e.g. 30"
+                placeholder={t("addFood.prepTimePlaceholder")}
               />
             </div>
           </div>
@@ -452,71 +432,72 @@ const AddFoodPage = () => {
 
         {/* === Cultural Context === */}
         <div className="edit-cultural-context-card">
-          <h3>Cultural Context</h3>
-          <label className="basic-info-label">Description</label>
+          <h3>{t("addFood.culturalContext")}</h3>
+          <label className="basic-info-label">{t("addFood.description")}</label>
           <textarea 
             className="edit-food-textarea" 
             name="description" 
             value={food.description} 
             onChange={handleChange} 
             rows={4} 
-            placeholder="Briefly describe the food..."
+            placeholder={t("addFood.descriptionPlaceholder")}
           />
 
-          <label className="basic-info-label">Cultural Significance</label>
+          <label className="basic-info-label">{t("addFood.culturalSignificance")}</label>
           <textarea 
             className="edit-food-textarea" 
             name="culturalSignificance" 
             value={food.culturalSignificance} 
             onChange={handleChange} 
             rows={4} 
-            placeholder="Describe the cultural background behind this dish..."
+            placeholder={t("addFood.culturalSignificancePlaceholder")}
           />
 
-          <label className="basic-info-label">Traditional Preparation</label>
+          <label className="basic-info-label">{t("addFood.traditionalPreparation")}</label>
           <textarea 
             className="edit-food-textarea" 
             name="traditionalPreparation" 
             value={food.traditionalPreparation} 
             onChange={handleChange} 
             rows={4} 
-            placeholder="Describe how this dish is traditionally prepared..."
+            placeholder={t("addFood.traditionalPreparationPlaceholder")}
           />
         </div>
 
         {/* === Nutritional Info === */}
         <div className="edit-cultural-context-card">
-          <h3 className="edit-food-section-title">Nutritional Information <span className="serving-note">(per serving)</span></h3>
+          <h3 className="edit-food-section-title">
+            {t("addFood.nutritionalInfo")} <span className="serving-note">({t("addFood.perServing")})</span>
+          </h3>
           <div className="nutrition-grid">
             {[
-              { label: "Calories", name: "calories", placeholder: "e.g. 350" },
-              { label: "Protein (g)", name: "protein", placeholder: "e.g. 15" },
-              { label: "Carbohydrates (g)", name: "carbs", placeholder: "e.g. 45" },
-              { label: "Total Fat (g)", name: "fat", placeholder: "e.g. 12" },
-              { label: "Dietary Fiber (g)", name: "fiber", placeholder: "e.g. 4" },
-              { label: "Vitamin C (mg)", name: "vitaminc", placeholder: "e.g. 2.5" },
+              { labelKey: "addFood.calories",      name: "calories",  placeholder: "e.g. 350" },
+              { labelKey: "addFood.protein",        name: "protein",   placeholder: "e.g. 15" },
+              { labelKey: "addFood.carbohydrates",  name: "carbs",     placeholder: "e.g. 45" },
+              { labelKey: "addFood.totalFat",       name: "fat",       placeholder: "e.g. 12" },
+              { labelKey: "addFood.dietaryFiber",   name: "fiber",     placeholder: "e.g. 4" },
+              { labelKey: "addFood.vitaminC",       name: "vitaminc",  placeholder: "e.g. 2.5" },
             ].map((item) => (
               <div key={item.name}>
-                <label className="basic-info-label">{item.label}</label>
+                <label className="basic-info-label">{t(item.labelKey)}</label>
                 <input 
-                    type="number" 
-                    className="edit-food-input" 
-                    name={item.name} 
-                    value={food[item.name]} 
-                    onChange={handleChange}
-                    placeholder={item.placeholder}
+                  type="number" 
+                  className="edit-food-input" 
+                  name={item.name} 
+                  value={food[item.name]} 
+                  onChange={handleChange}
+                  placeholder={item.placeholder}
                 />
               </div>
             ))}
           </div>
         </div>
 
-        {/* === NEW: Additional Details with Selection Chips === */}
+        {/* === Additional Details === */}
         <div className="edit-cultural-context-card">
-          <h3>Additional Details</h3>
+          <h3>{t("addFood.additionalDetails")}</h3>
           
-          {/* Common Ingredients Selection */}
-          <label className="basic-info-label">Common Ingredients (Select all that apply)</label>
+          <label className="basic-info-label">{t("addFood.commonIngredients")}</label>
           <div style={chipContainerStyle}>
             {COMMON_INGREDIENTS_LIST.map((ing) => {
               const isSelected = selectedIngredients.includes(ing);
@@ -532,33 +513,32 @@ const AddFoodPage = () => {
                 </button>
               );
             })}
-            {/* Other Option */}
             <button
               type="button"
               style={getChipStyle(showOtherIngredient)}
               onClick={() => setShowOtherIngredient(!showOtherIngredient)}
             >
-              Other...
+              {t("addFood.other")}
               {showOtherIngredient && <FiCheck />}
             </button>
           </div>
 
-          {/* Conditional Input for Other Ingredients */}
           {showOtherIngredient && (
             <div style={{ marginBottom: "16px" }}>
-              <label className="basic-info-label" style={{fontSize: "0.9rem", color: "#666"}}>Specify other ingredients (comma separated)</label>
+              <label className="basic-info-label" style={{fontSize: "0.9rem", color: "#666"}}>
+                {t("addFood.otherIngredientsLabel")}
+              </label>
               <textarea 
                 className="edit-food-textarea" 
                 value={otherIngredientText}
                 onChange={(e) => setOtherIngredientText(e.target.value)}
                 rows={2} 
-                placeholder="e.g. Turmeric leaves, Belacan, Black pepper..."
+                placeholder={t("addFood.otherIngredientsPlaceholder")}
               />
             </div>
           )}
 
-          {/* Dietary Tags Selection */}
-          <label className="basic-info-label">Dietary Preferences</label>
+          <label className="basic-info-label">{t("addFood.dietaryPreferences")}</label>
           <div style={chipContainerStyle}>
             {DIETARY_TAG_OPTIONS.map((tag) => {
               const isSelected = selectedDietary.includes(tag);
@@ -567,7 +547,8 @@ const AddFoodPage = () => {
                   key={tag}
                   type="button"
                   style={getChipStyle(isSelected)}
-                  onClick={() => toggleDietary(tag)}
+                  onClick={() => toggleDietary(tag)
+                  }
                 >
                   {tag}
                   {isSelected && <FiCheck />}
@@ -576,15 +557,14 @@ const AddFoodPage = () => {
             })}
           </div>
 
-          {/* Health Tips */}
-          <label className="basic-info-label" style={{marginTop: "10px"}}>Health Tips</label>
+          <label className="basic-info-label" style={{marginTop: "10px"}}>{t("addFood.healthTips")}</label>
           <textarea 
             className="edit-food-textarea" 
             name="healthTips" 
             value={food.healthTips} 
             onChange={handleChange} 
             rows={2} 
-            placeholder="e.g. Rich in fiber, good for digestion..."
+            placeholder={t("addFood.healthTipsPlaceholder")}
           />
         </div>
 
@@ -593,14 +573,14 @@ const AddFoodPage = () => {
       {/* Confirmation Modal */}
       {showSaveConfirm && (
         <div className="modal-overlay">
-            <div className="delete-modal">
-            <h3>Confirm Add</h3>
-            <p>Are you sure you want to add <strong>{food.name || "this item"}</strong> to the database?</p>
+          <div className="delete-modal">
+            <h3>{t("addFood.confirmAddTitle")}</h3>
+            <p>{t("addFood.confirmAddMsg", { name: food.name || t("addFood.thisItem") })}</p>
             <div className="modal-actions">
-                <button className="save-cancel-btn" onClick={() => setShowSaveConfirm(false)}>Cancel</button>
-                <button className="confirm-save-btn" onClick={handleConfirmAdd}>Yes, Add Food</button>
+              <button className="save-cancel-btn" onClick={() => setShowSaveConfirm(false)}>{t("addFood.cancel")}</button>
+              <button className="confirm-save-btn" onClick={handleConfirmAdd}>{t("addFood.yesAddFood")}</button>
             </div>
-            </div>
+          </div>
         </div>
       )}
 
@@ -609,7 +589,7 @@ const AddFoodPage = () => {
         <div className="modal-overlay">
           <div className={`notification-modal ${showNotification.type}`}>
             <h3 style={{ color: showNotification.type === "error" ? "#a33b3b" : "#387346" }}>
-              {showNotification.type === "success" ? "Success!" : "Error!"}
+              {showNotification.type === "success" ? t("addFood.successTitle") : t("addFood.errorTitle")}
             </h3>
             <p>{showNotification.message}</p>
             <div className="modal-actions" style={{ justifyContent: "center" }}>
@@ -618,7 +598,7 @@ const AddFoodPage = () => {
                 onClick={handleCloseNotification}
                 style={{ backgroundColor: showNotification.type === "error" ? "#a33b3b" : "#7b4b26" }}
               >
-                OK
+                {t("addFood.ok")}
               </button>
             </div>
           </div>

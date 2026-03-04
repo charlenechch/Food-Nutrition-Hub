@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; 
+import { useTranslation } from "react-i18next";
 import "../css/AdminDashboard.css";
 
 // === Components ===
@@ -24,7 +25,8 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
+  const { t } = useTranslation();
 
   // ✅ DYNAMIC STATE INITIALIZATION: Read Tab & Status from URL on load
   const [activeTab, setActiveTab] = useState(() => {
@@ -64,7 +66,7 @@ const AdminDashboard = () => {
   const [rejectedCommunityPosts, setRejectedCommunityPosts] = useState([]);
   const [approvedCommunityPosts, setApprovedCommunityPosts] = useState([]);
 
-  // ✅ LISTENER: Sync State with URL changes (for back button/external links)
+  // ✅ LISTENER: Sync State with URL changes
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get("tab");
@@ -86,7 +88,7 @@ const AdminDashboard = () => {
   };
 
   // ========================================================
-  // ✅ Fetching Data (LOGS ADDED BACK)
+  // Fetching Data
   // ========================================================
   useEffect(() => {
     const fetchTotalFoods = async () => {
@@ -160,7 +162,6 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchPending = async () => {
       try {
-        console.log(`[Dashboard] Fetching pending posts from: ${API_URL}/api/communityPost/admin/pending`);
         const res = await fetch(`${API_URL}/api/communityPost/admin/pending`, { credentials: "include" });
         const data = await res.json();
         if (data.success) setPendingCommunityPosts(data.data || []);
@@ -172,7 +173,6 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchRejected = async () => {
       try {
-        console.log(`[Dashboard] Fetching rejected posts from: ${API_URL}/api/communityPost/admin/rejected`);
         const res = await fetch(`${API_URL}/api/communityPost/admin/rejected`, { credentials: "include" });
         const data = await res.json();
         if (data.success) setRejectedCommunityPosts(data.data || []);
@@ -182,25 +182,22 @@ const AdminDashboard = () => {
   }, []);
 
   useEffect(() => {
-      const fetchApproved = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/communityPost/counts`, { credentials: "include" });
-      const result = await response.json();
-      if (result.success) setApprovedCommunityPosts(result.data || []);
-    } catch (error) { console.error("⚠️ Error fetching approved community posts:", error); }
-  };
-  fetchApproved();
-}, []);
+    const fetchApproved = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/communityPost/counts`, { credentials: "include" });
+        const result = await response.json();
+        if (result.success) setApprovedCommunityPosts(result.data || []);
+      } catch (error) { console.error("⚠️ Error fetching approved community posts:", error); }
+    };
+    fetchApproved();
+  }, []);
 
   // ========================================================
   // Summary calculation
   // ========================================================
   useEffect(() => {
-    // 1. Count Pending
     const pendingRecipeCount = recipes.filter(r => (r.status || "").toLowerCase() === "pending").length;
     const pendingPostCount = pendingCommunityPosts.length; 
-
-    // 2. Count Flagged (Rejected)
     const rejectedRecipeCount = recipes.filter(r => (r.status || "").toLowerCase() === "rejected").length;
     const rejectedPostCount = rejectedCommunityPosts.length; 
 
@@ -268,60 +265,56 @@ const AdminDashboard = () => {
       <Header />
       <div className="admin-dashboard">
         <div className="dashboard-header">
-          <h1>Admin Dashboard</h1>
-          <p>Sarawakian Food Heritage Management System</p>
+          <h1>{t("adminHome.title")}</h1>
+          <p>{t("adminHome.subtitle")}</p>
         </div>
 
         {/* === Summary Cards === */}
         <div className="summary-cards">
           
-          {/* Total Food Database (Click to go to Database Tab) */}
           <div 
             className="summary-card" 
             onClick={() => handleTabChange("food")} 
             style={{ cursor: "pointer" }} 
           >
             <div>
-              <h3>Total Food Database</h3>
+              <h3>{t("adminHome.totalFoodDatabase")}</h3>
               <p>{summary.totalFoods}</p>
             </div>
             <div className="summary-icon"><FiDatabase /></div>
           </div>
 
-          {/* Total User Management (Click to go to Users Tab) */}
           <div 
             className="summary-card" 
             onClick={() => handleTabChange("users")} 
             style={{ cursor: "pointer" }}
           >
             <div>
-              <h3>Total User Management</h3>
+              <h3>{t("adminHome.totalUserManagement")}</h3>
               <p>{summary.totalUsers}</p>
             </div>
             <div className="summary-icon"><GoPeople /></div>
           </div>
 
-          {/* Pending Approval Card (Click to go to Moderation, Filter: Pending) */}
           <div 
             className="summary-card" 
             onClick={() => handleTabChange("moderation", "Pending")}
             style={{ cursor: "pointer" }}
           >
             <div>
-              <h3>Pending Approval</h3>
+              <h3>{t("adminHome.pendingApproval")}</h3>
               <p>{summary.pendingApproval}</p>
             </div>
             <div className="summary-icon"><LuFileCheck /></div>
           </div>
 
-          {/* Rejected Content Card (Click to go to Moderation, Filter: Rejected) */}
           <div 
             className="summary-card"
             onClick={() => handleTabChange("moderation", "Rejected")}
             style={{ cursor: "pointer" }}
           >
             <div>
-              <h3>Rejected Content</h3>
+              <h3>{t("adminHome.rejectedContent")}</h3>
               <p>{summary.flaggedContent}</p> 
             </div>
             <div className="summary-icon"><FaRegFlag /></div>
@@ -330,16 +323,26 @@ const AdminDashboard = () => {
 
         {/* === Tab Navigation === */}
         <div className="dashboard-tabs">
-          <button className={activeTab === "food" ? "active" : ""} onClick={() => handleTabChange("food")}> <FiDatabase /> Database </button>
-          <button className={activeTab === "users" ? "active" : ""} onClick={() => handleTabChange("users")}> <GoPeople /> User Management </button>
-          <button className={activeTab === "moderation" ? "active" : ""} onClick={() => handleTabChange("moderation")}> <LuFileCheck /> Content Moderation </button>
-          <button className={activeTab === "analytics" ? "active" : ""} onClick={() => handleTabChange("analytics")}> <FaRegChartBar /> Analytics </button>
-          <button className={activeTab === "settings" ? "active" : ""} onClick={() => handleTabChange("settings")}> <CiSettings /> System Settings </button>
+          <button className={activeTab === "food" ? "active" : ""} onClick={() => handleTabChange("food")}>
+            <FiDatabase /> {t("adminHome.tabDatabase")}
+          </button>
+          <button className={activeTab === "users" ? "active" : ""} onClick={() => handleTabChange("users")}>
+            <GoPeople /> {t("adminHome.tabUsers")}
+          </button>
+          <button className={activeTab === "moderation" ? "active" : ""} onClick={() => handleTabChange("moderation")}>
+            <LuFileCheck /> {t("adminHome.tabModeration")}
+          </button>
+          <button className={activeTab === "analytics" ? "active" : ""} onClick={() => handleTabChange("analytics")}>
+            <FaRegChartBar /> {t("adminHome.tabAnalytics")}
+          </button>
+          <button className={activeTab === "settings" ? "active" : ""} onClick={() => handleTabChange("settings")}>
+            <CiSettings /> {t("adminHome.tabSettings")}
+          </button>
         </div>
 
         {/* === Dashboard Content === */}
         <div className="dashboard-content">
-          {loading ? <p>Loading data...</p> : renderContent()}
+          {loading ? <p>{t("adminHome.loadingData")}</p> : renderContent()}
         </div>
       </div>
       <Footer />
