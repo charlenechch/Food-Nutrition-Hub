@@ -492,18 +492,20 @@ export default function AdminSystemSettings({
 
     return (
         <div className="admset-wrap">
-            <div className="admset-grid">
-                {/* ===== Left Card: Settings / Communication / Monitoring ===== */}
+            <div className="admset-single-card-container">
                 <div className="admset-card">
+                    {/* Unified Single Header */}
                     <div className="admset-card-header">
                         <h3 className="admset-card-title">
                             <Settings className="admset-ic" />
-                            {t.platform} Settings Configuration
+                            {t.platform} System Management
                         </h3>
                     </div>
 
+                    {/* Unified Single Content Area */}
                     <div className="admset-card-content">
-                        {/* Email notifications switch */}
+                        
+                        {/* Section 1: Email notifications switch */}
                         <div className="admset-block">
                             <div className="admset-row between">
                                 <label htmlFor="admset-notif" className="admset-label">
@@ -523,7 +525,7 @@ export default function AdminSystemSettings({
 
                         <hr className="admset-sep" />
 
-                        {/* Communication */}
+                        {/* Section 2: Communication */}
                         <div className="admset-block">
                             <div className="admset-label mb-6">Communication</div>
                             <div className="admset-grid-1">
@@ -536,21 +538,12 @@ export default function AdminSystemSettings({
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* ===== Right Card: Backup/Restore & Export ===== */}
-                <div className="admset-card">
-                    <div className="admset-card-header">
-                        <h3 className="admset-card-title">
-                            <Archive className="admset-ic" />
-                            {t.backupRestore} &nbsp;& {t.dataExport}
-                        </h3>
-                    </div>
+                        <hr className="admset-sep" />
 
-                    <div className="admset-card-content">
-                        {/* Last backup */}
+                        {/* Section 3: Backup & Maintenance */}
                         <div className="admset-block">
+                            <div className="admset-label mb-6">Backup & Maintenance</div>
                             <div className="admset-callout">
                                 <div>
                                     <p>Last Backup</p>
@@ -573,11 +566,10 @@ export default function AdminSystemSettings({
 
                         <hr className="admset-sep" />
 
-                        {/* Export with format selection */}
+                        {/* Section 4: Data Export Options */}
                         <div className="admset-block">
                             <div className="admset-label mb-6">Data Export Options</div>
-                            <div className="space-y-4"> {/* Vertical spacing */}
-                                {/* Food Database */}
+                            <div className="space-y-4">
                                 <button 
                                     className="admset-btn admset-btn-outline w-full justify-start"
                                     onClick={() => handleExport('food-csv')}
@@ -587,7 +579,6 @@ export default function AdminSystemSettings({
                                     {exportLoading.csv ? 'Exporting...' : 'Export Food Database (CSV)'}
                                 </button>
 
-                                {/* Analytics Report - Single button that opens modal */}
                                 <button 
                                     className="admset-btn admset-btn-outline w-full justify-start admset-btn-2"
                                     onClick={() => handleExport('analytics-report')}
@@ -600,6 +591,7 @@ export default function AdminSystemSettings({
                                 </button>               
                             </div>        
                         </div>
+
                     </div>
                 </div>
             </div>

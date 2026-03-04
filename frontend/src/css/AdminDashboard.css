@@ -137,6 +137,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
 .food-header h2, .recipe-header h2 {
@@ -175,14 +177,12 @@
 }
 
 .food-actions button, .recipe-actions button {
-  margin-left: 10px;
   border: none;
   border-radius: 8px;
   padding: 8px 12px;
   cursor: pointer;
   font-weight: 500;
-  font-size: 14px;
-  display: inline-flex;            
+  font-size: 14px;         
   align-items: center;            
   justify-content: center;        
   gap: 6px;                        
@@ -1717,18 +1717,6 @@
   margin: 16px;
 }
 
-/* grid */
-.admset-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-@media (min-width: 1024px) {
-  .admset-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
 /* card */
 .admset-card {
   background: #fff;
@@ -1810,6 +1798,11 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+
+.admset-single-card-container {
+    max-width: 800px;
+    margin: 0 auto;
 }
 .w-full { width: 100%; }
 .justify-start { justify-content: flex-start; }
@@ -2056,6 +2049,12 @@
     padding: 4px 0;
 }
 
+@media (max-width: 992px) {
+    .admset-single-card-container {
+        max-width: 100%;
+    }
+}
+
 @media (max-width: 600px) {
     .admset-wrap {
         margin: 10px; 
@@ -2254,8 +2253,6 @@
 
   .food-actions {
     width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
 
