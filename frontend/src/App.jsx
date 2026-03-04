@@ -23,19 +23,19 @@ import RecipeDetailPage from "./pages/RecipeDetailPage";
 import CommunityPage from "./pages/CommunityPage";
 import CommunityPost from "./pages/CommunityPostPage";
 import UserProfilePage from "./pages/UserProfilePage";
-// import Analytics from "./pages/Analytics";
+import Analytics from "./pages/Analytics";
 
 // // === Admin Pages ===
 import AdminHomepage from "./pages/AdminHomepage";
-// import EditFoodPage from "./pages/EditFoodPage";
-// import AddFoodPage from "./pages/AddFoodPage";
-// import AddRecipe from "./pages/AddRecipePage";
-// import EditRecipePage from "./pages/EditRecipePage";
-// import ReviewContentPage from "./pages/ReviewContentPage";
-// import ReviseRecipePage from "./pages/ReviseRecipePage";
-// import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
-// import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
-// import EditCommunityPostPage from "./pages/EditCommunityPostPage";
+import EditFoodPage from "./pages/EditFoodPage";
+import AddFoodPage from "./pages/AddFoodPage";
+import AddRecipe from "./pages/AddRecipePage";
+import EditRecipePage from "./pages/EditRecipePage";
+import ReviewContentPage from "./pages/ReviewContentPage";
+import ReviseRecipePage from "./pages/ReviseRecipePage";
+import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
+import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
+import EditCommunityPostPage from "./pages/EditCommunityPostPage";
 
 // // === Auth & Verification ===
 import AuthActionRouter from "./pages/AuthActionRouter";
@@ -217,6 +217,17 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute allowedRoles={["member", "admin"]}>
+              <Analytics />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="/revise/:id" element={<ReviseRecipePage />} />
+        <Route path="/revisecommunitypostpage/:id" element={<ReviseCommunityPostPage />} />
 
         {/* === Member Pages === */}
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
@@ -227,6 +238,21 @@ function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <AdminHomepage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/admin/addfood" element={<AddFoodPage />} />
+          <Route path="/admin/addrecipe" element={<AddRecipe />} />
+          <Route path="/admin/editfood/:id" element={<EditFoodPage />} />
+          <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />
+          <Route path="/admin/reviewcontent/:id" element={<ReviewContentPage />} />
+
+        {/* Community Review Routes */}
+        <Route
+            path="/admin/edit/community/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <EditCommunityPostPage />
               </ProtectedRoute>
             }
           />
@@ -247,36 +273,6 @@ function AppRoutes() {
     </Router>
   );
 }
-
-//         <Route
-//           path="/analytics"
-//           element={
-//             <ProtectedRoute allowedRoles={["member", "admin"]}>
-//               <Analytics />
-//             </ProtectedRoute>
-//           }
-//         />
-
-//         <Route path="/revise/:id" element={<ReviseRecipePage />} />
-//         <Route path="/revisecommunitypostpage/:id" element={<ReviseCommunityPostPage />} />
-
-//         {/* === Admin Pages === */}
-
-//         <Route path="/admin/addfood" element={<AddFoodPage />} />
-//         <Route path="/admin/addrecipe" element={<AddRecipe />} />
-//         <Route path="/admin/editfood/:id" element={<EditFoodPage />} />
-//         <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />
-//         <Route path="/admin/reviewcontent/:id" element={<ReviewContentPage />} />
-
-//         {/* Community Review Routes */}
-//         <Route
-//             path="/admin/edit/community/:id"
-//             element={
-//               <ProtectedRoute allowedRoles={["admin"]}>
-//                 <EditCommunityPostPage />
-//               </ProtectedRoute>
-//             }
-//           />
 
 function App() {
   return (
