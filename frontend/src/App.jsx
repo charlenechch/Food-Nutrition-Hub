@@ -22,11 +22,11 @@ import RecipesPage from "./pages/RecipesPage";
 import RecipeDetailPage from "./pages/RecipeDetailPage";
 import CommunityPage from "./pages/CommunityPage";
 import CommunityPost from "./pages/CommunityPostPage";
-// import UserProfilePage from "./pages/UserProfilePage";
+import UserProfilePage from "./pages/UserProfilePage";
 // import Analytics from "./pages/Analytics";
 
 // // === Admin Pages ===
-// import AdminHomepage from "./pages/AdminHomepage";
+import AdminHomepage from "./pages/AdminHomepage";
 // import EditFoodPage from "./pages/EditFoodPage";
 // import AddFoodPage from "./pages/AddFoodPage";
 // import AddRecipe from "./pages/AddRecipePage";
@@ -34,7 +34,7 @@ import CommunityPost from "./pages/CommunityPostPage";
 // import ReviewContentPage from "./pages/ReviewContentPage";
 // import ReviseRecipePage from "./pages/ReviseRecipePage";
 // import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
-// import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
+import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
 // import EditCommunityPostPage from "./pages/EditCommunityPostPage";
 
 // // === Auth & Verification ===
@@ -219,7 +219,30 @@ function AppRoutes() {
         />
 
         {/* === Member Pages === */}
-        {/* <Route path="/profile/:userProfileID" element={<UserProfilePage />} /> */}
+        <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
+
+        {/* === Admin Pages === */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminHomepage />
+              </ProtectedRoute>
+            }
+          />
+
+        {/* Protected Profile (member + admin only) */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute allowedRoles={["member", "admin"]}>
+                <UserProfilePage />
+              </ProtectedRoute>
+            }
+          />
+
+        {/* === Catch-all Fallback === */}
+          <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
@@ -234,20 +257,11 @@ function AppRoutes() {
 //           }
 //         />
 
-//         
-
 //         <Route path="/revise/:id" element={<ReviseRecipePage />} />
 //         <Route path="/revisecommunitypostpage/:id" element={<ReviseCommunityPostPage />} />
 
 //         {/* === Admin Pages === */}
-//         <Route
-//           path="/admin"
-//           element={
-//             <ProtectedRoute allowedRoles={["admin"]}>
-//               <AdminHomepage />
-//             </ProtectedRoute>
-//           }
-//         />
+
 //         <Route path="/admin/addfood" element={<AddFoodPage />} />
 //         <Route path="/admin/addrecipe" element={<AddRecipe />} />
 //         <Route path="/admin/editfood/:id" element={<EditFoodPage />} />
@@ -263,23 +277,6 @@ function AppRoutes() {
 //               </ProtectedRoute>
 //             }
 //           />
-
-//         {/* Protected Profile (member + admin only) */}
-//         <Route
-//           path="/profile"
-//           element={
-//             <ProtectedRoute allowedRoles={["member", "admin"]}>
-//               <UserProfilePage />
-//             </ProtectedRoute>
-//           }
-//         />
-
-//         {/* === Catch-all Fallback === */}
-//         <Route path="*" element={<Navigate to="/" replace />} />
-//       </Routes>
-//     </Router>
-//   );
-// }
 
 function App() {
   return (
