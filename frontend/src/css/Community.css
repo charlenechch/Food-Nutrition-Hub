@@ -812,11 +812,10 @@
 
 @media (max-width: 900px) {
   .sticky-filter-bar {
-    top: 75px;
     flex-direction: column; 
     align-items: stretch;   
     padding: 15px;
-    gap: 10px;
+    gap: 15px;
   }
 
   .search-pill {
@@ -829,9 +828,10 @@
     gap: 10px;
   }
 
-  .select-wrapper {
+  .custom-dropdown-wrapper {
     flex: 1; 
     width: 50%;
+    min-width: unset; 
   }
 
   .community-filter-select {
