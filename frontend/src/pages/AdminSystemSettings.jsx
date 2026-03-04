@@ -758,7 +758,7 @@ export default function AdminSystemSettings({
                     aria-modal="true"
                     onClick={() => setShowExportModal(false)}
                 >
-                    <div className="umg-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                    <div className="umg-modal" onClick={(e) => e.stopPropagation()}>
                         {/* Header */}
                         <div className="umg-modal-header">
                             <h3><FileText size={18} /> {t("adminSettings.exportAnalyticsReportTitle")}</h3>
