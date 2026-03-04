@@ -1,0 +1,12 @@
+{
+  "nav": {
+    "home": "Laman Utama",
+    "explore": "Jelajahi Makanan",
+    "analyzer": "Penganalisis Nutrisi",
+    "recipes": "Resipi",
+    "community": "Komuniti",
+    "profile": "Profil",
+    "logout": "Log Keluar",
+    "login": "Log Masuk / Daftar"
+  }
+}

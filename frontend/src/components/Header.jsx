@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { FaGlobe, FaSignOutAlt, FaUser, FaCrown } from "react-icons/fa";
+import { FaGlobe, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { User } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal";
+import { useTranslation } from "react-i18next";
 import "./Header.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -12,10 +13,30 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const [currentLang, setCurrentLang] = useState("EN");
+
+  // Current language label derived from i18n state (no separate useState needed)
+  const currentLang = i18n.language === "en" ? "EN" : "BM";
+
+  React.useEffect(() => {
+    if (user?.role === "admin" && location.pathname === "/home") {
+      navigate("/admin");
+    }
+  }, [user, location.pathname]);
+
+  const toggleMenu = () => setMenuOpen(!menuOpen);
+  const closeMenu = () => setMenuOpen(false);
+
+  // Toggle between EN and BM, persist to localStorage
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "ms" : "en";
+    i18n.changeLanguage(newLang);
+    localStorage.setItem("sarawakeats_lang", newLang);
+  };
 
   const getCsrfToken = async () => {
     try {
@@ -29,37 +50,24 @@ export default function Header() {
     }
   };
 
-    React.useEffect(() => {
-    if (user?.role === "admin" && location.pathname === "/home") {
-      navigate("/admin");
-    }
-  }, [user, location.pathname]);
-
-  const toggleMenu = () => setMenuOpen(!menuOpen);
-  const closeMenu = () => setMenuOpen(false);
-
-const handleLogout = async () => {
+  const handleLogout = async () => {
     setIsLoggingOut(true);
     window.isLoggingOut = true;
-
     try {
       const csrfToken = await getCsrfToken();
       localStorage.removeItem("user");
-
       await fetch(`${API_URL}/api/logout`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken 
+          "X-CSRF-Token": csrfToken,
         },
         credentials: "include",
-        keepalive: true
+        keepalive: true,
       });
-
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Hard Redirect
       window.location.href = "/loginregister";
     }
   };
@@ -72,166 +80,96 @@ const handleLogout = async () => {
     }
   };
 
-  // === Google Translate Handler ===
-  const TranslateButton = () => {
-    const changeLanguage = (lang) => {
-      const select = document.querySelector("#google_translate_element select");
-      if (!select) {
-        console.warn("Google Translate not loaded yet");
-        return;
-      }
-      select.value = lang;
-      select.dispatchEvent(new Event("change"));
-    };
-
-    return (
-      <div className="flex items-center gap-2 lang-switch">
-        <button
-          onClick={() => changeLanguage("en")}
-          className="px-2 py-1 border rounded text-sm hover:bg-gray-100"
-        >
-          EN
-        </button>
-
-        <button
-          onClick={() => changeLanguage("ms")}
-          className="px-2 py-1 border rounded text-sm hover:bg-gray-100"
-        >
-          BM
-        </button>
-      </div>
-    );
-  };
-
-  // === Language Toggle using Google Translate ===
-  const toggleLanguage = () => {
-    const select = document.querySelector("#google_translate_element select");
-    if (!select) return;
-
-    const newLang = currentLang === "EN" ? "ms" : "en";
-    const newLabel = currentLang === "EN" ? "BM" : "EN";
-
-    select.value = newLang;
-    select.dispatchEvent(new Event("change"));
-    setCurrentLang(newLabel);
-  };
-
-
   return (
     <>
-    {isLoggingOut && (
+      {isLoggingOut && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: '#ffffff',
-          zIndex: 999999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
+          position: "fixed", top: 0, left: 0,
+          width: "100vw", height: "100vh",
+          backgroundColor: "#ffffff", zIndex: 999999,
+          display: "flex", alignItems: "center", justifyContent: "center",
         }}>
-           <h3 style={{ color: '#8B4513', fontFamily: 'sans-serif' }}>Logging out...</h3>
+          <h3 style={{ color: "#8B4513", fontFamily: "sans-serif" }}>Logging out...</h3>
         </div>
       )}
+
       <nav className="navbar">
-        {/* === Logo === */}
+        {/* Logo */}
         <div
           className="navbar-logo"
-          onClick={() => {
-            if (user?.role === "admin") {
-              navigate("/admin");
-            } else {
-              navigate("/home");
-            }
-          }}
+          onClick={() => navigate(user?.role === "admin" ? "/admin" : "/home")}
         >
           <span className="logo-icon">S</span>
           <span className="logo-text">SarawakEats</span>
         </div>
 
-        {/* === Hamburger Menu (Mobile) === */}
-        <div
-          className={`hamburger ${menuOpen ? "open" : ""}`}
-          onClick={toggleMenu}
-        >
+        {/* Hamburger (Mobile) */}
+        <div className={`hamburger ${menuOpen ? "open" : ""}`} onClick={toggleMenu}>
           <span></span>
           <span></span>
           <span></span>
         </div>
 
-        {/* === Desktop Nav Links === */}
+        {/* Desktop Nav Links */}
         <ul className="navbar-links">
-          <li>
-            <NavLink
-              to={user?.role === "admin" ? "/admin" : "/home"}
-            >
-              Home
-            </NavLink>
-          </li>
-          <li><NavLink to="/foods">Explore Foods</NavLink></li>
-          <li><NavLink to="/analyzer">Nutrition Analyzer</NavLink></li>
-          <li><NavLink to="/recipes">Recipes</NavLink></li>
-          <li><NavLink to="/community">Community</NavLink></li>
+          <li><NavLink to={user?.role === "admin" ? "/admin" : "/home"}>{t("nav.home")}</NavLink></li>
+          <li><NavLink to="/foods">{t("nav.explore")}</NavLink></li>
+          <li><NavLink to="/analyzer">{t("nav.analyzer")}</NavLink></li>
+          <li><NavLink to="/recipes">{t("nav.recipes")}</NavLink></li>
+          <li><NavLink to="/community">{t("nav.community")}</NavLink></li>
         </ul>
 
-        {/* === MOBILE MENU (Hamburger Drawer) === */}
+        {/* Mobile Menu Drawer */}
         {menuOpen && (
           <div className="mobile-menu">
-            <NavLink to={user?.role === "admin" ? "/admin" : "/home"} onClick={closeMenu}>Home</NavLink>
-            <NavLink to="/foods" onClick={closeMenu}>Explore Foods</NavLink>
-            <NavLink to="/analyzer" onClick={closeMenu}>Nutrition Analyzer</NavLink>
-            <NavLink to="/recipes" onClick={closeMenu}>Recipes</NavLink>
-            <NavLink to="/community" onClick={closeMenu}>Community</NavLink>
+            <NavLink to={user?.role === "admin" ? "/admin" : "/home"} onClick={closeMenu}>{t("nav.home")}</NavLink>
+            <NavLink to="/foods" onClick={closeMenu}>{t("nav.explore")}</NavLink>
+            <NavLink to="/analyzer" onClick={closeMenu}>{t("nav.analyzer")}</NavLink>
+            <NavLink to="/recipes" onClick={closeMenu}>{t("nav.recipes")}</NavLink>
+            <NavLink to="/community" onClick={closeMenu}>{t("nav.community")}</NavLink>
 
             <button onClick={toggleLanguage} className="mobile-btn">
               <FaGlobe className="mobile-icon" /> {currentLang}
             </button>
 
             <button onClick={handleProfileClick} className="mobile-btn">
-              <User className="mobile-icon" size={18} /> Profile
+              <User className="mobile-icon" size={18} /> {t("nav.profile")}
             </button>
 
             {user && user.role !== "guest" ? (
               <button onClick={handleLogout} className="mobile-btn logout">
-                <FaSignOutAlt className="mobile-icon"/> Logout
+                <FaSignOutAlt className="mobile-icon" /> {t("nav.logout")}
               </button>
             ) : (
               <button onClick={() => navigate("/loginregister")} className="mobile-btn">
-                <User size={16} /> Login / Register
+                <User size={16} /> {t("nav.login")}
               </button>
             )}
           </div>
         )}
 
-
-        {/* === Desktop Actions === */}
+        {/* Desktop Actions */}
         <div className="navbar-actions">
-          {/* 🌐 Language */}
           <button className="lang-btn" onClick={toggleLanguage}>
             <FaGlobe className="icon" /> {currentLang}
           </button>
-          
-          {/* 👤 Profile */}
+
           <button onClick={handleProfileClick}>
-            <User size={18} /> Profile
+            <User size={18} /> {t("nav.profile")}
           </button>
 
-          {/* 🚪 Logout / Login */}
-          {user && user.role !== 'guest' ? (
+          {user && user.role !== "guest" ? (
             <button className="logout-btn" onClick={handleLogout}>
-              <FaSignOutAlt /> Logout
+              <FaSignOutAlt /> {t("nav.logout")}
             </button>
           ) : (
             <button onClick={() => navigate("/loginregister")}>
-              <FaUser size={16} /> Login
+              <FaUser size={16} /> {t("nav.login")}
             </button>
           )}
         </div>
       </nav>
 
-      {/* ✅ Login Modal */}
       {showLoginPrompt && (
         <LoginPromptModal
           message="Please login or register to access your profile."

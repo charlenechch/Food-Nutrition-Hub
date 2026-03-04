@@ -1,0 +1,12 @@
+{
+  "nav": {
+    "home": "Home",
+    "explore": "Explore Foods",
+    "analyzer": "Nutrition Analyzer",
+    "recipes": "Recipes",
+    "community": "Community",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login / Register"
+  }
+}
