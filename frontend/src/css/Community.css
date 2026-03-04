@@ -808,6 +808,14 @@
     height: 30px;
     font-size: 0.8rem;
   }
+
+  .filter-group {
+    flex-direction: column;
+  }
+  
+  .custom-dropdown-wrapper {
+    width: 100%;
+  }
 }
 
 @media (max-width: 900px) {
