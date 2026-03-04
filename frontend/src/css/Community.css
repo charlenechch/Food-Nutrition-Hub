@@ -811,7 +811,6 @@
 
   .filter-group {
     flex-direction: column;
-    width: 100%;
   }
   
   .custom-dropdown-wrapper {
@@ -839,7 +838,6 @@
 
   .custom-dropdown-wrapper {
     flex: 1; 
-    width: 50%;
     min-width: unset; 
   }
 
