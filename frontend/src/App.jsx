@@ -22,7 +22,7 @@ import RecipesPage from "./pages/RecipesPage";
 import RecipeDetailPage from "./pages/RecipeDetailPage";
 import CommunityPage from "./pages/CommunityPage";
 import CommunityPost from "./pages/CommunityPostPage";
-import UserProfilePage from "./pages/UserProfilePage";
+// import UserProfilePage from "./pages/UserProfilePage";
 // import Analytics from "./pages/Analytics";
 
 // // === Admin Pages ===
@@ -219,7 +219,7 @@ function AppRoutes() {
         />
 
         {/* === Member Pages === */}
-        <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
+        {/* <Route path="/profile/:userProfileID" element={<UserProfilePage />} /> */}
       </Routes>
     </Router>
   );
