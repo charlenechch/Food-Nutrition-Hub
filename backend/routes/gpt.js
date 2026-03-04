@@ -56,7 +56,7 @@ async function tryWithCNN(pureBase64, format) {
     const response = await fetch(`${CNN_API_URL}/predict`, {
       method: "POST",
       body: formData,
-      signal: AbortSignal.timeout(10000), // 10s timeout
+      signal: AbortSignal.timeout(25000), // 10s timeout
     });
 
     if (!response.ok) return null;
@@ -70,6 +70,18 @@ async function tryWithCNN(pureBase64, format) {
     return null;
   }
 }
+
+router.get("/cnn-wake", async (req, res) => {
+  try {
+    const response = await fetch(`${process.env.CNN_API_URL}/health`, {
+      signal: AbortSignal.timeout(30000)
+    });
+    const data = await response.json();
+    res.json({ ok: true, cnn: data });
+  } catch {
+    res.json({ ok: false });
+  }
+});
 
 // MAIN GPT ROUTE
 router.post("/nutrition", async (req, res) => {

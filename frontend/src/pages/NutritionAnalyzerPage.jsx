@@ -88,6 +88,11 @@ export default function NutritionAnalyzerPage() {
     return () => clearTimeout(t);
   }, [debouncedName]);
 
+  useEffect(() => {
+    // Ping CNN to wake it up when page loads
+    fetch(`${API_URL}/api/ai/cnn-wake`, { method: "GET" }).catch(() => {});
+  }, []);
+
   // ----------------- DB SHAPING -----------------
   function shapeResultFromDB(row) {
     const altDescription = row.altDescription || "";
