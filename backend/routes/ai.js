@@ -64,6 +64,18 @@ router.get("/lookup", async (req, res) => {
   }
 });
 
+router.get("/cnn-wake", async (req, res) => {
+  try {
+    const response = await fetch(`${process.env.CNN_API_URL}/health`, {
+      signal: AbortSignal.timeout(30000)
+    });
+    const data = await response.json();
+    res.json({ ok: true, cnn: data });
+  } catch (err) {
+    res.json({ ok: false, message: err.message });
+  }
+});
+
 // POST /api/ai/analyze  { food_name, ingredients }
 router.post("/analyze", async (req, res) => {
   const foodName = (req.body.food_name || "").trim();
