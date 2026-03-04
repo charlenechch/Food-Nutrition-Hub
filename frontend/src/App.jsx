@@ -14,7 +14,7 @@ import { useEffect } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // // === User & Public Pages ===
-// import LoginRegisterPage from "./pages/LoginRegisterPage";
+import LoginRegisterPage from "./pages/LoginRegisterPage";
 import UserHomepage from "./pages/UserHomepage";
 import ExploreFoodsPage from "./pages/ExploreFoodPage";
 import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
@@ -38,11 +38,11 @@ import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
 // import EditCommunityPostPage from "./pages/EditCommunityPostPage";
 
 // // === Auth & Verification ===
-// import AuthActionRouter from "./pages/AuthActionRouter";
-// import EmailVerificationPage from "./pages/EmailVerificationPage";
-// import ForgetPassword from "./pages/ForgotPasswordPage";
-// import ResetPassword from "./pages/ResetPasswordPage";
-// import OTPVerification from "./pages/OTPVerificationPage";
+import AuthActionRouter from "./pages/AuthActionRouter";
+import EmailVerificationPage from "./pages/EmailVerificationPage";
+import ForgetPassword from "./pages/ForgotPasswordPage";
+import ResetPassword from "./pages/ResetPasswordPage";
+import OTPVerification from "./pages/OTPVerificationPage";
 
 // // === Food Detail & Discussion ===
 import FoodDetail from "./pages/FoodDetailPage";
@@ -191,6 +191,14 @@ function AppRoutes() {
           <Route path="/" element={<UserHomepage />} />
           <Route path="/home" element={<UserHomepage />} />
 
+        {/* === Auth Routes === */}
+          <Route path="/loginregister" element={<LoginRegisterPage />} />
+          <Route path="/auth/action" element={<AuthActionRouter />} />
+          <Route path="/verifyemail" element={<EmailVerificationPage />} />
+          <Route path="/forgotpassword" element={<ForgetPassword />} />
+          <Route path="/resetpassword" element={<ResetPassword />} />
+          <Route path="/otpverification" element={<OTPVerification />} />
+
         {/* === Public / User Pages === */}
           <Route path="/foods" element={<ExploreFoodsPage />} />
           <Route path="/fooddetail/:id" element={<FoodDetail />} />
@@ -212,13 +220,7 @@ function AppRoutes() {
 //         <Route path="/" element={<UserHomepage />} />
 //         <Route path="/home" element={<UserHomepage />} />
         
-//         {/* === Auth Routes === */}
-//         <Route path="/loginregister" element={<LoginRegisterPage />} />
-//         <Route path="/auth/action" element={<AuthActionRouter />} />
-//         <Route path="/verifyemail" element={<EmailVerificationPage />} />
-//         <Route path="/forgotpassword" element={<ForgetPassword />} />
-//         <Route path="/resetpassword" element={<ResetPassword />} />
-//         <Route path="/otpverification" element={<OTPVerification />} />
+
 
 //         {/* === Public / User Pages === */}
 //         <Route path="/foods" element={<ExploreFoodsPage />} />
