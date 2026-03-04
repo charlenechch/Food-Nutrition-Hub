@@ -18,11 +18,11 @@ import LoginRegisterPage from "./pages/LoginRegisterPage";
 import UserHomepage from "./pages/UserHomepage";
 import ExploreFoodsPage from "./pages/ExploreFoodPage";
 import NutritionAnalyzerPage from "./pages/NutritionAnalyzerPage";
-// import RecipesPage from "./pages/RecipesPage";
-// import RecipeDetailPage from "./pages/RecipeDetailPage";
-// import CommunityPage from "./pages/CommunityPage";
-// import CommunityPost from "./pages/CommunityPostPage";
-// import UserProfilePage from "./pages/UserProfilePage";
+import RecipesPage from "./pages/RecipesPage";
+import RecipeDetailPage from "./pages/RecipeDetailPage";
+import CommunityPage from "./pages/CommunityPage";
+import CommunityPost from "./pages/CommunityPostPage";
+import UserProfilePage from "./pages/UserProfilePage";
 // import Analytics from "./pages/Analytics";
 
 // // === Admin Pages ===
@@ -49,8 +49,8 @@ import FoodDetail from "./pages/FoodDetailPage";
 import FoodDiscussion from "./pages/FoodDiscussionPage";
 
 // // === Shared Components ===
-// import ProtectedRoute from "./components/ProtectedRoute";
-// import ScrollToTop from "./components/ScrollToTop";
+import ProtectedRoute from "./components/ProtectedRoute";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Global Fetch Interceptor
 function FetchInterceptorSetup() {
@@ -203,6 +203,10 @@ function AppRoutes() {
           <Route path="/foods" element={<ExploreFoodsPage />} />
           <Route path="/fooddetail/:id" element={<FoodDetail />} />
           <Route path="/fooddiscussion/:foodId" element={<FoodDiscussionRoute />} />
+          <Route path="/recipes" element={<RecipesPage />} />
+          <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+          <Route path="/community" element={<CommunityPage />} />
+          <Route path="/community/:id" element={<CommunityPost />} />
 
         {/* === Gated Tools (Protected) === */}
         <Route
@@ -213,28 +217,13 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        {/* === Member Pages === */}
+        <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
       </Routes>
     </Router>
   );
 }
-
-// function AppRoutes() {
-//   return (
-//     <Router>
-//       <FetchInterceptorSetup />
-//       <AxiosInterceptorSetup />
-//       <SessionChecker />
-//       <ScrollToTop />
-//       <Routes>
-        
-
-
-//         {/* === Public / User Pages === */}
-//         <Route path="/recipes" element={<RecipesPage />} />
-//         <Route path="/recipes/:id" element={<RecipeDetailPage />} />
-//         <Route path="/community" element={<CommunityPage />} />
-//         <Route path="/community/:id" element={<CommunityPost />} />
-
 
 //         <Route
 //           path="/analytics"
@@ -245,8 +234,8 @@ function AppRoutes() {
 //           }
 //         />
 
-//         {/* === Member Pages === */}
-//         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
+//         
+
 //         <Route path="/revise/:id" element={<ReviseRecipePage />} />
 //         <Route path="/revisecommunitypostpage/:id" element={<ReviseCommunityPostPage />} />
 
