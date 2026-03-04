@@ -767,7 +767,8 @@
   gap: 8px; 
   color: #5a3e1b; 
   font-weight: 600; 
-  margin-bottom: 1.3rem;
+  margin-bottom: 0;
+  align-items: center;
 }
 
 .umg-table { 
@@ -1220,6 +1221,27 @@
   }
   .umg-modal-footer .umg-btn-secondary { 
     order: 2; 
+  }
+
+  .umg-list-head {
+    flex-direction: column;
+    align-items: stretch; 
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .umg-list-head .umg-list-title {
+    justify-content: center; 
+    font-size: 18px; 
+  }
+
+  .umg-list-head .umg-btn-primary {
+    width: 100%; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 44px; 
+    font-size: 16px;
   }
 }
 
