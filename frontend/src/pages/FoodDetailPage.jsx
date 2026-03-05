@@ -198,7 +198,7 @@ export default function FoodDetailPage() {
       <div className="fdp-container">
         <div className="fdp-topbar">
           <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
-            ← {t("detail.back")}
+            ← {t("Back")}
           </button>
         </div>
 
