@@ -65,7 +65,6 @@ const dbConfig = {
   queueLimit: 0,
 };
 
-// Logging database config using structured logger
 logger.info("🔧 Database Config details initialized", {
   host: dbConfig.host,
   port: dbConfig.port,
@@ -110,7 +109,7 @@ app.use(
         "'self'",
         "http://localhost:5173",
         "https://food-nutrition-hub.vercel.app",
-        "https://food-nutrition-hub-production.up.railway.app", // Added Railway backend URL
+        "https://food-nutrition-hub-production.up.railway.app",
         process.env.INFERENCE_URL?.replace(/(https?:\/\/[^/]+).*/, "$1"),
       ],
       "frame-ancestors": ["'none'"],
@@ -194,7 +193,7 @@ const authLimiter = rateLimit({
   }
 });
 
-// ---------- Sessions  ----------
+// ---------- Sessions ----------
 const dbOptions = {
   host: process.env.MYSQLHOST,
   port: Number(process.env.MYSQLPORT) || 3306,
@@ -232,8 +231,8 @@ const csrfExclude = [
   '/api/ai/gpt/nutrition',
   '/api/login',     
   '/api/register',
-  '/api/otp/verifyLogin', 
-  '/api/translate'
+  '/api/otp/verifyLogin',
+  '/api/translate',
 ];
 
 app.use((req, res, next) => {
@@ -249,7 +248,7 @@ app.get("/api/csrf-token", (req, res) => {
   });
 });
 
-// ---------- Routes BEFORE global HPP (UNTOUCHED) ----------
+// ---------- Routes BEFORE global HPP ----------
 app.use("/api/register", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password", "firstname", "lastname", "firebaseUID"], logger: (tag, meta) => logger.warn(`HPP Registration Blocked: ${tag}`, meta) }), registerRoutes);
 app.use("/api/login", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password", "rememberDevice"], logger: (tag, meta) => logger.warn(`HPP Login Blocked: ${tag}`, meta) }), loginRoutes);
 app.use("/api/ai/gpt", cors({ origin: allowedOrigins, credentials: true }), gptRoutes);
@@ -257,12 +256,16 @@ app.use("/api/ai", cors({ origin: allowedOrigins, credentials: true }), aiRoutes
 
 app.use("/api/recipe", hppProtect({ policy: "first", allowlist: ["includeAll", "status", "foodID", "name", "origin", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "foodType", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory", "recipe", "content", "image", "userProfileID", "status", "comment", "feedback"], logger: (tag, meta) => logger.warn(`HPP Recipe Parameter: ${tag}`, meta) }), recipeRoutes);
 
-app.use("/api/foods", hppProtect({ policy: "first", allowlist: ["name", "category", "culturalSignificance", "traditionalPreparation", "origin", "description", "image", "foodType", "dietaryTags", "ingredients", "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg", "difficulty", "prepTime", "commonIngredients", "alternative", "altDescription", "healthTips", "servings", "cookTime", "steps", "DidYouKnow", "chefTips", "foodItems", "texts", "targetLang"], skipArrays: true, logger: (tag, meta) => logger.warn(`HPP Foods Parameter: ${tag}`, meta) }), foodRoutes);
+// ✅ texts is a nested object — use policy "none" to skip HPP stripping entirely
+app.use("/api/foods", hppProtect({ policy: "first", allowlist: ["name", "category", "culturalSignificance", "traditionalPreparation", "origin", "description", "image", "foodType", "dietaryTags", "ingredients", "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg", "difficulty", "prepTime", "commonIngredients", "alternative", "altDescription", "healthTips", "servings", "cookTime", "steps", "DidYouKnow", "chefTips", "foodItems"], skipArrays: true, logger: (tag, meta) => logger.warn(`HPP Foods Parameter: ${tag}`, meta) }), foodRoutes);
 
-app.use("/api/export", hppProtect({ policy: "none", allowlist: ["format", "year","saveIds", "month", "custom", "startDate", "endDate"], logger: (tag, meta) => logger.warn(`HPP Export Parameter: ${tag}`, meta) }), exportRoutes);
+app.use("/api/export", hppProtect({ policy: "none", allowlist: ["format", "year", "saveIds", "month", "custom", "startDate", "endDate"], logger: (tag, meta) => logger.warn(`HPP Export Parameter: ${tag}`, meta) }), exportRoutes);
 app.use("/api/foodSearch", foodSearchRoutes);
 
-// ---------- Global HPP for everything else (UNTOUCHED) ----------
+// ✅ Translate route — policy "none" so the nested `texts` object is never stripped by HPP
+app.use("/api/translate", hppProtect({ policy: "none", allowlist: ["texts", "targetLang"], logger: (tag, meta) => logger.warn(`HPP Translate: ${tag}`, meta) }), translateRoutes);
+
+// ---------- Global HPP for everything else ----------
 app.use(hppProtect({ policy: "first", allowlist: ["id", "page", "q", "sort", "email", "password", "newPassword", "userID", "code", "rememberDevice", "token", "role", "userProfileID", "firebase_uid", "googlePhotoUrl", "firebaseUID", "bio", "location", "firstname", "lastname", "city", "suspendedUntil", "suspensionReason", "avatar", "allergies", "dietary", "emailNotifications", "prefs", "pushNotifications", "profileVisibility", "language", "recipes", "status", "stats", "saveFoods", "likes", "type", "postId", "postID", "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID", "likeID", "name", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "foodType", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "category", "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll", "view", "year", "feedback", "format", "saveIds", "month"], logger: (tag, meta) => { logger.warn(`[GLOBAL HPP] ${tag}`, meta); }, }));
 
 // ---------- Other Routes ----------
@@ -280,18 +283,9 @@ app.use("/api/userProfile", userProfileRoutes);
 app.use("/api/likes", likeRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
-app.use("/api/translate", translateRoutes);
 
 // ---------- Static Files ----------
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// ---------- Health & Session ----------
-//app.get("/api/auth/session", (req, res) => {
-  //if (req.session && req.session.user) {
-    //return res.status(200).json({ authenticated: true, user: req.session.user });
-  //}
-  //return res.status(401).json({ authenticated: false, message: "No active session" });
-//});
 
 app.get("/", (req, res) => {
   res.send("🚀 Backend running with advanced security, MySQL & sessions!");
