@@ -1,20 +1,20 @@
 USE railway;
 
 CREATE TABLE sessions (
-  session_id varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  expires int unsigned NOT NULL,
-  data mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
-  PRIMARY KEY (session_id)
+    session_id varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    expires int unsigned NOT NULL,
+    data mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+    PRIMARY KEY (session_id)
 ) 
 
 CREATE TABLE otp (
-  id int NOT NULL AUTO_INCREMENT,
-  userID int NOT NULL,
-  code varchar(6) NOT NULL,
-  expires_at datetime NOT NULL,
-  PRIMARY KEY (id),
-  KEY userID (userID),
-  FOREIGN KEY (userID) REFERENCES user (userID) ON DELETE CASCADE
+    id int NOT NULL AUTO_INCREMENT,
+    userID int NOT NULL,
+    code varchar(6) NOT NULL,
+    expires_at datetime NOT NULL,
+    PRIMARY KEY (id),
+    KEY userID (userID),
+    FOREIGN KEY (userID) REFERENCES user (userID) ON DELETE CASCADE
 ) 
 
 CREATE TABLE user (
