@@ -65,50 +65,83 @@ export default function NutritionAnalyzerPage() {
     try {
       // Image path
       if (selectedFile) {
-        const formData = new FormData();
-        formData.append("image", selectedFile);
-        if (ingredients) formData.append("ingredients", ingredients);
+        // Convert file to base64 (gpt.js expects imageBase64, not FormData)
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(selectedFile);
+        });
 
-        const res = await fetch(`${API_URL}/api/nutrition/analyze-image`, {
+        const res = await fetch(`${API_URL}/api/ai/gpt/nutrition`, {  // ✅ fixed
           method: "POST",
-          headers: { "X-CSRF-Token": csrfToken },
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
           credentials: "include",
-          body: formData,
+          body: JSON.stringify({ imageBase64: base64, ingredients }),
         });
         const data = await res.json();
-        if (data.success) { setResult(data.result); return; }
+
+        if (data.ok && data.data) {
+          // Map gpt.js response shape → result shape your UI expects
+          setResult({
+            food_name: data.data.food_name,
+            nutrition: null, // gpt.js only returns ID — fetch nutrition separately if needed
+            alternatives: [],
+            tips: [],
+          });
+          return;
+        }
+        if (data.suggest) {
+          setSuggestions([data.suggested_name]);
+          return;
+        }
         setError(data.error || t("analyzer.errorFetch"));
         return;
       }
 
       // Text path — try DB first
-      const dbRes = await fetch(`${API_URL}/api/nutrition/lookup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+      const dbRes = await fetch(`${API_URL}/api/ai/lookup?name=${encodeURIComponent(foodName)}`, { // ✅ fixed (GET)
         credentials: "include",
-        body: JSON.stringify({ foodName, ingredients }),
       });
       const dbData = await dbRes.json();
 
-      if (dbData.success) { setResult(dbData.result); return; }
+      if (dbData.found && dbData.item) {
+        setResult({
+          food_name: dbData.item.name,
+          nutrition: dbData.item,
+          alternatives: dbData.item.alternative ? [{ title: dbData.item.alternative, description: dbData.item.altDescription }] : [],
+          tips: dbData.item.healthTips ? [dbData.item.healthTips] : [],
+        });
+        return;
+      }
       if (dbData.suggestions?.length) { setSuggestions(dbData.suggestions); return; }
 
-      // Fallback to AI
-      const aiRes = await fetch(`${API_URL}/api/nutrition/analyze`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
-        credentials: "include",
-        body: JSON.stringify({ foodName, ingredients }),
+    // Fallback to AI analyze
+    const aiRes = await fetch(`${API_URL}/api/ai/analyze`, {  // ✅ fixed
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+      credentials: "include",
+      body: JSON.stringify({ food_name: foodName, ingredients }),
+    });
+    const aiData = await aiRes.json();
+    if (aiData.found && aiData.item) {
+      setResult({
+        food_name: aiData.item.name,
+        nutrition: aiData.item,
+        alternatives: aiData.item.alternative ? [{ title: aiData.item.alternative, description: aiData.item.altDescription }] : [],
+        tips: aiData.item.healthTips ? [aiData.item.healthTips] : [],
       });
-      const aiData = await aiRes.json();
-      if (aiData.success) { setResult(aiData.result); return; }
-      setError(aiData.error || t("analyzer.errorAI"));
-    } catch {
-      setError(t("analyzer.errorGeneral"));
-    } finally {
-      setLoading(false);
+      return;
     }
-  };
+    if (aiData.suggestions?.length) { setSuggestions(aiData.suggestions); return; }
+    setError(aiData.message || t("analyzer.errorAI"));
+
+  } catch {
+    setError(t("analyzer.errorGeneral"));
+  } finally {
+    setLoading(false);
+  }
+};
 
   const nutritionRows = result?.nutrition ? [
     [t("analyzer.calories"),  result.nutrition.Energy_kcal,       "kcal"],
