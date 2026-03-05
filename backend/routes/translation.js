@@ -1,4 +1,4 @@
-    const express = require("express");
+const express = require("express");
 const router = express.Router();
 
 // POST /api/translate
@@ -37,7 +37,7 @@ Reply format: {"key1": "translation1", "key2": "translation2", ...}`;
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "x-api-key": process.env.OPENAI_API_KEY,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
