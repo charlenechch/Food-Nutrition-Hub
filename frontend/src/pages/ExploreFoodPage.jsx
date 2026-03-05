@@ -5,14 +5,17 @@ import Footer from "../components/Footer";
 import "../css/ExploreFoodPage.css";
 import { Filter, Sliders, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { translateTexts } from "../hooks/useAITranslation";
 
 export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   const navigate = useNavigate();
-  const { t } = useTranslation();
-
+  const { t, i18n} = useTranslation();
+  const [translatedFoods, setTranslatedFoods] = useState({});
+  const [isTranslating, setIsTranslating] = useState(false);
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch foods on mount
   useEffect(() => {
     const fetchFoods = async () => {
       try {
@@ -183,6 +186,24 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   };
 
   const categories = ["all", "Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"];
+
+  // Translation
+  useEffect(() => {
+    if (!foods.length || i18n.language === "en") {
+      setTranslatedFoods({});
+      return;
+    }
+    setIsTranslating(true);
+    const texts = {};
+    foods.forEach(f => {
+      texts[`name_${f.id}`] = f.name;
+      texts[`desc_${f.id}`] = f.description;
+    });
+    translateTexts(texts, i18n.language).then(result => {
+      setTranslatedFoods(result);
+      setIsTranslating(false);
+    });
+  }, [foods, i18n.language]);
 
   return (
     <div className="explore-foods-page">
@@ -392,10 +413,10 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
                 <div className="efp-food-body">
                   <div className="efp-food-headline">
-                    <h3 className="efp-food-title">{food.name}</h3>
+                    <h3 className="efp-food-title">{translatedFoods[`name_${food.id}`] || food.name}</h3>
                     <span className="efp-badge-cat">{food.category}</span>
                   </div>
-                  <p className="efp-desc">{food.description}</p>
+                  <p className="efp-desc">{translatedFoods[`desc_${food.id}`] || food.description}</p>
                   <div className="efp-meta">
                     <span className="muted">{t("explore.origin")}: {food.origin}</span>
                     <span className="efp-cal">{Math.round(food.Energy_kcal_ps)} {t("explore.calories")}</span>

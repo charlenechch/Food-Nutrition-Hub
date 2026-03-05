@@ -35,6 +35,7 @@ const aiRoutes = require("./routes/ai");
 const foodSearchRoutes = require("./routes/foodSearch");
 const gptRoutes = require("./routes/gpt");
 const exportRoutes = require("./routes/export");
+const translateRoutes = require("./routes/translate");
 
 // Admin
 const adminRoutes = require("./routes/admin");
@@ -231,7 +232,8 @@ const csrfExclude = [
   '/api/ai/gpt/nutrition',
   '/api/login',     
   '/api/register',
-  '/api/otp/verifyLogin'
+  '/api/otp/verifyLogin', 
+  '/api/translate'
 ];
 
 app.use((req, res, next) => {
@@ -278,6 +280,7 @@ app.use("/api/userProfile", userProfileRoutes);
 app.use("/api/likes", likeRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/translate", translateRoutes);
 
 // ---------- Static Files ----------
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
