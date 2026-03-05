@@ -1203,7 +1203,7 @@ const postReply = async (discussionId) => {
               ))}
             </div>
           ) : (
-            <p style={{ textAlign: "center", color: "#888" }}>
+            <p className = "fdp-no-cmt">
               No comments yet. Be the first to share your thoughts!
             </p>
           )}

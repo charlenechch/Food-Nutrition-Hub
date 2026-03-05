@@ -326,6 +326,11 @@
   margin-right: 8px;
 }
 
+.fdp-no-cmt {
+  text-align: center;
+  color: #888;
+}
+
 /* Responsive Design */
 @media (max-width: 480px) {
   .modal-card {
