@@ -909,7 +909,7 @@ router.post('/export/saved-foods', async (req, res) => {
     
     // Step 2: Get saved food IDs based on export type
     let savedFoodsQuery = `
-      SELECT sf.saveID, f.foodID as id, sf.recipeID, f.name, f.origin, sf.updatedAt as savedDate
+      SELECT sf.saveID, f.foodID as id, sf.recipeID, f.name, f.origin, sf.createdAt as savedDate
       FROM saveFood sf
       JOIN food f ON sf.foodID = f.foodID
       WHERE sf.userProfileID = ?
@@ -924,7 +924,7 @@ router.post('/export/saved-foods', async (req, res) => {
       queryParams.push(...saveIds);
     }
     
-    savedFoodsQuery += ' ORDER BY sf.updatedAt DESC';
+    savedFoodsQuery += ' ORDER BY sf.createdAt DESC';
     
     const [savedFoods] = await connection.execute(savedFoodsQuery, queryParams);
     
