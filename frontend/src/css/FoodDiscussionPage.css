@@ -322,6 +322,10 @@
   transform: translateY(-1px);
 }
 
+.fdp-post-btn {
+  margin-right: 8px;
+}
+
 /* Responsive Design */
 @media (max-width: 480px) {
   .modal-card {
