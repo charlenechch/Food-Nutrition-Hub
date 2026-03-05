@@ -246,18 +246,18 @@ export default function FoodDetailPage() {
                 <Info className="rdp-sec-icon" color="#6a4a2f" /> {t("foodDetail.culturalHeritage")}
               </h3>
               <div className="fdp-block">
-                <p className="fdp-block-title">{food.description && <p className="fdp-text">{translatedFood.description || food.description}</p>}</p>
-                {food.description && <p className="fdp-text">{food.description}</p>}
+                <p className="fdp-block-title">{t("foodDetail.description")}</p>
+                {food.description && <p className="fdp-text">{translatedFood.description || food.description}</p>}
               </div>
               {food.culturalSignificance && (
                 <div className="fdp-block">
-                  <p className="fdp-block-title"><p className="fdp-text">{translatedFood.culturalSignificance || food.culturalSignificance}</p></p>
-                  <p className="fdp-text">{food.culturalSignificance}</p>
+                  <p className="fdp-block-title">{t("foodDetail.culturalSignificance")}</p>
+                  <p className="fdp-text">{translatedFood.culturalSignificance || food.culturalSignificance}</p>
                 </div>
               )}
               <div className="fdp-block">
-                <p className="fdp-block-title"><p className="fdp-text">{translatedFood.traditionalPreparation || food.traditionalPreparation}</p></p>
-                <p className="fdp-text">{food.traditionalPreparation}</p>
+                <p className="fdp-block-title">{t("foodDetail.traditionalPrep")}</p>
+                <p className="fdp-text">{translatedFood.traditionalPreparation || food.traditionalPreparation}</p>
               </div>
             </div>
 
