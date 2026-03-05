@@ -1168,7 +1168,7 @@ const postReply = async (discussionId) => {
               disabled={!newComment.trim()}
               onClick={postComment}
             >
-              <i className="fas fa-paper-plane" style={{ marginRight: "8px" }}></i>
+              <i className="fas fa-paper-plane fdp-post-btn"></i>
               Post Comment
             </button>
           </div>
