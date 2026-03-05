@@ -24,6 +24,10 @@
   display: block;
 }
 
+.rdp-not-found {
+    margin-top: 12px;
+}
+
 @media (min-width: 1024px) {
   .rdp-grid { 
     grid-template-columns: 2fr 1fr;

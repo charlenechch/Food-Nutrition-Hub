@@ -288,7 +288,7 @@ export default function RecipeDetailPage() {
           <button className="lrp-btn lrp-btn-outline fdp-back rdp-back" onClick={() => navigate(-1)}>
             {t("recipeDetail.back")}
           </button>
-          <h2 style={{ marginTop: 12 }}>{t("recipeDetail.notFound")}</h2>
+          <h2 className = "rdp-not-found">{t("recipeDetail.notFound")}</h2>
           <p>{error || t("recipeDetail.notFoundMsg")}</p>
         </div>
         <Footer />
