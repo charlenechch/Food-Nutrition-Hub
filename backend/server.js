@@ -35,7 +35,7 @@ const aiRoutes = require("./routes/ai");
 const foodSearchRoutes = require("./routes/foodSearch");
 const gptRoutes = require("./routes/gpt");
 const exportRoutes = require("./routes/export");
-const translateRoutes = require("./routes/translate");
+const translateRoutes = require("./routes/translation");
 
 // Admin
 const adminRoutes = require("./routes/admin");
