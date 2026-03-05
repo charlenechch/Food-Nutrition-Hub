@@ -48,17 +48,17 @@ export default function FoodDetailPage() {
       setTranslatedFood({});
       return;
     }
+    const ingredients = food.commonIngredients || []; // ✅ define it here
     translateTexts({
       name: food.name,
       description: food.description,
       culturalSignificance: food.culturalSignificance,
       traditionalPreparation: food.traditionalPreparation,
       ingredients: ingredients.join("||"),
-    }, i18n.language).then((results) => {
-      // Split translated ingredients back into array
-        if (result.ingredients) {
-          result.ingredientsArray = result.ingredients.split("||").map(s => s.trim());
-        }
+    }, i18n.language).then((result) => { // ✅ result not results
+      if (result.ingredients) {
+        result.ingredientsArray = result.ingredients.split("||").map(s => s.trim());
+      }
       setTranslatedFood(result);
     });
   }, [food, i18n.language]);
