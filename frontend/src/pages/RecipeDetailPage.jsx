@@ -123,6 +123,22 @@ export default function RecipeDetailPage() {
     fetchCsrfToken();
   }, []);
 
+  const [translatedRecipe, setTranslatedRecipe] = useState({});
+
+  useEffect(() => {
+    if (!recipe || i18n.language === "en") {
+      setTranslatedRecipe({});
+      return;
+    }
+    translateTexts({
+      name: recipe.name,
+      description: recipe.description,
+      ingredients: recipe.ingredients,
+      instructions: recipe.instructions || recipe.steps,
+      funFact: recipe.funFact,
+      chefTips: recipe.chefTips,
+    }, i18n.language).then(setTranslatedRecipe);
+  }, [recipe, i18n.language]);
 
   // control show login popup for guests
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);

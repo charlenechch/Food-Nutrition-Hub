@@ -9,8 +9,8 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const ACCEPTED_FORMATS = ["png", "jpeg", "jpg", "gif", "webp"];
 
 // Thresholds
-const EMB_HIGH_CONFIDENCE = 0.82;  // Auto-match
-const EMB_LOW_CONFIDENCE  = 0.60;  // Show "Did you mean?"
+const EMB_HIGH_CONFIDENCE = 0.75;  // Auto-match
+const EMB_LOW_CONFIDENCE  = 0.55;  // Show "Did you mean?"
 
 function normalizeImageBase64(imageBase64) {
   if (!imageBase64) return null;
