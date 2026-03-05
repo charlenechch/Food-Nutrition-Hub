@@ -1,6 +1,3 @@
-// ✅ FULL RecipeDetailPage.jsx — i18n converted
-// ✅ All original code kept, only guest-save logic added
-
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -9,6 +6,7 @@ import Footer from "../components/Footer";
 import "../css/RecipeDetailPage.css";
 import Modal from "../components/Modal";
 import { Info, NotebookText, Share2, ShoppingBasket, CheckCircle2, AlertTriangle  } from "lucide-react";
+import { translateTexts } from "../hooks/useAITranslation";
 
 // ✅ Import Auth & Login Modal
 import { useAuth } from "../context/AuthContext";
@@ -99,7 +97,7 @@ const ChefHat = (props) => (
 export default function RecipeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // ✅ Access logged in user or guest
   const { user } = useAuth();
@@ -124,6 +122,7 @@ export default function RecipeDetailPage() {
     };
     fetchCsrfToken();
   }, []);
+
 
   // control show login popup for guests
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -438,7 +437,7 @@ export default function RecipeDetailPage() {
               <h3 className="rdp-sec-title">
                 <Info className="rdp-sec-icon" color="#6a4a2f" /> {t("recipeDetail.description")}
               </h3>
-              {recipe.description && <p className="rdp-sub">{recipe.description}</p>}
+              {recipe.description && <p className="rdp-sub">{translatedRecipe.description || recipe.description}</p>}
             </div>
 
             <div className="rdp-card3">
@@ -448,7 +447,7 @@ export default function RecipeDetailPage() {
               <div 
                   className="rdp-ingredients-formatted"
                   dangerouslySetInnerHTML={{ 
-                    __html: formatTextForDisplay(recipe.ingredients, 'ingredients')
+                    __html: formatTextForDisplay(translatedRecipe.ingredients || recipe.ingredients, 'ingredients')
                   }}
                 />
               </div>
@@ -460,7 +459,7 @@ export default function RecipeDetailPage() {
               <div 
                 className="rdp-instructions-formatted"
                 dangerouslySetInnerHTML={{ 
-                  __html: formatTextForDisplay(recipe.instructions || recipe.steps, 'instructions')
+                  __html: formatTextForDisplay(translatedRecipe.instructions || recipe.instructions || recipe.steps, 'instructions')
                 }}
               />
             </div>
@@ -490,7 +489,7 @@ export default function RecipeDetailPage() {
                   <div className="rdp-note-head">
                     <Lightbulb className="rdp-sec-icon" color="#6a4a2f" /> <span>{t("recipeDetail.didYouKnow")}</span>
                   </div>
-                  <p className="rdp-note-text">{recipe.funFact}</p>
+                  <p className="rdp-note-text">{translatedRecipe.funFact || recipe.funFact}</p>
                 </div>
               )}
 
@@ -499,7 +498,7 @@ export default function RecipeDetailPage() {
                   <div className="rdp-note-head">
                     <ChefHat className="rdp-sec-icon" color="#6a4a2f" /> <span>{t("recipeDetail.chefTips")}</span>
                   </div>
-                  <p className="rdp-note-text">{recipe.chefTips}</p>
+                  <p className="rdp-note-text">{translatedRecipe.chefTips || recipe.chefTips}</p>
                 </div>
               )}
             </aside>

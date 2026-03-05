@@ -9,6 +9,7 @@ import { FaCamera, FaTimes } from "react-icons/fa";
 import { GrDocumentMissing } from "react-icons/gr";
 import { PiChefHat } from "react-icons/pi";
 import { Filter, Sliders, X } from "lucide-react";
+import { translateTexts } from "../hooks/useAITranslation";
 
 // Guest detection + modal
 import { useAuth } from "../context/AuthContext";
@@ -19,7 +20,7 @@ const PER_PAGE = 9;
 export default function RecipesPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Guest detection
   const { user } = useAuth();
@@ -59,6 +60,21 @@ export default function RecipesPage() {
       console.log('Recipe IDs:', recipes.map(r => r?.id || r?.foodID || 'no-id'));
     }
   }, [recipes]);
+
+  const [translatedRecipes, setTranslatedRecipes] = useState({});
+
+  useEffect(() => {
+    if (!recipes.length || i18n.language === "en") {
+      setTranslatedRecipes({});
+      return;
+    }
+    const texts = {};
+    recipes.forEach(r => {
+      texts[`name_${r.id}`] = r.name;
+      texts[`desc_${r.id}`] = r.description;
+    });
+    translateTexts(texts, i18n.language).then(setTranslatedRecipes);
+  }, [recipes, i18n.language]);
 
   useEffect(() => {
     setSearchQuery(searchParams.get("q") || "");
@@ -699,8 +715,8 @@ export default function RecipesPage() {
                   {Array.isArray(r.dietaryTags) && r.dietaryTags.includes("vegetarian") && <span className="efp-badge-topright">V</span>}
                 </div>
                 <div className="efp-food-body">
-                  <div className="efp-food-headline"><h3 className="efp-food-title">{r.name || t("recipes.unknownRecipe")}</h3></div>
-                  <p className="efp-desc">{r.description || t("recipes.noDescription")}</p>
+                  <h3 className="efp-food-title">{translatedRecipes[`name_${r.id}`] || r.name || t("recipes.unknownRecipe")}</h3>
+                  <p className="efp-desc">{translatedRecipes[`desc_${r.id}`] || r.description || t("recipes.noDescription")}</p>
                   <button className="efp-card-cta" onClick={() => navigate(`/recipes/${recipeId}`)}>{t("recipes.viewRecipe")}</button>
                 </div>
               </div>

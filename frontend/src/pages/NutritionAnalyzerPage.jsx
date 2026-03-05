@@ -65,7 +65,6 @@ export default function NutritionAnalyzerPage() {
     try {
       // Image path
       if (selectedFile) {
-        // Convert file to base64 (gpt.js expects imageBase64, not FormData)
         const base64 = await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result);
@@ -73,7 +72,7 @@ export default function NutritionAnalyzerPage() {
           reader.readAsDataURL(selectedFile);
         });
 
-        const res = await fetch(`${API_URL}/api/ai/gpt/nutrition`, {  // ✅ fixed
+        const res = await fetch(`${API_URL}/api/ai/gpt/nutrition`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
           credentials: "include",
@@ -82,19 +81,32 @@ export default function NutritionAnalyzerPage() {
         const data = await res.json();
 
         if (data.ok && data.data) {
-          // Map gpt.js response shape → result shape your UI expects
-          setResult({
-            food_name: data.data.food_name,
-            nutrition: null, // gpt.js only returns ID — fetch nutrition separately if needed
-            alternatives: [],
-            tips: [],
-          });
+          // ✅ Step 2: use the matched food_name to fetch full nutrition from DB
+          const lookupRes = await fetch(
+            `${API_URL}/api/ai/lookup?name=${encodeURIComponent(data.data.food_name)}`,
+            { credentials: "include" }
+          );
+          const lookupData = await lookupRes.json();
+
+          if (lookupData.found && lookupData.item) {
+            const item = lookupData.item;
+            setResult({
+              food_name: item.name,
+              nutrition: item,
+              alternatives: item.alternative
+                ? [{ title: item.alternative, description: item.altDescription }]
+                : [],
+              tips: item.healthTips ? [item.healthTips] : [],
+            });
+            return;
+          }
+
+          // GPT found it but no DB nutrition — show name at least
+          setResult({ food_name: data.data.food_name, nutrition: null, alternatives: [], tips: [] });
           return;
         }
-        if (data.suggest) {
-          setSuggestions([data.suggested_name]);
-          return;
-        }
+
+        if (data.suggest) { setSuggestions([data.suggested_name]); return; }
         setError(data.error || t("analyzer.errorFetch"));
         return;
       }
