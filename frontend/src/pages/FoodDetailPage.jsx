@@ -8,15 +8,17 @@ import { Share2, Info, TriangleAlert, MessagesSquare, ShoppingBasket, Cross, Scr
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { useTranslation } from "react-i18next";
+import { translateTexts } from "../hooks/useAITranslation";
 
 export default function FoodDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [food, setFood] = useState(null);
+  const [translatedFood, setTranslatedFood] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saved, setSaved] = useState(false);
@@ -40,6 +42,26 @@ export default function FoodDetailPage() {
     };
     fetchCsrfToken();
   }, []);
+
+  useEffect(() => {
+    if (!food || i18n.language === "en") {
+      setTranslatedFood({});
+      return;
+    }
+    translateTexts({
+      name: food.name,
+      description: food.description,
+      culturalSignificance: food.culturalSignificance,
+      traditionalPreparation: food.traditionalPreparation,
+      ingredients: ingredients.join("||"),
+    }, i18n.language).then((results) => {
+      // Split translated ingredients back into array
+        if (result.ingredients) {
+          result.ingredientsArray = result.ingredients.split("||").map(s => s.trim());
+        }
+      setTranslatedFood(result);
+    });
+  }, [food, i18n.language]);
 
   const openInfo = ({ title, message, icon, primaryText = "OK" }) =>
     setInfoDlg({ open: true, title, message, icon, primaryText });
@@ -214,7 +236,7 @@ export default function FoodDetailPage() {
                     {food.origin && <span className="fdp-badge">{food.origin}</span>}
                     {food.category && <span className="fdp-badge">{food.category}</span>}
                   </div>
-                  <h1 className="fdp-title">{food.name}</h1>
+                  <h1 className="fdp-title">{translatedFood.name || food.name}</h1>
                 </div>
               </div>
             </div>
@@ -224,17 +246,17 @@ export default function FoodDetailPage() {
                 <Info className="rdp-sec-icon" color="#6a4a2f" /> {t("foodDetail.culturalHeritage")}
               </h3>
               <div className="fdp-block">
-                <p className="fdp-block-title">{t("foodDetail.description")}</p>
+                <p className="fdp-block-title">{food.description && <p className="fdp-text">{translatedFood.description || food.description}</p>}</p>
                 {food.description && <p className="fdp-text">{food.description}</p>}
               </div>
               {food.culturalSignificance && (
                 <div className="fdp-block">
-                  <p className="fdp-block-title">{t("foodDetail.culturalSignificance")}</p>
+                  <p className="fdp-block-title"><p className="fdp-text">{translatedFood.culturalSignificance || food.culturalSignificance}</p></p>
                   <p className="fdp-text">{food.culturalSignificance}</p>
                 </div>
               )}
               <div className="fdp-block">
-                <p className="fdp-block-title">{t("foodDetail.traditionalPrep")}</p>
+                <p className="fdp-block-title"><p className="fdp-text">{translatedFood.traditionalPreparation || food.traditionalPreparation}</p></p>
                 <p className="fdp-text">{food.traditionalPreparation}</p>
               </div>
             </div>
@@ -245,7 +267,9 @@ export default function FoodDetailPage() {
                   <ShoppingBasket className="rdp-sec-icon" color="#6a4a2f" /> {t("foodDetail.commonIngredients")}
                 </h3>
                 <div className="fdp-chip-grid">
-                  {ingredients.map((ing, i) => <span key={i} className="fdp-chip">{ing}</span>)}
+                  {(translatedFood.ingredientsArray || ingredients).map((ing, i) => (
+                    <span key={i} className="fdp-chip">{ing}</span>
+                  ))}
                 </div>
               </div>
             )}

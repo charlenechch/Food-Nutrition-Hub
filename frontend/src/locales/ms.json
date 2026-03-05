@@ -112,7 +112,24 @@
     "noResults": "Tiada hidangan sepadan dengan kriteria anda",
     "tryAdjusting": "Cuba laraskan penapis anda",
     "prev": "Sebelum",
-    "next": "Seterusnya"
+    "next": "Seterusnya", 
+    "dietary_vegetarian": "Vegetarian",
+    "dietary_gluten-free": "Bebas Gluten",
+    "dietary_dairy-free": "Bebas Tenusu",
+    "dietary_low-fat": "Rendah Lemak",
+    "dietary_high-protein": "Protein Tinggi",
+    "dietary_high-fiber": "Serat Tinggi",
+    "dietary_spicy": "Pedas",
+    "dietary_paleo": "Paleo", 
+    "cat_poultry": "Ayam & Unggas",
+    "cat_seafood": "Makanan Laut",
+    "cat_vegetables": "Sayuran",
+    "cat_fermented": "Fermentasi",
+    "cat_dessert": "Pencuci Mulut",
+    "cat_rice_dish": "Hidangan Nasi",
+    "cat_noodles": "Mi",
+    "cat_soup": "Sup",
+    "cat_meat": "Daging"
   },
 
   "foodDetail": {

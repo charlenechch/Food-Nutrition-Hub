@@ -243,7 +243,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
             {categories.map((c) => (
               <button key={c} onClick={() => setSelectedCategory(c)}
                 className={`efp-chip ${selectedCategory === c ? "is-active" : ""}`}>
-                {c === "all" ? t("explore.allCategories") : c}
+                {c === "all" ? t("explore.allCategories") : t(`explore.cat_${c.toLowerCase().replace(" ", "_")}`) || c}
               </button>
             ))}
           </div>
@@ -337,7 +337,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                         onChange={() => setSelectedDietaryTags((prev) =>
                           prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
                         )} />
-                      <span className="efp-checkbox-text">{humanize(tag)}</span>
+                      <span className="efp-checkbox-text">{t(`explore.dietary_${tag}`) || humanize(tag)}</span>
                     </label>
                   ))}
                 </div>

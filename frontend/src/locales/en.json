@@ -112,7 +112,25 @@
     "noResults": "No dishes match your criteria",
     "tryAdjusting": "Try adjusting your filters",
     "prev": "Prev",
-    "next": "Next"
+    "next": "Next", 
+    "dietary_vegetarian": "Vegetarian",
+    "dietary_gluten-free": "Gluten Free",
+    "dietary_dairy-free": "Dairy Free",
+    "dietary_low-fat": "Low Fat",
+    "dietary_high-protein": "High Protein",
+    "dietary_high-fiber": "High Fiber",
+    "dietary_spicy": "Spicy",
+    "dietary_paleo": "Paleo",
+
+    "cat_poultry": "Poultry",
+    "cat_seafood": "Seafood",
+    "cat_vegetables": "Vegetables",
+    "cat_fermented": "Fermented",
+    "cat_dessert": "Dessert",
+    "cat_rice_dish": "Rice Dish",
+    "cat_noodles": "Noodles",
+    "cat_soup": "Soup",
+    "cat_meat": "Meat"
   },
 
   "foodDetail": {
