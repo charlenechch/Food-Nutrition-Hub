@@ -641,7 +641,6 @@
     gap: 8px;
 }
 
-/* When viewing (not editing), it looks like clean text */
 .upp-read-only {
     padding: 10px 12px; 
     font-size: 1rem;
@@ -652,7 +651,6 @@
     align-items: center;
 }
 
-/* When editing, highlight the inputs slightly */
 .upp-input-edit {
     background-color: #fff !important;
     border: 1px solid #8B4513 !important; 
@@ -759,4 +757,62 @@
     max-width: 420px;
     font-size: 1.1rem;
     line-height: 1.5;
+}
+
+/*export data*/
+@media (max-width: 640px) {
+  .upp-card .upp-row.between {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .upp-card .upp-row.between > div {
+    width: 100%;
+    max-width: 100%;
+    word-break: break-word;
+  }
+
+  .upp-card .upp-row.between button.lrp-btn-outline.upp-btn {
+    width: 100%;
+    margin-left: 0;
+    position: relative;
+    z-index: 2;
+    display: block;
+    clear: both;
+    white-space: normal;
+    word-break: normal;
+    padding: 12px 16px;
+    border: 1px solid #6a4a2f;
+    background: white;
+    color: #6a4a2f;
+  }
+
+  .upp-card {
+    overflow: visible;
+    position: relative;
+    z-index: 1;
+  }
+
+  .upp-card img,
+  .upp-card .upp-avatar,
+  .upp-card .upp-food-media {
+    position: relative;
+    z-index: 1;
+  }
+
+  .upp-card button {
+    position: relative;
+    z-index: 3;
+  }
+
+  .upp-card:has(.rdp-sec-icon[color="#6a4a2f"]) .upp-row.between:last-child {
+    margin-bottom: 0;
+    padding-bottom: 8px;
+  }
+
+  .upp-stack > .upp-card:last-child {
+    margin-bottom: 20px;
+  }
 }

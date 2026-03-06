@@ -57,7 +57,6 @@ CREATE TABLE food (
     name VARCHAR(20) NOT NULL,
     origin ENUM('Malay','Chinese','Iban','Melanau','Kadazan', 'Bidayuh', 'Dayak') NOT NULL,
     category VARCHAR(100) NOT NULL,
-    foodType VARCHAR(100) NOT NULL,
     difficulty ENUM('Easy', 'Medium', 'Hard') NOT NULL,
     dietaryTags VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
