@@ -1,0 +1,58 @@
+.lrp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem; 
+  padding: 0.6rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 12px; 
+  border: 1.5px solid transparent; 
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-family: inherit;
+  text-decoration: none;
+  line-height: 1.5;
+}
+
+.lrp-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important; 
+}
+
+.lrp-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.lrp-btn-primary {
+  background-color: #8B4513; 
+  color: #ffffff;
+}
+
+.lrp-btn-primary:hover:not(:disabled) {
+  background-color: #6a4a2f; 
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
+}
+
+.lrp-btn-primary.saved {
+  background-color: #4a6741; 
+  color: #ffffff;
+}
+
+.lrp-btn-primary.saved:hover:not(:disabled) {
+  background-color: #3b5334;
+}
+
+
+.lrp-btn-outline {
+  background-color: transparent;
+  border-color: #dbcebc; 
+  color: #555; 
+}
+
+.lrp-btn-outline:hover:not(:disabled) {
+  background-color: #f7f2ed; 
+  border-color: #6a4a2f; 
+  color: #6a4a2f;
+}
