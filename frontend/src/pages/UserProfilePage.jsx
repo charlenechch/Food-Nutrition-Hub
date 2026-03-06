@@ -1191,7 +1191,7 @@ const ContributionRow = ({ c }) => {
             <Lock size={80} color="#d8c6b4" className="upp-private-icon" />
             <h2 className="upp-private-title">{t("profile.privateProfile")}</h2>
             <p className="upp-muted upp-private-text">
-              {user.bio || t("profile.accountIsPrivate")}
+              {t("profile.accountIsPrivate")}
             </p>
           </div>
         ) : (
