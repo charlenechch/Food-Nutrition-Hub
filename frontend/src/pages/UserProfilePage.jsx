@@ -394,7 +394,7 @@ const savePersonal = async () => {
     console.log("✅ Personal info update result:", result);
     
     if (result.success) {
-      oopenAlert(t("profile.saved"), t("profile.profileUpdated"), <CheckCircle2 />);
+      openAlert(t("profile.saved"), t("profile.profileUpdated"), <CheckCircle2 />);
       setUser(prev => ({ ...prev, location: form.location, bio: bio }));
     } else {
       throw new Error(result.error || "Update failed");
