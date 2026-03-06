@@ -6,6 +6,9 @@ const recipeData = [
     foodID: 1, //linut
     userProfileID: 1,
     status: "Approved",
+    description: "The dish is made from sago, a type of starch produced from the sago palm. \
+                  Sago is mixed with water to produce a thick, sticky paste, which is then steamed to get its gelatinous and chewy texture. \
+                  Linut is usually bland, making it a great carrier for savoury side dishes such as meat stews, spicy sambal, or rich gravies prepared using meat or seafood.",
     ingredients: `33 g sago flour
                   67-100 ml water
                   1/3 cup anchovies
@@ -36,6 +39,7 @@ const recipeData = [
     foodID: 2, //kolo mee
     userProfileID: 2,
     status: "Approved",
+    description: "The name “Kolo Mee” come from how the dish is prepared, which involves tossing the noodles with the sauce and toppings in a dry manner.",
     ingredients: `Ingredients A (The minced meat)
                   75g minced meat
                   1 tsp light soy sauce
@@ -89,6 +93,9 @@ const recipeData = [
     foodID: 3, //umai
     userProfileID: 1,
     status: "Approved",
+    description: "Raw tenggiri (mackerel) is sliced or cubed and marinated in lime juice, allowing the acidity to “cook” the fish. \
+    Chopped onions, chillies, and tomatoes are added and seasoned with salt, sugar, and soy or fish sauce. \
+    The dish tastes fresh and tangy with a slight heat and is served chilled or at room temperature, often alongside rice.",
     ingredients: `300 g very fresh raw prawns, shelled, intestinal tract removed
                   6 limes (5 juiced, 1 thinly sliced)
                   ½ tsp salt
@@ -115,6 +122,7 @@ const recipeData = [
     foodID: 4, //nasi aruk
     userProfileID: 1,
     status: "Approved",
+    description: "The dish is composed simply of rice combined with anchovies, fragrant torch ginger, turmeric leaves, and the heat of bird’s-eye chilli.",
     ingredients: `A handful of anchovies (ikan bilis)
                   2 red shallots (sliced)
                   3 cloves of garlic (sliced)
@@ -136,6 +144,7 @@ const recipeData = [
     foodID: 5, //asam siok
     userProfileID: 3,
     status: "Approved",
+    description: "Using bamboo is a natural cooking method that retains tastes and creates incredibly tender chicken that is scented with bamboo and lemongrass.",
     ingredients: `1kg whole chicken
                   20g ginger
                   2 lemon grass
@@ -163,6 +172,7 @@ const recipeData = [
     foodID: 6, //belacan bihun
     userProfileID: 4,
     status: "Approved",
+    description: "Featuring rice noodles served with a spicy, umami-rich gravy made from belacan.",
     ingredients: `200g rice vermicelli
                   8 small chilli
                   150g shrimp paste
@@ -190,6 +200,7 @@ const recipeData = [
     foodID: 7, //daun ubi tumbuk
     userProfileID: 5,
     status: "Approved",
+    description: "Cassava leaves are pounded using wooden mortar and pestle and cooked in a variety of ways, often with coconut milk or in a curry.",
     ingredients: `200 grams Daun Ubi (Cassava Leaves)
                   30 grams Anchovies
                   750 ml Water
@@ -213,6 +224,7 @@ const recipeData = [
     foodID: 8, //manicai
     userProfileID: 6,
     status: "Approved",
+    description: "Stir-fried or boiled, often with eggs in dishes like Mani Cai with Eggs.",
     ingredients: `200g Manicai (plucked from stalks)
                   1 tablespoon salt
                   2 cloves garlic, minced
@@ -233,6 +245,8 @@ const recipeData = [
     foodID: 9, //midin belacan
     userProfileID: 7,
     status: "Approved",
+    description: "Prepared by blanching the crisp midin fern before stir-frying it with fragrant garlic, shallots, and belacan,\
+    then finishing with seasonings like salt, sugar, and calamansi juice, with optional variations such as rice wine or red bell pepper adding depth while keeping true to its humble roots.",
     ingredients: `2 bunch of Midin (cut to about 15cm from the curled head and washed)\
                   2 cloves of Garlic
                   1 Shallot
@@ -258,6 +272,7 @@ const recipeData = [
     foodID: 10, //ayam pansuh
     userProfileID: 4,
     status: "Approved",
+    description: "Offering a glimpse into the essence of this traditional delicacy.",
     ingredients: `1 Chicken
                   1 bundle of umbut tepus
                   A kantan flower
@@ -290,8 +305,8 @@ const recipeData = [
   try {
     for (const recipe of recipeData) {
     const sql = `
-      INSERT INTO recipe (foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO recipe (foodID, userProfileID, description, ingredients, steps, cookTime, servings, DidYouKnow, chefTips)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     const values = [

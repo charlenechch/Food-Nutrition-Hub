@@ -8,10 +8,7 @@ const foods = [
     difficulty: "medium",
     dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat"],
     description: "Linut is a traditional cuisine that is especially popular among the Indigenous Dayak communities.\
-                  This staple dish is an important part of Dayak cuisine and is frequently served at traditional events and community feasts. \
-                  The dish is made from sago, a type of starch produced from the sago palm. \
-                  Sago is mixed with water to produce a thick, sticky paste, which is then steamed to get its gelatinous and chewy texture. \
-                  Linut is usually bland, making it a great carrier for savoury side dishes such as meat stews, spicy sambal, or rich gravies prepared using meat or seafood.",
+                  This staple dish is an important part of Dayak cuisine and is frequently served at traditional events and community feasts.",
     image: "https://img-global.cpcdn.com/steps/1fe46f4ff8152bed/640x640sq80/photo.webp",
     prepTime: 30,
     Energy_kcal: 344.91,
@@ -207,7 +204,7 @@ const foods = [
     category: "Vegetables",
     difficulty: "easy",
     dietaryTags: ["gluten-free", "dairy-free", "high-fiber", "low-fat", "spicy"],
-    description: "Midin Belacan is a beloved Sarawakian dish celebrated for its simplicity and flavour, prepared by blanching the crisp midin fern before stir-frying it with fragrant garlic, shallots, and belacan, \
+    description: "Midin Belacan is a beloved Sarawakian dish celebrated for its simplicity and flavour, prepared by blanching the crisp midin fern before stir-frying it with fragrant garlic, shallots, and belacan,\
     then finishing with seasonings like salt, sugar, and calamansi juice, with optional variations such as rice wine or red bell pepper adding depth while keeping true to its humble roots.",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRc1lwR63ujDfGCJq52PM8bONbSU-FZqAl3cA&s",
     prepTime: 25,

@@ -82,6 +82,7 @@ CREATE TABLE recipe (
     recipeID INT AUTO_INCREMENT PRIMARY KEY,
     foodID INT NOT NULL,
     userProfileID INT NOT NULL, 
+    description TEXT, 
     ingredients TEXT NOT NULL,
     steps TEXT NOT NULL,
     cookTime INT NULL,
