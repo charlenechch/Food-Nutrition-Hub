@@ -5,7 +5,6 @@ const foods = [
     name: "Linut",
     origin: "Melanau",
     category: "Rice Dish",
-    foodType: "main-dish",
     difficulty: "medium",
     dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat"],
     description: "Linut is a traditional cuisine that is especially popular among the Indigenous Dayak communities.\
@@ -33,7 +32,6 @@ const foods = [
     name: "Kolo Mee",
     origin: "Chinese",
     category: "Noodles",
-    foodType: "noodles",
     difficulty: "medium",
     dietaryTags: ["dairy-free", "high-protein"],
     description: "The origin of Kolo Mee is still unclear, but it likely originated from Kuching, the capital of Sarawak. \
@@ -60,7 +58,6 @@ const foods = [
     name: "Umai",
     origin: "Melanau",
     category: "Seafood",
-    foodType: "appetizer",
     difficulty: "easy",
     dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat", "low-fiber"],
     description: "Umai is a traditional Sarawakian raw fish salad popular with the Dayak and Melanau communities. \
@@ -88,7 +85,6 @@ const foods = [
     name: "Nasi Aruk",
     origin: "Malay",
     category: "Rice Dish",
-    foodType: "main-dish",
     difficulty: "easy",
     dietaryTags: ["gluten-free", "dairy-free", "low-fat"],
     description: "Unlike typical fried rice, Nasi Aruk is prepared without any oil or fat and is tossed in a hot pan until the grains are well-toasted, creating a deep smoky, slightly charred scent. \
@@ -114,7 +110,6 @@ const foods = [
     name: "Asam Siok",
     origin: "Bidayuh",
     category: "Poultry",
-    foodType: "main-dish",
     difficulty: "medium",
     dietaryTags: ["gluten-free", "dairy-free", "high-protein"],
     description: "Asam siok, also known as chicken with rice in bamboo, is a traditional Bidayuh dish that is served during special events like Gawai, get-togethers, or the welcome of VIPs or special visitors. \
@@ -139,7 +134,6 @@ const foods = [
     name: "Belacan Bihun",
     origin: "Chinese", 
     category: "Noodles",
-    foodType: "noodles",
     difficulty: "medium",
     dietaryTags: ["gluten-free", "dairy-free", "low-fat", "high-fiber"],
     description: "Belacan bihun is a unique, flavorful rice vermicelli dish from Kuching, Sarawak, featuring rice noodles served with a spicy, umami-rich gravy made from belacan",
@@ -163,7 +157,6 @@ const foods = [
     name: "Daun Ubi Tumbuk",
     origin: "Iban",
     category: "Vegetables",
-    foodType: "side-dish",
     difficulty: "medium",
     dietaryTags: ["vegetarian", "gluten-free", "dairy-free", "high-fiber"],
     description: "Daun ubi tumbuk (pounded cassava leaves) is a popular vegetable dish from Borneo where cassava leaves are pounded using wooden mortar and pestle and cooked in a variety of ways, often with coconut milk or in a curry. \
@@ -188,7 +181,6 @@ const foods = [
     name: "Manicai",
     origin: "Chinese",
     category: "Vegetables",
-    foodType: "side-dish",
     difficulty: "easy",
     dietaryTags: ["vegetarian", "gluten-free", "dairy-free", "high-fiber", "low-fat"],
     description: "Manicai, also known as Sayur Manis, Cekur Manis, or Sweet Leaf, is a leafy vegetable from Southeast Asia that is eaten stir-fried or boiled, often with eggs in dishes like Mani Cai with Eggs. \
@@ -213,7 +205,6 @@ const foods = [
     name: "Midin Belacan",
     origin: "Bidayuh",
     category: "Vegetables",
-    foodType: "side-dish",
     difficulty: "easy",
     dietaryTags: ["gluten-free", "dairy-free", "high-fiber", "low-fat", "spicy"],
     description: "Midin Belacan is a beloved Sarawakian dish celebrated for its simplicity and flavour, prepared by blanching the crisp midin fern before stir-frying it with fragrant garlic, shallots, and belacan, \
@@ -238,7 +229,6 @@ const foods = [
     name: "Ayam Pansuh",
     origin: "Dayak",
     category: "Meat",
-    foodType: "main-dish",
     difficulty: "medium",
     dietaryTags: ["gluten-free", "dairy-free", "high-protein"],
     description: "Deep within the cultural tapestry of Sarawak, an iconic dish known as Manok Pansoh (also called manuk pansuh/ayam pansuh) holds a special place among the Dayak community (Iban, Bidayuh, and Ulu people of Sarawak).\
@@ -266,14 +256,13 @@ const foods = [
     for (const food of foods) {
       const sql = `
         INSERT INTO food 
-        (name, origin, category, foodType, difficulty, dietaryTags, description, image, prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, culturalSignificance, traditionalPreparation, commonIngredients, alternative, altDescription, healthTips)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (name, origin, category, difficulty, dietaryTags, description, image, prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, culturalSignificance, traditionalPreparation, commonIngredients, alternative, altDescription, healthTips)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const values = [
         food.name,
         food.origin,
         food.category,
-        food.foodType,
         food.difficulty,
         food.dietaryTags.join(', '),
         food.description,

@@ -60,8 +60,8 @@ const AddFoodPage = () => {
     fat: "",
     fiber: "",
     vitaminc: "",
-    foodType: "Poultry", 
-    customFoodType: "", 
+    category: "Poultry", 
+    customCategory: "", 
     difficulty: "Medium", 
     prepTime: "",
     healthTips: ""
@@ -148,10 +148,10 @@ const AddFoodPage = () => {
       return;
     }
 
-    if (food.foodType === "Other..." && !food.customFoodType.trim()) {
+    if (food.category === "Other..." && !food.customCategory.trim()) {
       setShowNotification({
         visible: true,
-        message: t("addFood.specifyFoodType"),
+        message: t("addFood.specifyCategory"),
         type: "error"
       });
       return;
@@ -172,7 +172,7 @@ const AddFoodPage = () => {
         }
       }
 
-      const finalFoodType = food.foodType === "Other..." ? food.customFoodType : food.foodType;
+      const finalCategory = food.category === "Other..." ? food.customCategory : food.category;
       const dietaryString = selectedDietary.join(", ");
       
       let ingredientsString = selectedIngredients.join(", ");
@@ -183,7 +183,7 @@ const AddFoodPage = () => {
 
       const newFoodData = {
         name: food.name,
-        category: finalFoodType,
+        category: finalCategory,
         origin: food.origin,
         description: food.description,
         culturalSignificance: food.culturalSignificance,
@@ -197,7 +197,6 @@ const AddFoodPage = () => {
         image: finalImageUrl,
         difficulty: food.difficulty,
         prepTime: food.prepTime || "0",
-        foodType: finalFoodType,
         commonIngredients: ingredientsString,
         dietaryTags: dietaryString,
         healthTips: food.healthTips
@@ -349,15 +348,15 @@ const AddFoodPage = () => {
               </div>
             </div>
 
-            {food.foodType === "Other..." ? (
+            {food.category === "Other..." ? (
               <div className="edit-food-basic-info-two-col" style={{ marginTop: "1rem" }}>
                 <div>
-                  <label className="basic-info-label">{t("addFood.foodType")}</label>
+                  <label className="basic-info-label">{t("addFood.category")}</label>
                   <div className="custom-select-wrapper">
                     <select
                       className="edit-food-select"
-                      name="foodType"
-                      value={food.foodType}
+                      name="category"
+                      value={food.category}
                       onChange={handleChange}
                     >
                       {FOOD_TYPE_OPTIONS.map((type) => (
@@ -367,24 +366,24 @@ const AddFoodPage = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="basic-info-label">{t("addFood.specifyFoodTypeLabel")}</label>
+                  <label className="basic-info-label">{t("addFood.specifyCategoryLabel")}</label>
                   <input
                     className="edit-food-input"
-                    name="customFoodType"
-                    value={food.customFoodType}
+                    name="customCategory"
+                    value={food.customCategory}
                     onChange={handleChange}
-                    placeholder={t("addFood.specifyFoodTypePlaceholder")}
+                    placeholder={t("addFood.specifyCategoryPlaceholder")}
                   />
                 </div>
               </div>
             ) : (
               <div className="food-origin-field" style={{ marginTop: "1rem" }}>
-                <label className="basic-info-label">{t("addFood.foodType")}</label>
+                <label className="basic-info-label">{t("addFood.category")}</label>
                 <div className="custom-select-wrapper">
                   <select
                     className="edit-food-select"
-                    name="foodType"
-                    value={food.foodType}
+                    name="category"
+                    value={food.category}
                     onChange={handleChange}
                   >
                     {FOOD_TYPE_OPTIONS.map((type) => (

@@ -502,7 +502,7 @@ export default function RecipesPage() {
 
               <div className="rp-grid-2">
                 <div className="rp-field">
-                  <label>{t("recipes.formCategory")}</label>
+                  <label>{t("Category")}</label>
                   <select name="category" value={form.category} onChange={(e) => {
                       const v = e.target.value;
                       if (v === "__other__") {
