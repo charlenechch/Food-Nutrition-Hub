@@ -424,12 +424,16 @@ export default function LoginRegisterPage() {
 
       const token = await user.getIdToken();
 
+      const csrfRes = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
+      const csrfData = await csrfRes.json();
+      const freshCsrfToken = csrfData.csrfToken;
+
       const res = await fetch(`${API_URL}/api/auth/google-login`, {
         method: "POST",
         credentials: "include",
         headers: { 
             "Content-Type": "application/json", 
-            "X-CSRF-Token": csrfToken 
+            "X-CSRF-Token": freshCsrfToken 
         },
         body: JSON.stringify({
           email: user.email,
