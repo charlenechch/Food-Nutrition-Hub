@@ -953,7 +953,6 @@ router.post('/export/saved-foods', async (req, res) => {
           f.name,
           f.origin,
           f.category,
-          f.foodType,
           f.difficulty,
           f.dietaryTags,
           f.description,
@@ -1103,7 +1102,7 @@ router.post('/export/saved-foods', async (req, res) => {
         
         // Food details
         doc.fontSize(10)
-           .text(`Origin: ${food.origin || 'N/A'} | Category: ${food.category || 'N/A'} | Type: ${food.foodType || 'N/A'}`);
+           .text(`Origin: ${food.origin || 'N/A'} | Category: ${food.category || 'N/A'}`);
         
         doc.text(`Difficulty: ${food.difficulty || 'N/A'} | Prep Time: ${food.prepTime || 'N/A'} minutes`);
         

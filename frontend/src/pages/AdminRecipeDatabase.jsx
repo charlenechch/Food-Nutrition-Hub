@@ -49,7 +49,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
     const name = (r.name || "").toLowerCase();
     const author = (r.author || "").toLowerCase();
     const matchesSearch = name.includes(term) || author.includes(term);
-    const matchesCategory = category === "All Categories" || (r.foodType === category || r.category === category);
+    const matchesCategory = category === "All Categories" || (r.category === category);
     const matchesDifficulty = difficulty === "All" || (r.difficulty || "Medium") === difficulty;
     const statusToCheck = sectionType === "approved" ? "Approved" : statusFilter;
     const matchesStatus = statusToCheck === "All" || r.status === statusToCheck;
@@ -297,7 +297,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                   </span>
                 </td>
                 <td data-label={t("adminRcpDB.colFoodItem")} className="hide-at-tablet">
-                  <span className="category-tag">{r.foodType || r.category || "N/A"}</span>
+                  <span className="category-tag">{r.category || "N/A"}</span>
                 </td>
                 <td data-label={t("adminRcpDB.colAuthor")}>{r.author || t("adminRcpDB.unknown")}</td>
                 <td data-label={sectionType === "approved" ? t("adminRcpDB.colDateApproved") : t("adminRcpDB.colDateCreated")}>

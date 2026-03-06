@@ -143,7 +143,6 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     Fiber_g,
     VitaminC_mg,
     image,
-    foodType,
     difficulty,
     dietaryTags,
     prepTime,
@@ -165,11 +164,10 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       INSERT INTO food 
       (
         name, origin, category, description, culturalSignificance, traditionalPreparation,
-        Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, image,
-        foodType, difficulty, dietaryTags, prepTime, commonIngredients, 
+        Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, image, difficulty, dietaryTags, prepTime, commonIngredients, 
         alternative, altDescription, healthTips
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     // 3. Set Values & Safe Defaults for Hidden Columns
@@ -186,8 +184,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       Carbohydrates_g || 0,
       Fiber_g || 0,
       VitaminC_mg || 0,
-      image || "",
-      foodType || "Dish",       
+      image || "",   
       difficulty || "",   
       dietaryTags || "",
       prepTime || "0",          
@@ -566,20 +563,19 @@ router.post("/bulk-import", async (req, res) => {
           const foodSql = `
             INSERT INTO food 
             (
-              name, origin, category, foodType, difficulty, dietaryTags, 
+              name, origin, category, difficulty, dietaryTags, 
               description, image, prepTime, culturalSignificance, 
               traditionalPreparation, commonIngredients, alternative, 
               altDescription, healthTips, Energy_kcal, Protein_g, Fat_g, 
               Carbohydrates_g, Fiber_g, VitaminC_mg
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
 
           const foodValues = [
             foodItem.name,
             foodItem.origin,
             foodItem.category || "",
-            foodItem.foodType || "Dish",
             foodItem.difficulty || "Medium",
             foodItem.dietaryTags || "",
             foodItem.description || "",

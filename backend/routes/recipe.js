@@ -26,7 +26,7 @@ difficulty: Joi.string().max(50).allow("", null),
 prepTime: Joi.number().integer().min(0).allow(null),
 image: Joi.string().uri().allow("", null),
 description: Joi.string().max(2000).allow("", null),
-foodType: Joi.string().max(100).allow("", null),
+category: Joi.string().max(100).allow("", null),
 dietaryTags: Joi.alternatives().try(
   Joi.array().items(Joi.string()),
   Joi.string().allow("")
@@ -68,7 +68,6 @@ SELECT
       f.prepTime, 
       f.image, 
       f.description, 
-      f.foodType,
       f.category,
       f.dietaryTags,
       r.cookTime, 
@@ -156,8 +155,8 @@ SELECT
       servings: Number(getSafe(data, 'servings')) || 0,
       image: imageUrl,
       description: getSafe(data, 'description') || '',
-      foodType: getSafe(data, 'foodType') || getSafe(data, 'category') || 'Other',
-       dietaryTags,
+      category: getSafe(data, 'category') || 'Other',
+      dietaryTags,
       ingredients,
       instructions,
       funFact: getSafe(data, 'funFact') || '',
@@ -245,7 +244,7 @@ return {
   servings: Number(getSafe(data, 'servings')) || 0,
   image: imageUrl,
   description: getSafe(data, 'description') || '',
-  foodType: getSafe(data, 'foodType') || getSafe(data, 'category') || 'Other',
+  category: getSafe(data, 'category') || 'Other',
   dietaryTags: dietaryTags,
   ingredients: ingredients,
   instructions: instructions,
@@ -271,7 +270,6 @@ try {
       f.prepTime, 
       f.image, 
       f.description, 
-      f.foodType,
       f.category,
       f.dietaryTags,
       r.cookTime, 
@@ -320,7 +318,7 @@ try {
     servings: row.servings || 0,
     image: row.image || '',
     description: row.description || '',
-    foodType: row.foodType || row.category || 'Other',
+    category: row.category || row.category || 'Other',
     dietaryTags: row.dietaryTags
       ? (typeof row.dietaryTags === 'string'
           ? row.dietaryTags.split(',').map(tag => tag.trim()).filter(tag => tag)
@@ -342,7 +340,7 @@ try {
     foodId: recipe.foodId,
     name: recipe.name,
     origin: recipe.origin,
-    foodType: recipe.foodType,
+    category: recipe.category,
     status: recipe.status,
     hasImage: !!recipe.image
   });
@@ -363,7 +361,7 @@ console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
 try {
   const {
     name, origin, difficulty, prepTime, image, description, 
-    foodType, dietaryTags, cookTime, servings, ingredients, 
+    category, dietaryTags, cookTime, servings, ingredients, 
     instructions, funFact, chefTips
   } = req.body;
 
@@ -392,7 +390,7 @@ try {
   console.log('📊 Request data analysis:', {
     name, 
     origin, 
-    foodType,
+    category,
     ingredientsType: typeof ingredients,
     instructionsType: typeof instructions,
     ingredientsIsArray: Array.isArray(ingredients),
@@ -459,7 +457,7 @@ try {
   const foodQuery = `
     INSERT INTO food (
       name, origin, difficulty, prepTime, image, description, 
-      foodType, category, dietaryTags, commonIngredients
+      category, category, dietaryTags, commonIngredients
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
@@ -470,8 +468,8 @@ try {
     prepTime || 0, 
     processedImage, 
     description || '', 
-    foodType || 'Other',
-    foodType || 'Other',
+    category || 'Other',
+    category || 'Other',
     Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
     null
   ];
@@ -665,7 +663,7 @@ try {
         r.chefTips,
         f.difficulty,
         f.prepTime,
-        f.foodType
+        f.category
       FROM recipe r
       JOIN food f ON r.foodID = f.foodID
       JOIN userProfile up ON r.userProfileID = up.userProfileID
@@ -744,7 +742,7 @@ try {
       chefTips: recipe.chefTips || '',
       difficulty: recipe.difficulty || 'Easy',
       prepTime: recipe.prepTime || 0,
-      foodType: recipe.foodType || 'Other'
+      category: recipe.category || 'Other'
     };
   });
 
@@ -792,7 +790,7 @@ try {
   const { id } = req.params;
   const {
     name, origin, difficulty, prepTime, image, description,
-    foodType, dietaryTags, cookTime, servings, ingredients,
+    category, dietaryTags, cookTime, servings, ingredients,
     instructions, funFact, chefTips, status
   } = req.body;
 
@@ -866,7 +864,7 @@ try {
       prepTime = ?, 
       image = ?, 
       description = ?, 
-      foodType = ?, 
+      category = ?, 
       category = ?, 
       dietaryTags = ?
     WHERE foodID = ?
@@ -878,8 +876,8 @@ try {
     prepTime || 0,
     finalImage,
     description || '',
-    foodType || 'Other',
-    foodType || 'Other',
+    category || 'Other',
+    category || 'Other',
     Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
     id
   ];

@@ -423,7 +423,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       name: name,
       origin: String(row.Origin || row.origin || "").trim(),
       category: String(row.Category || row.category || "").trim(),
-      foodType: String(row.FoodType || row.foodType || "").trim(),
       difficulty: String(row.Difficulty || row.difficulty || "Medium").trim(),
       dietaryTags: parseFieldToArray(row.DietaryTags || row.dietaryTags || ""),
       description: String(row.Description || row.description || "").trim(),
@@ -480,7 +479,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
   // Download Excel template
   const downloadTemplate = () => {
     const templateData = [
-      ["Name", "Origin", "Category", "FoodType", "Difficulty", "DietaryTags", 
+      ["Name", "Origin", "Category", "Difficulty", "DietaryTags", 
        "Description", "Image", "PrepTime", "CulturalSignificance", 
        "TraditionalPreparation", "CommonIngredients", "Alternative", 
        "AltDescription", "HealthTips", "Energy_kcal", "Protein_g", "Fat_g", 
@@ -557,7 +556,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       ["ENUM FIELDS (Must use exact values):"],
       ["• Origin: Malay, Chinese, Iban, Melanau, Kadazan, Bidayuh, Dayak"],
       ["• Difficulty: Easy, Medium, Hard"],
-      ["• FoodType: Typically Appetizer, Main Dish, Dessert, Snack, Drink"],
+      ["• Category: Typically Appetizer, Main Dish, Dessert, Snack, Drink"],
       [""],
       ["FORMATTING TIPS:"],
       ["• Ingredients: Separate with '|' or new lines (will be converted to list)"],
@@ -723,7 +722,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
                 </select>
               </div>
               <div className="filter-item">
-                <label>{t("explore.foodType")}</label>
+                <label>{t("explore.category")}</label>
                 <select value={category} onChange={(e) => setCategory(e.target.value)}>
                   <option>{t("explore.allCategories")}</option>
                   {categories.filter(c => c !== "All Categories").map((cat) => (

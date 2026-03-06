@@ -63,7 +63,6 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   const calMin = 0;
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedFoodType, setSelectedFoodType] = useState("all");
   const [selectedPrepTime, setSelectedPrepTime] = useState("all");
   const [selectedDietaryTags, setSelectedDietaryTags] = useState([]);
   const itemsPerPage = 9;
@@ -105,22 +104,21 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         (nutritionFocus === "low-fat" && (parseFloat(food.Fat_g_ps) || 0) <= 10) ||
         (nutritionFocus === "high-fiber" && (parseFloat(food.Fiber_g_ps) || 0) >= 5) ||
         (nutritionFocus === "low-carbs" && (parseFloat(food.Carbohydrates_g_ps) || 0) <= 25);
-      const matchesFoodType = selectedFoodType === "all" || food.foodType === selectedFoodType;
       const matchesPrepTime = selectedPrepTime === "all" ||
         (selectedPrepTime === "under30" && food.prepTime <= 30) ||
         (selectedPrepTime === "under120" && food.prepTime <= 120) ||
         (selectedPrepTime === "over120" && food.prepTime > 120);
       const matchesDietary = selectedDietaryTags.length === 0 || selectedDietaryTags.every((tag) => food.dietaryTags.includes(tag));
       return matchesSearch && matchesCategory && matchesOrigin && matchesCalories &&
-        matchesDifficulty && matchesNutrition && matchesFoodType && matchesPrepTime && matchesDietary;
+        matchesDifficulty && matchesNutrition && matchesPrepTime && matchesDietary;
     });
-  }, [foods, searchQuery, selectedCategory, selectedOrigin, calorieRange, selectedDifficulty, nutritionFocus, selectedDietaryTags, selectedFoodType, selectedPrepTime]);
+  }, [foods, searchQuery, selectedCategory, selectedOrigin, calorieRange, selectedDifficulty, nutritionFocus, selectedDietaryTags, selectedPrepTime]);
 
   const totalPages = Math.ceil(filteredFoods.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentFoods = filteredFoods.slice(startIndex, startIndex + itemsPerPage);
 
-  useEffect(() => { setCurrentPage(1); }, [foods, searchQuery, selectedCategory, selectedOrigin, calorieRange, selectedDifficulty, nutritionFocus, selectedDietaryTags, selectedFoodType, selectedPrepTime]);
+  useEffect(() => { setCurrentPage(1); }, [foods, searchQuery, selectedCategory, selectedOrigin, calorieRange, selectedDifficulty, nutritionFocus, selectedDietaryTags, selectedPrepTime]);
 
   const getCalorieRangeLabel = (cal) => {
     if (cal < 100) return t("explore.calLow");
@@ -230,7 +228,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
               <button onClick={() => {
                 setSearchQuery(""); setSelectedCategory("all"); setSelectedOrigin("all");
                 setCalorieRange([calMin, calMax]); setSelectedDifficulty("all");
-                setNutritionFocus("all"); setSelectedFoodType("all");
+                setNutritionFocus("all");
                 setSelectedPrepTime("all"); setSelectedDietaryTags([]);
               }} className="efp-btn">
                 <X size={18} aria-hidden="true" /> {t("explore.clearAll")}
@@ -273,8 +271,8 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   </select>
                 </div>
                 <div className="efp-filter-item">
-                  <label className="efp-label">{t("explore.foodType")}</label>
-                  <select value={selectedFoodType} onChange={(e) => setSelectedFoodType(e.target.value)} className="efp-select">
+                  <label className="efp-label">{t("explore.category")}</label>
+                  <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="efp-select">
                     <option value="all">{t("explore.allCategories")}</option>
                     <option value="main-dish">{t("explore.mainDish")}</option>
                     <option value="appetizer">{t("explore.appetizer")}</option>
