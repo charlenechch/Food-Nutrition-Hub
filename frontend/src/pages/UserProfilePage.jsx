@@ -627,8 +627,8 @@ const ContributionRow = ({ c }) => {
                   'Date not available'}
             </div>
 
-            {/* Revise Button - Keep only for Rejected/Needs Revision */}
-            {(c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected") && (
+            {/* Revise Button - Keep only for Rejected/Needs Revision AND if viewing own profile */}
+            {(!userProfileID && (c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected")) && (
               <button
                 className="lrp-btn lrp-btn-outline upp-revise-btn"
                 onClick={handleRevise}

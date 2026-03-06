@@ -815,6 +815,23 @@ router.put("/revise/:id", upload.array('images', 5), async (req, res) => {
   try {
     const { id } = req.params;
 
+   // Ensure the user is logged in
+    if (!req.session || !req.session.user || !req.session.user.userID) {
+      return res.status(401).json({ error: 'Not authenticated. Please log in.' });
+    }
+    const sessionUserID = req.session.user.userID;
+    const sessionRole = req.session.user.role;
+
+    // Fetch their userProfileID
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [sessionUserID]
+    );
+    if (profileResult.length === 0) {
+      return res.status(404).json({ error: 'User profile not found.' });
+    }
+    const currentUserProfileID = profileResult[0].userProfileID;
+
     if (!req.body || Object.keys(req.body).length === 0) {
       return res.status(400).json({ error: 'Request body is missing or invalid' });
     }
@@ -838,6 +855,13 @@ router.put("/revise/:id", upload.array('images', 5), async (req, res) => {
     }
 
     const current = existingPost[0];
+
+    // Block the update if the user doesn't own the post (and isn't an admin)
+    if (current.userProfileID !== currentUserProfileID && sessionRole !== 'admin') {
+      console.warn(`🚨 SECURITY BLOCK: User ${sessionUserID} attempted to edit post ${id} without permission.`);
+      return res.status(403).json({ error: 'Forbidden: You do not have access to this post.' });
+    }
+
     console.log('📋 Current post data:', current);
 
     let finalImages = current.photos; // Default to existing images
