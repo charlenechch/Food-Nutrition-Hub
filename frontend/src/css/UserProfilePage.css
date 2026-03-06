@@ -216,7 +216,9 @@
 }
 .upp-sub { 
     color:#7b6d5f; 
-    margin: 0; 
+    margin: 8px auto 0;
+    max-width: 600px;
+    line-height: 1.4;
 }
 
 .upp-tabs {

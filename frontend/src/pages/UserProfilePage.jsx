@@ -1179,9 +1179,11 @@ const ContributionRow = ({ c }) => {
               )}
             </div>
             <h1 className="upp-title">{!userProfileID ? t("profile.myProfile") : t("profile.othersProfile", { name: user?.firstName })}</h1>
-            <p className="upp-sub">
-              {user?.firstName} {user?.lastName} • {user?.role || t("profile.member")}
-            </p>
+            {user?.bio && (
+              <p className="upp-sub">
+                {user.bio}
+              </p>
+            )}
           </div>
 
           {user?.isPrivateView ? (
