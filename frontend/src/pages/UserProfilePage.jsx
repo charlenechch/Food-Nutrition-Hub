@@ -1698,7 +1698,7 @@ const ContributionRow = ({ c }) => {
       {/* Export Modal */}
       {exportModal.open && (
         <div className="upp-modal-overlay">
-          <div className="upp-modal" style={{ maxWidth: "600px", maxHeight: "80vh" }}>
+          <div className="upp-modal">
             <div className="upp-modal-header">
               <h3>{exportModal.title}</h3>
               <button className="upp-modal-close" onClick={closeExportModal}>
