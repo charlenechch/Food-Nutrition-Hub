@@ -18,10 +18,10 @@ export default function PrivacyPolicyPage() {
           <FaArrowLeft /> Back
         </button>
 
-        <h1 className="pp-title">Personal Data Protection Act (PDPA) Policy</h1>
+        <h1 className="pp-title">Privacy Policy</h1>
         
         <div>
-          <p className="pp-text">Welcome to SarawakEats. Your privacy is important to us...</p>
+          <p className="pp-text">Welcome to SarawakEats. Your privacy is important to us.</p>
           
           <h3 className="pp-section-title">1. Information We Collect</h3>
           <p className="pp-text">We collect your name, email address, and saved recipes to provide a personalized experience.</p>
@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
           <p className="pp-text">Your data is securely stored and used exclusively for authentication and app functionality. We do not sell your personal data to third parties.</p>
 
           <p className="pp-muted-text">
-            *Please update this page with your official legal terms.*
+            And more...
           </p>
         </div>
 
