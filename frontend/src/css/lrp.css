@@ -75,12 +75,12 @@
 
 .lrp-btn-warning {
   background-color: white;
-  border-color: orange; 
-  color: orange;
+  border-color: darkorange; 
+  color: darkorange;
 }
 
 .lrp-btn-warning:hover:not(:disabled) {
-  background-color: orange;
+  background-color: darkorange;
   color: white;
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.2);
 }
