@@ -485,7 +485,7 @@
 }
 .upp-revise-btn {
     margin-left: auto; 
-    width: max-content; 
+    width: auto; 
     flex: 0 0 auto; 
     white-space: nowrap;        
     padding: 6px 20px; 
