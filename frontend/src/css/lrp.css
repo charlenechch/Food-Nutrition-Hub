@@ -63,24 +63,24 @@
 
 .lrp-btn-danger {
   background-color: #ffffff;
-  border-color: #a93226; /* Earthy brick red */
-  color: #a93226;
+  border-color: #e74c3c; /* Classic vibrant red */
+  color: #e74c3c;
 }
 
 .lrp-btn-danger:hover:not(:disabled) {
-  background-color: #a93226;
+  background-color: #e74c3c;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(169, 50, 38, 0.2);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
 }
 
 .lrp-btn-warning {
   background-color: #ffffff;
-  border-color: #d35400; 
-  color: #d35400;
+  border-color: #f39c12; /* Bright classic orange */
+  color: #f39c12;
 }
 
 .lrp-btn-warning:hover:not(:disabled) {
-  background-color: #d35400;
+  background-color: #f39c12;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(211, 84, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.2);
 }
