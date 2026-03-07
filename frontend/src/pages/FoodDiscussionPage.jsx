@@ -42,8 +42,8 @@ const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", i
           <button className="lrp-btn lrp-btn-outline" onClick={onClose}>
             Cancel
           </button>
-          <button className={`lrp-btn ${isAdminAction ? 'lrp-btn-warning' : 'lrp-btn-danger'}`} onClick={onConfirm}>
-            {isAdminAction ? "Delete as Admin" : "Delete"}
+          <button className="lrp-btn lrp-btn-danger" onClick={onConfirm}>
+            Delete
           </button>
         </div>
       </div>
