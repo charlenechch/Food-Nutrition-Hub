@@ -61,6 +61,10 @@
   color: #ffffff;
 }
 
+.lrp-btn:focus {
+    outline: none;
+}
+
 .lrp-btn-danger {
   background-color: white;
   border-color: red;
