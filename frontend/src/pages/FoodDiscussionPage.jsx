@@ -4,6 +4,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/FoodDiscussionPage.css";
+import "../css/lrp.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import {CheckCircle2, AlertTriangle} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
