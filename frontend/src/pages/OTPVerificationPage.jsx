@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 import "../css/OTPVerificationPage.css";
+import "../css/lrp.css";
 
 export default function OTPVerificationPage({ email: emailProp }) {
   const navigate = useNavigate();
