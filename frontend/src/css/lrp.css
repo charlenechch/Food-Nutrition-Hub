@@ -35,7 +35,6 @@
 
 .lrp-btn-outline:hover:not(:disabled) {
   background-color: #f7f2ed;
-  border-color: #6a4a2f; 
   color: #6a4a2f;
 }
 
@@ -50,13 +49,12 @@
 }
 
 .lrp-btn-primary.saved {
-  background-color: #ffffff;
-  border-color: #4a6741;
+  background-color: #4a6741;
   color: #4a6741;
 }
 
 .lrp-btn-primary.saved:hover:not(:disabled) {
-  background-color: #4a6741;
+  background-color: #2e4228;
   color: #ffffff;
 }
 
