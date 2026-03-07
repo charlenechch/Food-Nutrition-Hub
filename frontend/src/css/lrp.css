@@ -63,7 +63,7 @@
 
 .lrp-btn-danger {
   background-color: #ffffff;
-  border-color: #e74c3c; /* Classic vibrant red */
+  border-color: #e74c3c;
   color: #e74c3c;
 }
 
@@ -75,7 +75,7 @@
 
 .lrp-btn-warning {
   background-color: #ffffff;
-  border-color: #f39c12; /* Bright classic orange */
+  border-color: #f39c12; 
   color: #f39c12;
 }
 
