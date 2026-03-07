@@ -721,8 +721,9 @@
 
   .upp-revise-btn {
     margin-left: 0;
-    width: 100%;
-    justify-content: center;
+    margin-top: 4px; 
+    width: max-content;
+    align-self: flex-start;
   }
 
   .upp-row.between {
