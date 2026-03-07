@@ -185,7 +185,7 @@ function AppRoutes() {
       <FetchInterceptorSetup />
       <AxiosInterceptorSetup />
       <SessionChecker />
-      {/* <ScrollToTop /> */}
+      <ScrollToTop />
       <Routes>
         {/* === Default Landing (GUEST FIRST) === */}
           <Route path="/" element={<UserHomepage />} />
