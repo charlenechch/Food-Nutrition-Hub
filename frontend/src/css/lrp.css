@@ -62,25 +62,25 @@
 }
 
 .lrp-btn-danger {
-  background-color: #ffffff;
-  border-color: #e74c3c;
-  color: #e74c3c;
+  background-color: white;
+  border-color: red;
+  color: red;
 }
 
 .lrp-btn-danger:hover:not(:disabled) {
-  background-color: #e74c3c;
-  color: #ffffff;
+  background-color: red;
+  color: white;
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
 }
 
 .lrp-btn-warning {
-  background-color: #ffffff;
-  border-color: #f39c12; 
-  color: #f39c12;
+  background-color: white;
+  border-color: orange; 
+  color: orange;
 }
 
 .lrp-btn-warning:hover:not(:disabled) {
-  background-color: #f39c12;
-  color: #ffffff;
+  background-color: orange;
+  color: white;
   box-shadow: 0 4px 12px rgba(243, 156, 18, 0.2);
 }
