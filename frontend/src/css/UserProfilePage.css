@@ -484,13 +484,12 @@
     text-overflow: ellipsis;
 }
 .upp-revise-btn {
+    margin-left: auto; 
     width: max-content; 
     flex: 0 0 auto; 
-    display: inline-flex;
-    margin-left: auto;
     white-space: nowrap;        
-    padding: 6px 20px;
-    font-size: 0.85rem;  
+    padding: 6px 20px; 
+    font-size: 0.9rem;  
 }
 .upp-chip { 
     padding:4px 8px; 
@@ -721,10 +720,10 @@
   }
 
   .upp-revise-btn {
-    margin-left: 0;
-    margin-top: 4px; 
-    width: max-content !important;
-    align-self: flex-start;
+    margin-left: 0; 
+    margin-top: 8px; 
+    width: 100%; 
+    justify-content: center; 
   }
 
   .upp-row.between {
