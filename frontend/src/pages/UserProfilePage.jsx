@@ -1,13 +1,8 @@
-// ✅UserProfilePage.jsx – Final Version with Guest Popup & Avatar Upload
-// - Shows Login Prompt Modal instead of redirecting for guests
-// - Supports /profile & /profile/:userProfileID
-// - Keeps saved foods, contributions, preferences, settings, stats
-// - ✅ Added avatar upload functionality
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../css/UserProfilePage.css";
+import "../css/lrp.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Bell, Eye, EyeOff, Globe, Shield, ExternalLink, OctagonX, Camera, X, AlertTriangle, CheckCircle2, Trash2, Lock } from "lucide-react";
