@@ -45,9 +45,8 @@
 }
 
 .lrp-btn-primary:hover:not(:disabled) {
-  background-color: #8B4513; 
+  background-color: #5A2D0C; 
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
 }
 
 .lrp-btn-primary.saved {
