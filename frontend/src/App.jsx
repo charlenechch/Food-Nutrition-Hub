@@ -24,6 +24,7 @@ import CommunityPage from "./pages/CommunityPage";
 import CommunityPost from "./pages/CommunityPostPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import Analytics from "./pages/Analytics";
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 
 // // === Admin Pages ===
 import AdminHomepage from "./pages/AdminHomepage";
@@ -207,6 +208,7 @@ function AppRoutes() {
           <Route path="/recipes/:id" element={<RecipeDetailPage />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/community/:id" element={<CommunityPost />} />
+          <Route path="/privacypolicy" element={<PrivacyPolicyPage />} />
 
         {/* === Gated Tools (Protected) === */}
         <Route
