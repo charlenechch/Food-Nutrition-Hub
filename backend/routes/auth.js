@@ -74,7 +74,7 @@ router.post("/login", async (req, res) => {
 
   try {
     const [users] = await db.execute(
-      `SELECT userID, firstname, lastname, email, role, password, pdpa_consent
+      `SELECT userID, firstname, lastname, email, role, password, pdpa_consent, tnc_consent
        FROM user
        WHERE email = ?`,
       [email]
@@ -141,7 +141,8 @@ router.post("/login", async (req, res) => {
       lastname: user.lastname,
       email: user.email,
       role: user.role,
-      pdpa_consent: user.pdpa_consent
+      pdpa_consent: user.pdpa_consent,
+      tnc_consent: user.tnc_consent
     };
 
     return res.json({
@@ -253,7 +254,9 @@ router.post("/google-login", async (req, res) => {
         lastname: user.lastname,
         email: user.email,
         role: user.role,
-        loginMethod: "google" // Useful for frontend to know
+        pdpa_consent: user.pdpa_consent,
+        tnc_consent: user.tnc_consent,
+        loginMethod: "google"
       };
 
       // Save session
