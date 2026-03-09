@@ -1192,7 +1192,7 @@ const ContributionRow = ({ c }) => {
         ) : (
           <>
           {/* ===== TABS ===== */}
-          <div className="upp-tabs lrp-tabs">
+          <div className="upp-tabs">
             {[
               ["info", t("profile.tabInfo")],
               ["saved", t("profile.tabSaved")],
@@ -1207,7 +1207,7 @@ const ContributionRow = ({ c }) => {
             .map(([val, label]) => (
               <button
                 key={val}
-                className={`upp-tab lrp-tab ${tab === val ? "is-active" : ""}`}
+                className={`upp-tab ${tab === val ? "is-active" : ""}`}
                 onClick={() => setTab(val)}
                 type="button"
                 role="tab"

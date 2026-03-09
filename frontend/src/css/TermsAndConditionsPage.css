@@ -1,8 +1,6 @@
-/* src/css/PrivacyPolicyPage.css */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap');
 
-/* Main Page Container */
-.privacy-policy-page {
+.terms-page {
   min-height: 100vh;
   background-color: #fcf9f6;
   font-family: 'Poppins', sans-serif;
@@ -10,8 +8,7 @@
   padding-bottom: 60px;
 }
 
-/* Content Wrapper */
-.pp-content-wrapper {
+.terms-content-wrapper {
   max-width: 800px;
   margin: 0 auto;
   background-color: #ffffff;
@@ -21,8 +18,7 @@
   border: 1px solid rgba(145, 104, 72, 0.1);
 }
 
-/* Typography */
-.pp-title {
+.terms-title {
   font-family: 'Playfair Display', serif;
   color: #2d2d2d;
   font-size: 2.2rem;
@@ -31,7 +27,7 @@
   text-align: center;
 }
 
-.pp-section-title {
+.terms-section-title {
   font-family: 'Playfair Display', serif;
   color: #916848;
   font-size: 1.4rem;
@@ -40,7 +36,7 @@
   font-weight: 600;
 }
 
-.pp-text {
+.terms-text {
   font-size: 1rem;
   line-height: 1.7;
   color: #555;
@@ -48,7 +44,7 @@
   font-weight: 300;
 }
 
-.pp-updated-text {
+.terms-updated-text {
   margin-top: 0;
   margin-bottom: 40px;
   font-size: 0.9rem;
@@ -57,16 +53,7 @@
   font-style: italic;
 }
 
-.pp-muted-text {
-  margin-top: 40px;
-  font-size: 0.9rem;
-  color: #888;
-  text-align: center;
-  font-style: italic;
-}
-
-/* Back Button */
-.pp-back-btn {
+.terms-back-btn {
   background: none;
   border: none;
   color: #916848;
@@ -82,32 +69,31 @@
   transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.pp-back-btn:hover {
+.terms-back-btn:hover {
   color: #b08d55;
   transform: translateX(-5px);
 }
 
-/* Mobile Responsiveness */
 @media (max-width: 768px) {
-  .privacy-policy-page {
+  .terms-page {
     padding-top: 100px;
     padding-left: 15px;
     padding-right: 15px;
   }
 
-  .pp-content-wrapper {
+  .terms-content-wrapper {
     padding: 30px 20px;
   }
 
-  .pp-title {
+  .terms-title {
     font-size: 1.8rem;
   }
 
-  .pp-section-title {
+  .terms-section-title {
     font-size: 1.25rem;
   }
 
-  .pp-text {
+  .terms-text {
     font-size: 0.95rem;
   }
 }

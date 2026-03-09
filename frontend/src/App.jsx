@@ -38,6 +38,7 @@ import ReviseRecipePage from "./pages/ReviseRecipePage";
 import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
 import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
 import EditCommunityPostPage from "./pages/EditCommunityPostPage";
+import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 
 // // === Auth & Verification ===
 import AuthActionRouter from "./pages/AuthActionRouter";
@@ -211,6 +212,7 @@ function AppRoutes() {
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/community/:id" element={<CommunityPost />} />
           <Route path="/privacypolicy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsAndConditionsPage />} />
 
         {/* === Gated Tools (Protected) === */}
         <Route
