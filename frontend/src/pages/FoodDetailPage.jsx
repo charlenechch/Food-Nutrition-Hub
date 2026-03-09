@@ -1,36 +1,323 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+// ✅ src/pages/FoodDiscussionPage.jsx 
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import "../css/FoodDiscussionPage.css";
 import "../css/lrp.css";
-import "../css/FoodDetailPage.css";
-import Modal from "../components/Modal";
-import { Share2, Info, TriangleAlert, MessagesSquare, ShoppingBasket, Cross, ScrollText, CheckCircle2, AlertTriangle } from "lucide-react";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import {CheckCircle2, AlertTriangle} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import Modal from "../components/Modal";
 import LoginPromptModal from "../components/LoginPromptModal";
-import { useTranslation } from "react-i18next";
-import { translateTexts } from "../hooks/useAITranslation";
 
-export default function FoodDetailPage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+// ✅ Delete Confirmation Modal Component
+const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", isAdminAction = false }) => {
+  if (!show) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-card">
+        <div className="modal-card-header">
+          <h3>
+            {isAdminAction ? "Admin: Delete " : "Delete "}
+            {type === "reply" ? "Reply" : "Comment"}
+          </h3>
+          {isAdminAction && (
+            <div className="admin-delete-warning">
+              <i className="fas fa-exclamation-triangle"></i>
+              <span>You are deleting this as an administrator</span>
+            </div>
+          )}
+        </div>
+        <div className="modal-card-body">
+          <p>
+            {isAdminAction 
+              ? `Are you sure you want to delete this ${type} as an administrator? This action cannot be undone.`
+              : `Are you sure you want to delete this ${type}? This action cannot be undone.`
+            }
+          </p>
+        </div>
+        <div className="modal-card-actions">
+          <button className="lrp-btn lrp-btn-outline" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="lrp-btn lrp-btn-danger" onClick={onConfirm}>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ✅ Format "time ago"
+function getTimeAgo(timestamp) {
+  const now = new Date();
+  const past = new Date(timestamp);
+  const diff = Math.floor((now - past) / 1000);
+  
+  // If more than 2 days, show actual date
+  if (diff >= 172800) { 
+    return formatToDate(timestamp);
+  }
+  
+  if (diff < 60) return "now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
+  return `${Math.floor(diff / 2592000)}mo ago`;
+}
+
+function formatToDate(timestamp) {
+  const date = new Date(timestamp);
+  
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  
+  const day = date.getDate();
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+  
+  return `${day} ${month} ${year}`;
+}
+
+// ✅ Single Comment Component
+const Comment = React.memo(function Comment({
+  item,
+  isReply = false,
+  onToggleLike,
+  replyToId,
+  setReplyToId,
+  replyTexts,
+  setReplyTexts,
+  onPostReply,
+  onDeleteComment,
+  onDeleteReply,
+  isGuest,
+  setShowLoginPrompt,
+  currentUserId,
+  isAdmin = false, 
+}) {
+  const navigate = useNavigate(); // ✅ ADDED: navigate hook for routing
+
+  const itemId = isReply ? (item.replyID || item.id) : (item.id || item.discussionID);
+  const username = item.username || item.user || item.author || 'Unknown User';
+  const avatar = item.avatar;
+  const content = item.content || item.reply || "No content";
+  const timestamp = item.timestamp || item.createdAt;
+  const likes = isReply ? 0 : item.likes || item.upVotes || 0;
+  const userLiked = item.user_liked || false;
+
+  const commentIsAdmin = item.isAdmin || item.userRole === 'admin';
+  
+  // Enhanced user ID extraction 
+  const commentUserId = item.userProfileID || item.userID || item.authorID || item.user_id;
+  const isOwner = currentUserId && commentUserId && currentUserId.toString() === commentUserId.toString();
+  const canDelete = isOwner || isAdmin;
+
+  console.log('🟢 Comment data:', {
+    username,
+    avatar, 
+    commentIsAdmin,
+    isOwner,
+    currentUserId,
+    commentUserId
+  });
+
+  const handleLike = () => {
+    if (isGuest) return setShowLoginPrompt(true);
+    onToggleLike(itemId);
+  };
+
+  const handleToggleReply = () => {
+    if (isGuest) return setShowLoginPrompt(true);
+    setReplyToId(replyToId === itemId ? null : itemId);
+  };
+
+  const handleReplyChange = (e) => {
+    if (isGuest) return setShowLoginPrompt(true);
+    setReplyTexts((prev) => ({ ...prev, [itemId]: e.target.value }));
+  };
+
+  const handlePostReply = () => {
+    if (isGuest) return setShowLoginPrompt(true);
+    onPostReply(itemId);
+  };
+
+  const handleDelete = () => {
+    if (isReply) {
+      onDeleteReply(item.discussionID, itemId, isAdmin && !isOwner);
+    } else {
+      onDeleteComment(itemId, isAdmin && !isOwner);
+    }
+  };
+
+  // ✅ ADDED: Logic to handle clicking on a commenter's profile
+  const handleProfileClick = () => {
+    if (currentUserId && commentUserId && String(currentUserId) === String(commentUserId)) {
+      navigate("/profile"); // Go to personal dashboard
+    } else if (commentUserId) {
+      navigate(`/profile/${commentUserId}`); // Go to public profile
+    }
+  };
+
+  return (
+    <div className={`fd-disc-comment ${isReply ? "fd-disc-reply" : ""}`}>
+      {/* ✅ MODIFIED: Made the Avatar clickable */}
+      <div 
+        className="fd-disc-avatar"
+        onClick={handleProfileClick}
+        style={{ cursor: "pointer" }}
+        title={`View ${username}'s profile`}
+      >
+          {item.avatar ? (
+            <img 
+              src={item.avatar} 
+              alt={username}
+              className="fd-disc-avatar-img"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          ) : (
+          
+          <div className="fd-disc-avatar-initials">
+            {username.substring(0, 2).toUpperCase()}
+          </div>
+          )}
+        </div>
+      <div className="fd-disc-body">
+        <div className="fd-disc-meta">
+          {/* ✅ MODIFIED: Made the Username clickable */}
+          <span 
+            className="fd-disc-user"
+            onClick={handleProfileClick}
+            style={{ cursor: "pointer", textDecoration: "underline transparent", transition: "text-decoration 0.2s" }}
+            onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+            onMouseLeave={(e) => e.target.style.textDecoration = "underline transparent"}
+            title={`View ${username}'s profile`}
+          >
+            {username}
+          </span>
+          <span className="fd-disc-time">• {getTimeAgo(timestamp)}</span>
+          
+          {/* ✅ UPDATED DELETE BUTTON - Show for owners AND admins */}
+          {canDelete && (
+            <button 
+              className={`fd-delete-btn ${isAdmin && !isOwner ? 'fd-admin-delete-btn' : ''}`} 
+              onClick={handleDelete}
+              title={`Delete ${isReply ? 'reply' : 'comment'}${isAdmin && !isOwner ? ' (Admin)' : ''}`}
+              aria-label={`Delete ${isReply ? 'reply' : 'comment'} by ${username}`}
+            >
+              <i className="fas fa-trash-alt"></i>
+            </button>
+          )}
+        </div>
+        <p className="fd-disc-text">{content}</p>
+
+        {!isReply && (
+          <div className="fd-disc-actions">
+            <button 
+              className={`fd-link-btn ${userLiked ? 'liked' : ''}`} 
+              onClick={handleLike}
+            >
+              {userLiked ? "♥" : "♡"} {likes}
+            </button>
+            <button className="fd-link-btn" onClick={handleToggleReply}>
+              ↩ Reply
+            </button>
+          </div>
+        )}
+
+        {!isReply && replyToId === itemId && (
+          <div className="fd-reply-box">
+            <textarea
+              className="fd-input"
+              placeholder="Write your reply..."
+              value={replyTexts[itemId] || ""}
+              onChange={handleReplyChange}
+              rows="2"
+            />
+            <div className="fd-reply-actions">
+              <button className="lrp-btn lrp-btn-primary" disabled={!replyTexts[itemId]?.trim()} onClick={handlePostReply}>
+                Send Reply
+              </button>
+              <button className="lrp-btn lrp-btn-outline" onClick={() => setReplyToId(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+          {item.replies && item.replies.length > 0 && (
+            <div className="fd-disc-replies">
+              {item.replies.map((reply, idx) => (
+                <Comment
+                  key={reply.replyID || idx}
+                  item={{
+                    ...reply,
+                    discussionID: item.id || item.discussionID 
+                  }}
+                  isReply={true}
+                  onToggleLike={onToggleLike}
+                  replyToId={replyToId}
+                  setReplyToId={setReplyToId}
+                  replyTexts={replyTexts}
+                  setReplyTexts={setReplyTexts}
+                  onPostReply={onPostReply}
+                  onDeleteComment={onDeleteComment}
+                  onDeleteReply={onDeleteReply}
+                  isGuest={isGuest}
+                  setShowLoginPrompt={setShowLoginPrompt}
+                  currentUserId={currentUserId}
+                  isAdmin={isAdmin} // ✅ PASS ADMIN PROP TO REPLIES
+                />
+              ))}
+            </div>
+          )}
+      </div>
+    </div>
+  );
+});
+
+// ✅ Main Component
+export default function FoodDiscussionPage() {
   const { user } = useAuth();
-  const { t, i18n } = useTranslation();
+  const { foodId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const [userProfileID, setUserProfileID] = useState(null);
 
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const [food, setFood] = useState(null);
-  const [translatedFood, setTranslatedFood] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [saved, setSaved] = useState(false);
-  const [foodComments, setFoodComments] = useState([]);
-  const [commentsLoading, setCommentsLoading] = useState(false);
-  const [savedLoading, setSavedLoading] = useState(false);
-  const [healthAlerts, setHealthAlerts] = useState([]);
-  const [jumping, setJumping] = useState(false);
+  // to get userProfileID from userID
+  const getUserProfileID = async () => {
+    try {
+      const res = await fetch(`${API}/api/foodDiscussion/get-user-profile`, {
+        credentials: "include",
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          return data.userProfileID;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching userProfileID:', error);
+    }
+    return null;
+  };
+
+  const isGuest = !user || user.role === "guest";
+  const actualUserID = userProfileID;
+  
+//================
+//CSRF
+//=============
   const [csrfToken, setCsrfToken] = useState("");
-  const [infoDlg, setInfoDlg] = useState({ open: false, title: "", message: "", icon: null, primaryText: "OK" });
-  const sharingRef = useRef(false);
 
   useEffect(() => {
     const fetchCsrfToken = async () => {
@@ -39,354 +326,930 @@ export default function FoodDetailPage() {
         const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
         const data = await res.json();
         setCsrfToken(data.csrfToken);
-      } catch (err) { console.error("Failed to fetch CSRF token", err); }
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
     };
     fetchCsrfToken();
   }, []);
+  
+  // Check if user is admin
+  const isAdmin = user?.role === "admin";
 
-  useEffect(() => {
-    if (!food || i18n.language === "en") {
-      setTranslatedFood({});
-      return;
-    }
-    const ingredients = food.commonIngredients || []; // ✅ define it here
-    translateTexts({
-      name: food.name,
-      description: food.description,
-      culturalSignificance: food.culturalSignificance,
-      traditionalPreparation: food.traditionalPreparation,
-      ingredients: ingredients.join("||"),
-    }, i18n.language).then((result) => { // ✅ result not results
-      if (result.ingredients) {
-        result.ingredientsArray = result.ingredients.split("||").map(s => s.trim());
-      }
-      setTranslatedFood(result);
-    });
-  }, [food, i18n.language]);
+  const [food, setFood] = useState(location.state?.food || null);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [replyToId, setReplyToId] = useState(null);
+  const [replyTexts, setReplyTexts] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  const [foodLike, setFoodLike] = useState({
+    isLiked: false,
+    likesCount: 0,
+    loading: false
+  });
+  
+  // Delete confirmation modal state
+  const [deleteModal, setDeleteModal] = useState({
+    show: false,
+    type: "comment", // "comment" or "reply"
+    commentId: null,
+    replyId: null,
+    onConfirm: null,
+    isAdminAction: false // Track if this is an admin action
+  });
+
+  const [infoDlg, setInfoDlg] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+  });
 
   const openInfo = ({ title, message, icon, primaryText = "OK" }) =>
     setInfoDlg({ open: true, title, message, icon, primaryText });
-  const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false }));
-  const num = (v) => (v == null ? 0 : Number(v));
-  const getPerServing = (food, keyPs, keyTotal) => num(food?.[keyPs]) || num(food?.[keyTotal]);
 
-  const buildHealthAlerts = (food) => {
-    const alerts = [];
-    const kcal = getPerServing(food, "Energy_kcal_ps", "Energy_kcal");
-    const protein = getPerServing(food, "Protein_g_ps", "Protein_g");
-    const fat = getPerServing(food, "Fat_g_ps", "Fat_g");
-    const carbs = getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g");
-    const fiber = getPerServing(food, "Fiber_g_ps", "Fiber_g");
-    const vitC = getPerServing(food, "VitaminC_mg_ps", "VitaminC_mg");
+  const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false}));
 
-    if (kcal >= 600) alerts.push({ type: "warning", key: "foodDetail.alertHighCal" });
-    else if (kcal > 0 && kcal <= 300) alerts.push({ type: "info", key: "foodDetail.alertLowCal" });
-    if (protein >= 25) alerts.push({ type: "info", key: "foodDetail.alertExcellentProtein" });
-    else if (protein >= 12) alerts.push({ type: "info", key: "foodDetail.alertGoodProtein" });
-    if (fat >= 20) alerts.push({ type: "warning", key: "foodDetail.alertHighFat" });
-    else if (fat > 0 && fat <= 10) alerts.push({ type: "info", key: "foodDetail.alertLowFat" });
-    if (carbs >= 60) alerts.push({ type: "warning", key: "foodDetail.alertHighCarbs" });
-    if (fiber >= 5) alerts.push({ type: "info", key: "foodDetail.alertHighFiber" });
-    if (vitC >= 30) alerts.push({ type: "info", key: "foodDetail.alertVitC" });
-    const tags = Array.isArray(food?.dietaryTags) ? food.dietaryTags : [];
-    if (tags.includes("spicy")) alerts.push({ type: "info", key: "foodDetail.alertSpicy" });
-    if (tags.includes("vegetarian")) alerts.push({ type: "info", key: "foodDetail.alertVegetarian" });
-    return alerts;
+  useEffect(() => {
+    if (user?.userID && !userProfileID) {
+      getUserProfileID().then(profileID => {
+        setUserProfileID(profileID);
+        console.log('🟢 Fetched userProfileID:', profileID);
+      });
+    }
+  }, [user?.userID, userProfileID]);
+
+  useEffect(() => {
+  if (foodId && userProfileID) { 
+    fetchComments();
+    fetchFoodLikeStatus(); 
+  }
+}, [foodId, userProfileID]); 
+
+  // UPDATED: Delete confirmation function
+  const showDeleteConfirmation = (type, commentId, replyId = null, isAdminAction = false) => {
+    setDeleteModal({
+      show: true,
+      type,
+      commentId,
+      replyId,
+      isAdminAction,
+      onConfirm: () => {
+        if (type === "comment") {
+          deleteComment(commentId, isAdminAction);
+        } else {
+          deleteReply(commentId, replyId, isAdminAction);
+        }
+      }
+    });
+  };
+
+  // ✅ Fetch comments
+  const fetchComments = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+    
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setComments(data.data);
+      } else {
+        setComments([]);
+        console.error("API returned error:", data.message);
+      }
+    } catch (err) {
+      console.error("Error fetching comments:", err);
+      setComments([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    const fetchFood = async () => {
-      try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-        const res = await fetch(`${API_BASE_URL}/api/foodDetail/${id}`);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const result = await res.json();
-        if (result.success) {
-          setFood(result.data);
-          setHealthAlerts(buildHealthAlerts(result.data));
-          fetchFoodComments(result.data.id || id);
-        } else { setError(result.message || "Food not found"); }
-      } catch (err) { setError("Failed to fetch food details"); console.error("Error:", err); }
-      finally { setLoading(false); }
-    };
-    if (id) fetchFood();
-  }, [id]);
+    if (foodId) fetchComments();
+  }, [foodId]);
 
-  useEffect(() => { if (food) setHealthAlerts(buildHealthAlerts(food)); }, [food]);
+// ✅ Load likes from localStorage on component mount - USER-SPECIFIC
+const loadLikesFromStorage = () => {
+  if (!userProfileID) {
+    console.log('🟡 userProfileID not available yet');
+    return null;
+  }
+  
+  try {
+    const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+    const storedLikes = localStorage.getItem(userSpecificKey);
+    if (storedLikes) {
+      return JSON.parse(storedLikes);
+    }
+  } catch (error) {
+    console.warn('Failed to load likes from localStorage:', error);
+  }
+  return null;
+};
 
-  const fetchFoodComments = async (foodId) => {
-    try {
-      setCommentsLoading(true);
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_BASE_URL}/api/foodDiscussion/food/${foodId}`);
-      if (res.ok) { const result = await res.json(); if (result.success) setFoodComments(result.data); }
-    } catch (err) { console.error("Error fetching comments:", err); }
-    finally { setCommentsLoading(false); }
-  };
+// Fetch food like status 
+const fetchFoodLikeStatus = async () => {
+  console.log('🟡 fetchFoodLikeStatus called - userProfileID:', userProfileID);
+  try {
+    const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/like-status`, {
+      credentials: "include",
+    });
 
-  const isLoggedIn = () => user && user.role !== "guest";
-  const getUserInitials = (comment) => {
-    const username = comment.username || comment.user || comment.author || "User";
-    return username.substring(0, 2).toUpperCase();
-  };
-
-  useEffect(() => { if (id && isLoggedIn()) checkSavedStatus(); }, [id, isLoggedIn()]);
-
-  const checkSavedStatus = async () => {
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${user?.userID}&type=food`;
-      const response = await fetch(url, { method: "GET", credentials: "include", headers: { Accept: "application/json" } });
-      if (response.ok) { const data = await response.json(); setSaved(data.saved); }
-      else setSaved(false);
-    } catch (error) { setSaved(false); }
-  };
-
-  const handleSaveFood = async () => {
-    if (!isLoggedIn()) { setShowLoginPrompt(true); return; }
-    const userProfileID = user?.userID;
-    if (!userProfileID) { setShowLoginPrompt(true); return; }
-    setSavedLoading(true);
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const response = await fetch(`${API_BASE_URL}/api/saveFood/${id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
-        credentials: "include",
-        body: JSON.stringify({ userProfileID, type: "food" }),
-      });
-      if (response.ok) { const data = await response.json(); setSaved(data.saved); }
-    } catch (error) { console.error("Error saving food:", error); }
-    finally { setSavedLoading(false); }
-  };
-
-  const handleViewDiscussion = () => navigate(`/fooddiscussion/${id}`, { state: { food } });
-  const handleBack = () => navigate(-1);
-
-  const handleShare = async () => {
-    if (!food || sharingRef.current) return;
-    sharingRef.current = true;
-    const url = `${window.location.origin}/fooddetail/${food.id}`;
-    const title = food.name || "Food";
-    const text = food.description || "Check out this Sarawakian Food!";
-    try {
-      if (navigator.share) {
-        try { await navigator.share({ title, text, url }); return; }
-        catch (err) { if (err?.name === "AbortError") return; }
+    console.log('🟡 fetchFoodLikeStatus - Response status:', res.status);
+    
+    if (res.ok) {
+      const data = await res.json();
+      console.log('🟡 fetchFoodLikeStatus - Response data:', data);
+      
+      if (data.success) {
+        const serverLikeData = {
+          isLiked: data.data.isLiked,
+          likesCount: data.data.likesCount,
+          loading: false
+        };
+        
+        setFoodLike(prev => ({
+          ...prev,
+          ...serverLikeData,
+          initialized: true
+        }));
+        
+        // ✅ Sync localStorage with server data - USER-SPECIFIC
+        try {
+          if (userProfileID) { // ✅ Check if userProfileID exists
+            const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+            localStorage.setItem(userSpecificKey, JSON.stringify({
+              ...serverLikeData,
+              lastUpdated: new Date().toISOString(),
+              syncedWithServer: true
+            }));
+          }
+        } catch (storageError) {
+          console.warn('Failed to sync server likes to localStorage:', storageError);
+        }
+        
+        console.log('🟢 fetchFoodLikeStatus - Updated state:', serverLikeData);
       }
-      if (window.isSecureContext && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        openInfo({ title: t("foodDetail.linkCopied"), message: t("foodDetail.linkCopiedMsg"), icon: <CheckCircle2 /> });
+    } else {
+      const errorText = await res.text();
+      console.log('🔴 fetchFoodLikeStatus - API error details:', errorText);
+    }
+  } catch (error) {
+    console.error('❌ fetchFoodLikeStatus - Network error:', error);
+  }
+};
+
+// ✅ Toggle food like - USER-SPECIFIC STORAGE
+const toggleFoodLike = async () => {
+  if (isGuest) return setShowLoginPrompt(true);
+  
+  if (foodLike.loading) return;
+
+  console.log('🟡 BEFORE toggle - isLiked:', foodLike.isLiked, 'likesCount:', foodLike.likesCount);
+
+  // Optimistic update
+  const previousState = { ...foodLike };
+  const newIsLiked = !foodLike.isLiked;
+  const newLikesCount = newIsLiked ? foodLike.likesCount + 1 : foodLike.likesCount - 1;
+
+  // ✅ IMMEDIATELY update state AND localStorage
+  setFoodLike(prev => ({
+    ...prev,
+    isLiked: !prev.isLiked,
+    likesCount: prev.isLiked ? prev.likesCount - 1 : prev.likesCount + 1,
+    loading: true
+  }));
+
+  // ✅ Save to localStorage immediately 
+  try {
+    const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+    localStorage.setItem(userSpecificKey, JSON.stringify({
+      isLiked: newIsLiked,
+      likesCount: newLikesCount, // This is just for this user's view
+      lastUpdated: new Date().toISOString()
+    }));
+  } catch (storageError) {
+    console.warn('Failed to save likes to localStorage:', storageError);
+  }
+
+  try {
+    console.log('🟡 Calling toggle-like API for food:', foodId);
+    const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/toggle-like`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken
+       },
+      credentials: "include",
+    });
+
+    console.log('🟡 API Response status:', res.status);
+    const data = await res.json();
+    console.log('🟡 API Response data:', data);
+
+    if (res.ok && data.success) {
+      console.log('🟢 API Success - isLiked:', data.data.isLiked, 'likesCount:', data.data.likesCount);
+      
+      // ✅ Update both state and localStorage with server response
+      setFoodLike(prev => ({
+        ...prev,
+        isLiked: data.data.isLiked,
+        likesCount: data.data.likesCount, // Use server's count
+        loading: false
+      }));
+
+      // ✅ Sync localStorage with server data - USER-SPECIFIC
+      try {
+        const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+        localStorage.setItem(userSpecificKey, JSON.stringify({
+          isLiked: data.data.isLiked,
+          likesCount: data.data.likesCount,
+          lastUpdated: new Date().toISOString(),
+          syncedWithServer: true
+        }));
+      } catch (storageError) {
+        console.warn('Failed to sync likes with localStorage:', storageError);
+      }
+    } else {
+      console.log('🔴 API Error:', data.message);
+      // Revert on error
+      setFoodLike(prev => ({
+        ...prev,
+        ...previousState,
+        loading: false
+      }));
+      
+      // ✅ Also revert localStorage on error - USER-SPECIFIC
+      try {
+        const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+        localStorage.setItem(userSpecificKey, JSON.stringify(previousState));
+      } catch (storageError) {
+        console.warn('Failed to revert likes in localStorage:', storageError);
+      }
+      
+      openInfo({
+        title: "Couldn't update like",
+        message: data?.message || "Please try again",
+        icon: <AlertTriangle />,
+      });
+    }
+  } catch (err) {
+    console.error("❌ Network error:", err);
+    // Revert on error
+    setFoodLike(prev => ({
+      ...prev,
+      ...previousState,
+      loading: false
+    }));
+    
+    // ✅ Also revert localStorage on network error - USER-SPECIFIC
+    try {
+      const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
+      localStorage.setItem(userSpecificKey, JSON.stringify(previousState));
+    } catch (storageError) {
+      console.warn('Failed to revert likes in localStorage:', storageError);
+    }
+    
+    openInfo({
+      title: "Network Error",
+      message: "We couldn't update your like. Please check your connection",
+      icon: <AlertTriangle />,
+    });
+  }
+};
+
+    useEffect(() => {
+      if (foodId) {
+        fetchComments();
+        fetchFoodLikeStatus(); 
+      }
+    }, [foodId]);
+
+    // ✅ Post Comment
+    const postComment = async () => {
+      if (isGuest) return setShowLoginPrompt(true);
+      if (!newComment.trim()) return;
+
+      const actualUserProfileID = userProfileID;
+
+      const actualFoodID = foodId;
+
+      console.log("🚨 CRITICAL DEBUG - User data:", {
+      userID: user?.userID,
+      userProfileID: user?.userProfileID,
+      actualUserProfileID: actualUserProfileID,
+      role: user?.role,
+      fullUserObject: user
+    });
+      
+      if (!actualUserProfileID) {
+        openInfo({
+          title: "Failed to post comment",
+          message: "Admin account needs a userProfileID to post comments. Please contact support.",
+          icon: <AlertTriangle />,
+        });
         return;
       }
-      openInfo({ title: t("foodDetail.copyLink"), message: url, icon: <AlertTriangle /> });
-    } finally { sharingRef.current = false; }
+
+      if (!actualFoodID) {
+        openInfo({
+          title: "Food ID not found",
+          message: "Please go back and try again",
+          icon: <AlertTriangle />,
+        });
+        return;
+      }
+
+      try {
+      const tempComment = {
+        id: `temp-${Date.now()}`,
+        userProfileID: actualUserProfileID,
+        username: user?.username || user?.firstname || 'You',
+        content: newComment.trim(),
+        timestamp: new Date().toISOString(),
+        likes: 0,
+        user_liked: false,
+        replies: [],
+        timeAgo: 'now',
+        isTemp: true,
+        isAdmin: user?.role === "admin",
+        avatar: user?.avatar,
+        userRole: user?.role
+      };
+
+      setComments((prev) => [tempComment, ...prev]);
+      setNewComment(""); 
+
+      const res = await fetch(`${API}/api/foodDiscussion`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
+        credentials: "include",
+        body: JSON.stringify({
+          foodID: actualFoodID,
+          userProfileID: actualUserProfileID,
+          content: newComment.trim(),
+        }),
+      });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          console.log("🟢 FRONTEND - Backend response data structure:", {
+          id: data.data.id,
+          username: data.data.username,
+          avatar: data.data.avatar,
+          userRole: data.data.userRole,
+          userProfileID: data.data.userProfileID
+        });
+        
+        setComments((prev) => 
+          prev.map(comment => 
+            comment.id === tempComment.id && comment.isTemp
+              ? { 
+                  ...data.data,
+                  user_liked: false,
+                  timeAgo: 'now',
+                  replies: [],
+                }
+              : comment
+          )
+        );
+        openInfo({
+          title: "Comment posted",
+          message: "Your comment is visibile now.",
+          icon: <CheckCircle2 />,
+        });
+      } else {
+        setComments((prev) => prev.filter(comment => 
+          comment.id !== tempComment.id || !comment.isTemp
+        ));
+        openInfo({
+          title: "Failed to post reply",
+          message: data?.message || "Please try again",
+          icon: <AlertTriangle />,
+        });
+      }
+    } catch (err) {
+      setComments((prev) => prev.filter(comment => 
+        comment.id !== tempComment.id || !comment.isTemp
+      ));
+      console.error("Error posting comment:", err);
+      openInfo({
+        title: "Server error",
+        message: "We couldn't post your comment. Try again later",
+        icon: <AlertTriangle />,
+      });
+    }
   };
 
-  const goToRecipe = async () => {
-    if (!food) return;
-    setJumping(true);
-    try { navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`); }
-    catch (error) { navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`); }
-    finally { setJumping(false); }
+  // ✅ Post Reply
+const postReply = async (discussionId) => {
+  if (isGuest) return setShowLoginPrompt(true);
+  const text = replyTexts[discussionId]?.trim();
+  if (!text) return;
+
+  const actualUserProfileID = userProfileID;
+
+  console.log("FRONTEND - postReply called:", {
+    discussionId,
+    actualUserProfileID,
+    userRole: user?.role
+  });
+
+  if (!actualUserProfileID) {
+    openInfo({
+      title: "User profile ID not found",
+      message: "Please log in again",
+      icon: <AlertTriangle />,
+    });
+    return;
+  }
+
+
+  try {
+    const tempReply = {
+      replyID: `temp-reply-${Date.now()}`,
+      userProfileID: actualUserProfileID,
+      username: user?.username || `${user?.firstname} ${user?.lastname}`.trim() || '',
+      avatar: user?.avatar, 
+      userRole: user?.role,
+      isAdmin: user?.role === 'admin',
+      content: text,
+      reply: text,
+      timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      timeAgo: 'now',
+      isTemp: true,
+      discussionID: discussionId
+    };
+
+    setComments((prev) =>
+      prev.map((c) =>
+        c.id === discussionId || c.discussionID === discussionId
+          ? { 
+              ...c, 
+              replies: [...(c.replies || []), tempReply] 
+            }
+          : c
+      )
+    );
+    
+    setReplyTexts((prev) => ({ ...prev, [discussionId]: "" })); //Clear the input
+    setReplyToId(null);
+
+    const res = await fetch(`${API}/api/foodDiscussion/${discussionId}/replies`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken
+       },
+      credentials: "include",
+      body: JSON.stringify({
+        userProfileID: actualUserProfileID,
+        reply: text,
+      }),
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      // Replace temporary reply with real one, ensuring userProfileID is included
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === discussionId || c.discussionID === discussionId
+            ? {
+                ...c,
+                replies: (c.replies || []).map(reply =>
+                  reply.replyID === tempReply.replyID
+                    ? { 
+                        ...data.data,
+                        timeAgo: 'now',
+                        discussionID: discussionId,
+                      }
+                    : reply
+                ),
+              }
+            : c
+        )
+      );
+      openInfo({
+        title: "Reply posted",
+        message: "Your reply is visible now.",
+        icon: <CheckCircle2 />,
+      });
+    } else {
+      // ✅ Remove temporary reply if failed
+      setComments((prev) =>
+        prev.map((c) =>
+          c.id === discussionId || c.discussionID === discussionId
+            ? {
+                ...c,
+                replies: (c.replies || []).filter(reply => reply.replyID !== tempReply.replyID),
+              }
+            : c
+        )
+      );
+      openInfo({
+        title: "Failed to post reply",
+        message: data?.message || "We couldn't post your reply. Please try again later.",
+        icon: <AlertTriangle />,
+      });
+    }
+  } catch (err) {
+    // ✅ Remove temporary reply on error
+    setComments((prev) =>
+      prev.map((c) =>
+        c.id === discussionId || c.discussionID === discussionId
+          ? {
+              ...c,
+              replies: (c.replies || []).filter(reply => reply.replyID !== tempReply.replyID),
+            }
+          : c
+      )
+    );
+    console.error("Error posting reply:", err);
+    openInfo({
+      title: "Server error",
+      message: "We couldn't post your reply. Please try again later.",
+      icon: <AlertTriangle />,
+    });
+  }
+};
+
+  // Toggle Like
+  const toggleLike = async (targetId) => {
+    if (isGuest) return setShowLoginPrompt(true);
+
+    if (!userProfileID) {
+      console.error("No valid userProfileID found");
+      return;
+    }
+
+    // ✅ IMMEDIATELY update UI state
+    setComments(prev => prev.map(comment => {
+      if (comment.id === targetId || comment.discussionID === targetId) {
+        const currentlyLiked = comment.user_liked || false;
+        const currentLikes = comment.likes || 0;
+        
+        return {
+          ...comment,
+          user_liked: !currentlyLiked,
+          likes: currentlyLiked ? currentLikes - 1 : currentLikes + 1
+        };
+      }
+      return comment;
+    }));
+
+    try {
+      const res = await fetch(`${API}/api/foodDiscussion/${targetId}/vote`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
+        credentials: "include",
+        body: JSON.stringify({
+          userProfileID: userProfileID  
+        }),
+      });
+      
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        console.error("Like failed:", data.message);
+        // Revert the UI state on error
+        setComments(prev => prev.map(comment => {
+          if (comment.id === targetId || comment.discussionID === targetId) {
+            const currentlyLiked = comment.user_liked || false;
+            const currentLikes = comment.likes || 0;
+            
+            return {
+              ...comment,
+              user_liked: !currentlyLiked, // Revert the like state
+              likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1 // Revert the count
+            };
+          }
+          return comment;
+        }));
+        openInfo({
+          title: "Failed to update like",
+          message: data?.message || "Please try again",
+          icon: <AlertTriangle />,
+        });
+      }
+    } catch (err) {
+      console.error("Error updating like:", err);
+      // Revert the UI state on network error
+      setComments(prev => prev.map(comment => {
+        if (comment.id === targetId || comment.discussionID === targetId) {
+          const currentlyLiked = comment.user_liked || false;
+          const currentLikes = comment.likes || 0;
+          
+          return {
+            ...comment,
+            user_liked: !currentlyLiked, // Revert the like state
+            likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1 // Revert the count
+          };
+        }
+        return comment;
+      }));
+      openInfo({
+        title: "Network error",
+        message: "We couldn't update your like. Please try again later",
+        icon: <AlertTriangle />,
+      });
+    }
   };
 
-  if (loading) return (
-    <div className="food-detail-page"><Header />
-      <div className="fdp-container"><div className="fdp-center">{t("foodDetail.loading")}</div></div>
-      <Footer />
-    </div>
-  );
+  // Delete Comment (with admin support)
+  const deleteComment = async (commentId, isAdminAction = false) => {
+    if (isGuest) return setShowLoginPrompt(true);
 
-  if (error || !food) return (
-    <div className="food-detail-page"><Header />
-      <div className="fdp-container">
-        <div className="fdp-topbar">
-          <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>← {t("foodDetail.back")}</button>
+    try {
+
+      const requestBody = {
+      userProfileID: userProfileID,
+      isAdminAction: isAdminAction,
+      adminRole: user?.role, 
+      adminId: user?.id || user?.userID
+      };
+
+      const res = await fetch(`${API}/api/foodDiscussion/${commentId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+         },
+        credentials: "include",
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await res.json();
+      console.log('Delete response:', data);
+
+      if (res.ok && data.success) {
+        // Remove comment from state
+        setComments(prev => prev.filter(comment => 
+          comment.id !== commentId && comment.discussionID !== commentId
+        ));
+        setDeleteModal({ show: false, type: "comment", commentId: null, replyId: null, onConfirm: null, isAdminAction: false });
+        //alert(isAdminAction ? "Comment deleted successfully as administrator." : "Comment deleted successfully.");
+      } else {
+        openInfo({
+          title: "Failed to delete comment",
+          message: data?.message || "We couldn't delete this comment. Please try again later.",
+          icon: <AlertTriangle />,
+        });
+      }
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+      openInfo({
+        title: "Server error",
+        message: "We couldn't delete this comment. Please try again later.",
+        icon: <AlertTriangle />,
+      });
+    }
+  };
+
+  // Delete Reply (with admin support)
+  const deleteReply = async (commentId, replyId, isAdminAction = false) => {
+    if (isGuest) return setShowLoginPrompt(true);
+
+    try {
+
+      const requestBody = {
+      userProfileID: userProfileID,
+      isAdminAction: isAdminAction,
+      adminRole: user?.role,
+      adminId: user?.id || user?.userID
+      };
+
+      console.log('🔍 FRONTEND - DELETE REQUEST DETAILS:');
+      console.log('URL:', `${API}/api/foodDiscussion/${commentId}/replies/${replyId}`);
+      console.log('User role:', user?.role);
+      console.log('isAdminAction:', isAdminAction);
+      console.log('Request body:', requestBody);
+
+      const res = await fetch(`${API}/api/foodDiscussion/${commentId}/replies/${replyId}`, {
+        method: "DELETE",
+        headers: { 
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken  
+        },
+        credentials: "include",
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('🔍 FRONTEND - RESPONSE:');
+      console.log('Status:', res.status);
+      console.log('Status Text:', res.statusText);
+
+      const responseText = await res.text();
+      console.log('Raw response text:', responseText);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse response as JSON:', parseError);
+        data = { message: 'Invalid server response' };
+      }
+      
+      console.log('Parsed response data:', data);
+
+      if (res.ok && data.success) {
+        // Remove reply from state
+        setComments(prev => prev.map(comment => {
+          if (comment.id === commentId || comment.discussionID === commentId) {
+            return {
+              ...comment,
+              replies: comment.replies?.filter(reply => reply.replyID !== replyId && reply.id !== replyId) || []
+            };
+          }
+          return comment;
+        }));
+        setDeleteModal({ show: false, type: "reply", commentId: null, replyId: null, onConfirm: null, isAdminAction: false });
+        //alert(isAdminAction ? "Reply deleted successfully as administrator." : "Reply deleted successfully.");
+      } else {
+        openInfo({
+          title: "Failed to delete reply",
+          message: data?.message || "We couldn't delete this reply. Please try again later.",
+          icon: <AlertTriangle />,
+        });
+      }
+    } catch (err) {
+      console.error("Error deleting reply:", err);
+      openInfo({
+        title: "Server error",
+        message: "We couldn't delete this reply. Please try again later.",
+        icon: <AlertTriangle />,
+      });
+    }
+  };
+
+  // ✅ UPDATED: Handle comment deletion
+  const handleDeleteComment = (commentId, isAdminAction = false) => {
+    showDeleteConfirmation("comment", commentId, null, isAdminAction);
+  };
+
+  // ✅ UPDATED: Handle reply deletion
+  const handleDeleteReply = (commentId, replyId, isAdminAction = false) => {
+    showDeleteConfirmation("reply", commentId, replyId, isAdminAction);
+  };
+
+  // ✅ Render Loading
+  if (loading) {
+    return (
+      <div className="food-discussion-page">
+        <Header />
+        <div className="fdp-disc-container">
+          <p>Loading comments...</p>
         </div>
-        <div className="fdp-center">
-          <h2>{t("foodDetail.notFound")}</h2>
-          <p>{error || t("foodDetail.notFoundMsg")}</p>
-        </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
-  );
+    );
+  }
 
-  const ingredients = food.commonIngredients || [];
+  const handleBack = () => navigate(-1);
+  const totalComments =
+  comments.length + comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0);
+  //const totalLikes = comments.reduce((acc, c) => acc + (c.likes || 0), 0);
 
   return (
-    <div className="food-detail-page">
+    <div className="food-discussion-page">
       <Header />
-      <div className="fdp-container">
-        <div className="fdp-topbar">
-          <button type="button" className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
-            ← {t("Back")}
+      <LoginPromptModal show={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
+      
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal 
+        show={deleteModal.show}
+        onClose={() => setDeleteModal({ show: false, type: "comment", commentId: null, replyId: null, onConfirm: null, isAdminAction: false })}
+        onConfirm={deleteModal.onConfirm}
+        type={deleteModal.type}
+        isAdminAction={deleteModal.isAdminAction}
+      />
+
+      <div className="fdp-disc-container">
+        <div className="fdp-disc-topbar">
+          <button className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
+            ← Back to Food Details
           </button>
         </div>
 
-        <div className="fdp-grid">
-          {/* Left column */}
-          <div className="fdp-left">
-            <div className="fdp-card fdp-hero">
-              <div className="fdp-hero-media">
-                <img src={food.image} alt={food.name} />
-                <div className="fdp-hero-overlay" />
-                <div className="fdp-hero-text">
-                  <div className="fdp-badges">
-                    {food.origin && <span className="fdp-badge">{food.origin}</span>}
-                    {food.category && <span className="fdp-badge">{food.category}</span>}
-                  </div>
-                  <h1 className="fdp-title">{translatedFood.name || food.name}</h1>
-                </div>
-              </div>
+        <div className="fd-card-2 fd-summary">
+          {/* Hero Image */}
+          <div className="fd-hero">
+            <img 
+              src={food?.image}
+              alt={food?.name}
+              className="fd-hero-img"
+            />
+            <div className="fd-hero-title">
+              {food?.name || "Food Discussion"}
             </div>
-
-            <div className="fdp-card">
-              <h3 className="rdp-sec-title">
-                <Info className="rdp-sec-icon" color="#6a4a2f" /> {t("foodDetail.culturalHeritage")}
-              </h3>
-              <div className="fdp-block">
-                <p className="fdp-block-title">{t("foodDetail.description")}</p>
-                {food.description && <p className="fdp-text">{translatedFood.description || food.description}</p>}
-              </div>
-              {food.culturalSignificance && (
-                <div className="fdp-block">
-                  <p className="fdp-block-title">{t("foodDetail.culturalSignificance")}</p>
-                  <p className="fdp-text">{translatedFood.culturalSignificance || food.culturalSignificance}</p>
-                </div>
-              )}
-              <div className="fdp-block">
-                <p className="fdp-block-title">{t("foodDetail.traditionalPrep")}</p>
-                <p className="fdp-text">{translatedFood.traditionalPreparation || food.traditionalPreparation}</p>
-              </div>
-            </div>
-
-            {ingredients.length > 0 && (
-              <div className="fdp-card">
-                <h3 className="rdp-sec-title">
-                  <ShoppingBasket className="rdp-sec-icon" color="#6a4a2f" /> {t("foodDetail.commonIngredients")}
-                </h3>
-                <div className="fdp-chip-grid">
-                  {(translatedFood.ingredientsArray || ingredients).map((ing, i) => (
-                    <span key={i} className="fdp-chip">{ing}</span>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Right column */}
-          <div className="fdp-right">
-            <div className="fdp-actions">
-              <button type="button" className={`lrp-btn lrp-btn-primary fdp-save ${saved ? "saved" : ""}`}
-                onClick={handleSaveFood} disabled={savedLoading}>
-                {savedLoading ? "..." : saved ? `✓ ${t("foodDetail.saved")}` : `❤ ${t("foodDetail.saveFood")}`}
-              </button>
-              <button type="button" className="lrp-btn lrp-btn-outline fdp-share"
-                onClick={handleShare} aria-label="Share this food" title="Share">
-                <Share2 className="rdp-sec-icon" />
-              </button>
-            </div>
-            <div className="fdp-actions">
-              <button type="button" className="lrp-btn lrp-btn-outline" onClick={goToRecipe} disabled={jumping}>
-                <ScrollText className="rdp-sec-icon" /> {jumping ? t("foodDetail.findingRecipe") : t("foodDetail.goToRecipe")}
-              </button>
-            </div>
+          {/* Description */}
+          <div className="fd-summary-content">
+            <p className="fd-muted">{food?.description}</p>
 
-            <div className="fdp-card">
-              <h3 className="rdp-sec-title">
-                <Cross className="rdp-sec-icon" color="#6a4a2f" /> {t("foodDetail.nutritionalInfo")}
-              </h3>
-              <p className="fdp-muted">{t("foodDetail.perServing")}</p>
-              <div className="fdp-nutri-grid">
-                <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{Math.round(getPerServing(food, "Energy_kcal_ps", "Energy_kcal")) || "-"}</div>
-                  <div className="fdp-nutri-label">{t("explore.calories")}</div>
-                </div>
-                <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{getPerServing(food, "Protein_g_ps", "Protein_g")?.toFixed?.(1) ?? "-"}g</div>
-                  <div className="fdp-nutri-label">{t("explore.protein")}</div>
-                </div>
-                <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g")?.toFixed?.(1) ?? "-"}g</div>
-                  <div className="fdp-nutri-label">{t("explore.carbs")}</div>
-                </div>
-                <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{getPerServing(food, "Fat_g_ps", "Fat_g")?.toFixed?.(1) ?? "-"}g</div>
-                  <div className="fdp-nutri-label">{t("explore.fat")}</div>
-                </div>
-              </div>
-            </div>
-
-            {healthAlerts.length > 0 && (
-              <div className="fdp-card">
-                <h3 className="rdp-sec-title">
-                  <TriangleAlert size={18} color="#6a4a2f" /> {t("foodDetail.healthInfo")}
-                </h3>
-                <div className="fdp-alerts">
-                  {healthAlerts.map((a, idx) => (
-                    <div key={idx} className={`fdp-alert ${a.type === "warning" ? "fdp-alert-warn" : "fdp-alert-info"}`}>
-                      {t(a.key)}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="fdp-card">
-              <div className="fdp-disc-header">
-                <h3 className="rdp-sec-title">
-                  <MessagesSquare className="rdp-sec-icon" color="#6a4a2f" /> {t("foodDetail.communityDiscussion")}
-                </h3>
-              </div>
-              <div className="fdp-comments">
-                {commentsLoading ? (
-                  <p className="fdp-muted fdp-center">{t("foodDetail.loadingComments")}</p>
-                ) : foodComments.length > 0 ? (
-                  <>
-                    {foodComments.slice(0, 2).map((c) => (
-                      <div key={c.id} className="fdp-comment">
-                        <div className="fdp-comment-head">
-                          <span className="fdp-avatar">
-                            {c.avatar ? <img src={c.avatar} alt="avatar" className="fdp-avatar-img" />
-                              : <div className="fdp-avatar-initials">{getUserInitials(c)}</div>}
-                          </span>
-                          <span className="fdp-user">{c.username || c.user}</span>
-                          <span className="fdp-time">{c.timeAgo}</span>
-                        </div>
-                        <p className="fdp-comment-text">{c.content}</p>
-                      </div>
-                    ))}
-                    <button type="button" className="lrp-btn lrp-btn-outline" onClick={handleViewDiscussion}>
-                      {t("foodDetail.viewDiscussion", { count: foodComments.length })}
-                    </button>
-                  </>
-                ) : (
-                  <div className="fdp-no-comments">
-                    <p className="fdp-muted fdp-center">{t("foodDetail.noComments")}</p>
-                    <button type="button" className="lrp-btn lrp-btn-primary" onClick={handleViewDiscussion}>
-                      {t("foodDetail.startDiscussion")}
-                    </button>
-                  </div>
-                )}
-              </div>
+            {/* Stats */}
+            <div className="fd-sum-stats">
+              <span>💬 {totalComments} comments</span>
+              <span 
+                className={`fd-food-like-btn ${foodLike.isLiked ? 'liked' : ''}`}
+                onClick={toggleFoodLike}
+                style={{
+                  cursor: foodLike.loading ? 'not-allowed' : 'pointer',
+                  opacity: foodLike.loading ? 0.6 : 1
+                }}
+                title={foodLike.isLiked ? "Unlike this food" : "Like this food"}
+              >
+                {foodLike.loading ? '⏳' : (foodLike.isLiked ? "♥" : "♡")} {foodLike.likesCount} likes
+              </span>
             </div>
           </div>
         </div>
+
+
+        {/* Add Comment Box */}
+        <div className="fd-card">
+          <h3 className="fd-section-title">Add Your Comment</h3>
+          <textarea
+            className="fd-input"
+            placeholder="Share your thoughts…"
+            value={newComment}
+            onChange={(e) => !isGuest && setNewComment(e.target.value)}
+            onClick={() => isGuest && setShowLoginPrompt(true)}
+            rows="3"
+          />
+          <div className="fd-right">
+            <button
+              className="lrp-btn lrp-btn-primary"
+              disabled={!newComment.trim()}
+              onClick={postComment}
+            >
+              <i className="fas fa-paper-plane fdp-post-btn"></i>
+              Post Comment
+            </button>
+          </div>
+        </div>
+
+        {/* List Comments */}
+        <div className="fd-card">
+          <h3 className="fd-section-title">
+            <i className="fas fa-comment-dots" /> Community Comments ({comments.length})
+          </h3>
+          {comments.length > 0 ? (
+            <div className="fd-disc-list">
+              {comments.map((c, i) => (
+                <React.Fragment key={c.id || c.discussionID ||  `comment-${i}`}>
+                  <Comment
+                    item={c}
+                    onToggleLike={toggleLike}
+                    replyToId={replyToId}
+                    setReplyToId={setReplyToId}
+                    replyTexts={replyTexts}
+                    setReplyTexts={setReplyTexts}
+                    onPostReply={postReply}
+                    onDeleteComment={handleDeleteComment}
+                    onDeleteReply={handleDeleteReply}
+                    isGuest={isGuest}
+                    setShowLoginPrompt={setShowLoginPrompt}
+                    currentUserId={actualUserID}
+                    isAdmin={isAdmin} // ✅ PASS ADMIN PROP
+                  />
+                  {i < comments.length - 1 && <hr className="fd-divider" />}
+                </React.Fragment>
+              ))}
+            </div>
+          ) : (
+            <p className = "fdp-no-cmt">
+              No comments yet. Be the first to share your thoughts!
+            </p>
+          )}
+        </div>
       </div>
 
-      <Footer />
-
-      {showLoginPrompt && (
-        <LoginPromptModal message={t("foodDetail.loginToSave")}
-          onClose={() => setShowLoginPrompt(false)}
-          onLogin={() => navigate("/loginregister")} />
-      )}
-      <Modal open={infoDlg.open} title={infoDlg.title} icon={infoDlg.icon}
-        primaryText={infoDlg.primaryText} onPrimary={closeInfo} onClose={closeInfo}>
+      <Modal
+        open = {infoDlg.open}
+        title = {infoDlg.title}
+        icon = {infoDlg.icon}
+        primaryText = {infoDlg.primaryText}
+        onPrimary = {closeInfo}
+        onClose = {closeInfo}
+      >
         {infoDlg.message}
       </Modal>
+
+      <Footer />
     </div>
   );
 }
