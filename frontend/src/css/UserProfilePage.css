@@ -235,7 +235,7 @@
   border: none;
   border-radius: 99px; 
   background: transparent;
-  padding: 10px 12px;
+  padding: 5px 12px;
   cursor: pointer;
   color: #5f5040;
   font-weight: 500;
@@ -258,25 +258,21 @@
   background: #ffffff;
   color: #3d2b1f;
   font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
 }
 
-.upp-tab:focus-visible {
-  box-shadow: inset 0 0 0 2px rgba(139, 69, 19, 0.3);
-}
 .upp-tab-content {
     margin-bottom: 2rem;
 }
 
 @media (max-width: 640px) {
-  .lrp-tabs {
+  .upp-tabs {
     flex-direction: column;
     align-items: stretch; 
-    border-radius: 19px; 
+    border-radius: 99px; 
     padding: 6px;
   }
 
-  .lrp-tab {
+  .upp-tab {
     flex: unset;
     width: 100%;
     justify-content: flex-start; 
