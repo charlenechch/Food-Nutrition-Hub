@@ -13,8 +13,8 @@ import LaksaImg from "../assets/laksa.jpg";
 import KoloImg from "../assets/kolomee.jpg";
 import KekImg from "../assets/keklapis.jpg";
 
-// Icons
-import { FaSearch, FaChevronLeft, FaChevronRight, FaStar, FaLightbulb, FaSyncAlt } from "react-icons/fa";
+// Icons (Removed FaChevronLeft and FaChevronRight)
+import { FaSearch, FaStar, FaLightbulb, FaSyncAlt } from "react-icons/fa";
 import { FaAnglesDown, FaUtensils } from "react-icons/fa6";
 
 import { useAuth } from "../context/AuthContext";
@@ -34,9 +34,11 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef(null);
+  
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentFact, setCurrentFact] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false); 
 
   // --- HERITAGE FACTS — keys map to en.json ---
   const heritageFacts = [
@@ -115,20 +117,34 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   };
 
   const getHeroTitle = () => {
-    if (!user) return t("home.heroTitle");
-    if (user.role === "guest" || !user.firstname) return t("home.heroGuest");
+    if (!user) return t("home.heroTitle", "Welcome, Guest!");
+    if (user.role === "guest" || !user.firstname) return t("home.heroGuest", "Welcome, Guest!");
     return t("home.heroUser", { name: user.firstname });
   };
 
-  useEffect(() => {
-    const slideInterval = setInterval(() => {
-      setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
-    }, 6000);
-    return () => clearInterval(slideInterval);
-  }, [currentSlide]);
-
   const nextSlide = () => setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? HERO_IMAGES.length - 1 : prev - 1));
+
+  // ✅ Auto Carousel Timer
+  useEffect(() => {
+    if (isCarouselPaused) return; 
+    const slideInterval = setInterval(nextSlide, 6000);
+    return () => clearInterval(slideInterval);
+  }, [currentSlide, isCarouselPaused]);
+
+  // ✅ Keyboard Arrow Key Support
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't change slides if the user is typing in the search bar!
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      if (e.key === "ArrowLeft") prevSlide();
+      if (e.key === "ArrowRight") nextSlide();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -155,29 +171,35 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       <header
         className="hero-section"
         style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${HERO_IMAGES[currentSlide]})`
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${HERO_IMAGES[currentSlide]})`
         }}
       >
-        <button className="hero-arrow arrow-left" onClick={prevSlide}><FaChevronLeft /></button>
+        {/* ✅ Invisible Hitbox Left */}
+        <button className="hero-arrow arrow-left" onClick={prevSlide} aria-label="Previous image"></button>
 
         <div className="hero-content-wrapper">
-          <h1 className="hero-title">{getHeroTitle()}</h1>
+          <span className="hero-greeting">{getHeroTitle()}</span>
+          <h1 className="hero-title">{t("home.mainHeadline", "Discover Sarawak's Culinary Heritage.")}</h1>
           <p className="hero-subtitle">{t("home.heroSubtitle")}</p>
 
           <div className="hero-search-container" ref={searchRef}>
             <form className="hero-search-form" onSubmit={handleSearchSubmit}>
-              <div className="search-input-wrapper">
+              <div className="unified-search-pill">
                 <FaSearch className="search-icon" />
                 <input
                   type="text"
                   placeholder={t("home.searchPlaceholder")}
                   value={searchTerm}
                   onChange={handleSearchChange}
-                  onFocus={() => searchTerm && setShowSuggestions(true)}
+                  onFocus={() => {
+                    if (searchTerm) setShowSuggestions(true);
+                    setIsCarouselPaused(true); 
+                  }}
+                  onBlur={() => setIsCarouselPaused(false)} 
                   autoComplete="off"
                 />
+                <button type="submit" className="search-button">{t("home.searchBtn")}</button>
               </div>
-              <button type="submit" className="search-button">{t("home.searchBtn")}</button>
             </form>
 
             {showSuggestions && suggestions.length > 0 && (
@@ -204,7 +226,8 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </div>
 
-        <button className="hero-arrow arrow-right" onClick={nextSlide}><FaChevronRight /></button>
+        {/* ✅ Invisible Hitbox Right */}
+        <button className="hero-arrow arrow-right" onClick={nextSlide} aria-label="Next image"></button>
 
         <div className="hero-dots">
           {HERO_IMAGES.map((_, idx) => (
@@ -218,7 +241,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       </header>
 
       <main className="features-layout-wrapper">
-
         {/* Core Features Grid */}
         <section className="features-grid">
           <div className="feature-card public-card">
@@ -235,7 +257,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           <div className="feature-card restricted-card">
             <div className="card-content-top">
               {(!user || user.role === "guest") && (
-                <div className="lock-badge">🔒 {t("home.memberOnly")}</div>
+                <div className="premium-badge">✨ {t("home.unlockPremium", "Unlock Premium")}</div>
               )}
               <div className="feature-icon">🧠</div>
               <h3>{t("nav.analyzer")}</h3>
@@ -245,14 +267,14 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               className="feature-btn btn-accent"
               onClick={() => handleProtectedAction("/analyzer", "nav.analyzer")}
             >
-              {t("home.analyzerBtn")}
+              {(!user || user.role === "guest") ? t("home.signUpToUnlock", "Sign up to Unlock") : t("home.analyzerBtn")}
             </button>
           </div>
 
           <div className="feature-card restricted-card">
             <div className="card-content-top">
               {(!user || user.role === "guest") && (
-                <div className="lock-badge">🔒 {t("home.memberOnly")}</div>
+                <div className="premium-badge">✨ {t("home.unlockPremium", "Unlock Premium")}</div>
               )}
               <div className="feature-icon">👤</div>
               <h3>{t("home.profileTitle")}</h3>
@@ -262,7 +284,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               className="feature-btn"
               onClick={() => handleProtectedAction("/profile", "home.profileTitle")}
             >
-              {t("home.profileBtn")}
+              {(!user || user.role === "guest") ? t("home.signUpToUnlock", "Sign up to Unlock") : t("home.profileBtn")}
             </button>
           </div>
         </section>

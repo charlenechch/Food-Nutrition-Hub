@@ -25,28 +25,36 @@
   transition: background-image 0.8s ease-in-out; 
 }
 
+/* ✅ Invisible Hitboxes for Left/Right Navigation */
 .hero-arrow {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
+  top: 0;
+  height: 100%;
+  width: 15%; /* Creates a massive clickable column on the sides */
+  background: transparent;
+  border: none;
   cursor: pointer;
-  transition: all 0.3s;
   z-index: 10;
-  backdrop-filter: blur(5px);
+  outline: none;
+  -webkit-tap-highlight-color: transparent; /* Prevents blue flash on mobile taps */
 }
-.hero-arrow:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-50%) scale(1.1); }
-.arrow-left { left: 20px; }
-.arrow-right { right: 20px; }
+
+/* ✅ Kills the browser's default click/focus outline completely */
+.hero-arrow:focus,
+.hero-arrow:active,
+.hero-arrow:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+.arrow-left { 
+  left: 0; 
+}
+.arrow-right { 
+  right: 0; 
+}
 
 .hero-dots {
   position: absolute;
@@ -60,9 +68,20 @@
 }
 .hero-dot.active { background: white; transform: scale(1.3); }
 
+/* Sleek overline for the greeting */
+.hero-greeting {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 15px;
+}
+
 .hero-title {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(3rem, 6vw, 5.5rem);
+  font-size: clamp(3rem, 5.5vw, 5.5rem);
   font-weight: 700;
   line-height: 1.1;
   margin-bottom: 20px;
@@ -78,27 +97,69 @@
   font-weight: 300;
 }
 
-/* --- SEARCH BAR --- */
-.hero-search-container { position: relative; max-width: 650px; width: 100%; margin: 0 auto 40px; z-index: 100; }
-.hero-search-form { display: flex; justify-content: center; gap: 10px; width: 100%; }
-.search-input-wrapper { position: relative; flex-grow: 1; }
-.search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #555; font-size: 1.1rem; z-index: 2; }
-.hero-search-form input {
-  width: 100%; padding: 18px 18px 18px 55px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.4); font-size: 1.05rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); outline: none; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); color: #333; transition: all 0.3s;
+/* --- UNIFIED SEARCH PILL --- */
+.hero-search-container { position: relative; max-width: 700px; width: 100%; margin: 0 auto 40px; z-index: 100; }
+.hero-search-form { display: block; width: 100%; }
+
+.unified-search-pill {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 50px;
+  padding: 8px 8px 8px 24px; /* Space on left, tight on right for button */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
 }
-.hero-search-form input:focus { background: white; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); }
-.search-button {
-  background-color: #d4a373; color: white; border: none; padding: 0 30px; border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(212, 163, 115, 0.4); font-size: 1rem;
+
+.unified-search-pill:focus-within {
+  background: #ffffff;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  transform: translateY(-2px);
 }
-.search-button:hover { background-color: #b08d55; transform: translateY(-2px); }
+
+.unified-search-pill .search-icon {
+  position: static;
+  transform: none;
+  color: #916848;
+  font-size: 1.2rem;
+  margin-right: 12px;
+}
+
+.unified-search-pill input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px 10px;
+  font-size: 1.1rem;
+  color: #333;
+  outline: none;
+  box-shadow: none;
+}
+
+.unified-search-pill .search-button {
+  background-color: #916848;
+  color: white;
+  border: none;
+  padding: 14px 36px;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.unified-search-pill .search-button:hover {
+  background-color: #7a5337;
+}
 
 /* --- DROPDOWN --- */
 .search-dropdown {
-  position: absolute; top: 70px; left: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px);
+  position: absolute; top: 80px; left: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px);
   border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); overflow: hidden; animation: slideDown 0.2s ease-out;
-  text-align: left; z-index: 200; width: calc(100% - 130px); padding: 8px; border: 1px solid rgba(255,255,255,0.5);
+  text-align: left; z-index: 200; width: 100%; padding: 8px; border: 1px solid rgba(255,255,255,0.5);
 }
 .search-suggestion-item { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; border-radius: 12px; transition: background 0.2s; }
 .search-suggestion-item:hover { background-color: rgba(145, 104, 72, 0.1); }
@@ -114,16 +175,34 @@
 /* --- FEATURES --- */
 .features-layout-wrapper { background-color: #fcf9f6; padding: 80px 40px; max-width: 1400px; margin: 0 auto; }
 .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 100px; }
+
+/* Softened Shadows */
 .feature-card {
-  background: #ffffff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); border: 1px solid rgba(145, 104, 72, 0.08); padding: 40px 30px;
+  background: #ffffff; border-radius: 20px; box-shadow: 0 10px 40px rgba(145, 104, 72, 0.05); border: 1px solid rgba(145, 104, 72, 0.08); padding: 40px 30px;
   text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%;
 }
-.feature-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(145, 104, 72, 0.12); border-color: #916848; }
+.feature-card:hover { transform: translateY(-8px); box-shadow: 0 15px 50px rgba(145, 104, 72, 0.15); border-color: #916848; }
+
 .card-content-top { flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
 .feature-icon { font-size: 3rem; margin-bottom: 20px; }
 .feature-card h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #2d2d2d; margin-bottom: 15px; font-weight: 700; }
 .feature-card p { font-size: 0.95rem; color: #666; line-height: 1.6; margin-bottom: 30px; }
-.lock-badge { position: absolute; top: 15px; right: 15px; background: #916848; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+
+/* Upgraded Premium Badge */
+.premium-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: linear-gradient(135deg, #d4a373, #b08d55);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 10px rgba(212, 163, 115, 0.4);
+}
+
 .feature-btn { background-color: #916848; color: white; border: none; padding: 14px 24px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: background 0.3s ease; width: 100%; margin-top: auto; }
 .btn-accent { background-color: #d4a373; }
 .feature-btn:hover { filter: brightness(0.9); }
@@ -174,7 +253,7 @@
 .mini-card-info h4 { margin: 0 0 8px 0; font-size: 1.1rem; color: #333; font-weight: 600; }
 .category-tag { font-size: 0.8rem; color: #777; background: #f4f4f4; padding: 5px 10px; border-radius: 20px; font-weight: 500; }
 
-/* --- ✅ UPDATED: HERITAGE TRIVIA CARD --- */
+/* --- HERITAGE TRIVIA CARD --- */
 .heritage-fact-banner {
   margin-top: 100px; position: relative; background: #916848; border-radius: 30px; padding: 60px 40px; color: white;
   overflow: hidden; box-shadow: 0 25px 50px rgba(145, 104, 72, 0.25); display: flex; justify-content: center;
@@ -207,14 +286,20 @@
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
 @media (max-width: 768px) {
-  .hero-section { height: 100vh; }
+  .hero-section { height: 100vh; padding-top: 0; margin-top: 0; }
   .features-layout-wrapper { padding: 60px 20px; }
   .section-header { flex-direction: column; gap: 10px; align-items: flex-start; text-align: left; }
   .center-header { text-align: center; align-items: center; }
-  .hero-arrow { width: 40px; height: 40px; font-size: 1rem; }
-  .arrow-left { left: 10px; }
-  .arrow-right { right: 10px; }
-  .search-dropdown { width: 100%; top: 130px; }
+  
+  /* Slightly wider invisible touch zones for mobile */
+  .hero-arrow { width: 20%; }
+  .arrow-left { left: 0; }
+  .arrow-right { right: 0; }
+  
+  .unified-search-pill { flex-direction: column; border-radius: 20px; padding: 15px; background: rgba(255, 255, 255, 0.9); }
+  .unified-search-pill .search-button { width: 100%; border-radius: 12px; margin-top: 10px; }
+  .search-dropdown { width: 100%; top: 140px; }
+
   .cinema-grid { gap: 40px; }
   .plate-container { width: 220px; height: 220px; }
   .heritage-fact-banner { padding: 40px 25px; }
