@@ -5,34 +5,40 @@ import { Pie } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function NutritionPieChart({ nutrition }) {
-  // Convert Vitamin C from mg to g for consistent units
-  const vitaminCGrams = (nutrition.VitaminC_mg || 0) / 1000;
+  const protein = Number(nutrition?.Protein_g) || 0;
+  const fat = Number(nutrition?.Fat_g) || 0;
+  const carbs = Number(nutrition?.Carbohydrates_g) || 0;
+  const fiber = Number(nutrition?.Fiber_g) || 0;
+  const vitaminCmg = Number(nutrition?.VitaminC_mg) || 0;
   
-  // Prepare data with all nutrients 
+  // Convert Vitamin C from mg to g for consistent units
+  const vitaminCGrams = vitaminCmg / 1000;
+  
+  // Prepare data with all nutrients
   const chartData = {
     labels: ['Protein', 'Fat', 'Carbs', 'Fiber', 'Vitamin C'],
     datasets: [
       {
         data: [
-          nutrition.Protein_g || 0,
-          nutrition.Fat_g || 0,
-          nutrition.Carbohydrates_g || 0,
-          nutrition.Fiber_g || 0,
-          vitaminCGrams // Converted to grams for consistency
+          protein,
+          fat,
+          carbs,
+          fiber,
+          vitaminCGrams
         ],
         backgroundColor: [
-        'rgba(94, 129, 87, 0.8)',    // Basil Green for Protein
-        'rgba(222, 184, 125, 0.8)',  // Turmeric Yellow for Fat
-        'rgba(176, 136, 96, 0.8)',   // Cinnamon Brown for Carbs
-        'rgba(143, 114, 83, 0.8)',   // Clove Brown for Fiber
-        'rgba(233, 150, 86, 0.8)',   // Paprika Orange for Vitamin C
+          'rgba(94, 129, 87, 0.8)',    // Basil Green for Protein
+          'rgba(222, 184, 125, 0.8)',  // Turmeric Yellow for Fat
+          'rgba(176, 136, 96, 0.8)',   // Cinnamon Brown for Carbs
+          'rgba(143, 114, 83, 0.8)',   // Clove Brown for Fiber
+          'rgba(233, 150, 86, 0.8)',   // Paprika Orange for Vitamin C
         ],
         borderColor: [
-        'rgba(94, 129, 87, 1)',
-        'rgba(222, 184, 125, 1)',
-        'rgba(176, 136, 96, 1)',
-        'rgba(143, 114, 83, 1)',
-        'rgba(233, 150, 86, 1)',
+          'rgba(94, 129, 87, 1)',
+          'rgba(222, 184, 125, 1)',
+          'rgba(176, 136, 96, 1)',
+          'rgba(143, 114, 83, 1)',
+          'rgba(233, 150, 86, 1)',
         ],
         borderWidth: 1,
       },
@@ -51,13 +57,15 @@ export default function NutritionPieChart({ nutrition }) {
             const datasets = chart.data.datasets;
             return chart.data.labels.map((label, i) => {
               const value = datasets[0].data[i];
-              let displayValue = value;
+              let displayValue = Number(value) || 0;
               let unit = 'g';
               
               // Special handling for Vitamin C (show in mg)
               if (label === 'Vitamin C') {
-                displayValue = (value * 1000).toFixed(2); // Convert back to mg
+                displayValue = (displayValue * 1000).toFixed(2);
                 unit = 'mg';
+              } else {
+                displayValue = displayValue.toFixed(2);
               }
               
               return {
@@ -76,7 +84,7 @@ export default function NutritionPieChart({ nutrition }) {
         callbacks: {
           label: function(context) {
             const label = context.label || '';
-            const value = context.raw || 0;
+            const value = Number(context.raw) || 0;
             
             // Show Vitamin C in mg, others in g
             if (label === 'Vitamin C') {
@@ -91,13 +99,12 @@ export default function NutritionPieChart({ nutrition }) {
   };
 
   // Calculate total grams (excluding Vitamin C which is in mg)
-  const totalGrams = (nutrition.Protein_g || 0) + 
-                     (nutrition.Fat_g || 0) + 
-                     (nutrition.Carbohydrates_g || 0) + 
-                     (nutrition.Fiber_g || 0);
+  const totalGrams = protein + fat + carbs + fiber;
   
-  // Show Vitamin C separately
-  const vitaminCmg = nutrition.VitaminC_mg || 0;
+  // Format numbers safely
+  const formatNumber = (num) => {
+    return Number(num).toFixed(2);
+  };
 
   if (totalGrams === 0 && vitaminCmg === 0) {
     return (
@@ -112,11 +119,11 @@ export default function NutritionPieChart({ nutrition }) {
       <Pie data={chartData} options={options} />
       <div className="pie-chart-totals">
         <div className="pie-chart-total">
-          Total Mass: {totalGrams.toFixed(2)}g
+          Total Mass: {formatNumber(totalGrams)}g
         </div>
         {vitaminCmg > 0 && (
           <div className="pie-chart-vitamin">
-            Vitamin C: {vitaminCmg.toFixed(2)}mg
+            Vitamin C: {formatNumber(vitaminCmg)}mg
           </div>
         )}
       </div>
