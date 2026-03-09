@@ -224,6 +224,7 @@ const AdminDashboard = () => {
       case "food":
         return (
           <>
+            {/* Modified: FoodDatabaseSection now handles its own internal improved filters */}
             <FoodDatabaseSection foodData={foodData} categories={categories} />
             <RecipeDatabaseSection recipes={approvedRecipes} categories={categories} sectionType="approved" />
             <CommunityPostDatabaseSection categories={categories} posts={approvedCommunityPosts} sectionType="approved" />
