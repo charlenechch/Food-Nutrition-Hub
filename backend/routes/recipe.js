@@ -457,8 +457,8 @@ try {
   const foodQuery = `
     INSERT INTO food (
       name, origin, difficulty, prepTime, image, description, 
-      category, category, dietaryTags, commonIngredients
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      category, dietaryTags, commonIngredients
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
   const foodParams = [
@@ -468,7 +468,6 @@ try {
     prepTime || 0, 
     processedImage, 
     description || '', 
-    category || 'Other',
     category || 'Other',
     Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
     null
@@ -864,8 +863,7 @@ try {
       prepTime = ?, 
       image = ?, 
       description = ?, 
-      category = ?, 
-      category = ?, 
+      category = ?,  
       dietaryTags = ?
     WHERE foodID = ?
   `;
@@ -876,7 +874,6 @@ try {
     prepTime || 0,
     finalImage,
     description || '',
-    category || 'Other',
     category || 'Other',
     Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
     id
