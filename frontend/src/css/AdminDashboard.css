@@ -2370,34 +2370,72 @@
 }
 
 /* ==========================================================================
-   Advanced Filters Alignment Fix (Add this to format the second screenshot)
+   Advanced Filters Alignment Fix
    ========================================================================== */
 
 .advanced-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
   background: #fffdfb;
   border: 1px solid #e8dccf;
-  padding: 16px 20px;
+  padding: 20px 24px;
   border-radius: 12px;
   margin-bottom: 24px;
-  align-items: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.advanced-filters select,
-.advanced-filters input {
-  padding: 8px 12px;
+.advanced-filters-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #916848;
+  font-size: 15px;
+  border-bottom: 1px dashed #e8dccf;
+  padding-bottom: 12px;
+}
+
+.advanced-filters-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end; /* Keeps the bottom of the input boxes aligned */
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.filter-item label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #7a6b5a;
+}
+
+.filter-item select {
+  padding: 10px 12px;
   border: 1px solid #e8dccf;
   border-radius: 8px;
   background: #fdfbf9;
   color: #3d2b1f;
   font-family: inherit;
+  font-size: 14px;
   outline: none;
+  width: 100%;
+  cursor: pointer;
 }
 
-.advanced-filters select:focus,
-.advanced-filters input:focus {
+.filter-item select:focus {
   border-color: #916848;
+}
+
+.calorie-filter {
+  flex: 2; /* Gives the calorie slider twice as much room */
+  min-width: 250px;
+  padding-bottom: 8px; /* Aligns the slider handle with the select text */
 }
