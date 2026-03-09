@@ -1141,17 +1141,20 @@ router.put("/consent", async (req, res) => {
 
     const userID = req.session.user.userID;
 
+    const { pdpaConsent, tncConsent } = req.body;
+
     const [result] = await db.execute(
-      "UPDATE user SET pdpa_consent = 1, consent_date = NOW() WHERE userID = ?",
-      [userID]
+      "UPDATE user SET pdpa_consent = ?, tnc_consent = ?, consent_date = NOW() WHERE userID = ?",
+      [pdpaConsent ? 1 : 0, tncConsent ? 1 : 0, userID]
     );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "User not found." });
     }
 
-    // Update the session so the frontend knows they consented immediately
+    // Update both consent fields in the session
     req.session.user.pdpa_consent = 1;
+    req.session.user.tnc_consent = 1;
     
     // Save the updated session
     req.session.save((err) => {
