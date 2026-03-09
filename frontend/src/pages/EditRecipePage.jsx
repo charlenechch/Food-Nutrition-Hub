@@ -71,7 +71,7 @@ const EditRecipePage = () => {
           difficulty: data.difficulty || "-",
           preptime: data.prepTime || 0,
           cooktime: data.cookTime || 0,
-          foodtype: data.foodType || "-",
+          category: data.category || "-",
           englishDesc: data.description || "-",
           serving: data.servings || 0,
           ingredientsEN:
@@ -231,7 +231,7 @@ const EditRecipePage = () => {
                 <div className="rcp-edit-info-item"><h4>{t("editRecipe.difficulty")}</h4><p>{recipe.difficulty}</p></div>
                 <div className="rcp-edit-info-item"><h4>{t("editRecipe.prepTime")}</h4><p>{recipe.preptime}</p></div>
                 <div className="rcp-edit-info-item"><h4>{t("editRecipe.cookTime")}</h4><p>{recipe.cooktime}</p></div>
-                <div className="rcp-edit-info-item"><h4>{t("editRecipe.foodType")}</h4><p>{recipe.foodtype}</p></div>
+                <div className="rcp-edit-info-item"><h4>{t("editRecipe.category")}</h4><p>{recipe.category}</p></div>
               </div>
             </div>
 
