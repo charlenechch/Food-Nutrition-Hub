@@ -223,11 +223,11 @@ const AdminDashboard = () => {
     switch (activeTab) {
       case "food":
         return (
-          <>
+          <div className="tab-content-wrapper">
             <FoodDatabaseSection foodData={foodData} categories={categories} />
             <RecipeDatabaseSection recipes={approvedRecipes} categories={categories} sectionType="approved" />
             <CommunityPostDatabaseSection categories={categories} posts={approvedCommunityPosts} sectionType="approved" />
-          </>
+          </div>
         );
 
       case "users":
@@ -235,7 +235,7 @@ const AdminDashboard = () => {
 
       case "moderation":
         return (
-          <>
+          <div className="tab-content-wrapper">
             <CommunityPostDatabaseSection 
               categories={categories} 
               posts={combinedModerationPosts} 
@@ -248,7 +248,7 @@ const AdminDashboard = () => {
               sectionType="pending" 
               initialStatus={initialFilter} 
             />
-          </>
+          </div>
         );
 
       case "analytics": return <Analytics />;
@@ -342,7 +342,7 @@ const AdminDashboard = () => {
 
         {/* === Dashboard Content === */}
         <div className="dashboard-content">
-          {loading ? <p>{t("adminHome.loadingData")}</p> : renderContent()}
+          {loading ? <p className="umg-loading-text">{t("adminHome.loadingData")}</p> : renderContent()}
         </div>
       </div>
       <Footer />

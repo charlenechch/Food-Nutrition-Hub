@@ -2327,3 +2327,77 @@
     padding: 10px 5px;
   }
 }
+
+/* ==========================================================================
+   Dropdown Menu Fixes (Add these below your .admin-beige-trigger styles)
+   ========================================================================== */
+
+/* This targets the actual list of categories popping out */
+.admin-beige-dropdown ul, 
+.admin-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px); /* Positions it just below the trigger button */
+  right: 0;
+  min-width: 100%; /* Ensures it's at least as wide as the button */
+  background: #ffffff;
+  border: 1px solid #e8dccf;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(61, 43, 31, 0.1);
+  list-style: none;
+  padding: 8px 0;
+  margin: 0;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 50; /* Ensures it stays above the table */
+}
+
+/* Styling the individual list items */
+.admin-beige-dropdown ul li,
+.admin-dropdown-menu li {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #5f5040;
+  transition: all 0.2s ease;
+  display: block;
+}
+
+.admin-beige-dropdown ul li:hover,
+.admin-dropdown-menu li:hover {
+  background: #f7f2ec;
+  color: #3d2b1f;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   Advanced Filters Alignment Fix (Add this to format the second screenshot)
+   ========================================================================== */
+
+.advanced-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: #fffdfb;
+  border: 1px solid #e8dccf;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.advanced-filters select,
+.advanced-filters input {
+  padding: 8px 12px;
+  border: 1px solid #e8dccf;
+  border-radius: 8px;
+  background: #fdfbf9;
+  color: #3d2b1f;
+  font-family: inherit;
+  outline: none;
+}
+
+.advanced-filters select:focus,
+.advanced-filters input:focus {
+  border-color: #916848;
+}
