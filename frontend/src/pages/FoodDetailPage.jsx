@@ -49,14 +49,14 @@ export default function FoodDetailPage() {
       setTranslatedFood({});
       return;
     }
-    const ingredients = food.commonIngredients || []; // ✅ define it here
+    const ingredients = food.commonIngredients || []; 
     translateTexts({
       name: food.name,
       description: food.description,
       culturalSignificance: food.culturalSignificance,
       traditionalPreparation: food.traditionalPreparation,
       ingredients: ingredients.join("||"),
-    }, i18n.language).then((result) => { // ✅ result not results
+    }, i18n.language).then((result) => { 
       if (result.ingredients) {
         result.ingredientsArray = result.ingredients.split("||").map(s => s.trim());
       }
@@ -189,6 +189,15 @@ export default function FoodDetailPage() {
     try { navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`); }
     catch (error) { navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`); }
     finally { setJumping(false); }
+  };
+
+  const handleProfileClick = (commentUserProfileID) => {
+    const currentUID = user?.userProfileID || user?.userID || user?.id;
+    if (currentUID && String(currentUID) === String(commentUserProfileID)) {
+      navigate("/profile"); 
+    } else if (commentUserProfileID) {
+      navigate(`/profile/${commentUserProfileID}`); 
+    }
   };
 
   if (loading) return (
@@ -348,11 +357,25 @@ export default function FoodDetailPage() {
                     {foodComments.slice(0, 2).map((c) => (
                       <div key={c.id} className="fdp-comment">
                         <div className="fdp-comment-head">
-                          <span className="fdp-avatar">
+                          <span 
+                            className="fdp-avatar"
+                            onClick={() => handleProfileClick(c.userProfileID)}
+                            style={{ cursor: "pointer" }}
+                            title={`View ${c.username || c.user}'s profile`}
+                          >
                             {c.avatar ? <img src={c.avatar} alt="avatar" className="fdp-avatar-img" />
                               : <div className="fdp-avatar-initials">{getUserInitials(c)}</div>}
                           </span>
-                          <span className="fdp-user">{c.username || c.user}</span>
+                          <span 
+                            className="fdp-user"
+                            onClick={() => handleProfileClick(c.userProfileID)}
+                            style={{ cursor: "pointer", textDecoration: "underline transparent", transition: "text-decoration 0.2s" }}
+                            onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                            onMouseLeave={(e) => e.target.style.textDecoration = "underline transparent"}
+                            title={`View ${c.username || c.user}'s profile`}
+                          >
+                            {c.username || c.user}
+                          </span>
                           <span className="fdp-time">{c.timeAgo}</span>
                         </div>
                         <p className="fdp-comment-text">{c.content}</p>
