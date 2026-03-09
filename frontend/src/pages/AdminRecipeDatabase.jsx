@@ -254,15 +254,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                 </select>
               </div>
 
-              <div className="filter-item">
-                <label>{t("explore.category", "Category")}</label>
-                <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                  <option value="All Categories">{t("explore.allCategories", "All Categories")}</option>
-                  {categories.filter(c => c !== "All Categories").map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
+              {/* The secondary category dropdown has been removed from here! */}
               
               {sectionType !== "approved" && (
                 <div className="filter-item">
