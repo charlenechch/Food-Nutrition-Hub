@@ -8,7 +8,7 @@ const ALL_PUBLIC_PATHS = [
   '/privacy', '/terms', '/profile'
 ];
 
-const AuthContext = createContext()
+const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -28,11 +28,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  useEffect(() => {
-    checkSession();
-  }, []);
-
-  const normalizeUser = (raw) => {
+  const normalizeUser = useCallback((raw) => {
     if (!raw) return null;
     return {
       ...raw,
@@ -45,7 +41,7 @@ export function AuthProvider({ children }) {
       lastname: raw.lastname ?? raw.lastName ?? null,
       viewMode: raw.viewMode || raw.role || "member",
     };
-  };
+  }, []);
 
   const forceLogout = useCallback((shouldRedirect = false) => {
       setUser(null);
@@ -59,6 +55,8 @@ export function AuthProvider({ children }) {
     return ALL_PUBLIC_PATHS.includes(path);
   }, []);
 
+  // Removed 'user' from dependencies to prevent infinite loop.
+  // We use the functional update pattern inside setUser instead.
   const checkSession = useCallback(async () => {
     if (bypassSessionCheck) {
       setBypassSessionCheck(false);
@@ -66,65 +64,74 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    const publicAuthPaths = ALL_PUBLIC_PATHS;
     const currentPath = window.location.pathname;
-    const isCurrentlyGuest = user?.role === 'guest';
 
     try {
       const res = await fetch(`${API_URL}/api/auth/session`, {
         credentials: "include",
       });
 
-      // Handle 401 (Not Logged In) gracefully
       if (res.status === 401) {
-        if (!publicAuthPaths.includes(currentPath) && !isCurrentlyGuest) {
-          forceLogout();
-        }
+        // We use functional state update to safely check current user state
+        setUser((prevUser) => {
+            const isCurrentlyGuest = prevUser?.role === 'guest';
+            if (!ALL_PUBLIC_PATHS.includes(currentPath) && !isCurrentlyGuest) {
+                forceLogout();
+            }
+            return prevUser;
+        });
         setLoading(false);
-        return; // Stop here, do not parse JSON or log error
+        return; 
       }
 
       const data = await res.json();
 
       if (res.ok && data?.user) {
         setUser(prev => {
-          if (JSON.stringify(prev) === JSON.stringify(normalizeUser(data.user))) return prev;
-          return normalizeUser(data.user);
+          const normalized = normalizeUser(data.user);
+          if (JSON.stringify(prev) === JSON.stringify(normalized)) return prev;
+          return normalized;
         });
       } else {
-        if (!publicAuthPaths.includes(currentPath) && !isCurrentlyGuest) {
-          forceLogout();
-        }
+        setUser((prevUser) => {
+            const isCurrentlyGuest = prevUser?.role === 'guest';
+            if (!ALL_PUBLIC_PATHS.includes(currentPath) && !isCurrentlyGuest) {
+                forceLogout();
+            }
+            return prevUser; // Keep existing state if any, let forceLogout handle redirect
+        });
       }
     } catch (err) {
-      // Only log real errors (network issues), not 401s
       console.error("Session check error:", err);
-      if (!publicAuthPaths.includes(currentPath) && !isCurrentlyGuest) {
-        forceLogout();
-      }
+      setUser((prevUser) => {
+          const isCurrentlyGuest = prevUser?.role === 'guest';
+          if (!ALL_PUBLIC_PATHS.includes(currentPath) && !isCurrentlyGuest) {
+              forceLogout();
+          }
+          return prevUser;
+      });
     } finally {
       setLoading(false);
     }
-  }, [user, bypassSessionCheck, forceLogout]);
+  }, [bypassSessionCheck, forceLogout, normalizeUser]);
 
   const toggleRole = useCallback(async () => {
-    if (!user) return;
-    if (user.role === "admin") {
-      const newMode = user.viewMode === "admin" ? "member" : "admin";
-      setUser((prev) => ({ ...prev, viewMode: newMode }));
-    }
-  }, [user]);
+    setUser((prev) => {
+        if (!prev || prev.role !== "admin") return prev;
+        const newMode = prev.viewMode === "admin" ? "member" : "admin";
+        return { ...prev, viewMode: newMode };
+    });
+  }, []);
 
-  // Login with CSRF Token
   const login = async (email, password) => {
     try {
-      const csrfToken = await getCsrfToken(); // Get Token
+      const csrfToken = await getCsrfToken(); 
 
       const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken // Send Token
+          "X-CSRF-Token": csrfToken 
         },
         credentials: "include",
         body: JSON.stringify({ email, password }),
@@ -140,19 +147,17 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Logout with CSRF Token
   const logout = async () => {
     window.isLoggingOut = true;
     
     try {
-      const csrfToken = await getCsrfToken(); // Get Token
-
+      const csrfToken = await getCsrfToken(); 
       localStorage.removeItem("user");
 
       await fetch(`${API_URL}/api/logout`, {
         method: "POST",
         headers: { 
-          "X-CSRF-Token": csrfToken // Send Token
+          "X-CSRF-Token": csrfToken 
         },
         credentials: "include",
         keepalive: true
@@ -164,6 +169,7 @@ export function AuthProvider({ children }) {
 
   const loginAsGuest = () => setUser({ role: "guest", viewMode: "guest" });
   
+  // This is now safe and will only run once on mount
   useEffect(() => {
     checkSession();
   }, [checkSession]);
