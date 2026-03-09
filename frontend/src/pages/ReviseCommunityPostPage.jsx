@@ -224,7 +224,7 @@ export default function ReviseCommunityPostPage() {
               <h2>{t("revisePost.errorTitle")}</h2>
               <p>{error}</p>
               <button
-                className="lrp-btn lrp-btn-primary"
+                className="lrp-btn lrp-btn-primary lrp-back"
                 onClick={() => navigate("/profile?tab=status")}
               >
                 {t("revisePost.backToProfile")}
@@ -244,7 +244,7 @@ export default function ReviseCommunityPostPage() {
       <div className="upp-page">
         <div className="upp-wrap">
           <button
-            className="lrp-btn lrp-btn-outline rcp-back"
+            className="lrp-btn lrp-btn-outline lrp-back"
             onClick={() => navigate("/profile?tab=status")}
           >
             {t("revisePost.backToContributions")}

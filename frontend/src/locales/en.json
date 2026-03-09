@@ -1066,8 +1066,8 @@
 
   "revisePost": {
     "pageTitle": "Revise Community Contribution",
-    "backToContributions": "← Back to Contributions",
-    "backToProfile": "Back to Profile",
+    "backToContributions": "← Back",
+    "backToProfile": "Back",
     "fixAndResubmit": "Fix the highlighted fields and resubmit.",
     "adminFeedbackTitle": "Admin Feedback",
     "areasNeedingImprovement": "Areas needing improvement:",
@@ -1100,7 +1100,7 @@
 
   "reviseRecipe": {
     "pageTitle": "Revise Recipe",
-    "backToContributions": "← Back to Contributions",
+    "backToContributions": "← Back",
     "back": "← Back",
     "loadingData": "Loading recipe data...",
     "notAvailableTitle": "This contribution isn't available to revise.",

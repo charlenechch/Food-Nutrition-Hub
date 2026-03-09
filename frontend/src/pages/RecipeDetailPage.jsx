@@ -487,7 +487,7 @@ export default function RecipeDetailPage() {
               <div className="fdp-actions">
                 <button
                   type="button"
-                  className="lrp-btn lrp-btn-primary fdp-save"
+                  className={`lrp-btn lrp-btn-primary fdp-save ${saved ? "saved" : ""}`}
                   onClick={handleSaveRecipe}
                 >
                   {saved ? t("recipeDetail.saved") : t("recipeDetail.saveRecipe")}
