@@ -15,6 +15,20 @@ export default function TermsAndPrivacyModal() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   // Lock the background scrolling if the modal is active
   useEffect(() => {
@@ -34,32 +48,31 @@ export default function TermsAndPrivacyModal() {
     return null; 
   }
 
-  const handleAgree = async () => {
-    // Double-check that both are checked before allowing submission
-    
-    if (!isPdpaChecked || !isTncChecked) return;
-    
-    setIsSubmitting(true);
-    setError("");
+const handleAgree = async () => {
+  if (!isPdpaChecked || !isTncChecked) return;
+  
+  setIsSubmitting(true);
+  setError("");
 
-    try {
-      await axios.put(`${API_URL}/api/userProfile/consent`, {
-        pdpaConsent: isPdpaChecked,
-        tncConsent: isTncChecked 
-      }, {
-        withCredentials: true
-      });
+  try {
+    await axios.put(`${API_URL}/api/userProfile/consent`, {
+      pdpaConsent: isPdpaChecked,
+      tncConsent: isTncChecked 
+    }, {
+      withCredentials: true,
+      headers: { "X-CSRF-Token": csrfToken }
+    });
 
-      setUser({ ...user, pdpa_consent: 1, tnc_consent: 1 });
-      
-    } catch (err) {
-      console.error("Consent Error:", err);
-      const errorMessage = err.response?.data?.error || "Failed to save consent. Please try again.";
-      setError(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    setUser({ ...user, pdpa_consent: 1, tnc_consent: 1 });
+    
+  } catch (err) {
+    console.error("Consent Error:", err);
+    const errorMessage = err.response?.data?.error || "Failed to save consent. Please try again.";
+    setError(errorMessage);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return createPortal(
     <>
