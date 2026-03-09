@@ -31,18 +31,18 @@ export default function NutritionPieChart({ nutrition }) {
           vitaminCGrams
         ],
         backgroundColor: [
-          'rgba(255, 179, 186, 0.8)',  // Soft Pink (Protein)
-          'rgba(255, 223, 186, 0.8)',  // Soft Peach (Fat)
-          'rgba(186, 255, 201, 0.8)',  // Soft Mint (Carbs)
-          'rgba(186, 225, 255, 0.8)',  // Soft Sky Blue (Fiber)
-          'rgba(221, 186, 255, 0.8)',  // Soft Lavender (Vitamin C)
+        'rgba(255, 99, 71, 0.8)',  
+        'rgba(255, 165, 0, 0.8)',    
+        'rgba(255, 255, 0, 0.8)',    
+        'rgba(144, 238, 144, 0.8)',  
+        'rgba(112, 164, 182, 0.8)',  
         ],
         borderColor: [
-          'rgba(255, 179, 186, 1)',
-          'rgba(255, 223, 186, 1)',
-          'rgba(186, 255, 201, 1)',
-          'rgba(186, 225, 255, 1)',
-          'rgba(221, 186, 255, 1)',
+        'rgba(255, 99, 71, 1)',
+        'rgba(255, 165, 0, 1)',
+        'rgba(255, 255, 0, 1)',
+        'rgba(144, 238, 144, 1)',
+        'rgba(112, 164, 182, 0.8)',
         ],
         borderWidth: 1,
       },
@@ -69,7 +69,7 @@ export default function NutritionPieChart({ nutrition }) {
         },
       },
       legend: {
-        position: 'right', // Changed from 'bottom' to 'right' for horizontal layout
+        position: 'right', 
         align: 'center',
         labels: {
           font: { size: 11 },
@@ -85,9 +85,9 @@ export default function NutritionPieChart({ nutrition }) {
               
               let displayText = '';
               if (label === 'Vitamin C') {
-                displayText = `${label}: ${(value * 1000).toFixed(2)}mg (${percentage}%)`;
+                displayText = `${label}: ${percentage}%`;
               } else {
-                displayText = `${label}: ${value.toFixed(2)}g (${percentage}%)`;
+                displayText = `${label}: ${percentage}%`;
               }
               
               return {
