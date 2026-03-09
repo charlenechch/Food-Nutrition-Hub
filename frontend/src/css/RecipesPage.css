@@ -357,7 +357,6 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(139, 94, 60, 0.2); 
   transition: all 0.3s ease;
   margin-top: 4px;
 }
@@ -365,18 +364,15 @@
 .rp-add-btn:hover {
   background: #6b3e26; 
   transform: translateY(-2px); 
-  box-shadow: 0 6px 16px rgba(139, 94, 60, 0.3); 
 }
 
 .rp-add-btn:active {
   outline: none;
-  transform: translateY(0); 
-  box-shadow: 0 2px 8px rgba(139, 94, 60, 0.2);
+  transform: translateY(0);
 }
 
 .rp-add-btn:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(139, 94, 60, 0.3); 
 }
 
 .rdp-ingredients-formatted {
