@@ -456,7 +456,7 @@ export default function RecipesPage() {
             <h3>{t("recipes.shareTitle")}</h3>
             <p>{t("recipes.shareSubtitle")}</p>
             {!expanded && (
-              <button className="share-btn" onClick={handleExpand}>{t("recipes.addRecipeBtn")}</button>
+              <button className="rp-add-btn" onClick={handleExpand}>{t("recipes.addRecipeBtn")}</button>
             )}
           </div>
 
