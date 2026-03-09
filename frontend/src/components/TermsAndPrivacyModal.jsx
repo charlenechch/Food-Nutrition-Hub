@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { FaShieldAlt } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
+import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -35,36 +36,26 @@ export default function TermsAndPrivacyModal() {
 
   const handleAgree = async () => {
     // Double-check that both are checked before allowing submission
+    
     if (!isPdpaChecked || !isTncChecked) return;
     
     setIsSubmitting(true);
     setError("");
 
     try {
-      const res = await fetch(`${API_URL}/api/userProfile/consent`, {
-        method: "PUT",
-        credentials: "include", 
-        headers: {
-          "Content-Type": "application/json",
-        },
-        // Sending both values so your backend is 100% ready for the T&C update!
-        body: JSON.stringify({
-          pdpaConsent: isPdpaChecked,
-          tncConsent: isTncChecked 
-        })
+      await axios.put(`${API_URL}/api/userProfile/consent`, {
+        pdpaConsent: isPdpaChecked,
+        tncConsent: isTncChecked 
+      }, {
+        withCredentials: true
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // Instantly update the user context so the modal disappears
-        setUser({ ...user, pdpa_consent: 1, tnc_consent: 1 });
-      } else {
-        setError(data.error || "Failed to save consent. Please try again.");
-      }
+      setUser({ ...user, pdpa_consent: 1, tnc_consent: 1 });
+      
     } catch (err) {
       console.error("Consent Error:", err);
-      setError("A network error occurred. Please try again.");
+      const errorMessage = err.response?.data?.error || "Failed to save consent. Please try again.";
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
