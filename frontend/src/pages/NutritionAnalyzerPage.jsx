@@ -263,20 +263,6 @@ export default function NutritionAnalyzerPage() {
                 )}
               </div>
 
-              {!!result.alternatives?.length && (
-                <div className="analysis-container">
-                  <div className="alternatives-section">
-                    <h3 className="section-header">{t("analyzer.healthierAlts")}</h3>
-                    {result.alternatives.map((alt, i) => (
-                      <div className="alternative-card" key={i}>
-                        <div className="alt-main">{alt.title}</div>
-                        {alt.description && <div className="alt-desc">{alt.description}</div>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {!!result.tips?.length && (
                 <div className="analysis-container">
                   <div className="tips-section">

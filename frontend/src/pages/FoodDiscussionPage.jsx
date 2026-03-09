@@ -4,6 +4,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/FoodDiscussionPage.css";
+import "../css/lrp.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import {CheckCircle2, AlertTriangle} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -41,8 +42,8 @@ const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", i
           <button className="lrp-btn lrp-btn-outline" onClick={onClose}>
             Cancel
           </button>
-          <button className={`lrp-btn ${isAdminAction ? 'lrp-btn-warning' : 'lrp-btn-danger'}`} onClick={onConfirm}>
-            {isAdminAction ? "Delete as Admin" : "Delete"}
+          <button className="lrp-btn lrp-btn-danger" onClick={onConfirm}>
+            Delete
           </button>
         </div>
       </div>

@@ -39,6 +39,7 @@ export default function LoginRegisterPage() {
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [registerError, setRegisterError] = useState("");
+  const [pdpaConsent, setPdpaConsent] = useState(false);
 
   // Resend verification
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -360,6 +361,10 @@ export default function LoginRegisterPage() {
       setRegisterError(t("auth.fillAllFields"));
       return;
     }
+    if (!pdpaConsent) {
+      setRegisterError("You must agree to the Privacy Policy to register.");
+      return;
+    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(regEmail)) {
       setRegisterError(t("auth.invalidEmail"));
@@ -386,6 +391,7 @@ export default function LoginRegisterPage() {
           email: regEmail,
           password: regPassword,
           firebaseUID: firebaseUID,
+          pdpaconsent: pdpaConsent,
         }),
       });
       const data = await res.json();
@@ -424,12 +430,16 @@ export default function LoginRegisterPage() {
 
       const token = await user.getIdToken();
 
+      const csrfRes = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
+      const csrfData = await csrfRes.json();
+      const freshCsrfToken = csrfData.csrfToken;
+
       const res = await fetch(`${API_URL}/api/auth/google-login`, {
         method: "POST",
         credentials: "include",
         headers: { 
             "Content-Type": "application/json", 
-            "X-CSRF-Token": csrfToken 
+            "X-CSRF-Token": freshCsrfToken 
         },
         body: JSON.stringify({
           email: user.email,
@@ -667,6 +677,19 @@ export default function LoginRegisterPage() {
                        <div className={regPasswordCriteria.special ? "valid" : "invalid"}>• {t("auth.hintSymbol")}</div>
                     </div>
                   )}
+                </div>
+
+                <div className="pdpa-checkbox-wrapper">
+                  <label className="pdpa-checkbox-label">
+                    <input 
+                      type="checkbox" 
+                      checked={pdpaConsent} 
+                      onChange={(e) => setPdpaConsent(e.target.checked)} 
+                    />
+                    <span className="pdpa-checkbox-text">
+                      I have read and agree to the <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="pdpa-link">PDPA Privacy Policy</a>.
+                    </span>
+                  </label>
                 </div>
 
                 <button onClick={handleRegister} className="mh-btn-primary">{t("auth.createAccount")}</button>

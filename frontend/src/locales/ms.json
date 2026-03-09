@@ -1065,8 +1065,8 @@
 
   "revisePost": {
     "pageTitle": "Semak Semula Sumbangan Komuniti",
-    "backToContributions": "← Kembali ke Sumbangan",
-    "backToProfile": "Kembali ke Profil",
+    "backToContributions": "← Kembali",
+    "backToProfile": "Kembali",
     "fixAndResubmit": "Betulkan medan yang ditandakan dan hantar semula.",
     "adminFeedbackTitle": "Maklum Balas Admin",
     "areasNeedingImprovement": "Kawasan yang perlu diperbaiki:",
@@ -1099,7 +1099,7 @@
 
   "reviseRecipe": {
     "pageTitle": "Semak Semula Resipi",
-    "backToContributions": "← Kembali ke Sumbangan",
+    "backToContributions": "← Kembali",
     "back": "← Kembali",
     "loadingData": "Memuatkan data resipi...",
     "notAvailableTitle": "Sumbangan ini tidak tersedia untuk disemak semula.",

@@ -168,12 +168,13 @@ export default function ReviseCommunityPostPage() {
         body: JSON.stringify(revisedData),
       });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Failed to update community post: ${errorText}`);
-      }
-
+      // Parse the JSON response FIRST so we can read the backend's custom error message
       const result = await res.json();
+
+      // If the backend blocked it (like returning our 403 Forbidden), throw that exact message cleanly
+      if (!res.ok) {
+        throw new Error(result.error || "Failed to update community post");
+      }
 
       if (result.success) {
         setSuccess(t("revisePost.revisedSuccessMsg"));
@@ -223,7 +224,7 @@ export default function ReviseCommunityPostPage() {
               <h2>{t("revisePost.errorTitle")}</h2>
               <p>{error}</p>
               <button
-                className="lrp-btn lrp-btn-primary"
+                className="lrp-btn lrp-btn-primary lrp-back"
                 onClick={() => navigate("/profile?tab=status")}
               >
                 {t("revisePost.backToProfile")}
@@ -243,7 +244,7 @@ export default function ReviseCommunityPostPage() {
       <div className="upp-page">
         <div className="upp-wrap">
           <button
-            className="lrp-btn lrp-btn-outline rcp-back"
+            className="lrp-btn lrp-btn-outline lrp-back"
             onClick={() => navigate("/profile?tab=status")}
           >
             {t("revisePost.backToContributions")}

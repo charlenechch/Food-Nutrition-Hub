@@ -478,7 +478,7 @@
   color: #333;
 }
 
-/* The Google "G" Icon */
+/* --- The Google "G" Icon --- */
 .mh-google-icon {
   width: 20px;
   height: 20px;
@@ -656,4 +656,38 @@
     letter-spacing: 5px !important; 
     font-size: 1.5rem !important;
   }
+}
+
+/* --- PDPA Checkbox --- */
+.pdpa-checkbox-wrapper {
+  margin: 10px 0 20px 0;
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.pdpa-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pdpa-checkbox-text {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #555;
+  font-family: 'Poppins', sans-serif;
+}
+
+.pdpa-link {
+  color: var(--mh-brown);
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.pdpa-link:hover {
+  color: var(--mh-gold);
 }

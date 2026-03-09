@@ -216,7 +216,9 @@
 }
 .upp-sub { 
     color:#7b6d5f; 
-    margin: 0; 
+    margin: 8px auto 0;
+    max-width: 600px;
+    line-height: 1.4;
 }
 
 .upp-tabs {
@@ -481,12 +483,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.upp-revise-btn {
-    width: auto;
-    display: inline-flex;
-    margin-left: auto;
+.upp-row-meta .upp-revise-btn {
+    margin-left: auto; 
+    width: auto; 
+    flex: 0 0 auto; 
     white-space: nowrap;        
-    padding: 8px 28px;          
+    padding: 6px 20px; 
     font-size: 0.9rem;  
 }
 .upp-chip { 
@@ -717,10 +719,11 @@
     white-space: normal;
   }
 
-  .upp-revise-btn {
-    margin-left: 0;
-    width: 100%;
-    justify-content: center;
+  .upp-row-meta .upp-revise-btn {
+    margin-left: 0; 
+    margin-top: 8px; 
+    width: 100%; 
+    justify-content: center; 
   }
 
   .upp-row.between {

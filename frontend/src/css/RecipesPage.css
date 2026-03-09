@@ -348,11 +348,33 @@
 .login-prompt-register:hover {
   background: #e0e0e0; 
 }
-.share-btn:focus {
+.rp-add-btn {
+  background: #8b5e3c;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px; 
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 4px;
+}
+
+.rp-add-btn:hover {
+  background: #6b3e26; 
+  transform: translateY(-2px); 
+}
+
+.rp-add-btn:active {
+  outline: none;
+  transform: translateY(0);
+}
+
+.rp-add-btn:focus {
   outline: none;
 }
 
-/* Add to RecipeDetailPage.css */
 .rdp-ingredients-formatted {
   line-height: 1.6;
 }

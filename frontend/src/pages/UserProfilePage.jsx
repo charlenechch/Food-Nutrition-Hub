@@ -1,13 +1,8 @@
-// ✅UserProfilePage.jsx – Final Version with Guest Popup & Avatar Upload
-// - Shows Login Prompt Modal instead of redirecting for guests
-// - Supports /profile & /profile/:userProfileID
-// - Keeps saved foods, contributions, preferences, settings, stats
-// - ✅ Added avatar upload functionality
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../css/UserProfilePage.css";
+import "../css/lrp.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Bell, Eye, EyeOff, Globe, Shield, ExternalLink, OctagonX, Camera, X, AlertTriangle, CheckCircle2, Trash2, Lock } from "lucide-react";
@@ -394,7 +389,7 @@ const savePersonal = async () => {
     console.log("✅ Personal info update result:", result);
     
     if (result.success) {
-      oopenAlert(t("profile.saved"), t("profile.profileUpdated"), <CheckCircle2 />);
+      openAlert(t("profile.saved"), t("profile.profileUpdated"), <CheckCircle2 />);
       setUser(prev => ({ ...prev, location: form.location, bio: bio }));
     } else {
       throw new Error(result.error || "Update failed");
@@ -627,8 +622,8 @@ const ContributionRow = ({ c }) => {
                   'Date not available'}
             </div>
 
-            {/* Revise Button - Keep only for Rejected/Needs Revision */}
-            {(c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected") && (
+            {/* Revise Button - Keep only for Rejected/Needs Revision AND if viewing own profile */}
+            {(!userProfileID && (c.status === "needs_revision" || c.status === "rejected" || c.status === "Rejected")) && (
               <button
                 className="lrp-btn lrp-btn-outline upp-revise-btn"
                 onClick={handleRevise}
@@ -1179,9 +1174,11 @@ const ContributionRow = ({ c }) => {
               )}
             </div>
             <h1 className="upp-title">{!userProfileID ? t("profile.myProfile") : t("profile.othersProfile", { name: user?.firstName })}</h1>
-            <p className="upp-sub">
-              {user?.firstName} {user?.lastName} • {user?.role || t("profile.member")}
-            </p>
+            {user?.bio && (
+              <p className="upp-sub">
+                {user.bio}
+              </p>
+            )}
           </div>
 
           {user?.isPrivateView ? (
@@ -1189,7 +1186,7 @@ const ContributionRow = ({ c }) => {
             <Lock size={80} color="#d8c6b4" className="upp-private-icon" />
             <h2 className="upp-private-title">{t("profile.privateProfile")}</h2>
             <p className="upp-muted upp-private-text">
-              {user.bio || t("profile.accountIsPrivate")}
+              {t("profile.accountIsPrivate")}
             </p>
           </div>
         ) : (
