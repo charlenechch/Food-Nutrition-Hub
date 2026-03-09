@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { FaShieldAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
@@ -8,6 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function TermsAndPrivacyModal() {
   const { user, setUser } = useAuth();
+  const { t } = useTranslation();
   
   // Two separate states for our two legal documents
   const [isPdpaChecked, setIsPdpaChecked] = useState(false);
