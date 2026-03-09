@@ -258,7 +258,7 @@ return {
 router.get('/recipes/:id', async (req, res) => {
 try {
   const { id } = req.params;
-  console.log('Fetching recipe with ID:', id);
+  console.log('Fetching recipe for Food ID:', id); // Updated log for clarity
   
   const query = `
     SELECT 
@@ -286,30 +286,20 @@ try {
     LEFT JOIN food f ON r.foodID = f.foodID  
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
     LEFT JOIN user u ON up.userID = u.userID
-    WHERE r.recipeID = ?  
+    WHERE f.foodID = ?  -- 🎯 MODIFICATION 1: Change r.recipeID to f.foodID
   `;
   
-  console.log('🔍 Fixed SQL Query - Getting recipe by recipeID:', id);
-  console.log('🔍 Query parameter (recipeID):', id);
-  
   const [rows] = await db.query(query, [id]);  
-  console.log('✅ SQL rows found:', rows.length);
   
   if (!rows || rows.length === 0) {
     return res.status(404).json({ error: 'Recipe not found' });
   }
   
   const row = rows[0];
-  console.log('✅ Raw row data received:', {
-    recipeID: row.id,      // Should match the id parameter
-    foodID: row.foodId,    // The food this recipe belongs to
-    name: row.name,
-    status: row.status
-  });
   
   const recipe = {
-    id: row.id,  // This is recipeID
-    foodId: row.foodId,  // This is foodID
+    id: row.foodId,  // 🎯 MODIFICATION 2: Ensure 'id' returned is the foodId
+    foodId: row.foodId,
     name: row.name || '',
     origin: row.origin || '',
     difficulty: row.difficulty || 'Easy',
@@ -318,7 +308,7 @@ try {
     servings: row.servings || 0,
     image: row.image || '',
     description: row.description || '',
-    category: row.category || row.category || 'Other',
+    category: row.category || 'Other',
     dietaryTags: row.dietaryTags
       ? (typeof row.dietaryTags === 'string'
           ? row.dietaryTags.split(',').map(tag => tag.trim()).filter(tag => tag)
@@ -334,16 +324,6 @@ try {
     authorEmail: row.authorEmail || 'N/A',
     createdAt: row.createdAt
   };
-  
-  console.log('✅ Sending transformed recipe:', {
-    recipeId: recipe.id, 
-    foodId: recipe.foodId,
-    name: recipe.name,
-    origin: recipe.origin,
-    category: recipe.category,
-    status: recipe.status,
-    hasImage: !!recipe.image
-  });
   
   res.json(recipe);
   
