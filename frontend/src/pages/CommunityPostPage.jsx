@@ -106,8 +106,12 @@ const LikeButton = ({ postId, initialLikes, user, onAlert }) => {
   );
 };
 
+// ==========================================
+// UPDATED COMMENT SECTION COMPONENT
+// ==========================================
 const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDeleted, onAlert }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate(); // ✅ Added navigate hook
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -133,11 +137,13 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
 
   const isCommentAuthor = (id) => currentUserProfileID && id && parseInt(currentUserProfileID) === parseInt(id);
   const canDeleteComment = (id) => currentUserProfileID && (parseInt(currentUserProfileID) === parseInt(id) || isAdmin);
+  
   const openDeleteModal = (commentId) => {
     const c = comments.find(c => c.id === commentId);
     setCommentToDelete({ id: commentId, isAdminAction: isAdmin && !isCommentAuthor(c?.userProfileID) });
     setShowDeleteModal(true);
   };
+
   const confirmDelete = async () => {
     if (!commentToDelete) return;
     try {
@@ -154,6 +160,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
     } catch (error) { console.error('Error deleting comment:', error); }
     finally { setDeletingCommentId(null); setShowDeleteModal(false); }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isGuest) { setShowLoginModal(true); return; }
@@ -171,6 +178,15 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
       if (result.success && result.comment) { onCommentAdded(result.comment); setComment(""); }
     } catch (err) { console.error("Error posting comment:", err); }
     finally { setLoading(false); }
+  };
+
+  // ✅ ADDED: Logic to handle clicking on a commenter's profile
+  const handleCommenterProfileClick = (commentUserProfileID) => {
+    if (currentUserProfileID && String(currentUserProfileID) === String(commentUserProfileID)) {
+      navigate("/profile"); 
+    } else if (commentUserProfileID) {
+      navigate(`/profile/${commentUserProfileID}`); 
+    }
   };
 
   return (
@@ -207,10 +223,29 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
         ) : (
           comments.map((c) => (
             <div key={c.id} className="comment-item">
-              <div className="comment-avatar-small">{(c.username || c.author || "U").charAt(0).toUpperCase()}</div>
+              {/* ✅ MODIFIED: Clickable Avatar */}
+              <div 
+                className="comment-avatar-small"
+                onClick={() => handleCommenterProfileClick(c.userProfileID)}
+                style={{ cursor: "pointer" }}
+                title={`View ${c.username || c.author}'s profile`}
+              >
+                {(c.username || c.author || "U").charAt(0).toUpperCase()}
+              </div>
+              
               <div className="comment-body">
                 <div className="comment-header-row">
-                  <span className="comment-author-name">{c.username || c.author || "User"}</span>
+                  {/* ✅ MODIFIED: Clickable Name */}
+                  <span 
+                    className="comment-author-name"
+                    onClick={() => handleCommenterProfileClick(c.userProfileID)}
+                    style={{ cursor: "pointer", textDecoration: "underline transparent", transition: "text-decoration 0.2s" }}
+                    title={`View ${c.username || c.author}'s profile`}
+                    onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                    onMouseLeave={(e) => e.target.style.textDecoration = "underline transparent"}
+                  >
+                    {c.username || c.author || "User"}
+                  </span>
                   <span className="comment-meta-dot">•</span>
                   <span className="comment-time">{c.daysAgo}</span>
                 </div>
@@ -228,6 +263,8 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
     </div>
   );
 };
+// ==========================================
+
 
 export default function CommunityPost() {
   const { id } = useParams();
@@ -262,6 +299,20 @@ export default function CommunityPost() {
   const handleNewComment = (newComment) => setComments(prev => [...prev, newComment]);
   const handleCommentDeleted = (deletedId) => setComments(prev => prev.filter(c => c.id !== deletedId));
 
+  
+  // Logic to handle clicking on the author's profile
+  const handleProfileClick = () => {
+    const currentUID = getStableProfileId(user);
+    const postUID = post.userProfile?.id;
+
+    // If viewing own post, go to own profile; otherwise go to the visitor view of that user
+    if (currentUID && String(currentUID) === String(postUID)) {
+      navigate("/profile");
+    } else if (postUID) {
+      navigate(`/profile/${postUID}`);
+    }
+  };  
+
   if (loading) return <><Header /><div className="community-page" style={{ marginTop: "100px" }}><div className="loading">{t("communityPost.loading")}</div></div><Footer /></>;
   if (error) return <><Header /><div className="community-page" style={{ marginTop: "100px" }}><div className="error"><h2>{t("communityPost.error")}</h2><p>{error}</p></div></div><Footer /></>;
   if (!post) return <><Header /><div className="community-page" style={{ marginTop: "100px" }}><div className="not-found"><h2>{t("communityPost.notFound")}</h2></div></div><Footer /></>;
@@ -294,10 +345,16 @@ export default function CommunityPost() {
             <div className="post-info">
               <div className="title-and-likes-wrapper">
                 <h1>{post.foodName}</h1>
-                <LikeButton postId={post.id} initialLikes={post.likeCount || 0} user={user} onAlert={openAlert} />
+                < LikeButton postId={post.id} initialLikes={post.likeCount || 0} user={user} onAlert={openAlert} />
               </div>
 
-              <div className="post-author-lockup">
+              {/* Modified author lockup to be clickable */}
+              <div 
+                className="post-author-lockup" 
+                onClick={handleProfileClick} 
+                style={{ cursor: "pointer" }}
+                title={t("community.viewProfile", { name: post.author })}
+              >
                 <div className="author-avatar-large">
                   {post.authorProfilePic ? <img src={post.authorProfilePic} alt={post.author} />
                     : (post.author || "U").charAt(0).toUpperCase()}
