@@ -8,6 +8,7 @@ import { LuSparkles } from "react-icons/lu";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { useTranslation } from "react-i18next";
+import NutritionPieChart from "./NutritionPiechart";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -251,13 +252,20 @@ export default function NutritionAnalyzerPage() {
                 {result.nutrition && (
                   <div className="nutrition-section">
                     <h3 className="section-header">{t("analyzer.nutritionPerPortion")}</h3>
-                    <div className="nutrition-grid">
+                    <div className="nutrition-content">
+                      <div className="nutrition-grid">
                       {nutritionRows.map(([label, val, unit], i) => (
                         <div className="nutri-card" key={i}>
                           <span className="nutri-value">{val ?? "—"} {val != null ? unit : ""}</span>
                           <span className="nutri-label">{label}</span>
                         </div>
                       ))}
+                    </div>
+
+                      {/* Pie Chart */}
+                      <div className="pie-chart-wrapper">
+                        <NutritionPieChart nutrition={result.nutrition} />
+                      </div>
                     </div>
                   </div>
                 )}
