@@ -203,7 +203,6 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
         transition: "min-height 0.3s ease"
       }}
     >
-      
       <div>
         <div className="recipe-header">
           <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
@@ -224,7 +223,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
               {category}
             </button>
             {dropdownOpen && (
-              <ul className="admin-beige-list">
+              <ul className="admin-dropdown-menu">
                 {["All Categories", ...categories.filter(c => c !== "All Categories")].map((opt, i) => (
                   <li key={i} onClick={() => { setCategory(opt); setDropdownOpen(false); }}>
                     {opt}
@@ -240,34 +239,38 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
 
         {showFilters && (
           <div className="advanced-filters">
-            <h4><CiFilter /> {t("adminFoodDB.advancedFilters")}</h4>
-            <div className="filter-grid">
+            <div className="advanced-filters-header">
+              <CiFilter /> {t("adminFoodDB.advancedFilters", "Advanced Filters")}
+            </div>
+            
+            <div className="advanced-filters-body">
               <div className="filter-item">
-                <label>{t("explore.difficulty")}</label>
+                <label>{t("explore.difficulty", "Difficulty")}</label>
                 <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                  <option value="All">{t("adminFoodDB.all")}</option>
-                  <option value="Easy">{t("explore.easy")}</option>
-                  <option value="Medium">{t("explore.medium")}</option>
-                  <option value="Hard">{t("explore.hard")}</option>
+                  <option value="All">{t("adminFoodDB.all", "All")}</option>
+                  <option value="Easy">{t("explore.easy", "Easy")}</option>
+                  <option value="Medium">{t("explore.medium", "Medium")}</option>
+                  <option value="Hard">{t("explore.hard", "Hard")}</option>
                 </select>
               </div>
+
               <div className="filter-item">
-                <label>{t("adminFoodDB.colCategory")}</label>
+                <label>{t("explore.category", "Category")}</label>
                 <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                  <option>{t("explore.allCategories")}</option>
+                  <option value="All Categories">{t("explore.allCategories", "All Categories")}</option>
                   {categories.filter(c => c !== "All Categories").map((cat) => (
-                    <option key={cat}>{cat}</option>
+                    <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
               </div>
               
               {sectionType !== "approved" && (
                 <div className="filter-item">
-                  <label>{t("adminRcpDB.colStatus")}</label>
+                  <label>{t("adminRcpDB.colStatus", "Status")}</label>
                   <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                    <option value="All">{t("adminFoodDB.all")}</option>
-                    <option value="Pending">{t("adminRcpDB.statusPending")}</option>
-                    <option value="Rejected">{t("adminRcpDB.statusRejected")}</option>
+                    <option value="All">{t("adminFoodDB.all", "All")}</option>
+                    <option value="Pending">{t("adminRcpDB.statusPending", "Pending")}</option>
+                    <option value="Rejected">{t("adminRcpDB.statusRejected", "Rejected")}</option>
                   </select>
                 </div>
               )}

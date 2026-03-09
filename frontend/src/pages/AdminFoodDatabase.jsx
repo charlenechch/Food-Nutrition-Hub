@@ -29,7 +29,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
   const [showFilters, setShowFilters] = useState(false);
   
   // Advanced Filter States
-  const [calorieMin, setCalorieMin] = useState(0);
   const [calorieMax, setCalorieMax] = useState(2000);
 
   // --- Delete Modal States ---
@@ -95,7 +94,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
   // --- Reset Page ---
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, category, originFilter, calorieMin, calorieMax]);
+  }, [searchTerm, category, originFilter, calorieMax]);
 
   // --- Dropdown Close ---
   useEffect(() => {
@@ -213,7 +212,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     }
   };
 
-  // Function to parse Excel/CSV files
   const parseExcelOrCSV = (file, fileType) => {
     return new Promise((resolve, reject) => {
       console.log(`📄 Starting to parse ${fileType} file: ${file.name}`);
@@ -307,7 +305,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     });
   };
 
-  // Function to process and validate imported data
   const processImportedData = async (importedData) => {
     if (!importedData || !Array.isArray(importedData)) {
       console.error("❌ Invalid importedData:", importedData);
@@ -476,7 +473,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     }
   };
 
-  // Download Excel template
   const downloadTemplate = () => {
     const templateData = [
       ["Name", "Origin", "Category", "Difficulty", "DietaryTags", 
@@ -605,7 +601,8 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     const matchesSearch = name.includes(term) || originName.includes(term);
     const matchesCategory = category === "All Categories" || f.category === category;
     const matchesOrigin = originFilter === "All Origins" || f.origin === originFilter;
-    const matchesCalories = foodCalories >= calorieMin && foodCalories <= calorieMax;
+    const matchesCalories = foodCalories <= calorieMax;
+    
     return matchesSearch && matchesCategory && matchesOrigin && matchesCalories;
   });
 
@@ -633,10 +630,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
         transition: "min-height 0.3s ease"
       }}
     >
-      
-      {/* Top Section Wrapper */}
       <div>
-        {/* Header */}
         <div className="food-header">
           <h2>
             <span className="food-icon"><FiDatabase /></span> {t("adminFoodDB.sectionTitle")}
@@ -667,7 +661,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="food-filters">
           <div className="search-box">
             <CiSearch className="search-icon" />
@@ -684,7 +677,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
               <span>{category}</span>
             </button>
             {dropdownOpen && (
-              <ul className="admin-beige-list">
+              <ul className="admin-dropdown-menu">
                 {["All Categories", ...categories.filter(c => c !== "All Categories")].map((opt) => (
                   <li
                     key={opt}
@@ -708,49 +701,60 @@ const AdminFoodDatabase = ({ categories = [] }) => {
           </button>
         </div>
 
-        {/* Advanced Filters */}
         {showFilters && (
           <div className="advanced-filters">
-            <h4><CiFilter /> {t("adminFoodDB.advancedFilters")}</h4>
-            <div className="filter-grid">
+            <div className="advanced-filters-header">
+              <CiFilter /> {t("adminFoodDB.advancedFilters", "Advanced Filters")}
+            </div>
+            
+            <div className="advanced-filters-body">
               <div className="filter-item">
-                <label>{t("explore.culturalOrigin")}</label>
+                <label>{t("explore.culturalOrigin", "Cultural Origin")}</label>
                 <select value={originFilter} onChange={(e) => setOriginFilter(e.target.value)}>
                   {originOptions.map((origin) => (
                     <option key={origin} value={origin}>{origin}</option>
                   ))}
                 </select>
               </div>
+
               <div className="filter-item">
-                <label>{t("explore.category")}</label>
+                <label>{t("explore.category", "Category")}</label>
                 <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                  <option>{t("explore.allCategories")}</option>
+                  <option value="All Categories">{t("explore.allCategories", "All Categories")}</option>
                   {categories.filter(c => c !== "All Categories").map((cat) => (
-                    <option key={cat}>{cat}</option>
+                    <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
               </div>
+
               <div className="filter-item">
-                <label>{t("explore.difficulty")}</label>
+                <label>{t("explore.difficulty", "Difficulty")}</label>
                 <select>
-                  <option>{t("adminFoodDB.all")}</option>
-                  <option>{t("explore.easy")}</option>
-                  <option>{t("explore.medium")}</option>
-                  <option>{t("explore.hard")}</option>
+                  <option value="All">{t("adminFoodDB.all", "All")}</option>
+                  <option value="Easy">{t("explore.easy", "Easy")}</option>
+                  <option value="Medium">{t("explore.medium", "Medium")}</option>
+                  <option value="Hard">{t("explore.hard", "Hard")}</option>
                 </select>
               </div>
-            </div>
-            <div className="food-database-calorie-range">
-              <label>{t("adminFoodDB.calorieRange", { min: calorieMin, max: calorieMax })}</label>
-              <div className="food-database-slider-container" style={{"--left": `${(calorieMin / 2000) * 100}%`, "--right": `${100 - (calorieMax / 2000) * 100}%`}}>
-                <input type="range" min="0" max="2000" step="10" value={calorieMin} onChange={(e) => setCalorieMin(Math.min(Number(e.target.value), calorieMax - 50))} />
-                <input type="range" min="0" max="2000" step="10" value={calorieMax} onChange={(e) => setCalorieMax(Math.max(Number(e.target.value), calorieMin + 50))} />
+
+              <div className="filter-item calorie-filter">
+                <label>Max Calories: {calorieMax}</label>
+                <div className="food-database-slider-container">
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="2000" 
+                    step="10" 
+                    value={calorieMax} 
+                    onChange={(e) => setCalorieMax(Number(e.target.value))} 
+                    style={{ width: "100%", cursor: "pointer", accentColor: "#916848" }}
+                  />
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Table */}
         <table className="food-table">
           <thead>
             <tr>
@@ -778,7 +782,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
         </table>
       </div>
 
-      {/* Delete Modal */}
       {showConfirm && (
         <div className="modal-overlay">
           <div className="delete-modal">
@@ -795,7 +798,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="admin-pagination" style={{ marginBottom: "20px" }}>
           <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>‹ {t("explore.prev")}</button>
