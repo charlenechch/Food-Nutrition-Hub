@@ -135,7 +135,7 @@ export default function RecipesPage() {
     dietaryTags: [],
     otherDietEnabled: false,   
     otherDietText: "", 
-    category: "Poultry",   
+    foodType: "Poultry",   
     otherFoodEnabled: false,  
     otherFoodText: "",
   });
@@ -160,18 +160,18 @@ export default function RecipesPage() {
 
     return recipes.filter((r) => {
       const haystack = [
-        r.name, r.origin, r.category, r.description, r.ingredients, r.instructions,
+        r.name, r.origin, r.foodType, r.description, r.ingredients, r.instructions,
         Array.isArray(r.dietaryTags) ? r.dietaryTags.join(" ") : r.dietaryTags, r.difficulty
       ].map(norm).join(" ");
 
       const matchSearch = terms.length === 0 || terms.every(t => haystack.includes(t));
       const originNorm = norm(r.origin);
       const diffNorm = norm(r.difficulty);
-      const categoryNorm = norm(r.category);
+      const foodTypeNorm = norm(r.foodType);
 
       const matchOrigin = selectedOrigin === "all" || originNorm === norm(selectedOrigin);
       const matchDifficulty = selectedDifficulty === "all" || diffNorm === norm(selectedDifficulty);
-      const matchCategory = selectedType === "all" || categoryNorm === norm(selectedType);
+      const matchFoodType = selectedType === "all" || foodTypeNorm === norm(selectedType);
 
       const pt = Number(r.prepTime) || 0;
       const ct = Number(r.cookTime) || 0;
@@ -193,7 +193,7 @@ export default function RecipesPage() {
 
       return (
         matchSearch && matchOrigin && matchDifficulty &&
-        matchPrepBucket && matchCookBucket && matchCategory && matchDiet
+        matchPrepBucket && matchCookBucket && matchFoodType && matchDiet
       );
     });
   }, [recipes, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedType, dietFilters]);
@@ -284,10 +284,10 @@ export default function RecipesPage() {
 
     const customTags = form.otherDietEnabled ? parseCustom(form.otherDietText) : [];
     
-    const finalCategory =
-      form.category === "__other__"
+    const finalFoodType =
+      form.foodType === "__other__"
         ? (form.otherFoodText.trim() || "Other")
-        : form.category;
+        : form.foodType;
 
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -301,7 +301,7 @@ export default function RecipesPage() {
         servings: Number(form.servings),
         image: form.imageData,
         description: form.description.trim(),
-        category: finalCategory,
+        foodType: finalFoodType,
         dietaryTags: [...(form.dietaryTags || []), ...customTags],
         ingredients: form.ingredients, 
         instructions: form.instructions, 
@@ -330,7 +330,7 @@ export default function RecipesPage() {
       
       // Reset form
       setForm({
-        name: "", origin: "", difficulty: "Easy", prepTime: "", cookTime: "", servings: "", imageData: "", description: "", ingredients: "", instructions: "", funFact: "", chefTips: "", dietaryTags: [], otherDietEnabled: false, otherDietText: "", category: "Poultry", otherFoodEnabled: false, otherFoodText: "",
+        name: "", origin: "", difficulty: "Easy", prepTime: "", cookTime: "", servings: "", imageData: "", description: "", ingredients: "", instructions: "", funFact: "", chefTips: "", dietaryTags: [], otherDietEnabled: false, otherDietText: "", foodType: "Poultry", otherFoodEnabled: false, otherFoodText: "",
       });
       setExpanded(false);
             
@@ -502,13 +502,13 @@ export default function RecipesPage() {
 
               <div className="rp-grid-2">
                 <div className="rp-field">
-                  <label>{t("Category")}</label>
-                  <select name="category" value={form.category} onChange={(e) => {
+                  <label>{t("recipes.formFoodType")}</label>
+                  <select name="foodType" value={form.foodType} onChange={(e) => {
                       const v = e.target.value;
                       if (v === "__other__") {
-                        setForm(prev => ({ ...prev, category: v, otherFoodEnabled: true }));
+                        setForm(prev => ({ ...prev, foodType: v, otherFoodEnabled: true }));
                       } else {
-                        setForm(prev => ({ ...prev, category: v, otherFoodEnabled: false, otherFoodText: "" }));
+                        setForm(prev => ({ ...prev, foodType: v, otherFoodEnabled: false, otherFoodText: "" }));
                       }
                     }}
                   >
@@ -521,8 +521,8 @@ export default function RecipesPage() {
 
                 {form.otherFoodEnabled && (
                   <div className="rp-field">
-                    <label>{t("recipes.specifyCategory")}</label>
-                    <input type="text" placeholder={t("recipes.specifyCategoryPlaceholder")} value={form.otherFoodText} onChange={(e) => setForm(prev => ({ ...prev, otherFoodText: e.target.value }))} />
+                    <label>{t("recipes.specifyFoodType")}</label>
+                    <input type="text" placeholder={t("recipes.specifyFoodTypePlaceholder")} value={form.otherFoodText} onChange={(e) => setForm(prev => ({ ...prev, otherFoodText: e.target.value }))} />
                   </div>
                 )}
               </div>
@@ -601,7 +601,7 @@ export default function RecipesPage() {
                   {isSubmitting ? t("recipes.submitting") : t("recipes.submitBtn")}
                 </button>
                 <button className="rp-btn rp-btn-muted" type="button" onClick={() => setForm({
-                  name: "", origin: "", difficulty: "Easy", prepTime: "", cookTime: "", servings: "", imageData: "", description: "", ingredients: "", instructions: "", funFact: "", chefTips: "", dietaryTags: [], otherDietEnabled: false, otherDietText: "", category: "Poultry", otherFoodEnabled: false, otherFoodText: "", 
+                  name: "", origin: "", difficulty: "Easy", prepTime: "", cookTime: "", servings: "", imageData: "", description: "", ingredients: "", instructions: "", funFact: "", chefTips: "", dietaryTags: [], otherDietEnabled: false, otherDietText: "", foodType: "Poultry", otherFoodEnabled: false, otherFoodText: "", 
                 })} disabled={isSubmitting}>{t("recipes.clear")}</button>
                 <button className="rp-btn rp-btn-muted" type="button" onClick={() => setExpanded(false)}>{t("recipes.close")}</button>
               </div>
@@ -704,7 +704,7 @@ export default function RecipesPage() {
         <div className="rp-grid">
           {current.map((r, index) => {
             if (!r || typeof r !== 'object') return null;
-            const recipeId = r.id || r.foodID || index;
+            const recipeId = r._id || r.id;
             const diffClass = (r.difficulty || "").toLowerCase() === "easy" ? "efp-badge efp-badge--ok" : (r.difficulty || "").toLowerCase() === "medium" ? "efp-badge efp-badge--warn" : "efp-badge efp-badge--high";
 
             return (
