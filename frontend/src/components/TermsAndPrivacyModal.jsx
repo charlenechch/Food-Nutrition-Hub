@@ -18,17 +18,19 @@ export default function TermsAndPrivacyModal() {
   const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
-    const fetchCsrfToken = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
-        const data = await res.json();
-        setCsrfToken(data.csrfToken);
-      } catch (err) {
-        console.error("Failed to fetch CSRF token", err);
-      }
-    };
-    fetchCsrfToken();
-  }, []);
+  if (!user || user.role === "guest" || (user.pdpa_consent === 1 && user.tnc_consent === 1)) return;
+
+  const fetchCsrfToken = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
+      const data = await res.json();
+      setCsrfToken(data.csrfToken);
+    } catch (err) {
+      console.error("Failed to fetch CSRF token", err);
+    }
+  };
+  fetchCsrfToken();
+}, [user]);
 
   // Lock the background scrolling if the modal is active
   useEffect(() => {
@@ -96,7 +98,7 @@ const handleAgree = async () => {
               onChange={(e) => setIsPdpaChecked(e.target.checked)} 
             />
             <label htmlFor="pdpa-agree" className="terms-modal-checkbox-label">
-              I have read and agree to the <a href="/privacypolicy" target="_blank" rel="noopener noreferrer" className="terms-modal-link">PDPA Privacy Policy</a>.
+              I have read and agree to the <a href="/privacypolicy" target="_blank" rel="noopener noreferrer" className="terms-modal-link">Privacy Policy</a>.
             </label>
           </div>
 
