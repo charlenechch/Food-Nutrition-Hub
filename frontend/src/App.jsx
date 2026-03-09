@@ -25,6 +25,7 @@ import CommunityPost from "./pages/CommunityPostPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import Analytics from "./pages/Analytics";
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsAndPrivacyModal from './components/TermsAndPrivacyModal';
 
 // // === Admin Pages ===
 import AdminHomepage from "./pages/AdminHomepage";
@@ -187,6 +188,7 @@ function AppRoutes() {
       <AxiosInterceptorSetup />
       <SessionChecker />
       <ScrollToTop />
+      <TermsAndPrivacyModal />
       <Routes>
         {/* === Default Landing (GUEST FIRST) === */}
           <Route path="/" element={<UserHomepage />} />
