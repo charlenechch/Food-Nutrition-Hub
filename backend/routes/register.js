@@ -54,6 +54,10 @@ const registerSchema = Joi.object({
       "string.pattern.name": "Password must include at least one {#name}",
     }),
   firebaseUID: Joi.string().allow(null, ""),
+
+  pdpaconsent: Joi.boolean().valid(true).required().messages({
+    "any.only": "You must agree to the PDPA Privacy Policy and Terms & Conditions to register."
+  }),
 });
 
 // ✅ NEW: universal sanitize helper (safe HTML + trim)
@@ -77,7 +81,7 @@ router.post("/", async (req, res) => {
   const cleanData = Object.fromEntries(
     Object.entries(value).map(([key, val]) => [key, sanitizeInput(val)])
   );
-  const { firstname, lastname, email, password, firebaseUID } = cleanData;
+  const { firstname, lastname, email, password, firebaseUID, pdpaconsent } = cleanData;
 
   // ✅ Step 3: original required field checks remain for redundancy
   if (!firstname || !lastname || !email || !password) {
@@ -112,8 +116,8 @@ router.post("/", async (req, res) => {
 
     // Insert user
     const [result] = await db.query(
-  "INSERT INTO user (firstname, lastname, email, password, role, firebase_uid) VALUES (?, ?, ?, ?, ?, ?)",
-  [firstname, lastname, email, hashedPassword, "member", firebaseUID || null]
+  "INSERT INTO user (firstname, lastname, email, password, role, firebase_uid, pdpa_consent, consent_date) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())",
+  [firstname, lastname, email, hashedPassword, "member", firebaseUID || null, pdpaconsent ? 1 : 0]
 );
 
     console.log(`User registered: ${email} (ID: ${result.insertId})`);

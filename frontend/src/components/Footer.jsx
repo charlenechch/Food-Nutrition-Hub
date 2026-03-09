@@ -43,7 +43,7 @@ export default function Footer() {
       <div className="footer-bottom">
         <p>{t("footer.rights")}</p>
         <div className="footer-bottom-links">
-          <a href="/privacy">{t("footer.privacy")}</a>
+          <a href="/privacypolicy">{t("footer.privacy")}</a>
           <a href="/terms">{t("footer.terms")}</a>
         </div>
       </div>

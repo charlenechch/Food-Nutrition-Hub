@@ -74,7 +74,7 @@ router.post("/login", async (req, res) => {
 
   try {
     const [users] = await db.execute(
-      `SELECT userID, firstname, lastname, email, role, password
+      `SELECT userID, firstname, lastname, email, role, password, pdpa_consent
        FROM user
        WHERE email = ?`,
       [email]
@@ -141,6 +141,7 @@ router.post("/login", async (req, res) => {
       lastname: user.lastname,
       email: user.email,
       role: user.role,
+      pdpa_consent: user.pdpa_consent
     };
 
     return res.json({

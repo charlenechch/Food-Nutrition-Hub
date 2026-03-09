@@ -1131,6 +1131,44 @@ router.get("/:identifier", async (req, res) => {
   }
 });
 
+// Update PDPA Consent
+router.put("/consent", async (req, res) => {
+  console.log("📜 PDPA Consent update request received");
+  try {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    const userID = req.session.user.userID;
+
+    const [result] = await db.execute(
+      "UPDATE user SET pdpa_consent = 1, consent_date = NOW() WHERE userID = ?",
+      [userID]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Update the session so the frontend knows they consented immediately
+    req.session.user.pdpa_consent = 1;
+    
+    // Save the updated session
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({ error: "Session update failed" });
+      }
+      console.log(`✅ PDPA Consent updated for userID: ${userID}`);
+      res.json({ success: true, message: "PDPA consent updated successfully." });
+    });
+
+  } catch (err) {
+    console.error("❌ Error updating PDPA consent:", err.message);
+    res.status(500).json({ error: "Failed to update consent." });
+  }
+});
+
 // Delete user's own account
 router.delete("/delete", async (req, res) => {
   console.log("Account deletion request received");
