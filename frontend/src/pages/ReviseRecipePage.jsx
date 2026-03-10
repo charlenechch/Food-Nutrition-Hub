@@ -269,7 +269,7 @@ export default function ReviseRecipePage() {
     return (
       <div className="upp-wrap">
         <button
-          className="lrp-btn lrp-btn-outline rcp-back"
+          className="lrp-btn lrp-btn-outline lrp-back"
           onClick={() => navigate("/profile?tab=status")}
         >
           {t("reviseRecipe.back")}
@@ -286,7 +286,7 @@ export default function ReviseRecipePage() {
       <div className="upp-page">
         <div className="upp-wrap">
           <button
-            className="lrp-btn lrp-btn-outline rcp-back"
+            className="lrp-btn lrp-btn-outline lrp-back"
             onClick={() => navigate("/profile?tab=status")}
           >
             {t("reviseRecipe.backToContributions")}
