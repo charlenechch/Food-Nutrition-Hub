@@ -431,6 +431,7 @@ export default function LoginRegisterPage() {
     
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
@@ -693,7 +694,7 @@ export default function LoginRegisterPage() {
                       onChange={(e) => setPdpaConsent(e.target.checked)} 
                     />
                     <span className="pdpa-checkbox-text">
-                      I have read and agree to the <a href="/privacypolicy" target="_blank" rel="noopener noreferrer" className="pdpa-link">PDPA Privacy Policy</a>.
+                      I have read and agree to the <a href="/privacypolicy" target="_blank" rel="noopener noreferrer" className="pdpa-link">Privacy Policy</a>.
                     </span>
                   </label>
                 </div>
