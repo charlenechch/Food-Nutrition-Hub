@@ -40,6 +40,7 @@ export default function LoginRegisterPage() {
   const [regPassword, setRegPassword] = useState("");
   const [registerError, setRegisterError] = useState("");
   const [pdpaConsent, setPdpaConsent] = useState(false);
+  const [tncConsent, setTncConsent] = useState(false);
 
   // Resend verification
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -365,6 +366,10 @@ export default function LoginRegisterPage() {
       setRegisterError("You must agree to the Privacy Policy to register.");
       return;
     }
+    if (!tncConsent) {
+      setRegisterError("You must agree to the Terms & Conditions to register.");
+      return;
+    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(regEmail)) {
       setRegisterError(t("auth.invalidEmail"));
@@ -392,6 +397,7 @@ export default function LoginRegisterPage() {
           password: regPassword,
           firebaseUID: firebaseUID,
           pdpaconsent: pdpaConsent,
+          tncconsent: tncConsent,
         }),
       });
       const data = await res.json();
@@ -687,7 +693,20 @@ export default function LoginRegisterPage() {
                       onChange={(e) => setPdpaConsent(e.target.checked)} 
                     />
                     <span className="pdpa-checkbox-text">
-                      I have read and agree to the <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="pdpa-link">PDPA Privacy Policy</a>.
+                      I have read and agree to the <a href="/privacypolicy" target="_blank" rel="noopener noreferrer" className="pdpa-link">PDPA Privacy Policy</a>.
+                    </span>
+                  </label>
+                </div>
+
+                <div className="pdpa-checkbox-wrapper">
+                  <label className="pdpa-checkbox-label">
+                    <input 
+                      type="checkbox" 
+                      checked={tncConsent} 
+                      onChange={(e) => setTncConsent(e.target.checked)} 
+                    />
+                    <span className="pdpa-checkbox-text">
+                      I have read and agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" className="pdpa-link">Terms & Conditions</a>.
                     </span>
                   </label>
                 </div>
