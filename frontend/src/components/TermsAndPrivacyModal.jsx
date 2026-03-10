@@ -205,7 +205,7 @@ export default function TermsAndPrivacyModal() {
                 onChange={(e) => setIsPdpaChecked(e.target.checked)}
               />
               <label htmlFor="pdpa-agree" className="tpm-checkbox-label">
-                I have read and agree to the <strong>PDPA Privacy Policy</strong>.
+                I have read and agree to the <strong>Privacy Policy</strong>.
               </label>
             </div>
 
