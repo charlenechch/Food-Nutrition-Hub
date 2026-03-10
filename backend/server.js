@@ -250,7 +250,7 @@ app.get("/api/csrf-token", (req, res) => {
 });
 
 // ---------- Routes BEFORE global HPP ----------
-app.use("/api/register", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password", "firstname", "lastname", "firebaseUID"], logger: (tag, meta) => logger.warn(`HPP Registration Blocked: ${tag}`, meta) }), registerRoutes);
+app.use("/api/register", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password", "firstname", "lastname", "firebaseUID", "pdpaconsent", "tncconsent"], logger: (tag, meta) => logger.warn(`HPP Registration Blocked: ${tag}`, meta) }), registerRoutes);
 app.use("/api/login", authLimiter, hppProtect({ policy: "reject", allowlist: ["email", "password", "rememberDevice"], logger: (tag, meta) => logger.warn(`HPP Login Blocked: ${tag}`, meta) }), loginRoutes);
 app.use("/api/ai/gpt", cors({ origin: allowedOrigins, credentials: true }), gptRoutes);
 app.use("/api/ai", cors({ origin: allowedOrigins, credentials: true }), aiRoutes);
