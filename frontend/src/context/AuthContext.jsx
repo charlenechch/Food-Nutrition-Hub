@@ -82,7 +82,7 @@ export function AuthProvider({ children }) {
         // We use functional state update to safely check current user state
         setUser((prevUser) => {
             const isCurrentlyGuest = prevUser?.role === 'guest';
-            if (!ALL_PUBLIC_PATHS.includes(currentPath) && !isCurrentlyGuest) {
+            if (!isPublicPath(currentPath) && !isCurrentlyGuest) {
                 forceLogout();
             }
             return prevUser;
@@ -102,7 +102,7 @@ export function AuthProvider({ children }) {
       } else {
         setUser((prevUser) => {
             const isCurrentlyGuest = prevUser?.role === 'guest';
-            if (!ALL_PUBLIC_PATHS.includes(currentPath) && !isCurrentlyGuest) {
+            if (!isPublicPath(currentPath) && !isCurrentlyGuest) {
                 forceLogout();
             }
             return prevUser; // Keep existing state if any, let forceLogout handle redirect
@@ -112,7 +112,7 @@ export function AuthProvider({ children }) {
       console.error("Session check error:", err);
       setUser((prevUser) => {
           const isCurrentlyGuest = prevUser?.role === 'guest';
-          if (!ALL_PUBLIC_PATHS.includes(currentPath) && !isCurrentlyGuest) {
+          if (!isPublicPath(currentPath) && !isCurrentlyGuest) {
               forceLogout();
           }
           return prevUser;
