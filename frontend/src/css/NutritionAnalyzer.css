@@ -552,12 +552,13 @@ html, body {
 
 /* Pie Chart Styles */
 .pie-chart-container {
-  background-color: #916848;  
+  background-color: #fffdfb;  
+  border: 1px solid #e8dccf;
   border-radius: 12px;
   padding: 30px 20px 20px 20px;  
   margin-top: 40px; 
   margin-left: auto;
-  margin-right: 20px;
+  margin-right: 0;
   width: 100%;
   max-width: 500px;  
   height: auto;
