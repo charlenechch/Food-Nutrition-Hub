@@ -555,15 +555,15 @@ html, body {
   background-color: #fffdfb;
   border: 1px solid #e8dccf;
   border-radius: 12px;
-  padding: 30px 20px 20px 20px;
-  margin-top: 40px;
+  padding: 20px 20px 20px 20px;
+  margin-top: 20px;
   margin-left: auto;
   margin-right: 0;
   width: 100%;
   max-width: 500px;  
   height: auto;
   display: flex;
-  justify-content: flex-end;  
+  justify-content: flex-end;
 }
 
 .pie-chart-container canvas {
@@ -578,14 +578,14 @@ html, body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin: 0 !important;
-  padding: 0 !important;  
+  margin-left: 15px !important;
+  padding: 0 !important;
 }
 
 .pie-chart-container .chartjs-legend ul {
   display: flex;
   flex-direction: column;
-  gap: 10px;  
+  gap: 8px;
   margin: 0 !important;
   padding: 0 !important;
 }
@@ -597,6 +597,17 @@ html, body {
   padding: 0 !important;
   white-space: nowrap;
   font-size: 14px;  
+}
+
+.pie-chart-container .chartjs-legend li::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 8px;
+  background-color: currentColor;
+  flex-shrink: 0;
 }
 
 .pie-chart-placeholder {
@@ -621,26 +632,18 @@ html, body {
 /* Responsive */
 @media (max-width: 768px) {
   .pie-chart-container {
-    max-width: 350px;  
+    max-width: 100%;
     flex-direction: column;
-    padding: 20px;
-    gap: 15px;
   }
   
   .pie-chart-container canvas {
-    max-width: 180px;
-    max-height: 180px;
+    max-width: 350px;  
+    max-height: 350px;
+    margin-right: 0;
+    margin-bottom: 15px;
   }
   
-  .pie-chart-container .chartjs-legend {
+  .pie-chart-wrapper {
     min-width: 100%;
-    align-items: center;
-  }
-  
-  .pie-chart-container .chartjs-legend ul {
-    flex-direction: row;  
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
   }
 }
