@@ -9,7 +9,7 @@ import { translateTexts } from "../hooks/useAITranslation";
 
 export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   const navigate = useNavigate();
-  const { t, i18n} = useTranslation();
+  const { t, i18n } = useTranslation();
   const [translatedFoods, setTranslatedFoods] = useState({});
   const [isTranslating, setIsTranslating] = useState(false);
   const [foods, setFoods] = useState([]);
@@ -120,7 +120,8 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentFoods = filteredFoods.slice(startIndex, startIndex + itemsPerPage);
 
-  useEffect(() => { setCurrentPage(1); }, [foods, searchQuery, selectedCategory, selectedOrigin, calorieRange, selectedDifficulty, nutritionFocus, selectedDietaryTags, selectedPrepTime]);
+  // Fixed: Changed dependency from selectedCategory to selectedCategories
+  useEffect(() => { setCurrentPage(1); }, [foods, searchQuery, selectedCategories, selectedOrigin, calorieRange, selectedDifficulty, nutritionFocus, selectedDietaryTags, selectedPrepTime]);
 
   const getCalorieRangeLabel = (cal) => {
     if (cal < 100) return t("explore.calLow");
@@ -184,8 +185,6 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     if (str.startsWith("[")) { try { const arr = JSON.parse(str); return Array.isArray(arr) ? arr : []; } catch { return []; } }
     return str.split(",").map(s => s.trim()).filter(Boolean);
   };
-
-  const categories = ["all", "Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"];
 
   // Translation
   useEffect(() => {
@@ -266,9 +265,15 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                     <option value="Bidayuh">Bidayuh</option>
                   </select>
                 </div>
+
+                {/* Fixed: Updated select to use selectedCategories[0] and handle array state */}
                 <div className="efp-filter-item">
                   <label className="efp-label">{t("explore.category")}</label>
-                  <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="efp-select">
+                  <select 
+                    value={selectedCategories[0] || "all"} 
+                    onChange={(e) => setSelectedCategories(e.target.value === "all" ? [] : [e.target.value])} 
+                    className="efp-select"
+                  >
                     <option value="all">{t("explore.allCategories")}</option>
                     <option value="main-dish">{t("explore.mainDish")}</option>
                     <option value="appetizer">{t("explore.appetizer")}</option>
@@ -280,6 +285,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                     <option value="soup">{t("explore.soup")}</option>
                   </select>
                 </div>
+
                 <div className="efp-filter-item efp-filter-wide">
                   <label className="efp-label">{t("explore.categories")}</label>
                   <div className="efp-checkbox-grid">
@@ -386,7 +392,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         {/* Results */}
         <div className="efp-result-head">
           <p className="efp-results-count">{t("explore.dishesFound", { count: filteredFoods.length })}</p>
-          {selectedDietaryTags.length > 0 && (
+          {(selectedDietaryTags.length > 0 || selectedCategories.length > 0) && (
             <div className="efp-active-filters">
               {selectedCategories.map((cat) => (
                 <button key={cat} type="button" className="efp-chip efp-chip--removable"
