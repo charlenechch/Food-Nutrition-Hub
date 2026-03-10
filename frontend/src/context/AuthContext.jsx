@@ -5,7 +5,7 @@ const ALL_PUBLIC_PATHS = [
   '/loginregister', '/auth/action', '/verifyemail',
   '/forgotpassword', '/resetpassword', '/otpverification',
   '/', '/home', '/foods', '/analyzer', '/recipes', '/community', 
-  '/privacy', '/terms', '/profile'
+  '/privacypolicy', '/terms', '/profile'
 ];
 
 const AuthContext = createContext();
@@ -52,7 +52,14 @@ export function AuthProvider({ children }) {
   }, []);
 
   const isPublicPath = useCallback((path) => {
-    return ALL_PUBLIC_PATHS.includes(path);
+    if (ALL_PUBLIC_PATHS.includes(path)) return true;
+    // Handle dynamic routes
+    if (path.startsWith('/fooddetail/')) return true;
+    if (path.startsWith('/fooddiscussion/')) return true;
+    if (path.startsWith('/recipes/')) return true;
+    if (path.startsWith('/community/')) return true;
+    if (path.startsWith('/profile/')) return true;
+    return false;
   }, []);
 
   // Removed 'user' from dependencies to prevent infinite loop.
