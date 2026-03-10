@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../css/UserProfilePage.css";
@@ -1439,12 +1439,20 @@ const ContributionRow = ({ c }) => {
                     ? recipeContributions.filter(item => {
                         const result = isRecipe(item);
                         console.log("🔍 Filtering - ID:", item?.id, "foodName:", item?.foodName, "isRecipe:", result);
-                        return result;
+                        if (!result) return false;
+                        // Other users only see Approved recipes
+                        if (userProfileID && item.status !== "Approved") return false;
+                        return true;
                       }).sort(byDateDesc)
                     : [];
 
                   const communityData = Array.isArray(communityPosts)
-                    ? communityPosts.filter(isCommunity).sort(byDateDesc)
+                    ? communityPosts.filter(item => {
+                        if (!isCommunity(item)) return false;
+                        // Other users only see Approved posts
+                        if (userProfileID && item.status !== "Approved") return false;
+                        return true;
+                      }).sort(byDateDesc)
                     : [];
 
                   console.log("📊 Recipe data:", recipeData);
