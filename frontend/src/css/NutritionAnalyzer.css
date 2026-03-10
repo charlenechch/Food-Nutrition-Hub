@@ -552,23 +552,23 @@ html, body {
 
 /* Pie Chart Styles */
 .pie-chart-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  max-width: 500px; 
-  margin: 0 auto;
-  padding: 15px;
-  background: #eef4ff;
-  border: 1px solid #ccdaff;
+  background-color: #916848;  
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 30px 20px 20px 20px;  
+  margin-top: 40px; 
+  margin-left: auto;
+  margin-right: 20px;
+  width: 100%;
+  max-width: 500px;  
+  height: auto;
+  display: flex;
+  justify-content: flex-end;  
 }
 
 .pie-chart-container canvas {
-  max-height: 180px;
-  max-width: 180px;
-  margin-right: 10px;
+  max-width: 400px; 
+  max-height: 400px;
+  margin-left: auto;  
 }
 
 .pie-chart-container .chartjs-legend {

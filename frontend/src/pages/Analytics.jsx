@@ -465,7 +465,7 @@ const Analytics = () => {
           <div className="charts-grid">
             {/* Pie Chart Card */}
             <div className="chart-card">
-              <div className="pie-chart-container">
+              <div className="pie-chart-card">
                 <h3 className="chart-title">{t("analytics.foodSubmissionsByCulturalOrigin")}</h3>
                 <PieChart data={culturalOriginData} />
               </div>

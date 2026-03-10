@@ -18,7 +18,6 @@ export default function NutritionPieChart({ nutrition }) {
   // Calculate total grams for percentages
   const totalGrams = protein + fat + carbs + fiber + vitaminCGrams;
   
-  // Soft rainbow colors
   const chartData = {
     labels: ['Protein', 'Fat', 'Carbs', 'Fiber', 'Vitamin C'],
     datasets: [
@@ -31,19 +30,13 @@ export default function NutritionPieChart({ nutrition }) {
           vitaminCGrams
         ],
         backgroundColor: [
-        'rgba(255, 99, 71, 0.8)',  
-        'rgba(255, 165, 0, 0.8)',    
-        'rgba(255, 255, 0, 0.8)',    
-        'rgba(144, 238, 144, 0.8)',  
-        'rgba(112, 164, 182, 0.8)',  
+        'rgba(239, 71, 111, 0.9)',   
+        'rgba(255, 159, 28, 0.9)', 
+        'rgba(255, 209, 102, 0.9)', 
+        'rgba(6, 214, 160, 0.9)',   
+        'rgba(17, 138, 178, 0.9)',  
         ],
-        borderColor: [
-        'rgba(255, 99, 71, 1)',
-        'rgba(255, 165, 0, 1)',
-        'rgba(255, 255, 0, 1)',
-        'rgba(144, 238, 144, 1)',
-        'rgba(112, 164, 182, 0.8)',
-        ],
+        borderColor: 'rgba(255, 255, 255, 1)',
         borderWidth: 1,
       },
     ],
@@ -72,26 +65,15 @@ export default function NutritionPieChart({ nutrition }) {
         position: 'right', 
         align: 'center',
         labels: {
-          font: { size: 11 },
-          boxWidth: 15,
-          padding: 15,
+          font: { size: 12, weight: 'bold' },
+          boxWidth: 20,
+          padding: 20,
           generateLabels: (chart) => {
             const datasets = chart.data.datasets;
-            const total = datasets[0].data.reduce((a, b) => a + b, 0);
             
             return chart.data.labels.map((label, i) => {
-              const value = datasets[0].data[i];
-              const percentage = ((value / total) * 100).toFixed(1);
-              
-              let displayText = '';
-              if (label === 'Vitamin C') {
-                displayText = `${label}: ${percentage}%`;
-              } else {
-                displayText = `${label}: ${percentage}%`;
-              }
-              
               return {
-                text: displayText,
+                text: label, 
                 fillStyle: datasets[0].backgroundColor[i],
                 strokeStyle: datasets[0].borderColor[i],
                 lineWidth: 1,
