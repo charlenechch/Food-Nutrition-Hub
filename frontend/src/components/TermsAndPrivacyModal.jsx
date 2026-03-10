@@ -6,12 +6,11 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// ─── Inline content ───────────────────────────────────────────────────────────
+// Inline content
 
 function PrivacyPolicyContent() {
   return (
     <div className="tpm-doc-body">
-      <p className="tpm-doc-updated">Last Updated: 9th March 2026</p>
       <p className="tpm-doc-text">Welcome to SarawakEats. Your privacy is important to us.</p>
 
       <h3 className="tpm-doc-section">1. Information We Collect</h3>
@@ -35,7 +34,6 @@ function PrivacyPolicyContent() {
 function TermsAndConditionsContent() {
   return (
     <div className="tpm-doc-body">
-      <p className="tpm-doc-updated">Last Updated: 9th March 2026</p>
 
       <h3 className="tpm-doc-section">1. Introduction</h3>
       <p className="tpm-doc-text">Welcome to SarawakEats. By accessing or using our website and services, you agree to be bound by these Terms & Conditions. If you do not agree with any part of these terms, please do not use our platform.</p>
@@ -58,9 +56,9 @@ function TermsAndConditionsContent() {
   );
 }
 
-// ─── Scrollable document panel ───────────────────────────────────────────────
+// Scrollable document panel
 
-function ScrollableDoc({ title, icon: Icon, children, onScrolledToBottom, hasScrolled }) {
+function ScrollableDoc({ title, lastUpdated, icon: Icon, children, onScrolledToBottom, hasScrolled }) {
   const scrollRef = useRef(null);
 
   const handleScroll = () => {
@@ -75,7 +73,10 @@ function ScrollableDoc({ title, icon: Icon, children, onScrolledToBottom, hasScr
     <div className="tpm-doc-panel">
       <div className="tpm-doc-header">
         <Icon className="tpm-doc-icon" />
-        <span className="tpm-doc-title">{title}</span>
+        <div className="tpm-doc-header-text">
+          <span className="tpm-doc-title">{title}</span>
+          {lastUpdated && <span className="tpm-doc-updated-inline">{lastUpdated}</span>}
+        </div>
         {hasScrolled && <FaCheckCircle className="tpm-doc-read-badge" />}
       </div>
       <div className="tpm-doc-scroll" ref={scrollRef} onScroll={handleScroll}>
@@ -88,7 +89,7 @@ function ScrollableDoc({ title, icon: Icon, children, onScrolledToBottom, hasScr
   );
 }
 
-// ─── Main Modal ───────────────────────────────────────────────────────────────
+// Main Modal
 
 export default function TermsAndPrivacyModal() {
   const { user, setUser } = useAuth();
@@ -173,7 +174,8 @@ export default function TermsAndPrivacyModal() {
           {/* Documents */}
           <div className="tpm-docs">
             <ScrollableDoc
-              title="PDPA Privacy Policy"
+              title="Privacy Policy"
+              lastUpdated="Last Updated: 9th March 2026"
               icon={FaShieldAlt}
               onScrolledToBottom={() => setPdpaScrolled(true)}
               hasScrolled={pdpaScrolled}
@@ -183,6 +185,7 @@ export default function TermsAndPrivacyModal() {
 
             <ScrollableDoc
               title="Terms & Conditions"
+              lastUpdated="Last Updated: 9th March 2026"
               icon={FaFileAlt}
               onScrolledToBottom={() => setTncScrolled(true)}
               hasScrolled={tncScrolled}
@@ -248,6 +251,7 @@ export default function TermsAndPrivacyModal() {
           padding: 36px 36px 32px; box-shadow: 0 25px 60px rgba(0,0,0,0.35);
           font-family: 'Poppins', sans-serif;
           animation: tpmPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          -webkit-mask-image: -webkit-radial-gradient(white, black);
         }
         @keyframes tpmPopIn {
           0% { opacity: 0; transform: scale(0.9); }
@@ -270,7 +274,9 @@ export default function TermsAndPrivacyModal() {
           border-bottom: 1px solid rgba(92,58,33,0.1);
         }
         .tpm-doc-icon { color: #5c3a21; font-size: 0.9rem; flex-shrink: 0; }
-        .tpm-doc-title { font-size: 0.9rem; font-weight: 600; color: #5c3a21; flex: 1; }
+        .tpm-doc-header-text { display: flex; flex-direction: column; flex: 1; gap: 2px; }
+        .tpm-doc-title { font-size: 0.9rem; font-weight: 600; color: #5c3a21; }
+        .tpm-doc-updated-inline { font-size: 0.75rem; color: #999; font-style: italic; }
         .tpm-doc-read-badge { color: #4caf50; font-size: 1rem; flex-shrink: 0; }
         .tpm-doc-scroll {
           height: 180px; overflow-y: auto; padding: 16px 18px;
