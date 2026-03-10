@@ -65,6 +65,7 @@
   },
 
   "explore": {
+    "categories": "Kategori",
     "title": "Penemuan Makanan Dipertingkat",
     "subtitle": "Jelajahi warisan masakan Sarawak dengan penapisan lanjutan",
     "searchPlaceholder": "Cari hidangan, asal usul, atau bahan...",

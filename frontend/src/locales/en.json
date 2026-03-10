@@ -65,6 +65,7 @@
   },
 
   "explore": {
+    "categories": "Categories",
     "title": "Enhanced Food Discovery",
     "subtitle": "Explore Sarawak's culinary heritage with advanced filtering",
     "searchPlaceholder": "Search dishes, origins, or ingredients...",

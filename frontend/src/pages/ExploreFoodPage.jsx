@@ -67,7 +67,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
   const [selectedDietaryTags, setSelectedDietaryTags] = useState([]);
   const itemsPerPage = 9;
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedOrigin, setSelectedOrigin] = useState("all");
   const [calorieRange, setCalorieRange] = useState([calMin, calMax]);
   const [minCalInput, setMinCalInput] = useState(String(calMin));
@@ -94,7 +94,9 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         ].map(norm).join(" ");
         return haystack.includes(term);
       });
-      const matchesCategory = selectedCategory === "all" || food.category === selectedCategory;
+      const foodCats = food.category ? food.category.split(',').map(s => s.trim()) : [];
+      const matchesCategory = selectedCategories.length === 0 || 
+        selectedCategories.some(cat => foodCats.includes(cat));
       const matchesOrigin = selectedOrigin === "all" || food.origin === selectedOrigin;
       const foodCalories = parseFloat(food.Energy_kcal_ps) || 0;
       const matchesCalories = foodCalories >= calorieRange[0] && foodCalories <= calorieRange[1];
@@ -112,7 +114,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
       return matchesSearch && matchesCategory && matchesOrigin && matchesCalories &&
         matchesDifficulty && matchesNutrition && matchesPrepTime && matchesDietary;
     });
-  }, [foods, searchQuery, selectedCategory, selectedOrigin, calorieRange, selectedDifficulty, nutritionFocus, selectedDietaryTags, selectedPrepTime]);
+  }, [foods, searchQuery, selectedCategories, selectedOrigin, calorieRange, selectedDifficulty, nutritionFocus, selectedDietaryTags, selectedPrepTime]);
 
   const totalPages = Math.ceil(filteredFoods.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -226,24 +228,18 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                 <Sliders size={18} aria-hidden="true" /> {t("explore.filters")}
               </button>
               <button onClick={() => {
-                setSearchQuery(""); setSelectedCategory("all"); setSelectedOrigin("all");
-                setCalorieRange([calMin, calMax]); setSelectedDifficulty("all");
+                setSearchQuery(""); 
+                setSelectedCategories([]);
+                setSelectedOrigin("all");
+                setCalorieRange([calMin, calMax]); 
+                setSelectedDifficulty("all");
                 setNutritionFocus("all");
-                setSelectedPrepTime("all"); setSelectedDietaryTags([]);
+                setSelectedPrepTime("all"); 
+                setSelectedDietaryTags([]);
               }} className="efp-btn">
                 <X size={18} aria-hidden="true" /> {t("explore.clearAll")}
               </button>
             </div>
-          </div>
-
-          {/* Quick categories */}
-          <div className="efp-category-row">
-            {categories.map((c) => (
-              <button key={c} onClick={() => setSelectedCategory(c)}
-                className={`efp-chip ${selectedCategory === c ? "is-active" : ""}`}>
-                {c === "all" ? t("explore.allCategories") : t(`explore.cat_${c.toLowerCase().replace(" ", "_")}`) || c}
-              </button>
-            ))}
           </div>
         </div>
 
@@ -283,6 +279,26 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                     <option value="noodles">{t("explore.noodles")}</option>
                     <option value="soup">{t("explore.soup")}</option>
                   </select>
+                </div>
+                <div className="efp-filter-item efp-filter-wide">
+                  <label className="efp-label">{t("explore.categories")}</label>
+                  <div className="efp-checkbox-grid">
+                    {["Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"].map((cat) => (
+                      <label key={cat} className="efp-checkbox-item">
+                        <input 
+                          type="checkbox" 
+                          className="efp-checkbox"
+                          checked={selectedCategories.includes(cat)}
+                          onChange={() => setSelectedCategories((prev) =>
+                            prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+                          )} 
+                        />
+                        <span className="efp-checkbox-text">
+                          {t(`explore.cat_${cat.toLowerCase().replace(" ", "_")}`) || cat}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
                 <div className="efp-filter-item">
                   <label className="efp-label">{t("explore.nutritionFocus")}</label>
@@ -372,6 +388,13 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
           <p className="efp-results-count">{t("explore.dishesFound", { count: filteredFoods.length })}</p>
           {selectedDietaryTags.length > 0 && (
             <div className="efp-active-filters">
+              {selectedCategories.map((cat) => (
+                <button key={cat} type="button" className="efp-chip efp-chip--removable"
+                  onClick={() => setSelectedCategories((prev) => prev.filter((c) => c !== cat))}>
+                  <span>{cat}</span>
+                  <X size={14} />
+                </button>
+              ))}
               {selectedDietaryTags.map((tag) => (
                 <button key={tag} type="button" className="efp-chip efp-chip--removable"
                   onClick={() => setSelectedDietaryTags((prev) => prev.filter((t) => t !== tag))}
