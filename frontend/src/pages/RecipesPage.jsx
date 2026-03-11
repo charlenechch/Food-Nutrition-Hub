@@ -144,7 +144,7 @@ export default function RecipesPage() {
   const [selectedOrigin, setSelectedOrigin] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedType, setSelectedType] = useState("all");
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedPrepTime, setSelectedPrepTime] = useState("all");
   const [selectedCookTime, setSelectedCookTime] = useState("all");
   const [dietFilters, setDietFilters] = useState([]);
@@ -171,7 +171,9 @@ export default function RecipesPage() {
 
       const matchOrigin = selectedOrigin === "all" || originNorm === norm(selectedOrigin);
       const matchDifficulty = selectedDifficulty === "all" || diffNorm === norm(selectedDifficulty);
-      const matchCategory = selectedType === "all" || categoryNorm === norm(selectedType);
+      const recipeCats = r.category ? r.category.split(',').map(norm) : [];
+      const matchCategory = selectedCategories.length === 0 || 
+        selectedCategories.some(cat => recipeCats.includes(norm(cat)));
 
       const pt = Number(r.prepTime) || 0;
       const ct = Number(r.cookTime) || 0;
@@ -196,11 +198,11 @@ export default function RecipesPage() {
         matchPrepBucket && matchCookBucket && matchCategory && matchDiet
       );
     });
-  }, [recipes, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedType, dietFilters]);
+  }, [recipes, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedCategories, dietFilters]);
 
   useEffect(() => {
     setPage(1);
-  }, [recipes.length, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedType, dietFilters.join(",")]);
+  }, [recipes.length, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedCategories.join(","), dietFilters.join(",")]);
 
   const clearAll = () => {
     setSearchQuery("");
@@ -208,7 +210,7 @@ export default function RecipesPage() {
     setSelectedDifficulty("all");
     setSelectedPrepTime("all");
     setSelectedCookTime("all");
-    setSelectedType("all");
+    setSelectedCategories([]);
     setDietFilters([]);
   };
 
@@ -618,13 +620,6 @@ export default function RecipesPage() {
               <button type="button" className="efp-btn" onClick={clearAll}><X size={18} /> {t("explore.clearAll")}</button>
             </div>
           </div>
-          <div className="rp-tags-row">
-            {["all","Poultry","Seafood","Vegetables","Fermented","Dessert","Rice Dish","Noodles","Soup","Meat","Other"].map((ft) => (
-              <button key={ft} type="button" className={`efp-chip ${selectedType === ft ? "is-active" : ""}`} onClick={() => setSelectedType(ft)}>
-                {ft === "all" ? t("explore.allCategories") : ft}
-              </button>
-            ))}
-          </div>
         </div>
 
         {showFilters && (
@@ -671,6 +666,27 @@ export default function RecipesPage() {
               </div>
               <hr className="efp-sep" />
               <div>
+                <label className="efp-label">{t("explore.categories")}</label>
+                <div className="efp-checkbox-grid">
+                  {["Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"].map((cat) => (
+                    <label key={cat} className="efp-checkbox-item">
+                      <input 
+                        type="checkbox" 
+                        className="efp-checkbox" 
+                        checked={selectedCategories.includes(cat)} 
+                        onChange={() => setSelectedCategories(prev => 
+                          prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+                        )} 
+                      />
+                      <span className="efp-checkbox-text">
+                        {t(`explore.cat_${cat.toLowerCase().replace(" ", "_")}`) || cat}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <hr className="efp-sep" />
+              <div>
                 <label className="efp-label">{t("explore.dietaryPrefs")}</label>
                 <div className="efp-checkbox-grid">
                   {DIET_OPTIONS.map(tag => (
@@ -688,8 +704,14 @@ export default function RecipesPage() {
         {/* Results */}
         <div className="rp-results-head">
           <p className="efp-results-count">{t("recipes.recipesFound", { count: filtered.length })}</p>
-          {dietFilters.length > 0 && (
+          {(dietFilters.length > 0 || selectedCategories.length > 0) && (
             <div className="efp-active-filters">
+              {selectedCategories.map((cat) => (
+                <button key={cat} type="button" className="efp-chip efp-chip--removable" onClick={() => setSelectedCategories(prev => prev.filter(c => c !== cat))}>
+                  <span>{t(`explore.cat_${cat.toLowerCase().replace(" ", "_")}`) || cat}</span>
+                  <X size={14} />
+                </button>
+              ))}
               {dietFilters.map((tag) => (
                 <button key={tag} type="button" className="efp-chip efp-chip--removable" onClick={() => setDietFilters(prev => prev.filter(t => t !== tag))}>
                   <span>{tag.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase())}</span>
