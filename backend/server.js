@@ -194,18 +194,12 @@ const authLimiter = rateLimit({
 });
 
 // ---------- Sessions ----------
-const dbOptions = {
-  host: process.env.MYSQLHOST,
-  port: Number(process.env.MYSQLPORT) || 3306,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
+// ✅ FIXED: Passing existing database pool 'db' to prevent ECONNRESET
+const sessionStore = new MySQLStore({
   clearExpired: true,
   checkExpirationInterval: 15 * 60 * 1000,
   expiration: 24 * 60 * 60 * 1000,
-};
-
-const sessionStore = new MySQLStore(dbOptions);
+}, db); 
 
 app.use(
   session({
@@ -218,8 +212,8 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: 'lax', 
-      secure: true,
-      domain: '.sarawakeats.site',
+      secure: IS_PROD, // ✅ Dynamic security
+      domain: IS_PROD ? '.sarawakeats.site' : undefined, // ✅ Prevents domain mismatch on localhost
       maxAge: 24 * 60 * 60 * 1000,
     },
   })
@@ -257,13 +251,11 @@ app.use("/api/ai", cors({ origin: allowedOrigins, credentials: true }), aiRoutes
 
 app.use("/api/recipe", hppProtect({ policy: "first", allowlist: ["includeAll", "status", "foodID", "name", "origin", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "category", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory", "recipe", "content", "image", "userProfileID", "status", "comment", "feedback"], logger: (tag, meta) => logger.warn(`HPP Recipe Parameter: ${tag}`, meta) }), recipeRoutes);
 
-// ✅ texts is a nested object — use policy "none" to skip HPP stripping entirely
 app.use("/api/foods", hppProtect({ policy: "first", allowlist: ["name", "category", "culturalSignificance", "traditionalPreparation", "origin", "description", "image", "dietaryTags", "ingredients", "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg", "difficulty", "prepTime", "commonIngredients", "alternative", "altDescription", "healthTips", "servings", "cookTime", "steps", "DidYouKnow", "chefTips", "foodItems"], skipArrays: true, logger: (tag, meta) => logger.warn(`HPP Foods Parameter: ${tag}`, meta) }), foodRoutes);
 
 app.use("/api/export", hppProtect({ policy: "none", allowlist: ["format", "year", "saveIds", "month", "custom", "startDate", "endDate"], logger: (tag, meta) => logger.warn(`HPP Export Parameter: ${tag}`, meta) }), exportRoutes);
 app.use("/api/foodSearch", foodSearchRoutes);
 
-// ✅ Translate route — policy "none" so the nested `texts` object is never stripped by HPP
 app.use("/api/translate", hppProtect({ policy: "none", allowlist: ["texts", "targetLang"], logger: (tag, meta) => logger.warn(`HPP Translate: ${tag}`, meta) }), translateRoutes);
 
 // ---------- Global HPP for everything else ----------

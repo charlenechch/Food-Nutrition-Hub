@@ -13,9 +13,9 @@ import LaksaImg from "../assets/laksa.jpg";
 import KoloImg from "../assets/kolomee.jpg";
 import KekImg from "../assets/keklapis.jpg";
 
-// Icons (Removed FaChevronLeft and FaChevronRight)
-import { FaSearch, FaStar, FaLightbulb, FaSyncAlt } from "react-icons/fa";
-import { FaAnglesDown, FaUtensils } from "react-icons/fa6";
+// ✅ Upgraded Icons (Added FaUserEdit, FaWandMagicSparkles, FaDice)
+import { FaSearch, FaStar, FaLightbulb, FaSyncAlt, FaUserEdit, FaDice } from "react-icons/fa";
+import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
 
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
@@ -39,6 +39,10 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const [currentFact, setCurrentFact] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isCarouselPaused, setIsCarouselPaused] = useState(false); 
+
+  // --- Gamification States ---
+  const [isRandomizing, setIsRandomizing] = useState(false);
+  const [randomizerText, setRandomizerText] = useState("");
 
   // --- HERITAGE FACTS — keys map to en.json ---
   const heritageFacts = [
@@ -135,15 +139,24 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   // ✅ Keyboard Arrow Key Support
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Don't change slides if the user is typing in the search bar!
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
       if (e.key === "ArrowLeft") prevSlide();
       if (e.key === "ArrowRight") nextSlide();
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // ✅ Quick Search Shortcut ('/' key)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      if (e.key === "/" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+        e.preventDefault(); 
+        searchRef.current?.querySelector("input")?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
   useEffect(() => {
@@ -163,6 +176,38 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
+  // --- "I'm Feeling Hungry" Randomizer Logic ---
+  const handleRandomize = () => {
+    if (!allFoods || allFoods.length === 0) return;
+    
+    setIsRandomizing(true);
+    let ticks = 0;
+    const maxTicks = 20; // 2 seconds of spinning (20 * 100ms)
+    
+    // Start the rapid shuffle effect
+    const interval = setInterval(() => {
+      const randomFood = allFoods[Math.floor(Math.random() * allFoods.length)];
+      setRandomizerText(randomFood.name);
+      ticks++;
+      
+      // Stop spinning
+      if (ticks >= maxTicks) {
+        clearInterval(interval);
+        
+        // Pick the final winner
+        const finalFood = allFoods[Math.floor(Math.random() * allFoods.length)];
+        setRandomizerText(finalFood.name);
+        
+        // Pause for 1.2 seconds so they see the result, then navigate!
+        setTimeout(() => {
+          setIsRandomizing(false);
+          const foodId = finalFood.foodID || finalFood.id;
+          navigate(`/fooddetail/${foodId}`);
+        }, 1200);
+      }
+    }, 100); 
+  };
+
   return (
     <div className="homepage">
       <Header transparent={true} />
@@ -174,7 +219,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${HERO_IMAGES[currentSlide]})`
         }}
       >
-        {/* ✅ Invisible Hitbox Left */}
+        {/* Invisible Hitbox Left */}
         <button className="hero-arrow arrow-left" onClick={prevSlide} aria-label="Previous image"></button>
 
         <div className="hero-content-wrapper">
@@ -198,9 +243,15 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
                   onBlur={() => setIsCarouselPaused(false)} 
                   autoComplete="off"
                 />
+                <span className="search-shortcut-hint hide-on-mobile">Press /</span>
                 <button type="submit" className="search-button">{t("home.searchBtn")}</button>
               </div>
             </form>
+
+            {/* ✅ Gamified Randomizer Button */}
+            <button className="randomizer-btn" onClick={handleRandomize} type="button">
+              <FaDice className="dice-icon" /> I'm Feeling Hungry
+            </button>
 
             {showSuggestions && suggestions.length > 0 && (
               <div className="search-dropdown">
@@ -221,12 +272,13 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             )}
           </div>
 
-          <div className="scroll-hint-container">
+          <div className="scroll-hint-container" onClick={() => window.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}>
+            <span className="scroll-text">Explore</span>
             <FaAnglesDown className="bounce-icon" />
           </div>
         </div>
 
-        {/* ✅ Invisible Hitbox Right */}
+        {/* Invisible Hitbox Right */}
         <button className="hero-arrow arrow-right" onClick={nextSlide} aria-label="Next image"></button>
 
         <div className="hero-dots">
@@ -245,7 +297,10 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         <section className="features-grid">
           <div className="feature-card public-card">
             <div className="card-content-top">
-              <div className="feature-icon">🔍</div>
+              {/* ✅ Upgraded SVG Icons */}
+              <div className="feature-icon-wrapper">
+                <FaSearch className="feature-icon-svg" />
+              </div>
               <h3>{t("home.exploreTitle")}</h3>
               <p>{t("home.exploreDesc")}</p>
             </div>
@@ -259,7 +314,9 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               {(!user || user.role === "guest") && (
                 <div className="premium-badge">✨ {t("home.unlockPremium", "Unlock Premium")}</div>
               )}
-              <div className="feature-icon">🧠</div>
+              <div className="feature-icon-wrapper premium-icon-wrapper">
+                <FaWandMagicSparkles className="feature-icon-svg" />
+              </div>
               <h3>{t("nav.analyzer")}</h3>
               <p>{t("home.analyzerDesc")}</p>
             </div>
@@ -276,7 +333,9 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               {(!user || user.role === "guest") && (
                 <div className="premium-badge">✨ {t("home.unlockPremium", "Unlock Premium")}</div>
               )}
-              <div className="feature-icon">👤</div>
+              <div className="feature-icon-wrapper premium-icon-wrapper">
+                <FaUserEdit className="feature-icon-svg" />
+              </div>
               <h3>{t("home.profileTitle")}</h3>
               <p>{t("home.profileDesc")}</p>
             </div>
@@ -345,9 +404,13 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
         {/* Heritage Fact Banner */}
         <section className="heritage-fact-banner">
-          <div className="fact-decoration-circle"></div>
+          <div className="fact-decoration-circle circle-1"></div>
+          <div className="fact-decoration-circle circle-2"></div>
+          
           <div className="fact-content-wrapper">
-            <div className="fact-icon-box"><FaLightbulb /></div>
+            <div className="fact-icon-box">
+              <FaLightbulb className="glowing-bulb" />
+            </div>
             <div className={`fact-text-area ${isAnimating ? "fade-out" : "fade-in"}`}>
               <span className="fact-label">{t("home.didYouKnow")}</span>
               <h3 className="fact-title">{t(heritageFacts[currentFact].titleKey)}</h3>
@@ -360,6 +423,17 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </section>
       </main>
+
+      {/* ✅ The Gamification Overlay */}
+      {isRandomizing && (
+        <div className="randomizer-overlay">
+          <div className="randomizer-content">
+            <FaDice className="spinning-dice" />
+            <h3>Finding your next meal...</h3>
+            <div className="slot-machine-text">{randomizerText}</div>
+          </div>
+        </div>
+      )}
 
       {showLoginPrompt && (
         <LoginPromptModal
