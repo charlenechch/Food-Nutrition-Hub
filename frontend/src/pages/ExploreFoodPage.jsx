@@ -251,7 +251,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                 <h2 className="efp-filters-title">{t("explore.filter")}</h2>
               </div>
 
-              <div className="efp-grid-3">
+              <div className="efp-grid-2">
                 <div className="efp-filter-item">
                   <label className="efp-label">{t("explore.culturalOrigin")}</label>
                   <select value={selectedOrigin} onChange={(e) => setSelectedOrigin(e.target.value)} className="efp-select">
