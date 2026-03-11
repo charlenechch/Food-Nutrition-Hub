@@ -96,7 +96,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
       });
       const foodCats = food.category ? food.category.split(',').map(s => s.trim()) : [];
       const matchesCategory = selectedCategories.length === 0 || 
-        selectedCategories.some(cat => foodCats.includes(cat));
+        selectedCategories.every(cat => foodCats.includes(cat));
       const matchesOrigin = selectedOrigin === "all" || food.origin === selectedOrigin;
       const foodCalories = parseFloat(food.Energy_kcal_ps) || 0;
       const matchesCalories = foodCalories >= calorieRange[0] && foodCalories <= calorieRange[1];

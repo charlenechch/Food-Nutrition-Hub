@@ -173,7 +173,7 @@ export default function RecipesPage() {
       const matchDifficulty = selectedDifficulty === "all" || diffNorm === norm(selectedDifficulty);
       const recipeCats = r.category ? r.category.split(',').map(norm) : [];
       const matchCategory = selectedCategories.length === 0 || 
-        selectedCategories.some(cat => recipeCats.includes(norm(cat)));
+        selectedCategories.every(cat => recipeCats.includes(norm(cat)));
 
       const pt = Number(r.prepTime) || 0;
       const ct = Number(r.cookTime) || 0;
