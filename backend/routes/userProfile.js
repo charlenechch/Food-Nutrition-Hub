@@ -1142,19 +1142,21 @@ router.put("/consent", async (req, res) => {
     const userID = req.session.user.userID;
 
     const { pdpaConsent, tncConsent } = req.body;
+    const { CURRENT_POLICY_VERSION } = require("../config/policyVersion");
 
     const [result] = await db.execute(
-      "UPDATE user SET pdpa_consent = ?, tnc_consent = ?, consent_date = NOW() WHERE userID = ?",
-      [pdpaConsent ? 1 : 0, tncConsent ? 1 : 0, userID]
+      "UPDATE user SET pdpa_consent = ?, tnc_consent = ?, consent_date = NOW(), agreed_version = ? WHERE userID = ?",
+      [pdpaConsent ? 1 : 0, tncConsent ? 1 : 0, CURRENT_POLICY_VERSION, userID]
     );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "User not found." });
     }
 
-    // Update both consent fields in the session
+    // Update consent fields and agreed_version in the session
     req.session.user.pdpa_consent = 1;
     req.session.user.tnc_consent = 1;
+    req.session.user.agreed_version = CURRENT_POLICY_VERSION;
     
     // Save the updated session
     req.session.save((err) => {

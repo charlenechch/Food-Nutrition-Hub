@@ -142,7 +142,8 @@ router.post("/login", async (req, res) => {
       email: user.email,
       role: user.role,
       pdpa_consent: user.pdpa_consent,
-      tnc_consent: user.tnc_consent
+      tnc_consent: user.tnc_consent,
+      agreed_version: user.agreed_version ?? 0
     };
 
     return res.json({
@@ -256,6 +257,7 @@ router.post("/google-login", async (req, res) => {
         role: user.role,
         pdpa_consent: user.pdpa_consent,
         tnc_consent: user.tnc_consent,
+        agreed_version: user.agreed_version ?? 0,
         loginMethod: "google"
       };
 
