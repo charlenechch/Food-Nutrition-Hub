@@ -96,7 +96,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
       });
       const foodCats = food.category ? food.category.split(',').map(s => s.trim()) : [];
       const matchesCategory = selectedCategories.length === 0 || 
-        selectedCategories.some(cat => foodCats.includes(cat));
+        selectedCategories.every(cat => foodCats.includes(cat));
       const matchesOrigin = selectedOrigin === "all" || food.origin === selectedOrigin;
       const foodCalories = parseFloat(food.Energy_kcal_ps) || 0;
       const matchesCalories = foodCalories >= calorieRange[0] && foodCalories <= calorieRange[1];
@@ -251,7 +251,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                 <h2 className="efp-filters-title">{t("explore.filter")}</h2>
               </div>
 
-              <div className="efp-grid-3">
+              <div className="efp-grid-2">
                 <div className="efp-filter-item">
                   <label className="efp-label">{t("explore.culturalOrigin")}</label>
                   <select value={selectedOrigin} onChange={(e) => setSelectedOrigin(e.target.value)} className="efp-select">
@@ -266,46 +266,6 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   </select>
                 </div>
 
-                {/* Fixed: Updated select to use selectedCategories[0] and handle array state */}
-                <div className="efp-filter-item">
-                  <label className="efp-label">{t("explore.category")}</label>
-                  <select 
-                    value={selectedCategories[0] || "all"} 
-                    onChange={(e) => setSelectedCategories(e.target.value === "all" ? [] : [e.target.value])} 
-                    className="efp-select"
-                  >
-                    <option value="all">{t("explore.allCategories")}</option>
-                    <option value="main-dish">{t("explore.mainDish")}</option>
-                    <option value="appetizer">{t("explore.appetizer")}</option>
-                    <option value="vegetable">{t("explore.vegetable")}</option>
-                    <option value="dessert">{t("explore.dessert")}</option>
-                    <option value="preserved">{t("explore.preserved")}</option>
-                    <option value="side-dish">{t("explore.sideDish")}</option>
-                    <option value="noodles">{t("explore.noodles")}</option>
-                    <option value="soup">{t("explore.soup")}</option>
-                  </select>
-                </div>
-
-                <div className="efp-filter-item efp-filter-wide">
-                  <label className="efp-label">{t("explore.categories")}</label>
-                  <div className="efp-checkbox-grid">
-                    {["Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"].map((cat) => (
-                      <label key={cat} className="efp-checkbox-item">
-                        <input 
-                          type="checkbox" 
-                          className="efp-checkbox"
-                          checked={selectedCategories.includes(cat)}
-                          onChange={() => setSelectedCategories((prev) =>
-                            prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-                          )} 
-                        />
-                        <span className="efp-checkbox-text">
-                          {t(`explore.cat_${cat.toLowerCase().replace(" ", "_")}`) || cat}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
                 <div className="efp-filter-item">
                   <label className="efp-label">{t("explore.nutritionFocus")}</label>
                   <select value={nutritionFocus} onChange={(e) => setNutritionFocus(e.target.value)} className="efp-select">
@@ -343,6 +303,29 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                     className="efp-range efp-range--right" aria-label="Maximum calories slider" />
                 </div>
                 <div className="efp-range-summary">{calorieRange[0]} - {calorieRange[1]} kcal</div>
+              </div>
+
+              <hr className="efp-sep" />
+
+              <div>
+                <label className="efp-label">{t("explore.categories")}</label>
+                <div className="efp-checkbox-grid">
+                  {["Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"].map((cat) => (
+                    <label key={cat} className="efp-checkbox-item">
+                      <input 
+                        type="checkbox" 
+                        className="efp-checkbox"
+                        checked={selectedCategories.includes(cat)}
+                        onChange={() => setSelectedCategories((prev) =>
+                          prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+                        )} 
+                      />
+                      <span className="efp-checkbox-text">
+                        {t(`explore.cat_${cat.toLowerCase().replace(" ", "_")}`) || cat}
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <hr className="efp-sep" />
