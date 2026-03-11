@@ -266,26 +266,6 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   </select>
                 </div>
 
-                {/* Fixed: Updated select to use selectedCategories[0] and handle array state */}
-                <div className="efp-filter-item">
-                  <label className="efp-label">{t("explore.category")}</label>
-                  <select 
-                    value={selectedCategories[0] || "all"} 
-                    onChange={(e) => setSelectedCategories(e.target.value === "all" ? [] : [e.target.value])} 
-                    className="efp-select"
-                  >
-                    <option value="all">{t("explore.allCategories")}</option>
-                    <option value="main-dish">{t("explore.mainDish")}</option>
-                    <option value="appetizer">{t("explore.appetizer")}</option>
-                    <option value="vegetable">{t("explore.vegetable")}</option>
-                    <option value="dessert">{t("explore.dessert")}</option>
-                    <option value="preserved">{t("explore.preserved")}</option>
-                    <option value="side-dish">{t("explore.sideDish")}</option>
-                    <option value="noodles">{t("explore.noodles")}</option>
-                    <option value="soup">{t("explore.soup")}</option>
-                  </select>
-                </div>
-
                 <div className="efp-filter-item efp-filter-wide">
                   <label className="efp-label">{t("explore.categories")}</label>
                   <div className="efp-checkbox-grid">
