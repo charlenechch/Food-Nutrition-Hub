@@ -4,7 +4,7 @@ const foods = [
   {
     name: "Linut",
     origin: "Melanau",
-    category: "Rice Dish",
+    category: ["Rice Dish", "Fermented"],
     difficulty: "medium",
     dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat"],
     description: "Linut is a traditional cuisine that is especially popular among the Indigenous Dayak communities.\
@@ -28,7 +28,7 @@ const foods = [
   {
     name: "Kolo Mee",
     origin: "Chinese",
-    category: "Noodles",
+    category: ["Noodles", "Meat"],
     difficulty: "medium",
     dietaryTags: ["dairy-free", "high-protein"],
     description: "The origin of Kolo Mee is still unclear, but it likely originated from Kuching, the capital of Sarawak. \
@@ -130,7 +130,7 @@ const foods = [
   {
     name: "Belacan Bihun",
     origin: "Chinese", 
-    category: "Noodles",
+    category: ["Noodles", "Soup", "Seafood"],
     difficulty: "medium",
     dietaryTags: ["gluten-free", "dairy-free", "low-fat", "high-fiber"],
     description: "Belacan bihun is a unique, flavorful rice vermicelli dish from Kuching, Sarawak, featuring rice noodles served with a spicy, umami-rich gravy made from belacan",
