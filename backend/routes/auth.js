@@ -202,13 +202,13 @@ router.post("/google-login", async (req, res) => {
 
     } else {
       // Case B: New User (Auto-Register)
-      console.log(`🆕 Google Login: Creating new user for ${email}`);
+      console.log(`Google Login: Creating new user for ${email}`);
 
       // Insert new user with NULL password and Verified = True
       const [result] = await db.execute(
         `INSERT INTO user 
-        (firstname, lastname, email, password, role, verified, firebase_uid, status) 
-        VALUES (?, ?, ?, NULL, 'member', 'True', ?, 'Active')`,
+        (firstname, lastname, email, password, role, verified, firebase_uid, status, pdpa_consent, tnc_consent, agreed_version) 
+        VALUES (?, ?, ?, NULL, 'member', 'True', ?, 'Active', 0, 0, 0)`,
         [firstname || "User", lastname || "", email, firebaseUID || ""]
       );
 
