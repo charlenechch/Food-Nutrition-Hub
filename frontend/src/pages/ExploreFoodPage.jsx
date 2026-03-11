@@ -266,26 +266,6 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   </select>
                 </div>
 
-                <div className="efp-filter-item efp-filter-wide">
-                  <label className="efp-label">{t("explore.categories")}</label>
-                  <div className="efp-checkbox-grid">
-                    {["Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"].map((cat) => (
-                      <label key={cat} className="efp-checkbox-item">
-                        <input 
-                          type="checkbox" 
-                          className="efp-checkbox"
-                          checked={selectedCategories.includes(cat)}
-                          onChange={() => setSelectedCategories((prev) =>
-                            prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-                          )} 
-                        />
-                        <span className="efp-checkbox-text">
-                          {t(`explore.cat_${cat.toLowerCase().replace(" ", "_")}`) || cat}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
                 <div className="efp-filter-item">
                   <label className="efp-label">{t("explore.nutritionFocus")}</label>
                   <select value={nutritionFocus} onChange={(e) => setNutritionFocus(e.target.value)} className="efp-select">
@@ -323,6 +303,29 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                     className="efp-range efp-range--right" aria-label="Maximum calories slider" />
                 </div>
                 <div className="efp-range-summary">{calorieRange[0]} - {calorieRange[1]} kcal</div>
+              </div>
+
+              <hr className="efp-sep" />
+
+              <div>
+                <label className="efp-label">{t("explore.categories")}</label>
+                <div className="efp-checkbox-grid">
+                  {["Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"].map((cat) => (
+                    <label key={cat} className="efp-checkbox-item">
+                      <input 
+                        type="checkbox" 
+                        className="efp-checkbox"
+                        checked={selectedCategories.includes(cat)}
+                        onChange={() => setSelectedCategories((prev) =>
+                          prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+                        )} 
+                      />
+                      <span className="efp-checkbox-text">
+                        {t(`explore.cat_${cat.toLowerCase().replace(" ", "_")}`) || cat}
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <hr className="efp-sep" />
