@@ -474,6 +474,55 @@ router.get('/posts-recipes-by-month', async (req, res) => {
 });
 
 // Popular categories endpoint
+// router.get('/popular-categories', async (req, res) => {
+//   try {
+//     const { year, month } = req.query;
+
+//     let whereConditions = "WHERE f.category IS NOT NULL AND f.category != '' AND r.status = 'Approved'";
+//     const params = [];
+    
+//     if (year && month) {
+//       whereConditions += " AND YEAR(r.updatedAt) = ? AND MONTH(r.updatedAt) = ?";
+//       params.push(parseInt(year), parseInt(month));
+//     } else if (year) {
+//       whereConditions += " AND YEAR(r.updatedAt) = ?";
+//       params.push(parseInt(year));
+//     }
+
+//     const query = `
+//       SELECT 
+//         f.category as name,
+//         COUNT(f.foodID) as submissions
+//       FROM food f
+//       INNER JOIN recipe r ON f.foodID = r.foodID
+//       ${whereConditions}
+//       GROUP BY f.category
+//       ORDER BY submissions DESC
+//     `;
+
+//     const [results] = await db.execute(query, params);
+    
+//     const data = results.map(item => ({
+//       name: item.name,
+//       submissions: parseInt(item.submissions) || 0
+//     }));
+    
+//     res.json({ 
+//       success: true, 
+//       data,
+//       totalCategories: results.length
+//     });
+//   } catch (error) {
+//     console.error('Error fetching popular categories data:', error);
+//     res.status(500).json({ 
+//       success: false, 
+//       error: 'Failed to fetch popular categories data',
+//       message: error.message 
+//     });
+//   }
+// });
+
+// Popular categories endpoint
 router.get('/popular-categories', async (req, res) => {
   try {
     const { year, month } = req.query;
@@ -491,26 +540,45 @@ router.get('/popular-categories', async (req, res) => {
 
     const query = `
       SELECT 
-        f.category as name,
-        COUNT(f.foodID) as submissions
+        f.category,
+        COUNT(f.foodID) as food_count
       FROM food f
       INNER JOIN recipe r ON f.foodID = r.foodID
       ${whereConditions}
-      GROUP BY f.category
-      ORDER BY submissions DESC
+      GROUP BY f.foodID, f.category
     `;
 
     const [results] = await db.execute(query, params);
     
-    const data = results.map(item => ({
-      name: item.name,
-      submissions: parseInt(item.submissions) || 0
-    }));
+    // Create a map to store category counts
+    const categoryCounts = new Map();
+    
+    // Process each row and split the categories
+    results.forEach(row => {
+      if (row.category) {
+        // Split by comma and trim whitespace
+        const categories = row.category.split(',').map(cat => cat.trim());
+        
+        // Count each category
+        categories.forEach(category => {
+          if (category) { 
+            const currentCount = categoryCounts.get(category) || 0;
+            categoryCounts.set(category, currentCount + 1);
+          }
+        });
+      }
+    });
+    
+    // Convert the map to an array and sort by submissions
+    const data = Array.from(categoryCounts, ([name, submissions]) => ({
+      name,
+      submissions
+    })).sort((a, b) => b.submissions - a.submissions);
     
     res.json({ 
       success: true, 
       data,
-      totalCategories: results.length
+      totalCategories: data.length
     });
   } catch (error) {
     console.error('Error fetching popular categories data:', error);
