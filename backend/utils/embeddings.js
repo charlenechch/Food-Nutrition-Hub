@@ -48,11 +48,10 @@ async function findClosestFood(queryText) {
   return best;
 }
 
-async function embedFood(foodID, name, description = "") {
-  const text = [name, description, commonIngredients].filter(Boolean).join(" — ");
+async function embedFood(foodID, name, description = "", commonIngredients = "") {
+  const text = [name, description, commonIngredients].filter(Boolean).join(" | ");
   const vector = await generateEmbedding(text);
 
-  // ✅ saves both embedding vector AND source text
   await db.execute(
     `UPDATE food SET embedding = ?, embedding_text = ? WHERE foodID = ?`,
     [JSON.stringify(vector), text, foodID]
@@ -61,4 +60,5 @@ async function embedFood(foodID, name, description = "") {
   console.log(`✅ Embedded food: "${name}" (ID: ${foodID})`);
   console.log(`📝 Embedding text: "${text}"`);
 }
+
 module.exports = { generateEmbedding, cosineSimilarity, findClosestFood, embedFood };
