@@ -60,9 +60,10 @@ async function embedFood(foodID, name, description = "") {
   const vector = await generateEmbedding(text);
   await db.execute(
     `UPDATE food SET embedding = ? WHERE foodID = ?`,
-    [JSON.stringify(vector), foodID]
+    [JSON.stringify(vector), text, foodID]
   );
   console.log(`✅ Embedded food: "${name}" (ID: ${foodID})`);
+  console.log(`📝 Embedding text: "${text}"`);
 }
 
 module.exports = { generateEmbedding, cosineSimilarity, findClosestFood, embedFood };

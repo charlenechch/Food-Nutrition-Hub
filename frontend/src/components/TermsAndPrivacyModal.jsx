@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import axios from "axios";
 import { FaShieldAlt, FaFileAlt, FaCheckCircle } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
-import axios from "axios";
+import { CURRENT_POLICY_VERSION } from "../config/policyVersion";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -104,7 +105,7 @@ export default function TermsAndPrivacyModal() {
   const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
-    if (!user || user.role === "guest" || (user.pdpa_consent === 1 && user.tnc_consent === 1)) return;
+    if (!user || user.role === "guest" || (user.agreed_version >= CURRENT_POLICY_VERSION)) return;
 
     const fetchCsrfToken = async () => {
       try {
@@ -119,7 +120,7 @@ export default function TermsAndPrivacyModal() {
   }, [user]);
 
   useEffect(() => {
-    if (user && user.role !== "guest" && (user.pdpa_consent !== 1 || user.tnc_consent !== 1)) {
+    if (user && user.role !== "guest" && (user.agreed_version < CURRENT_POLICY_VERSION)) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -127,7 +128,7 @@ export default function TermsAndPrivacyModal() {
     return () => { document.body.style.overflow = ""; };
   }, [user]);
 
-  if (!user || user.role === "guest" || (user.pdpa_consent === 1 && user.tnc_consent === 1)) {
+  if (!user || user.role === "guest" || (user.agreed_version >= CURRENT_POLICY_VERSION)) {
     return null;
   }
 
@@ -146,7 +147,7 @@ export default function TermsAndPrivacyModal() {
         headers: { "X-CSRF-Token": csrfToken }
       });
 
-      setUser({ ...user, pdpa_consent: 1, tnc_consent: 1 });
+      setUser({ ...user, pdpa_consent: 1, tnc_consent: 1, agreed_version: CURRENT_POLICY_VERSION });
 
     } catch (err) {
       console.error("Consent Error:", err);

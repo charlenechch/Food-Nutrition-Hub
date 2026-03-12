@@ -165,6 +165,7 @@ router.post("/verifyLogin", async (req, res) => {
             role: user.role,
             pdpa_consent: user.pdpa_consent,
             tnc_consent: user.tnc_consent,
+            agreed_version: user.agreed_version ?? 0,
         };
 
         // Apply Remember Me Logic
