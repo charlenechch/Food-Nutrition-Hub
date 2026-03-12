@@ -43,6 +43,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   // --- Gamification States ---
   const [isRandomizing, setIsRandomizing] = useState(false);
   const [randomizerText, setRandomizerText] = useState("");
+  const [randomizerResult, setRandomizerResult] = useState(null); // ✅ Added Reveal State
 
   // --- HERITAGE FACTS — keys map to en.json ---
   const heritageFacts = [
@@ -129,14 +130,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const nextSlide = () => setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? HERO_IMAGES.length - 1 : prev - 1));
 
-  // ✅ Auto Carousel Timer
   useEffect(() => {
     if (isCarouselPaused) return; 
     const slideInterval = setInterval(nextSlide, 6000);
     return () => clearInterval(slideInterval);
   }, [currentSlide, isCarouselPaused]);
 
-  // ✅ Keyboard Arrow Key Support
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -147,7 +146,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // ✅ Quick Search Shortcut ('/' key)
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
       if (e.key === "/" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
@@ -176,11 +174,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
-  // ✅ "I'm Feeling Hungry" Randomizer Logic (Maps Version)
+  // ✅ "I'm Feeling Hungry" Randomizer Logic (Upgraded with Reveal State)
   const handleRandomize = () => {
     if (!allFoods || allFoods.length === 0) return;
     
     setIsRandomizing(true);
+    setRandomizerResult(null); // Reset previous result
     let ticks = 0;
     const maxTicks = 20; // 2 seconds of spinning
     
@@ -197,17 +196,10 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         const finalFood = allFoods[Math.floor(Math.random() * allFoods.length)];
         setRandomizerText(finalFood.name);
         
-        // Pause for 1.2 seconds so they see the result, then open Google Maps!
+        // Reveal the result instead of forcing a pop-up!
         setTimeout(() => {
-          setIsRandomizing(false);
-          
-          // Create a dynamic Google Maps search query 
-          const searchQuery = encodeURIComponent(`${finalFood.name} restaurant near me`);
-          const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
-          
-          // Open the map in a new tab
-          window.open(mapsUrl, "_blank", "noopener,noreferrer");
-        }, 1200);
+          setRandomizerResult(finalFood);
+        }, 300);
       }
     }, 100); 
   };
@@ -223,7 +215,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${HERO_IMAGES[currentSlide]})`
         }}
       >
-        {/* Invisible Hitbox Left */}
         <button className="hero-arrow arrow-left" onClick={prevSlide} aria-label="Previous image"></button>
 
         <div className="hero-content-wrapper">
@@ -252,7 +243,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               </div>
             </form>
 
-            {/* ✅ Gamified Randomizer Button */}
             <button className="randomizer-btn" onClick={handleRandomize} type="button">
               <FaDice className="dice-icon" /> I'm Feeling Hungry
             </button>
@@ -282,7 +272,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </div>
 
-        {/* Invisible Hitbox Right */}
         <button className="hero-arrow arrow-right" onClick={nextSlide} aria-label="Next image"></button>
 
         <div className="hero-dots">
@@ -297,7 +286,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       </header>
 
       <main className="features-layout-wrapper">
-        {/* Core Features Grid */}
         <section className="features-grid">
           <div className="feature-card public-card">
             <div className="card-content-top">
@@ -351,7 +339,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </section>
 
-        {/* Cinematic Showcase */}
         <section className="showcase-section">
           <div className="section-header center-header">
             <h2>{t("home.showcaseTitle")}</h2>
@@ -378,7 +365,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </section>
 
-        {/* Recent Foods */}
         {recentFoods && recentFoods.length > 0 && (
           <section className="recent-section">
             <div className="section-header">
@@ -405,7 +391,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </section>
         )}
 
-        {/* Heritage Fact Banner */}
         <section className="heritage-fact-banner">
           <div className="fact-decoration-circle circle-1"></div>
           <div className="fact-decoration-circle circle-2"></div>
@@ -427,13 +412,44 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         </section>
       </main>
 
-      {/* ✅ The Gamification Overlay (Updated text for Maps!) */}
+      {/* ✅ Upgraded Gamification Overlay */}
       {isRandomizing && (
         <div className="randomizer-overlay">
           <div className="randomizer-content">
-            <FaDice className="spinning-dice" />
-            <h3>Finding a place to eat...</h3>
-            <div className="slot-machine-text">{randomizerText}</div>
+            {!randomizerResult ? (
+              // SPINNING STATE
+              <>
+                <FaDice className="spinning-dice" />
+                <h3>Finding a place to eat...</h3>
+                <div className="slot-machine-text">{randomizerText}</div>
+              </>
+            ) : (
+              // WINNER REVEAL STATE
+              <div className="result-reveal slide-up">
+                <h3>How about...</h3>
+                <div className="slot-machine-text highlight-winner">{randomizerResult.name}</div>
+                
+                <div className="randomizer-actions">
+                  <button 
+                    className="feature-btn btn-accent map-btn" 
+                    onClick={() => {
+                      // ✅ OFFICIAL GOOGLE MAPS SEARCH URL
+                      const searchQuery = encodeURIComponent(`${randomizerResult.name} near me`);
+                      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+                      window.open(mapsUrl, "_blank", "noopener,noreferrer");
+                      setIsRandomizing(false);
+                    }}
+                  >
+                    📍 Find on Map
+                  </button>
+                  
+                  <div className="secondary-actions">
+                    <button className="text-btn" onClick={handleRandomize}>Spin Again</button>
+                    <button className="text-btn close-btn" onClick={() => setIsRandomizing(false)}>Cancel</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
