@@ -276,7 +276,9 @@ const openExportModal = () => {
     message: t("profile.exportMsg"),
     selectedFoods: [], // Start with none selected
     selectAll: false,
-    loading: false
+    loading: false,
+    step: 1,
+    dataTypes: []
   });
 };
 
@@ -451,7 +453,7 @@ const handleExportData = async () => {
   try {
     setExportModal(m => ({ ...m, loading: true }));
     
-    const { selectedFoods, selectAll } = exportModal;
+    const { selectedFoods, selectAll, dataTypes } = exportModal;
     const savedFoodsArray = user?.savedFoods || [];
     
     // Determine what to export
@@ -461,7 +463,8 @@ const handleExportData = async () => {
       // Export all - send empty array or specific flag
       console.log('🔍 Exporting ALL foods - payload will have saveIds: []');
       exportPayload = { 
-        saveIds: [] // Empty array means "all"
+        saveIds: [], // Empty array means "all"
+        dataTypes
       };
     } else if (selectedFoods.length > 0) {
       // Export selected
@@ -469,10 +472,17 @@ const handleExportData = async () => {
       console.log('🔍 Selected foods type:', typeof selectedFoods);
       console.log('🔍 Selected foods is array?', Array.isArray(selectedFoods));
       exportPayload = {
-        saveIds: selectedFoods
+        saveIds: selectedFoods,
+        dataTypes
       };
     } else {
       // No selection
+      openAlert(t("profile.noSelection"), t("profile.noSelectionMsg"), <AlertTriangle />);
+      setExportModal(m => ({ ...m, loading: false }));
+      return;
+    }
+
+    if (!dataTypes || dataTypes.length === 0) {
       openAlert(t("profile.noSelection"), t("profile.noSelectionMsg"), <AlertTriangle />);
       setExportModal(m => ({ ...m, loading: false }));
       return;
@@ -506,7 +516,6 @@ const handleExportData = async () => {
     
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0];
-    const count = selectedFoods.length === savedFoodsArray.length ? 'all' : selectedFoods.length;
     a.download = `saved-foods-${count}-${timestamp}.pdf`;
     
     document.body.appendChild(a);
@@ -1712,94 +1721,123 @@ const ContributionRow = ({ c }) => {
             </div>
             
             <div className="upp-modal-body">
-              <p className="upp-muted" style={{ marginBottom: 16 }}>
-                {exportModal.message} ({user?.savedFoods?.length || 0} total saved foods)
-              </p>
-              
-              {/* Select All checkbox */}
-              <div className="upp-export-select-all">
-                <label className="upp-choice" style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
-                  <input
-                    type="checkbox"
-                    checked={exportModal.selectAll}
-                    onChange={toggleSelectAll}
-                    style={{ marginRight: 8 }}
-                  />
-                  <span style={{ fontWeight: "bold" }}>{t("profile.selectAll")}</span>
-                </label>
-              </div>
-              
-              {/* Foods list */}
-              <div className="upp-export-list" style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #eee", borderRadius: "8px", padding: "12px" }}>
-                {user?.savedFoods?.length > 0 ? (
-                  user.savedFoods.map((food, index) => (
-                    <div 
-                      key={food.id || food.saveId || index} 
-                      className="upp-export-item"
-                      style={{ 
-                        padding: "10px", 
-                        borderBottom: "1px solid #f5f5f5",
-                        display: "flex",
-                        alignItems: "center"
-                      }}
-                    >
-                    <input
-                      type="checkbox"
-                      id={`food-${food.saveId}`}
-                      checked={exportModal.selectedFoods.includes(food.saveId)}
-                      onChange={() => {
-                        console.log('🔍 Checkbox onChange - food.saveId:', food.saveId);
-                        toggleFoodSelection(food.saveId);
-                      }}
-                      style={{ marginRight: "12px" }}
-                    />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: "500" }}>{food.name || t("profile.unnamedFood")}</div>
-                        <div style={{ fontSize: "0.85rem", color: "#666" }}>
-                          {food.origin || t("profile.unknownOrigin")} • {t("profile.savedLabel")} {food.savedDate || t("profile.unknownDate")}
-                        </div>
-                      </div>
-                      {food.image && (
-                        <img 
-                          src={food.image} 
-                          alt={food.name}
-                          style={{ 
-                            width: "40px", 
-                            height: "40px", 
-                            borderRadius: "4px",
-                            objectFit: "cover",
-                            marginLeft: "12px"
-                          }}
-                        />
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>
-                    {t("profile.noSavedFoodsExport")}
+              {/* Step 1: Select data types */}
+              {exportModal.step === 1 && (
+                <>
+                  <p className="upp-muted" style={{ marginBottom: 16 }}>
+                    Select the data you would like to include in your export.
+                  </p>
+                  {[
+                    { key: "profile", label: "Profile Information" },
+                    { key: "savedFoods", label: `Saved Foods (${user?.savedFoods?.length || 0})` },
+                    { key: "recipes", label: "My Recipes" },
+                    { key: "posts", label: "My Community Posts" },
+                    { key: "likedPosts", label: "Liked Posts" },
+                  ].map(({ key, label }) => (
+                    <label key={key} className="upp-choice" style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
+                      <input
+                        type="checkbox"
+                        checked={exportModal.dataTypes.includes(key)}
+                        onChange={() => {
+                          setExportModal(m => ({
+                            ...m,
+                            dataTypes: m.dataTypes.includes(key)
+                              ? m.dataTypes.filter(t => t !== key)
+                              : [...m.dataTypes, key]
+                          }));
+                        }}
+                        style={{ marginRight: 10 }}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </>
+              )}
+
+              {/* Step 2: Select saved foods */}
+              {exportModal.step === 2 && (
+                <>
+                  <p className="upp-muted" style={{ marginBottom: 16 }}>
+                    Select which saved foods to include in the export.
+                  </p>
+                  <div className="upp-export-select-all">
+                    <label className="upp-choice" style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
+                      <input
+                        type="checkbox"
+                        checked={exportModal.selectAll}
+                        onChange={toggleSelectAll}
+                        style={{ marginRight: 8 }}
+                      />
+                      <span style={{ fontWeight: "bold" }}>{t("profile.selectAll")}</span>
+                    </label>
                   </div>
-                )}
-              </div>
-              
-              <div style={{ marginTop: "16px", fontSize: "0.9rem", color: "#666" }}>
-                Selected: {exportModal.selectedFoods.length} of {user?.savedFoods?.length || 0} foods
-              </div>
+                  <div className="upp-export-list" style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #eee", borderRadius: "8px", padding: "12px" }}>
+                    {user?.savedFoods?.length > 0 ? (
+                      user.savedFoods.map((food, index) => (
+                        <div
+                          key={food.id || food.saveId || index}
+                          className="upp-export-item"
+                          style={{ padding: "10px", borderBottom: "1px solid #f5f5f5", display: "flex", alignItems: "center" }}
+                        >
+                          <input
+                            type="checkbox"
+                            id={`food-${food.saveId}`}
+                            checked={exportModal.selectedFoods.includes(food.saveId)}
+                            onChange={() => toggleFoodSelection(food.saveId)}
+                            style={{ marginRight: "12px" }}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: "500" }}>{food.name || t("profile.unnamedFood")}</div>
+                            <div style={{ fontSize: "0.85rem", color: "#666" }}>
+                              {food.origin || t("profile.unknownOrigin")} • {t("profile.savedLabel")} {food.savedDate || t("profile.unknownDate")}
+                            </div>
+                          </div>
+                          {food.image && (
+                            <img src={food.image} alt={food.name} style={{ width: "40px", height: "40px", borderRadius: "4px", objectFit: "cover", marginLeft: "12px" }} />
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>
+                        {t("profile.noSavedFoodsExport")}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ marginTop: "16px", fontSize: "0.9rem", color: "#666" }}>
+                    Selected: {exportModal.selectedFoods.length} of {user?.savedFoods?.length || 0} foods
+                  </div>
+                </>
+              )}
             </div>
-            
+
             <div className="upp-modal-footer">
-              <button 
-                className="lrp-btn lrp-btn-outline" 
-                onClick={closeExportModal}
+              <button
+                className="lrp-btn lrp-btn-outline"
+                onClick={exportModal.step === 2 ? () => setExportModal(m => ({ ...m, step: 1 })) : closeExportModal}
                 disabled={exportModal.loading}
               >
-                {t("profile.cancel")}
+                {exportModal.step === 2 ? "Back" : t("profile.cancel")}
               </button>
               <button
                 className="lrp-btn lrp-btn-primary"
-                onClick={handleExportData}
-                disabled={exportModal.loading || exportModal.selectedFoods.length === 0}
+                onClick={() => {
+                  if (exportModal.step === 1 && exportModal.dataTypes.includes("savedFoods")) {
+                    setExportModal(m => ({ ...m, step: 2 }));
+                  } else {
+                    handleExportData();
+                  }
+                }}
+                disabled={
+                  exportModal.loading ||
+                  exportModal.dataTypes.length === 0 ||
+                  (exportModal.step === 2 && exportModal.selectedFoods.length === 0)
+                }
               >
-                {exportModal.loading ? t("profile.exporting") : `${t("profile.exportBtn")} (${exportModal.selectedFoods.length})`}
+                {exportModal.loading
+                  ? t("profile.exporting")
+                  : exportModal.step === 1 && exportModal.dataTypes.includes("savedFoods")
+                  ? "Next"
+                  : t("profile.exportBtn")}
               </button>
             </div>
           </div>
