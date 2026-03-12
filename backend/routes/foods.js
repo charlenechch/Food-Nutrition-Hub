@@ -199,7 +199,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
 
     console.log("✅ [POST] Food Created, ID:", result.insertId);
     try {
-      await embedFood(result.insertId, name, description || "");
+      await embedFood(result.insertId, name, description || "", commonIngredients || "");
       console.log(`✅ Embedding generated for new food: "${name}"`);
     } catch (embedErr) {
       // Non-fatal — food still created, embedding can be backfilled later
@@ -630,7 +630,7 @@ router.post("/bulk-import", async (req, res) => {
 
           // Auto-embed after bulk import
         try {
-          await embedFood(foodID, foodItem.name, foodItem.description || "");
+          await embedFood(foodID, foodItem.name, foodItem.description || "", foodItem.commonIngredients || "");
         } catch (embedErr) {
           console.warn(`⚠️ Embedding failed for "${foodItem.name}":`, embedErr.message);
         }
@@ -674,7 +674,7 @@ router.post("/bulk-import", async (req, res) => {
 router.post("/admin/backfill-embeddings", async (req, res) => {
   try {
     const [rows] = await db.execute(
-      `SELECT foodID, name, description FROM food`  // no WHERE — re-embed ALL
+      `SELECT foodID, name, description, commonIngredients FROM food`  // no WHERE — re-embed ALL
     );
 
     console.log(`🚀 Re-backfilling embeddings for ${rows.length} foods...`);
@@ -682,7 +682,7 @@ router.post("/admin/backfill-embeddings", async (req, res) => {
 
     for (const row of rows) {
       try {
-        await embedFood(row.foodID, row.name, row.description || "");
+        await embedFood(row.foodID, row.name, row.description || "", row.commonIngredients || "");
         console.log(`✅ Embedded: "${row.name}"`);
         results.success++;
         await new Promise(r => setTimeout(r, 200));

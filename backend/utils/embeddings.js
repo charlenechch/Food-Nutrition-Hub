@@ -61,5 +61,4 @@ async function embedFood(foodID, name, description = "") {
   console.log(`✅ Embedded food: "${name}" (ID: ${foodID})`);
   console.log(`📝 Embedding text: "${text}"`);
 }
-
 module.exports = { generateEmbedding, cosineSimilarity, findClosestFood, embedFood };
