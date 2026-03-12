@@ -481,12 +481,12 @@ const AdminFoodDatabase = ({ categories = [] }) => {
        "AltDescription", "HealthTips", "Energy_kcal", "Protein_g", "Fat_g", 
        "Carbohydrates_g", "Fiber_g", "VitaminC_mg",
        "Ingredients", "Steps", "CookTime", "Servings", "DidYouKnow", "ChefTips"],
-      ["* REQUIRED: Food name", "* REQUIRED: Enum: Malay, Chinese, Iban, Melanau, Kadazan, Bidayuh, Dayak", 
-       "* REQUIRED: e.g., Main Dish", "* REQUIRED: e.g., Appetizer, Main, Dessert", 
+      ["* REQUIRED: Food name", "* REQUIRED: Enum: e.g. Malay, Chinese, Iban (or refer to the completed instructions below)", 
+       "* REQUIRED: e.g., Rice Dish, Noodls, Meat (or refer to the completed instructions below)",
        "* REQUIRED: Enum: Easy, Medium, Hard", "Separate with commas: e.g., Vegetarian, Gluten-Free", 
        "* REQUIRED: Brief description", "* REQUIRED: Image URL", 
        "* REQUIRED: Minutes (number only)", "Optional cultural info", 
-       "Optional traditional methods", "Optional: Common ingredients list", 
+       "Optional traditional methods", "Separate with commas: e.g., first, second", 
        "Optional alternative name", "Optional alternative description", 
        "Optional health advice", "* REQUIRED: Calories (number)", 
        "* REQUIRED: Protein in grams", "* REQUIRED: Fat in grams", 
@@ -532,11 +532,11 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     }
     
     const colWidths = [
-      {wch: 25}, {wch: 50}, {wch: 30}, {wch: 50}, {wch: 40}, {wch: 50},
-      {wch: 30}, {wch: 40}, {wch: 25}, {wch: 25}, {wch: 30}, {wch: 30},
-      {wch: 30}, {wch: 30}, {wch: 30}, {wch: 30}, {wch: 30}, {wch: 30},
+      {wch: 30}, {wch: 70}, {wch: 70}, {wch: 50}, {wch: 50},
+      {wch: 40}, {wch: 40}, {wch: 40}, {wch: 40}, {wch: 40}, {wch: 40},
+      {wch: 40}, {wch: 40}, {wch: 40}, {wch: 30}, {wch: 30}, {wch: 30},
       {wch: 30}, {wch: 30}, {wch: 30},
-      {wch: 60}, {wch: 60}, {wch: 30}, {wch: 30}, {wch: 30}, {wch: 30}
+      {wch: 60}, {wch: 60}, {wch: 30}, {wch: 40}, {wch: 30}, {wch: 30}
     ];
     ws['!cols'] = colWidths;
    
@@ -552,10 +552,10 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       ["ENUM FIELDS (Must use exact values):"],
       ["• Origin: Malay, Chinese, Iban, Melanau, Kadazan, Bidayuh, Dayak"],
       ["• Difficulty: Easy, Medium, Hard"],
-      ["• Category: Typically Appetizer, Main Dish, Dessert, Snack, Drink"],
+      ["• Category: Typically Poultry, Seafood, Vegetables, Fermented, Dessert, Rice Dish, Noodles, Soup, Meat"],
       [""],
       ["FORMATTING TIPS:"],
-      ["• Ingredients: Separate with '|' or new lines (will be converted to list)"],
+      ["• Ingredients: Number each ingredient (1. Ingredient one, 2. Ingredient two, etc.)"],
       ["• Steps: Number each step (1. Step one, 2. Step two, etc.)"],
       ["• DietaryTags: Separate multiple tags with commas"],
       ["• Image: Use direct image URLs (ending with .jpg, .png, etc.)"],
