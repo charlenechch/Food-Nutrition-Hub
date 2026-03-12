@@ -351,7 +351,7 @@ const AddFoodPage = () => {
               </div>
             </div>
 
-            <div className="food-category-field" style={{ marginTop: "1rem" }}>
+            <div className="food-category-field afp-category">
               <label className="basic-info-label">{t("addFood.category")}</label>
               
               <div className="dietary-preferences-grid">

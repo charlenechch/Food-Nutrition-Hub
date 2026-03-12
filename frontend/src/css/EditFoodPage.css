@@ -585,3 +585,7 @@
 .notification-modal.error {
     border: 2px solid #d47e7e; /* Red border */
 }
+
+.afp-category {
+  margin-top: 1rem;
+}
