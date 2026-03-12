@@ -804,3 +804,100 @@
     font-size: 1.1rem;
     line-height: 1.5;
 }
+
+/* ===== Export Modal ===== */
+.upp-export-option {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border: 1px solid #e8dfd6;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.upp-export-option.is-selected {
+  border-color: #caa781;
+  background: #f8f1eb;
+}
+
+.upp-export-option input {
+  display: inline-block;
+  margin-right: 10px;
+  accent-color: #caa781;
+}
+
+.upp-export-option span {
+  color: #333;
+  font-weight: 400;
+}
+
+.upp-export-option.is-selected span {
+  color: #6a4a2f;
+  font-weight: 600;
+}
+
+.upp-export-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.upp-export-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.upp-export-item input {
+  margin-right: 12px;
+  accent-color: #caa781;
+}
+
+.upp-export-item-info {
+  flex: 1;
+}
+
+.upp-export-item-info .upp-export-item-name {
+  font-weight: 500;
+}
+
+.upp-export-item-info .upp-export-item-meta {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.upp-export-item-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  margin-left: 12px;
+}
+
+.upp-export-count {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.upp-export-select-all {
+  margin-bottom: 4px;
+}
+
+.upp-export-select-all label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.upp-export-select-all input {
+  margin-right: 8px;
+  accent-color: #caa781;
+}
