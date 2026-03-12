@@ -52,7 +52,7 @@ async function embedFood(foodID, name, description = "") {
   const text = [name, description].filter(Boolean).join(" — ");
   const vector = await generateEmbedding(text);
 
-  // ✅ FIXED — save both embedding vector AND source text
+  // ✅ saves both embedding vector AND source text
   await db.execute(
     `UPDATE food SET embedding = ?, embedding_text = ? WHERE foodID = ?`,
     [JSON.stringify(vector), text, foodID]
