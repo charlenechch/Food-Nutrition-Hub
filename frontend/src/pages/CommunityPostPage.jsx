@@ -323,7 +323,7 @@ export default function CommunityPost() {
       <div className="community-page" style={{ marginTop: "100px" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px" }}>
           <button className="back-btn" style={{ marginBottom: "20px" }} onClick={() => navigate("/community")}>
-            ← {t("communityPost.backToCommunity")}
+            {t("communityPost.backToCommunity")}
           </button>
         </div>
 
