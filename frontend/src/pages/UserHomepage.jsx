@@ -13,7 +13,7 @@ import LaksaImg from "../assets/laksa.jpg";
 import KoloImg from "../assets/kolomee.jpg";
 import KekImg from "../assets/keklapis.jpg";
 
-// ✅ Upgraded Icons (Added FaUserEdit, FaWandMagicSparkles, FaDice)
+// ✅ Upgraded Icons
 import { FaSearch, FaStar, FaLightbulb, FaSyncAlt, FaUserEdit, FaDice } from "react-icons/fa";
 import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
 
@@ -176,15 +176,14 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
-  // --- "I'm Feeling Hungry" Randomizer Logic ---
+  // ✅ "I'm Feeling Hungry" Randomizer Logic (Maps Version)
   const handleRandomize = () => {
     if (!allFoods || allFoods.length === 0) return;
     
     setIsRandomizing(true);
     let ticks = 0;
-    const maxTicks = 20; // 2 seconds of spinning (20 * 100ms)
+    const maxTicks = 20; // 2 seconds of spinning
     
-    // Start the rapid shuffle effect
     const interval = setInterval(() => {
       const randomFood = allFoods[Math.floor(Math.random() * allFoods.length)];
       setRandomizerText(randomFood.name);
@@ -198,11 +197,16 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         const finalFood = allFoods[Math.floor(Math.random() * allFoods.length)];
         setRandomizerText(finalFood.name);
         
-        // Pause for 1.2 seconds so they see the result, then navigate!
+        // Pause for 1.2 seconds so they see the result, then open Google Maps!
         setTimeout(() => {
           setIsRandomizing(false);
-          const foodId = finalFood.foodID || finalFood.id;
-          navigate(`/fooddetail/${foodId}`);
+          
+          // Create a dynamic Google Maps search query 
+          const searchQuery = encodeURIComponent(`${finalFood.name} restaurant near me`);
+          const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+          
+          // Open the map in a new tab
+          window.open(mapsUrl, "_blank", "noopener,noreferrer");
         }, 1200);
       }
     }, 100); 
@@ -297,7 +301,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         <section className="features-grid">
           <div className="feature-card public-card">
             <div className="card-content-top">
-              {/* ✅ Upgraded SVG Icons */}
               <div className="feature-icon-wrapper">
                 <FaSearch className="feature-icon-svg" />
               </div>
@@ -424,12 +427,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         </section>
       </main>
 
-      {/* ✅ The Gamification Overlay */}
+      {/* ✅ The Gamification Overlay (Updated text for Maps!) */}
       {isRandomizing && (
         <div className="randomizer-overlay">
           <div className="randomizer-content">
             <FaDice className="spinning-dice" />
-            <h3>Finding your next meal...</h3>
+            <h3>Finding a place to eat...</h3>
             <div className="slot-machine-text">{randomizerText}</div>
           </div>
         </div>
