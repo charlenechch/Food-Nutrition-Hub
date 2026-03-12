@@ -22,6 +22,11 @@ const ORIGIN_OPTIONS = [
   "Dayak",
 ];
 
+const FOOD_TYPE_OPTIONS = [
+  "Poultry", "Seafood", "Vegetables", "Fermented", 
+  "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"
+];
+
 const EditFoodPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -78,7 +83,7 @@ const EditFoodPage = () => {
             fat: data.data.Fat_g || "",
             fiber: data.data.Fiber_g || "",
             vitaminc: data.data.VitaminC_mg || "",
-            category: data.data.category || "",
+            category: data.data.category ? data.data.category.split(',').map(s => s.trim()).filter(Boolean) : [],
             description: data.data.description || "",
             culturalSignificance: data.data.culturalSignificance || "",
             traditionalPreparation: data.data.traditionalPreparation || "",
@@ -101,6 +106,17 @@ const EditFoodPage = () => {
   // --- Handle Input Changes ---
   const handleChange = (e) => {
     setFood({ ...food, [e.target.name]: e.target.value });
+  };
+
+  const toggleCategory = (cat) => {
+    setFood((prev) => {
+      const currentCats = Array.isArray(prev.category) ? prev.category : [];
+      const isSelected = currentCats.includes(cat);
+      const newCats = isSelected 
+        ? currentCats.filter((c) => c !== cat) 
+        : [...currentCats, cat];
+      return { ...prev, category: newCats };
+    });
   };
 
   // --- Buttons / Notifications ---
@@ -243,7 +259,7 @@ const EditFoodPage = () => {
     const dataToSave = {
       name: food.name,
       origin: food.origin,
-      category: food.category,
+      category: Array.isArray(food.category) ? food.category.join(", ") : food.category,
       description: food.description,
       culturalSignificance: food.culturalSignificance,
       traditionalPreparation: food.traditionalPreparation,
@@ -410,19 +426,23 @@ const EditFoodPage = () => {
               {/* Category */}
               <div className="food-category-field">
                 <label className="basic-info-label">{t("editFood.category")}</label>
-                <div className="custom-select-wrapper">
-                  <select className="edit-food-select" name="category" value={food.category} onChange={handleChange}>
-                    <option value="">{t("editFood.selectCategory")}</option>
-                    <option value="Poultry">Poultry</option>
-                    <option value="Seafood">Seafood</option>
-                    <option value="Vegetables">Vegetables</option>
-                    <option value="Rice Dish">Rice Dish</option>
-                    <option value="Dessert">Dessert</option>
-                    <option value="Fermented">Fermented</option>
-                    <option value="Noodles">Noodles</option>
-                    <option value="Soup">Soup</option>
-                    <option value="Meat">Meat</option>
-                  </select>
+                <div className="dietary-preferences-grid">
+                  {FOOD_TYPE_OPTIONS.map((cat) => {
+                    const currentCats = Array.isArray(food.category) ? food.category : [];
+                    
+                    return (
+                      <label key={cat} className="dietary-option">
+                        <input
+                          type="checkbox"
+                          checked={currentCats.includes(cat)}
+                          onChange={() => toggleCategory(cat)}
+                        />
+                        <span>
+                          {t(`explore.cat_${cat.toLowerCase().replace(" ", "_")}`) || cat}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
