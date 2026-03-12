@@ -457,35 +457,24 @@ const handleExportData = async () => {
     const savedFoodsArray = user?.savedFoods || [];
     
     // Determine what to export
-    let exportPayload;
-    
-    if (selectAll || selectedFoods.length === savedFoodsArray.length) {
-      // Export all - send empty array or specific flag
-      console.log('🔍 Exporting ALL foods - payload will have saveIds: []');
-      exportPayload = { 
-        saveIds: [], // Empty array means "all"
-        dataTypes
-      };
-    } else if (selectedFoods.length > 0) {
-      // Export selected
-      console.log('🔍 Exporting SELECTED foods:', selectedFoods);
-      console.log('🔍 Selected foods type:', typeof selectedFoods);
-      console.log('🔍 Selected foods is array?', Array.isArray(selectedFoods));
-      exportPayload = {
-        saveIds: selectedFoods,
-        dataTypes
-      };
-    } else {
-      // No selection
-      openAlert(t("profile.noSelection"), t("profile.noSelectionMsg"), <AlertTriangle />);
-      setExportModal(m => ({ ...m, loading: false }));
-      return;
-    }
+    let exportPayload = { dataTypes };
 
     if (!dataTypes || dataTypes.length === 0) {
       openAlert(t("profile.noSelection"), t("profile.noSelectionMsg"), <AlertTriangle />);
       setExportModal(m => ({ ...m, loading: false }));
       return;
+    }
+
+    if (dataTypes.includes('savedFoods')) {
+      if (selectAll || selectedFoods.length === savedFoodsArray.length) {
+        exportPayload.saveIds = [];
+      } else if (selectedFoods.length > 0) {
+        exportPayload.saveIds = selectedFoods;
+      } else {
+        openAlert(t("profile.noSelection"), t("profile.noSelectionMsg"), <AlertTriangle />);
+        setExportModal(m => ({ ...m, loading: false }));
+        return;
+      }
     }
     
     console.log("📤 Exporting saved foods:", exportPayload);
