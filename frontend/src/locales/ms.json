@@ -135,7 +135,7 @@
 
   "foodDetail": {
     "loading": "Memuatkan butiran makanan...",
-    "back": "Kembali",
+    "back": "← Kembali",
     "notFound": "Makanan tidak dijumpai",
     "notFoundMsg": "Item makanan yang diminta tidak dapat ditemui.",
     "culturalHeritage": "Warisan Budaya",
@@ -316,7 +316,7 @@
   },
 
   "communityPost": {
-    "backToCommunity": "Kembali",
+    "backToCommunity": "← Kembali",
     "culturalStory": "Kisah Budaya",
     "recipe": "Resipi",
     "comments": "Komen",
@@ -492,7 +492,7 @@
     "signInGoogle": "Log masuk dengan Google",
     "or": "atau",
     "continueAsGuest": "Teruskan sebagai Tetamu",
-    "backToLogin": "Kembali ke Log Masuk",
+    "backToLogin": "← Kembali",
     "codeSentTo": "Kod dihantar ke",
     "verifying": "Mengesahkan...",
     "verifyCode": "Sahkan Kod",
@@ -715,7 +715,7 @@
 
   "addFood": {
     "category": "Kategori",
-    "backToDashboard": "Kembali ke Papan Pemuka",
+    "backToDashboard": "← Kembali",
     "pageTitle": "Tambah Item Makanan Baharu",
     "addFoodBtn": "Tambah Makanan",
     "foodImage": "Imej Makanan",
@@ -814,7 +814,7 @@
 
   "editFood": {
     "editFoodItem": "Edit Item Makanan",
-    "backToDashboard": "Kembali ke Papan Pemuka",
+    "backToDashboard": "← Kembali",
     "saveChanges": "Simpan Perubahan",
     "foodImage": "Imej Makanan",
     "uploadNewImage": "Muat Naik Imej Baharu",

@@ -136,7 +136,7 @@
 
   "foodDetail": {
     "loading": "Loading food details...",
-    "back": "Back",
+    "back": "← Back",
     "notFound": "Food not found",
     "notFoundMsg": "The requested food item could not be found.",
     "culturalHeritage": "Cultural Heritage",
@@ -317,7 +317,7 @@
   },
 
   "communityPost": {
-    "backToCommunity": "Back",
+    "backToCommunity": "← Back",
     "culturalStory": "Cultural Story",
     "recipe": "Recipe",
     "comments": "Comments",
@@ -493,7 +493,7 @@
     "signInGoogle": "Sign in with Google",
     "or": "or",
     "continueAsGuest": "Continue as Guest",
-    "backToLogin": "Back to Login",
+    "backToLogin": "← Back",
     "codeSentTo": "Code sent to",
     "verifying": "Verifying...",
     "verifyCode": "Verify Code",
@@ -716,7 +716,7 @@
   
   "addFood": {
     "category": "Categories",
-    "backToDashboard": "Back to Dashboard",
+    "backToDashboard": "← Back",
     "pageTitle": "Add New Food Item",
     "addFoodBtn": "Add Food",
     "foodImage": "Food Image",
@@ -815,7 +815,7 @@
 
   "editFood": {
     "editFoodItem": "Edit Food Item",
-    "backToDashboard": "Back to Dashboard",
+    "backToDashboard": "← Back",
     "saveChanges": "Save Changes",
     "foodImage": "Food Image",
     "uploadNewImage": "Upload New Image",
