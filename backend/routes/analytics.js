@@ -491,26 +491,45 @@ router.get('/popular-categories', async (req, res) => {
 
     const query = `
       SELECT 
-        f.category as name,
-        COUNT(f.foodID) as submissions
+        f.category,
+        COUNT(f.foodID) as food_count
       FROM food f
       INNER JOIN recipe r ON f.foodID = r.foodID
       ${whereConditions}
-      GROUP BY f.category
-      ORDER BY submissions DESC
+      GROUP BY f.foodID, f.category
     `;
 
     const [results] = await db.execute(query, params);
     
-    const data = results.map(item => ({
-      name: item.name,
-      submissions: parseInt(item.submissions) || 0
-    }));
+    // Create a map to store category counts
+    const categoryCounts = new Map();
+    
+    // Process each row and split the categories
+    results.forEach(row => {
+      if (row.category) {
+        // Split by comma and trim whitespace
+        const categories = row.category.split(',').map(cat => cat.trim());
+        
+        // Count each category
+        categories.forEach(category => {
+          if (category) { 
+            const currentCount = categoryCounts.get(category) || 0;
+            categoryCounts.set(category, currentCount + 1);
+          }
+        });
+      }
+    });
+    
+    // Convert the map to an array and sort by submissions
+    const data = Array.from(categoryCounts, ([name, submissions]) => ({
+      name,
+      submissions
+    })).sort((a, b) => b.submissions - a.submissions);
     
     res.json({ 
       success: true, 
       data,
-      totalCategories: results.length
+      totalCategories: data.length
     });
   } catch (error) {
     console.error('Error fetching popular categories data:', error);

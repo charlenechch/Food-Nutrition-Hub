@@ -714,6 +714,7 @@
   },
 
   "addFood": {
+    "category": "Kategori",
     "backToDashboard": "Kembali ke Papan Pemuka",
     "pageTitle": "Tambah Item Makanan Baharu",
     "addFoodBtn": "Tambah Makanan",

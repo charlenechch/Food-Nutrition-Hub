@@ -16,7 +16,7 @@ const ORIGIN_OPTIONS = [
 
 const FOOD_TYPE_OPTIONS = [
   "Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", 
-  "Rice Dish", "Noodles", "Soup", "Meat", "Other..."
+  "Rice Dish", "Noodles", "Soup", "Meat"
 ];
 
 const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"];
@@ -51,6 +51,7 @@ const AddFoodPage = () => {
   const [food, setFood] = useState({
     name: "",
     origin: "",
+    category: [],
     description: "",
     culturalSignificance: "",
     traditionalPreparation: "",
@@ -59,8 +60,7 @@ const AddFoodPage = () => {
     carbs: "",
     fat: "",
     fiber: "",
-    vitaminc: "",
-    category: "Poultry", 
+    vitaminc: "", 
     customCategory: "", 
     difficulty: "Medium", 
     prepTime: "",
@@ -148,15 +148,6 @@ const AddFoodPage = () => {
       return;
     }
 
-    if (food.category === "Other..." && !food.customCategory.trim()) {
-      setShowNotification({
-        visible: true,
-        message: t("addFood.specifyCategory"),
-        type: "error"
-      });
-      return;
-    }
-
     try {
       let finalImageUrl = "";
       if (selectedImage) {
@@ -172,7 +163,6 @@ const AddFoodPage = () => {
         }
       }
 
-      const finalCategory = food.category === "Other..." ? food.customCategory : food.category;
       const dietaryString = selectedDietary.join(", ");
       
       let ingredientsString = selectedIngredients.join(", ");
@@ -183,8 +173,7 @@ const AddFoodPage = () => {
 
       const newFoodData = {
         name: food.name,
-        category: finalCategory,
-        origin: food.origin,
+        category: Array.isArray(food.category) ? food.category.join(", ") : food.category,        origin: food.origin,
         description: food.description,
         culturalSignificance: food.culturalSignificance,
         traditionalPreparation: food.traditionalPreparation,
@@ -265,7 +254,21 @@ const AddFoodPage = () => {
     display: "flex",
     alignItems: "center",
     gap: "6px"
-  });
+  }); 
+
+  const toggleCategory = (cat) => {
+    setFood((prev) => {
+      const currentCats = Array.isArray(prev.category) ? prev.category : [];
+      
+      const isSelected = currentCats.includes(cat);
+      
+      const newCats = isSelected 
+        ? currentCats.filter((c) => c !== cat) 
+        : [...currentCats, cat];
+        
+      return { ...prev, category: newCats };
+    });
+  };
 
   return (
     <>
@@ -348,51 +351,28 @@ const AddFoodPage = () => {
               </div>
             </div>
 
-            {food.category === "Other..." ? (
-              <div className="edit-food-basic-info-two-col" style={{ marginTop: "1rem" }}>
-                <div>
-                  <label className="basic-info-label">{t("addFood.category")}</label>
-                  <div className="custom-select-wrapper">
-                    <select
-                      className="edit-food-select"
-                      name="category"
-                      value={food.category}
-                      onChange={handleChange}
-                    >
-                      {FOOD_TYPE_OPTIONS.map((type) => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="basic-info-label">{t("addFood.specifyCategoryLabel")}</label>
-                  <input
-                    className="edit-food-input"
-                    name="customCategory"
-                    value={food.customCategory}
-                    onChange={handleChange}
-                    placeholder={t("addFood.specifyCategoryPlaceholder")}
-                  />
-                </div>
+            <div className="food-category-field afp-category">
+              <label className="basic-info-label">{t("addFood.category")}</label>
+              
+              <div className="dietary-preferences-grid">
+                {FOOD_TYPE_OPTIONS.map((cat) => {
+                  const currentCats = Array.isArray(food.category) ? food.category : [];
+                  
+                  return (
+                    <label key={cat} className="dietary-option">
+                      <input
+                        type="checkbox"
+                        checked={currentCats.includes(cat)}
+                        onChange={() => toggleCategory(cat)}
+                      />
+                      <span>
+                        {t(`explore.cat_${cat.toLowerCase().replace(" ", "_")}`) || cat}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
-            ) : (
-              <div className="food-origin-field" style={{ marginTop: "1rem" }}>
-                <label className="basic-info-label">{t("addFood.category")}</label>
-                <div className="custom-select-wrapper">
-                  <select
-                    className="edit-food-select"
-                    name="category"
-                    value={food.category}
-                    onChange={handleChange}
-                  >
-                    {FOOD_TYPE_OPTIONS.map((type) => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
 
