@@ -715,6 +715,7 @@
   },
   
   "addFood": {
+    "category": "Categories",
     "backToDashboard": "Back to Dashboard",
     "pageTitle": "Add New Food Item",
     "addFoodBtn": "Add Food",
