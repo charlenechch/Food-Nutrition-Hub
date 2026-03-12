@@ -49,7 +49,7 @@ async function findClosestFood(queryText) {
 }
 
 async function embedFood(foodID, name, description = "") {
-  const text = [name, description].filter(Boolean).join(" — ");
+  const text = [name, description, commonIngredients].filter(Boolean).join(" — ");
   const vector = await generateEmbedding(text);
 
   // ✅ saves both embedding vector AND source text
