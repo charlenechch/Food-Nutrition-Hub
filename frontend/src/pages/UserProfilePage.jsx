@@ -505,7 +505,7 @@ const handleExportData = async () => {
     
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0];
-    a.download = `saved-foods-${count}-${timestamp}.pdf`;
+    a.download = `my-data-export-${timestamp}.pdf`;
     
     document.body.appendChild(a);
     a.click();
