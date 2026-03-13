@@ -919,8 +919,8 @@ router.post('/export/saved-foods', async (req, res) => {
     if (dataTypes.includes('profile')) {
       const [profileRows] = await connection.execute(`
         SELECT u.firstname, u.lastname, u.email, u.role,
-              up.bio, up.location, up.dietaryPreference, up.allergies, up.language,
-              u.created_at
+              u.status, u.lastLogin, u.consent_date,
+              up.bio, up.location, up.dietaryPreference, up.allergies, up.language
         FROM user u
         JOIN userProfile up ON u.userID = up.userID
         WHERE u.userID = ?
@@ -1122,7 +1122,9 @@ router.post('/export/saved-foods', async (req, res) => {
       if (profileData.bio) doc.text(`Bio: ${profileData.bio}`);
       if (profileData.dietaryPreference) doc.text(`Dietary Preference: ${profileData.dietaryPreference}`);
       if (profileData.allergies) doc.text(`Allergies: ${profileData.allergies}`);
-      if (profileData.created_at) doc.text(`Member Since: ${new Date(profileData.created_at).toLocaleDateString()}`);
+      if (profileData.status) doc.text(`Account Status: ${profileData.status}`);
+      if (profileData.lastLogin) doc.text(`Last Login: ${new Date(profileData.lastLogin).toLocaleDateString()}`);
+      if (profileData.consent_date) doc.text(`Consent Date: ${new Date(profileData.consent_date).toLocaleDateString()}`);
       doc.moveDown(2);
     }
 
