@@ -1754,7 +1754,7 @@ const ContributionRow = ({ c }) => {
                 { key: "likedPosts", label: "Liked Posts", hasDropdown: true },
               ].map(({ key, label, hasDropdown }) => (
                 <div key={key} className={`upp-export-accordion ${exportModal.expandedType === key ? "is-expanded" : ""}`}>
-                  <label className={`upp-export-option ${exportModal.dataTypes.includes(key) ? "is-selected" : ""}`}>
+                  <label className={`upp-export-option ${exportModal.dataTypes.includes(key) ? "is-selected" : ""} ${hasDropdown ? "has-dropdown" : ""}`}>
                     <input
                       type="checkbox"
                       checked={exportModal.dataTypes.includes(key)}
@@ -1772,6 +1772,9 @@ const ContributionRow = ({ c }) => {
                       }}
                     />
                     <span>{label}</span>
+                    {hasDropdown && !exportModal.dataTypes.includes(key) && (
+                      <span className="upp-export-hint">Click to expand ▼</span>
+                    )}
                     {hasDropdown && exportModal.dataTypes.includes(key) && (
                       <button
                         className="upp-export-accordion-toggle"

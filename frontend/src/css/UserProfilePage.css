@@ -839,6 +839,28 @@
   font-weight: 600;
 }
 
+.upp-export-option.has-dropdown:hover {
+  border-color: #caa781;
+  background: #fdf6ef;
+  cursor: pointer;
+}
+
+.upp-export-option.has-dropdown:hover .upp-export-hint {
+  opacity: 1;
+}
+
+.upp-export-hint {
+  margin-left: auto;
+  font-size: 11px;
+  color: #caa781;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.upp-export-option.is-selected .upp-export-hint {
+  display: none;
+}
+
 .upp-export-list {
   max-height: 300px;
   overflow-y: auto;
