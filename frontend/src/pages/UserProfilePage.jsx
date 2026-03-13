@@ -170,11 +170,16 @@ const formatContributionDate = (dateString) => {
   // Export State
   const [exportModal, setExportModal] = useState({
     open: false,
-    title: "",
-    message: "",
+    title: '',
+    loading: false,
     selectedFoods: [],
     selectAll: false,
-    loading: false
+    dataTypes: [],
+    expandedType: null,
+    exportRecipes: [],
+    exportPosts: [],
+    exportLikedPosts: [],
+    exportLoading: false,
   });
 
   // State
@@ -268,19 +273,47 @@ const formatContributionDate = (dateString) => {
   const closePasswordModal = () =>
     setPwModal(m => ({ ...m, open: false, onSubmit: null, password: "" }));
 
-const openExportModal = () => {
-  const savedFoodsArray = user?.savedFoods || [];
-  setExportModal({
-    open: true,
-    title: t("profile.exportTitle"),
-    message: t("profile.exportMsg"),
-    selectedFoods: [], // Start with none selected
-    selectAll: false,
-    loading: false,
-    step: 1,
-    dataTypes: []
-  });
-};
+  const fetchExportData = async () => {
+    setExportModal(m => ({ ...m, exportLoading: true }));
+    try {
+      const [recipesRes, postsRes, likedRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/recipe/user/${user.userID}`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/communityPost/user/${user.userID}`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/communityPost/liked/${user.userID}`, { credentials: 'include' }),
+      ]);
+      const recipesData = recipesRes.ok ? await recipesRes.json() : { data: [] };
+      const postsData = postsRes.ok ? await postsRes.json() : [];
+      const likedData = likedRes.ok ? await likedRes.json() : [];
+      setExportModal(m => ({
+        ...m,
+        exportRecipes: recipesData.data || [],
+        exportPosts: Array.isArray(postsData) ? postsData : postsData.data || [],
+        exportLikedPosts: Array.isArray(likedData) ? likedData : likedData.data || [],
+        exportLoading: false,
+      }));
+    } catch (error) {
+      console.error('Failed to fetch export data:', error);
+      setExportModal(m => ({ ...m, exportLoading: false }));
+    }
+  };
+
+  const openExportModal = () => {
+    setExportModal({
+      open: true,
+      title: t("profile.exportTitle"),
+      message: t("profile.exportMsg"),
+      selectedFoods: [], // Start with none selected
+      selectAll: false,
+      loading: false,
+      expandedType: null,
+      exportRecipes: [],
+      exportPosts: [],
+      exportLikedPosts: [],
+      exportLoading: false,
+      dataTypes: []
+    });
+    fetchExportData();
+  };
 
 const closeExportModal = () => {
   setExportModal(m => ({ ...m, open: false, loading: false }));
@@ -1710,119 +1743,158 @@ const ContributionRow = ({ c }) => {
             </div>
             
             <div className="upp-modal-body">
-              {/* Step 1: Select data types */}
-              {exportModal.step === 1 && (
-                <>
-                  <p className="upp-muted">
-                    Select the data you would like to include in your export.
-                  </p>
-                  {[
-                    { key: "profile", label: "Profile Information" },
-                    { key: "savedFoods", label: `Saved Foods (${user?.savedFoods?.length || 0})` },
-                    { key: "recipes", label: "My Recipes" },
-                    { key: "posts", label: "My Community Posts" },
-                    { key: "likedPosts", label: "Liked Posts" },
-                  ].map(({ key, label }) => (
-                    <label key={key} className={`upp-export-option ${exportModal.dataTypes.includes(key) ? "is-selected" : ""}`}>
-                      <input
-                        type="checkbox"
-                        checked={exportModal.dataTypes.includes(key)}
-                        onChange={() => {
-                          setExportModal(m => ({
+              <p className="upp-muted">
+                Select the data you would like to include in your export.
+              </p>
+              {[
+                { key: "profile", label: "Profile Information", hasDropdown: false },
+                { key: "savedFoods", label: `Saved Foods (${user?.savedFoods?.length || 0})`, hasDropdown: true },
+                { key: "recipes", label: "My Recipes", hasDropdown: true },
+                { key: "posts", label: "My Community Posts", hasDropdown: true },
+                { key: "likedPosts", label: "Liked Posts", hasDropdown: true },
+              ].map(({ key, label, hasDropdown }) => (
+                <div key={key} className={`upp-export-accordion ${exportModal.expandedType === key ? "is-expanded" : ""}`}>
+                  <label className={`upp-export-option ${exportModal.dataTypes.includes(key) ? "is-selected" : ""}`}>
+                    <input
+                      type="checkbox"
+                      checked={exportModal.dataTypes.includes(key)}
+                      onChange={() => {
+                        setExportModal(m => {
+                          const isChecked = m.dataTypes.includes(key);
+                          return {
                             ...m,
-                            dataTypes: m.dataTypes.includes(key)
+                            dataTypes: isChecked
                               ? m.dataTypes.filter(t => t !== key)
-                              : [...m.dataTypes, key]
-                          }));
+                              : [...m.dataTypes, key],
+                            expandedType: !isChecked && hasDropdown ? key : m.expandedType === key ? null : m.expandedType,
+                          };
+                        });
+                      }}
+                    />
+                    <span>{label}</span>
+                    {hasDropdown && exportModal.dataTypes.includes(key) && (
+                      <button
+                        className="upp-export-accordion-toggle"
+                        onClick={e => {
+                          e.preventDefault();
+                          setExportModal(m => ({ ...m, expandedType: m.expandedType === key ? null : key }));
                         }}
-                      />
-                      <span>{label}</span>
-                    </label>
-                  ))}
-                </>
-              )}
-
-              {/* Step 2: Select saved foods */}
-              {exportModal.step === 2 && (
-                <>
-                  <p className="upp-muted">
-                    Select which saved foods to include in the export.
-                  </p>
-                  <div className="upp-export-select-all">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={exportModal.selectAll}
-                        onChange={toggleSelectAll}
-                      />
-                      <span>{t("profile.selectAll")}</span>
-                    </label>
-                  </div>
-                  <div className="upp-export-list">
-                    {user?.savedFoods?.length > 0 ? (
-                      user.savedFoods.map((food, index) => (
-                        <div
-                          key={food.id || food.saveId || index}
-                          className="upp-export-item"
-                        >
-                          <input
-                            type="checkbox"
-                            id={`food-${food.saveId}`}
-                            checked={exportModal.selectedFoods.includes(food.saveId)}
-                            onChange={() => toggleFoodSelection(food.saveId)}
-                          />
-                          <div className="upp-export-item-info">
-                            <div className="upp-export-item-name">{food.name || t("profile.unnamedFood")}</div>
-                            <div className="upp-export-item-meta">
-                              {food.origin || t("profile.unknownOrigin")} • {t("profile.savedLabel")} {food.savedDate || t("profile.unknownDate")}
-                            </div>
-                          </div>
-                          {food.image && (
-                            <img src={food.image} alt={food.name} className="upp-export-item-thumb" />
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="upp-center upp-muted">
-                        {t("profile.noSavedFoodsExport")}
-                      </div>
+                      >
+                        {exportModal.expandedType === key ? '▲' : '▼'}
+                      </button>
                     )}
-                  </div>
-                  <div className="upp-export-count">
-                    Selected: {exportModal.selectedFoods.length} of {user?.savedFoods?.length || 0} foods
-                  </div>
-                </>
-              )}
+                  </label>
+
+                  {/* Dropdown for Saved Foods */}
+                  {key === "savedFoods" && exportModal.dataTypes.includes(key) && (
+                    <div className="upp-export-dropdown">
+                      <div className="upp-export-select-all">
+                        <label>
+                          <input type="checkbox" checked={exportModal.selectAll} onChange={toggleSelectAll} />
+                          <span>{t("profile.selectAll")}</span>
+                        </label>
+                      </div>
+                      <div className="upp-export-list">
+                        {user?.savedFoods?.length > 0 ? user.savedFoods.map((food, index) => (
+                          <div key={food.id || food.saveId || index} className="upp-export-item">
+                            <input
+                              type="checkbox"
+                              checked={exportModal.selectedFoods.includes(food.saveId)}
+                              onChange={() => toggleFoodSelection(food.saveId)}
+                            />
+                            <div className="upp-export-item-info">
+                              <div className="upp-export-item-name">{food.name || t("profile.unnamedFood")}</div>
+                              <div className="upp-export-item-meta">
+                                {food.origin || t("profile.unknownOrigin")} • {t("profile.savedLabel")} {food.savedDate || t("profile.unknownDate")}
+                              </div>
+                            </div>
+                            {food.image && <img src={food.image} alt={food.name} className="upp-export-item-thumb" />}
+                          </div>
+                        )) : (
+                          <div className="upp-center upp-muted">{t("profile.noSavedFoodsExport")}</div>
+                        )}
+                      </div>
+                      <div className="upp-export-count">
+                        Selected: {exportModal.selectedFoods.length} of {user?.savedFoods?.length || 0} foods
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dropdown for Recipes */}
+                  {key === "recipes" && exportModal.dataTypes.includes(key) && (
+                    <div className="upp-export-dropdown">
+                      {exportModal.exportLoading ? (
+                        <div className="upp-center upp-muted">Loading...</div>
+                      ) : exportModal.exportRecipes.length > 0 ? exportModal.exportRecipes.map(recipe => (
+                        <div key={recipe.recipeID} className="upp-export-item">
+                          <div className="upp-export-item-info">
+                            <div className="upp-export-item-name">{recipe.foodName}</div>
+                            <div className="upp-export-item-meta">{recipe.origin} • {recipe.status}</div>
+                          </div>
+                        </div>
+                      )) : (
+                        <div className="upp-center upp-muted">No recipes found.</div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Dropdown for Posts */}
+                  {key === "posts" && exportModal.dataTypes.includes(key) && (
+                    <div className="upp-export-dropdown">
+                      {exportModal.exportLoading ? (
+                        <div className="upp-center upp-muted">Loading...</div>
+                      ) : exportModal.exportPosts.length > 0 ? exportModal.exportPosts.map(post => (
+                        <div key={post.postID} className="upp-export-item">
+                          <div className="upp-export-item-info">
+                            <div className="upp-export-item-name">{post.title}</div>
+                            <div className="upp-export-item-meta">{post.status}</div>
+                          </div>
+                        </div>
+                      )) : (
+                        <div className="upp-center upp-muted">No posts found.</div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Dropdown for Liked Posts */}
+                  {key === "likedPosts" && exportModal.dataTypes.includes(key) && (
+                    <div className="upp-export-dropdown">
+                      {exportModal.exportLoading ? (
+                        <div className="upp-center upp-muted">Loading...</div>
+                      ) : exportModal.exportLikedPosts.length > 0 ? exportModal.exportLikedPosts.map(post => (
+                        <div key={post.postID} className="upp-export-item">
+                          <div className="upp-export-item-info">
+                            <div className="upp-export-item-name">{post.title}</div>
+                            <div className="upp-export-item-meta">{post.status}</div>
+                          </div>
+                        </div>
+                      )) : (
+                        <div className="upp-center upp-muted">No liked posts found.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
             <div className="upp-modal-footer">
               <button
                 className="lrp-btn lrp-btn-outline"
-                onClick={exportModal.step === 2 ? () => setExportModal(m => ({ ...m, step: 1 })) : closeExportModal}
+                onClick={closeExportModal}
                 disabled={exportModal.loading}
               >
-                {exportModal.step === 2 ? "Back" : t("profile.cancel")}
+                {t("profile.cancel")}
               </button>
               <button
                 className="lrp-btn lrp-btn-primary"
-                onClick={() => {
-                  if (exportModal.step === 1 && exportModal.dataTypes.includes("savedFoods")) {
-                    setExportModal(m => ({ ...m, step: 2 }));
-                  } else {
-                    handleExportData();
-                  }
-                }}
+                onClick={handleExportData}
                 disabled={
                   exportModal.loading ||
                   exportModal.dataTypes.length === 0 ||
-                  (exportModal.step === 2 && exportModal.selectedFoods.length === 0)
+                  (exportModal.dataTypes.includes("savedFoods") && exportModal.selectedFoods.length === 0)
                 }
               >
-                {exportModal.loading
-                  ? t("profile.exporting")
-                  : exportModal.step === 1 && exportModal.dataTypes.includes("savedFoods")
-                  ? "Next"
-                  : t("profile.exportBtn")}
+                {exportModal.loading ? t("profile.exporting") : t("profile.exportBtn")}
               </button>
             </div>
           </div>

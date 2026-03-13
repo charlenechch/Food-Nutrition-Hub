@@ -778,7 +778,7 @@
   }
 }
 
-/* ===== Private Profile View ===== */
+/* Private Profile View */
 .upp-private-view {
     padding: 60px 20px;
     margin-top: 20px;
@@ -805,7 +805,7 @@
     line-height: 1.5;
 }
 
-/* ===== Export Modal ===== */
+/* Export Modal */
 .upp-export-option {
   display: flex;
   align-items: center;
@@ -900,4 +900,33 @@
 .upp-export-select-all input {
   margin-right: 8px;
   accent-color: #caa781;
+}
+
+/* Export Accordion */
+.upp-export-accordion {
+  margin-bottom: 8px;
+}
+
+.upp-export-accordion-toggle {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  color: #6a4a2f;
+  padding: 0 4px;
+}
+
+.upp-export-dropdown {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  padding: 0 8px;
+  border-left: 2px solid #e8dfd6;
+  margin-left: 10px;
+}
+
+.upp-export-accordion.is-expanded .upp-export-dropdown {
+  max-height: 400px;
+  padding: 10px 8px;
 }
