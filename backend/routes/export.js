@@ -1102,7 +1102,7 @@ router.post('/export/saved-foods', async (req, res) => {
     doc.moveDown();
     doc.fontSize(10)
        .font('Helvetica')
-       .text(`Exported on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, { align: 'center' });
+       .text(`Exported on: ${new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuching' })}`, { align: 'center' });
     const dataTypeLabels = {
       profile: 'Profile Information',
       savedFoods: 'Saved Foods',
