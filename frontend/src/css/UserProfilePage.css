@@ -98,6 +98,8 @@
 
 .upp-modal-body {
   padding: 18px 20px 8px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .upp-block input[type="password"],
@@ -957,7 +959,7 @@
 }
 
 .upp-export-active-badge {
-  margin-left: auto;
+  margin-left: 10px;
   font-size: 11px;
   color: #6a4a2f;
   font-weight: 600;
