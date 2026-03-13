@@ -827,11 +827,14 @@
   display: inline-block;
   margin-right: 10px;
   accent-color: #caa781;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
 }
 
 .upp-export-option span {
   color: #333;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .upp-export-option.is-selected span {

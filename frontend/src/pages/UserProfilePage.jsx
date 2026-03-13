@@ -509,6 +509,9 @@ const handleExportData = async () => {
     let exportPayload = {
       dataTypes,
       saveIds: selectedFoods,
+      recipeIds: selectedRecipes,
+      postIds: selectedPosts,
+      likedPostIds: selectedLikedPosts,
     };
     
     console.log("📤 Exporting saved foods:", exportPayload);
@@ -1847,14 +1850,48 @@ const ContributionRow = ({ c }) => {
                     <div className="upp-export-dropdown">
                       {exportModal.exportLoading ? (
                         <div className="upp-center upp-muted">Loading...</div>
-                      ) : exportModal.exportRecipes.length > 0 ? exportModal.exportRecipes.map(recipe => (
-                        <div key={recipe.recipeID} className="upp-export-item">
-                          <div className="upp-export-item-info">
-                            <div className="upp-export-item-name">{recipe.foodName}</div>
-                            <div className="upp-export-item-meta">{recipe.origin} • {recipe.status}</div>
+                      ) : exportModal.exportRecipes.length > 0 ? (
+                        <>
+                          <div className="upp-export-select-all">
+                            <label>
+                              <input
+                                type="checkbox"
+                                checked={exportModal.selectedRecipes.length === exportModal.exportRecipes.length && exportModal.exportRecipes.length > 0}
+                                onChange={() => {
+                                  setExportModal(m => ({
+                                    ...m,
+                                    selectedRecipes: m.selectedRecipes.length === m.exportRecipes.length ? [] : m.exportRecipes.map(r => r.recipeID)
+                                  }));
+                                }}
+                              />
+                              <span>{t("profile.selectAll")}</span>
+                            </label>
                           </div>
-                        </div>
-                      )) : (
+                          <div className="upp-export-list">
+                            {exportModal.exportRecipes.map(recipe => (
+                              <div key={recipe.recipeID} className="upp-export-item">
+                                <input
+                                  type="checkbox"
+                                  checked={exportModal.selectedRecipes.includes(recipe.recipeID)}
+                                  onChange={() => setExportModal(m => ({
+                                    ...m,
+                                    selectedRecipes: m.selectedRecipes.includes(recipe.recipeID)
+                                      ? m.selectedRecipes.filter(id => id !== recipe.recipeID)
+                                      : [...m.selectedRecipes, recipe.recipeID]
+                                  }))}
+                                />
+                                <div className="upp-export-item-info">
+                                  <div className="upp-export-item-name">{recipe.foodName}</div>
+                                  <div className="upp-export-item-meta">{recipe.origin} • {recipe.status}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="upp-export-count">
+                            Selected: {exportModal.selectedRecipes.length} of {exportModal.exportRecipes.length} recipes
+                          </div>
+                        </>
+                      ) : (
                         <div className="upp-center upp-muted">No recipes found.</div>
                       )}
                     </div>
@@ -1865,14 +1902,48 @@ const ContributionRow = ({ c }) => {
                     <div className="upp-export-dropdown">
                       {exportModal.exportLoading ? (
                         <div className="upp-center upp-muted">Loading...</div>
-                      ) : exportModal.exportPosts.length > 0 ? exportModal.exportPosts.map(post => (
-                        <div key={post.postID} className="upp-export-item">
-                          <div className="upp-export-item-info">
-                            <div className="upp-export-item-name">{post.title}</div>
-                            <div className="upp-export-item-meta">{post.status}</div>
+                      ) : exportModal.exportPosts.length > 0 ? (
+                        <>
+                          <div className="upp-export-select-all">
+                            <label>
+                              <input
+                                type="checkbox"
+                                checked={exportModal.selectedPosts.length === exportModal.exportPosts.length && exportModal.exportPosts.length > 0}
+                                onChange={() => {
+                                  setExportModal(m => ({
+                                    ...m,
+                                    selectedPosts: m.selectedPosts.length === m.exportPosts.length ? [] : m.exportPosts.map(p => p.postID)
+                                  }));
+                                }}
+                              />
+                              <span>{t("profile.selectAll")}</span>
+                            </label>
                           </div>
-                        </div>
-                      )) : (
+                          <div className="upp-export-list">
+                            {exportModal.exportPosts.map(post => (
+                              <div key={post.postID} className="upp-export-item">
+                                <input
+                                  type="checkbox"
+                                  checked={exportModal.selectedPosts.includes(post.postID)}
+                                  onChange={() => setExportModal(m => ({
+                                    ...m,
+                                    selectedPosts: m.selectedPosts.includes(post.postID)
+                                      ? m.selectedPosts.filter(id => id !== post.postID)
+                                      : [...m.selectedPosts, post.postID]
+                                  }))}
+                                />
+                                <div className="upp-export-item-info">
+                                  <div className="upp-export-item-name">{post.title}</div>
+                                  <div className="upp-export-item-meta">{post.status}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="upp-export-count">
+                            Selected: {exportModal.selectedPosts.length} of {exportModal.exportPosts.length} posts
+                          </div>
+                        </>
+                      ) : (
                         <div className="upp-center upp-muted">No posts found.</div>
                       )}
                     </div>
@@ -1883,14 +1954,48 @@ const ContributionRow = ({ c }) => {
                     <div className="upp-export-dropdown">
                       {exportModal.exportLoading ? (
                         <div className="upp-center upp-muted">Loading...</div>
-                      ) : exportModal.exportLikedPosts.length > 0 ? exportModal.exportLikedPosts.map(post => (
-                        <div key={post.postID} className="upp-export-item">
-                          <div className="upp-export-item-info">
-                            <div className="upp-export-item-name">{post.title}</div>
-                            <div className="upp-export-item-meta">{post.status}</div>
+                      ) : exportModal.exportLikedPosts.length > 0 ? (
+                        <>
+                          <div className="upp-export-select-all">
+                            <label>
+                              <input
+                                type="checkbox"
+                                checked={exportModal.selectedLikedPosts.length === exportModal.exportLikedPosts.length && exportModal.exportLikedPosts.length > 0}
+                                onChange={() => {
+                                  setExportModal(m => ({
+                                    ...m,
+                                    selectedLikedPosts: m.selectedLikedPosts.length === m.exportLikedPosts.length ? [] : m.exportLikedPosts.map(p => p.postID)
+                                  }));
+                                }}
+                              />
+                              <span>{t("profile.selectAll")}</span>
+                            </label>
                           </div>
-                        </div>
-                      )) : (
+                          <div className="upp-export-list">
+                            {exportModal.exportLikedPosts.map(post => (
+                              <div key={post.postID} className="upp-export-item">
+                                <input
+                                  type="checkbox"
+                                  checked={exportModal.selectedLikedPosts.includes(post.postID)}
+                                  onChange={() => setExportModal(m => ({
+                                    ...m,
+                                    selectedLikedPosts: m.selectedLikedPosts.includes(post.postID)
+                                      ? m.selectedLikedPosts.filter(id => id !== post.postID)
+                                      : [...m.selectedLikedPosts, post.postID]
+                                  }))}
+                                />
+                                <div className="upp-export-item-info">
+                                  <div className="upp-export-item-name">{post.title}</div>
+                                  <div className="upp-export-item-meta">{post.status}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="upp-export-count">
+                            Selected: {exportModal.selectedLikedPosts.length} of {exportModal.exportLikedPosts.length} liked posts
+                          </div>
+                        </>
+                      ) : (
                         <div className="upp-center upp-muted">No liked posts found.</div>
                       )}
                     </div>
