@@ -1103,7 +1103,17 @@ router.post('/export/saved-foods', async (req, res) => {
     doc.fontSize(10)
        .font('Helvetica')
        .text(`Exported on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, { align: 'center' });
-    doc.text(`Export type: ${exportType} | Total items: ${savedFoods.length}`, { align: 'center' });
+    const dataTypeLabels = {
+      profile: 'Profile Information',
+      savedFoods: 'Saved Foods',
+      recipes: 'My Recipes',
+      posts: 'My Community Posts',
+      likedPosts: 'Liked Posts'
+    };
+    const totalItems = savedFoods.length + myRecipes.length + myPosts.length + likedPosts.length;
+    const exportedLabels = dataTypes.map(t => dataTypeLabels[t] || t).join(', ');
+    doc.text(`Total items exported: ${totalItems}`, { align: 'center' });
+    doc.text(`Includes: ${exportedLabels}`, { align: 'center' });
     //doc.text(`User: ${req.session.user.firstName} ${req.session.user.lastName}`, { align: 'center' });
     
     doc.moveDown(2);
@@ -1130,7 +1140,7 @@ router.post('/export/saved-foods', async (req, res) => {
 
     // My Recipes
     if (myRecipes.length > 0) {
-      doc.fontSize(14).font('Helvetica-Bold').text('My Recipes');
+      doc.fontSize(14).font('Helvetica-Bold').text(`My Recipes (${myRecipes.length})`);
       doc.moveDown(0.5);
       doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
       doc.moveDown(1);
@@ -1166,7 +1176,7 @@ router.post('/export/saved-foods', async (req, res) => {
 
     // My Community Posts
     if (myPosts.length > 0) {
-      doc.fontSize(14).font('Helvetica-Bold').text('My Community Posts');
+      doc.fontSize(14).font('Helvetica-Bold').text(`My Community Posts (${myPosts.length})`);
       doc.moveDown(0.5);
       doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
       doc.moveDown(1);
@@ -1191,7 +1201,7 @@ router.post('/export/saved-foods', async (req, res) => {
 
     // Liked Posts
     if (likedPosts.length > 0) {
-      doc.fontSize(14).font('Helvetica-Bold').text('Liked Posts');
+      doc.fontSize(14).font('Helvetica-Bold').text(`Liked Posts (${likedPosts.length})`);
       doc.moveDown(0.5);
       doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
       doc.moveDown(1);
@@ -1218,7 +1228,7 @@ router.post('/export/saved-foods', async (req, res) => {
       // Table of Contents style
       doc.fontSize(14)
         .font('Helvetica-Bold')
-        .text('Saved Foods List');
+        .text(`Saved Foods List (${savedFoods.length})`);
       
       doc.moveDown(0.5);
       doc.moveTo(50, doc.y)
