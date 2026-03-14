@@ -341,12 +341,7 @@ export default function RecipesPage() {
         confirmText: t("recipes.trackMyPost"),
         onPrimary: () => {
           closeInfo();
-          if (user?.id || user?.userID) {
-            const uid = user.id || user.userID;
-            navigate(`/profile/${uid}?tab=status`); 
-          } else {
-            navigate("/profile?tab=status");
-          }
+          navigate("/profile?tab=status");
         },
 
         // Secondary Action
