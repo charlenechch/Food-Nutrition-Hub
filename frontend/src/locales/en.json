@@ -192,6 +192,7 @@
     "otherOption": "Other…",
     "specifyFoodType": "Specify Food Type",
     "specifyFoodTypePlaceholder": "e.g., Beverage, Snack",
+    "formCategory": "Categories",
     "formDescription": "Description *",
     "formDescriptionPlaceholder": "A short description about the dish",
     "uploadPhoto": "Upload Photo",
