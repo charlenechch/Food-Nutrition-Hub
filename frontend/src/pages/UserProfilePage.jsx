@@ -1614,22 +1614,6 @@ const ContributionRow = ({ c }) => {
                 </div>
 
                 <div className="upp-card">
-                  <h3 className="upp-card-title"><Globe className="rdp-sec-icon" color={"#6a4a2f"} /> Language</h3>
-                  <div className="upp-row between">
-                    <div>
-                      <div className="upp-strong">{t("profile.language")}</div>
-                      <div className="upp-muted2">{t("profile.chooseLanguage")}</div>
-                    </div>
-                    <button
-                      className="lrp-btn lrp-btn-outline upp-btn"
-                      onClick={() => setPrefs((p) => ({ ...p, language: p.language === "en" ? "ms" : "en" }))}
-                    >
-                      {prefs.language === "en" ? t("profile.switchToBM") : t("profile.switchToEN")}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="upp-card">
                   <h3 className="upp-card-title"><Eye className="rdp-sec-icon" color={"#6a4a2f"}/> Privacy</h3>
                   <div className="upp-row between">
                     <div>
