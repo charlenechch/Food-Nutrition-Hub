@@ -266,6 +266,10 @@
     margin-bottom: 2rem;
 }
 
+.upp-tab:active {
+  outline: none;
+}
+
 @media (max-width: 640px) {
   .upp-tabs {
     flex-direction: column;
