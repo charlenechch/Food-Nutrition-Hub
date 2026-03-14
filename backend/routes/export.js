@@ -1160,94 +1160,6 @@ router.post('/export/saved-foods', async (req, res) => {
       doc.moveDown(2);
     }
 
-    // My Recipes
-    if (myRecipes.length > 0) {
-      doc.fontSize(14).font('Helvetica-Bold').text('My Recipes');
-      doc.fontSize(9).font('Helvetica').text(`${myRecipes.length} items`);
-      doc.moveDown(0.5);
-      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-      doc.moveDown(1);
-
-      myRecipes.forEach((recipe, index) => {
-        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${recipe.foodName}`);
-        doc.fontSize(10).font('Helvetica');
-        doc.text(`Origin: ${recipe.origin || 'N/A'} | Category: ${recipe.category || 'N/A'}`);
-        doc.text(`Cook Time: ${recipe.cookTime || 'N/A'} min | Servings: ${recipe.servings || 'N/A'}`);
-        doc.text(`Status: ${recipe.status || 'N/A'}`);
-        if (recipe.ingredients) {
-          doc.moveDown(0.3);
-          doc.font('Helvetica-Bold').text('Ingredients:');
-          doc.font('Helvetica').text(recipe.ingredients.replace(/\\n/g, '\n'), { width: 500 });
-        }
-        if (recipe.steps) {
-          doc.moveDown(0.3);
-          doc.font('Helvetica-Bold').text('Steps:');
-          doc.font('Helvetica').text(recipe.steps.replace(/\\n/g, '\n').replace(/\*\*/g, ''), { width: 500 });
-        }
-        if (recipe.chefTips) {
-          doc.moveDown(0.3);
-          doc.font('Helvetica-Bold').text('Chef Tips:');
-          doc.font('Helvetica').text(recipe.chefTips, { width: 500 });
-        }
-        doc.moveDown(1);
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#CCCCCC').stroke();
-        doc.moveDown(1);
-        if (doc.y > 700) { doc.addPage(); doc.moveDown(1); }
-      });
-      doc.moveDown(1);
-    }
-
-    // My Community Posts
-    if (myPosts.length > 0) {
-      doc.fontSize(14).font('Helvetica-Bold').text('My Community Posts');
-      doc.fontSize(9).font('Helvetica').text(`${myPosts.length} items`);
-      doc.moveDown(0.5);
-      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-      doc.moveDown(1);
-
-      myPosts.forEach((post, index) => {
-        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${post.foodName}`);
-        doc.fontSize(10).font('Helvetica');
-        doc.text(`Origin: ${post.origin || 'N/A'} | Status: ${post.status || 'N/A'}`);
-        doc.text(`Posted on: ${new Date(post.created_at).toLocaleDateString()}`);
-        if (post.culturalStory) {
-          doc.moveDown(0.3);
-          doc.font('Helvetica-Bold').text('Cultural Story:');
-          doc.font('Helvetica').text(post.culturalStory, { width: 500, align: 'justify' });
-        }
-        doc.moveDown(1);
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#CCCCCC').stroke();
-        doc.moveDown(1);
-        if (doc.y > 700) { doc.addPage(); doc.moveDown(1); }
-      });
-      doc.moveDown(1);
-    }
-
-    // Liked Posts
-    if (likedPosts.length > 0) {
-      doc.fontSize(14).font('Helvetica-Bold').text('Liked Posts');
-      doc.fontSize(9).font('Helvetica').text(`${likedPosts.length} items`);
-      doc.moveDown(0.5);
-      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-      doc.moveDown(1);
-
-      likedPosts.forEach((post, index) => {
-        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${post.foodName}`);
-        doc.fontSize(10).font('Helvetica');
-        doc.text(`Origin: ${post.origin || 'N/A'}`);
-        doc.text(`Posted on: ${new Date(post.created_at).toLocaleDateString()}`);
-        if (post.culturalStory) {
-          doc.moveDown(0.3);
-          doc.font('Helvetica-Bold').text('Cultural Story:');
-          doc.font('Helvetica').text(post.culturalStory, { width: 500, align: 'justify' });
-        }
-        doc.moveDown(1);
-        doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#CCCCCC').stroke();
-        doc.moveDown(1);
-        if (doc.y > 700) { doc.addPage(); doc.moveDown(1); }
-      });
-      doc.moveDown(1);
-    }
     // ===== SECTION: Saved Foods =====
     if (savedFoods.length > 0) {
       // Table of Contents style
@@ -1478,6 +1390,95 @@ router.post('/export/saved-foods', async (req, res) => {
       }
     });
   }
+
+  // My Recipes
+    if (myRecipes.length > 0) {
+      doc.fontSize(14).font('Helvetica-Bold').text('My Recipes');
+      doc.fontSize(9).font('Helvetica').text(`${myRecipes.length} items`);
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown(1);
+
+      myRecipes.forEach((recipe, index) => {
+        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${recipe.foodName}`);
+        doc.fontSize(10).font('Helvetica');
+        doc.text(`Origin: ${recipe.origin || 'N/A'} | Category: ${recipe.category || 'N/A'}`);
+        doc.text(`Cook Time: ${recipe.cookTime || 'N/A'} min | Servings: ${recipe.servings || 'N/A'}`);
+        doc.text(`Status: ${recipe.status || 'N/A'}`);
+        if (recipe.ingredients) {
+          doc.moveDown(0.3);
+          doc.font('Helvetica-Bold').text('Ingredients:');
+          doc.font('Helvetica').text(recipe.ingredients.replace(/\\n/g, '\n'), { width: 500 });
+        }
+        if (recipe.steps) {
+          doc.moveDown(0.3);
+          doc.font('Helvetica-Bold').text('Steps:');
+          doc.font('Helvetica').text(recipe.steps.replace(/\\n/g, '\n').replace(/\*\*/g, ''), { width: 500 });
+        }
+        if (recipe.chefTips) {
+          doc.moveDown(0.3);
+          doc.font('Helvetica-Bold').text('Chef Tips:');
+          doc.font('Helvetica').text(recipe.chefTips, { width: 500 });
+        }
+        doc.moveDown(1);
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#CCCCCC').stroke();
+        doc.moveDown(1);
+        if (doc.y > 700) { doc.addPage(); doc.moveDown(1); }
+      });
+      doc.moveDown(1);
+    }
+
+    // My Community Posts
+    if (myPosts.length > 0) {
+      doc.fontSize(14).font('Helvetica-Bold').text('My Community Posts');
+      doc.fontSize(9).font('Helvetica').text(`${myPosts.length} items`);
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown(1);
+
+      myPosts.forEach((post, index) => {
+        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${post.foodName}`);
+        doc.fontSize(10).font('Helvetica');
+        doc.text(`Origin: ${post.origin || 'N/A'} | Status: ${post.status || 'N/A'}`);
+        doc.text(`Posted on: ${new Date(post.created_at).toLocaleDateString()}`);
+        if (post.culturalStory) {
+          doc.moveDown(0.3);
+          doc.font('Helvetica-Bold').text('Cultural Story:');
+          doc.font('Helvetica').text(post.culturalStory, { width: 500, align: 'justify' });
+        }
+        doc.moveDown(1);
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#CCCCCC').stroke();
+        doc.moveDown(1);
+        if (doc.y > 700) { doc.addPage(); doc.moveDown(1); }
+      });
+      doc.moveDown(1);
+    }
+
+    // Liked Posts
+    if (likedPosts.length > 0) {
+      doc.fontSize(14).font('Helvetica-Bold').text('Liked Posts');
+      doc.fontSize(9).font('Helvetica').text(`${likedPosts.length} items`);
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown(1);
+
+      likedPosts.forEach((post, index) => {
+        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${post.foodName}`);
+        doc.fontSize(10).font('Helvetica');
+        doc.text(`Origin: ${post.origin || 'N/A'}`);
+        doc.text(`Posted on: ${new Date(post.created_at).toLocaleDateString()}`);
+        if (post.culturalStory) {
+          doc.moveDown(0.3);
+          doc.font('Helvetica-Bold').text('Cultural Story:');
+          doc.font('Helvetica').text(post.culturalStory, { width: 500, align: 'justify' });
+        }
+        doc.moveDown(1);
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#CCCCCC').stroke();
+        doc.moveDown(1);
+        if (doc.y > 700) { doc.addPage(); doc.moveDown(1); }
+      });
+      doc.moveDown(1);
+    }
     
     // Footer
     doc.moveDown(3);

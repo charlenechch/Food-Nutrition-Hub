@@ -288,7 +288,7 @@ const formatContributionDate = (dateString) => {
       const likedData = likedRes.ok ? await likedRes.json() : [];
       setExportModal(m => ({
         ...m,
-        exportRecipes: recipesData.data || [],
+        exportRecipes: (recipesData.data || []).map(r => ({ ...r, id: r.id || r.recipeID })),
         exportPosts: Array.isArray(postsData) ? postsData : postsData.data || [],
         exportLikedPosts: Array.isArray(likedData) ? likedData : likedData.data || [],
         exportLoading: false,
@@ -1867,7 +1867,7 @@ const ContributionRow = ({ c }) => {
                                 <div className="upp-export-item-info">
                                   <div className="upp-export-item-name">{recipe.foodName}</div>
                                   <div className="upp-export-item-meta">
-                                    {recipe.origin} • <span className={`upp-chip ${getStatusClass(recipe.status)}`}>{recipe.status}</span>
+                                    {recipe.origin} <span className={`upp-chip ${getStatusClass(recipe.status)}`}>{recipe.status}</span> • {formatContributionDate(recipe.createdAt)}
                                   </div>
                                 </div>
                               </div>
@@ -1921,7 +1921,7 @@ const ContributionRow = ({ c }) => {
                                 <div className="upp-export-item-info">
                                   <div className="upp-export-item-name">{post.title}</div>
                                   <div className="upp-export-item-meta">
-                                    <span className={`upp-chip ${getStatusClass(post.status)}`}>{post.status}</span>
+                                    <span className={`upp-chip ${getStatusClass(post.status)}`}>{post.status}</span> • {formatContributionDate(post.createdAt)}
                                 </div>
                                 </div>
                               </div>
@@ -1974,7 +1974,6 @@ const ContributionRow = ({ c }) => {
                                 />
                                 <div className="upp-export-item-info">
                                   <div className="upp-export-item-name">{post.title}</div>
-                                  <div className="upp-export-item-meta">{post.status}</div>
                                 </div>
                               </div>
                             ))}
