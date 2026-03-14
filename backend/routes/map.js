@@ -62,7 +62,7 @@ function fromMySQL(row) {
 //    lat, lng   (optional) user location, defaults to Kuching centre
 //    radius     (optional) metres, default 5000
 // ────────────────────────────────────────────────────────────────
-router.get('/map', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const lat    = parseFloat(req.query.lat)    || KUCHING.lat;
     const lng    = parseFloat(req.query.lng)    || KUCHING.lng;
