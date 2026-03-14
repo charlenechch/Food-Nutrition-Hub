@@ -470,8 +470,8 @@ try {
   // Insert into recipe table
   const recipeQuery = `
     INSERT INTO recipe (
-      foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
   const recipeParams = [
@@ -872,7 +872,8 @@ try {
       servings = ?, 
       DidYouKnow = ?, 
       chefTips = ?, 
-      status = ?
+      status = ?,
+      description = ?
     WHERE foodID = ? AND userProfileID = ? 
   `;
   const recipeParams = [
@@ -894,8 +895,8 @@ try {
   console.log('⚠️ No existing recipe found, inserting new recipe entry instead');
   const insertRecipeQuery = `
     INSERT INTO recipe (
-      foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   await db.query(insertRecipeQuery, [
     id,
