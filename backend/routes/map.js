@@ -5,8 +5,8 @@
 
 const express = require('express');
 const router  = express.Router();
-const pool    = require('../config/db');          
-const axios   = require('axios');
+const { many } = require('../config/db');  // your existing MySQL pool
+const axios    = require('axios');
 
 const PLACES_KEY = process.env.GOOGLE_PLACES_KEY;
 const KUCHING    = { lat: 1.5535, lng: 110.3493 }; // default centre
@@ -62,7 +62,7 @@ function fromMySQL(row) {
 //    lat, lng   (optional) user location, defaults to Kuching centre
 //    radius     (optional) metres, default 5000
 // ────────────────────────────────────────────────────────────────
-router.get('/', async (req, res) => {
+router.get('/map', async (req, res) => {
   try {
     const lat    = parseFloat(req.query.lat)    || KUCHING.lat;
     const lng    = parseFloat(req.query.lng)    || KUCHING.lng;
@@ -72,7 +72,7 @@ router.get('/', async (req, res) => {
     const googleRes = await axios.post(
       'https://places.googleapis.com/v1/places:searchNearby',
       {
-        includedTypes:  ['restaurant', 'food', 'meal_takeaway', 'cafe'],
+        includedTypes: ['restaurant', 'cafe', 'food_court'],
         maxResultCount: 20,
         locationRestriction: {
           circle: {
@@ -102,7 +102,7 @@ router.get('/', async (req, res) => {
     const googlePins = (googleRes.data.places || []).map(fromGoogle);
 
     // ── 2. MySQL curated picks ────────────────────────────────
-    const [rows] = await pool.query(`
+    const rows = await many(`
       SELECT
         r.id, r.name, r.emoji, r.address,
         r.latitude, r.longitude, r.rating, r.review_count,
@@ -128,8 +128,8 @@ router.get('/', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('[GET /api/map]', err.message);
-    res.status(500).json({ error: 'Failed to load map data', detail: err.message });
+    console.error('[GET /api/map]', err.response?.data || err.message);
+    res.status(500).json({ error: 'Failed to load map data', detail: err.response?.data?.error?.message || err.message });
   }
 });
 
@@ -185,8 +185,8 @@ router.get('/search', async (req, res) => {
     res.json({ pins, total: pins.length, query });
 
   } catch (err) {
-    console.error('[GET /api/search]', err.message);
-    res.status(500).json({ error: 'Search failed', detail: err.message });
+    console.error('[GET /api/search]', err.response?.data || err.message);
+    res.status(500).json({ error: 'Search failed', detail: err.response?.data?.error?.message || err.message });
   }
 });
 
