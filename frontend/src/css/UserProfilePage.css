@@ -266,7 +266,7 @@
     margin-bottom: 2rem;
 }
 
-.upp-tab:active {
+.upp-tab:focus {
   outline: none;
 }
 
