@@ -875,7 +875,7 @@ router.post('/export/saved-foods', async (req, res) => {
     connection = await db.getConnection();
     
     const userId = req.session.user.userID;
-    const { saveIds } = req.body;
+    const { saveIds, dataTypes = [] } = req.body;
     
     console.log('📥 Export request processed:', { 
       userId, 
@@ -906,36 +906,93 @@ router.post('/export/saved-foods', async (req, res) => {
     
     const userProfileID = userProfileRows[0].userProfileID;
     console.log('📊 UserProfileID:', userProfileID);
-    
-    // Step 2: Get saved food IDs based on export type
-    let savedFoodsQuery = `
-      SELECT sf.saveID, f.foodID as id, sf.recipeID, f.name, f.origin, sf.createdAt as savedDate
-      FROM saveFood sf
-      JOIN food f ON sf.foodID = f.foodID
-      WHERE sf.userProfileID = ?
-    `;
-    
-    const queryParams = [userProfileID];
-    
-    if (saveIds && Array.isArray(saveIds) && saveIds.length > 0) {
-      // Export only selected foods
-      const placeholders = saveIds.map(() => '?').join(',');
-      savedFoodsQuery += ` AND sf.saveID IN (${placeholders})`;
-      queryParams.push(...saveIds);
-    }
-    
-    savedFoodsQuery += ' ORDER BY sf.createdAt DESC';
-    
-    const [savedFoods] = await connection.execute(savedFoodsQuery, queryParams);
-    
-    if (savedFoods.length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'No saved foods found to export' 
+
+    if (!dataTypes || dataTypes.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No data types selected for export'
       });
     }
+
+    // Step 2: Fetch profile information (only if selected)
+    let profileData = null;
+    if (dataTypes.includes('profile')) {
+      const [profileRows] = await connection.execute(`
+        SELECT u.firstname, u.lastname, u.email, u.role,
+              u.status, u.lastLogin, u.consent_date,
+              up.bio, up.location, up.dietaryPreference, up.allergies, up.language
+        FROM user u
+        JOIN userProfile up ON u.userID = up.userID
+        WHERE u.userID = ?
+      `, [userId]);
+      profileData = profileRows[0] || null;
+    }
+
+    // Step 3: Fetch user's recipes (only if selected)
+    let myRecipes = [];
+    if (dataTypes.includes('recipes')) {
+      const [recipeRows] = await connection.execute(`
+        SELECT r.recipeID, r.ingredients, r.steps, r.cookTime, r.servings,
+              r.DidYouKnow, r.chefTips, r.status, r.createdAt,
+              f.name as foodName, f.origin, f.category
+        FROM recipe r
+        JOIN food f ON r.foodID = f.foodID
+        WHERE r.userProfileID = ?
+        ORDER BY r.createdAt DESC
+      `, [userProfileID]);
+      myRecipes = recipeRows;
+    }
+
+    // Step 4: Fetch user's community posts (only if selected)
+    let myPosts = [];
+    if (dataTypes.includes('posts')) {
+      const [postRows] = await connection.execute(`
+        SELECT postID, foodName, origin, culturalStory, status, created_at
+        FROM posts
+        WHERE userProfileID = ?
+        ORDER BY created_at DESC
+      `, [userProfileID]);
+      myPosts = postRows;
+    }
+
+    // Step 5: Fetch user's liked posts (only if selected)
+    let likedPosts = [];
+    if (dataTypes.includes('likedPosts')) {
+      const [likedRows] = await connection.execute(`
+        SELECT p.postID, p.foodName, p.origin, p.culturalStory, p.created_at
+        FROM likes l
+        JOIN posts p ON l.postID = p.postID
+        WHERE l.userProfileID = ?
+        ORDER BY p.created_at DESC
+      `, [userProfileID]);
+      likedPosts = likedRows;
+    }
     
-    // Step 3: Fetch complete food details for each saved food
+    // Step 6: Get saved food IDs based on export type (only if selected)
+    let savedFoods = [];
+    if (dataTypes.includes('savedFoods')) {
+      let savedFoodsQuery = `
+        SELECT sf.saveID, f.foodID as id, sf.recipeID, f.name, f.origin, sf.createdAt as savedDate
+        FROM saveFood sf
+        JOIN food f ON sf.foodID = f.foodID
+        WHERE sf.userProfileID = ?
+      `;
+      
+      const queryParams = [userProfileID];
+      
+      if (saveIds && Array.isArray(saveIds) && saveIds.length > 0) {
+        // Export only selected foods
+        const placeholders = saveIds.map(() => '?').join(',');
+        savedFoodsQuery += ` AND sf.saveID IN (${placeholders})`;
+        queryParams.push(...saveIds);
+      }
+      
+      savedFoodsQuery += ' ORDER BY sf.createdAt DESC';
+      
+      [savedFoods] = await connection.execute(savedFoodsQuery, queryParams);
+    }
+    
+    // Step 7: Fetch complete food details for each saved food
     const foodIdsToFetch = savedFoods.map(sf => sf.id).filter(id => id);
     const recipeIdsToFetch = savedFoods.map(sf => sf.recipeID).filter(id => id);
 
@@ -1040,28 +1097,149 @@ router.post('/export/saved-foods', async (req, res) => {
     doc.moveDown(0.5);
     doc.fontSize(16)
        .font('Helvetica')
-       .text('Saved Foods Export', { align: 'center' });
+       .text('My Data Export', { align: 'center' });
     
     doc.moveDown();
     doc.fontSize(10)
        .font('Helvetica')
-       .text(`Exported on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, { align: 'center' });
-    doc.text(`Export type: ${exportType} | Total items: ${savedFoods.length}`, { align: 'center' });
+       .text(`Exported on: ${new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuching' })}`, { align: 'center' });
+    const dataTypeLabels = {
+      profile: 'Profile Information',
+      savedFoods: 'Saved Foods',
+      recipes: 'My Recipes',
+      posts: 'My Community Posts',
+      likedPosts: 'Liked Posts'
+    };
+    // const totalItems = savedFoods.length + myRecipes.length + myPosts.length + likedPosts.length;
+    const exportedLabels = dataTypes.map(t => dataTypeLabels[t] || t).join(', ');
+    // doc.text(`Total items exported: ${totalItems}`, { align: 'center' });
+    doc.text(`Includes: ${exportedLabels}`, { align: 'center' });
     //doc.text(`User: ${req.session.user.firstName} ${req.session.user.lastName}`, { align: 'center' });
     
     doc.moveDown(2);
-    
-    // Table of Contents style
-    doc.fontSize(14)
-       .font('Helvetica-Bold')
-       .text('Saved Foods List');
-    
-    doc.moveDown(0.5);
-    doc.moveTo(50, doc.y)
-       .lineTo(550, doc.y)
-       .stroke();
-    
-    doc.moveDown(1);
+
+    // Profile Information
+    if (profileData) {
+      doc.fontSize(14).font('Helvetica-Bold').text('Profile Information');
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown(1);
+      doc.fontSize(11).font('Helvetica');
+      doc.text(`Name: ${profileData.firstname} ${profileData.lastname}`);
+      doc.text(`Email: ${profileData.email}`);
+      doc.text(`Role: ${profileData.role}`);
+      if (profileData.location) doc.text(`Location: ${profileData.location}`);
+      if (profileData.bio) doc.text(`Bio: ${profileData.bio}`);
+      if (profileData.dietaryPreference) doc.text(`Dietary Preference: ${profileData.dietaryPreference}`);
+      if (profileData.allergies) doc.text(`Allergies: ${profileData.allergies}`);
+      if (profileData.status) doc.text(`Account Status: ${profileData.status}`);
+      if (profileData.lastLogin) doc.text(`Last Login: ${new Date(profileData.lastLogin).toLocaleDateString()}`);
+      if (profileData.consent_date) doc.text(`Consent Date: ${new Date(profileData.consent_date).toLocaleDateString()}`);
+      doc.moveDown(2);
+    }
+
+    // My Recipes
+    if (myRecipes.length > 0) {
+      doc.fontSize(14).font('Helvetica-Bold').text('My Recipes');
+      doc.fontSize(9).font('Helvetica').text(`${myRecipes.length} items`);
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown(1);
+
+      myRecipes.forEach((recipe, index) => {
+        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${recipe.foodName}`);
+        doc.fontSize(10).font('Helvetica');
+        doc.text(`Origin: ${recipe.origin || 'N/A'} | Category: ${recipe.category || 'N/A'}`);
+        doc.text(`Cook Time: ${recipe.cookTime || 'N/A'} min | Servings: ${recipe.servings || 'N/A'}`);
+        doc.text(`Status: ${recipe.status || 'N/A'}`);
+        if (recipe.ingredients) {
+          doc.moveDown(0.3);
+          doc.font('Helvetica-Bold').text('Ingredients:');
+          doc.font('Helvetica').text(recipe.ingredients.replace(/\\n/g, '\n'), { width: 500 });
+        }
+        if (recipe.steps) {
+          doc.moveDown(0.3);
+          doc.font('Helvetica-Bold').text('Steps:');
+          doc.font('Helvetica').text(recipe.steps.replace(/\\n/g, '\n').replace(/\*\*/g, ''), { width: 500 });
+        }
+        if (recipe.chefTips) {
+          doc.moveDown(0.3);
+          doc.font('Helvetica-Bold').text('Chef Tips:');
+          doc.font('Helvetica').text(recipe.chefTips, { width: 500 });
+        }
+        doc.moveDown(1);
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#CCCCCC').stroke();
+        doc.moveDown(1);
+        if (doc.y > 700) { doc.addPage(); doc.moveDown(1); }
+      });
+      doc.moveDown(1);
+    }
+
+    // My Community Posts
+    if (myPosts.length > 0) {
+      doc.fontSize(14).font('Helvetica-Bold').text('My Community Posts');
+      doc.fontSize(9).font('Helvetica').text(`${myPosts.length} items`);
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown(1);
+
+      myPosts.forEach((post, index) => {
+        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${post.foodName}`);
+        doc.fontSize(10).font('Helvetica');
+        doc.text(`Origin: ${post.origin || 'N/A'} | Status: ${post.status || 'N/A'}`);
+        doc.text(`Posted on: ${new Date(post.created_at).toLocaleDateString()}`);
+        if (post.culturalStory) {
+          doc.moveDown(0.3);
+          doc.font('Helvetica-Bold').text('Cultural Story:');
+          doc.font('Helvetica').text(post.culturalStory, { width: 500, align: 'justify' });
+        }
+        doc.moveDown(1);
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#CCCCCC').stroke();
+        doc.moveDown(1);
+        if (doc.y > 700) { doc.addPage(); doc.moveDown(1); }
+      });
+      doc.moveDown(1);
+    }
+
+    // Liked Posts
+    if (likedPosts.length > 0) {
+      doc.fontSize(14).font('Helvetica-Bold').text('Liked Posts');
+      doc.fontSize(9).font('Helvetica').text(`${likedPosts.length} items`);
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown(1);
+
+      likedPosts.forEach((post, index) => {
+        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${post.foodName}`);
+        doc.fontSize(10).font('Helvetica');
+        doc.text(`Origin: ${post.origin || 'N/A'}`);
+        doc.text(`Posted on: ${new Date(post.created_at).toLocaleDateString()}`);
+        if (post.culturalStory) {
+          doc.moveDown(0.3);
+          doc.font('Helvetica-Bold').text('Cultural Story:');
+          doc.font('Helvetica').text(post.culturalStory, { width: 500, align: 'justify' });
+        }
+        doc.moveDown(1);
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor('#CCCCCC').stroke();
+        doc.moveDown(1);
+        if (doc.y > 700) { doc.addPage(); doc.moveDown(1); }
+      });
+      doc.moveDown(1);
+    }
+    // ===== SECTION: Saved Foods =====
+    if (savedFoods.length > 0) {
+      // Table of Contents style
+      doc.fontSize(14)
+        .font('Helvetica-Bold')
+        .text('Saved Foods List');
+        doc.fontSize(9).font('Helvetica').text(`${savedFoods.length} items`);
+      
+      doc.moveDown(0.5);
+      doc.moveTo(50, doc.y)
+        .lineTo(550, doc.y)
+        .stroke();
+      
+      doc.moveDown(1);
     
     // List each saved food
     savedFoods.forEach((sf, index) => {
@@ -1277,6 +1455,7 @@ router.post('/export/saved-foods', async (req, res) => {
         }
       }
     });
+  }
     
     // Footer
     doc.moveDown(3);

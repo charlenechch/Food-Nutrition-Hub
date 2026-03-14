@@ -170,11 +170,18 @@ const formatContributionDate = (dateString) => {
   // Export State
   const [exportModal, setExportModal] = useState({
     open: false,
-    title: "",
-    message: "",
+    title: '',
+    loading: false,
+    includeProfile: false,
     selectedFoods: [],
-    selectAll: false,
-    loading: false
+    selectedRecipes: [],
+    selectedPosts: [],
+    selectedLikedPosts: [],
+    expandedType: null,
+    exportRecipes: [],
+    exportPosts: [],
+    exportLikedPosts: [],
+    exportLoading: false,
   });
 
   // State
@@ -268,17 +275,49 @@ const formatContributionDate = (dateString) => {
   const closePasswordModal = () =>
     setPwModal(m => ({ ...m, open: false, onSubmit: null, password: "" }));
 
-const openExportModal = () => {
-  const savedFoodsArray = user?.savedFoods || [];
-  setExportModal({
-    open: true,
-    title: t("profile.exportTitle"),
-    message: t("profile.exportMsg"),
-    selectedFoods: [], // Start with none selected
-    selectAll: false,
-    loading: false
-  });
-};
+  const fetchExportData = async () => {
+    setExportModal(m => ({ ...m, exportLoading: true }));
+    try {
+      const [recipesRes, postsRes, likedRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/recipe/user/${user.userID}`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/communityPost/user/${user.userID}`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/communityPost/liked/${user.userID}`, { credentials: 'include' }),
+      ]);
+      const recipesData = recipesRes.ok ? await recipesRes.json() : { data: [] };
+      const postsData = postsRes.ok ? await postsRes.json() : [];
+      const likedData = likedRes.ok ? await likedRes.json() : [];
+      setExportModal(m => ({
+        ...m,
+        exportRecipes: recipesData.data || [],
+        exportPosts: Array.isArray(postsData) ? postsData : postsData.data || [],
+        exportLikedPosts: Array.isArray(likedData) ? likedData : likedData.data || [],
+        exportLoading: false,
+      }));
+    } catch (error) {
+      console.error('Failed to fetch export data:', error);
+      setExportModal(m => ({ ...m, exportLoading: false }));
+    }
+  };
+
+  const openExportModal = () => {
+    setExportModal({
+      open: true,
+      title: t("profile.exportTitle"),
+      message: t("profile.exportMsg"),
+      loading: false,
+      includeProfile: false,
+      selectedFoods: [], // Start with none selected
+      selectedRecipes: [],
+      selectedPosts: [],
+      selectedLikedPosts: [],
+      expandedType: null,
+      exportRecipes: [],
+      exportPosts: [],
+      exportLikedPosts: [],
+      exportLoading: false,
+    });
+    fetchExportData();
+  };
 
 const closeExportModal = () => {
   setExportModal(m => ({ ...m, open: false, loading: false }));
@@ -450,33 +489,30 @@ const savePrefs = async () => {
 const handleExportData = async () => {
   try {
     setExportModal(m => ({ ...m, loading: true }));
-    
-    const { selectedFoods, selectAll } = exportModal;
-    const savedFoodsArray = user?.savedFoods || [];
-    
-    // Determine what to export
-    let exportPayload;
-    
-    if (selectAll || selectedFoods.length === savedFoodsArray.length) {
-      // Export all - send empty array or specific flag
-      console.log('🔍 Exporting ALL foods - payload will have saveIds: []');
-      exportPayload = { 
-        saveIds: [] // Empty array means "all"
-      };
-    } else if (selectedFoods.length > 0) {
-      // Export selected
-      console.log('🔍 Exporting SELECTED foods:', selectedFoods);
-      console.log('🔍 Selected foods type:', typeof selectedFoods);
-      console.log('🔍 Selected foods is array?', Array.isArray(selectedFoods));
-      exportPayload = {
-        saveIds: selectedFoods
-      };
-    } else {
-      // No selection
+
+    const { includeProfile, selectedFoods, selectedRecipes, selectedPosts, selectedLikedPosts } = exportModal;
+
+    // Derive dataTypes from selections
+    const dataTypes = [];
+    if (includeProfile) dataTypes.push('profile');
+    if (selectedFoods.length > 0) dataTypes.push('savedFoods');
+    if (selectedRecipes.length > 0) dataTypes.push('recipes');
+    if (selectedPosts.length > 0) dataTypes.push('posts');
+    if (selectedLikedPosts.length > 0) dataTypes.push('likedPosts');
+
+    if (dataTypes.length === 0) {
       openAlert(t("profile.noSelection"), t("profile.noSelectionMsg"), <AlertTriangle />);
       setExportModal(m => ({ ...m, loading: false }));
       return;
     }
+
+    let exportPayload = {
+      dataTypes,
+      saveIds: selectedFoods,
+      recipeIds: selectedRecipes,
+      postIds: selectedPosts,
+      likedPostIds: selectedLikedPosts,
+    };
     
     console.log("📤 Exporting saved foods:", exportPayload);
     console.log('📤 JSON stringified:', JSON.stringify(exportPayload));
@@ -506,8 +542,7 @@ const handleExportData = async () => {
     
     // Generate filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0];
-    const count = selectedFoods.length === savedFoodsArray.length ? 'all' : selectedFoods.length;
-    a.download = `saved-foods-${count}-${timestamp}.pdf`;
+    a.download = `my-data-export-${timestamp}.pdf`;
     
     document.body.appendChild(a);
     a.click();
@@ -1696,83 +1731,267 @@ const ContributionRow = ({ c }) => {
             </div>
             
             <div className="upp-modal-body">
-              <p className="upp-muted" style={{ marginBottom: 16 }}>
-                {exportModal.message} ({user?.savedFoods?.length || 0} total saved foods)
+              <p className="upp-muted">
+                Select the data you would like to include in your export.
               </p>
-              
-              {/* Select All checkbox */}
-              <div className="upp-export-select-all">
-                <label className="upp-choice" style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
-                  <input
-                    type="checkbox"
-                    checked={exportModal.selectAll}
-                    onChange={toggleSelectAll}
-                    style={{ marginRight: 8 }}
-                  />
-                  <span style={{ fontWeight: "bold" }}>{t("profile.selectAll")}</span>
-                </label>
-              </div>
-              
-              {/* Foods list */}
-              <div className="upp-export-list" style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #eee", borderRadius: "8px", padding: "12px" }}>
-                {user?.savedFoods?.length > 0 ? (
-                  user.savedFoods.map((food, index) => (
-                    <div 
-                      key={food.id || food.saveId || index} 
-                      className="upp-export-item"
-                      style={{ 
-                        padding: "10px", 
-                        borderBottom: "1px solid #f5f5f5",
-                        display: "flex",
-                        alignItems: "center"
-                      }}
-                    >
-                    <input
-                      type="checkbox"
-                      id={`food-${food.saveId}`}
-                      checked={exportModal.selectedFoods.includes(food.saveId)}
-                      onChange={() => {
-                        console.log('🔍 Checkbox onChange - food.saveId:', food.saveId);
-                        toggleFoodSelection(food.saveId);
-                      }}
-                      style={{ marginRight: "12px" }}
-                    />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: "500" }}>{food.name || t("profile.unnamedFood")}</div>
-                        <div style={{ fontSize: "0.85rem", color: "#666" }}>
-                          {food.origin || t("profile.unknownOrigin")} • {t("profile.savedLabel")} {food.savedDate || t("profile.unknownDate")}
-                        </div>
+              {[
+                { key: "profile", label: "Profile Information" },
+                { key: "savedFoods", label: `Saved Foods (${user?.savedFoods?.length || 0})` },
+                { key: "recipes", label: "My Recipes" },
+                { key: "posts", label: "My Community Posts" },
+                { key: "likedPosts", label: "Liked Posts" },
+              ].map(({ key, label }) => {
+                const isExpanded = exportModal.expandedType === key;
+                const isActive = key === "profile"
+                  ? exportModal.includeProfile
+                  : key === "savedFoods"
+                  ? exportModal.selectedFoods.length > 0
+                  : key === "recipes"
+                  ? exportModal.selectedRecipes.length > 0
+                  : key === "posts"
+                  ? exportModal.selectedPosts.length > 0
+                  : exportModal.selectedLikedPosts.length > 0;
+
+                return (
+                <div key={key} className={`upp-export-accordion ${isExpanded ? "is-expanded" : ""}`}>
+                  <div
+                    className={`upp-export-option has-dropdown ${isActive ? "is-selected" : ""}`}
+                    onClick={() => setExportModal(m => ({ ...m, expandedType: m.expandedType === key ? null : key }))}
+                  >
+                    <span>{label}</span>
+                    {isActive && <span className="upp-export-active-badge">✓ Included</span>}
+                    <span className="upp-export-accordion-toggle">{isExpanded ? '▲' : '▼'}</span>
+                  </div>
+
+                  {/* Dropdown for Profile Information */}
+                  {key === "profile" && (
+                    <div className="upp-export-dropdown">
+                      <div className="upp-export-profile-toggle">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={exportModal.includeProfile}
+                            onChange={() => setExportModal(m => ({ ...m, includeProfile: !m.includeProfile }))}
+                          />
+                          <span>Include Profile Information</span>
+                        </label>
                       </div>
-                      {food.image && (
-                        <img 
-                          src={food.image} 
-                          alt={food.name}
-                          style={{ 
-                            width: "40px", 
-                            height: "40px", 
-                            borderRadius: "4px",
-                            objectFit: "cover",
-                            marginLeft: "12px"
-                          }}
-                        />
+                      <ul className="upp-export-profile-points">
+                        <li>Name</li>
+                        <li>Email</li>
+                        <li>Bio</li>
+                        <li>Location</li>
+                        <li>Dietary Preference</li>
+                        <li>Allergies</li>
+                        <li>Account Status</li>
+                        <li>Last Login</li>
+                        <li>Consent Date</li>
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Dropdown for Saved Foods */}
+                  {key === "savedFoods" && (
+                    <div className="upp-export-dropdown">
+                      <div className="upp-export-select-all">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={exportModal.selectedFoods.length === (user?.savedFoods?.length || 0) && exportModal.selectedFoods.length > 0}
+                            onChange={toggleSelectAll}
+                          />
+                          <span>{t("profile.selectAll")}</span>
+                        </label>
+                      </div>
+                      <div className="upp-export-list">
+                        {user?.savedFoods?.length > 0 ? user.savedFoods.map((food, index) => (
+                          <div key={food.id || food.saveId || index} className="upp-export-item">
+                            <input
+                              type="checkbox"
+                              checked={exportModal.selectedFoods.includes(food.saveId)}
+                              onChange={() => toggleFoodSelection(food.saveId)}
+                            />
+                            <div className="upp-export-item-info">
+                              <div className="upp-export-item-name">{food.name || t("profile.unnamedFood")}</div>
+                              <div className="upp-export-item-meta">
+                                {food.origin || t("profile.unknownOrigin")} • {t("profile.savedLabel")} {food.savedDate || t("profile.unknownDate")}
+                              </div>
+                            </div>
+                            {food.image && <img src={food.image} alt={food.name} className="upp-export-item-thumb" />}
+                          </div>
+                        )) : (
+                          <div className="upp-center upp-muted">{t("profile.noSavedFoodsExport")}</div>
+                        )}
+                      </div>
+                      <div className="upp-export-count">
+                        Selected: {exportModal.selectedFoods.length} of {user?.savedFoods?.length || 0} foods
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dropdown for Recipes */}
+                  {key === "recipes" && (
+                    <div className="upp-export-dropdown">
+                      {exportModal.exportLoading ? (
+                        <div className="upp-center upp-muted">Loading...</div>
+                      ) : exportModal.exportRecipes.length > 0 ? (
+                        <>
+                          <div className="upp-export-select-all">
+                            <label>
+                              <input
+                                type="checkbox"
+                                checked={exportModal.selectedRecipes.length === exportModal.exportRecipes.length && exportModal.exportRecipes.length > 0}
+                                onChange={() => {
+                                  setExportModal(m => ({
+                                    ...m,
+                                    selectedRecipes: m.selectedRecipes.length === m.exportRecipes.length ? [] : m.exportRecipes.map(r => r.recipeID)
+                                  }));
+                                }}
+                              />
+                              <span>{t("profile.selectAll")}</span>
+                            </label>
+                          </div>
+                          <div className="upp-export-list">
+                            {exportModal.exportRecipes.map(recipe => (
+                              <div key={recipe.recipeID} className="upp-export-item">
+                                <input
+                                  type="checkbox"
+                                  checked={exportModal.selectedRecipes.includes(recipe.recipeID)}
+                                  onChange={() => setExportModal(m => ({
+                                    ...m,
+                                    selectedRecipes: m.selectedRecipes.includes(recipe.recipeID)
+                                      ? m.selectedRecipes.filter(id => id !== recipe.recipeID)
+                                      : [...m.selectedRecipes, recipe.recipeID]
+                                  }))}
+                                />
+                                <div className="upp-export-item-info">
+                                  <div className="upp-export-item-name">{recipe.foodName}</div>
+                                  <div className="upp-export-item-meta">{recipe.origin} • {recipe.status}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="upp-export-count">
+                            Selected: {exportModal.selectedRecipes.length} of {exportModal.exportRecipes.length} recipes
+                          </div>
+                        </>
+                      ) : (
+                        <div className="upp-center upp-muted">No recipes found.</div>
                       )}
                     </div>
-                  ))
-                ) : (
-                  <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>
-                    {t("profile.noSavedFoodsExport")}
-                  </div>
-                )}
-              </div>
-              
-              <div style={{ marginTop: "16px", fontSize: "0.9rem", color: "#666" }}>
-                Selected: {exportModal.selectedFoods.length} of {user?.savedFoods?.length || 0} foods
-              </div>
+                  )}
+
+                  {/* Dropdown for Posts */}
+                  {key === "posts" && (
+                    <div className="upp-export-dropdown">
+                      {exportModal.exportLoading ? (
+                        <div className="upp-center upp-muted">Loading...</div>
+                      ) : exportModal.exportPosts.length > 0 ? (
+                        <>
+                          <div className="upp-export-select-all">
+                            <label>
+                              <input
+                                type="checkbox"
+                                checked={exportModal.selectedPosts.length === exportModal.exportPosts.length && exportModal.exportPosts.length > 0}
+                                onChange={() => {
+                                  setExportModal(m => ({
+                                    ...m,
+                                    selectedPosts: m.selectedPosts.length === m.exportPosts.length ? [] : m.exportPosts.map(p => p.postID)
+                                  }));
+                                }}
+                              />
+                              <span>{t("profile.selectAll")}</span>
+                            </label>
+                          </div>
+                          <div className="upp-export-list">
+                            {exportModal.exportPosts.map(post => (
+                              <div key={post.postID} className="upp-export-item">
+                                <input
+                                  type="checkbox"
+                                  checked={exportModal.selectedPosts.includes(post.postID)}
+                                  onChange={() => setExportModal(m => ({
+                                    ...m,
+                                    selectedPosts: m.selectedPosts.includes(post.postID)
+                                      ? m.selectedPosts.filter(id => id !== post.postID)
+                                      : [...m.selectedPosts, post.postID]
+                                  }))}
+                                />
+                                <div className="upp-export-item-info">
+                                  <div className="upp-export-item-name">{post.title}</div>
+                                  <div className="upp-export-item-meta">{post.status}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="upp-export-count">
+                            Selected: {exportModal.selectedPosts.length} of {exportModal.exportPosts.length} posts
+                          </div>
+                        </>
+                      ) : (
+                        <div className="upp-center upp-muted">No posts found.</div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Dropdown for Liked Posts */}
+                  {key === "likedPosts" && (
+                    <div className="upp-export-dropdown">
+                      {exportModal.exportLoading ? (
+                        <div className="upp-center upp-muted">Loading...</div>
+                      ) : exportModal.exportLikedPosts.length > 0 ? (
+                        <>
+                          <div className="upp-export-select-all">
+                            <label>
+                              <input
+                                type="checkbox"
+                                checked={exportModal.selectedLikedPosts.length === exportModal.exportLikedPosts.length && exportModal.exportLikedPosts.length > 0}
+                                onChange={() => {
+                                  setExportModal(m => ({
+                                    ...m,
+                                    selectedLikedPosts: m.selectedLikedPosts.length === m.exportLikedPosts.length ? [] : m.exportLikedPosts.map(p => p.postID)
+                                  }));
+                                }}
+                              />
+                              <span>{t("profile.selectAll")}</span>
+                            </label>
+                          </div>
+                          <div className="upp-export-list">
+                            {exportModal.exportLikedPosts.map(post => (
+                              <div key={post.postID} className="upp-export-item">
+                                <input
+                                  type="checkbox"
+                                  checked={exportModal.selectedLikedPosts.includes(post.postID)}
+                                  onChange={() => setExportModal(m => ({
+                                    ...m,
+                                    selectedLikedPosts: m.selectedLikedPosts.includes(post.postID)
+                                      ? m.selectedLikedPosts.filter(id => id !== post.postID)
+                                      : [...m.selectedLikedPosts, post.postID]
+                                  }))}
+                                />
+                                <div className="upp-export-item-info">
+                                  <div className="upp-export-item-name">{post.title}</div>
+                                  <div className="upp-export-item-meta">{post.status}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="upp-export-count">
+                            Selected: {exportModal.selectedLikedPosts.length} of {exportModal.exportLikedPosts.length} liked posts
+                          </div>
+                        </>
+                      ) : (
+                        <div className="upp-center upp-muted">No liked posts found.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+              })}
             </div>
-            
+
             <div className="upp-modal-footer">
-              <button 
-                className="lrp-btn lrp-btn-outline" 
+              <button
+                className="lrp-btn lrp-btn-outline"
                 onClick={closeExportModal}
                 disabled={exportModal.loading}
               >
@@ -1781,9 +2000,18 @@ const ContributionRow = ({ c }) => {
               <button
                 className="lrp-btn lrp-btn-primary"
                 onClick={handleExportData}
-                disabled={exportModal.loading || exportModal.selectedFoods.length === 0}
+                disabled={
+                  exportModal.loading ||
+                  (
+                    !exportModal.includeProfile &&
+                    exportModal.selectedFoods.length === 0 &&
+                    exportModal.selectedRecipes.length === 0 &&
+                    exportModal.selectedPosts.length === 0 &&
+                    exportModal.selectedLikedPosts.length === 0
+                  )
+                }
               >
-                {exportModal.loading ? t("profile.exporting") : `${t("profile.exportBtn")} (${exportModal.selectedFoods.length})`}
+                {exportModal.loading ? t("profile.exporting") : t("profile.exportBtn")}
               </button>
             </div>
           </div>
