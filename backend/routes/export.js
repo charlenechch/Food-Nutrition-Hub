@@ -875,7 +875,7 @@ router.post('/export/saved-foods', async (req, res) => {
     connection = await db.getConnection();
     
     const userId = req.session.user.userID;
-    const { saveIds, dataTypes = [] } = req.body;
+    const { saveIds, dataTypes = [], likedPostIds = [], recipeIds = [], postIds = [] } = req.body;
     
     console.log('📥 Export request processed:', { 
       userId, 
@@ -931,40 +931,62 @@ router.post('/export/saved-foods', async (req, res) => {
     // Step 3: Fetch user's recipes (only if selected)
     let myRecipes = [];
     if (dataTypes.includes('recipes')) {
-      const [recipeRows] = await connection.execute(`
-        SELECT r.recipeID, r.ingredients, r.steps, r.cookTime, r.servings,
-              r.DidYouKnow, r.chefTips, r.status, r.createdAt,
-              f.name as foodName, f.origin, f.category
-        FROM recipe r
-        JOIN food f ON r.foodID = f.foodID
-        WHERE r.userProfileID = ?
-        ORDER BY r.createdAt DESC
-      `, [userProfileID]);
+      const recipePlaceholders = recipeIds.length > 0 ? recipeIds.map(() => '?').join(',') : null;
+      const recipeQuery = recipePlaceholders
+        ? `SELECT r.recipeID, r.ingredients, r.steps, r.cookTime, r.servings,
+                  r.DidYouKnow, r.chefTips, r.status, r.createdAt,
+                  f.name as foodName, f.origin, f.category
+           FROM recipe r
+           JOIN food f ON r.foodID = f.foodID
+           WHERE r.userProfileID = ? AND r.recipeID IN (${recipePlaceholders})
+           ORDER BY r.createdAt DESC`
+        : `SELECT r.recipeID, r.ingredients, r.steps, r.cookTime, r.servings,
+                  r.DidYouKnow, r.chefTips, r.status, r.createdAt,
+                  f.name as foodName, f.origin, f.category
+           FROM recipe r
+           JOIN food f ON r.foodID = f.foodID
+           WHERE r.userProfileID = ?
+           ORDER BY r.createdAt DESC`;
+      const recipeParams = recipePlaceholders ? [userProfileID, ...recipeIds] : [userProfileID];
+      const [recipeRows] = await connection.execute(recipeQuery, recipeParams);
       myRecipes = recipeRows;
     }
 
     // Step 4: Fetch user's community posts (only if selected)
     let myPosts = [];
     if (dataTypes.includes('posts')) {
-      const [postRows] = await connection.execute(`
-        SELECT postID, foodName, origin, culturalStory, status, created_at
-        FROM posts
-        WHERE userProfileID = ?
-        ORDER BY created_at DESC
-      `, [userProfileID]);
+      const postPlaceholders = postIds.length > 0 ? postIds.map(() => '?').join(',') : null;
+      const postQuery = postPlaceholders
+        ? `SELECT postID, foodName, origin, culturalStory, status, created_at
+           FROM posts
+           WHERE userProfileID = ? AND postID IN (${postPlaceholders})
+           ORDER BY created_at DESC`
+        : `SELECT postID, foodName, origin, culturalStory, status, created_at
+           FROM posts
+           WHERE userProfileID = ?
+           ORDER BY created_at DESC`;
+      const postParams = postPlaceholders ? [userProfileID, ...postIds] : [userProfileID];
+      const [postRows] = await connection.execute(postQuery, postParams);
       myPosts = postRows;
     }
 
     // Step 5: Fetch user's liked posts (only if selected)
     let likedPosts = [];
     if (dataTypes.includes('likedPosts')) {
-      const [likedRows] = await connection.execute(`
-        SELECT p.postID, p.foodName, p.origin, p.culturalStory, p.created_at
-        FROM likes l
-        JOIN posts p ON l.postID = p.postID
-        WHERE l.userProfileID = ?
-        ORDER BY p.created_at DESC
-      `, [userProfileID]);
+      const placeholders = likedPostIds.length > 0 ? likedPostIds.map(() => '?').join(',') : null;
+      const likedQuery = placeholders
+        ? `SELECT p.postID, p.foodName, p.origin, p.culturalStory, p.created_at
+           FROM likes l
+           JOIN posts p ON l.postID = p.postID
+           WHERE l.userProfileID = ? AND p.postID IN (${placeholders})
+           ORDER BY p.created_at DESC`
+        : `SELECT p.postID, p.foodName, p.origin, p.culturalStory, p.created_at
+           FROM likes l
+           JOIN posts p ON l.postID = p.postID
+           WHERE l.userProfileID = ?
+           ORDER BY p.created_at DESC`;
+      const likedParams = placeholders ? [userProfileID, ...likedPostIds] : [userProfileID];
+      const [likedRows] = await connection.execute(likedQuery, likedParams);
       likedPosts = likedRows;
     }
     

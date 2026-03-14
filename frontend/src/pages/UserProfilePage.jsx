@@ -1841,32 +1841,34 @@ const ContributionRow = ({ c }) => {
                               <input
                                 type="checkbox"
                                 checked={exportModal.selectedRecipes.length === exportModal.exportRecipes.length && exportModal.exportRecipes.length > 0}
-                                onChange={() => {
-                                  setExportModal(m => ({
-                                    ...m,
-                                    selectedRecipes: m.selectedRecipes.length === m.exportRecipes.length ? [] : m.exportRecipes.map(r => r.recipeID)
-                                  }));
-                                }}
+                                  onChange={() => {
+                                    setExportModal(m => ({
+                                      ...m,
+                                      selectedRecipes: m.selectedRecipes.length === m.exportRecipes.length ? [] : m.exportRecipes.map(r => r.id)
+                                    }));
+                                  }}
                               />
                               <span>{t("profile.selectAll")}</span>
                             </label>
                           </div>
                           <div className="upp-export-list">
                             {exportModal.exportRecipes.map(recipe => (
-                              <div key={recipe.recipeID} className="upp-export-item">
+                              <div key={recipe.id} className="upp-export-item">
                                 <input
                                   type="checkbox"
-                                  checked={exportModal.selectedRecipes.includes(recipe.recipeID)}
-                                  onChange={() => setExportModal(m => ({
-                                    ...m,
-                                    selectedRecipes: m.selectedRecipes.includes(recipe.recipeID)
-                                      ? m.selectedRecipes.filter(id => id !== recipe.recipeID)
-                                      : [...m.selectedRecipes, recipe.recipeID]
-                                  }))}
+                                  checked={exportModal.selectedRecipes.includes(recipe.id)}
+                                    onChange={() => setExportModal(m => ({
+                                      ...m,
+                                      selectedRecipes: m.selectedRecipes.includes(recipe.id)
+                                        ? m.selectedRecipes.filter(id => id !== recipe.id)
+                                        : [...m.selectedRecipes, recipe.id]
+                                    }))}
                                 />
                                 <div className="upp-export-item-info">
                                   <div className="upp-export-item-name">{recipe.foodName}</div>
-                                  <div className="upp-export-item-meta">{recipe.origin} • {recipe.status}</div>
+                                  <div className="upp-export-item-meta">
+                                    {recipe.origin} • <span className={`upp-chip ${getStatusClass(recipe.status)}`}>{recipe.status}</span>
+                                  </div>
                                 </div>
                               </div>
                             ))}
@@ -1896,7 +1898,7 @@ const ContributionRow = ({ c }) => {
                                 onChange={() => {
                                   setExportModal(m => ({
                                     ...m,
-                                    selectedPosts: m.selectedPosts.length === m.exportPosts.length ? [] : m.exportPosts.map(p => p.postID)
+                                    selectedPosts: m.selectedPosts.length === m.exportPosts.length ? [] : m.exportPosts.map(p => p.id)
                                   }));
                                 }}
                               />
@@ -1905,20 +1907,22 @@ const ContributionRow = ({ c }) => {
                           </div>
                           <div className="upp-export-list">
                             {exportModal.exportPosts.map(post => (
-                              <div key={post.postID} className="upp-export-item">
+                              <div key={post.id} className="upp-export-item">
                                 <input
                                   type="checkbox"
-                                  checked={exportModal.selectedPosts.includes(post.postID)}
-                                  onChange={() => setExportModal(m => ({
-                                    ...m,
-                                    selectedPosts: m.selectedPosts.includes(post.postID)
-                                      ? m.selectedPosts.filter(id => id !== post.postID)
-                                      : [...m.selectedPosts, post.postID]
-                                  }))}
+                                  checked={exportModal.selectedPosts.includes(post.id)}
+                                    onChange={() => setExportModal(m => ({
+                                      ...m,
+                                      selectedPosts: m.selectedPosts.includes(post.id)
+                                        ? m.selectedPosts.filter(id => id !== post.id)
+                                        : [...m.selectedPosts, post.id]
+                                    }))}
                                 />
                                 <div className="upp-export-item-info">
                                   <div className="upp-export-item-name">{post.title}</div>
-                                  <div className="upp-export-item-meta">{post.status}</div>
+                                  <div className="upp-export-item-meta">
+                                    <span className={`upp-chip ${getStatusClass(post.status)}`}>{post.status}</span>
+                                </div>
                                 </div>
                               </div>
                             ))}
@@ -1948,7 +1952,7 @@ const ContributionRow = ({ c }) => {
                                 onChange={() => {
                                   setExportModal(m => ({
                                     ...m,
-                                    selectedLikedPosts: m.selectedLikedPosts.length === m.exportLikedPosts.length ? [] : m.exportLikedPosts.map(p => p.postID)
+                                    selectedLikedPosts: m.selectedLikedPosts.length === m.exportLikedPosts.length ? [] : m.exportLikedPosts.map(p => p.id)
                                   }));
                                 }}
                               />
@@ -1957,16 +1961,16 @@ const ContributionRow = ({ c }) => {
                           </div>
                           <div className="upp-export-list">
                             {exportModal.exportLikedPosts.map(post => (
-                              <div key={post.postID} className="upp-export-item">
+                              <div key={post.id} className="upp-export-item">
                                 <input
                                   type="checkbox"
-                                  checked={exportModal.selectedLikedPosts.includes(post.postID)}
-                                  onChange={() => setExportModal(m => ({
-                                    ...m,
-                                    selectedLikedPosts: m.selectedLikedPosts.includes(post.postID)
-                                      ? m.selectedLikedPosts.filter(id => id !== post.postID)
-                                      : [...m.selectedLikedPosts, post.postID]
-                                  }))}
+                                  checked={exportModal.selectedLikedPosts.includes(post.id)}
+                                    onChange={() => setExportModal(m => ({
+                                      ...m,
+                                      selectedLikedPosts: m.selectedLikedPosts.includes(post.id)
+                                        ? m.selectedLikedPosts.filter(id => id !== post.id)
+                                        : [...m.selectedLikedPosts, post.id]
+                                    }))}
                                 />
                                 <div className="upp-export-item-info">
                                   <div className="upp-export-item-name">{post.title}</div>

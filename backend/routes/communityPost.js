@@ -746,6 +746,59 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
   }
 });
 
+router.get("/liked/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log(`📥 Fetching liked posts for user: ${userId}`);
+
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userId]
+    );
+
+    if (profileResult.length === 0) {
+      console.warn(`⚠️ No userProfile found for userID: ${userId}`);
+      return res.json([]);
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+
+    const query = `
+      SELECT
+        p.postID AS id,
+        p.foodName AS title,
+        p.photos AS image,
+        p.status,
+        p.created_at AS submittedDate,
+        p.origin AS culturalOrigin
+      FROM likes l
+      JOIN posts p ON l.postID = p.postID
+      WHERE l.userProfileID = ?
+      ORDER BY p.created_at DESC
+    `;
+
+    const [posts] = await db.execute(query, [userProfileID]);
+    console.log(`✅ Found ${posts.length} liked posts for user ${userId}`);
+
+    const formattedPosts = posts.map(post => ({
+      id: post.id,
+      title: post.title,
+      image: post.image ? post.image.split(',')[0] : null,
+      status: post.status,
+      createdAt: post.submittedDate,
+      culturalOrigin: post.culturalOrigin
+    }));
+
+    res.json(formattedPosts);
+  } catch (error) {
+    console.error('❌ Error fetching liked posts:', error);
+    res.status(500).json({
+      error: 'Failed to fetch liked posts',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // ✅ GET user's community posts for profile contributions
 router.get("/user/:userId", async (req, res) => {
   try {
