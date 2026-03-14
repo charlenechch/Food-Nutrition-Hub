@@ -483,7 +483,8 @@ try {
     servings || 1,
     funFact || '', 
     chefTips || '',
-    'Pending' 
+    'Pending',
+    description || ''
   ];
   
   console.log('📝 Executing recipe insert with foodID:', foodId);
@@ -884,6 +885,7 @@ try {
     funFact || '',
     chefTips || '',
     status || 'Pending',
+    description ||'',
     id,
     userProfileID
   ];
@@ -907,7 +909,8 @@ try {
     servings || 1,
     funFact || '',
     chefTips || '',
-    status || 'Pending'
+    status || 'Pending',
+    description || ''
   ]);
   console.log('✅ Inserted new recipe entry for foodID:', id, 'by userProfileID:', userProfileID);
 }
