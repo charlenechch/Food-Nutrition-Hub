@@ -36,6 +36,7 @@ const foodSearchRoutes = require("./routes/foodSearch");
 const gptRoutes = require("./routes/gpt");
 const exportRoutes = require("./routes/export");
 const translateRoutes = require("./routes/translation");
+const mapRoutes = require("./routes/map");
 
 // Admin
 const adminRoutes = require("./routes/admin");
@@ -110,6 +111,7 @@ app.use(
         "http://localhost:5173",
         "https://food-nutrition-hub.vercel.app",
         "https://food-nutrition-hub-production.up.railway.app",
+        "https://places.googleapis.com",
         process.env.INFERENCE_URL?.replace(/(https?:\/\/[^/]+).*/, "$1"),
       ],
       "frame-ancestors": ["'none'"],
@@ -228,7 +230,8 @@ const csrfExclude = [
   '/api/register',
   '/api/otp/verifyLogin',
   '/api/translate',
-  '/api/foods/admin/backfill-embeddings',
+  'api/map', 
+
 ];
 
 app.use((req, res, next) => {
@@ -277,6 +280,7 @@ app.use("/api/userProfile", userProfileRoutes);
 app.use("/api/likes", likeRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/map", mapRoutes);
 
 // ---------- Static Files ----------
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
