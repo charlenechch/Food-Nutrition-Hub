@@ -5,7 +5,7 @@
 
 const express = require('express');
 const router  = express.Router();
-const pool    = require('../db');          // your existing MySQL pool
+const pool    = require('../config/db');          
 const axios   = require('axios');
 
 const PLACES_KEY = process.env.GOOGLE_PLACES_KEY;
