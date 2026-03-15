@@ -536,7 +536,7 @@ export default function RecipesPage() {
                       </div>
                     )}
                   </div>
-                  <input id="recipe-file-input" type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} required />
+                  <input id="recipe-file-input" className="rp-pic-input" type="file" accept="image/*" onChange={handleImageUpload} required />
                 </div>
               </div>
 

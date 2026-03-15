@@ -425,6 +425,14 @@
   font-size: 1.1em;
 }
 
+.rp-pic-input {
+  opacity: 0;
+  position: absolute;
+  z-index: -1;
+  width: 10px;
+  height: 10px;
+}
+
 @media (max-width: 600px) {
   .recipes-page {
     padding: 100px 1rem 60px;      /* less side padding */
