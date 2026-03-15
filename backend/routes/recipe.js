@@ -705,6 +705,7 @@ try {
 
     return {
       id: recipe.id, 
+      recipeID: recipe.recipeID,
       foodName: recipe.foodName || 'Untitled Recipe',
       culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
       status: (recipe.status || 'pending').toLowerCase(),
