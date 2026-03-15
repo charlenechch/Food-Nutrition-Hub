@@ -169,7 +169,7 @@ const EditRecipePage = () => {
       <Header />
 
       <div className="admin-review-header">
-        <button className="admin-recipe-edit-back-btn" onClick={handleBack}>
+        <button className="admin-recipe-edit-back-btn lrp-back" onClick={handleBack}>
           <span className="recipe-edit-btn"><FaArrowLeft /></span> {backButtonText}
         </button>
         <div className="review-title">
