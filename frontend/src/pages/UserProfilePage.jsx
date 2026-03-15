@@ -288,7 +288,7 @@ const formatContributionDate = (dateString) => {
       const likedData = likedRes.ok ? await likedRes.json() : [];
       setExportModal(m => ({
         ...m,
-        exportRecipes: (recipesData.data || []).map(r => ({ ...r, id: r.id || r.recipeID })),
+        exportRecipes: (recipesData.data || []).map(r => ({ ...r, id: r.recipeID || r.id })),
         exportPosts: Array.isArray(postsData) ? postsData : postsData.data || [],
         exportLikedPosts: Array.isArray(likedData) ? likedData : likedData.data || [],
         exportLoading: false,

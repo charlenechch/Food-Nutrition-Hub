@@ -625,6 +625,7 @@ try {
     const recipeQuery = `
       SELECT 
         f.foodID AS id,
+        r.recipeID,
         f.name AS foodName,
         f.origin AS culturalOrigin,
         r.status,
