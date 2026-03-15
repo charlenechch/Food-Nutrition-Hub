@@ -713,7 +713,7 @@
   
   "addFood": {
     "category": "Categories",
-    "backToDashboard": "← Back",
+    "backToDashboard": "Back",
     "pageTitle": "Add New Food Item",
     "addFoodBtn": "Add Food",
     "foodImage": "Food Image",
