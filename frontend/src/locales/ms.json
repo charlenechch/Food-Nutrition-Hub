@@ -872,7 +872,7 @@
     "difficulty": "Tahap Kesukaran",
     "prepTime": "Masa Penyediaan (min)",
     "cookTime": "Masa Memasak (min)",
-    "foodType": "Jenis Makanan",
+    "category": "Kategori",
     "culturalContext": "Konteks Budaya",
     "description": "Penerangan",
     "ingredients": "Bahan-bahan",

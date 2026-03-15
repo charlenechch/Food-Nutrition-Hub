@@ -873,7 +873,7 @@
     "difficulty": "Difficulty",
     "prepTime": "Prep Time (min)",
     "cookTime": "Cook Time (min)",
-    "foodType": "Food Type",
+    "category": "Category",
     "culturalContext": "Cultural Context",
     "description": "Description",
     "ingredients": "Ingredients",
