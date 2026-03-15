@@ -1476,7 +1476,7 @@ const ContributionRow = ({ c }) => {
                         console.log("🔍 Filtering - ID:", item?.id, "foodName:", item?.foodName, "isRecipe:", result);
                         if (!result) return false;
                         // Other users only see Approved recipes
-                        if (userProfileID && item.status !== "Approved") return false;
+                        if (userProfileID && item.status?.toLowerCase() !== "approved") return false;
                         return true;
                       }).sort(byDateDesc)
                     : [];
