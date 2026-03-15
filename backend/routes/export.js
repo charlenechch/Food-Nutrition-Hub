@@ -948,8 +948,14 @@ router.post('/export/saved-foods', async (req, res) => {
            WHERE r.userProfileID = ?
            ORDER BY r.createdAt DESC`;
       const recipeParams = recipePlaceholders ? [userProfileID, ...recipeIds] : [userProfileID];
-      const [recipeRows] = await connection.execute(recipeQuery, recipeParams);
-      myRecipes = recipeRows;
+      console.log('📋 Recipe query params:', recipeParams);
+      try {
+        const [recipeRows] = await connection.execute(recipeQuery, recipeParams);
+        myRecipes = recipeRows;
+        console.log('✅ myRecipes fetched:', myRecipes.length);
+      } catch (recipeErr) {
+        console.error('❌ Recipe fetch error:', recipeErr.message);
+      }
     }
 
     // Step 4: Fetch user's community posts (only if selected)
