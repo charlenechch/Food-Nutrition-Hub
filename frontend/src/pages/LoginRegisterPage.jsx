@@ -317,6 +317,10 @@ export default function LoginRegisterPage() {
           setLoginError(t("auth.tooManyAttempts", { time: formatTime(data.lockoutRemaining) }));
           return;
       }
+      if (res.status === 403 && data.googleUserBlocked) {
+          setLoginError("You signed up with Google. Please use Google to sign in.");
+          return;
+      }
       if (data.requires2FA) {
           setTempUserId(data.tempUserId);
           setTempRememberMe(data.rememberDevice);

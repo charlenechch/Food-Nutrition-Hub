@@ -32,6 +32,22 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+      // Check if this email belongs to a Google SSO account before sending reset email
+      const checkRes = await fetch(`${API_URL}/api/auth/checkLoginMethod`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const checkData = await checkRes.json();
+
+      if (checkData.isGoogleUser) {
+        setError("You signed up with Google. Please use Google to sign in.");
+        setLoading(false);
+        return;
+      }
+
       const actionCodeSettings = {
         url:
           import.meta.env.MODE === "development"
