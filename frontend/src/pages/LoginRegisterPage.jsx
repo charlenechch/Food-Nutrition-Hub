@@ -717,7 +717,6 @@ export default function LoginRegisterPage() {
                 </div>
 
                 <button onClick={handleRegister} className="mh-btn-primary">{t("auth.createAccount")}</button>
-                <div className="mh-separator"><span>{t("auth.or")}</span></div>
 
                 <div className="mh-google-wrapper">
                   <button
@@ -730,7 +729,7 @@ export default function LoginRegisterPage() {
                       alt="G"
                       className="mh-google-icon"
                     />
-                    {t("auth.signUpGoogle")}
+                    Sign up with Google
                   </button>
                   <p className="mh-google-note">
                     Signing up with Google means you'll need to use Google to sign in every time.
