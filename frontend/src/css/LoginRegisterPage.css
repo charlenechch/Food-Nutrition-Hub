@@ -115,8 +115,8 @@
   
   /* --- STRICT HEIGHT FIX --- */
   height: 680px;      /* Hard fixed height */
-  max-height: 85vh;  /* Backup minimum */
-  justify-content: flex-start; /* Vertically centers content */
+  min-height: 680px;  /* Backup minimum */
+  justify-content: center; /* Vertically centers content */
   /* ----------------------- */
   
   overflow-y: auto;
