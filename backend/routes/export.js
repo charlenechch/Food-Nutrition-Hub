@@ -1099,10 +1099,10 @@ router.post('/export/saved-foods', async (req, res) => {
       margin: 50,
       size: 'A4',
       info: {
-        Title: 'Saved Foods Export',
+        Title: 'Personal Data Export Report',
         Author: 'Sarawak Eats',
-        Subject: 'User Saved Foods',
-        Keywords: 'food, recipes, export',
+        Subject: 'User Personal Data Export',
+        Keywords: 'food, recipes, posts, profile, export',
         Creator: 'Sarawak Eats Export System',
         CreationDate: new Date()
       }
@@ -1125,7 +1125,7 @@ router.post('/export/saved-foods', async (req, res) => {
     doc.moveDown(0.5);
     doc.fontSize(16)
        .font('Helvetica')
-       .text('My Data Export', { align: 'center' });
+       .text('Personal Data Export Report', { align: 'center' });
     
     doc.moveDown();
     doc.fontSize(10)
@@ -1177,6 +1177,7 @@ router.post('/export/saved-foods', async (req, res) => {
     // ===== SECTION: Saved Foods =====
     if (savedFoods.length > 0) {
       // Table of Contents style
+      doc.addPage();
       doc.fontSize(14)
         .font('Helvetica-Bold')
         .text('Saved Foods List');
@@ -1407,6 +1408,7 @@ router.post('/export/saved-foods', async (req, res) => {
 
   // My Recipes
     if (myRecipes.length > 0) {
+      doc.addPage();
       doc.fontSize(14).font('Helvetica-Bold').text('My Recipes');
       doc.fontSize(9).font('Helvetica').text(`${myRecipes.length} items`);
       doc.moveDown(0.5);
@@ -1444,6 +1446,7 @@ router.post('/export/saved-foods', async (req, res) => {
 
     // My Community Posts
     if (myPosts.length > 0) {
+      doc.addPage();
       doc.fontSize(14).font('Helvetica-Bold').text('My Community Posts');
       doc.fontSize(9).font('Helvetica').text(`${myPosts.length} items`);
       doc.moveDown(0.5);
@@ -1470,6 +1473,7 @@ router.post('/export/saved-foods', async (req, res) => {
 
     // Liked Posts
     if (likedPosts.length > 0) {
+      doc.addPage();
       doc.fontSize(14).font('Helvetica-Bold').text('Liked Posts');
       doc.fontSize(9).font('Helvetica').text(`${likedPosts.length} items`);
       doc.moveDown(0.5);
