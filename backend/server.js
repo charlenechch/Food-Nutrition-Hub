@@ -230,8 +230,8 @@ const csrfExclude = [
   '/api/register',
   '/api/otp/verifyLogin',
   '/api/translate',
-  'api/map', 
-
+  'api/map',  
+  '/api/auth/checkLoginMethod',
 ];
 
 app.use((req, res, next) => {
