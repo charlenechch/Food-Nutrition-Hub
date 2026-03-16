@@ -166,7 +166,21 @@ CREATE TABLE reply (
     FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-
+CREATE TABLE restaurants (
+    restaurantID INT PRIMARY KEY AUTO_INCREMENT,
+    foodID INT,
+    name VARCHAR(255),
+    city VARCHAR(100),
+    latitude DECIMAL(10,8),
+    longitude DECIMAL(11,8),
+    rating DECIMAL(3,2),
+    price DECIMAL(10,2),
+    address VARCHAR(255),
+    description TEXT,
+    opening_hours VARCHAR(100),
+    is_halal BOOLEAN,
+    FOREIGN KEY (foodID) REFERENCES food(foodID)
+);
 
 
 
