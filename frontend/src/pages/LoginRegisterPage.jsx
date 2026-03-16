@@ -498,7 +498,7 @@ export default function LoginRegisterPage() {
         </div>
 
         {/* Right Side: Card */}
-        <div className="mh-form-card">
+        <div className={`mh-form-card ${activeTab === "register" ? "mh-form-card--register" : ""}`}>
           
           {/* Dynamic Header */}
           <div className="mh-card-header">

@@ -114,25 +114,34 @@
   flex-direction: column;
   
   /* --- STRICT HEIGHT FIX --- */
-  height: 680px;      /* Hard fixed height */
-  min-height: 680px;  /* Backup minimum */
-  justify-content: center; /* Vertically centers content */
+  height: 680px;
+  min-height: 680px;
+  justify-content: center;
   /* ----------------------- */
   
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(92, 58, 33, 0.3) transparent;
 }
+.mh-form-card--register {
+  justify-content: flex-start;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
 .mh-form-card::-webkit-scrollbar {
   width: 4px;
 }
+
 .mh-form-card::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .mh-form-card::-webkit-scrollbar-thumb {
   background: rgba(92, 58, 33, 0.3);
   border-radius: 10px;
 }
+
 .mh-form-card::-webkit-scrollbar-thumb:hover {
   background: rgba(92, 58, 33, 0.6);
 }
