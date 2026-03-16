@@ -717,6 +717,25 @@ export default function LoginRegisterPage() {
                 </div>
 
                 <button onClick={handleRegister} className="mh-btn-primary">{t("auth.createAccount")}</button>
+                <div className="mh-separator"><span>{t("auth.or")}</span></div>
+
+                <div className="mh-google-wrapper">
+                  <button
+                    onClick={handleGoogleLogin}
+                    className="mh-btn-google"
+                    type="button"
+                  >
+                    <img
+                      src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                      alt="G"
+                      className="mh-google-icon"
+                    />
+                    {t("auth.signUpGoogle")}
+                  </button>
+                  <p className="mh-google-note">
+                    Signing up with Google means you'll need to use Google to sign in every time.
+                  </p>
+                </div>
               </>
             )}
 

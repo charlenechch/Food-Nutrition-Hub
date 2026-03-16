@@ -691,3 +691,12 @@
 .pdpa-link:hover {
   color: var(--mh-gold);
 }
+
+.mh-google-note {
+  font-size: 0.78rem;
+  color: #888;
+  text-align: center;
+  margin-top: 8px;
+  margin-bottom: 0;
+  line-height: 1.4;
+}
