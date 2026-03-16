@@ -114,8 +114,8 @@
   flex-direction: column;
   
   /* --- STRICT HEIGHT FIX --- */
-  height: auto;      /* Hard fixed height */
-  min-height: 90vh;  /* Backup minimum */
+  height: 85vh;      /* Hard fixed height */
+  max-height: 85vh;  /* Backup minimum */
   justify-content: flex-start; /* Vertically centers content */
   /* ----------------------- */
   
