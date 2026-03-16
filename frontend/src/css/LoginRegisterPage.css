@@ -114,9 +114,9 @@
   flex-direction: column;
   
   /* --- STRICT HEIGHT FIX --- */
-  height: 680px;      /* Hard fixed height */
-  min-height: 680px;  /* Backup minimum */
-  justify-content: center; /* Vertically centers content */
+  height: 780px;      /* Hard fixed height */
+  min-height: 780px;  /* Backup minimum */
+  justify-content: flex-start;
   /* ----------------------- */
   
   overflow-y: auto;

@@ -1158,8 +1158,16 @@ router.post('/export/saved-foods', async (req, res) => {
       doc.text(`Role: ${profileData.role}`);
       if (profileData.location) doc.text(`Location: ${profileData.location}`);
       if (profileData.bio) doc.text(`Bio: ${profileData.bio}`);
-      if (profileData.dietaryPreference) doc.text(`Dietary Preference: ${profileData.dietaryPreference}`);
-      if (profileData.allergies) doc.text(`Allergies: ${profileData.allergies}`);
+      if (profileData.dietaryPreference) {
+        let dietaryDisplay = profileData.dietaryPreference;
+        try { dietaryDisplay = JSON.parse(profileData.dietaryPreference).join(', ') || 'None'; } catch {}
+        doc.text(`Dietary Preference: ${dietaryDisplay}`);
+      }
+      if (profileData.allergies) {
+        let allergiesDisplay = profileData.allergies;
+        try { allergiesDisplay = JSON.parse(profileData.allergies).join(', ') || 'None'; } catch {}
+        doc.text(`Allergies: ${allergiesDisplay}`);
+      }
       if (profileData.status) doc.text(`Account Status: ${profileData.status}`);
       if (profileData.lastLogin) doc.text(`Last Login: ${new Date(profileData.lastLogin).toLocaleDateString()}`);
       if (profileData.consent_date) doc.text(`Consent Date: ${new Date(profileData.consent_date).toLocaleDateString()}`);
