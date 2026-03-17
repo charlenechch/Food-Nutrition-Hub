@@ -625,6 +625,7 @@ try {
     const recipeQuery = `
       SELECT 
         f.foodID AS id,
+        r.recipeID,
         f.name AS foodName,
         f.origin AS culturalOrigin,
         r.status,
@@ -704,6 +705,7 @@ try {
 
     return {
       id: recipe.id, 
+      recipeID: recipe.recipeID,
       foodName: recipe.foodName || 'Untitled Recipe',
       culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
       status: (recipe.status || 'pending').toLowerCase(),

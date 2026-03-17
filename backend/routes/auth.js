@@ -87,6 +87,16 @@ router.post("/login", async (req, res) => {
     }
 
     const user = users[0];
+
+    // Block Google SSO users from using email/password login
+    if (user.password === null) {
+      return res.status(403).json({
+        success: false,
+        googleUserBlocked: true,
+        message: "You signed up with Google. Please use Google to sign in.",
+      });
+    }
+
     const stored = user.password || "";
     const looksHashed = stored.startsWith("$2a$") || stored.startsWith("$2b$") || stored.startsWith("$2y$");
     let valid = false;
@@ -500,6 +510,34 @@ router.post("/toggle-role", async (req, res) => {
   } catch (error) {
     console.error("Role toggle error:", error);
     return res.status(500).json({ message: "Failed to toggle role" });
+  }
+});
+
+// Check if an email belongs to a Google SSO user (for Forgot Password gate)
+router.post("/checkLoginMethod", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required" });
+  }
+
+  try {
+    const [users] = await db.execute(
+      "SELECT password FROM user WHERE email = ? LIMIT 1",
+      [email]
+    );
+
+    // If no user found, return isGoogleUser: false so the forgot password flow continues normally
+    if (users.length === 0) {
+      return res.json({ isGoogleUser: false });
+    }
+
+    const isGoogleUser = users[0].password === null;
+    return res.json({ isGoogleUser });
+
+  } catch (err) {
+    console.error("checkLoginMethod error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 });
 

@@ -948,8 +948,14 @@ router.post('/export/saved-foods', async (req, res) => {
            WHERE r.userProfileID = ?
            ORDER BY r.createdAt DESC`;
       const recipeParams = recipePlaceholders ? [userProfileID, ...recipeIds] : [userProfileID];
-      const [recipeRows] = await connection.execute(recipeQuery, recipeParams);
-      myRecipes = recipeRows;
+      console.log('📋 Recipe query params:', recipeParams);
+      try {
+        const [recipeRows] = await connection.execute(recipeQuery, recipeParams);
+        myRecipes = recipeRows;
+        console.log('✅ myRecipes fetched:', myRecipes.length);
+      } catch (recipeErr) {
+        console.error('❌ Recipe fetch error:', recipeErr.message);
+      }
     }
 
     // Step 4: Fetch user's community posts (only if selected)
@@ -1093,10 +1099,10 @@ router.post('/export/saved-foods', async (req, res) => {
       margin: 50,
       size: 'A4',
       info: {
-        Title: 'Saved Foods Export',
+        Title: 'Personal Data Export Report',
         Author: 'Sarawak Eats',
-        Subject: 'User Saved Foods',
-        Keywords: 'food, recipes, export',
+        Subject: 'User Personal Data Export',
+        Keywords: 'food, recipes, posts, profile, export',
         Creator: 'Sarawak Eats Export System',
         CreationDate: new Date()
       }
@@ -1119,7 +1125,7 @@ router.post('/export/saved-foods', async (req, res) => {
     doc.moveDown(0.5);
     doc.fontSize(16)
        .font('Helvetica')
-       .text('My Data Export', { align: 'center' });
+       .text('Personal Data Export Report', { align: 'center' });
     
     doc.moveDown();
     doc.fontSize(10)
@@ -1152,8 +1158,16 @@ router.post('/export/saved-foods', async (req, res) => {
       doc.text(`Role: ${profileData.role}`);
       if (profileData.location) doc.text(`Location: ${profileData.location}`);
       if (profileData.bio) doc.text(`Bio: ${profileData.bio}`);
-      if (profileData.dietaryPreference) doc.text(`Dietary Preference: ${profileData.dietaryPreference}`);
-      if (profileData.allergies) doc.text(`Allergies: ${profileData.allergies}`);
+      if (profileData.dietaryPreference) {
+        let dietaryDisplay = profileData.dietaryPreference;
+        try { dietaryDisplay = JSON.parse(profileData.dietaryPreference).join(', ') || 'None'; } catch {}
+        doc.text(`Dietary Preference: ${dietaryDisplay}`);
+      }
+      if (profileData.allergies) {
+        let allergiesDisplay = profileData.allergies;
+        try { allergiesDisplay = JSON.parse(profileData.allergies).join(', ') || 'None'; } catch {}
+        doc.text(`Allergies: ${allergiesDisplay}`);
+      }
       if (profileData.status) doc.text(`Account Status: ${profileData.status}`);
       if (profileData.lastLogin) doc.text(`Last Login: ${new Date(profileData.lastLogin).toLocaleDateString()}`);
       if (profileData.consent_date) doc.text(`Consent Date: ${new Date(profileData.consent_date).toLocaleDateString()}`);
@@ -1163,6 +1177,7 @@ router.post('/export/saved-foods', async (req, res) => {
     // ===== SECTION: Saved Foods =====
     if (savedFoods.length > 0) {
       // Table of Contents style
+      doc.addPage();
       doc.fontSize(14)
         .font('Helvetica-Bold')
         .text('Saved Foods List');
@@ -1393,6 +1408,7 @@ router.post('/export/saved-foods', async (req, res) => {
 
   // My Recipes
     if (myRecipes.length > 0) {
+      doc.addPage();
       doc.fontSize(14).font('Helvetica-Bold').text('My Recipes');
       doc.fontSize(9).font('Helvetica').text(`${myRecipes.length} items`);
       doc.moveDown(0.5);
@@ -1430,6 +1446,7 @@ router.post('/export/saved-foods', async (req, res) => {
 
     // My Community Posts
     if (myPosts.length > 0) {
+      doc.addPage();
       doc.fontSize(14).font('Helvetica-Bold').text('My Community Posts');
       doc.fontSize(9).font('Helvetica').text(`${myPosts.length} items`);
       doc.moveDown(0.5);
@@ -1456,6 +1473,7 @@ router.post('/export/saved-foods', async (req, res) => {
 
     // Liked Posts
     if (likedPosts.length > 0) {
+      doc.addPage();
       doc.fontSize(14).font('Helvetica-Bold').text('Liked Posts');
       doc.fontSize(9).font('Helvetica').text(`${likedPosts.length} items`);
       doc.moveDown(0.5);

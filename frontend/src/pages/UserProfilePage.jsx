@@ -288,7 +288,7 @@ const formatContributionDate = (dateString) => {
       const likedData = likedRes.ok ? await likedRes.json() : [];
       setExportModal(m => ({
         ...m,
-        exportRecipes: (recipesData.data || []).map(r => ({ ...r, id: r.id || r.recipeID })),
+        exportRecipes: (recipesData.data || []).map(r => ({ ...r, id: r.recipeID || r.id })),
         exportPosts: Array.isArray(postsData) ? postsData : postsData.data || [],
         exportLikedPosts: Array.isArray(likedData) ? likedData : likedData.data || [],
         exportLoading: false,
@@ -1476,7 +1476,7 @@ const ContributionRow = ({ c }) => {
                         console.log("🔍 Filtering - ID:", item?.id, "foodName:", item?.foodName, "isRecipe:", result);
                         if (!result) return false;
                         // Other users only see Approved recipes
-                        if (userProfileID && item.status !== "Approved") return false;
+                        if (userProfileID && item.status?.toLowerCase() !== "approved") return false;
                         return true;
                       }).sort(byDateDesc)
                     : [];
@@ -1737,9 +1737,9 @@ const ContributionRow = ({ c }) => {
               {[
                 { key: "profile", label: "Profile Information" },
                 { key: "savedFoods", label: `Saved Foods (${user?.savedFoods?.length || 0})` },
-                { key: "recipes", label: "My Recipes" },
-                { key: "posts", label: "My Community Posts" },
-                { key: "likedPosts", label: "Liked Posts" },
+                { key: "recipes", label: `My Recipes (${exportModal.exportRecipes.length})` },
+                { key: "posts", label: `My Community Posts (${exportModal.exportPosts.length})` },
+                { key: "likedPosts", label: `Liked Posts (${exportModal.exportLikedPosts.length})` },
               ].map(({ key, label }) => {
                 const isExpanded = exportModal.expandedType === key;
                 const isActive = key === "profile"

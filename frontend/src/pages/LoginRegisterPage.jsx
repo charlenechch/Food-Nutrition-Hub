@@ -317,6 +317,10 @@ export default function LoginRegisterPage() {
           setLoginError(t("auth.tooManyAttempts", { time: formatTime(data.lockoutRemaining) }));
           return;
       }
+      if (res.status === 403 && data.googleUserBlocked) {
+          setLoginError("You signed up with Google. Please use Google to sign in.");
+          return;
+      }
       if (data.requires2FA) {
           setTempUserId(data.tempUserId);
           setTempRememberMe(data.rememberDevice);
@@ -494,7 +498,7 @@ export default function LoginRegisterPage() {
         </div>
 
         {/* Right Side: Card */}
-        <div className="mh-form-card">
+        <div className={`mh-form-card ${activeTab === "register" ? "mh-form-card--register" : ""}`}>
           
           {/* Dynamic Header */}
           <div className="mh-card-header">
@@ -713,6 +717,24 @@ export default function LoginRegisterPage() {
                 </div>
 
                 <button onClick={handleRegister} className="mh-btn-primary">{t("auth.createAccount")}</button>
+
+                <div className="mh-google-wrapper">
+                  <button
+                    onClick={handleGoogleLogin}
+                    className="mh-btn-google"
+                    type="button"
+                  >
+                    <img
+                      src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                      alt="G"
+                      className="mh-google-icon"
+                    />
+                    Sign up with Google
+                  </button>
+                  <p className="mh-google-note">
+                    Signing up with Google means you'll need to use Google to sign in every time.
+                  </p>
+                </div>
               </>
             )}
 
