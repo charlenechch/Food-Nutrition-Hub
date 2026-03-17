@@ -303,7 +303,7 @@ export default function Community() {
                         <div className="user-avatar"
                           onClick={(e) => {
                             e.stopPropagation();
-                            const currentUID = user?.userID || user?.id;
+                            const currentUID = user?.userProfileID;
                             const postUID = post.userProfile?.id;
                             if (user && String(currentUID) === String(postUID)) navigate("/profile");
                             else if (postUID) navigate(`/profile/${postUID}`);
@@ -316,7 +316,7 @@ export default function Community() {
                           <span className="author-name"
                             onClick={(e) => {
                               e.stopPropagation();
-                              const currentUID = user?.userID || user?.id;
+                              const currentUID = user?.userProfileID;
                               const postUID = post.userProfile?.id;
                               if (user && String(currentUID) === String(postUID)) navigate("/profile");
                               else if (postUID) navigate(`/profile/${postUID}`);
