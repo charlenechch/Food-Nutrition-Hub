@@ -193,11 +193,15 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
     <div className="comment-section">
       {showLoginModal && <LoginPromptModal onClose={() => setShowLoginModal(false)} />}
       {showDeleteModal && (
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <div className="modal-card-header"><h3>{t("communityPost.deleteComment")}</h3></div>
-            <div className="modal-card-body"><p>{t("communityPost.deleteWarning")}</p></div>
-            <div className="modal-card-actions">
+        <div className="lrp-modal-backdrop">
+          <div className="lrp-modal">
+            <div className="lrp-modal-header">
+              <h3 className="lrp-modal-title">{t("communityPost.deleteComment")}</h3>
+            </div>
+            <div className="lrp-modal-body">
+              <p>{t("communityPost.deleteWarning")}</p>
+            </div>
+            <div className="lrp-modal-actions lrp-modal-actions--center">
               <button className="lrp-btn lrp-btn-outline" onClick={() => setShowDeleteModal(false)}>{t("communityPost.cancel")}</button>
               <button className="lrp-btn lrp-btn-danger" onClick={confirmDelete} disabled={deletingCommentId}>{t("communityPost.delete")}</button>
             </div>
