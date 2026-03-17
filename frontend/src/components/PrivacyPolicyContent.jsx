@@ -3,7 +3,7 @@ import React from "react";
 export default function PrivacyPolicyContent() {
   return (
     <div>
-      <p>Welcome to SarawakEats. Your privacy is important to us.</p>
+      <p>TEST - This is a shared content test.</p>
 
       <h3>1. Information We Collect</h3>
       <p>We collect your name, email address, and saved recipes to provide a personalized experience.</p>
