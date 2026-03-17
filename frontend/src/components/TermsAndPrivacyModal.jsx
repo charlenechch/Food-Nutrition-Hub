@@ -100,13 +100,18 @@ export default function TermsAndPrivacyModal() {
   const [tncScrolled, setTncScrolled] = useState(false);
 
   const [policyVersion, setPolicyVersion] = useState(null);
+  const [policyLastUpdated, setPolicyLastUpdated] = useState(null);
 
   useEffect(() => {
     fetch(`${API_URL}/api/auth/policyversion`)
       .then(res => res.json())
-      .then(data => setPolicyVersion(data.version))
+      .then(data => {
+        setPolicyVersion(data.version);
+        setPolicyLastUpdated(data.lastUpdated);
+      })
       .catch(err => console.error("Failed to fetch policy version", err));
   }, []);
+  
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -189,7 +194,7 @@ export default function TermsAndPrivacyModal() {
           <div className="tpm-docs">
             <ScrollableDoc
               title="Privacy Policy"
-              lastUpdated="Last Updated: 9th March 2026"
+              lastUpdated={policyLastUpdated ? `Last Updated: ${policyLastUpdated}` : ""}
               icon={FaShieldAlt}
               onScrolledToBottom={() => setPdpaScrolled(true)}
               hasScrolled={pdpaScrolled}
@@ -199,7 +204,7 @@ export default function TermsAndPrivacyModal() {
 
             <ScrollableDoc
               title="Terms & Conditions"
-              lastUpdated="Last Updated: 9th March 2026"
+              lastUpdated={policyLastUpdated ? `Last Updated: ${policyLastUpdated}` : ""}
               icon={FaFileAlt}
               onScrolledToBottom={() => setTncScrolled(true)}
               hasScrolled={tncScrolled}

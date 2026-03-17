@@ -3,7 +3,7 @@ const router = express.Router();
 const { pool: db } = require("../config/db");
 const bcrypt = require("bcrypt");
 const { sendEmail } = require("../config/mailer");
-const { CURRENT_POLICY_VERSION } = require('../config/policyVersion');
+const { CURRENT_POLICY_VERSION, POLICY_LAST_UPDATED } = require('../config/policyVersion');
 
 // Parse JSON Bodies
 // This middleware must come before your routes to parse req.body
@@ -543,7 +543,7 @@ router.post("/checkLoginMethod", async (req, res) => {
 });
 
 router.get('/policyversion', (req, res) => {
-  res.json({ version: CURRENT_POLICY_VERSION });
+  res.json({ version: CURRENT_POLICY_VERSION, lastUpdated: POLICY_LAST_UPDATED });
 });
 
 module.exports = router;
