@@ -27,23 +27,6 @@
   text-align: center;
 }
 
-.terms-section-title {
-  font-family: 'Playfair Display', serif;
-  color: #916848;
-  font-size: 1.4rem;
-  margin-top: 30px;
-  margin-bottom: 15px;
-  font-weight: 600;
-}
-
-.terms-text {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: #555;
-  margin-bottom: 15px;
-  font-weight: 300;
-}
-
 .terms-updated-text {
   margin-top: 0;
   margin-bottom: 40px;
