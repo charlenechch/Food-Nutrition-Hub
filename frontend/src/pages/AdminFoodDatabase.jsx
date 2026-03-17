@@ -718,16 +718,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
               </div>
 
               <div className="filter-item">
-                <label>{t("explore.category", "Category")}</label>
-                <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                  <option value="All Categories">{t("explore.allCategories", "All Categories")}</option>
-                  {categories.filter(c => c !== "All Categories").map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="filter-item">
                 <label>{t("explore.difficulty", "Difficulty")}</label>
                 <select>
                   <option value="All">{t("adminFoodDB.all", "All")}</option>
