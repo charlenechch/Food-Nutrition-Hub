@@ -473,8 +473,11 @@ export default function LoginRegisterPage() {
       }
 
     } catch (err) {
+      if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
+        return;
+      }
       console.error("Google Login Error:", err);
-      setLoginError(t("auth.popupError"));
+      setLoginError(t("auth.googleLoginFailed"));
     }
   };
 
