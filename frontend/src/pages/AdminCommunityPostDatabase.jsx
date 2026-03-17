@@ -225,7 +225,8 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             )}
           </div>
           <button className="admin-recipe-btn-filter" onClick={() => setShowFilters(!showFilters)}>
-            <CiFilter className="filter-icon" /> {t("explore.filters")}
+            <CiFilter className="filter-icon" style={{ marginRight: "8px" }} /> 
+            {t("explore.filters")}
           </button>
         </div>
 
