@@ -729,7 +729,7 @@ export default function LoginRegisterPage() {
                       alt="G"
                       className="mh-google-icon"
                     />
-                    Sign up with Google
+                    Continue with Google
                   </button>
                   <p className="mh-google-note">
                     Signing up with Google means you'll need to use Google to sign in every time.
