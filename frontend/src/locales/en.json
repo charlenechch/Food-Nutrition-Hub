@@ -812,7 +812,7 @@
 
   "editFood": {
     "editFoodItem": "Edit Food Item",
-    "backToDashboard": "← Back",
+    "backToDashboard": "Back",
     "saveChanges": "Save Changes",
     "foodImage": "Food Image",
     "uploadNewImage": "Upload New Image",
