@@ -132,6 +132,8 @@ export default function TermsAndPrivacyModal() {
     return null;
   }
 
+  const isNewUser = user.agreed_version === 0;
+
   const handleAgree = async () => {
     if (!isPdpaChecked || !isTncChecked) return;
 
@@ -166,9 +168,11 @@ export default function TermsAndPrivacyModal() {
           {/* Header */}
           <div className="tpm-header">
             <FaShieldAlt className="tpm-header-icon" />
-            <h2 className="tpm-title">Updated Legal Policies</h2>
+            <h2 className="tpm-title">{isNewUser ? "Welcome to SarawakEats" : "Updated Legal Policies"}</h2>
             <p className="tpm-subtitle">
-              Please read and accept both documents below to continue using SarawakEats.
+              {isNewUser
+                ? "Before you get started, please read and accept our Privacy Policy and Terms & Conditions."
+                : "Our policies have been updated. Please read and accept both documents below to continue using SarawakEats."}
             </p>
           </div>
 
