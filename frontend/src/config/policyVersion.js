@@ -1,2 +1,0 @@
-// Update this number (e.g. 1 → 2) when Privacy Policy or T&C are significantly changed. This will prompt ALL users to re-agree on their next login. Do NOT change for minor edits like typos or grammar. Remember to update the backend config/policyVersion.js to the same number as well.
-export const CURRENT_POLICY_VERSION = 2;
