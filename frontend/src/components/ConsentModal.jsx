@@ -91,7 +91,7 @@ function ScrollableDoc({ title, lastUpdated, icon: Icon, children, onScrolledToB
 
 // Main Modal
 
-export default function TermsAndPrivacyModal() {
+export default function ConsentModal() {
   const { user, setUser } = useAuth();
 
   const [isPdpaChecked, setIsPdpaChecked] = useState(false);
@@ -130,7 +130,7 @@ export default function TermsAndPrivacyModal() {
       }
     };
     fetchCsrfToken();
-  }, [user]);
+  }, [user, policyVersion]);
 
   useEffect(() => {
     if (user && user.role !== "guest" && (user.agreed_version < policyVersion)) {
