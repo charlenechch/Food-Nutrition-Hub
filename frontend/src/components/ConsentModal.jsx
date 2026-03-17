@@ -5,6 +5,7 @@ import { FaShieldAlt, FaFileAlt, FaCheckCircle } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import PrivacyPolicyContent from "./PrivacyPolicyContent";
 import TermsAndConditionsContent from "./TermsAndConditionsContent";
+import "../css/PolicyContent.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -261,10 +262,7 @@ export default function ConsentModal() {
           padding: 6px 0; background: #fdfaf7;
           border-top: 1px solid rgba(92,58,33,0.07);
         }
-        .tpm-doc-body { font-size: 0.88rem; color: #444; }
         .tpm-doc-updated { font-size: 0.8rem; color: #999; font-style: italic; margin-bottom: 12px; }
-        .tpm-doc-section { font-family: 'Playfair Display', serif; font-size: 1rem; color: #5c3a21; margin: 14px 0 6px; }
-        .tpm-doc-text { line-height: 1.65; margin-bottom: 10px; font-weight: 300; }
         .tpm-checkboxes { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
         .tpm-checkbox-row {
           display: flex; align-items: flex-start; gap: 10px;

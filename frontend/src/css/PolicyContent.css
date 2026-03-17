@@ -1,0 +1,17 @@
+.tpm-doc-body {
+  font-size: 0.88rem;
+  color: #444;
+}
+
+.tpm-doc-section {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  color: #5c3a21;
+  margin: 14px 0 6px;
+}
+
+.tpm-doc-text {
+  line-height: 1.65;
+  margin-bottom: 10px;
+  font-weight: 300;
+}
