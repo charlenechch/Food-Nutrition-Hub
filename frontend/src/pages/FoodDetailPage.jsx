@@ -263,7 +263,6 @@ export default function FoodDetailPage() {
                           ))
                       )}
                     </div>
-                  <h1 className="fdp-title">{translatedFood.name || food.name}</h1>
                 </div>
               </div>
             </div>
