@@ -12,6 +12,7 @@ CREATE TABLE otp (
     userID int NOT NULL,
     code varchar(6) NOT NULL,
     expires_at datetime NOT NULL,
+    created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     KEY userID (userID),
     FOREIGN KEY (userID) REFERENCES user (userID) ON DELETE CASCADE
@@ -29,7 +30,12 @@ CREATE TABLE user (
 	lastLogin DATETIME DEFAULT NULL,
 	status ENUM('Active','Inactive','Suspended') NOT NULL DEFAULT 'Active',
 	suspendedUntil DATE DEFAULT NULL,
-	UNIQUE KEY firebase_uid (firebase_uid)
+    failed_attempts INT DEFAULT 0,
+	lockout_until DATETIME DEFAULT NULL,
+	UNIQUE KEY firebase_uid (firebase_uid),
+    pdpa_consent TINYINT(1) DEFAULT 0,
+    tnc_consent TINYINT(1) DEFAULT 0,
+    agreed_version INT DEFAULT 0
 );
 
 CREATE TABLE userProfile (
