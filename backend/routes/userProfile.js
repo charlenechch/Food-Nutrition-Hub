@@ -868,7 +868,7 @@ router.get("/", async (req, res) => {
       },
     
       prefs: {
-        dietary: profile.dietary ? JSON.parse(profile.dietary || "[]") : [],
+        dietary: profile.dietaryPreference ? JSON.parse(profile.dietaryPreference || "[]") : [],
         allergies: profile.allergies ? JSON.parse(profile.allergies || "[]") : [],
         emailNotifications: profile.emailNotifications ?? true,
         pushNotifications: profile.pushNotifications ?? true,
@@ -1116,7 +1116,7 @@ router.get("/:identifier", async (req, res) => {
         likes: freshStats.likes || profile.likes || 0,
       },
       prefs: {
-        dietary: profile.dietary ? JSON.parse(profile.dietary || "[]") : [],
+        dietary: profile.dietaryPreference ? JSON.parse(profile.dietaryPreference || "[]") : [],
         allergies: profile.allergies ? JSON.parse(profile.allergies || "[]") : [],
         emailNotifications: profile.emailNotifications ?? true,
         pushNotifications: profile.pushNotifications ?? true,
