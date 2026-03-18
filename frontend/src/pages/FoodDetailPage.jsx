@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 import "../css/lrp.css";
 import "../css/FoodDetailPage.css";
 import Modal from "../components/Modal";
-import { Share2, Info, TriangleAlert, MessagesSquare, ShoppingBasket, Cross, ScrollText, CheckCircle2, AlertTriangle, MapPin } from "lucide-react";
+import { Share2, Info, TriangleAlert, MessagesSquare, ShoppingBasket, Cross, ScrollText, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { useTranslation } from "react-i18next";
@@ -245,7 +245,6 @@ export default function FoodDetailPage() {
                   <div className="fdp-badges">
                       {food.origin && (
                         <span className="fdp-badge fdp-badge-origin">
-                          <MapPin size={14} style={{ marginRight: '4px', display: 'inline' }} /> 
                           {food.origin}
                         </span>
                       )}
