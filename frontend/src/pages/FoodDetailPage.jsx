@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 import "../css/lrp.css";
 import "../css/FoodDetailPage.css";
 import Modal from "../components/Modal";
-import { Share2, Info, TriangleAlert, MessagesSquare, ShoppingBasket, Cross, ScrollText, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Share2, Info, TriangleAlert, MessagesSquare, ShoppingBasket, Cross, ScrollText, CheckCircle2, AlertTriangle, MapPin } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { useTranslation } from "react-i18next";
@@ -243,8 +243,18 @@ export default function FoodDetailPage() {
                 <div className="fdp-hero-overlay" />
                 <div className="fdp-hero-text">
                   <div className="fdp-badges">
-                    {food.origin && <span className="fdp-badge">{food.origin}</span>}
-                    {food.category && (
+                      {food.origin && (
+                        <span className="fdp-badge fdp-badge-origin">
+                          <MapPin size={14} style={{ marginRight: '4px', display: 'inline' }} /> 
+                          {food.origin}
+                        </span>
+                      )}
+                    </div>
+
+                    <h1 className="fdp-title">{translatedFood.name || food.name}</h1>
+
+                    <div className="fdp-badges" style={{ marginTop: '8px' }}>
+                      {food.category && (
                         (Array.isArray(food.category) ? food.category : food.category.split(','))
                           .map((cat, index) => (
                             <span key={`cat-${index}`} className="fdp-badge">
