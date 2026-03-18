@@ -244,8 +244,15 @@ export default function FoodDetailPage() {
                 <div className="fdp-hero-text">
                   <div className="fdp-badges">
                     {food.origin && <span className="fdp-badge">{food.origin}</span>}
-                    {food.category && <span className="fdp-badge">{food.category}</span>}
-                  </div>
+                    {food.category && (
+                        (Array.isArray(food.category) ? food.category : food.category.split(','))
+                          .map((cat, index) => (
+                            <span key={`cat-${index}`} className="fdp-badge">
+                              {cat.trim()}
+                            </span>
+                          ))
+                      )}
+                    </div>
                   <h1 className="fdp-title">{translatedFood.name || food.name}</h1>
                 </div>
               </div>
