@@ -18,8 +18,8 @@ const sendEmail = async ({ to, subject, html, text }) => {
       return { success: false, error: data.error };
     }
 
-    console.log("📩 Email sent via Resend:", data.id);
-    return { success: true, messageId: data.id };
+    console.log("📩 Email sent successfully to:", to);
+    return { success: true };
   } catch (error) {
     console.error("❌ Unexpected Error:", error);
     return { success: false, error: error.message };
