@@ -248,7 +248,7 @@ router.get('/cultural-origin', async (req, res) => {
     const query = `
       SELECT 
         f.origin as name,
-        COUNT(f.foodID) as count
+        COUNT(r.recipeID) as count
       FROM food f
       INNER JOIN recipe r ON f.foodID = r.foodID
       ${whereConditions}
