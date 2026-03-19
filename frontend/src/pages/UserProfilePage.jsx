@@ -1512,7 +1512,7 @@ const ContributionRow = ({ c }) => {
                             {totalRecipePages > 1 && (
                               <div className="efp-pagination" style={{ marginTop: "30px", marginBottom: "10px" }}>
                                 <button
-                                  className="efp-btn nav-btn" /* ADDED nav-btn HERE 👇 */
+                                  className="efp-btn nav-btn" 
                                   disabled={recipePage === 1}
                                   onClick={() => setRecipePage((p) => Math.max(1, p - 1))}
                                 >
@@ -1530,7 +1530,7 @@ const ContributionRow = ({ c }) => {
                                   ))}
                                 </div>
                                 <button
-                                  className="efp-btn nav-btn" /* ADDED nav-btn HERE 👇 */
+                                  className="efp-btn nav-btn" 
                                   disabled={recipePage === totalRecipePages}
                                   onClick={() => setRecipePage((p) => Math.min(totalRecipePages, p + 1))}
                                 >
