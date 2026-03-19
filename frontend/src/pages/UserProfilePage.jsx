@@ -1765,6 +1765,7 @@ const ContributionRow = ({ c }) => {
                     <div>
                       <div className="upp-strong">{t("profile.deleteAccount")}</div>
                       <div className="upp-muted2">{t("profile.deleteAccountDesc")}</div>
+                      <div className="upp-muted2">{t("profile.deleteAccountConsent")}</div>
                     </div>
                     <button
                       type="button"

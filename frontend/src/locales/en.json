@@ -454,6 +454,7 @@
     "openAdminDashboard": "Open Admin Dashboard",
     "deleteAccount": "Delete Account",
     "deleteAccountDesc": "Permanently remove your account and all associated data.",
+    "deleteAccountConsent": "To withdraw your consent to our Privacy Policy and Terms & Conditions, you may delete your account. This will permanently remove all your personal data from our systems.",
     "selectAll": "Select All",
     "unnamedFood": "Unnamed Food",
     "unknownOrigin": "Unknown origin",
