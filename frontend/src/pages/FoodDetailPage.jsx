@@ -188,8 +188,8 @@ export default function FoodDetailPage() {
     setJumping(true);
     
     try {
-      if (food.recipeID) {
-        navigate(`/recipe/${food.recipeID}`);
+      if (food.recipeId) {
+        navigate(`/recipe/${food.recipeId}`);
       } else {
         navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`);
       }
