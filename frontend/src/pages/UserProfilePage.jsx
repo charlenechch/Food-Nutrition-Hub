@@ -212,6 +212,8 @@ const formatContributionDate = (dateString) => {
   const [savedPage, setSavedPage] = useState(1);
   const [currentSaved, setCurrentSaved] = useState([]);
   const [totalSavedPages, setTotalSavedPages] = useState(1);
+  const [recipePage, setRecipePage] = useState(1);
+  const [postPage, setPostPage] = useState(1);
 
   //recipe contributions
   const [recipeContributions, setRecipeContributions] = useState([]);
@@ -1470,42 +1472,73 @@ const ContributionRow = ({ c }) => {
             {tab === "status" && (
               <>
                 {(() => {
+                  const ITEMS_PER_PAGE = 5;
+
                   const recipeData = Array.isArray(recipeContributions) 
                     ? recipeContributions.filter(item => {
                         const result = isRecipe(item);
-                        console.log("🔍 Filtering - ID:", item?.id, "foodName:", item?.foodName, "isRecipe:", result);
                         if (!result) return false;
-                        // Other users only see Approved recipes
                         if (userProfileID && item.status?.toLowerCase() !== "approved") return false;
                         return true;
                       }).sort(byDateDesc)
                     : [];
+                  
+                  const totalRecipePages = Math.ceil(recipeData.length / ITEMS_PER_PAGE);
+                  const currentRecipeData = recipeData.slice((recipePage - 1) * ITEMS_PER_PAGE, recipePage * ITEMS_PER_PAGE);
 
                   const communityData = Array.isArray(communityPosts)
                     ? communityPosts.filter(item => {
                         if (!isCommunity(item)) return false;
-                        // Other users only see Approved posts
                         if (userProfileID && item.status !== "Approved") return false;
                         return true;
                       }).sort(byDateDesc)
                     : [];
 
-                  console.log("📊 Recipe data:", recipeData);
-                  console.log("📊 Community data:", communityData);
-                  
-                  const hasAnyContributions = recipeData.length > 0 || communityData.length > 0;
+                  const totalPostPages = Math.ceil(communityData.length / ITEMS_PER_PAGE);
+                  const currentPostData = communityData.slice((postPage - 1) * ITEMS_PER_PAGE, postPage * ITEMS_PER_PAGE);
 
                   return (
                     <div className="upp-stack">
-                      {/* Recipes Section */}
                       <div className="upp-card">
                         <h3 className="upp-card-title">{t("profile.recipes")} ({recipeData.length})</h3>
                         {isLoadingRecipes ? (
                           <div className="upp-muted">{t("profile.loadingRecipes")}</div>
                         ) : recipeData.length ? (
-                          <div className="upp-stack">
-                            {recipeData.map((c) => <ContributionRow key={`recipe-${c.id}`} c={c} />)}
-                          </div>
+                          <>
+                            <div className="upp-stack upp-pagination-container">
+                              {currentRecipeData.map((c) => <ContributionRow key={`recipe-${c.id}`} c={c} />)}
+                            </div>
+                            
+                            {totalRecipePages > 1 && (
+                              <div className="efp-pagination" style={{ marginTop: "30px", marginBottom: "10px" }}>
+                                <button
+                                  className="efp-btn nav-btn" 
+                                  disabled={recipePage === 1}
+                                  onClick={() => setRecipePage((p) => Math.max(1, p - 1))}
+                                >
+                                  ‹ Prev
+                                </button>
+                                <div className="efp-page-numbers">
+                                  {Array.from({ length: totalRecipePages }, (_, i) => (
+                                    <button
+                                      key={i}
+                                      className={`efp-btn ${recipePage === i + 1 ? "is-active" : ""}`}
+                                      onClick={() => setRecipePage(i + 1)}
+                                    >
+                                      {i + 1}
+                                    </button>
+                                  ))}
+                                </div>
+                                <button
+                                  className="efp-btn nav-btn" 
+                                  disabled={recipePage === totalRecipePages}
+                                  onClick={() => setRecipePage((p) => Math.min(totalRecipePages, p + 1))}
+                                >
+                                  Next ›
+                                </button>
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <div className="upp-muted">
                             {recipeContributions?.length > 0 ? `${recipeContributions.length} recipes found but not displaying` : t("profile.noRecipes")}
@@ -1513,15 +1546,46 @@ const ContributionRow = ({ c }) => {
                         )}
                       </div>
 
-                      {/* Community Posts Section (REAL) */}
                       <div className="upp-card">
                         <h3 className="upp-card-title">{t("profile.communityPosts")} ({communityData.length})</h3>
                         {isLoadingCommunity ? (
                           <div className="upp-muted">{t("profile.loadingPosts")}</div>
                         ) : communityData.length ? (
-                          <div className="upp-stack">
-                            {communityData.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
-                          </div>
+                          <>
+                            <div className="upp-stack upp-pagination-container">
+                              {currentPostData.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
+                            </div>
+                            
+                            {totalPostPages > 1 && (
+                              <div className="efp-pagination" style={{ marginTop: "30px", marginBottom: "10px" }}>
+                                <button
+                                  className="efp-btn nav-btn"
+                                  disabled={postPage === 1}
+                                  onClick={() => setPostPage((p) => Math.max(1, p - 1))}
+                                >
+                                  ‹ Prev
+                                </button>
+                                <div className="efp-page-numbers">
+                                  {Array.from({ length: totalPostPages }, (_, i) => (
+                                    <button
+                                      key={i}
+                                      className={`efp-btn ${postPage === i + 1 ? "is-active" : ""}`}
+                                      onClick={() => setPostPage(i + 1)}
+                                    >
+                                      {i + 1}
+                                    </button>
+                                  ))}
+                                </div>
+                                <button
+                                  className="efp-btn nav-btn" 
+                                  disabled={postPage === totalPostPages}
+                                  onClick={() => setPostPage((p) => Math.min(totalPostPages, p + 1))}
+                                >
+                                  Next ›
+                                </button>
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <div className="upp-muted">
                             {communityPosts?.length > 0 ? `${communityPosts.length} community posts found but not displaying` : t("profile.noCommunityPosts")}

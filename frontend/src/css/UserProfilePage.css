@@ -750,10 +750,18 @@
   }
 
   .upp-row-top {
-    flex-direction: column;
+    flex-direction: row; 
+    justify-content: space-between; 
     align-items: flex-start;
-    gap: 6px;
+    gap: 12px;
     margin-right: 0;
+    width: 100%;
+  }
+
+  .upp-row-card .upp-row-top .upp-chip {
+    margin-left: 0; 
+    flex-shrink: 0; 
+    margin-top: 2px; 
   }
 
   .upp-row-title {
@@ -780,11 +788,46 @@
   }
 
   .upp-row.between {
+    flex-wrap: wrap;
     gap: 16px;
   }
 
-  .upp-row.between > div {
-    max-width: calc(100% - 70px);
+  .upp-row.between > div:first-child {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .upp-row.between .upp-switch {
+    flex: 0 0 auto;
+    margin-top: 0; 
+  }
+
+  .upp-row.between .upp-btn {
+    flex: 1 1 100%;
+    width: 100%;
+    margin-top: 4px;
+    justify-content: center;
+  }
+
+  .efp-pagination {
+    gap: 8px; 
+  }
+  
+  .efp-page-numbers {
+    gap: 4px; 
+  }
+
+  .efp-pagination .nav-btn {
+    min-width: 75px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    height: 36px;
+  }
+
+  .efp-pagination .efp-btn:not(.nav-btn) {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
   }
 }
 
@@ -1001,4 +1044,9 @@
   font-size: 0.88rem;
   color: #666;
   padding: 3px 0;
+}
+
+.upp-pagination-container {
+    min-height: 580px; 
+    align-content: start; 
 }
