@@ -145,6 +145,11 @@ router.post("/login", async (req, res) => {
       userProfileID = profiles[0].userProfileID;
     }
 
+    await db.execute(
+      "UPDATE user SET lastLogin = ?, deletion_warning_sent = 0 WHERE userID = ?",
+      [new Date(), user.userID]
+    );
+
     req.session.user = {
       userID: user.userID,
       userProfileID: userProfileID,
@@ -277,7 +282,7 @@ router.post("/google-login", async (req, res) => {
         if (err) return res.status(500).json({ message: "Session save error" });
         
         // Update Last Login
-        db.execute("UPDATE user SET lastLogin = ? WHERE userID = ?", [new Date(), user.userID]);
+        db.execute("UPDATE user SET lastLogin = ?, deletion_warning_sent = 0 WHERE userID = ?", [new Date(), user.userID]);
 
         return res.json({
           success: true,

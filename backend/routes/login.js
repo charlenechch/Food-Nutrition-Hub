@@ -298,7 +298,7 @@ router.post("/", async (req, res) => {
       });
 
       try {
-        await db.query("UPDATE user SET lastLogin = ? WHERE userID = ?", [new Date(), user.userID]);
+        await db.query("UPDATE user SET lastLogin = ?, deletion_warning_sent = 0 WHERE userID = ?", [new Date(), user.userID]);
         console.log(`✅ Updated lastLogin for user: ${user.email}`);
       } catch (updateError) {
         console.error("❌ Failed to update lastLogin:", updateError);

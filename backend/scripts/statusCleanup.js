@@ -3,6 +3,7 @@ process.env.DB_HOST = process.env.DB_HOST || RAILWAY_INTERNAL_HOST;
 
 const { pool: db } = require("../config/db");
 const { sendEmail } = require("../config/mailer");
+const { deleteUser } = require("../routes/userProfile");
 
 // Finds and updates user statuses based on expired suspensions and inactivity.
 async function updateStaleAndExpiredUsers() {
@@ -103,6 +104,142 @@ async function updateStaleAndExpiredUsers() {
             );
 
             console.log(`✅ ${staleUsers.length} previously Active users set to 'Inactive'.`);
+        } else {
+            console.log("ℹ️ No stale users to mark as Inactive.");
+        }
+
+        // --- AUTO-DELETION: Warn users approaching 2 years inactive ---
+        const warningCutoffStart = new Date();
+        warningCutoffStart.setDate(warningCutoffStart.getDate() - 700);
+        const warningCutoffEnd = new Date();
+        warningCutoffEnd.setDate(warningCutoffEnd.getDate() - 699);
+        const warningStart = warningCutoffStart.toISOString().slice(0, 19).replace("T", " ");
+        const warningEnd = warningCutoffEnd.toISOString().slice(0, 19).replace("T", " ");
+
+        const [usersToWarn] = await db.execute(
+            `SELECT userID, email, firstname FROM \`user\`
+             WHERE \`status\` = 'Inactive'
+               AND \`lastLogin\` < ?
+               AND \`lastLogin\` >= ?
+               AND \`deletion_warning_sent\` = 0`,
+            [warningStart, warningEnd]
+        );
+
+        if (usersToWarn.length > 0) {
+            console.log(`Found ${usersToWarn.length} users to warn about upcoming deletion.`);
+
+            const warnIDs = usersToWarn.map(u => u.userID);
+            const warnPlaceholders = warnIDs.map(() => '?').join(',');
+
+            const warningEmailPromises = usersToWarn.map(user => {
+                const html = `
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                    <div style="background-color: #e67e22; padding: 20px; text-align: center;">
+                      <h1 style="color: #fff; margin: 0;">Account Deletion Notice</h1>
+                    </div>
+                    <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+                      <h2 style="color: #e67e22;">Hello ${user.firstname},</h2>
+                      <p>Your SarawakEats account (<strong>${user.email}</strong>) has been inactive for nearly 2 years.</p>
+
+                      <div style="background-color: #fdebd0; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #e67e22;">
+                        <p style="margin: 0;">Your account will be <strong>permanently deleted in 30 days</strong> if you do not log in.</p>
+                      </div>
+
+                      <p>To keep your account, simply log in before the deadline.</p>
+
+                      <div style="text-align: center; margin-top: 25px;">
+                        <a href="https://food-nutrition-hub.vercel.app/loginregister" style="display: inline-block; background-color: #e67e22; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Log In Now</a>
+                      </div>
+
+                      <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                        Best regards,<br>The SarawakEats Team
+                      </p>
+                    </div>
+                  </div>
+                `;
+
+                return sendEmail({
+                    to: user.email,
+                    subject: "Important: Your SarawakEats Account Will Be Deleted Soon",
+                    html: html,
+                    text: `Hello ${user.firstname}, your SarawakEats account will be permanently deleted in 30 days due to inactivity. Log in to keep your account.`
+                });
+            });
+
+            await Promise.all(warningEmailPromises);
+
+            // Mark warning as sent so emails don't repeat
+            await db.execute(
+                `UPDATE \`user\` SET \`deletion_warning_sent\` = 1
+                 WHERE userID IN (${warnPlaceholders})`,
+                warnIDs
+            );
+
+            console.log(`✅ Sent ${usersToWarn.length} deletion warning emails.`);
+        } else {
+            console.log("ℹ️ No users approaching the 2-year inactivity threshold.");
+        }
+
+        // Auto-delete accounts inactive for 2+ years
+        const twoyearsCutoff = new Date();
+        twoyearsCutoff.setDate(twoyearsCutoff.getDate() - 730);
+        const deletionCutoff = twoyearsCutoff.toISOString().slice(0, 19).replace("T", " ");
+
+        const [usersToDelete] = await db.execute(
+            `SELECT userID, firebase_uid, email, firstname FROM \`user\`
+             WHERE \`status\` = 'Inactive'
+               AND \`lastLogin\` < ?`,
+            [deletionCutoff]
+        );
+
+        if (usersToDelete.length > 0) {
+            console.log(`Found ${usersToDelete.length} accounts to auto-delete.`);
+
+            for (const user of usersToDelete) {
+                try {
+                    // Delete user account and all associated data
+                    await deleteUser(user.userID, user.firebase_uid || null);
+                    console.log(`✅ Auto-deleted account for userID: ${user.userID} (${user.email})`);
+
+                    // Send final deletion notification email only after successful deletion
+                    if (user.email) {
+                        const deletionHTML = `
+                          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                            <div style="background-color: #dc3545; padding: 20px; text-align: center;">
+                              <h1 style="color: #fff; margin: 0;">Account Deleted</h1>
+                            </div>
+                            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+                              <h2 style="color: #dc3545;">Hello ${user.firstname},</h2>
+                              <p>Your SarawakEats account (<strong>${user.email}</strong>) has been permanently deleted due to 2 years of inactivity, in accordance with our data retention policy.</p>
+
+                              <div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #dc3545;">
+                                <p style="margin: 0;">All your personal data, recipes, and posts have been removed from our system.</p>
+                              </div>
+
+                              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                                Best regards,<br>The SarawakEats Team
+                              </p>
+                            </div>
+                          </div>
+                        `;
+
+                        await sendEmail({
+                            to: user.email,
+                            subject: "Your SarawakEats Account Has Been Deleted",
+                            html: deletionHTML,
+                            text: `Hello ${user.firstname}, your SarawakEats account has been permanently deleted due to 2 years of inactivity.`
+                        });
+                    }
+
+                } catch (deleteError) {
+                    console.error(`❌ Failed to auto-delete userID ${user.userID}:`, deleteError.message);
+                    // Continue with next user even if one fails
+                }
+            }
+
+            console.log(`✅ Auto-deletion complete. Processed ${usersToDelete.length} accounts.`);
+        } else {
+            console.log("ℹ️ No accounts due for auto-deletion.");
         }
         
         console.log("✅ Status Cleanup Complete.");
