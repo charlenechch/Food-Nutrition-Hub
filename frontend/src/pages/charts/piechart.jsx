@@ -15,14 +15,14 @@ const PieChart = ({ data, width = 500, height = 350 }) => {
 
     d3.select(svgRef.current).selectAll('*').remove();
 
-    const chartHeight = height - 100; 
-    const radius = Math.min(width, chartHeight) / 2;
-    
     const itemsPerColumn = Math.ceil(data.length / 2);
     const legendItemHeight = 20;
     const requiredLegendHeight = itemsPerColumn * legendItemHeight;
     
-    const actualHeight = chartHeight + 30 + requiredLegendHeight + 10;
+    const chartHeight = Math.max(200, height - requiredLegendHeight - 40); 
+    const radius = Math.min(width, chartHeight) / 2;
+    
+    const actualHeight = chartHeight + requiredLegendHeight + 60;
     
     const svg = d3.select(svgRef.current)
       .attr('viewBox', `0 0 ${width} ${Math.max(height, actualHeight)}`)
