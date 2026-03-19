@@ -15,11 +15,11 @@ function getMonthName(monthNumber) {
 router.get('/available-years', async (req, res) => {
   try {
     const query = `
-      SELECT DISTINCT YEAR(updatedAt) as year 
+      SELECT DISTINCT YEAR(createdAt) as year 
       FROM (
-        SELECT updatedAt FROM recipe WHERE status = 'Approved'
+        SELECT createdAt FROM recipe WHERE status = 'Approved'
         UNION ALL
-        SELECT updated_at as updatedAt FROM posts WHERE status = 'Approved'
+        SELECT created_at as createdAt FROM posts WHERE status = 'Approved'
       ) AS contributions
       ORDER BY year DESC
     `;
@@ -54,13 +54,13 @@ router.get('/available-months', async (req, res) => {
     }
     
     const query = `
-      SELECT DISTINCT MONTH(updatedAt) as month 
+      SELECT DISTINCT MONTH(createdAt) as month 
       FROM (
-        SELECT updatedAt FROM recipe WHERE status = 'Approved'
+        SELECT createdAt FROM recipe WHERE status = 'Approved'
         UNION ALL
-        SELECT updated_at as updatedAt FROM posts WHERE status = 'Approved'
+        SELECT created_at as createdAt FROM posts WHERE status = 'Approved'
       ) AS contributions
-      WHERE YEAR(updatedAt) = ?
+      WHERE YEAR(createdAt) = ?
       ORDER BY month
     `;
     
@@ -104,16 +104,16 @@ router.get('/metrics', async (req, res) => {
     let storyParams = [];
     
     if (year && month) {
-      recipeWhere += " AND YEAR(updatedAt) = ? AND MONTH(updatedAt) = ?";
+      recipeWhere += " AND YEAR(createdAt) = ? AND MONTH(createdAt) = ?";
       recipeParams.push(currentYear, currentMonth);
       
-      storyWhere += " AND YEAR(updated_at) = ? AND MONTH(updated_at) = ?";
+      storyWhere += " AND YEAR(created_at) = ? AND MONTH(created_at) = ?";
       storyParams.push(currentYear, currentMonth);
     } else if (year) {
-      recipeWhere += " AND YEAR(updatedAt) = ?";
+      recipeWhere += " AND YEAR(createdAt) = ?";
       recipeParams.push(currentYear);
       
-      storyWhere += " AND YEAR(updated_at) = ?";
+      storyWhere += " AND YEAR(created_at) = ?";
       storyParams.push(currentYear);
     }
 
@@ -157,8 +157,8 @@ router.get('/metrics', async (req, res) => {
         SELECT COUNT(*) as count 
         FROM recipe 
         WHERE status = 'Approved' 
-          AND MONTH(updatedAt) = ? 
-          AND YEAR(updatedAt) = ?
+          AND MONTH(createdAt) = ? 
+          AND YEAR(createdAt) = ?
       `, [currentMonth, currentYear]);
       const currentMonthRecipes = currentMonthRecipesResult[0].count || 0;
 
@@ -167,8 +167,8 @@ router.get('/metrics', async (req, res) => {
         SELECT COUNT(*) as count 
         FROM recipe 
         WHERE status = 'Approved' 
-          AND MONTH(updatedAt) = ? 
-          AND YEAR(updatedAt) = ?
+          AND MONTH(createdAt) = ? 
+          AND YEAR(createdAt) = ?
       `, [previousMonth, previousYear]);
       const previousMonthRecipes = previousMonthRecipesResult[0].count || 0;
 
@@ -177,8 +177,8 @@ router.get('/metrics', async (req, res) => {
         SELECT COUNT(*) as count 
         FROM posts 
         WHERE status = 'Approved' 
-          AND MONTH(updated_at) = ? 
-          AND YEAR(updated_at) = ?
+          AND MONTH(created_at) = ? 
+          AND YEAR(created_at) = ?
       `, [currentMonth, currentYear]);
       const currentMonthStories = currentMonthStoriesResult[0].count || 0;
 
@@ -187,8 +187,8 @@ router.get('/metrics', async (req, res) => {
         SELECT COUNT(*) as count 
         FROM posts 
         WHERE status = 'Approved' 
-          AND MONTH(updated_at) = ? 
-          AND YEAR(updated_at) = ?
+          AND MONTH(created_at) = ? 
+          AND YEAR(created_at) = ?
       `, [previousMonth, previousYear]);
       const previousMonthStories = previousMonthStoriesResult[0].count || 0;
 
@@ -239,10 +239,10 @@ router.get('/cultural-origin', async (req, res) => {
     const params = [];
     
     if (year && month) {
-      whereConditions += " AND YEAR(r.updatedAt) = ? AND MONTH(r.updatedAt) = ?";
+      whereConditions += " AND YEAR(r.createdAt) = ? AND MONTH(r.createdAt) = ?";
       params.push(parseInt(year), parseInt(month));
     } else if (year) {
-      whereConditions += " AND YEAR(r.updatedAt) = ?";
+      whereConditions += " AND YEAR(r.createdAt) = ?";
       params.push(parseInt(year));
     }
 
@@ -319,8 +319,8 @@ router.get('/posts-recipes-by-month', async (req, res) => {
           status,
           COUNT(*) as count
         FROM posts 
-        WHERE YEAR(updated_at) = ?
-          AND MONTH(updated_at) = ?
+        WHERE YEAR(created_at) = ?
+          AND MONTH(created_at) = ?
         GROUP BY status
         
         UNION ALL
@@ -330,8 +330,8 @@ router.get('/posts-recipes-by-month', async (req, res) => {
           status,
           COUNT(*) as count
         FROM recipe 
-        WHERE YEAR(updatedAt) = ?
-          AND MONTH(updatedAt) = ?
+        WHERE YEAR(createdAt) = ?
+          AND MONTH(createdAt) = ?
         GROUP BY status
         
         ORDER BY type, status
@@ -395,22 +395,22 @@ router.get('/posts-recipes-by-month', async (req, res) => {
         SELECT 
           'Posts' as type,
           status,
-          MONTH(updated_at) as month,
+          MONTH(created_at) as month,
           COUNT(*) as count
         FROM posts 
-        WHERE YEAR(updated_at) = ?
-        GROUP BY MONTH(updated_at), status
+        WHERE YEAR(created_at) = ?
+        GROUP BY MONTH(created_at), status
         
         UNION ALL
         
         SELECT 
           'Recipes' as type,
           status,
-          MONTH(updatedAt) as month,
+          MONTH(createdAt) as month,
           COUNT(*) as count
         FROM recipe 
-        WHERE YEAR(updatedAt) = ?
-        GROUP BY MONTH(updatedAt), status
+        WHERE YEAR(createdAt) = ?
+        GROUP BY MONTH(createdAt), status
         
         ORDER BY month, type, status
       `;
@@ -487,10 +487,10 @@ router.get('/popular-categories', async (req, res) => {
     const params = [];
     
     if (year && month) {
-      whereConditions += " AND YEAR(r.updatedAt) = ? AND MONTH(r.updatedAt) = ?";
+      whereConditions += " AND YEAR(r.createdAt) = ? AND MONTH(r.createdAt) = ?";
       params.push(parseInt(year), parseInt(month));
     } else if (year) {
-      whereConditions += " AND YEAR(r.updatedAt) = ?";
+      whereConditions += " AND YEAR(r.createdAt) = ?";
       params.push(parseInt(year));
     }
 
@@ -555,10 +555,10 @@ router.get('/top-contributors-recipes', async (req, res) => {
     const params = [];
     
     if (year && month) {
-      whereConditions += " AND YEAR(r.updatedAt) = ? AND MONTH(r.updatedAt) = ?";
+      whereConditions += " AND YEAR(r.createdAt) = ? AND MONTH(r.createdAt) = ?";
       params.push(parseInt(year), parseInt(month));
     } else if (year) {
-      whereConditions += " AND YEAR(r.updatedAt) = ?";
+      whereConditions += " AND YEAR(r.createdAt) = ?";
       params.push(parseInt(year));
     }
 
@@ -611,10 +611,10 @@ router.get('/top-contributors-stories', async (req, res) => {
     const params = [];
     
     if (year && month) {
-      whereConditions += " AND YEAR(p.updated_at) = ? AND MONTH(p.updated_at) = ?";
+      whereConditions += " AND YEAR(p.created_at) = ? AND MONTH(p.created_at) = ?";
       params.push(parseInt(year), parseInt(month));
     } else if (year) {
-      whereConditions += " AND YEAR(p.updated_at) = ?";
+      whereConditions += " AND YEAR(p.created_at) = ?";
       params.push(parseInt(year));
     }
 
