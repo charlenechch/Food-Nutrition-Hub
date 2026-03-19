@@ -220,6 +220,35 @@
     margin: 0; 
     color:#3b2b1e; 
 }
+
+.rdp-badges { 
+    display: flex;
+    gap: .5rem;
+    margin-bottom: .5rem;
+    flex-wrap: wrap;
+}
+
+.rdp-badge { 
+    display: inline-flex;
+    align-items: center;
+    padding: .25rem .6rem;
+    border: 1px solid rgba(255,255,255,.6);
+    border-radius: 999px;
+    background: rgba(255,255,255,.15);
+    backdrop-filter: blur(2px);
+    color: #fff;
+    font-size: .85rem;
+    font-weight: 500;
+}
+
+.rdp-badge-origin {
+    background: #8B4513; 
+    border-color: #8B4513;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
 @media (max-width: 1024px) {
   .rdp-aside { gap: 14px; }
   .rdp-note { order: 1; }

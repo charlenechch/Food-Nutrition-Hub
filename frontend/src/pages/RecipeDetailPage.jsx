@@ -394,9 +394,28 @@ export default function RecipeDetailPage() {
                     <img className="rdp-hero-img" src={recipe.image} alt={recipe.name} />
                     <div className="rdp-hero-overlay" />
                     <div className="rdp-hero-text">
+                      <div className="rdp-badges">
+                        {recipe.origin && (
+                          <span className="rdp-badge rdp-badge-origin">
+                            {recipe.origin}
+                          </span>
+                        )}
+                      </div>
+
                       <h1 className="rdp-title">{recipe.name}</h1>
+
+                      <div className="rdp-badges" style={{ marginTop: '8px', marginBottom: '0' }}>
+                        {recipe.category && (
+                          (Array.isArray(recipe.category) ? recipe.category : recipe.category.split(','))
+                            .map((cat, index) => (
+                              <span key={`cat-${index}`} className="rdp-badge">
+                                {cat.trim()}
+                              </span>
+                            ))
+                        )}
+                      </div>
                     </div>
-                  </>
+                                      </>
                 )}
               </div>
 
