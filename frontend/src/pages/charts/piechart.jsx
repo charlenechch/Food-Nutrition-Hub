@@ -15,11 +15,17 @@ const PieChart = ({ data, width = 500, height = 350 }) => {
 
     d3.select(svgRef.current).selectAll('*').remove();
 
-    const chartHeight = height - 100; // More space for legend
+    const itemsPerColumn = Math.ceil(data.length / 2);
+    const legendItemHeight = 20;
+    const requiredLegendHeight = itemsPerColumn * legendItemHeight;
+    
+    const chartHeight = Math.max(200, height - requiredLegendHeight - 40); 
     const radius = Math.min(width, chartHeight) / 2;
     
+    const actualHeight = chartHeight + requiredLegendHeight + 60;
+    
     const svg = d3.select(svgRef.current)
-      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('viewBox', `0 0 ${width} ${Math.max(height, actualHeight)}`)
       .attr('preserveAspectRatio', 'xMidYMid meet')
       .style('width', '100%')
       .style('height', 'auto')
@@ -149,9 +155,6 @@ const PieChart = ({ data, width = 500, height = 350 }) => {
       .attr('class', 'legend')
       .attr('transform', `translate(0, ${chartHeight + 20})`);
 
-    // Calculate legend layout - 2 columns
-    const itemsPerColumn = Math.ceil(data.length / 2);
-    const legendItemHeight = 20;
     const columnWidth = width / 2;
 
     const legendItems = legend.selectAll('.legend-item')
