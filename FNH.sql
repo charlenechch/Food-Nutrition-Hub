@@ -188,6 +188,14 @@ CREATE TABLE restaurants (
     FOREIGN KEY (foodID) REFERENCES food(foodID)
 );
 
-
+CREATE TABLE notifications (
+    notificationID INT AUTO_INCREMENT PRIMARY KEY,
+    userID INT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    is_read TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userID) REFERENCES user(userID) ON UPDATE CASCADE ON DELETE CASCADE
+);
 
 
