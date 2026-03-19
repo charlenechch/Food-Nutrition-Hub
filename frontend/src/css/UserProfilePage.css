@@ -789,10 +789,22 @@
 
   .upp-row.between {
     gap: 16px;
+    flex-wrap: wrap; 
   }
 
-  .upp-row.between > div {
+  .upp-row.between:has(.upp-switch) > div {
     max-width: calc(100% - 70px);
+  }
+
+  .upp-row.between:has(.upp-btn) > div {
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .upp-row.between .upp-btn {
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
   }
 
   .efp-pagination {
