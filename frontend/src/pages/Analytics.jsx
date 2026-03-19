@@ -476,7 +476,7 @@ const Analytics = () => {
               <div className="chart-header">
                 <h3 className="chart-title">{t("analytics.monthlyCommunityContributionTrends")}</h3>
               </div>
-              <BarChart data={barChartData} width={550} height={350} />
+              <BarChart data={barChartData} width={550} height={400} />
             </div>
           </div>
 
