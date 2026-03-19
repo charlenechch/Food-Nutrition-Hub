@@ -535,11 +535,20 @@
   flex: 1 1 auto; 
 }
 .efp-food-headline {
-  display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem;
+  display: flex; 
+  justify-content: space-between; 
+  align-items: flex-start; 
+  gap: .5rem;
 }
 .efp-food-title {
   font-weight: 600;
   font-size: 1rem;
+}
+.efp-category-group {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  justify-content: flex-end; 
 }
 .efp-badge-cat {
   font-size: .72rem;
@@ -547,6 +556,7 @@
   background: #fff;
   padding: .2rem .5rem;
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 .efp-desc {

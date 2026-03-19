@@ -424,7 +424,17 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                 <div className="efp-food-body">
                   <div className="efp-food-headline">
                     <h3 className="efp-food-title">{translatedFoods[`name_${food.id}`] || food.name}</h3>
-                    <span className="efp-badge-cat">{food.category}</span>
+                    
+                    <div className="efp-category-group">
+                      {food.category && (
+                        (Array.isArray(food.category) ? food.category : food.category.split(','))
+                          .map((cat, index) => (
+                            <span key={`cat-${index}`} className="efp-badge-cat">
+                              {cat.trim()}
+                            </span>
+                          ))
+                      )}
+                    </div>
                   </div>
                   <p className="efp-desc">{translatedFoods[`desc_${food.id}`] || food.description}</p>
                   <div className="efp-meta">
