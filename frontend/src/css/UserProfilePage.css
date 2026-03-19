@@ -788,23 +788,25 @@
   }
 
   .upp-row.between {
+    flex-wrap: wrap;
     gap: 16px;
-    flex-wrap: wrap; 
   }
 
-  .upp-row.between:has(.upp-switch) > div {
-    max-width: calc(100% - 70px);
+  .upp-row.between > div:first-child {
+    flex: 1 1 0%;
+    min-width: 0;
   }
 
-  .upp-row.between:has(.upp-btn) > div {
-    max-width: 100%;
-    flex: 1 1 100%;
+  .upp-row.between .upp-switch {
+    flex: 0 0 auto;
+    margin-top: 0; 
   }
 
   .upp-row.between .upp-btn {
+    flex: 1 1 100%;
     width: 100%;
-    justify-content: center;
     margin-top: 4px;
+    justify-content: center;
   }
 
   .efp-pagination {
