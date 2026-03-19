@@ -409,7 +409,14 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
               : diff === "hard" ? "efp-badge efp-badge--high" : "efp-badge";
 
             return (
-              <div key={food.foodID} className="efp-food-card" onClick={() => onFoodSelect(food)}>
+              <div 
+                key={food.foodID} 
+                className="efp-food-card" 
+                onClick={() => { 
+                  onFoodSelect(food); 
+                  if (food.foodID) navigate(`/fooddetail/${food.foodID}`); 
+                }}
+              >                
                 <div className="efp-food-media">
                   <img src={food.image} alt={food.name} className="efp-image" loading="lazy" />
                   <div className="efp-badges">
