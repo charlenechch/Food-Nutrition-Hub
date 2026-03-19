@@ -1002,3 +1002,8 @@
   color: #666;
   padding: 3px 0;
 }
+
+.upp-pagination-container {
+    min-height: 580px; 
+    align-content: start; 
+}

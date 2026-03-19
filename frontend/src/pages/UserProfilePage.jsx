@@ -1505,30 +1505,32 @@ const ContributionRow = ({ c }) => {
                           <div className="upp-muted">{t("profile.loadingRecipes")}</div>
                         ) : recipeData.length ? (
                           <>
-                            <div className="upp-stack">
+                            <div className="upp-stack upp-pagination-container">
                               {currentRecipeData.map((c) => <ContributionRow key={`recipe-${c.id}`} c={c} />)}
                             </div>
                             
                             {totalRecipePages > 1 && (
                               <div className="efp-pagination" style={{ marginTop: "30px", marginBottom: "10px" }}>
                                 <button
-                                  className="efp-btn"
+                                  className="efp-btn nav-btn" /* ADDED nav-btn HERE 👇 */
                                   disabled={recipePage === 1}
                                   onClick={() => setRecipePage((p) => Math.max(1, p - 1))}
                                 >
                                   ‹ Prev
                                 </button>
-                                {Array.from({ length: totalRecipePages }, (_, i) => (
-                                  <button
-                                    key={i}
-                                    className={`efp-btn ${recipePage === i + 1 ? "is-active" : ""}`}
-                                    onClick={() => setRecipePage(i + 1)}
-                                  >
-                                    {i + 1}
-                                  </button>
-                                ))}
+                                <div className="efp-page-numbers">
+                                  {Array.from({ length: totalRecipePages }, (_, i) => (
+                                    <button
+                                      key={i}
+                                      className={`efp-btn ${recipePage === i + 1 ? "is-active" : ""}`}
+                                      onClick={() => setRecipePage(i + 1)}
+                                    >
+                                      {i + 1}
+                                    </button>
+                                  ))}
+                                </div>
                                 <button
-                                  className="efp-btn"
+                                  className="efp-btn nav-btn" /* ADDED nav-btn HERE 👇 */
                                   disabled={recipePage === totalRecipePages}
                                   onClick={() => setRecipePage((p) => Math.min(totalRecipePages, p + 1))}
                                 >
@@ -1550,30 +1552,32 @@ const ContributionRow = ({ c }) => {
                           <div className="upp-muted">{t("profile.loadingPosts")}</div>
                         ) : communityData.length ? (
                           <>
-                            <div className="upp-stack">
+                            <div className="upp-stack upp-pagination-container">
                               {currentPostData.map((c) => <ContributionRow key={`community-${c.id}`} c={c} />)}
                             </div>
                             
                             {totalPostPages > 1 && (
                               <div className="efp-pagination" style={{ marginTop: "30px", marginBottom: "10px" }}>
                                 <button
-                                  className="efp-btn"
+                                  className="efp-btn nav-btn"
                                   disabled={postPage === 1}
                                   onClick={() => setPostPage((p) => Math.max(1, p - 1))}
                                 >
                                   ‹ Prev
                                 </button>
-                                {Array.from({ length: totalPostPages }, (_, i) => (
-                                  <button
-                                    key={i}
-                                    className={`efp-btn ${postPage === i + 1 ? "is-active" : ""}`}
-                                    onClick={() => setPostPage(i + 1)}
-                                  >
-                                    {i + 1}
-                                  </button>
-                                ))}
+                                <div className="efp-page-numbers">
+                                  {Array.from({ length: totalPostPages }, (_, i) => (
+                                    <button
+                                      key={i}
+                                      className={`efp-btn ${postPage === i + 1 ? "is-active" : ""}`}
+                                      onClick={() => setPostPage(i + 1)}
+                                    >
+                                      {i + 1}
+                                    </button>
+                                  ))}
+                                </div>
                                 <button
-                                  className="efp-btn"
+                                  className="efp-btn nav-btn" 
                                   disabled={postPage === totalPostPages}
                                   onClick={() => setPostPage((p) => Math.min(totalPostPages, p + 1))}
                                 >
