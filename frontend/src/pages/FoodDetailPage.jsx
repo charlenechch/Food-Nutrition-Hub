@@ -189,7 +189,7 @@ export default function FoodDetailPage() {
     
     try {
       if (food.recipeId) {
-        navigate(`/recipe/${food.recipeId}`);
+        navigate(`/recipes/${food.recipeId}`);
       } else {
         navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`);
       }
