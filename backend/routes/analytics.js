@@ -233,6 +233,7 @@ router.get('/metrics', async (req, res) => {
 router.get('/cultural-origin', async (req, res) => {
   try {
     const { year, month } = req.query;
+    console.log('Received query params:', { year, month });
 
     let whereConditions = "WHERE f.origin IS NOT NULL AND f.origin != '' AND r.status = 'Approved'";
     const params = [];
@@ -255,8 +256,12 @@ router.get('/cultural-origin', async (req, res) => {
       GROUP BY f.origin
       ORDER BY count DESC
     `;
+    console.log('Executing query:', query);
+    console.log('With params:', params);
 
     const [results] = await db.execute(query, params);
+
+    console.log('Query results:', results);
     
     if (results.length === 0) {
       return res.json({ 
