@@ -578,7 +578,7 @@ router.post("/bulk-import", async (req, res) => {
             foodItem.category || "",
             foodItem.difficulty || "Medium",
             foodItem.dietaryTags || "",
-            foodItem.description || "",
+            foodItem.foodDescription || foodItem.description || "",
             foodItem.image || "",
             foodItem.prepTime || 0,
             foodItem.culturalSignificance || "",
@@ -603,15 +603,16 @@ router.post("/bulk-import", async (req, res) => {
           const recipeSql = `
             INSERT INTO recipe 
             (
-              foodID, userProfileID, ingredients, steps, cookTime, 
+              foodID, userProfileID, description, ingredients, steps, cookTime, 
               servings, DidYouKnow, chefTips, status
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
           
           const recipeValues = [
             foodID,
             userProfileID, // ✅ Use the actual logged-in admin's ID
+            foodItem.recipeDescription || foodItem.description || "", 
             foodItem.ingredients || "",
             foodItem.steps || "",
             foodItem.cookTime || 0,

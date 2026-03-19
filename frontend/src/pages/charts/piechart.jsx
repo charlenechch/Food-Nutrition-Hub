@@ -8,6 +8,37 @@ const PieChart = ({ data, width = 500, height = 350 }) => {
   useEffect(() => {
     if (!data || data.length === 0) {
       console.log('No data provided to PieChart');
+      
+      // Clear any existing SVG content
+      d3.select(svgRef.current).selectAll('*').remove();
+      
+      // Show empty state message in SVG
+      const svg = d3.select(svgRef.current)
+        .attr('viewBox', `0 0 ${width} ${height}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet')
+        .style('width', '100%')
+        .style('height', 'auto')
+        .style('display', 'block')
+        .style('margin', '0 auto');
+
+      // Add empty state message
+      svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height / 2 - 20)
+        .attr('text-anchor', 'middle')
+        .style('font-size', '16px')
+        .style('fill', '#6b7280')
+        .style('font-weight', '500')
+        .text('No data available for this period');
+
+      svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height / 2 + 10)
+        .attr('text-anchor', 'middle')
+        .style('font-size', '14px')
+        .style('fill', '#9ca3af')
+        .text('Try selecting a different date range');
+      
       return;
     }
 
