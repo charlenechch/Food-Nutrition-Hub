@@ -470,7 +470,7 @@ const EditFoodPage = () => {
             <textarea
               className="edit-food-textarea"
               name="culturalContext"
-              value={food.traditionalPreparation}
+              value={food.description}
               onChange={handleChange}
               placeholder={t("editFood.descriptionPlaceholder")}
               rows={5}

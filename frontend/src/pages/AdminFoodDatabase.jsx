@@ -422,7 +422,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       category: String(row.Category || row.category || "").trim(),
       difficulty: String(row.Difficulty || row.difficulty || "Medium").trim(),
       dietaryTags: parseFieldToArray(row.DietaryTags || row.dietaryTags || ""),
-      description: String(row.Description || row.description || "").trim(),
+      foodDescription: String(row.FoodDescription || row.foodDescription || row.Description || row.description || "").trim(), // Food description
       image: validateImageUrl(row.Image || row.image || ""),
       prepTime: Number(row.PrepTime || row.prepTime || 0) || 0,
       culturalSignificance: String(row.CulturalSignificance || row.culturalSignificance || "").trim(),
@@ -441,6 +441,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       steps: String(row.Steps || row.steps || row.Instructions || row.instructions || "").trim(),
       cookTime: Number(row.CookTime || row.cookTime || row.CookingTime || 0) || 0,
       servings: Number(row.Servings || row.servings || 1) || 1,
+      recipeDescription: String(row.RecipeDescription || row.recipeDescription || row.Description2 || row.description2 || "").trim(), // Recipe description
       DidYouKnow: String(row.DidYouKnow || row.didYouKnow || "").trim(),
       chefTips: String(row.ChefTips || row.chefTips || "").trim()
     };
@@ -476,15 +477,15 @@ const AdminFoodDatabase = ({ categories = [] }) => {
   const downloadTemplate = () => {
     const templateData = [
       ["Name", "Origin", "Category", "Difficulty", "DietaryTags", 
-       "Description", "Image", "PrepTime", "CulturalSignificance", 
+       "FoodDescription", "Image", "PrepTime", "CulturalSignificance", 
        "TraditionalPreparation", "CommonIngredients", "Alternative", 
        "AltDescription", "HealthTips", "Energy_kcal", "Protein_g", "Fat_g", 
        "Carbohydrates_g", "Fiber_g", "VitaminC_mg",
-       "Ingredients", "Steps", "CookTime", "Servings", "DidYouKnow", "ChefTips"],
+       "RecipeDescription", "Ingredients", "Steps", "CookTime", "Servings", "DidYouKnow", "ChefTips"],
       ["* REQUIRED: Food name", "* REQUIRED: Enum: e.g. Malay, Chinese, Iban (or refer to the instructions)", 
        "* REQUIRED: e.g., Rice Dish, Noodls, Meat (or refer to the instructions)",
        "* REQUIRED: Enum: Easy, Medium, Hard", "Separate with commas: e.g., Vegetarian, Gluten Free (or refer to the instructions)", 
-       "* REQUIRED: Brief description", "* REQUIRED: Image URL", 
+       "* REQUIRED: Brief food description", "* REQUIRED: Image URL", 
        "* REQUIRED: Minutes (number only)", "Optional cultural info", 
        "Optional traditional methods", "Separate with commas: e.g., first, second", 
        "Optional alternative name", "Optional alternative description", 
@@ -492,6 +493,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
        "* REQUIRED: Protein in grams", "* REQUIRED: Fat in grams", 
        "* REQUIRED: Carbs in grams", "* REQUIRED: Fiber in grams", 
        "* REQUIRED: Vitamin C in mg",
+       "* REQUIRED: Recipe description",
        "* REQUIRED: Number ingerdients like: 1. First ingredient\n2. Second ingredient", 
        "* REQUIRED: Number steps like: 1. First step\n2. Second step", 
        "* REQUIRED: Minutes (number)", 
@@ -535,7 +537,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       {wch: 30}, {wch: 70}, {wch: 70}, {wch: 50}, {wch: 70},
       {wch: 40}, {wch: 40}, {wch: 40}, {wch: 40}, {wch: 40}, {wch: 40},
       {wch: 40}, {wch: 40}, {wch: 40}, {wch: 30}, {wch: 30}, {wch: 30},
-      {wch: 30}, {wch: 30}, {wch: 30},
+      {wch: 30}, {wch: 30}, {wch: 30}, {wch: 40},
       {wch: 60}, {wch: 60}, {wch: 30}, {wch: 40}, {wch: 30}, {wch: 30}
     ];
     ws['!cols'] = colWidths;
@@ -565,6 +567,8 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       [""],
       ["IMPORTANT NOTES:"],
       ["• Each row creates ONE food with ONE recipe"],
+      ["• FoodDescription goes to the FOOD table (general food information)"],
+      ["• RecipeDescription goes to the RECIPE table (preparation instructions)"],
       ["• Recipe will be automatically APPROVED for admin imports"],
       ["• Save this file as .xlsx or .csv before importing"]
     ];
