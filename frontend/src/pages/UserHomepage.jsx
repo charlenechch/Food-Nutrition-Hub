@@ -7,13 +7,11 @@ import Footer from "../components/Footer";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
-// --- IMAGES ---
 import LoginFood from "../assets/LoginFood.png";
 import LaksaImg from "../assets/laksa.jpg";
 import KoloImg from "../assets/kolomee.jpg";
 import KekImg from "../assets/keklapis.jpg";
 
-// ✅ Upgraded Icons
 import { FaSearch, FaStar, FaLightbulb, FaSyncAlt, FaUserEdit, FaDice } from "react-icons/fa";
 import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
 
@@ -40,12 +38,10 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isCarouselPaused, setIsCarouselPaused] = useState(false); 
 
-  // --- Gamification States ---
   const [isRandomizing, setIsRandomizing] = useState(false);
   const [randomizerText, setRandomizerText] = useState("");
-  const [randomizerResult, setRandomizerResult] = useState(null); // ✅ Added Reveal State
+  const [randomizerResult, setRandomizerResult] = useState(null);
 
-  // --- HERITAGE FACTS — keys map to en.json ---
   const heritageFacts = [
     { titleKey: "home.fact1Title", textKey: "home.fact1Text" },
     { titleKey: "home.fact2Title", textKey: "home.fact2Text" },
@@ -174,29 +170,23 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
-  // ✅ "I'm Feeling Hungry" Randomizer Logic (Upgraded with Reveal State)
   const handleRandomize = () => {
     if (!allFoods || allFoods.length === 0) return;
     
     setIsRandomizing(true);
-    setRandomizerResult(null); // Reset previous result
+    setRandomizerResult(null); 
     let ticks = 0;
-    const maxTicks = 20; // 2 seconds of spinning
+    const maxTicks = 20; 
     
     const interval = setInterval(() => {
       const randomFood = allFoods[Math.floor(Math.random() * allFoods.length)];
       setRandomizerText(randomFood.name);
       ticks++;
       
-      // Stop spinning
       if (ticks >= maxTicks) {
         clearInterval(interval);
-        
-        // Pick the final winner
         const finalFood = allFoods[Math.floor(Math.random() * allFoods.length)];
         setRandomizerText(finalFood.name);
-        
-        // Reveal the result instead of forcing a pop-up!
         setTimeout(() => {
           setRandomizerResult(finalFood);
         }, 300);
@@ -208,7 +198,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     <div className="homepage">
       <Header transparent={true} />
 
-      {/* HERO SECTION */}
       <header
         className="hero-section"
         style={{
@@ -265,11 +254,11 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               </div>
             )}
           </div>
+        </div>
 
-          <div className="scroll-hint-container" onClick={() => window.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}>
-            <span className="scroll-text">Explore</span>
-            <FaAnglesDown className="bounce-icon" />
-          </div>
+        <div className="scroll-hint-container" onClick={() => window.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}>
+          <span className="scroll-text">Explore</span>
+          <FaAnglesDown className="bounce-icon" />
         </div>
 
         <button className="hero-arrow arrow-right" onClick={nextSlide} aria-label="Next image"></button>
@@ -412,19 +401,16 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         </section>
       </main>
 
-      {/* ✅ Upgraded Gamification Overlay */}
       {isRandomizing && (
         <div className="randomizer-overlay">
           <div className="randomizer-content">
             {!randomizerResult ? (
-              // SPINNING STATE
               <>
                 <FaDice className="spinning-dice" />
                 <h3>Finding a place to eat...</h3>
                 <div className="slot-machine-text">{randomizerText}</div>
               </>
             ) : (
-              // WINNER REVEAL STATE
               <div className="result-reveal slide-up">
                 <h3>How about...</h3>
                 <div className="slot-machine-text highlight-winner">{randomizerResult.name}</div>
@@ -433,9 +419,8 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
                   <button 
                     className="feature-btn btn-accent map-btn" 
                     onClick={() => {
-                      // ✅ OFFICIAL GOOGLE MAPS SEARCH URL
                       const searchQuery = encodeURIComponent(`${randomizerResult.name} near me`);
-                      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+                      const mapsUrl = `https://www.google.com/maps/search/${searchQuery}`;
                       window.open(mapsUrl, "_blank", "noopener,noreferrer");
                       setIsRandomizing(false);
                     }}

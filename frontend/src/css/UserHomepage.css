@@ -11,7 +11,7 @@
 /* --- HERO SECTION --- */
 .hero-section {
   height: 100vh;
-  min-height: 600px;
+  min-height: 800px; /* Increased to prevent elements from squishing together */
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -20,7 +20,7 @@
   align-items: center;
   text-align: center;
   color: #ffffff;
-  padding: 0 20px;
+  padding: 80px 20px; /* Added vertical padding */
   position: relative;
   transition: background-image 0.8s ease-in-out; 
 }
@@ -53,7 +53,7 @@
 
 .hero-dots {
   position: absolute;
-  bottom: 120px;
+  bottom: 150px; /* Moved up to clear the Explore hint */
   display: flex;
   gap: 12px;
   z-index: 10;
@@ -178,7 +178,7 @@
 
 /* Premium Scroll Indicator */
 .scroll-hint-container { 
-  margin-top: 60px; 
+  margin-top: 100px; /* Increased margin for better separation */
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -186,6 +186,10 @@
   cursor: pointer;
   opacity: 0.8;
   transition: opacity 0.3s;
+  position: absolute;
+  bottom: 40px; /* Anchored to bottom of hero section */
+  left: 50%;
+  transform: translateX(-50%);
 }
 .scroll-hint-container:hover { opacity: 1; }
 .scroll-text {
@@ -195,7 +199,7 @@
   font-weight: 500;
 }
 .bounce-icon { font-size: 1.5rem; animation: bounce 2s infinite; }
-@keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-15px);} 60% {transform: translateY(-7px);} }
+@keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0) translateX(0);} 40% {transform: translateY(-15px);} 60% {transform: translateY(-7px);} }
 
 
 /* --- GAMIFICATION BASE --- */
@@ -243,7 +247,7 @@
   margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase;
 }
 
-/* ✅ Upgraded Slot Machine Text to prevent jittering */
+/* Slot Machine Text */
 .slot-machine-text {
   font-family: 'Playfair Display', serif; 
   font-size: clamp(3rem, 6vw, 5rem); 
@@ -270,7 +274,7 @@
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* --- GAMIFICATION UX UPGRADES (REVEAL ANIMATIONS) --- */
+/* --- GAMIFICATION UX UPGRADES --- */
 .result-reveal.slide-up {
   animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
@@ -331,7 +335,6 @@
 .features-layout-wrapper { background-color: #fcf9f6; padding: 80px 40px; max-width: 1400px; margin: 0 auto; }
 .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 100px; }
 
-/* Softened Shadows */
 .feature-card {
   background: #ffffff; border-radius: 20px; box-shadow: 0 10px 40px rgba(145, 104, 72, 0.05); border: 1px solid rgba(145, 104, 72, 0.08); padding: 40px 30px;
   text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; display: flex; flex-direction: column; justify-content: space-between; height: 100%;
@@ -340,7 +343,6 @@
 
 .card-content-top { flex-grow: 1; display: flex; flex-direction: column; align-items: center; }
 
-/* ✅ Upgraded Feature Icons */
 .feature-icon-wrapper {
   width: 70px;
   height: 70px;
@@ -366,7 +368,6 @@
 .feature-card h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #2d2d2d; margin-bottom: 15px; font-weight: 700; }
 .feature-card p { font-size: 0.95rem; color: #666; line-height: 1.6; margin-bottom: 30px; }
 
-/* Upgraded Premium Badge */
 .premium-badge {
   position: absolute;
   top: 15px;
@@ -498,7 +499,7 @@
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
 @media (max-width: 768px) {
-  .hero-section { height: 100vh; padding-top: 0; margin-top: 0; }
+  .hero-section { min-height: 100vh; padding: 120px 20px 180px; }
   .features-layout-wrapper { padding: 60px 20px; }
   .section-header { flex-direction: column; gap: 10px; align-items: flex-start; text-align: left; }
   .center-header { text-align: center; align-items: center; }
@@ -509,6 +510,9 @@
   .unified-search-pill { flex-direction: column; border-radius: 20px; padding: 15px; background: rgba(255, 255, 255, 0.9); }
   .unified-search-pill .search-button { width: 100%; border-radius: 12px; margin-top: 10px; }
   .search-dropdown { width: 100%; top: 140px; }
+
+  .hero-dots { bottom: 100px; }
+  .scroll-hint-container { bottom: 30px; margin-top: 40px; }
 
   .showcase-section { padding: 40px 0; }
   .cinema-grid { gap: 40px; }
