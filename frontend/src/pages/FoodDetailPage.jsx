@@ -186,9 +186,19 @@ export default function FoodDetailPage() {
   const goToRecipe = async () => {
     if (!food) return;
     setJumping(true);
-    try { navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`); }
-    catch (error) { navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`); }
-    finally { setJumping(false); }
+    
+    try {
+      if (food.recipeID) {
+        navigate(`/recipe/${food.recipeID}`);
+      } else {
+        navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`);
+      }
+    } catch (error) {
+      console.error("Navigation error:", error);
+      navigate(`/recipes?q=${encodeURIComponent(food.name || "")}`);
+    } finally {
+      setJumping(false);
+    }
   };
 
   const handleProfileClick = (commentUserProfileID) => {
