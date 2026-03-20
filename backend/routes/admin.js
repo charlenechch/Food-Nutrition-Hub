@@ -363,7 +363,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     console.log(`✅ Admin updated user: ${email} (ID: ${targetUserID})`);
 
     // Invalidate sessions if suspended OR role changed OR email changed if the user is currently logged in
-    const roleChanged = (role && role.toLowerCase() !== currentUser.role);
+    const roleChanged = (role && (role === 'Admin' ? 'admin' : 'member') !== currentUser.role);
     const emailChanged = (email && email !== currentUser.email);
     const isSuspended = (finalsuspendedUntil && new Date(finalsuspendedUntil) > new Date());
 
