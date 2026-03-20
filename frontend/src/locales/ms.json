@@ -510,7 +510,7 @@
     "ruleNumber": "Nombor",
     "ruleSpecial": "Simbol khas (!@#$)",
     "regSuccessTitle": "Pendaftaran Berjaya",
-    "regSuccessMsg": "Sila sahkan e-mel anda untuk meneruskan.",
+    "regSuccessMsg": "Sila sahkan e-mel anda untuk meneruskan. Sesetengah aplikasi e-mel mengimbas pautan secara automatik atas sebab keselamatan, yang boleh menyebabkan pautan pengesahan kelihatan telah tamat tempoh. Jika ini berlaku, cuba log masuk dahulu. Ia mungkin masih berfungsi.",
     "close": "Tutup",
     "cancel": "Batal",
     "fillAllFields": "Sila isi semua medan.",
