@@ -476,9 +476,7 @@ router.post("/syncEmailVerification", async (req, res) => {
             <p style="margin: 0;"><strong>Your account is now fully active.</strong> You can now submit recipes, post stories, and save your favorite foods.</p>
           </div>
 
-          <div style="text-align: center; margin-top: 25px;">
-            <a href="https://food-nutrition-hub.vercel.app/home" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Start Exploring</a>
-          </div>
+          <p><a href="https://sarawakeats.site/home">Start exploring SarawakEats</a></p>
           
           <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
             Best regards,<br>The SarawakEats Team

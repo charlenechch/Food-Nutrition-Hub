@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
         url:
           import.meta.env.MODE === "development"
             ? "http://localhost:5173/resetpassword"
-            : "https://food-nutrition-hub.vercel.app/resetpassword",
+            : "https://sarawakeats.site/resetpassword",
         handleCodeInApp: true,
       };
 
