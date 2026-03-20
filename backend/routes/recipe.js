@@ -1044,11 +1044,12 @@ router.patch('/updateStatus/:id', async (req, res) => {
       const { email, firstname, recipeName } = rows[0];
 
       // Force stats recount
+      let userID = null;
       const [userResult] = await db.query("SELECT userProfileID FROM recipe WHERE foodID = ?", [recipeId]);
       if (userResult.length > 0) {
           const userProfileID = userResult[0].userProfileID;
           const [userRow] = await db.query("SELECT userID FROM userProfile WHERE userProfileID = ?", [userProfileID]);
-          const userID = userRow[0].userID;
+          userID = userRow[0].userID;
           await updateUserStats(userID);
       }
 
