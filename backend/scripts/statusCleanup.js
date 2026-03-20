@@ -261,7 +261,7 @@ async function updateStaleAndExpiredUsers() {
 
         // Auto-delete notifications older than 30 days
         const [notifResult] = await db.execute(
-            `DELETE FROM notifications WHERE created_at < NOW() - INTERVAL 1 MINUTE`
+            `DELETE FROM notifications WHERE created_at < NOW() - INTERVAL 30 DAY`
         );
         console.log(`✅ Cleaned up ${notifResult.affectedRows} old notifications.`);
         
