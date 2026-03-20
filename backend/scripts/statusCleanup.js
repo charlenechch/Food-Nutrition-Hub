@@ -258,6 +258,12 @@ async function updateStaleAndExpiredUsers() {
         } else {
             console.log("ℹ️ No accounts due for auto-deletion.");
         }
+
+        // Auto-delete notifications older than 30 days
+        const [notifResult] = await db.execute(
+            `DELETE FROM notifications WHERE created_at < NOW() - INTERVAL 1 MINUTE`
+        );
+        console.log(`✅ Cleaned up ${notifResult.affectedRows} old notifications.`);
         
         console.log("✅ Status Cleanup Complete.");
 
