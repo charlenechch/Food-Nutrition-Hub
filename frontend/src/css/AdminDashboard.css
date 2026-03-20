@@ -630,6 +630,9 @@
   line-height: 1.4;
 }
 
+.fdt-pagination {
+  margin-bottom: 20px;
+}
 
 @media (max-width: 720px) {
   .food-search-bar {

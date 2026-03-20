@@ -833,7 +833,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       )}
 
       {totalPages > 1 && (
-        <div className="admin-pagination" style={{ marginBottom: "20px" }}>
+        <div className="admin-pagination fdt-pagination">
           <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>‹ {t("explore.prev")}</button>
           {[...Array(totalPages)].map((_, i) => (
             <button key={i} onClick={() => setCurrentPage(i + 1)} className={currentPage === i + 1 ? "active" : ""}>{i + 1}</button>
