@@ -787,8 +787,8 @@
     "servingsPlace": "e.g. 2",
     "prepTimePlace": "Minutes (e.g. 15)",
     "cookTimePlace": "Minutes (e.g. 30)",
-    "ingredientsListPlace": "1. 200g Rice&#10;2. 1 tbsp Salt",
-    "stepsListPlace": "1. Wash the rice&#10;2. Boil water",
+    "ingredientsListPlace": "1. 200g Rice\n2. 1 tbsp Salt",
+    "stepsListPlace": "1. Wash the rice\n2. Boil water",
     "chefTipsPlace": "Optional tips for cooking this dish perfectly",
     "didYouKnowPlace": "Optional interesting fact about this food"
   },
