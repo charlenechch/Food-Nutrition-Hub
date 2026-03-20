@@ -215,8 +215,8 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: IS_PROD ? 'none' : 'lax',
-      secure: IS_PROD, // ✅ Dynamic security
-      domain: IS_PROD ? '.sarawakeats.site' : undefined, // ✅ Prevents domain mismatch on localhost
+      secure: IS_PROD, // Dynamic security
+      domain: IS_PROD ? '.sarawakeats.site' : undefined, // Prevents domain mismatch on localhost
       maxAge: 24 * 60 * 60 * 1000,
     },
   })
