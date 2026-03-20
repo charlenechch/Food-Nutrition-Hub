@@ -1081,9 +1081,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
                 <p style="margin: 0;">It is now live on SarawakEats for the whole community to enjoy!</p>
               </div>
 
-              <div style="text-align: center; margin-top: 25px;">
-                <a href="https://food-nutrition-hub.vercel.app/recipes" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Recipes</a>
-              </div>
+              <p><a href="https://sarawakeats.site/recipes">View the recipes page</a></p>
               
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                 Best regards,<br>The SarawakEats Team
@@ -1128,9 +1126,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
               <p>Please update your recipe based on this feedback so we can reconsider it for approval.</p>
 
-              <div style="text-align: center; margin-top: 25px;">
-                <a href="https://food-nutrition-hub.vercel.app/revise/${recipeId}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit Recipe</a>
-              </div>
+              <p><a href="https://sarawakeats.site/revise/${recipeId}">Edit your recipe</a></p>
               
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                 Best regards,<br>The SarawakEats Team
@@ -1220,9 +1216,7 @@ router.patch('/sendFeedback/:id', async (req, res) => {
 
               <p>Please update your recipe based on this feedback.</p>
 
-              <div style="text-align: center; margin-top: 25px;">
-                <a href="https://food-nutrition-hub.vercel.app/revise/${id}" style="display: inline-block; background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit & Resubmit</a>
-              </div>
+              <p><a href="https://sarawakeats.site/revise/${id}">Edit and resubmit your recipe</a></p>
               
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                 Best regards,<br>The SarawakEats Team
@@ -1248,9 +1242,7 @@ router.patch('/sendFeedback/:id', async (req, res) => {
                 <p style="margin-top: 5px; margin-bottom: 0;">${feedback}</p>
               </div>
 
-              <div style="text-align: center; margin-top: 25px;">
-                <a href="https://food-nutrition-hub.vercel.app/revise/${id}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Recipe</a>
-              </div>
+              <p><a href="https://sarawakeats.site/revise/${id}">View your recipe</a></p>
               
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                 Best regards,<br>The SarawakEats Team

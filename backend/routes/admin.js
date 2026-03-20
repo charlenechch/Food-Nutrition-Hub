@@ -438,9 +438,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
                 <p>You can now log in to SarawakEats and access your account.</p>
               </div>
 
-              <div style="text-align: center; margin-top: 25px;">
-                <a href="https://food-nutrition-hub.vercel.app/loginregister" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login Now</a>
-              </div>
+              <p><a href="https://sarawakeats.site/loginregister">Log in to SarawakEats</a></p>
 
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                 Best regards,<br>The SarawakEats Team
@@ -504,9 +502,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
             <p>If you did not request this change, please contact support immediately.</p>
             
-            <div style="text-align: center; margin-top: 25px;">
-              <a href="https://food-nutrition-hub.vercel.app/profile" style="display: inline-block; background-color: #17a2b8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Profile</a>
-            </div>
+            <p><a href="https://sarawakeats.site/profile">View your profile</a></p>
 
             <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
               Best regards,<br>The SarawakEats Team
@@ -716,9 +712,7 @@ router.post("/users", requireAdmin, async (req, res) => {
                 <li>Check your inbox for the verification link to fully activate your account.</li>
               </ol>
               
-              <div style="text-align: center; margin-top: 25px;">
-                <a href="https://food-nutrition-hub.vercel.app/loginregister" style="display: inline-block; background-color: #8B4513; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Login Page</a>
-              </div>
+              <p><a href="https://sarawakeats.site/loginregister">Go to the login page</a></p>
               
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                 Best regards,<br>The SarawakEats Team

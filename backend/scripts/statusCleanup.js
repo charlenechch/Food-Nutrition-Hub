@@ -62,9 +62,7 @@ async function updateStaleAndExpiredUsers() {
                         <p style="margin: 0;">You can now log in to SarawakEats and access your account.</p>
                       </div>
 
-                      <div style="text-align: center; margin-top: 25px;">
-                        <a href="https://food-nutrition-hub.vercel.app/loginregister" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login Now</a>
-                      </div>
+                      <p><a href="https://sarawakeats.site/loginregister">Log in to SarawakEats</a></p>
                       
                       <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                         Best regards,<br>The SarawakEats Team
@@ -157,9 +155,7 @@ async function updateStaleAndExpiredUsers() {
 
                       <p>To keep your account, simply log in before the deadline.</p>
 
-                      <div style="text-align: center; margin-top: 25px;">
-                        <a href="https://food-nutrition-hub.vercel.app/loginregister" style="display: inline-block; background-color: #e67e22; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Log In Now</a>
-                      </div>
+                      <p><a href="https://sarawakeats.site/loginregister">Log in to keep your account</a></p>
 
                       <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                         Best regards,<br>The SarawakEats Team

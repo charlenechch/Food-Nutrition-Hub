@@ -1210,9 +1210,7 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
               <p style="margin: 0;">It is now live on the SarawakEats Community page for everyone to read!</p>
             </div>
 
-            <div style="text-align: center; margin-top: 25px;">
-              <a href="https://food-nutrition-hub.vercel.app/community" style="display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Community</a>
-            </div>
+            <p><a href="https://sarawakeats.site/community">View the community page</a></p>
             
             <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
               Best regards,<br>The SarawakEats Team
@@ -1304,9 +1302,7 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
 
             <p>You can edit your story based on this feedback and resubmit it from your profile.</p>
 
-            <div style="text-align: center; margin-top: 25px;">
-              <a href="https://food-nutrition-hub.vercel.app/revisecommunitypostpage/${id}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit Submission</a>
-            </div>
+            <p><a href="https://sarawakeats.site/revisecommunitypostpage/${id}">Edit your submission</a></p>
             
             <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
               Best regards,<br>The SarawakEats Team
@@ -1480,9 +1476,7 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
 
               <p>Please update your story based on this feedback so we can reconsider it for approval.</p>
 
-              <div style="text-align: center; margin-top: 25px;">
-                <a href="https://food-nutrition-hub.vercel.app/revisecommunitypostpage/${id}" style="display: inline-block; background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Edit & Resubmit</a>
-              </div>
+              <p><a href="https://sarawakeats.site/revisecommunitypostpage/${id}">Edit and resubmit your story</a></p>
               
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                 Best regards,<br>The SarawakEats Team
@@ -1508,9 +1502,7 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
                 <p style="margin-top: 5px; margin-bottom: 0;">${feedback}</p>
               </div>
 
-              <div style="text-align: center; margin-top: 25px;">
-                <a href="https://food-nutrition-hub.vercel.app/revisecommunitypostpage/${id}" style="display: inline-block; background-color: #333; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Story</a>
-              </div>
+              <p><a href="https://sarawakeats.site/revisecommunitypostpage/${id}">View your story</a></p>
               
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                 Best regards,<br>The SarawakEats Team
