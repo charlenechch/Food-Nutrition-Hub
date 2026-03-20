@@ -773,7 +773,24 @@
     "addedSuccess": "Food added successfully!",
     "addFailed": "Failed to add food: {{error}}",
     "unknownError": "Unknown error",
-    "networkError": "Network error. Could not connect to server."
+    "networkError": "Network error. Could not connect to server.",
+    "alternativeName": "Alternative Name",
+    "altDescription": "Alt Description",
+    "servings": "Servings",
+    "cookTime": "Cook Time",
+    "ingredientsList": "Recipe Ingredients (One per line)",
+    "stepsList": "Recipe Steps (One per line)",
+    "chefTips": "Chef Tips",
+    "didYouKnow": "Did You Know? (Fun Fact)",
+    "altNamePlace": "e.g. Nasi Lemak Ayam",
+    "altDescPlace": "Brief alternative description",
+    "servingsPlace": "e.g. 2",
+    "prepTimePlace": "Minutes (e.g. 15)",
+    "cookTimePlace": "Minutes (e.g. 30)",
+    "ingredientsListPlace": "1. 200g Rice&#10;2. 1 tbsp Salt",
+    "stepsListPlace": "1. Wash the rice&#10;2. Boil water",
+    "chefTipsPlace": "Optional tips for cooking this dish perfectly",
+    "didYouKnowPlace": "Optional interesting fact about this food"
   },
 
   "addRecipe": {

@@ -64,7 +64,15 @@ const AddFoodPage = () => {
     customCategory: "", 
     difficulty: "Medium", 
     prepTime: "",
-    healthTips: ""
+    healthTips: "",
+    alternative: "",
+    altDescription: "",
+    ingredients: "",
+    steps: "",
+    cookTime: "",
+    servings: "1",
+    didYouKnow: "",
+    chefTips: ""
   });
 
   // --- Multi-Select States ---
@@ -188,7 +196,15 @@ const AddFoodPage = () => {
         prepTime: food.prepTime || "0",
         commonIngredients: ingredientsString,
         dietaryTags: dietaryString,
-        healthTips: food.healthTips
+        healthTips: food.healthTips,
+        alternative: food.alternative,
+        altDescription: food.altDescription,
+        ingredients: food.ingredients,
+        steps: food.steps,
+        cookTime: food.cookTime || "0",
+        servings: food.servings || "1",
+        didYouKnow: food.didYouKnow,
+        chefTips: food.chefTips
       };
 
       const response = await fetch(`${API_URL}/api/foods`, {
@@ -334,6 +350,29 @@ const AddFoodPage = () => {
               placeholder={t("addFood.foodNamePlaceholder")}
             />
 
+            <div className="edit-food-basic-info-two-col">
+              <div>
+                <label className="basic-info-label">{t("addFood.alternativeName")}</label>
+                <input
+                  className="edit-food-input"
+                  name="alternative"
+                  value={food.alternative}
+                  onChange={handleChange}
+                  placeholder={t("addFood.altNamePlace")}
+                />
+              </div>
+              <div>
+                <label className="basic-info-label">{t("addFood.altDescription")}</label>
+                <input
+                  className="edit-food-input"
+                  name="altDescription"
+                  value={food.altDescription}
+                  onChange={handleChange}
+                  placeholder={t("addFood.altDescPlace")}
+                />
+              </div>
+            </div>
+
             <div className="food-origin-field">
               <label className="basic-info-label">{t("addFood.regionOfOrigin")}</label>
               <div className="custom-select-wrapper">
@@ -379,6 +418,7 @@ const AddFoodPage = () => {
         {/* === Recipe Details === */}
         <div className="edit-cultural-context-card">
           <h3>{t("addFood.recipeDetails")}</h3>
+          
           <div className="edit-food-basic-info-two-col">
             <div>
               <label className="basic-info-label">{t("addFood.difficultyLevel")}</label>
@@ -396,6 +436,20 @@ const AddFoodPage = () => {
               </div>
             </div>
             <div>
+              <label className="basic-info-label">{t("addFood.servings")}</label>
+              <input
+                type="number"
+                className="edit-food-input"
+                name="servings"
+                value={food.servings}
+                onChange={handleChange}
+                placeholder={t("addFood.servingsPlace")}
+              />
+            </div>
+          </div>
+
+          <div className="edit-food-basic-info-two-col">
+            <div>
               <label className="basic-info-label">{t("addFood.prepTime")}</label>
               <input
                 type="number"
@@ -403,10 +457,51 @@ const AddFoodPage = () => {
                 name="prepTime"
                 value={food.prepTime}
                 onChange={handleChange}
-                placeholder={t("addFood.prepTimePlaceholder")}
+                placeholder={t("addFood.prepTimePlace")}
+              />
+            </div>
+            <div>
+              <label className="basic-info-label">{t("addFood.cookTime")}</label>
+              <input
+                type="number"
+                className="edit-food-input"
+                name="cookTime"
+                value={food.cookTime}
+                onChange={handleChange}
+                placeholder={t("addFood.cookTimePlace")}
               />
             </div>
           </div>
+
+          <label className="basic-info-label">{t("addFood.ingredientsList")}</label>
+          <textarea 
+            className="edit-food-textarea" 
+            name="ingredients" 
+            value={food.ingredients} 
+            onChange={handleChange} 
+            rows={5} 
+            placeholder={t("addFood.ingredientsListPlace")}
+          />
+
+          <label className="basic-info-label">{t("addFood.stepsList")}</label>
+          <textarea 
+            className="edit-food-textarea" 
+            name="steps" 
+            value={food.steps} 
+            onChange={handleChange} 
+            rows={6} 
+            placeholder={t("addFood.stepsListPlace")}
+          />
+          
+          <label className="basic-info-label">{t("addFood.chefTips")}</label>
+          <textarea 
+            className="edit-food-textarea" 
+            name="chefTips" 
+            value={food.chefTips} 
+            onChange={handleChange} 
+            rows={3} 
+            placeholder={t("addFood.chefTipsPlace")}
+          />
         </div>
 
         {/* === Cultural Context === */}
@@ -440,6 +535,16 @@ const AddFoodPage = () => {
             onChange={handleChange} 
             rows={4} 
             placeholder={t("addFood.traditionalPreparationPlaceholder")}
+          />
+
+          <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
+          <textarea 
+            className="edit-food-textarea" 
+            name="didYouKnow" 
+            value={food.didYouKnow} 
+            onChange={handleChange} 
+            rows={3} 
+            placeholder={t("addFood.didYouKnowPlace")}
           />
         </div>
 

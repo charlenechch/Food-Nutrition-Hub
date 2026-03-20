@@ -660,7 +660,24 @@
     "addFoodOptionsTitle": "Bagaimanakah anda ingin menambah makanan ini?",
     "addNewFoodDesc": "Masukkan butiran makanan baharu sepenuhnya dan resipi yang sepadan.",
     "useExistingRecipe": "Pautan ke Resipi Sedia Ada",
-    "useExistingRecipeDesc": "Pilih resipi yang diluluskan dan tambahkan butiran pangkalan data makanan yang tiada padanya."
+    "useExistingRecipeDesc": "Pilih resipi yang diluluskan dan tambahkan butiran pangkalan data makanan yang tiada padanya.",
+    "alternativeName": "Nama Alternatif",
+    "altDescription": "Penerangan Alternatif",
+    "servings": "Hidangan",
+    "cookTime": "Masa Memasak",
+    "ingredientsList": "Bahan Resipi (Satu setiap baris)",
+    "stepsList": "Langkah Resipi (Satu setiap baris)",
+    "chefTips": "Petua Chef",
+    "didYouKnow": "Tahukah Anda? (Fakta Seronok)",
+    "altNamePlace": "cth. Nasi Lemak Ayam",
+    "altDescPlace": "Penerangan alternatif ringkas",
+    "servingsPlace": "cth. 2",
+    "prepTimePlace": "Minit (cth. 15)",
+    "cookTimePlace": "Minit (cth. 30)",
+    "ingredientsListPlace": "1. 200g Beras&#10;2. 1 sudu besar Garam",
+    "stepsListPlace": "1. Basuh beras&#10;2. masak air",
+    "chefTipsPlace": "Petua pilihan untuk memasak hidangan ini dengan sempurna",
+    "didYouKnowPlace": "Fakta menarik pilihan tentang makanan ini"
   },
 
   "adminRcpDB": {
