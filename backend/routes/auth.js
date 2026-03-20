@@ -195,6 +195,17 @@ router.post("/google-login", async (req, res) => {
       console.log(`✅ Google Login: Found existing user ${email}`);
       user = users[0];
 
+      // Check for active suspension
+      if (user.suspendedUntil && new Date(user.suspendedUntil) > new Date()) {
+        const untilString = new Date(user.suspendedUntil).toISOString().slice(0, 10);
+        console.warn(`🚫 Blocked Google login for suspended user: ${email}. Until: ${untilString}`);
+        return res.status(403).json({
+          success: false,
+          suspended: true,
+          message: `Your account is suspended until ${untilString}. Please try again after this date.`,
+        });
+      }
+
       // Optional: Update Firebase UID if it wasn't there before
       if (!user.firebase_uid && firebaseUID) {
         await db.execute("UPDATE user SET firebase_uid = ? WHERE userID = ?", [firebaseUID, user.userID]);

@@ -468,6 +468,8 @@ export default function LoginRegisterPage() {
       if (res.ok && data.success) {
         setUser(data.user);
         navigate(data.user.role === "admin" ? "/admin" : "/home");
+      } else if (data.suspended) {
+        setLoginError(data.message);
       } else {
         setLoginError(data.message || t("auth.googleLoginFailed"));
       }
