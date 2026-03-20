@@ -1050,3 +1050,39 @@
     min-height: 580px; 
     align-content: start; 
 }
+
+.upp-email-input {
+  background-color: #f9f9f9;
+  color: #999;
+  border: 1px solid #eee;
+  cursor: not-allowed;
+}
+
+.upp-actions {
+  margin-top: 24px;
+}
+
+.upp-edit-btn {
+  width: 100%;
+  padding: 12px;
+  font-weight: bold;
+  border: 1px solid #ccc;
+}
+
+.upp-edit-mode {
+  display: flex;
+  gap: 12px;
+}
+
+.upp-edit-btn1 {
+  flex: 1;
+}
+
+.upp-pagination {
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+
+.upp-no-diet {
+  margin-top: 8px;
+}

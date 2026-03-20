@@ -1298,9 +1298,9 @@ const ContributionRow = ({ c }) => {
                             {/* Email usually stays disabled for security */}
                             <input 
                               type="email" 
+                              className= "upp-email-input"
                               value={form.email} 
                               disabled 
-                              style={{ backgroundColor: "#f9f9f9", color: "#999", border: "1px solid #eee", cursor: "not-allowed" }} 
                             />
                           </label>
                           <label>
@@ -1339,29 +1339,26 @@ const ContributionRow = ({ c }) => {
                         </label>
 
                         {/* --- ACTION BUTTONS (Instagram Style) --- */}
-                        <div style={{ marginTop: "24px" }}>
+                        <div className = "upp-actions">
                           {!isEditing ? (
                             // VIEW MODE: Big Edit Button
                             <button 
-                              className="lrp-btn lrp-btn-outline" 
-                              style={{ width: "100%", padding: "12px", fontWeight: "bold", border: "1px solid #ccc" }}
+                              className="lrp-btn lrp-btn-outline upp-edit-btn" 
                               onClick={() => setIsEditing(true)}
                             >
                               {t("profile.editProfile")}
                             </button>
                           ) : (
                             // EDIT MODE: Cancel + Save
-                            <div style={{ display: "flex", gap: "12px" }}>
+                            <div className = "upp-edit-mode">
                               <button 
-                                className="lrp-btn lrp-btn-outline" 
-                                style={{ flex: 1 }}
+                                className="lrp-btn lrp-btn-outline upp-edit-btn1" 
                                 onClick={() => setIsEditing(false)}
                               >
                                 {t("profile.cancel")}
                               </button>
                               <button 
-                                className="lrp-btn lrp-btn-primary" 
-                                style={{ flex: 1 }}
+                                className="lrp-btn lrp-btn-primary upp-edit-btn1" 
                                 onClick={async () => {
                                   await savePersonal();
                                   setIsEditing(false);
@@ -1510,7 +1507,7 @@ const ContributionRow = ({ c }) => {
                             </div>
                             
                             {totalRecipePages > 1 && (
-                              <div className="efp-pagination" style={{ marginTop: "30px", marginBottom: "10px" }}>
+                              <div className="efp-pagination upp-pagination">
                                 <button
                                   className="efp-btn nav-btn" 
                                   disabled={recipePage === 1}
@@ -1557,7 +1554,7 @@ const ContributionRow = ({ c }) => {
                             </div>
                             
                             {totalPostPages > 1 && (
-                              <div className="efp-pagination" style={{ marginTop: "30px", marginBottom: "10px" }}>
+                              <div className="efp-pagination upp-pagination">
                                 <button
                                   className="efp-btn nav-btn"
                                   disabled={postPage === 1}
@@ -1616,7 +1613,7 @@ const ContributionRow = ({ c }) => {
                         {id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                       </label>
                     ))}
-                    {prefs.dietary.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>{t("profile.noDietaryPrefs")}</div>}
+                    {prefs.dietary.length === 0 && <div className="upp-muted upp-no-diet">{t("profile.noDietaryPrefs")}</div>}
                   </div>
                 </div>
 
@@ -1640,32 +1637,29 @@ const ContributionRow = ({ c }) => {
                 </div>
 
                 {/* ACTION BUTTONS  */}
-                <div style={{ marginTop: "24px" }}>
+                <div className = "upp-actions">
                   {!isEditing ? (
                     // VIEW MODE
                     <button 
-                      className="lrp-btn lrp-btn-outline" 
-                      style={{ width: "100%", padding: "12px", fontWeight: "bold", border: "1px solid #ccc" }}
+                      className="lrp-btn lrp-btn-outline upp-edit-btn" 
                       onClick={() => setIsEditing(true)}
                     >
                       {t("profile.editPreferences")}
                     </button>
                   ) : (
                     // EDIT MODE: Show Cancel + Save
-                    <div className="upp-edit-actions" style={{ display: "flex", gap: "12px" }}>
+                    <div className="upp-edit-actions upp-edit-mode">
                       <button 
-                        className="lrp-btn lrp-btn-outline" 
-                        style={{ flex: 1 }}
+                        className="lrp-btn lrp-btn-outline upp-edit-btn1" 
                         onClick={() => setIsEditing(false)}
                       >
                         {t("profile.cancel")}
                       </button>
                       <button 
-                        className="lrp-btn lrp-btn-primary" 
-                        style={{ flex: 1 }}
+                        className="lrp-btn lrp-btn-primary upp-edit-btn1" 
                         onClick={async () => {
                           await savePrefs();
-                          setIsEditing(false); // Exit edit mode on success
+                          setIsEditing(false); 
                         }}
                       >
                         {t("profile.savePreferences")}
