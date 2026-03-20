@@ -441,7 +441,7 @@
     "editPreferences": "Edit Preferences",
     "savePreferences": "Save Preferences",
     "emailNotifications": "Email Notifications",
-    "receiveUpdates": "Receive updates about your recipes and community posts",
+    "receiveUpdates": "Receive email updates when your recipes or posts are approved, rejected, or receive admin feedback. Critical account emails such as suspension and deletion notices will still be sent regardless of this setting.",
     "pushNotifications": "Push Notifications",
     "communityActivities": "Get notified about community activities",
     "profileVisibility": "Profile Visibility",

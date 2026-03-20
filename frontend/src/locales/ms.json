@@ -440,7 +440,7 @@
     "editPreferences": "Edit Pilihan",
     "savePreferences": "Simpan Pilihan",
     "emailNotifications": "Pemberitahuan E-mel",
-    "receiveUpdates": "Terima kemas kini tentang resipi dan siaran komuniti anda",
+    "receiveUpdates": "Terima e-mel apabila resipi atau siaran anda diluluskan, ditolak, atau menerima maklum balas admin. E-mel akaun kritikal seperti notis penggantungan dan pemadaman akan tetap dihantar tanpa mengira tetapan ini.",
     "pushNotifications": "Pemberitahuan Tolak",
     "communityActivities": "Dapatkan pemberitahuan tentang aktiviti komuniti",
     "profileVisibility": "Keterlihatan Profil",
