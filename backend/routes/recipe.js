@@ -1186,7 +1186,7 @@ router.patch('/sendFeedback/:id', async (req, res) => {
 
     // 2. Fetch Info AND Status
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, f.name AS recipeName, r.status
+      SELECT u.email, u.firstname, f.name AS recipeName, r.status, u.userID
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
@@ -1196,7 +1196,7 @@ router.patch('/sendFeedback/:id', async (req, res) => {
 
     // 3. Construct Smart Email
     if (rows.length > 0) {
-      const { email, firstname, recipeName, status } = rows[0];
+      const { email, firstname, recipeName, status, userID } = rows[0];
 
       let subjectLine = "";
       let emailBodyHTML = "";
@@ -1260,14 +1260,23 @@ router.patch('/sendFeedback/:id', async (req, res) => {
         `;
       }
 
-      await sendEmail({
-        to: email,
-        subject: subjectLine,
-        html: emailBodyHTML,
-        text: `Feedback on "${recipeName}": ${feedback}`
-      });
-      
-      console.log(`📩 Feedback notification (${status}) sent to ${email}`);
+      const feedbackEmailEnabled = await isEmailNotificationsEnabled(userID, db);
+      if (feedbackEmailEnabled) {
+          await sendEmail({
+            to: email,
+            subject: subjectLine,
+            html: emailBodyHTML,
+            text: `Feedback on "${recipeName}": ${feedback}`
+          });
+          console.log(`📩 Recipe feedback email sent to ${email}`);
+      } else {
+          console.log(`📭 Recipe feedback email skipped (notifications disabled) for userID: ${userID}`);
+      }
+      const notifMessage = status === "Rejected"
+          ? `Your recipe "${recipeName}" has new admin feedback: ${feedback}`
+          : `You have received a new note on your recipe "${recipeName}": ${feedback}`;
+      await createNotification(userID, "recipe_feedback", notifMessage, db);
+      console.log(`🔔 Recipe feedback notification created for userID: ${userID}`);
     }
 
     res.json({ success: true, message: "Feedback sent successfully." });

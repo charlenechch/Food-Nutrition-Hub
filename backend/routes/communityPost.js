@@ -1446,7 +1446,7 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
 
     // 2. Fetch User Info AND Status to decide email style
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, p.foodName, p.status
+      SELECT u.email, u.firstname, p.foodName, p.status, u.userID
       FROM posts p
       JOIN userProfile up ON p.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
@@ -1455,7 +1455,7 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
 
     // 3. Construct and Send Email
     if (rows.length > 0) {
-      const { email, firstname, foodName, status } = rows[0];
+      const { email, firstname, foodName, status, userID } = rows[0];
 
       let subjectLine = "";
       let emailBodyHTML = "";
@@ -1520,15 +1520,23 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
         `;
       }
 
-      // Send the email
-      await sendEmail({
-        to: email,
-        subject: subjectLine,
-        html: emailBodyHTML,
-        text: `Feedback on "${foodName}": ${feedback}`
-      });
-      
-      console.log(`📩 Feedback notification (${status}) sent to ${email}`);
+      const feedbackEmailEnabled = await isEmailNotificationsEnabled(userID, db);
+      if (feedbackEmailEnabled) {
+          await sendEmail({
+            to: email,
+            subject: subjectLine,
+            html: emailBodyHTML,
+            text: `Feedback on "${foodName}": ${feedback}`
+          });
+          console.log(`📩 Post feedback email sent to ${email}`);
+      } else {
+          console.log(`📭 Post feedback email skipped (notifications disabled) for userID: ${userID}`);
+      }
+      const notifMessage = status === "Rejected"
+          ? `Your community story "${foodName}" has new admin feedback: ${feedback}`
+          : `You have received a new note on your community story "${foodName}": ${feedback}`;
+      await createNotification(userID, "post_feedback", notifMessage, db);
+      console.log(`🔔 Post feedback notification created for userID: ${userID}`);
     }
 
     res.json({ success: true, message: "Feedback sent successfully." });

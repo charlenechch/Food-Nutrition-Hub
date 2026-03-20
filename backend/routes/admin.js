@@ -520,7 +520,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       if (emailEnabled) {
           sendEmail({
               to: finalEmail, 
-              subject: "Notification: Your Account Details Have Been Updated",
+              subject: "Important: Your Account Details Have Been Updated",
               html: updateHTML,
               text: "Your account details have been updated by an administrator."
           });
