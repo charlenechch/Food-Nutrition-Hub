@@ -4,6 +4,7 @@ const { pool: db } = require("../config/db");
 const cloudinary = require('cloudinary').v2;
 const { updateUserStats } = require('./userProfile');
 const { sendEmail } = require("../config/mailer");
+const { createNotification, isEmailNotificationsEnabled } = require("./notifications");
 
 // ✅ NEW: Validation + sanitization setup (added without removing anything)
 const Joi = require("joi");
@@ -1090,12 +1091,20 @@ router.patch('/updateStatus/:id', async (req, res) => {
           </div>
         `;
 
-        sendEmail({
-          to: email,
-          subject: "🎉 Your Recipe Has Been Approved!",
-          html: approvedHTML,
-          text: `Your recipe "${recipeName}" is approved.`
-        });
+        const approvalEmailEnabled = await isEmailNotificationsEnabled(userID, db);
+        if (approvalEmailEnabled) {
+            sendEmail({
+              to: email,
+              subject: "🎉 Your Recipe Has Been Approved!",
+              html: approvedHTML,
+              text: `Your recipe "${recipeName}" is approved.`
+            });
+            console.log(`📩 Recipe approval email sent to ${email}`);
+        } else {
+            console.log(`📭 Recipe approval email skipped (notifications disabled) for userID: ${userID}`);
+        }
+        await createNotification(userID, "recipe_approved", `Your recipe "${recipeName}" has been approved and is now live on SarawakEats!`, db);
+        console.log(`🔔 Approval notification created for userID: ${userID}`);
       }
 
       // B. REJECTED Logic
@@ -1129,12 +1138,20 @@ router.patch('/updateStatus/:id', async (req, res) => {
           </div>
         `;
 
-        sendEmail({
-          to: email,
-          subject: `Action Required: Please Revise "${recipeName}`,
-          html: rejectedHTML,
-          text: `Your recipe "${recipeName}" has been rejected. Admin Feedback: ${rejectionContent}`
-        });
+        const rejectionEmailEnabled = await isEmailNotificationsEnabled(userID, db);
+        if (rejectionEmailEnabled) {
+            sendEmail({
+              to: email,
+              subject: `Action Required: Please Revise "${recipeName}`,
+              html: rejectedHTML,
+              text: `Your recipe "${recipeName}" has been rejected. Admin Feedback: ${rejectionContent}`
+            });
+            console.log(`📩 Recipe rejection email sent to ${email}`);
+        } else {
+            console.log(`📭 Recipe rejection email skipped (notifications disabled) for userID: ${userID}`);
+        }
+        await createNotification(userID, "recipe_rejected", `Your recipe "${recipeName}" was not approved. Admin feedback: ${rejectionContent}`, db);
+        console.log(`🔔 Rejection notification created for userID: ${userID}`);
       }
     }
 

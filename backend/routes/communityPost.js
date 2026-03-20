@@ -6,6 +6,7 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const { sendEmail } = require("../config/mailer");
+const { createNotification, isEmailNotificationsEnabled } = require("./notifications");
 const { updateUserStats } = require('./userProfile');
 
 //  Validation and sanitization imports
@@ -1220,13 +1221,20 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
         </div>
       `;
 
-      sendEmail({
-        to: email,
-        subject: "🎉 Your Story Has Been Approved!",
-        html: approvedHTML,
-        text: `Great news! Your story "${foodName}" has been approved.${feedbackText ? ` Admin Note: ${feedbackText}` : ''}`
-      });
-      console.log(`📩 Approved email sent to ${email}`);
+      const approvalEmailEnabled = await isEmailNotificationsEnabled(userID, db);
+      if (approvalEmailEnabled) {
+          sendEmail({
+            to: email,
+            subject: "🎉 Your Story Has Been Approved!",
+            html: approvedHTML,
+            text: `Great news! Your story "${foodName}" has been approved.${feedbackText ? ` Admin Note: ${feedbackText}` : ''}`
+          });
+          console.log(`📩 Post approval email sent to ${email}`);
+      } else {
+          console.log(`📭 Post approval email skipped (notifications disabled) for userID: ${userID}`);
+      }
+      await createNotification(userID, "post_approved", `Your community story "${foodName}" has been approved and is now live on SarawakEats!`, db);
+      console.log(`🔔 Post approval notification created for userID: ${userID}`);
     }
 
     console.log(`✅ [ADMIN] Post ${id} approved successfully.`);
@@ -1268,7 +1276,7 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
 
     // 4. Fetch User Email for Notification
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, p.foodName
+      SELECT u.email, u.firstname, p.foodName, u.userID
       FROM posts p
       JOIN userProfile up ON p.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
@@ -1276,7 +1284,7 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
     `, [id]);
 
     if (rows.length > 0) {
-      const { email, firstname, foodName } = rows[0];
+      const { email, firstname, foodName, userID } = rows[0];
 
       // 5. Send Rejection Email
       const rejectedHTML = `
@@ -1307,13 +1315,20 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
         </div>
       `;
 
-      sendEmail({
-        to: email,
-        subject: "Update on your Community Story Submission",
-        html: rejectedHTML,
-        text: `Your story "${foodName}" has been rejected.`
-      });
-      console.log(`📩 Rejection email sent to ${email}`);
+      const rejectionEmailEnabled = await isEmailNotificationsEnabled(userID, db);
+      if (rejectionEmailEnabled) {
+          sendEmail({
+            to: email,
+            subject: "Update on your Community Story Submission",
+            html: rejectedHTML,
+            text: `Your story "${foodName}" has been rejected.`
+          });
+          console.log(`📩 Post rejection email sent to ${email}`);
+      } else {
+          console.log(`📭 Post rejection email skipped (notifications disabled) for userID: ${userID}`);
+      }
+      await createNotification(userID, "post_rejected", `Your community story "${foodName}" was not approved. Feedback: ${rejectionEmailContent}`, db);
+      console.log(`🔔 Post rejection notification created for userID: ${userID}`);
     }
 
     console.log(`✅ [ADMIN] Post ${id} rejected successfully.`);

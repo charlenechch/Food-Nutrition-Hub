@@ -6,6 +6,7 @@ const userProfileRoutes = require("../routes/userProfile");
 const deleteUser = userProfileRoutes.deleteUser;
 const { updateFirebaseEmail, createFirebaseUser } = userProfileRoutes;
 const { sendEmail } = require("../config/mailer");
+const { createNotification, isEmailNotificationsEnabled } = require("./notifications");
 
 // ✅ Example Admin API – only admins can access
 router.get("/dashboard", requireAdmin, (req, res) => {
@@ -418,6 +419,8 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
             text: `Your account has been suspended until ${finalsuspendedUntil}. Reason: ${suspensionReason}`
         });
         console.log(`📩 Suspension email sent to ${finalEmail}`);
+        await createNotification(targetUserID, "suspended", `Your account has been suspended until ${finalsuspendedUntil}. Reason: ${suspensionReason || "No specific reason provided."}`, db);
+        console.log(`🔔 Suspension notification created for userID: ${targetUserID}`);
     }
 
     // Case B: Account Unsuspended (Manually)
@@ -453,6 +456,8 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
             text: "Your account suspension has been lifted by an admin. You can now log in."
         });
         console.log(`📩 Unsuspension email sent to ${finalEmail}`);
+        await createNotification(targetUserID, "unsuspended", "Your account suspension has been lifted. You can now log in.", db);
+        console.log(`🔔 Unsuspension notification created for userID: ${targetUserID}`);
     }
 
     const statusEmailSent = (!wasSuspended && isNowSuspended) || (wasSuspended && !isNowSuspended);
@@ -511,13 +516,20 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       `;
 
       // Send to the FINAL email (in case the admin changed the email address too)
-      sendEmail({
-          to: finalEmail, 
-          subject: "Notification: Your Account Details Have Been Updated",
-          html: updateHTML,
-          text: "Your account details have been updated by an administrator."
-      });
-      console.log(`📩 Update notification sent to ${finalEmail}`);
+      const emailEnabled = await isEmailNotificationsEnabled(targetUserID, db);
+      if (emailEnabled) {
+          sendEmail({
+              to: finalEmail, 
+              subject: "Notification: Your Account Details Have Been Updated",
+              html: updateHTML,
+              text: "Your account details have been updated by an administrator."
+          });
+          console.log(`📩 Account update email sent to ${finalEmail}`);
+      } else {
+          console.log(`📭 Account update email skipped (notifications disabled) for userID: ${targetUserID}`);
+      }
+      await createNotification(targetUserID, "account_updated", `Your account details have been updated by an administrator. Changes: ${changes.join(", ")}.`, db);
+      console.log(`🔔 Account update notification created for userID: ${targetUserID}`);
     } 
 
     // Get updated user stats

@@ -4,6 +4,7 @@ process.env.DB_HOST = process.env.DB_HOST || RAILWAY_INTERNAL_HOST;
 const { pool: db } = require("../config/db");
 const { sendEmail } = require("../config/mailer");
 const { deleteUser } = require("../routes/userProfile");
+const { createNotification, isEmailNotificationsEnabled } = require("../routes/notifications");
 
 // Finds and updates user statuses based on expired suspensions and inactivity.
 async function updateStaleAndExpiredUsers() {
@@ -46,6 +47,7 @@ async function updateStaleAndExpiredUsers() {
             const usersToNotify = expiredSuspensions;
 
             // Send "Suspension Expired" Email Notification
+            // Suspension emails always send regardless of toggle (security event)
             const emailPromises = usersToNotify.map(user => {
                 const html = `
                   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -82,6 +84,13 @@ async function updateStaleAndExpiredUsers() {
             // Wait for all emails to try sending (doesn't block if one fails)
             await Promise.all(emailPromises);
             console.log(`✅ Sent ${usersToNotify.length} auto-unsuspension emails.`);
+
+            // Create in-app notifications for auto-unsuspended users
+            const unsuspendNotifPromises = usersToNotify.map(user =>
+                createNotification(user.userID, "unsuspended", "Your account suspension has automatically expired. You can now log in.", db)
+            );
+            await Promise.all(unsuspendNotifPromises);
+            console.log(`🔔 Sent ${usersToNotify.length} auto-unsuspension notifications.`);
         }
         
         // Find other currently 'Active' users who are stale (7+ days inactive)
@@ -131,6 +140,7 @@ async function updateStaleAndExpiredUsers() {
             const warnIDs = usersToWarn.map(u => u.userID);
             const warnPlaceholders = warnIDs.map(() => '?').join(',');
 
+            // Bypasses email toggle for deletion warnings since it's a critical account event
             const warningEmailPromises = usersToWarn.map(user => {
                 const html = `
                   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -176,6 +186,13 @@ async function updateStaleAndExpiredUsers() {
             );
 
             console.log(`✅ Sent ${usersToWarn.length} deletion warning emails.`);
+
+            // Create in-app notifications for users approaching deletion
+            const deletionWarnNotifPromises = usersToWarn.map(user =>
+                createNotification(user.userID, "deletion_warning", "Your account has been inactive for nearly 2 years and will be permanently deleted in 30 days. Log in to keep your account.", db)
+            );
+            await Promise.all(deletionWarnNotifPromises);
+            console.log(`🔔 Sent ${usersToWarn.length} deletion warning notifications.`);
         } else {
             console.log("ℹ️ No users approaching the 2-year inactivity threshold.");
         }

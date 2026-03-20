@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { FaGlobe, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
-import { User } from "lucide-react";
+import { User, Bell } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { useTranslation } from "react-i18next";
 import "./Header.css";
@@ -18,11 +18,46 @@ export default function Header() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Current language label derived from i18n state (no separate useState needed)
   const currentLang = i18n.language === "en" ? "EN" : "BM";
 
-  React.useEffect(() => {
+  const fetchNotifications = async () => {
+    if (!user || user.role === "guest") return;
+    try {
+      const res = await fetch(`${API_URL}/api/notifications`, {
+        credentials: "include",
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unreadCount || 0);
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  useEffect(() => {
     if (user?.role === "admin" && location.pathname === "/home") {
       navigate("/admin");
     }
@@ -80,6 +115,60 @@ export default function Header() {
     }
   };
 
+  const handleBellClick = () => {
+    setShowNotifications(prev => !prev);
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      const csrfToken = await getCsrfToken();
+      await fetch(`${API_URL}/api/notifications/read-all`, {
+        method: "PATCH",
+        headers: { "X-CSRF-Token": csrfToken },
+        credentials: "include",
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: 1 })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Failed to mark all as read:", err);
+    }
+  };
+
+  const handleDismissNotification = async (notificationID) => {
+    try {
+      const csrfToken = await getCsrfToken();
+      await fetch(`${API_URL}/api/notifications/${notificationID}`, {
+        method: "DELETE",
+        headers: { "X-CSRF-Token": csrfToken },
+        credentials: "include",
+      });
+      setNotifications(prev => prev.filter(n => n.notificationID !== notificationID));
+      setUnreadCount(prev => {
+        const dismissed = notifications.find(n => n.notificationID === notificationID);
+        return dismissed && dismissed.is_read === 0 ? prev - 1 : prev;
+      });
+    } catch (err) {
+      console.error("Failed to dismiss notification:", err);
+    }
+  };
+
+  const handleMarkOneRead = async (notificationID) => {
+    try {
+      const csrfToken = await getCsrfToken();
+      await fetch(`${API_URL}/api/notifications/${notificationID}/read`, {
+        method: "PATCH",
+        headers: { "X-CSRF-Token": csrfToken },
+        credentials: "include",
+      });
+      setNotifications(prev =>
+        prev.map(n => n.notificationID === notificationID ? { ...n, is_read: 1 } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
+  };
+
   return (
     <>
       {isLoggingOut && (
@@ -132,6 +221,13 @@ export default function Header() {
               <FaGlobe className="mobile-icon" /> {currentLang}
             </button>
 
+            {user && user.role !== "guest" && (
+              <button className="mobile-btn" onClick={handleBellClick}>
+                <Bell className="mobile-icon" size={18} />
+                Notifications {unreadCount > 0 && `(${unreadCount})`}
+              </button>
+            )}
+
             <button onClick={handleProfileClick} className="mobile-btn">
               <User className="mobile-icon" size={18} /> {t("nav.profile")}
             </button>
@@ -153,6 +249,58 @@ export default function Header() {
           <button className="lang-btn" onClick={toggleLanguage}>
             <FaGlobe className="icon" /> {currentLang}
           </button>
+
+          {user && user.role !== "guest" && (
+            <div className="notification-wrapper" ref={notificationRef}>
+              <button className="bell-btn" onClick={handleBellClick}>
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                  <span className="notification-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="notification-panel">
+                  <div className="notification-panel-header">
+                    <span className="notification-panel-title">Notifications</span>
+                    {unreadCount > 0 && (
+                      <button className="mark-all-read-btn" onClick={handleMarkAllRead}>
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="notification-list">
+                    {notifications.length === 0 ? (
+                      <p className="notification-empty">No notifications yet.</p>
+                    ) : (
+                      notifications.map(n => (
+                        <div
+                          key={n.notificationID}
+                          className={`notification-item ${n.is_read === 0 ? "unread" : ""}`}
+                          onClick={() => n.is_read === 0 && handleMarkOneRead(n.notificationID)}
+                        >
+                          <p className="notification-message">{n.message}</p>
+                          <span className="notification-time">
+                            {new Date(n.created_at).toLocaleDateString("en-GB", {
+                              day: "2-digit", month: "short", year: "numeric",
+                              hour: "2-digit", minute: "2-digit"
+                            })}
+                          </span>
+                          <button
+                            className="notification-dismiss"
+                            onClick={(e) => { e.stopPropagation(); handleDismissNotification(n.notificationID); }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <button onClick={handleProfileClick}>
             <User size={18} /> {t("nav.profile")}

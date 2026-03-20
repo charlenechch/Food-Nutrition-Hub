@@ -35,6 +35,7 @@ const aiRoutes = require("./routes/ai");
 const foodSearchRoutes = require("./routes/foodSearch");
 const gptRoutes = require("./routes/gpt");
 const exportRoutes = require("./routes/export");
+const notificationRoutes = require("./routes/notifications");
 const translateRoutes = require("./routes/translation");
 const mapRoutes = require("./routes/map");
 
@@ -281,6 +282,7 @@ app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/likes", likeRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/map", mapRoutes);
 
 // ---------- Static Files ----------
