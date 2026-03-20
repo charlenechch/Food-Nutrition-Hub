@@ -184,10 +184,12 @@ export default function Header() {
 
   const handleNotificationClick = async (n) => {
     if (n.is_read === 0) await handleMarkOneRead(n.notificationID);
-    setShowNotifications(false);
     const link = getNotificationLink(n.type);
-    if (link) navigate(link);
-  };
+    if (link) {
+      setShowNotifications(false);
+      navigate(link);
+    }
+  }
 
   return (
     <>
