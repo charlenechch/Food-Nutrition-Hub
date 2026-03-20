@@ -393,7 +393,7 @@ const toggleSelectAll = () => {
     }
   };
 
-// ===== Save: Personal Info =====
+// Save: Personal Info
 const savePersonal = async () => {
   try {
     const updateData = { 
@@ -1684,7 +1684,7 @@ const ContributionRow = ({ c }) => {
                       <input
                         type="checkbox"
                         checked={prefs.emailNotifications}
-                        onChange={(e) => setPrefs((p) => ({ ...p, emailNotifications: e.target.checked }))}
+                        onChange={(e) => toggleSetting('emailNotifications', e.target.checked)}
                       />
                       <span />
                     </label>
@@ -1699,7 +1699,7 @@ const ContributionRow = ({ c }) => {
                       <input
                         type="checkbox"
                         checked={prefs.pushNotifications}
-                        onChange={(e) => setPrefs((p) => ({ ...p, pushNotifications: e.target.checked }))}
+                        onChange={(e) => toggleSetting('pushNotifications', e.target.checked)}
                       />
                       <span />
                     </label>
