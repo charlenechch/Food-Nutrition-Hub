@@ -823,8 +823,8 @@ const AdminFoodDatabase = ({ categories = [] }) => {
               >
                 <div className="add-option-icon">🔗</div>
                 <div className="add-option-text">
-                  <h4>{t("adminFoodDB.useExistingRecipe", "Link to Existing Recipe")}</h4>
-                  <p>{t("adminFoodDB.useExistingRecipeDesc", "Select an approved recipe and add the missing food database details to it.")}</p>
+                  <h4>{t("adminFoodDB.useExistingRecipe")}</h4>
+                  <p>{t("adminFoodDB.useExistingRecipeDesc")}</p>
                 </div>
               </div>
             </div>
