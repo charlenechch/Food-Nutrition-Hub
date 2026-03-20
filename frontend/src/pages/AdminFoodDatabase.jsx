@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { eState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FiDatabase } from "react-icons/fi";
@@ -34,6 +34,8 @@ const AdminFoodDatabase = ({ categories = [] }) => {
   // --- Delete Modal States ---
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedFood, setSelectedFood] = useState(null);
+
+  const [showAddOptionsModal, setShowAddOptionsModal] = useState(false);
 
   // --- Pagination ---
   const [currentPage, setCurrentPage] = useState(1);
@@ -642,7 +644,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
           <div className="food-actions">
             <button
               className="admin-food-btn-add"
-              onClick={() => navigate("/admin/addfood")}
+              onClick={() => setShowAddOptionsModal(true)}
             >
               <FaPlus /> {t("adminFoodDB.addNewFood")}
             </button>
@@ -787,6 +789,44 @@ const AdminFoodDatabase = ({ categories = [] }) => {
             <div className="modal-actions">
               <button className="cancel-btn" onClick={() => setShowConfirm(false)}>{t("adminFoodDB.cancel")}</button>
               <button className="confirm-delete-btn" onClick={handleConfirmDelete}>{t("adminFoodDB.delete")}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAddOptionsModal && (
+        <div className="modal-overlay" onClick={() => setShowAddOptionsModal(false)}>
+          <div className="add-options-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="add-options-header">
+              <h3>{t("adminFoodDB.addFoodOptionsTitle", "How would you like to add this food?")}</h3>
+              <button className="add-options-close" onClick={() => setShowAddOptionsModal(false)}>×</button>
+            </div>
+
+            <div className="add-options-body">
+              <div 
+                className="add-option-card"
+                onClick={() => navigate("/admin/addfood")}
+              >
+                <div className="add-option-icon">📝</div>
+                <div className="add-option-text">
+                  <h4>{t("adminFoodDB.createFromScratch", "Create from Scratch")}</h4>
+                  <p>{t("adminFoodDB.createFromScratchDesc", "Enter completely new food details and its corresponding recipe.")}</p>
+                </div>
+              </div>
+
+              <div 
+                className="add-option-card"
+                onClick={() => {
+                  setShowAddOptionsModal(false);
+                  navigate("/admin/linkfood"); 
+                }}
+              >
+                <div className="add-option-icon">🔗</div>
+                <div className="add-option-text">
+                  <h4>{t("adminFoodDB.useExistingRecipe", "Link to Existing Recipe")}</h4>
+                  <p>{t("adminFoodDB.useExistingRecipeDesc", "Select an approved recipe and add the missing food database details to it.")}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
