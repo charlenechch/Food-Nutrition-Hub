@@ -656,7 +656,11 @@
     "importSuccess": "Berjaya mengimport {{count}} item makanan!\n\nResipi diluluskan secara automatik dan sedia untuk dipaparkan.",
     "importSuccessSimple": "Berjaya mengimport {{count}} item makanan!",
     "importFailed": "Import gagal",
-    "importError": "Ralat import"
+    "importError": "Ralat import",
+    "addFoodOptionsTitle": "Bagaimanakah anda ingin menambah makanan ini?",
+    "addNewFoodDesc": "Masukkan butiran makanan baharu sepenuhnya dan resipi yang sepadan.",
+    "useExistingRecipe": "Pautan ke Resipi Sedia Ada",
+    "useExistingRecipeDesc": "Pilih resipi yang diluluskan dan tambahkan butiran pangkalan data makanan yang tiada padanya."
   },
 
   "adminRcpDB": {

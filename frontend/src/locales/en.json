@@ -657,7 +657,11 @@
     "importSuccess": "Successfully imported {{count}} food items!\n\nRecipes are automatically APPROVED and ready to display.",
     "importSuccessSimple": "Successfully imported {{count}} food items!",
     "importFailed": "Import failed",
-    "importError": "Import error"
+    "importError": "Import error",
+    "addFoodOptionsTitle": "How would you like to add this food?",
+    "addNewFoodDesc": "Enter completely new food details and its corresponding recipe.",
+    "useExistingRecipe": "Link to Existing Recipe",
+    "useExistingRecipeDesc": "Select an approved recipe and add the missing food database details to it."
   },
 
   "adminRcpDB": {

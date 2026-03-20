@@ -798,7 +798,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
         <div className="modal-overlay" onClick={() => setShowAddOptionsModal(false)}>
           <div className="add-options-modal" onClick={(e) => e.stopPropagation()}>
             <div className="add-options-header">
-              <h3>{t("adminFoodDB.addFoodOptionsTitle", "How would you like to add this food?")}</h3>
+              <h3>{t("adminFoodDB.addFoodOptionsTitle")}</h3>
               <button className="add-options-close" onClick={() => setShowAddOptionsModal(false)}>×</button>
             </div>
 
@@ -809,8 +809,8 @@ const AdminFoodDatabase = ({ categories = [] }) => {
               >
                 <div className="add-option-icon">📝</div>
                 <div className="add-option-text">
-                  <h4>{t("adminFoodDB.createFromScratch", "Create from Scratch")}</h4>
-                  <p>{t("adminFoodDB.createFromScratchDesc", "Enter completely new food details and its corresponding recipe.")}</p>
+                  <h4>{t("adminFoodDB.addNewFood")}</h4>
+                  <p>{t("adminFoodDB.addNewFoodDesc")}</p>
                 </div>
               </div>
 
