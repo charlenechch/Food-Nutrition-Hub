@@ -169,6 +169,26 @@ export default function Header() {
     }
   };
 
+  const getNotificationLink = (type) => {
+    switch (type) {
+      case "recipe_approved":
+      case "recipe_rejected":
+      case "recipe_feedback":
+      case "post_approved":
+      case "post_rejected":
+      case "post_feedback":     return "/profile?tab=status";
+      case "account_updated":   return "/profile";
+      default:                  return null;
+    }
+  };
+
+  const handleNotificationClick = async (n) => {
+    if (n.is_read === 0) await handleMarkOneRead(n.notificationID);
+    setShowNotifications(false);
+    const link = getNotificationLink(n.type);
+    if (link) navigate(link);
+  };
+
   return (
     <>
       {isLoggingOut && (
@@ -278,7 +298,7 @@ export default function Header() {
                         <div
                           key={n.notificationID}
                           className={`notification-item ${n.is_read === 0 ? "unread" : ""}`}
-                          onClick={() => n.is_read === 0 && handleMarkOneRead(n.notificationID)}
+                          onClick={() => handleNotificationClick(n)}
                         >
                           <p className="notification-message">{n.message}</p>
                           <span className="notification-time">
