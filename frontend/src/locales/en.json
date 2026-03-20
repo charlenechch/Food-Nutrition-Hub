@@ -1037,7 +1037,7 @@
     "namePlaceholder": "The first word will be saved as the First Name. Everything after the first space is treated as the Last Name.",
     "emailLabel": "Email",
     "emailPlaceholder": "email@example.com",
-    "cityLabel": "City",
+    "cityLabel": "Location",
     "cityPlaceholder": "Kuching, Sarawak",
     "roleLabel": "Role",
     "currentStatusLabel": "Current Status",
