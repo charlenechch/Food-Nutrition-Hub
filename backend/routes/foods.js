@@ -128,6 +128,45 @@ router.get("/:id", async (req, res) => {
 router.post("/", requireAuth, requireAdmin, async (req, res) => {
   console.log("📥 [POST] Received Add Food Request:", req.body);
 
+  // Get the admin's userProfileID from database
+    let userProfileID;
+  try {
+    const userID = req.user?.userID; 
+    
+    if (!userID) {
+      console.error("❌ UserID not found in request");
+      return res.status(401).json({ 
+        success: false, 
+        error: "User not authenticated" 
+      });
+    }
+    
+    const [profileResult] = await db.execute(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+    
+    if (profileResult.length > 0) {
+      userProfileID = profileResult[0].userProfileID;
+      console.log(`✅ Found admin's userProfileID: ${userProfileID}`);
+    } else {
+      // If userProfile doesn't exist, create it
+      console.log(`🛠️ Creating userProfile for admin userID: ${userID}`);
+      const [insertResult] = await db.execute(
+        'INSERT INTO userProfile (userID) VALUES (?)',
+        [userID]
+      );
+      userProfileID = insertResult.insertId;
+      console.log(`✅ Created userProfileID: ${userProfileID}`);
+    }
+  } catch (dbError) {
+    console.error("❌ Error getting userProfileID:", dbError);
+    return res.status(500).json({ 
+      success: false, 
+      error: "Error getting admin profile: " + dbError.message 
+    });
+  }
+
   const {
     // Food Table Fields
     name,
@@ -218,21 +257,23 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     const recipeSql = `
       INSERT INTO recipe 
       (
-        foodID, description, ingredients, steps, 
-        cook_time, servings, did_you_know, chef_tips
+        foodID, userProfileID, description, ingredients, steps, 
+        cookTime, servings, DidYouKnow, chefTips, status
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const recipeValues = [
       foodId,
+      userProfileID,
       recipeDescription || "",  
       ingredients || "",
       steps || "",
       cookTime || "0",
       servings || "1",
       didYouKnow || "",
-      chefTips || ""
+      chefTips || "", 
+      'Approved'
     ];
 
     await connection.query(recipeSql, recipeValues);
