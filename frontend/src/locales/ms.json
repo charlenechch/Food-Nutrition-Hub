@@ -809,7 +809,13 @@
     "selectAll": "Pilih Semua",
     "exportBtn": "Eksport",
     "exporting": "Mengeksport...",
-    "byAuthor": "Oleh"
+    "byAuthor": "Oleh",
+    "calPlace": "cth. 350",
+    "proPlace": "cth. 15",
+    "carbPlace": "cth. 45",
+    "fatPlace": "cth. 12",
+    "fibPlace": "cth. 4",
+    "vitCPlace": "cth. 2.5"
   },
 
   "addRecipe": {

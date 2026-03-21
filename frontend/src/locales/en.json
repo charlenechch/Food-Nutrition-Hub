@@ -810,7 +810,13 @@
     "selectAll": "Select All",
     "exportBtn": "Export",
     "exporting": "Exporting...",
-    "byAuthor": "By"
+    "byAuthor": "By",
+    "calPlace": "e.g. 350",
+    "proPlace": "e.g. 15",
+    "carbPlace": "e.g. 45",
+    "fatPlace": "e.g. 12",
+    "fibPlace": "e.g. 4",
+    "vitCPlace": "e.g. 2.5"
   },
 
   "addRecipe": {

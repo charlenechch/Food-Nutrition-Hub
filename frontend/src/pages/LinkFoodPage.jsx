@@ -468,7 +468,7 @@ const LinkFoodPage = () => {
                 <label className="basic-info-label">{t(item.labelKey)}</label>
                 <input 
                   type="number" className="edit-food-input" name={item.name} 
-                  value={food[item.name]} onChange={handleChange} placeholder={item.placeholder}
+                  value={food[item.name]} onChange={handleChange} placeholder={t(item.placeholderKey)}
                 />
               </div>
             ))}
