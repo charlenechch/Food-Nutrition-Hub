@@ -608,8 +608,8 @@ const AddFoodPage = () => {
           </div>
 
           {showOtherIngredient && (
-            <div style={{ marginBottom: "16px" }}>
-              <label className="basic-info-label" style={{fontSize: "0.9rem", color: "#666"}}>
+            <div className = "efpage-show-ing">
+              <label className="basic-info-label efpage-show-ing-label">
                 {t("addFood.otherIngredientsLabel")}
               </label>
               <textarea 
@@ -641,7 +641,7 @@ const AddFoodPage = () => {
             })}
           </div>
 
-          <label className="basic-info-label" style={{marginTop: "10px"}}>{t("addFood.healthTips")}</label>
+          <label className="basic-info-label efpage-cultural-label">{t("addFood.healthTips")}</label>
           <textarea 
             className="edit-food-textarea" 
             name="healthTips" 
