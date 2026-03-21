@@ -52,7 +52,7 @@ const AddFoodPage = () => {
     name: "",
     origin: "",
     category: [],
-    description: "",
+    foodDescription: "",
     culturalSignificance: "",
     traditionalPreparation: "",
     calories: "",
@@ -69,6 +69,7 @@ const AddFoodPage = () => {
     altDescription: "",
     ingredients: "",
     steps: "",
+    recipeDescription: "",
     cookTime: "",
     servings: "1",
     didYouKnow: "",
@@ -182,7 +183,7 @@ const AddFoodPage = () => {
       const newFoodData = {
         name: food.name,
         category: Array.isArray(food.category) ? food.category.join(", ") : food.category,        origin: food.origin,
-        description: food.description,
+        foodDescription: food.foodDescription,
         culturalSignificance: food.culturalSignificance,
         traditionalPreparation: food.traditionalPreparation,
         Energy_kcal: Number(food.calories) || 0,
@@ -201,6 +202,7 @@ const AddFoodPage = () => {
         altDescription: food.altDescription,
         ingredients: food.ingredients,
         steps: food.steps,
+        recipeDescription: food.recipeDescription,
         cookTime: food.cookTime || "0",
         servings: food.servings || "1",
         didYouKnow: food.didYouKnow,
@@ -492,6 +494,16 @@ const AddFoodPage = () => {
             rows={6} 
             placeholder={t("addFood.stepsListPlace")}
           />
+
+          <label className="basic-info-label">{t("addFood.recipeDescription")}</label>
+          <textarea 
+            className="edit-food-textarea" 
+            name="recipeDescription" 
+            value={food.recipeDescription} 
+            onChange={handleChange} 
+            rows={6} 
+            placeholder={t("addFood.recipeDescriptionPlace")}
+          />
           
           <label className="basic-info-label">{t("addFood.chefTips")}</label>
           <textarea 
@@ -510,8 +522,8 @@ const AddFoodPage = () => {
           <label className="basic-info-label">{t("addFood.description")}</label>
           <textarea 
             className="edit-food-textarea" 
-            name="description" 
-            value={food.description} 
+            name="foodDescription" 
+            value={food.foodDescription} 
             onChange={handleChange} 
             rows={4} 
             placeholder={t("addFood.descriptionPlaceholder")}

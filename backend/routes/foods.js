@@ -123,13 +123,13 @@ router.get("/:id", async (req, res) => {
 });
 
 // ============================
-// FIXED CREATE NEW FOOD ROUTE
+// CREATE NEW FOOD ROUTE
 // ============================
 router.post("/", requireAuth, requireAdmin, async (req, res) => {
   console.log("📥 [POST] Received Add Food Request:", req.body);
 
   const {
-    // Frontend Fields
+    // Food Table Fields
     name,
     origin,
     category,
@@ -149,29 +149,45 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     commonIngredients,
     alternative,
     altDescription,
-    healthTips
+    healthTips,
+    
+    // Recipe Table Fields
+    ingredients,        
+    steps,             
+    recipeDescription, 
+    cookTime,          
+    servings,          
+    didYouKnow,        
+    chefTips           
   } = req.body;
 
-  // 1. Validation
+  // 1. Validation 
   if (!name || !origin) {
     console.error("❌ [POST] Validation Failed: Name or Origin missing");
-    return res.status(400).json({ success: false, error: "Name and origin are required" });
+    return res.status(400).json({ 
+      success: false, 
+      error: "Name and origin are required" 
+    });
   }
 
+  // Start a transaction to ensure both inserts succeed or fail together
+  const connection = await db.getConnection();
+  await connection.beginTransaction();
+
   try {
-    // 2. Prepare SQL with ALL Database Columns
-    const sql = `
+    // 2. Insert into FOOD table
+    const foodSql = `
       INSERT INTO food 
       (
         name, origin, category, description, culturalSignificance, traditionalPreparation,
-        Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, image, difficulty, dietaryTags, prepTime, commonIngredients, 
+        Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, 
+        image, difficulty, dietaryTags, prepTime, commonIngredients, 
         alternative, altDescription, healthTips
       )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    // 3. Set Values & Safe Defaults for Hidden Columns
-    const values = [
+    const foodValues = [
       name,
       origin,
       category || "",
@@ -185,7 +201,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       Fiber_g || 0,
       VitaminC_mg || 0,
       image || "",   
-      difficulty || "",   
+      difficulty || "Medium",
       dietaryTags || "",
       prepTime || "0",          
       commonIngredients || "",
@@ -194,30 +210,78 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       healthTips || ""
     ];
 
-    // 4. Execute
-    const [result] = await db.query(sql, values);
+    const [foodResult] = await connection.query(foodSql, foodValues);
+    const foodId = foodResult.insertId;
+    console.log("✅ [POST] Food Created, ID:", foodId);
 
-    console.log("✅ [POST] Food Created, ID:", result.insertId);
+    // 3. Insert into RECIPE table 
+    const recipeSql = `
+      INSERT INTO recipe 
+      (
+        foodID, description, ingredients, steps, 
+        cook_time, servings, did_you_know, chef_tips
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const recipeValues = [
+      foodId,
+      recipeDescription || "",  
+      ingredients || "",
+      steps || "",
+      cookTime || "0",
+      servings || "1",
+      didYouKnow || "",
+      chefTips || ""
+    ];
+
+    await connection.query(recipeSql, recipeValues);
+    console.log("✅ [POST] Recipe Created for Food ID:", foodId);
+
+    // 4. Commit transaction
+    await connection.commit();
+    
+    // 5. Generate Embedding for Search 
     try {
-      await embedFood(result.insertId, name, description || "", commonIngredients || "");
+      // Combine relevant fields from both tables for better semantic search
+      const searchText = [
+        name,
+        description || "",
+        commonIngredients || "",
+        ingredients || "",
+        culturalSignificance || "",
+        recipeDescription || ""
+      ].join(" ").trim();
+      
+      await embedFood(foodId, searchText);
       console.log(`✅ Embedding generated for new food: "${name}"`);
     } catch (embedErr) {
       // Non-fatal — food still created, embedding can be backfilled later
       console.warn(`⚠️ Could not generate embedding for "${name}":`, embedErr.message);
     }
     
+    // 6. Return Success Response
     res.json({
       success: true,
       message: "Food created successfully",
-      data: { foodID: result.insertId, name, origin },
+      data: { 
+        foodID: foodId, 
+        name, 
+        origin 
+      },
     });
 
   } catch (err) {
+    // Rollback transaction on error
+    await connection.rollback();
     console.error("❌ [POST] Database Error:", err.message);
     res.status(500).json({ 
       success: false, 
       error: "Database error: " + (err.sqlMessage || err.message) 
     });
+  } finally {
+    // Release connection back to pool
+    connection.release();
   }
 });
 
