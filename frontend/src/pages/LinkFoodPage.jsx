@@ -165,7 +165,7 @@ const LinkFoodPage = () => {
     setShowSaveConfirm(false);
 
     if (!selectedRecipeId) {
-      setShowNotification({ visible: true, message: t("addFood.selectRecipeError", "Please select a recipe to link!"), type: "error" });
+      setShowNotification({ visible: true, message: t("addFood.selectRecipeError"), type: "error" });
       return;
     }
     if (!food.origin) {
@@ -224,7 +224,7 @@ const LinkFoodPage = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setShowNotification({ visible: true, message: t("addFood.linkedSuccess", "Food successfully linked to recipe!"), type: "success" });
+        setShowNotification({ visible: true, message: t("addFood.linkedSuccess"), type: "success" });
         setTimeout(() => navigate("/admin"), 1500);
       } else {
         setShowNotification({ visible: true, message: t("addFood.addFailed", { error: data.error || "Unknown error" }), type: "error" });
@@ -270,29 +270,29 @@ const LinkFoodPage = () => {
           </button>
 
           <div className="edit-title">
-            <h2>{t("addFood.linkRecipeTitle", "Link Food to Recipe")}</h2>
+            <h2>{t("addFood.linkRecipeTitle")}</h2>
           </div>
 
           <button className="admin-edit-food-save-btn" onClick={() => setShowSaveConfirm(true)}>
             <span className="admin-edit-food-save-icon"><FiLink /></span>
-            {t("addFood.linkBtn", "Link & Save")}
+            {t("addFood.linkBtn")}
           </button>
         </div>
 
         {/* === Recipe Selection Card === */}
         <div className="edit-food-basic-info-card" style={{ marginBottom: "25px", border: "2px solid #caa781", backgroundColor: "#fdfbf9" }}>
           <h3 style={{ color: "#916848", display: "flex", alignItems: "center", gap: "8px" }}>
-            <FiLink /> {t("addFood.selectRecipeHeader", "Select Existing Recipe")}
+            <FiLink /> {t("addFood.selectRecipeHeader")}
           </h3>
           <p style={{ color: "#7a6b5a", fontSize: "0.95rem", marginBottom: "15px" }}>
-            {t("addFood.selectRecipeDesc", "Choose an approved standalone recipe. The details you enter below will create a new Food Database profile linked directly to it.")}
+            {t("addFood.selectRecipeDesc")}
           </p>
 {/* Search Box */}
           <div className="search-box" style={{ marginBottom: "15px" }}>
             <CiSearch className="search-icon" />
             <input 
               type="text" 
-              placeholder={t("addFood.searchRecipePlaceholder", "Search recipes by name or author...")}
+              placeholder={t("addFood.searchRecipePlaceholder")}
               value={recipeSearchTerm}
               onChange={(e) => setRecipeSearchTerm(e.target.value)}
               style={{ width: "100%", padding: "10px 14px 10px 38px", borderRadius: "8px", border: "1px solid #d8c9b6", outline: "none", fontSize: "15px" }}
@@ -320,7 +320,7 @@ const LinkFoodPage = () => {
               ))
             ) : (
               <div className="recipe-selection-empty">
-                {t("addFood.noRecipesFound", "No recipes found matching your search.")}
+                {t("addFood.noRecipesFound")}
               </div>
             )}
           </div>
@@ -367,7 +367,7 @@ const LinkFoodPage = () => {
 
             <div className="edit-food-basic-info-two-col" style={{ marginTop: 0, marginBottom: "15px" }}>
               <div>
-                <label className="basic-info-label">{t("addFood.alternativeName", "Alternative Name")}</label>
+                <label className="basic-info-label">{t("addFood.alternativeName")}</label>
                 <input
                   className="edit-food-input"
                   name="alternative"
@@ -377,7 +377,7 @@ const LinkFoodPage = () => {
                 />
               </div>
               <div>
-                <label className="basic-info-label">{t("addFood.altDescription", "Alt Description")}</label>
+                <label className="basic-info-label">{t("addFood.altDescription")}</label>
                 <input
                   className="edit-food-input"
                   name="altDescription"
@@ -443,7 +443,7 @@ const LinkFoodPage = () => {
             onChange={handleChange} rows={4} placeholder={t("addFood.traditionalPreparationPlaceholder")}
           />
 
-          <label className="basic-info-label">{t("addFood.didYouKnow", "Did You Know? (Fun Fact)")}</label>
+          <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
           <textarea 
             className="edit-food-textarea" name="didYouKnow" value={food.didYouKnow} 
             onChange={handleChange} rows={2} placeholder="Optional interesting fact about this food"
@@ -533,11 +533,11 @@ const LinkFoodPage = () => {
       {showSaveConfirm && (
         <div className="modal-overlay">
           <div className="delete-modal">
-            <h3>{t("addFood.confirmLinkTitle", "Link Food & Recipe?")}</h3>
-            <p>{t("addFood.confirmLinkMsg", "Are you sure you want to link this new food profile to the selected recipe?")}</p>
+            <h3>{t("addFood.confirmLinkTitle")}</h3>
+            <p>{t("addFood.confirmLinkMsg")}</p>
             <div className="modal-actions">
               <button className="save-cancel-btn" onClick={() => setShowSaveConfirm(false)}>{t("addFood.cancel")}</button>
-              <button className="confirm-save-btn" onClick={handleConfirmLink}>{t("addFood.yesLinkFood", "Yes, Link Food")}</button>
+              <button className="confirm-save-btn" onClick={handleConfirmLink}>{t("addFood.yesLinkFood")}</button>
             </div>
           </div>
         </div>
