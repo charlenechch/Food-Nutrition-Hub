@@ -717,7 +717,7 @@
 
   "addFood": {
     "category": "Kategori",
-    "backToDashboard": "← Kembali",
+    "backToDashboard": "Kembali",
     "pageTitle": "Tambah Item Makanan Baharu",
     "addFoodBtn": "Tambah Makanan",
     "foodImage": "Imej Makanan",
