@@ -148,7 +148,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     const userID = sessionUser.userID || sessionUser.id;
     
     console.log("🔍 Extracted userID:", userID);
-    
+
     if (!userID) {
       console.error("❌ UserID not found in session user");
       return res.status(401).json({ 

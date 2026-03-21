@@ -1427,130 +1427,35 @@ router.get('/pending-food-details', async (req, res) => {
 });
 
 // =============================
-// GET single approved recipe with all details for the form
+// GET all approved recipes for selection
 // =============================
-router.get('/recipe-details/:id', async (req, res) => {
+router.get('/approved-recipes', async (req, res) => {
   try {
-    const { id } = req.params;
-    console.log('Fetching approved recipe details for ID:', id);
-    
     const query = `
       SELECT 
         r.recipeID as id,
-        r.description as recipeDescription,
-        r.ingredients as recipeIngredients,
-        r.steps as recipeInstructions,
-        r.cookTime,
-        r.servings,
-        r.DidYouKnow,
-        r.chefTips,
-        r.status,
-        r.createdAt,
-        CONCAT(u.firstname, ' ', u.lastname) AS author,
-        u.email AS authorEmail,
-        f.foodID,
         f.name as foodName,
-        f.alternative,
-        f.altDescription,
-        f.origin,
-        f.category,
-        f.difficulty,
-        f.description as foodDescription,
-        f.culturalSignificance,
-        f.traditionalPreparation,
-        f.Energy_kcal,
-        f.Protein_g,
-        f.Carbohydrates_g,
-        f.Fat_g,
-        f.Fiber_g,
-        f.VitaminC_mg,
-        f.image,
-        f.commonIngredients,
-        f.dietaryTags,
-        f.healthTips,
-        f.prepTime
+        CONCAT(u.firstname, ' ', u.lastname) AS author
       FROM recipe r
       INNER JOIN food f ON r.foodID = f.foodID
       LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
-      WHERE r.recipeID = ?
-      AND r.status = 'Approved'
+      WHERE r.status = 'Approved'
+      ORDER BY r.createdAt DESC
     `;
 
-    const [rows] = await db.query(query, [id]);
+    const [rows] = await db.query(query);
     
-    if (!rows || rows.length === 0) {
-      return res.status(404).json({ 
-        success: false,
-        error: 'Approved recipe not found' 
-      });
-    }
-    
-    const recipe = rows[0];
-    
-    // Handle dietaryTags - could be string or need parsing
-    let dietaryTags = [];
-    if (recipe.dietaryTags) {
-      if (typeof recipe.dietaryTags === 'string') {
-        dietaryTags = recipe.dietaryTags.split(',').map(tag => tag.trim()).filter(Boolean);
-      } else if (Array.isArray(recipe.dietaryTags)) {
-        dietaryTags = recipe.dietaryTags;
-      }
-    }
-    
-    // Handle commonIngredients - could be string or need parsing
-    let commonIngredients = [];
-    if (recipe.commonIngredients) {
-      if (typeof recipe.commonIngredients === 'string') {
-        commonIngredients = recipe.commonIngredients.split(',').map(ing => ing.trim()).filter(Boolean);
-      } else if (Array.isArray(recipe.commonIngredients)) {
-        commonIngredients = recipe.commonIngredients;
-      }
-    }
-    
-    // Format the response for your frontend
-    const formattedRecipe = {
+    const formattedRecipes = rows.map(recipe => ({
       id: recipe.id,
       name: recipe.foodName,
-      author: recipe.author || 'Unknown Author',
-      status: recipe.status,
-      recipeDescription: recipe.recipeDescription || '',
-      recipeIngredients: recipe.recipeIngredients || '',
-      recipeInstructions: recipe.recipeInstructions || '',
-      cookTime: recipe.cookTime || 0,
-      servings: recipe.servings || 1,
-      difficulty: recipe.difficulty || 'Easy',
-      prepTime: recipe.prepTime || 0,
-      didYouKnow: recipe.DidYouKnow || '',
-      chefTips: recipe.chefTips || '',
-      createdAt: recipe.createdAt,
-      existingFoodData: {
-        foodId: recipe.foodID,
-        name: recipe.foodName || '',
-        alternative: recipe.alternative || '',
-        altDescription: recipe.altDescription || '',
-        origin: recipe.origin || '',
-        category: recipe.category || '',
-        description: recipe.foodDescription || '',
-        culturalSignificance: recipe.culturalSignificance || '',
-        traditionalPreparation: recipe.traditionalPreparation || '',
-        calories: recipe.Energy_kcal || '',
-        protein: recipe.Protein_g || '',
-        carbs: recipe.Carbohydrates_g || '',
-        fat: recipe.Fat_g || '',
-        fiber: recipe.Fiber_g || '',
-        vitaminC: recipe.VitaminC_mg || '',
-        image: recipe.image || '',
-        commonIngredients: commonIngredients,
-        dietaryTags: dietaryTags,
-        healthTips: recipe.healthTips || ''
-      }
-    };
+      author: recipe.author || 'Unknown Author'
+    }));
     
-    res.json(formattedRecipe);
+    res.json(formattedRecipes);
     
   } catch (error) {
-    console.error('Error fetching recipe details:', error);
+    console.error('Error fetching approved recipes:', error);
     res.status(500).json({ 
       success: false,
       error: error.message 
@@ -1577,7 +1482,6 @@ router.post('/add-food-details', async (req, res) => {
       description,
       culturalSignificance,
       traditionalPreparation,
-      didYouKnow,
       Energy_kcal,
       Protein_g,
       Carbohydrates_g,
@@ -1617,11 +1521,11 @@ router.post('/add-food-details', async (req, res) => {
       });
     }
 
-    // Find the food record and verify recipe is approved
+    // Check if recipe exists and is approved
     const [recipeCheck] = await connection.query(
-      `SELECT f.foodID, r.status 
-       FROM food f 
-       INNER JOIN recipe r ON f.foodID = r.foodID 
+      `SELECT r.recipeID, r.foodID, r.status, f.name as currentFoodName
+       FROM recipe r
+       INNER JOIN food f ON r.foodID = f.foodID
        WHERE r.recipeID = ?`,
       [recipeId]
     );
@@ -1647,6 +1551,7 @@ router.post('/add-food-details', async (req, res) => {
     // Convert arrays to comma-separated strings for database
     const dietaryTagsString = Array.isArray(dietaryTags) ? dietaryTags.join(', ') : dietaryTags;
     const commonIngredientsString = Array.isArray(commonIngredients) ? commonIngredients.join(', ') : commonIngredients;
+    const categoryString = Array.isArray(category) ? category.join(', ') : (category || null);
 
     // Update food details
     const updateQuery = `
@@ -1659,7 +1564,6 @@ router.post('/add-food-details', async (req, res) => {
         description = COALESCE(?, description),
         culturalSignificance = ?,
         traditionalPreparation = ?,
-        DidYouKnow = ?,
         Energy_kcal = ?,
         Protein_g = ?,
         Carbohydrates_g = ?,
@@ -1683,7 +1587,6 @@ router.post('/add-food-details', async (req, res) => {
       description || null,
       culturalSignificance || null,
       traditionalPreparation || null,
-      didYouKnow || null,
       Energy_kcal || 0,
       Protein_g || 0,
       Carbohydrates_g || 0,

@@ -60,7 +60,6 @@ const LinkFoodPage = () => {
     description: "",
     culturalSignificance: "",
     traditionalPreparation: "",
-    didYouKnow: "",
     calories: "",
     protein: "",
     carbs: "",
@@ -82,7 +81,9 @@ const LinkFoodPage = () => {
         const csrfData = await csrfRes.json();
         setCsrfToken(csrfData.csrfToken);
 
-        const recipeRes = await fetch(`${API_URL}/api/recipe/recipes`);
+        const recipesRes = await fetch(`${API_URL}/api/recipe/approved-recipes`, { 
+        credentials: "include" 
+        });
         if (recipeRes.ok) {
           const recipeData = await recipeRes.json();
           setExistingRecipes(recipeData || []); 
@@ -93,84 +94,6 @@ const LinkFoodPage = () => {
     };
     fetchInitialData();
   }, []);
-
-  // Handle recipe selection - fetch full details
-  const handleRecipeSelect = async (recipeId) => {
-    setSelectedRecipeId(recipeId);
-    setIsLoadingRecipeDetails(true);
-    
-    try {
-      const response = await fetch(`${API_URL}/api/recipe/recipe-details/${recipeId}`, {
-        credentials: "include"
-      });
-      
-      if (response.ok) {
-        const recipeData = await response.json();
-        setSelectedRecipeDetails(recipeData);
-        
-        // Pre-fill form with existing food data if any
-        if (recipeData.existingFoodData) {
-          const existing = recipeData.existingFoodData;
-          
-          // Handle category (could be string or array)
-          let categoryArray = [];
-          if (existing.category) {
-            if (typeof existing.category === 'string') {
-              categoryArray = existing.category.split(',').map(cat => cat.trim());
-            } else if (Array.isArray(existing.category)) {
-              categoryArray = existing.category;
-            }
-          }
-          
-          // Handle dietary tags
-          if (existing.dietaryTags && existing.dietaryTags.length > 0) {
-            setSelectedDietary(existing.dietaryTags);
-          }
-          
-          // Handle common ingredients
-          if (existing.commonIngredients && existing.commonIngredients.length > 0) {
-            setSelectedIngredients(existing.commonIngredients);
-          }
-          
-          setFood({
-            name: existing.name || '',
-            alternative: existing.alternative || '',
-            altDescription: existing.altDescription || '',
-            origin: existing.origin || '',
-            category: categoryArray,
-            description: existing.description || '',
-            culturalSignificance: existing.culturalSignificance || '',
-            traditionalPreparation: existing.traditionalPreparation || '',
-            didYouKnow: existing.didYouKnow || '',
-            calories: existing.calories || '',
-            protein: existing.protein || '',
-            carbs: existing.carbs || '',
-            fat: existing.fat || '',
-            fiber: existing.fiber || '',
-            vitaminc: existing.vitaminC || '',
-            healthTips: existing.healthTips || ''
-          });
-        }
-      } else {
-        console.error("Failed to fetch recipe details");
-        setShowNotification({ 
-          visible: true, 
-          message: t("addFood.fetchRecipeDetailsError"), 
-          type: "error" 
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching recipe details:', error);
-      setShowNotification({ 
-        visible: true, 
-        message: t("addFood.networkError"), 
-        type: "error" 
-      });
-    } finally {
-      setIsLoadingRecipeDetails(false);
-    }
-  };
-
 
   const handleChange = (e) => {
     setFood({ ...food, [e.target.name]: e.target.value });
@@ -261,7 +184,6 @@ const LinkFoodPage = () => {
         description: food.description,
         culturalSignificance: food.culturalSignificance,
         traditionalPreparation: food.traditionalPreparation,
-        didYouKnow: food.didYouKnow,
         Energy_kcal: Number(food.calories) || 0,
         Protein_g: Number(food.protein) || 0,
         Carbohydrates_g: Number(food.carbs) || 0,
@@ -504,12 +426,6 @@ const LinkFoodPage = () => {
           <textarea 
             className="edit-food-textarea" name="traditionalPreparation" value={food.traditionalPreparation} 
             onChange={handleChange} rows={4} placeholder={t("addFood.traditionalPreparationPlaceholder")}
-          />
-
-          <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
-          <textarea 
-            className="edit-food-textarea" name="didYouKnow" value={food.didYouKnow} 
-            onChange={handleChange} rows={2} placeholder={t("addFood.didYouKnowPlace")}
           />
         </div>
 
