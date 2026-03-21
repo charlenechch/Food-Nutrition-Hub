@@ -809,7 +809,8 @@
     "savedLabel": "Saved:",
     "selectAll": "Select All",
     "exportBtn": "Export",
-    "exporting": "Exporting..."
+    "exporting": "Exporting...",
+    "byAuthor": "By"
   },
 
   "addRecipe": {

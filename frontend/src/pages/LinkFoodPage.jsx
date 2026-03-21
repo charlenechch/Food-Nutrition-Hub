@@ -227,7 +227,7 @@ const LinkFoodPage = () => {
         setShowNotification({ visible: true, message: t("addFood.linkedSuccess"), type: "success" });
         setTimeout(() => navigate("/admin"), 1500);
       } else {
-        setShowNotification({ visible: true, message: t("addFood.addFailed", { error: data.error || "Unknown error" }), type: "error" });
+        setShowNotification({ visible: true, message: t("addFood.addFailed", { error: data.error || t("addFood.unknownError") }), type: "error" });
       }
 
     } catch (error) {
@@ -309,7 +309,7 @@ const LinkFoodPage = () => {
                 >
                   <div className="recipe-selection-info">
                     <div className="recipe-selection-name">{recipe.name}</div>
-                    {recipe.author && <div className="recipe-selection-author">By {recipe.author}</div>}
+                    {recipe.author && <div className="recipe-selection-author">{t("addFood.byAuthor")} {recipe.author}</div>}
                   </div>
                   {selectedRecipeId === recipe.id && (
                     <div className="recipe-selection-check">
@@ -373,7 +373,7 @@ const LinkFoodPage = () => {
                   name="alternative"
                   value={food.alternative}
                   onChange={handleChange}
-                  placeholder="e.g. Nasi Lemak Ayam"
+                  placeholder={t("addFood.altNamePlace")}
                 />
               </div>
               <div>
@@ -383,7 +383,7 @@ const LinkFoodPage = () => {
                   name="altDescription"
                   value={food.altDescription}
                   onChange={handleChange}
-                  placeholder="Brief alternative description"
+                  placeholder={t("addFood.altDescPlace")}
                 />
               </div>
             </div>
@@ -446,7 +446,7 @@ const LinkFoodPage = () => {
           <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
           <textarea 
             className="edit-food-textarea" name="didYouKnow" value={food.didYouKnow} 
-            onChange={handleChange} rows={2} placeholder="Optional interesting fact about this food"
+            onChange={handleChange} rows={2} placeholder={t("addFood.didYouKnowPlace")}
           />
         </div>
 

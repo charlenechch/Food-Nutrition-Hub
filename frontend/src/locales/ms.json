@@ -808,7 +808,8 @@
     "savedLabel": "Disimpan:",
     "selectAll": "Pilih Semua",
     "exportBtn": "Eksport",
-    "exporting": "Mengeksport..."
+    "exporting": "Mengeksport...",
+    "byAuthor": "Oleh"
   },
 
   "addRecipe": {
