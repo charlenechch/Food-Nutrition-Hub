@@ -680,3 +680,35 @@
 .efpage-cultural-label {
   margin-top: 10px;
 }
+
+.lfp-recipe-select {
+  margin-bottom: 25px;
+  border: 2px solid #caa781;
+  background-color: #fdfbf9;
+}
+
+.lfp-recipe-select-h3 {
+  color: #916848;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lfp-recipe-select-p {
+  color: #7a6b5a;
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+}
+
+.lfp-recipe-select-search {
+  margin-bottom: 15px;
+}
+
+.lfp-recipe-select-search-text {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border-radius: 8px;
+  border: 1px solid #d8c9b6;
+  outline: none;
+  font-size: 15px;
+}

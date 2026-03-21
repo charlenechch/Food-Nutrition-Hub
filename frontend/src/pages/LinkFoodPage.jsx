@@ -280,22 +280,22 @@ const LinkFoodPage = () => {
         </div>
 
         {/* === Recipe Selection Card === */}
-        <div className="edit-food-basic-info-card" style={{ marginBottom: "25px", border: "2px solid #caa781", backgroundColor: "#fdfbf9" }}>
-          <h3 style={{ color: "#916848", display: "flex", alignItems: "center", gap: "8px" }}>
+        <div className="edit-food-basic-info-card lfp-recipe-select">
+          <h3 className = "lfp-recipe-select-h3">
             <FiLink /> {t("addFood.selectRecipeHeader")}
           </h3>
-          <p style={{ color: "#7a6b5a", fontSize: "0.95rem", marginBottom: "15px" }}>
+          <p className = "lfp-recipe-select-p">
             {t("addFood.selectRecipeDesc")}
           </p>
-{/* Search Box */}
-          <div className="search-box" style={{ marginBottom: "15px" }}>
+          {/* Search Box */}
+          <div className="search-box lfp-recipe-select-search">
             <CiSearch className="search-icon" />
             <input 
               type="text" 
+              className = "lfp-recipe-select-search-text"
               placeholder={t("addFood.searchRecipePlaceholder")}
               value={recipeSearchTerm}
               onChange={(e) => setRecipeSearchTerm(e.target.value)}
-              style={{ width: "100%", padding: "10px 14px 10px 38px", borderRadius: "8px", border: "1px solid #d8c9b6", outline: "none", fontSize: "15px" }}
             />
           </div>
 
@@ -365,7 +365,7 @@ const LinkFoodPage = () => {
               placeholder={t("addFood.foodNamePlaceholder")}
             />
 
-            <div className="edit-food-basic-info-two-col" style={{ marginTop: 0, marginBottom: "15px" }}>
+            <div className="edit-food-basic-info-two-col efpage-basic-info">
               <div>
                 <label className="basic-info-label">{t("addFood.alternativeName")}</label>
                 <input
@@ -497,8 +497,8 @@ const LinkFoodPage = () => {
           </div>
 
           {showOtherIngredient && (
-            <div style={{ marginBottom: "16px" }}>
-              <label className="basic-info-label" style={{fontSize: "0.9rem", color: "#666"}}>
+            <div className = "efpage-show-ing">
+              <label className="basic-info-label efpage-show-ing-label">
                 {t("addFood.otherIngredientsLabel")}
               </label>
               <textarea 
@@ -520,7 +520,7 @@ const LinkFoodPage = () => {
             })}
           </div>
 
-          <label className="basic-info-label" style={{marginTop: "10px"}}>{t("addFood.healthTips")}</label>
+          <label className="basic-info-label efpage-cultural-label">{t("addFood.healthTips")}</label>
           <textarea 
             className="edit-food-textarea" name="healthTips" value={food.healthTips} 
             onChange={handleChange} rows={2} placeholder={t("addFood.healthTipsPlaceholder")}
