@@ -27,6 +27,16 @@ const FOOD_TYPE_OPTIONS = [
   "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"
 ];
 
+const DIETARY_TAG_OPTIONS = [
+  "Vegetarian", "Vegan", "Halal", "Gluten Free", 
+  "Dairy Free", "Low Fat", "High Protein", "Spicy"
+];
+
+const COMMON_INGREDIENTS_LIST = [
+  "Chicken", "Rice", "Garlic", "Onion", "Ginger", 
+  "Salt", "Sugar", "Chili", "Lemongrass", "Soy Sauce"
+];
+
 const EditFoodPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -43,6 +53,11 @@ const EditFoodPage = () => {
     type: "",
   });
   const [food, setFood] = useState(null);
+
+  const [selectedDietary, setSelectedDietary] = useState([]);
+  const [selectedIngredients, setSelectedIngredients] = useState([]);
+  const [showOtherIngredient, setShowOtherIngredient] = useState(false);
+  const [otherIngredientText, setOtherIngredientText] = useState("");
 
   //================
   // CSRF
@@ -76,6 +91,8 @@ const EditFoodPage = () => {
         if (data.success) {
           setFood({
             name: data.data.name || "",
+            alternative: data.data.alternative || "",
+            altDescription: data.data.altDescription || "",
             origin: data.data.origin || "",
             calories: data.data.Energy_kcal || "",
             protein: data.data.Protein_g || "",
@@ -87,8 +104,18 @@ const EditFoodPage = () => {
             description: data.data.description || "",
             culturalSignificance: data.data.culturalSignificance || "",
             traditionalPreparation: data.data.traditionalPreparation || "",
+            didYouKnow: data.data.didYouKnow || "",
+            healthTips: data.data.healthTips || "",
             image: data.data.image || "",
           });
+
+          if (data.data.dietaryTags) {
+            setSelectedDietary(data.data.dietaryTags.split(',').map(s => s.trim()).filter(Boolean));
+          }
+          if (data.data.commonIngredients) {
+            setSelectedIngredients(data.data.commonIngredients.split(',').map(s => s.trim()).filter(Boolean));
+          }
+
           setExistingImageUrl(data.data.image || "");
         } else {
           console.error("Failed to fetch food:", data.error);
@@ -256,13 +283,23 @@ const EditFoodPage = () => {
       return;
     }
 
+    const dietaryString = selectedDietary.join(", ");
+    let ingredientsString = selectedIngredients.join(", ");
+    if (showOtherIngredient && otherIngredientText.trim()) {
+      if (ingredientsString) ingredientsString += ", ";
+      ingredientsString += otherIngredientText.trim();
+    }
+
     const dataToSave = {
       name: food.name,
+      alternative: food.alternative,
+      altDescription: food.altDescription,
       origin: food.origin,
       category: Array.isArray(food.category) ? food.category.join(", ") : food.category,
       description: food.description,
       culturalSignificance: food.culturalSignificance,
       traditionalPreparation: food.traditionalPreparation,
+      didYouKnow: food.didYouKnow,
       Energy_kcal: Number(food.calories) || 0,
       Protein_g: Number(food.protein) || 0,
       Carbohydrates_g: Number(food.carbs) || 0,
@@ -270,6 +307,9 @@ const EditFoodPage = () => {
       Fiber_g: Number(food.fiber) || 0,
       VitaminC_mg: Number(food.vitaminc) || 0,
       image: finalImageUrl,
+      commonIngredients: ingredientsString,
+      dietaryTags: dietaryString, 
+      healthTips: food.healthTips
     };
 
     try {
@@ -344,6 +384,22 @@ const EditFoodPage = () => {
     if (url.startsWith("http")) return url;
     return `${API_URL}/${url.replace(/^\/+/, "")}`;
   };
+
+  const toggleDietary = (tag) => {
+    setSelectedDietary((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
+  };
+
+  const toggleIngredient = (ing) => {
+    setSelectedIngredients((prev) => prev.includes(ing) ? prev.filter((i) => i !== ing) : [...prev, ing]);
+  };
+
+  const chipContainerStyle = { display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "8px", marginBottom: "16px" };
+  const getChipStyle = (isSelected) => ({
+    padding: "8px 16px", borderRadius: "20px", border: `1px solid ${isSelected ? "#d97706" : "#ddd"}`,
+    backgroundColor: isSelected ? "#fff7ed" : "white", color: isSelected ? "#d97706" : "#555",
+    cursor: "pointer", fontSize: "0.9rem", fontWeight: isSelected ? "600" : "400",
+    transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px"
+  });
 
   // --- Render Page ---
   return (
@@ -423,6 +479,17 @@ const EditFoodPage = () => {
                 </div>
               </div>
 
+              <div className="edit-food-basic-info-two-col" style={{ marginTop: 0, marginBottom: "15px" }}>
+                <div>
+                  <label className="basic-info-label">{t("addFood.alternativeName")}</label>
+                  <input className="edit-food-input" name="alternative" value={food.alternative} onChange={handleChange} />
+                </div>
+                <div>
+                  <label className="basic-info-label">{t("addFood.altDescription")}</label>
+                  <input className="edit-food-input" name="altDescription" value={food.altDescription} onChange={handleChange} />
+                </div>
+              </div>
+
               {/* Category */}
               <div className="food-category-field">
                 <label className="basic-info-label">{t("editFood.category")}</label>
@@ -493,6 +560,9 @@ const EditFoodPage = () => {
               placeholder={t("editFood.traditionalPreparationPlaceholder")}
               rows={5}
             />
+
+            <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
+            <textarea className="edit-food-textarea" name="didYouKnow" value={food.didYouKnow} onChange={handleChange} rows={2} />
           </div>
 
           {/* Nutritional Info */}
@@ -518,6 +588,47 @@ const EditFoodPage = () => {
                 </div>
               ))}
             </div>
+          </div>
+          {/* === Additional Details === */}
+          <div className="edit-cultural-context-card">
+            <h3>{t("addFood.additionalDetails")}</h3>
+            
+            <label className="basic-info-label">{t("addFood.commonIngredients")}</label>
+            <div style={chipContainerStyle}>
+              {COMMON_INGREDIENTS_LIST.map((ing) => {
+                const isSelected = selectedIngredients.includes(ing);
+                return (
+                  <button key={ing} type="button" style={getChipStyle(isSelected)} onClick={() => toggleIngredient(ing)}>
+                    {ing}
+                  </button>
+                );
+              })}
+              <button type="button" style={getChipStyle(showOtherIngredient)} onClick={() => setShowOtherIngredient(!showOtherIngredient)}>
+                {t("addFood.other")}
+              </button>
+            </div>
+
+            {showOtherIngredient && (
+              <div style={{ marginBottom: "16px" }}>
+                <label className="basic-info-label" style={{fontSize: "0.9rem", color: "#666"}}>{t("addFood.otherIngredientsLabel")}</label>
+                <textarea className="edit-food-textarea" value={otherIngredientText} onChange={(e) => setOtherIngredientText(e.target.value)} rows={2} />
+              </div>
+            )}
+
+            <label className="basic-info-label">{t("addFood.dietaryPreferences")}</label>
+            <div style={chipContainerStyle}>
+              {DIETARY_TAG_OPTIONS.map((tag) => {
+                const isSelected = selectedDietary.includes(tag);
+                return (
+                  <button key={tag} type="button" style={getChipStyle(isSelected)} onClick={() => toggleDietary(tag)}>
+                    {tag}
+                  </button>
+                );
+              })}
+            </div>
+
+            <label className="basic-info-label" style={{marginTop: "10px"}}>{t("addFood.healthTips")}</label>
+            <textarea className="edit-food-textarea" name="healthTips" value={food.healthTips} onChange={handleChange} rows={2} />
           </div>
         </div>
 
