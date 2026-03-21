@@ -129,18 +129,44 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
   console.log("📥 [POST] Received Add Food Request:", req.body);
 
   // Get the admin's userProfileID from database
-    let userProfileID;
+  let userProfileID;
   try {
-    const userID = req.user?.userID; 
+    // Get user from session 
+    const sessionUser = req.session?.user;
     
-    if (!userID) {
-      console.error("❌ UserID not found in request");
+    console.log("🔍 Session user:", JSON.stringify(sessionUser, null, 2));
+    
+    if (!sessionUser) {
+      console.error("❌ No user found in session");
       return res.status(401).json({ 
         success: false, 
-        error: "User not authenticated" 
+        error: "User not authenticated - no session found" 
       });
     }
     
+    // Get userID from session user 
+    const userID = sessionUser.userID || sessionUser.id;
+    
+    console.log("🔍 Extracted userID:", userID);
+    
+    if (!userID) {
+      console.error("❌ UserID not found in session user");
+      return res.status(401).json({ 
+        success: false, 
+        error: "User not authenticated - no user ID found" 
+      });
+    }
+    
+    // Check if user is admin 
+    if (sessionUser.role !== 'admin') {
+      console.error(`❌ User ${userID} is not admin`);
+      return res.status(403).json({ 
+        success: false, 
+        error: "Admin privileges required" 
+      });
+    }
+    
+    // Get or create userProfile for the admin
     const [profileResult] = await db.execute(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
