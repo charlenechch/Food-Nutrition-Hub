@@ -662,3 +662,21 @@
   border: 1px dashed #e8dccf; 
   font-size: 0.95rem;
 }
+
+.efpage-basic-info {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.efpage-show-ing {
+  margin-bottom: 16px;
+}
+
+.efpage-show-ing-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.efpage-cultural-label {
+  margin-top: 10px;
+}

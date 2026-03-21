@@ -479,7 +479,7 @@ const EditFoodPage = () => {
                 </div>
               </div>
 
-              <div className="edit-food-basic-info-two-col" style={{ marginTop: 0, marginBottom: "15px" }}>
+              <div className="edit-food-basic-info-two-col efpage-basic-info">
                 <div>
                   <label className="basic-info-label">{t("addFood.alternativeName")}</label>
                   <input className="edit-food-input" name="alternative" value={food.alternative} onChange={handleChange} />
@@ -609,8 +609,8 @@ const EditFoodPage = () => {
             </div>
 
             {showOtherIngredient && (
-              <div style={{ marginBottom: "16px" }}>
-                <label className="basic-info-label" style={{fontSize: "0.9rem", color: "#666"}}>{t("addFood.otherIngredientsLabel")}</label>
+              <div className = "efpage-show-ing">
+                <label className="basic-info-label efpage-show-ing-label">{t("addFood.otherIngredientsLabel")}</label>
                 <textarea className="edit-food-textarea" value={otherIngredientText} onChange={(e) => setOtherIngredientText(e.target.value)} rows={2} />
               </div>
             )}
@@ -627,7 +627,7 @@ const EditFoodPage = () => {
               })}
             </div>
 
-            <label className="basic-info-label" style={{marginTop: "10px"}}>{t("addFood.healthTips")}</label>
+            <label className="basic-info-label efpage-cultural-label">{t("addFood.healthTips")}</label>
             <textarea className="edit-food-textarea" name="healthTips" value={food.healthTips} onChange={handleChange} rows={2} />
           </div>
         </div>
