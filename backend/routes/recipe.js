@@ -1357,4 +1357,44 @@ router.get('/byFood/:foodId', async (req, res) => {
   }
 });
 
+// GET recipes (admin select recipe to add food details)
+router.get('/link/recipes', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        r.recipeID as id,
+        r.name,
+        CONCAT(u.firstname, ' ', u.lastname) AS author,
+        r.status,
+        r.createdAt
+      FROM recipe r
+      LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
+      LEFT JOIN user u ON up.userID = u.userID
+      WHERE r.status = 'Approved'
+      AND r.recipeID NOT IN (
+        SELECT recipeID FROM food WHERE recipeID IS NOT NULL
+      )
+      ORDER BY r.createdAt DESC
+    `;
+
+    const [rows] = await db.query(query);
+    const recipes = rows.map(recipe => ({
+      id: recipe.id,
+      name: recipe.name,
+      author: recipe.author || 'Unknown Author',
+      status: recipe.status
+    }));
+
+    console.log(`📋 Found ${recipes.length} recipes available for linking`);
+    res.json(recipes);
+
+  } catch (error) {
+    console.error('Error fetching available recipes:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch recipes',
+      message: error.message 
+    });
+  }
+});
+
 module.exports = router;
