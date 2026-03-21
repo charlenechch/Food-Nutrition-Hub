@@ -53,7 +53,19 @@ const LinkFoodPage = () => {
     // Dummy data!!!!!
     { id: "101", name: "Authentic Sarawak Laksa", author: "Chef Amin" },
     { id: "102", name: "Traditional Manok Pansoh", author: "Auntie Rose" },
-    { id: "103", name: "Classic Kolo Mee", author: "John Doe" }
+    { id: "103", name: "Classic Kolo Mee", author: "John Doe" },
+    { id: "104", name: "Sarawak Layer Cake (Kek Lapis)", author: "Maria" },
+    { id: "105", name: "Stir-fried Midin with Belacan", author: "Uncle Bob" },
+    { id: "106", name: "Kampua Mee", author: "Chef Lee" },
+    { id: "107", name: "Tomato Crispy Mee", author: "Ahmad" },
+    { id: "108", name: "Umai Iban (Raw Fish Salad)", author: "Nenek" },
+    { id: "109", name: "Linut (Sago Flour)", author: "Sarah" },
+    { id: "110", name: "Tebaloi (Sago Biscuit)", author: "Makcik Siti" },
+    { id: "111", name: "Kacangma Chicken", author: "Chef Ali" },
+    { id: "112", name: "Nasi Goreng Dabai", author: "Pak Abu" },
+    { id: "113", name: "Sup Terung Dayak", author: "Auntie Florence" },
+    { id: "114", name: "Kueh Jala", author: "Nadia" },
+    { id: "115", name: "Nasi Lelapan", author: "Chef Zam" }
   ]);
 
   const [food, setFood] = useState({
