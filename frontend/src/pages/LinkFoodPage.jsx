@@ -457,12 +457,12 @@ const LinkFoodPage = () => {
           </h3>
           <div className="nutrition-grid">
             {[
-              { labelKey: "addFood.calories",      name: "calories",  placeholder: "e.g. 350" },
-              { labelKey: "addFood.protein",        name: "protein",   placeholder: "e.g. 15" },
-              { labelKey: "addFood.carbohydrates",  name: "carbs",     placeholder: "e.g. 45" },
-              { labelKey: "addFood.totalFat",       name: "fat",       placeholder: "e.g. 12" },
-              { labelKey: "addFood.dietaryFiber",   name: "fiber",     placeholder: "e.g. 4" },
-              { labelKey: "addFood.vitaminC",       name: "vitaminc",  placeholder: "e.g. 2.5" },
+              { labelKey: "addFood.calories",      name: "calories",  placeholderKey: "addFood.calPlace" },
+              { labelKey: "addFood.protein",       name: "protein",   placeholderKey: "addFood.proPlace" },
+              { labelKey: "addFood.carbohydrates", name: "carbs",     placeholderKey: "addFood.carbPlace" },
+              { labelKey: "addFood.totalFat",      name: "fat",       placeholderKey: "addFood.fatPlace" },
+              { labelKey: "addFood.dietaryFiber",  name: "fiber",     placeholderKey: "addFood.fibPlace" },
+              { labelKey: "addFood.vitaminC",      name: "vitaminc",  placeholderKey: "addFood.vitCPlace" },
             ].map((item) => (
               <div key={item.name}>
                 <label className="basic-info-label">{t(item.labelKey)}</label>
