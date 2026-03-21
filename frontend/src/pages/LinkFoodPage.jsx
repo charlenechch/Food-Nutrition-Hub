@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import "../css/EditFoodPage.css"; 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { CiSearch } from "react-icons/ci";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { FiCheck, FiLink } from "react-icons/fi"; 
@@ -47,6 +48,7 @@ const LinkFoodPage = () => {
   });
 
   const [selectedRecipeId, setSelectedRecipeId] = useState("");
+  const [recipeSearchTerm, setRecipeSearchTerm] = useState("");
   const [existingRecipes, setExistingRecipes] = useState([
     // Dummy data!!!!!
     { id: "101", name: "Authentic Sarawak Laksa", author: "Chef Amin" },
@@ -236,6 +238,11 @@ const LinkFoodPage = () => {
     cursor: "pointer", fontSize: "0.9rem", fontWeight: isSelected ? "600" : "400",
     transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px"
   }); 
+  
+  const filteredRecipes = existingRecipes.filter(recipe => 
+    recipe.name.toLowerCase().includes(recipeSearchTerm.toLowerCase()) || 
+    (recipe.author && recipe.author.toLowerCase().includes(recipeSearchTerm.toLowerCase()))
+  );
 
   return (
     <>
@@ -268,20 +275,42 @@ const LinkFoodPage = () => {
           <p style={{ color: "#7a6b5a", fontSize: "0.95rem", marginBottom: "15px" }}>
             {t("addFood.selectRecipeDesc", "Choose an approved standalone recipe. The details you enter below will create a new Food Database profile linked directly to it.")}
           </p>
-          <div className="custom-select-wrapper">
-            <select 
-              className="edit-food-select"
-              value={selectedRecipeId}
-              onChange={(e) => setSelectedRecipeId(e.target.value)}
-              style={{ backgroundColor: "#fff", border: "1px solid #d8c9b6" }}
-            >
-              <option value="">{t("addFood.selectRecipeOption", "-- Select a Recipe --")}</option>
-              {existingRecipes.map(recipe => (
-                <option key={recipe.id} value={recipe.id}>
-                  {recipe.name} {recipe.author ? `(By: ${recipe.author})` : ""}
-                </option>
-              ))}
-            </select>
+{/* Search Box */}
+          <div className="search-box" style={{ marginBottom: "15px" }}>
+            <CiSearch className="search-icon" />
+            <input 
+              type="text" 
+              placeholder={t("addFood.searchRecipePlaceholder", "Search recipes by name or author...")}
+              value={recipeSearchTerm}
+              onChange={(e) => setRecipeSearchTerm(e.target.value)}
+              style={{ width: "100%", padding: "10px 14px 10px 38px", borderRadius: "8px", border: "1px solid #d8c9b6", outline: "none", fontSize: "15px" }}
+            />
+          </div>
+
+          <div className="recipe-selection-list">
+            {filteredRecipes.length > 0 ? (
+              filteredRecipes.map(recipe => (
+                <div 
+                  key={recipe.id}
+                  className={`recipe-selection-item ${selectedRecipeId === recipe.id ? "selected" : ""}`}
+                  onClick={() => setSelectedRecipeId(recipe.id)}
+                >
+                  <div className="recipe-selection-info">
+                    <div className="recipe-selection-name">{recipe.name}</div>
+                    {recipe.author && <div className="recipe-selection-author">By {recipe.author}</div>}
+                  </div>
+                  {selectedRecipeId === recipe.id && (
+                    <div className="recipe-selection-check">
+                      <FiCheck size={20} />
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="recipe-selection-empty">
+                {t("addFood.noRecipesFound", "No recipes found matching your search.")}
+              </div>
+            )}
           </div>
         </div>
 
