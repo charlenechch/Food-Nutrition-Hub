@@ -84,8 +84,8 @@ const LinkFoodPage = () => {
         const recipesRes = await fetch(`${API_URL}/api/recipe/approved-recipes`, { 
         credentials: "include" 
         });
-        if (recipeRes.ok) {
-          const recipeData = await recipeRes.json();
+        if (recipesRes.ok) {
+          const recipeData = await recipesRes.json();
           setExistingRecipes(recipeData || []); 
         }
       } catch (err) {

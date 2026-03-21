@@ -504,6 +504,16 @@ const AddFoodPage = () => {
             rows={6} 
             placeholder={t("addFood.recipeDescriptionPlace")}
           />
+
+          <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
+          <textarea 
+            className="edit-food-textarea" 
+            name="didYouKnow" 
+            value={food.didYouKnow} 
+            onChange={handleChange} 
+            rows={3} 
+            placeholder={t("addFood.didYouKnowPlace")}
+          />
           
           <label className="basic-info-label">{t("addFood.chefTips")}</label>
           <textarea 
@@ -547,16 +557,6 @@ const AddFoodPage = () => {
             onChange={handleChange} 
             rows={4} 
             placeholder={t("addFood.traditionalPreparationPlaceholder")}
-          />
-
-          <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
-          <textarea 
-            className="edit-food-textarea" 
-            name="didYouKnow" 
-            value={food.didYouKnow} 
-            onChange={handleChange} 
-            rows={3} 
-            placeholder={t("addFood.didYouKnowPlace")}
           />
         </div>
 
