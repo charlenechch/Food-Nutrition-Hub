@@ -39,6 +39,7 @@ import ReviseCommunityPostPage from "./pages/ReviseCommunityPostPage";
 import AdminCommunityPostDatabase from "./pages/AdminCommunityPostDatabase";
 import EditCommunityPostPage from "./pages/EditCommunityPostPage";
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
+import LinkFoodPage from "./pages/LinkFoodPage";
 
 // // === Auth & Verification ===
 import AuthActionRouter from "./pages/AuthActionRouter";
@@ -248,6 +249,7 @@ function AppRoutes() {
             }
           />
           <Route path="/admin/addfood" element={<AddFoodPage />} />
+          <Route path="/admin/linkfood" element={<LinkFoodPage />} />
           <Route path="/admin/addrecipe" element={<AddRecipe />} />
           <Route path="/admin/editfood/:id" element={<EditFoodPage />} />
           <Route path="/admin/edit/recipe/:id" element={<EditRecipePage />} />
