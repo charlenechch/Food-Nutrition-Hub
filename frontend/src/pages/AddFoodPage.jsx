@@ -570,7 +570,7 @@ const AddFoodPage = () => {
                   name={item.name} 
                   value={food[item.name]} 
                   onChange={handleChange}
-                  placeholder={item.placeholder}
+                  placeholder={t(item.placeholderKey)}
                 />
               </div>
             ))}
