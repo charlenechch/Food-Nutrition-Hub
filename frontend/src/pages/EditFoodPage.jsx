@@ -133,7 +133,7 @@ const EditFoodPage = () => {
         }
         
         // Fetch recipe data by foodID
-        const recipeRes = await fetch(`${API_URL}/api/recipes/food/${id}`, {
+        const recipeRes = await fetch(`${API_URL}/api/recipe/recipes/food/${id}`, {
           credentials: "include",
         });
         const recipeData = await recipeRes.json();
@@ -362,7 +362,7 @@ const EditFoodPage = () => {
       if (hasExistingRecipe && recipe.recipeID) {
         // Update existing recipe
         console.log("[save] updating recipe with:", recipeDataToSave);
-        const recipeRes = await fetch(`${API_URL}/api/recipes/${recipe.recipeID}`, {
+        const recipeRes = await fetch(`${API_URL}/api/recipe/recipes/${recipe.recipeID}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
