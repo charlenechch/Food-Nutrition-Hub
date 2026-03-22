@@ -815,7 +815,9 @@
     "carbPlace": "cth. 45",
     "fatPlace": "cth. 12",
     "fibPlace": "cth. 4",
-    "vitCPlace": "cth. 2.5"
+    "vitCPlace": "cth. 2.5",
+    "recipeDescription": "Penerangan Resipi",
+    "recipeDescriptionPlace": "cth., Semangkuk Laksa Sarawak tradisional yang kaya dengan aroma dan kepedasan sambal, resipi turun-temurun..."
   },
 
   "addRecipe": {

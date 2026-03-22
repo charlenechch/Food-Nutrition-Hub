@@ -816,7 +816,9 @@
     "carbPlace": "e.g. 45",
     "fatPlace": "e.g. 12",
     "fibPlace": "e.g. 4",
-    "vitCPlace": "e.g. 2.5"
+    "vitCPlace": "e.g. 2.5",
+    "recipeDescription": "Recipe Description",
+    "recipeDescriptionPlace": "e.g., A rich, aromatic bowl of traditional Sarawak Laksa with a spicy sambal kick, passed down from my grandmother..."
   },
 
   "addRecipe": {
