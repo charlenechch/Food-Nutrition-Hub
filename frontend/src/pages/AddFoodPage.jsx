@@ -353,26 +353,14 @@ const AddFoodPage = () => {
             />
 
             <div className="edit-food-basic-info-two-col">
-              <div>
-                <label className="basic-info-label">{t("addFood.alternativeName")}</label>
-                <input
-                  className="edit-food-input"
-                  name="alternative"
-                  value={food.alternative}
-                  onChange={handleChange}
-                  placeholder={t("addFood.altNamePlace")}
-                />
-              </div>
-              <div>
-                <label className="basic-info-label">{t("addFood.altDescription")}</label>
-                <input
-                  className="edit-food-input"
-                  name="altDescription"
-                  value={food.altDescription}
-                  onChange={handleChange}
-                  placeholder={t("addFood.altDescPlace")}
-                />
-              </div>
+            <div>
+              <label className="basic-info-label">{t("addFood.alternativeName")}</label>
+              <textarea className="edit-food-textarea resizable-field" name="alternative" value={food.alternative} onChange={handleChange} rows={1} />
+            </div>
+            <div>
+              <label className="basic-info-label">{t("addFood.altDescription")}</label>
+              <textarea className="edit-food-textarea resizable-field" name="altDescription" value={food.altDescription} onChange={handleChange} rows={1} />
+            </div>
             </div>
 
             <div className="food-origin-field">
