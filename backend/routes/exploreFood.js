@@ -25,20 +25,18 @@ const parseDietaryTags = (raw) => {
 
 router.get("/", async (req, res) => {
   try {
-    // FIXED: Only pulls approved recipes that were created by an 'admin'
+    // Pick exactly one approved recipe per food (lowest recipeID; change ORDER BY as needed)
     const [rows] = await db.query(`
       SELECT f.*,
              COALESCE(r.servings, 1) AS servings
       FROM food f
       INNER JOIN (
-        SELECT t.*
+        SELECT *
         FROM (
           SELECT r.*,
                  ROW_NUMBER() OVER (PARTITION BY r.foodID ORDER BY r.recipeID) AS rn
           FROM recipe r
-          JOIN userProfile up ON r.userProfileID = up.userProfileID
-          JOIN user u ON up.userID = u.userID
-          WHERE r.status = 'Approved' AND u.role = 'admin'
+          WHERE r.status = 'Approved'
         ) t
         WHERE t.rn = 1
       ) r ON r.foodID = f.foodID
