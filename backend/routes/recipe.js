@@ -860,7 +860,6 @@ router.put('/revise/recipes/:id', async (req, res) => {
         difficulty = ?, 
         prepTime = ?, 
         image = ?, 
-        description = ?, 
         category = ?,  
         dietaryTags = ?
       WHERE foodID = ?
@@ -871,7 +870,6 @@ router.put('/revise/recipes/:id', async (req, res) => {
       difficulty || 'Easy',
       prepTime || 0,
       finalImage,
-      description || '',
       Array.isArray(category) ? category.join(', ') : (category || 'Other'),
       Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
       foodID  
@@ -904,7 +902,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
       chefTips || '',
       status || 'Pending',
       description || '',
-      recipeId,
+      id,
       userProfileID
     ];
 

@@ -84,36 +84,68 @@ export default function ReviseRecipePage() {
   }, []);
 
   useEffect(() => {
-  // Use contribution data from navigation state
   if (contribution) {
     console.log("📝 Loading contribution data:", contribution);
     
-      const p = contribution.payload || contribution;
-      setForm({
-        name: p.name || p.foodName || p.title || "",
-        origin: p.origin || p.culturalOrigin || "",
-        difficulty: p.difficulty || "Easy",
-        prepTime: p.prepTime ?? "",
-        cookTime: p.cookTime ?? "",
-        servings: p.servings ?? "",
-        imageData: p.imageData || p.image || "",
-        description: p.description || "",
-        ingredients: Array.isArray(p.ingredients) ? p.ingredients.join('\n') : (p.ingredients || ""),
-        instructions: Array.isArray(p.instructions) ? p.instructions.join('\n') : (p.instructions || ""),
-        funFact: p.funFact || p.DidYouKnow || "",
-        chefTips: p.chefTips || "",
-        dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
-        category: p.category || "Poultry",
-      });
-      
-      setItem({
-        ...contribution,
-        feedback: contribution.adminFeedback || contribution.feedback || ""
-      });
-      
-      setIsLoading(false);
+    const p = contribution.payload || contribution;
+    
+    // Handle image - could be array or string
+    let imageValue = "";
+    if (p.images && Array.isArray(p.images) && p.images.length > 0) {
+      imageValue = p.images[0]; 
+    } else if (p.imageData) {
+      imageValue = p.imageData;
+    } else if (p.image) {
+      imageValue = p.image;
     }
-  }, [contribution]); 
+    
+    // Handle dietary tags
+    let dietaryTagsValue = [];
+    if (p.dietaryTags) {
+      if (Array.isArray(p.dietaryTags)) {
+        dietaryTagsValue = p.dietaryTags;
+      } else if (typeof p.dietaryTags === 'string') {
+        dietaryTagsValue = p.dietaryTags.split(',').map(tag => tag.trim());
+      }
+    }
+    
+    // Handle category
+    let categoryValue = [];
+    if (p.category) {
+      if (Array.isArray(p.category)) {
+        categoryValue = p.category;
+      } else if (typeof p.category === 'string') {
+        categoryValue = [p.category];
+      }
+    } else {
+      categoryValue = ["Poultry"];
+    }
+    
+    setForm({
+      name: p.name || p.foodName || p.title || "",
+      origin: p.origin || p.culturalOrigin || "",
+      difficulty: p.difficulty || "Easy",
+      prepTime: p.prepTime ?? "",
+      cookTime: p.cookTime ?? "",
+      servings: p.servings ?? "",
+      imageData: imageValue, 
+      description: p.description || "",
+      ingredients: Array.isArray(p.ingredients) ? p.ingredients.join('\n') : (p.ingredients || ""),
+      instructions: Array.isArray(p.instructions) ? p.instructions.join('\n') : (p.instructions || ""),
+      funFact: p.funFact || p.DidYouKnow || "",
+      chefTips: p.chefTips || "",
+      dietaryTags: dietaryTagsValue,
+      category: categoryValue,
+    });
+    
+    setItem({
+      ...contribution,
+      feedback: contribution.adminFeedback || contribution.feedback || ""
+    });
+    
+    setIsLoading(false);
+  }
+}, [contribution]); 
 
   const onChangeForm = (e) => {
     const { name, value } = e.target;
