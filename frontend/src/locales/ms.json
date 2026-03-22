@@ -1314,13 +1314,13 @@
   },
 
   "privacyPolicy": {
-    "back": "← Kembali",
+    "back": "Kembali",
     "title": "Dasar Privasi",
     "lastUpdated": "Tarikh Kemaskini: {{date}}"
   },
 
   "termsAndConditions": {
-    "back": "← Kembali",
+    "back": "Kembali",
     "title": "Terma & Syarat",
     "lastUpdated": "Tarikh Kemaskini: {{date}}"
   }

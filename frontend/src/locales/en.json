@@ -1315,13 +1315,13 @@
   },
 
   "privacyPolicy": {
-    "back": "← Back",
+    "back": "Back",
     "title": "Privacy Policy",
     "lastUpdated": "Last Updated: {{date}}"
   },
 
   "termsAndConditions": {
-    "back": "← Back",
+    "back": "Back",
     "title": "Terms & Conditions",
     "lastUpdated": "Last Updated: {{date}}"
   }
