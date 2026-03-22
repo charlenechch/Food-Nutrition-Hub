@@ -761,7 +761,11 @@ router.post("/users", requireAdmin, async (req, res) => {
 // Send System Announcement
 router.post("/announcement", requireAdmin, async (req, res) => {
     try {
-        const { userIds, emails, subject, message, sendEmail: shouldSendEmail } = req.body;
+        const { userIds: rawUserIds, emails: rawEmails, subject, message, sendEmail: shouldSendEmail } = req.body;
+
+        // Ensure userIds and emails are always arrays
+        const userIds = Array.isArray(rawUserIds) ? rawUserIds : (rawUserIds ? [rawUserIds] : []);
+        const emails = Array.isArray(rawEmails) ? rawEmails : (rawEmails ? [rawEmails] : []);
 
         if (!subject?.trim() || !message?.trim()) {
             return res.status(400).json({ success: false, message: "Subject and message are required." });

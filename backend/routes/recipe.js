@@ -631,7 +631,7 @@ try {
         f.origin AS culturalOrigin,
         r.status,
         r.admin_feedback,
-        r.description AS culturalStory,
+        r.description AS description,
         f.image AS photos,
         r.ingredients,
         r.steps AS instructions,
@@ -645,7 +645,8 @@ try {
         r.chefTips,
         f.difficulty,
         f.prepTime,
-        f.category
+        f.category,
+        f.dietaryTags
       FROM recipe r
       JOIN food f ON r.foodID = f.foodID
       JOIN userProfile up ON r.userProfileID = up.userProfileID
