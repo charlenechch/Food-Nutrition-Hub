@@ -1054,29 +1054,29 @@ router.patch('/updateStatus/:id', async (req, res) => {
   }
 
   // Coerce feedback into a string and trim whitespace
-    const inputFeedback = String(feedback || '').trim();
+  const inputFeedback = String(feedback || '').trim();
 
-    // Define the variable for the database (NULL if empty)
-    const dbFeedbackValue = inputFeedback.length > 0 ? inputFeedback : null;
+  // Define the variable for the database (NULL if empty)
+  const dbFeedbackValue = inputFeedback.length > 0 ? inputFeedback : null;
 
-    // Define the variable for email display (includes the default fallback)
-    const rejectionContent = inputFeedback.length > 0 
-                             ? inputFeedback 
-                             : "No specific feedback provided.";
+  // Define the variable for email display (includes the default fallback)
+  const rejectionContent = inputFeedback.length > 0 
+                           ? inputFeedback 
+                           : "No specific feedback provided.";
 
   try {
     let finalStatus = status;
     let requiresAdminEdit = false;
     
-    if (status === "Approved") {
-      finalStatus = "Draft"; // Set to draft until admin edits
+    if (status === "Draft") {
+      finalStatus = "Draft";
       requiresAdminEdit = true;
     }
 
-    // SQL Update: Use the defined dbFeedbackValue variable
+    // Use finalStatus instead of status
     const [result] = await db.query(
       "UPDATE recipe SET status = ?, admin_feedback = ? WHERE foodID = ?",
-      [status, dbFeedbackValue, recipeId] 
+      [finalStatus, dbFeedbackValue, recipeId]  // ✅ Using finalStatus
     );
 
     if (result.affectedRows === 0) {
@@ -1106,36 +1106,34 @@ router.patch('/updateStatus/:id', async (req, res) => {
           await updateUserStats(userID);
       }
 
-      // A. APPROVED Logic
-      if (status === "Approved") {
+      // A. DRAFT Logic (formerly APPROVED)
+      if (finalStatus === "Draft") {
         
         let feedbackHtmlBlock = "";
         if (inputFeedback.length > 0) {
           feedbackHtmlBlock = `
-            <div style="background-color: #f0fff4; border: 1px solid #c3e6cb; padding: 15px; margin: 20px 0; border-left: 5px solid #28a745;">
-               <strong style="color: #155724;">Admin Note:</strong><br/>
-               <p style="margin-top: 5px; margin-bottom: 0; color: #155724;">${inputFeedback}</p>
+            <div style="background-color: #fff8e7; border: 1px solid #fed7aa; padding: 15px; margin: 20px 0; border-left: 5px solid #f59e0b;">
+               <strong style="color: #92400e;">Admin Note:</strong><br/>
+               <p style="margin-top: 5px; margin-bottom: 0; color: #92400e;">${inputFeedback}</p>
             </div>
           `;
         }
 
-        const approvedHTML = `
+        const draftHTML = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-            <div style="background-color: #28a745; padding: 20px; text-align: center;">
-              <h1 style="color: #fff; margin: 0;">Recipe Approved!</h1>
+            <div style="background-color: #f59e0b; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Recipe Under Review</h1>
             </div>
             <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
-              <h2 style="color: #28a745;">Great news, ${firstname}!</h2>
-              <p>Your recipe <strong>"${recipeName}"</strong> has been reviewed and approved by our team.</p>
+              <h2 style="color: #f59e0b;">Hello ${firstname},</h2>
+              <p>Your recipe <strong>"${recipeName}"</strong> has been reviewed and is pending final approval.</p>
               
               ${feedbackHtmlBlock}
 
-              <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <p style="margin: 0;">It is now live on SarawakEats for the whole community to enjoy!</p>
+              <div style="background-color: #fff8e7; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p style="margin: 0; color: #92400e;">Our admin team will review your recipe details and make it live shortly.</p>
               </div>
 
-              <p><a href="https://sarawakeats.site/recipes">View the recipes page</a></p>
-              
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                 Best regards,<br>The SarawakEats Team
               </p>
@@ -1143,18 +1141,19 @@ router.patch('/updateStatus/:id', async (req, res) => {
           </div>
         `;
 
-        const approvalEmailEnabled = await isEmailNotificationsEnabled(userID, db);
-        if (approvalEmailEnabled) {
+        const draftEmailEnabled = await isEmailNotificationsEnabled(userID, db);
+        if (draftEmailEnabled) {
             sendEmail({
               to: email,
-              subject: "🎉 Your Recipe Has Been Approved!",
-              html: approvedHTML,
-              text: `Your recipe "${recipeName}" is approved.`
+              subject: "📝 Your Recipe Has Been Reviewed!",
+              html: draftHTML,
+              text: `Your recipe "${recipeName}" has been reviewed and is pending final approval.`
             });
-            console.log(`📩 Recipe approval email sent to ${email}`);
+            console.log(`📩 Recipe review email sent to ${email}`);
         } else {
-            console.log(`📭 Recipe approval email skipped (notifications disabled) for userID: ${userID}`);
+            console.log(`📭 Recipe review email skipped (notifications disabled) for userID: ${userID}`);
         }
+        
         await createNotification(
           userID, 
           "recipe_reviewed", 
@@ -1166,14 +1165,14 @@ router.patch('/updateStatus/:id', async (req, res) => {
         // Return success with admin action required
         return res.json({ 
           success: true, 
-          message: "Recipe reviewed. Please edit the food details before publishing.",
+          message: "Recipe marked as draft. Please edit the food details before publishing.",
           requiresAdminEdit: true,
           recipeId: recipeId
         });
       }
 
       // B. REJECTED Logic
-      else if (status === "Rejected") {
+      else if (finalStatus === "Rejected") {
         
         const rejectedHTML = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -1205,7 +1204,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
         if (rejectionEmailEnabled) {
             sendEmail({
               to: email,
-              subject: `Action Required: Please Revise "${recipeName}`,
+              subject: `Action Required: Please Revise "${recipeName}"`,
               html: rejectedHTML,
               text: `Your recipe "${recipeName}" has been rejected. Admin Feedback: ${rejectionContent}`
             });
@@ -1218,7 +1217,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
       }
     }
 
-    res.json({ success: true, message: `Recipe marked as ${status}.` });
+    res.json({ success: true, message: `Recipe marked as ${finalStatus}.` });
 
   } catch (error) {
     console.error("❌ Error updating recipe status:", error);
