@@ -25,9 +25,8 @@ const parseDietaryTags = (raw) => {
 
 router.get("/", async (req, res) => {
   try {
-    // LEFT JOIN ensures we don't accidentally drop real foods.
-    // The WHERE clause explicitly filters OUT raw user-submitted recipes 
-    // by requiring actual food database details (Calories, Cultural Info, etc.)
+    // 1. Use LEFT JOIN so we don't accidentally hide foods without recipes
+    // 2. Use the EXACT same WHERE NOT EXISTS filter from your Admin foods.js
     const [rows] = await db.query(`
       SELECT f.*,
              COALESCE(r.servings, 1) AS servings
@@ -42,9 +41,12 @@ router.get("/", async (req, res) => {
         ) t
         WHERE t.rn = 1
       ) r ON r.foodID = f.foodID
-      WHERE f.Energy_kcal > 0 
-         OR f.culturalSignificance IS NOT NULL 
-         OR f.commonIngredients IS NOT NULL
+      WHERE NOT EXISTS (
+          SELECT 1 FROM recipe r2
+          JOIN userProfile up ON r2.userProfileID = up.userProfileID
+          JOIN user u ON up.userID = u.userID
+          WHERE r2.foodID = f.foodID AND u.role != 'admin'
+      )
     `);
 
     const result = rows.map((r) => {
