@@ -779,9 +779,9 @@ export default function AdminSystemSettings({
                                                 "X-CSRF-Token": csrfToken,
                                             },
                                             credentials: "include",
-                                            body: JSON.stringify({
-                                                userIds,
-                                                emails,
+                                                body: JSON.stringify({
+                                                userIds: userIds.join(","),
+                                                emails: emails.join(","),
                                                 subject: sysEmailForm.subject,
                                                 message: sysEmailForm.message,
                                                 sendEmail: sysEmailForm.markAnnouncement,
