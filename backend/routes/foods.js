@@ -474,6 +474,9 @@ router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// Get edit food
+
+
 // ✅ ADMIN ONLY: Get all foods with ALL recipes
 router.get("/admin/all", async (req, res) => {
   try {

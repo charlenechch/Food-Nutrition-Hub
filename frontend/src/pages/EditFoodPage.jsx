@@ -54,7 +54,11 @@ const EditFoodPage = () => {
     message: "",
     type: "",
   });
+  
+  // Separate food and recipe data
   const [food, setFood] = useState(null);
+  const [recipe, setRecipe] = useState(null);
+  const [hasExistingRecipe, setHasExistingRecipe] = useState(false);
 
   const [selectedDietary, setSelectedDietary] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
@@ -80,69 +84,108 @@ const EditFoodPage = () => {
     fetchCsrfToken();
   }, []);
 
-  // --- Fetch Food Data on Load ---
+  // --- Fetch Food and Recipe Data on Load ---
   useEffect(() => {
-    const fetchFood = async () => {
+    const fetchFoodAndRecipe = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/api/foods/${id}`, {
+        
+        // Fetch food data
+        const foodRes = await fetch(`${API_URL}/api/foods/${id}`, {
           credentials: "include",
         });
-        const data = await res.json();
+        const foodData = await foodRes.json();
 
-        if (data.success) {
+        if (foodData.success) {
+          // Set food data
           setFood({
-            name: data.data.name || "",
-            alternative: data.data.alternative || "",
-            altDescription: data.data.altDescription || "",
-            origin: data.data.origin || "",
-            calories: data.data.Energy_kcal || "",
-            protein: data.data.Protein_g || "",
-            carbs: data.data.Carbohydrates_g || "",
-            fat: data.data.Fat_g || "",
-            fiber: data.data.Fiber_g || "",
-            vitaminc: data.data.VitaminC_mg || "",
-            category: data.data.category ? data.data.category.split(',').map(s => s.trim()).filter(Boolean) : [],
-            description: data.data.description || "",
-            culturalSignificance: data.data.culturalSignificance || "",
-            traditionalPreparation: data.data.traditionalPreparation || "",
-            didYouKnow: data.data.didYouKnow || "",
-            healthTips: data.data.healthTips || "",
-            image: data.data.image || "",
-            difficulty: data.data.difficulty || "Medium",
-            prepTime: data.data.prepTime || "",
-            cookTime: data.data.cookTime || "",
-            servings: data.data.servings || "1",
-            ingredients: data.data.ingredients || "",
-            steps: data.data.steps || "",
-            recipeDescription: data.data.recipeDescription || "",
-            chefTips: data.data.chefTips || "",
+            name: foodData.data.name || "",
+            alternative: foodData.data.alternative || "",
+            altDescription: foodData.data.altDescription || "",
+            origin: foodData.data.origin || "",
+            category: foodData.data.category ? foodData.data.category.split(',').map(s => s.trim()).filter(Boolean) : [],
+            description: foodData.data.description || "",
+            culturalSignificance: foodData.data.culturalSignificance || "",
+            traditionalPreparation: foodData.data.traditionalPreparation || "",
+            healthTips: foodData.data.healthTips || "",
+            image: foodData.data.image || "",
+            difficulty: foodData.data.difficulty || "Medium",
+            prepTime: foodData.data.prepTime || "",
+            Energy_kcal: foodData.data.Energy_kcal || "",
+            Protein_g: foodData.data.Protein_g || "",
+            Carbohydrates_g: foodData.data.Carbohydrates_g || "",
+            Fat_g: foodData.data.Fat_g || "",
+            Fiber_g: foodData.data.Fiber_g || "",
+            VitaminC_mg: foodData.data.VitaminC_mg || "",
           });
 
-          if (data.data.dietaryTags) {
-            setSelectedDietary(data.data.dietaryTags.split(',').map(s => s.trim()).filter(Boolean));
+          if (foodData.data.dietaryTags) {
+            setSelectedDietary(foodData.data.dietaryTags.split(',').map(s => s.trim()).filter(Boolean));
           }
-          if (data.data.commonIngredients) {
-            setSelectedIngredients(data.data.commonIngredients.split(',').map(s => s.trim()).filter(Boolean));
+          if (foodData.data.commonIngredients) {
+            setSelectedIngredients(foodData.data.commonIngredients.split(',').map(s => s.trim()).filter(Boolean));
           }
 
-          setExistingImageUrl(data.data.image || "");
+          setExistingImageUrl(foodData.data.image || "");
         } else {
-          console.error("Failed to fetch food:", data.error);
+          console.error("Failed to fetch food:", foodData.error);
+          return;
         }
+        
+        // Fetch recipe data by foodID
+        const recipeRes = await fetch(`${API_URL}/api/recipes/food/${id}`, {
+          credentials: "include",
+        });
+        const recipeData = await recipeRes.json();
+        
+        if (recipeData.success && recipeData.data) {
+          setHasExistingRecipe(true);
+          setRecipe({
+            recipeID: recipeData.data.recipeID,
+            description: recipeData.data.description || "",
+            ingredients: recipeData.data.ingredients || "",
+            steps: recipeData.data.steps || "",
+            cookTime: recipeData.data.cookTime || "",
+            servings: recipeData.data.servings || "1",
+            DidYouKnow: recipeData.data.DidYouKnow || "",
+            chefTips: recipeData.data.chefTips || "",
+          });
+        } else {
+          // No existing recipe, initialize empty recipe
+          setHasExistingRecipe(false);
+          setRecipe({
+            description: "",
+            ingredients: "",
+            steps: "",
+            cookTime: "",
+            servings: "1",
+            DidYouKnow: "",
+            chefTips: "",
+          });
+        }
+        
       } catch (err) {
-        console.error("Error fetching food:", err);
+        console.error("Error fetching data:", err);
+        setShowNotification({
+          visible: true,
+          message: "Failed to load data. Please try again.",
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFood();
+    fetchFoodAndRecipe();
   }, [id]);
 
   // --- Handle Input Changes ---
-  const handleChange = (e) => {
+  const handleFoodChange = (e) => {
     setFood({ ...food, [e.target.name]: e.target.value });
+  };
+
+  const handleRecipeChange = (e) => {
+    setRecipe({ ...recipe, [e.target.name]: e.target.value });
   };
 
   const toggleCategory = (cat) => {
@@ -168,17 +211,10 @@ const EditFoodPage = () => {
   // --- Robust Image Upload (Base64 -> Cloudinary) ---
   const handleImageUpload = async (file) => {
     if (!file) {
-      console.log("[upload] no file provided, returning existingImageUrl");
       return existingImageUrl;
     }
 
-    console.log("[upload] selected file:", {
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    });
-
-    const maxBytes = 10 * 1024 * 1024; // 10MB
+    const maxBytes = 10 * 1024 * 1024;
     if (file.size > maxBytes) {
       setShowNotification({
         visible: true,
@@ -211,17 +247,6 @@ const EditFoodPage = () => {
 
       reader.onloadend = async () => {
         const base64Image = reader.result;
-        console.log("[upload] base64 length:", base64Image ? base64Image.length : 0);
-
-        if (!base64Image || typeof base64Image !== "string" || !base64Image.startsWith("data:image")) {
-          console.error("[upload] invalid base64 produced:", base64Image && base64Image.slice(0, 50));
-          setShowNotification({
-            visible: true,
-            message: t("editFood.couldNotConvertBase64"),
-            type: "error",
-          });
-          return reject(new Error("Invalid base64"));
-        }
 
         try {
           const uploadRes = await fetch(`${API_URL}/api/foods/upload/food-image`, {
@@ -234,20 +259,7 @@ const EditFoodPage = () => {
             body: JSON.stringify({ image: base64Image }),
           });
 
-          let uploadResult;
-          try {
-            uploadResult = await uploadRes.json();
-          } catch (jsonErr) {
-            console.error("[upload] failed to parse JSON response:", jsonErr);
-            setShowNotification({
-              visible: true,
-              message: t("editFood.serverResponseInvalid"),
-              type: "error",
-            });
-            return reject(new Error("Invalid server response"));
-          }
-
-          console.log("[upload] server response:", uploadResult);
+          const uploadResult = await uploadRes.json();
 
           if (!uploadRes.ok || !uploadResult.success || !uploadResult.imageUrl) {
             const serverMsg = uploadResult && uploadResult.error ? uploadResult.error : "Upload failed";
@@ -284,15 +296,13 @@ const EditFoodPage = () => {
     try {
       if (selectedImage) {
         finalImageUrl = await handleImageUpload(selectedImage);
-        console.log("[save] finalImageUrl after upload:", finalImageUrl);
-      } else {
-        console.log("[save] no new image selected — using existingImageUrl:", existingImageUrl);
       }
     } catch (uploadErr) {
       console.warn("[save] upload failed — aborting save:", uploadErr);
       return;
     }
 
+    // Prepare food data
     const dietaryString = selectedDietary.join(", ");
     let ingredientsString = selectedIngredients.join(", ");
     if (showOtherIngredient && otherIngredientText.trim()) {
@@ -300,7 +310,7 @@ const EditFoodPage = () => {
       ingredientsString += otherIngredientText.trim();
     }
 
-    const dataToSave = {
+    const foodDataToSave = {
       name: food.name,
       alternative: food.alternative,
       altDescription: food.altDescription,
@@ -309,43 +319,74 @@ const EditFoodPage = () => {
       description: food.description,
       culturalSignificance: food.culturalSignificance,
       traditionalPreparation: food.traditionalPreparation,
-      didYouKnow: food.didYouKnow,
-      Energy_kcal: Number(food.calories) || 0,
-      Protein_g: Number(food.protein) || 0,
-      Carbohydrates_g: Number(food.carbs) || 0,
-      Fat_g: Number(food.fat) || 0,
-      Fiber_g: Number(food.fiber) || 0,
-      VitaminC_mg: Number(food.vitaminc) || 0,
+      Energy_kcal: Number(food.Energy_kcal) || 0,
+      Protein_g: Number(food.Protein_g) || 0,
+      Carbohydrates_g: Number(food.Carbohydrates_g) || 0,
+      Fat_g: Number(food.Fat_g) || 0,
+      Fiber_g: Number(food.Fiber_g) || 0,
+      VitaminC_mg: Number(food.VitaminC_mg) || 0,
       image: finalImageUrl,
       commonIngredients: ingredientsString,
-      dietaryTags: dietaryString, 
+      dietaryTags: dietaryString,
       healthTips: food.healthTips,
       difficulty: food.difficulty,
       prepTime: food.prepTime || "0",
-      cookTime: food.cookTime || "0",
-      servings: food.servings || "1",
-      ingredients: food.ingredients,
-      steps: food.steps,
-      recipeDescription: food.recipeDescription,
-      chefTips: food.chefTips
+    };
+
+    // Prepare recipe data
+    const recipeDataToSave = {
+      description: recipe.description,
+      ingredients: recipe.ingredients,
+      steps: recipe.steps,
+      cookTime: recipe.cookTime || null,
+      servings: recipe.servings || "1",
+      DidYouKnow: recipe.DidYouKnow,
+      chefTips: recipe.chefTips,
     };
 
     try {
-      console.log("[save] updating food with:", dataToSave);
-      const res = await fetch(`${API_URL}/api/foods/${id}`, {
+      // Update food data
+      console.log("[save] updating food with:", foodDataToSave);
+      const foodRes = await fetch(`${API_URL}/api/foods/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           "X-CSRF-Token": csrfToken,
         },
         credentials: "include",
-        body: JSON.stringify(dataToSave),
+        body: JSON.stringify(foodDataToSave),
       });
 
-      const result = await res.json();
-      console.log("[save] update response:", result);
+      const foodResult = await foodRes.json();
 
-      if (result.success) {
+      if (!foodResult.success) {
+        console.error("[save] Failed to save food:", foodResult.error);
+        setShowNotification({
+          visible: true,
+          message: `Failed to save food changes: ${foodResult.error || "Unknown error."}`,
+          type: "error",
+        });
+        return;
+      }
+
+      // Update or create recipe
+      let recipeResult;
+      if (hasExistingRecipe && recipe.recipeID) {
+        // Update existing recipe
+        console.log("[save] updating recipe with:", recipeDataToSave);
+        const recipeRes = await fetch(`${API_URL}/api/recipes/${recipe.recipeID}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken,
+          },
+          credentials: "include",
+          body: JSON.stringify(recipeDataToSave),
+        });
+        recipeResult = await recipeRes.json();
+      }
+
+      if (recipeResult.success) {
         setExistingImageUrl(finalImageUrl);
         setSelectedImage(null);
         setShowNotification({
@@ -354,10 +395,10 @@ const EditFoodPage = () => {
           type: "success",
         });
       } else {
-        console.error("[save] Failed to save:", result.error);
+        console.error("[save] Failed to save recipe:", recipeResult.error);
         setShowNotification({
           visible: true,
-          message: `Failed to save changes: ${result.error || "Unknown error."}`,
+          message: `Food saved but recipe update failed: ${recipeResult.error || "Unknown error."}`,
           type: "error",
         });
       }
@@ -470,7 +511,6 @@ const EditFoodPage = () => {
                 id="fileInput"
                 accept="image/*"
                 onChange={(e) => {
-                  console.log("[input] onChange, files:", e.target.files);
                   const file = e.target.files && e.target.files[0];
                   setSelectedImage(file || null);
                 }}
@@ -493,18 +533,18 @@ const EditFoodPage = () => {
               <div className="edit-food-basic-info-two-col">
                 <div>
                   <label className="basic-info-label">{t("editFood.foodName")}</label>
-                  <input className="edit-food-input" name="name" value={food.name} onChange={handleChange} />
+                  <input className="edit-food-input" name="name" value={food.name} onChange={handleFoodChange} />
                 </div>
               </div>
 
               <div className="edit-food-basic-info-two-col efpage-basic-info">
-              <div>
+                <div>
                   <label className="basic-info-label">{t("addFood.alternativeName")}</label>
-                  <textarea className="edit-food-textarea resizable-field" name="alternative" value={food.alternative} onChange={handleChange} rows={1} />
+                  <textarea className="edit-food-textarea resizable-field" name="alternative" value={food.alternative} onChange={handleFoodChange} rows={1} />
                 </div>
                 <div>
                   <label className="basic-info-label">{t("addFood.altDescription")}</label>
-                  <textarea className="edit-food-textarea resizable-field" name="altDescription" value={food.altDescription} onChange={handleChange} rows={1} />
+                  <textarea className="edit-food-textarea resizable-field" name="altDescription" value={food.altDescription} onChange={handleFoodChange} rows={1} />
                 </div>
               </div>
 
@@ -512,7 +552,7 @@ const EditFoodPage = () => {
               <div className="food-origin-field">
                 <label className="basic-info-label">{t("editFood.regionOfOrigin")}</label>
                 <div className="custom-select-wrapper">
-                  <select className="edit-food-select" name="origin" value={food.origin} onChange={handleChange}>
+                  <select className="edit-food-select" name="origin" value={food.origin} onChange={handleFoodChange}>
                     <option value="">{t("editFood.selectOrigin")}</option>
                     {ORIGIN_OPTIONS.map((origin) => (
                       <option key={origin} value={origin}>
@@ -529,7 +569,6 @@ const EditFoodPage = () => {
                 <div className="dietary-preferences-grid">
                   {FOOD_TYPE_OPTIONS.map((cat) => {
                     const currentCats = Array.isArray(food.category) ? food.category : [];
-                    
                     return (
                       <label key={cat} className="dietary-option">
                         <input
@@ -548,6 +587,7 @@ const EditFoodPage = () => {
             </div>
           </div>
 
+          {/* Recipe Details Section */}
           <div className="edit-cultural-context-card">
             <h3>{t("addFood.recipeDetails")}</h3>
             
@@ -555,7 +595,7 @@ const EditFoodPage = () => {
               <div>
                 <label className="basic-info-label">{t("addFood.difficultyLevel")}</label>
                 <div className="custom-select-wrapper">
-                  <select className="edit-food-select" name="difficulty" value={food.difficulty} onChange={handleChange}>
+                  <select className="edit-food-select" name="difficulty" value={food.difficulty} onChange={handleFoodChange}>
                     {DIFFICULTY_OPTIONS.map((opt) => (
                       <option key={opt} value={opt}>{opt}</option>
                     ))}
@@ -564,35 +604,35 @@ const EditFoodPage = () => {
               </div>
               <div>
                 <label className="basic-info-label">{t("addFood.servings")}</label>
-                <input type="number" className="edit-food-input" name="servings" value={food.servings} onChange={handleChange} placeholder={t("addFood.servingsPlace")} />
+                <input type="number" className="edit-food-input" name="servings" value={recipe.servings} onChange={handleRecipeChange} placeholder={t("addFood.servingsPlace")} />
               </div>
             </div>
 
             <div className="edit-food-basic-info-two-col">
               <div>
                 <label className="basic-info-label">{t("addFood.prepTime")}</label>
-                <input type="number" className="edit-food-input" name="prepTime" value={food.prepTime} onChange={handleChange} placeholder={t("addFood.prepTimePlace")} />
+                <input type="number" className="edit-food-input" name="prepTime" value={food.prepTime} onChange={handleFoodChange} placeholder={t("addFood.prepTimePlace")} />
               </div>
               <div>
                 <label className="basic-info-label">{t("addFood.cookTime")}</label>
-                <input type="number" className="edit-food-input" name="cookTime" value={food.cookTime} onChange={handleChange} placeholder={t("addFood.cookTimePlace")} />
+                <input type="number" className="edit-food-input" name="cookTime" value={recipe.cookTime} onChange={handleRecipeChange} placeholder={t("addFood.cookTimePlace")} />
               </div>
             </div>
 
             <label className="basic-info-label">{t("addFood.ingredientsList")}</label>
-            <textarea className="edit-food-textarea" name="ingredients" value={food.ingredients} onChange={handleChange} rows={5} placeholder={t("addFood.ingredientsListPlace")} />
+            <textarea className="edit-food-textarea" name="ingredients" value={recipe.ingredients} onChange={handleRecipeChange} rows={5} placeholder={t("addFood.ingredientsListPlace")} />
 
             <label className="basic-info-label">{t("addFood.stepsList")}</label>
-            <textarea className="edit-food-textarea" name="steps" value={food.steps} onChange={handleChange} rows={6} placeholder={t("addFood.stepsListPlace")} />
+            <textarea className="edit-food-textarea" name="steps" value={recipe.steps} onChange={handleRecipeChange} rows={6} placeholder={t("addFood.stepsListPlace")} />
 
             <label className="basic-info-label">{t("addFood.recipeDescription")}</label>
-            <textarea className="edit-food-textarea" name="recipeDescription" value={food.recipeDescription} onChange={handleChange} rows={6} placeholder={t("addFood.recipeDescriptionPlace")} />
+            <textarea className="edit-food-textarea" name="description" value={recipe.description} onChange={handleRecipeChange} rows={6} placeholder={t("addFood.recipeDescriptionPlace")} />
 
             <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
-            <textarea className="edit-food-textarea" name="didYouKnow" value={food.didYouKnow} onChange={handleChange} rows={2} placeholder={t("addFood.didYouKnowPlace")} />
+            <textarea className="edit-food-textarea" name="DidYouKnow" value={recipe.DidYouKnow} onChange={handleRecipeChange} rows={2} placeholder={t("addFood.didYouKnowPlace")} />
             
             <label className="basic-info-label">{t("addFood.chefTips")}</label>
-            <textarea className="edit-food-textarea" name="chefTips" value={food.chefTips} onChange={handleChange} rows={3} placeholder={t("addFood.chefTipsPlace")} />
+            <textarea className="edit-food-textarea" name="chefTips" value={recipe.chefTips} onChange={handleRecipeChange} rows={3} placeholder={t("addFood.chefTipsPlace")} />
           </div>
 
           {/* Cultural Context */}
@@ -601,9 +641,9 @@ const EditFoodPage = () => {
             <label className="basic-info-label">{t("editFood.descriptionLabel")}</label>
             <textarea
               className="edit-food-textarea"
-              name="culturalContext"
+              name="description"
               value={food.description}
-              onChange={handleChange}
+              onChange={handleFoodChange}
               placeholder={t("editFood.descriptionPlaceholder")}
               rows={5}
             />
@@ -612,7 +652,7 @@ const EditFoodPage = () => {
               className="edit-food-textarea"
               name="culturalSignificance"
               value={food.culturalSignificance}
-              onChange={handleChange}
+              onChange={handleFoodChange}
               placeholder={t("editFood.culturalSignificancePlaceholder")}
               rows={5}
             />
@@ -621,7 +661,7 @@ const EditFoodPage = () => {
               className="edit-food-textarea"
               name="traditionalPreparation"
               value={food.traditionalPreparation}
-              onChange={handleChange}
+              onChange={handleFoodChange}
               placeholder={t("editFood.traditionalPreparationPlaceholder")}
               rows={5}
             />
@@ -637,21 +677,22 @@ const EditFoodPage = () => {
             </div>
             <div className="nutrition-grid">
               {[
-                { label: t("editFood.calories"), name: "calories" },
-                { label: t("editFood.protein"), name: "protein" },
-                { label: t("editFood.carbohydrates"), name: "carbs" },
-                { label: t("editFood.totalFat"), name: "fat" },
-                { label: t("editFood.dietaryFiber"), name: "fiber" },
-                { label: t("editFood.vitaminC"), name: "vitaminc" },
+                { label: t("editFood.calories"), name: "Energy_kcal" },
+                { label: t("editFood.protein"), name: "Protein_g" },
+                { label: t("editFood.carbohydrates"), name: "Carbohydrates_g" },
+                { label: t("editFood.totalFat"), name: "Fat_g" },
+                { label: t("editFood.dietaryFiber"), name: "Fiber_g" },
+                { label: t("editFood.vitaminC"), name: "VitaminC_mg" },
               ].map((item) => (
                 <div key={item.name}>
                   <label className="basic-info-label">{item.label}</label>
-                  <input className="edit-food-input" name={item.name} value={food[item.name]} onChange={handleChange} />
+                  <input className="edit-food-input" name={item.name} value={food[item.name]} onChange={handleFoodChange} />
                 </div>
               ))}
             </div>
           </div>
-          {/* === Additional Details === */}
+
+          {/* Additional Details */}
           <div className="edit-cultural-context-card">
             <h3>{t("addFood.additionalDetails")}</h3>
             
@@ -673,7 +714,7 @@ const EditFoodPage = () => {
             </div>
 
             {showOtherIngredient && (
-              <div className = "efpage-show-ing">
+              <div className="efpage-show-ing">
                 <label className="basic-info-label efpage-show-ing-label">{t("addFood.otherIngredientsLabel")}</label>
                 <textarea className="edit-food-textarea" value={otherIngredientText} onChange={(e) => setOtherIngredientText(e.target.value)} rows={2} />
               </div>
@@ -693,7 +734,7 @@ const EditFoodPage = () => {
             </div>
 
             <label className="basic-info-label efpage-cultural-label">{t("addFood.healthTips")}</label>
-            <textarea className="edit-food-textarea" name="healthTips" value={food.healthTips} onChange={handleChange} rows={2} />
+            <textarea className="edit-food-textarea" name="healthTips" value={food.healthTips} onChange={handleFoodChange} rows={2} />
           </div>
         </div>
 
