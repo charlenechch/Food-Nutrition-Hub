@@ -150,19 +150,7 @@ const EditFoodPage = () => {
             DidYouKnow: recipeData.data.DidYouKnow || "",
             chefTips: recipeData.data.chefTips || "",
           });
-        } else {
-          // No existing recipe, initialize empty recipe
-          setHasExistingRecipe(false);
-          setRecipe({
-            description: "",
-            ingredients: "",
-            steps: "",
-            cookTime: "",
-            servings: "1",
-            DidYouKnow: "",
-            chefTips: "",
-          });
-        }
+        } 
         
       } catch (err) {
         console.error("Error fetching data:", err);
