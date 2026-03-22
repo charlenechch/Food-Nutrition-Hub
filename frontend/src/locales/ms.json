@@ -1262,7 +1262,7 @@
     "missingRequiredFields": "Medan Wajib Tidak Lengkap",
     "provideSubjectAndMessage": "Sila berikan subjek dan mesej.",
     "provideRecipient": "Sila pilih sekurang-kurangnya satu penerima.",
-    "unfilledPlaceholders": "Pengumuman anda mengandungi ruang kosong yang belum diisi. Sila gantikan <Date> dan <Time> dengan nilai sebenar sebelum menghantar.",
+    "unfilledPlaceholders": "Pengumuman anda mengandungi ruang kosong yang belum diisi. Sila gantikan <Date> dan <Time> dengan nilai sebenar sebelum menghantar, atau buang jika tidak diperlukan.",
     "unfilledPlaceholdersTitle": "Ruang Kosong Belum Diisi",
     "templateHint": "Templat adalah cadangan yang telah diisi terlebih dahulu. Anda boleh mengedit tajuk dan mesej mengikut keperluan anda.",
     "announcementSent": "Pengumuman Dihantar",

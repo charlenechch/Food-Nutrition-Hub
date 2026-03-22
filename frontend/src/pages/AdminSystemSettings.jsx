@@ -598,9 +598,9 @@ export default function AdminSystemSettings({
                                     value={sysEmailForm.recipientsOption}
                                     onChange={(e) => setSysEmailForm({ ...sysEmailForm, recipientsOption: e.target.value })}
                                 >
-                                    <option>{t("adminSettings.allUsers")}</option>
-                                    <option>{t("adminSettings.administratorsOnly")}</option>
-                                    <option>{t("adminSettings.specificUsers")}</option>
+                                    <option value="All users">{t("adminSettings.allUsers")}</option>
+                                    <option value="Administrators only">{t("adminSettings.administratorsOnly")}</option>
+                                    <option value="Specific users">{t("adminSettings.specificUsers")}</option>
                                 </select>
 
                                 {/* Specific users */}
