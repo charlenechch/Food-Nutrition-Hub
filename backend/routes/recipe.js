@@ -287,7 +287,7 @@ try {
     LEFT JOIN food f ON r.foodID = f.foodID  
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
     LEFT JOIN user u ON up.userID = u.userID
-    WHERE r.recipeID ?
+    WHERE r.recipeID = ?
   `;
   
   const [rows] = await db.query(query, [id]);  
