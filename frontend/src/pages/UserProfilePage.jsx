@@ -1689,6 +1689,7 @@ const ContributionRow = ({ c }) => {
                       <span />
                     </label>
                   </div>
+                  {/* Push Notifications toggle (commented out for now)
                   <hr className="upp-sep" />
                   <div className="upp-row between">
                     <div>
@@ -1704,6 +1705,7 @@ const ContributionRow = ({ c }) => {
                       <span />
                     </label>
                   </div>
+                  */}
                 </div>
 
                 <div className="upp-card">
