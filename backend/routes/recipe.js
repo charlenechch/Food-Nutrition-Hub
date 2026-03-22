@@ -287,7 +287,7 @@ try {
     LEFT JOIN food f ON r.foodID = f.foodID  
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
     LEFT JOIN user u ON up.userID = u.userID
-    WHERE f.foodID = ?  -- 🎯 MODIFICATION 1: Change r.recipeID to f.foodID
+    WHERE r.recipeID ?
   `;
   
   const [rows] = await db.query(query, [id]);  
@@ -299,7 +299,7 @@ try {
   const row = rows[0];
   
   const recipe = {
-    id: row.foodId,  // 🎯 MODIFICATION 2: Ensure 'id' returned is the foodId
+    id: row.recipeId,  
     foodId: row.foodId,
     name: row.name || '',
     origin: row.origin || '',
@@ -770,7 +770,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
   console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
 
   try {
-    const { recipeId } = req.params; 
+    const { id } = req.params; 
     const {
       name, origin, difficulty, prepTime, image, description,
       category, dietaryTags, cookTime, servings, ingredients,

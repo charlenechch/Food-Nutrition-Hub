@@ -128,9 +128,6 @@ export default function ReviseRecipePage() {
         const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${recipeId}`, {
           method: "GET",
           credentials: "include",  
-          headers: {
-            "X-CSRF-Token": csrfToken,  
-          }
         });
 
         if (!response.ok) throw new Error(`Failed to fetch recipe: ${response.status}`);
