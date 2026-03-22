@@ -1689,7 +1689,6 @@ router.post('/add-food-details', async (req, res) => {
   }
 });
 
-// for edit recipe page
 // GET recipe by foodID (for a specific food)
 router.get('/recipes/food/:foodId', async (req, res) => {
   try {
@@ -1718,8 +1717,24 @@ router.get('/recipes/food/:foodId', async (req, res) => {
     
     const [rows] = await db.query(query, [foodId]);
     
+    // 🚨 THIS IS THE CRASH FIX 🚨
+    // Instead of returning null, we return a safe fallback object so the frontend can read 'servings'
     if (!rows || rows.length === 0) {
-      return res.json({ success: true, data: null });
+      return res.json({ 
+        success: true, 
+        data: {
+          recipeID: 0,
+          foodID: parseInt(foodId),
+          description: "Official Food Item",
+          ingredients: "Recipe coming soon...",
+          steps: "",
+          cookTime: 0,
+          servings: 1,  // <-- This stops the React crash!
+          DidYouKnow: "",
+          chefTips: "",
+          status: "Approved"
+        } 
+      });
     }
     
     const row = rows[0];
