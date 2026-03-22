@@ -31,6 +31,11 @@ const DIET_OPTIONS = [
   "halal", "low-fat", "high-protein", "spicy",
 ];
 
+const FOOD_TYPE_OPTIONS = [
+  "Poultry", "Seafood", "Vegetables", "Fermented", 
+  "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"
+];
+
 export default function ReviseRecipePage() {
   const { t } = useTranslation();
   const { id } = useParams();
@@ -45,8 +50,8 @@ export default function ReviseRecipePage() {
     prepTime: "", cookTime: "", servings: "",
     imageData: "", description: "", ingredients: "",
     instructions: "", funFact: "", chefTips: "",
-    dietaryTags: [], otherDietEnabled: false, otherDietText: "",
-    foodType: "Poultry", otherFoodEnabled: false, otherFoodText: "",
+    dietaryTags: [],
+    foodType: [],
   });
 
   const [infoDlg, setInfoDlg] = useState({
@@ -179,6 +184,16 @@ export default function ReviseRecipePage() {
       return {
         ...prev,
         dietaryTags: exists ? prev.dietaryTags.filter(t => t !== tag) : [...prev.dietaryTags, tag],
+      };
+    });
+  };
+
+  const toggleFoodType = (tag) => {
+    setForm(prev => {
+      const exists = prev.foodType.includes(tag);
+      return {
+        ...prev,
+        foodType: exists ? prev.foodType.filter(t => t !== tag) : [...prev.foodType, tag],
       };
     });
   };
@@ -390,36 +405,19 @@ export default function ReviseRecipePage() {
               <div className="rp-grid-2">
                 <div className="rp-field">
                   <label>{t("reviseRecipe.foodTypeLabel")}</label>
-                  <select
-                    name="foodType"
-                    value={form.foodType}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (v === "__other__") {
-                        setForm(prev => ({ ...prev, foodType: v, otherFoodEnabled: true }));
-                      } else {
-                        setForm(prev => ({ ...prev, foodType: v, otherFoodEnabled: false, otherFoodText: "" }));
-                      }
-                    }}
-                  >
-                    {["Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"].map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
+                  <div className="rp-diet-grid">
+                    {FOOD_TYPE_OPTIONS.map(tag => (
+                      <label key={tag} className="rp-diet-item">
+                        <input
+                          type="checkbox"
+                          checked={form.foodType.includes(tag)}
+                          onChange={() => toggleFoodType(tag)}
+                        />
+                        <span>{tag}</span>
+                      </label>
                     ))}
-                    <option value="__other__">{t("reviseRecipe.otherOption")}</option>
-                  </select>
-                </div>
-
-                {form.otherFoodEnabled && (
-                  <div className="rp-field">
-                    <label>{t("reviseRecipe.specifyFoodTypeLabel")}</label>
-                    <input
-                      type="text"
-                      placeholder={t("reviseRecipe.specifyFoodTypePlaceholder")}
-                      value={form.otherFoodText}
-                      onChange={(e) => setForm(prev => ({ ...prev, otherFoodText: e.target.value }))}
-                    />
                   </div>
-                )}
+                </div>
               </div>
 
               <div className="rp-grid-2">
@@ -507,27 +505,6 @@ export default function ReviseRecipePage() {
                       <span>{tag.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase())}</span>
                     </label>
                   ))}
-                </div>
-
-                <div className="rp-diet-other">
-                  <label className="rp-diet-item">
-                    <input
-                      type="checkbox"
-                      checked={form.otherDietEnabled}
-                      onChange={(e) => setForm(prev => ({ ...prev, otherDietEnabled: e.target.checked }))}
-                    />
-                    <span>{t("reviseRecipe.otherDiet")}</span>
-                  </label>
-
-                  {form.otherDietEnabled && (
-                    <input
-                      className="rp-input rp-input--sm"
-                      type="text"
-                      placeholder={t("reviseRecipe.otherDietPlaceholder")}
-                      value={form.otherDietText}
-                      onChange={(e) => setForm(prev => ({ ...prev, otherDietText: e.target.value }))}
-                    />
-                  )}
                 </div>
               </div>
 
