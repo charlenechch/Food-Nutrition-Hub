@@ -570,13 +570,14 @@ const ContributionRow = ({ c }) => {
 
     const handleRevise = () => {
       if (isRecipeItem) {
-        navigate(`/revise/${c.id}`, {
+        navigate(`/revise/${c.recipeID}`, {
           state: {
             owner: `${user.firstName} ${user.lastName}`,
             id: c.id,
+            recipeID: c.recipeID,
             snapshot: JSON.parse(JSON.stringify(c)),
             contribution: c,
-            description: c.description || "",
+            description: c.culturalStory || c.description || "",
             adminFeedback: c.adminFeedback || c.feedback,
             fieldsWithIssues: c.fieldsWithIssues || [],
           },
