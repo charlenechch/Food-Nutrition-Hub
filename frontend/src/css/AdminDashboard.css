@@ -57,6 +57,16 @@
   color: #3d2b1f;
 }
 
+.summary-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e8dccf;
+}
+
+.summary-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(145, 104, 72, 0.15);
+  border-color: #916848;
+}
 /* ==========================================================================
    Tabs Navigation
    ========================================================================== */
