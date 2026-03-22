@@ -351,7 +351,7 @@ const LinkFoodPage = () => {
             />
 
             <div className="edit-food-basic-info-two-col efpage-basic-info">
-              <div>
+            <div>
                 <label className="basic-info-label">{t("addFood.alternativeName")}</label>
                 <input
                   className="edit-food-input"
