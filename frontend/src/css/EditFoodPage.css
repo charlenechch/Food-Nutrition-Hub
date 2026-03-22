@@ -296,6 +296,7 @@
   cursor: pointer;
   width: 100%;
   outline: none;
+  background-position: right 12px center;
 }
 
 @media (max-width: 720px) {
