@@ -25,13 +25,11 @@ const parseDietaryTags = (raw) => {
 
 router.get("/", async (req, res) => {
   try {
-    // 1. INNER JOIN prevents the frontend from crashing by ensuring a recipe exists
-    // 2. The WHERE clause strictly hides test user recipes by requiring actual food data
     const [rows] = await db.query(`
       SELECT f.*,
              COALESCE(r.servings, 1) AS servings
       FROM food f
-      INNER JOIN (
+      LEFT JOIN (
         SELECT *
         FROM (
           SELECT r.*,
@@ -41,8 +39,12 @@ router.get("/", async (req, res) => {
         ) t
         WHERE t.rn = 1
       ) r ON r.foodID = f.foodID
-      WHERE f.Energy_kcal > 0 
-         OR (f.culturalSignificance IS NOT NULL AND f.culturalSignificance != '')
+      WHERE NOT EXISTS (
+          SELECT 1 FROM recipe r2
+          JOIN userProfile up ON r2.userProfileID = up.userProfileID
+          JOIN user u ON up.userID = u.userID
+          WHERE r2.foodID = f.foodID AND u.role != 'admin'
+      )
     `);
 
     const result = rows.map((r) => {
@@ -62,7 +64,6 @@ router.get("/", async (req, res) => {
         Fiber_g: toNum(r.Fiber_g),
         VitaminC_mg: toNum(r.VitaminC_mg),
 
-        // per-serving fields
         Energy_kcal_ps: +(toNum(r.Energy_kcal) * k).toFixed(2),
         Protein_g_ps: +(toNum(r.Protein_g) * k).toFixed(2),
         Fat_g_ps: +(toNum(r.Fat_g) * k).toFixed(2),
