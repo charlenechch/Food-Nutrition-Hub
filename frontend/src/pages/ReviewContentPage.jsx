@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useTranslation } from "react-i18next";
-import { FaArrowLeft, FaUser, FaCalendarAlt, FaFileAlt, FaCheck, FaTimes, FaPencilAlt } from "react-icons/fa";
+import { FaArrowLeft, FaUser, FaCalendarAlt, FaFileAlt, FaCheck, FaTimes } from "react-icons/fa";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -72,8 +72,8 @@ const ReviewContentPage = () => {
     if (id) fetchSubmission();
   }, [id, type]);
 
-  // Handle Approve/Draft/Reject action
-  const handleConfirmAction = async (actionType) => {
+  // Handle Approve/Reject action
+  const handleConfirmAction = async (newStatus) => {
     const feedback =
       document.querySelector(".admin-feedback-input")?.value.trim() ||
       "No feedback provided.";
@@ -82,23 +82,15 @@ const ReviewContentPage = () => {
       const isCommunityPost = type === "communitypost" || type === "community";
 
       let updateUrl;
-      let statusToSend;
 
-      // Determine the status based on action and content type
-      if (actionType === "draft") {
-        // For recipes only - set to Draft
-        statusToSend = "Draft";
+      if (isCommunityPost) {
+        if (newStatus === "Approved") {
+          updateUrl = `${API_URL}/api/communitypost/admin/approve/${id}`;
+        } else {
+          updateUrl = `${API_URL}/api/communitypost/admin/reject/${id}`;
+        }
+      } else {
         updateUrl = `${API_URL}/api/recipe/updateStatus/${id}`;
-      } else if (actionType === "approve") {
-        // For community posts only
-        statusToSend = "Approved";
-        updateUrl = `${API_URL}/api/communitypost/admin/approve/${id}`;
-      } else if (actionType === "reject") {
-        // For both recipes and community posts
-        statusToSend = "Rejected";
-        updateUrl = isCommunityPost 
-          ? `${API_URL}/api/communitypost/admin/reject/${id}`
-          : `${API_URL}/api/recipe/updateStatus/${id}`;
       }
 
       const fetchOptions = {
@@ -107,9 +99,8 @@ const ReviewContentPage = () => {
         credentials: "include",
       };
 
-      // Add body for recipe updates (not community posts)
-      if (!isCommunityPost || actionType === "reject") {
-        fetchOptions.body = JSON.stringify({ status: statusToSend, feedback });
+      if (!isCommunityPost) {
+        fetchOptions.body = JSON.stringify({ status: newStatus, feedback });
       }
 
       const res = await fetch(updateUrl, fetchOptions);
@@ -120,19 +111,11 @@ const ReviewContentPage = () => {
       }
 
       setShowModal(false);
-      
-      // Log the action
-      if (actionType === "draft") {
-        console.log(`📝 Recipe marked as Draft for final admin editing\n\nAdmin Feedback:\n${feedback}`);
-      } else {
-        console.log(`${actionType === "approve" ? "✅ Approved" : "❌ Rejected"}\n\nAdmin Feedback:\n${feedback}`);
-      }
-      
+      console.log(`${newStatus === "Approved" ? "✅ Approved" : "❌ Rejected"}\n\nAdmin Feedback:\n${feedback}`);
       navigate("/admin");
     } catch (err) {
       console.error("Failed to update status:", err);
       console.error(`Error: ${err.message}`);
-      alert(err.message);
     }
   };
 
@@ -141,12 +124,9 @@ const ReviewContentPage = () => {
   if (!submission) return <p className="text-center mt-20">{t("reviseContent.contentNotFound")}</p>;
 
   // Determine submission type for display purposes
-  const submissionType = type === "community" || type === "communitypost"
-    ? "Community Post"
-    : "Recipe";
-  
-  // Check if this is a recipe (not community post)
-  const isRecipe = type !== "community" && type !== "communitypost";
+  const submissionType = type === "community"
+    ? t("reviseContent.communityPostType")
+    : t("reviseContent.submissionType");
 
   return (
     <div className="review-content-page">
@@ -157,135 +137,60 @@ const ReviewContentPage = () => {
           <span className="content-edit-btn">
             <FaArrowLeft />
           </span>{" "}
-          Back to Moderation
+          {t("reviseContent.backToModeration")}
         </button>
 
         <div className="review-title">
-          <h2>Review {submissionType}</h2>
+          <h2>{t("reviseContent.reviewTitle", { type: submissionType })}</h2>
           <p>{submission.name || submission.foodName || submission.title}</p>
         </div>
 
         <div className="content-edit-review-actions">
-          {isRecipe ? (
-            // For Recipes: Show DRAFT button instead of APPROVE
-            <button
-              className="content-edit-draft-btn"
-              onClick={() => { setModalType("draft"); setShowModal(true); }}
-              style={{
-                backgroundColor: "#F59E0B",
-                color: "#fff",
-                padding: "10px 20px",
-                borderRadius: "4px",
-                border: "none",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px"
-              }}
-            >
-              <span className="content-edit-btn"><FaPencilAlt /></span>
-              Draft
-            </button>
-          ) : (
-            // For Community Posts: Show APPROVE button
-            <button
-              className="content-edit-approve-btn"
-              onClick={() => { setModalType("approve"); setShowModal(true); }}
-              style={{
-                backgroundColor: "#28a745",
-                color: "#fff",
-                padding: "10px 20px",
-                borderRadius: "4px",
-                border: "none",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px"
-              }}
-            >
-              <span className="content-edit-btn"><FaCheck /></span>
-              Approve
-            </button>
-          )}
+          <button
+            className="content-edit-approve-btn"
+            onClick={() => { setModalType("approve"); setShowModal(true); }}
+          >
+            <span className="content-edit-btn"><FaCheck /></span>{" "}
+            {t("reviseContent.approve")}
+          </button>
 
-          {/* Reject button for both */}
           <button
             className="content-edit-reject-btn"
             onClick={() => { setModalType("reject"); setShowModal(true); }}
-            style={{
-              backgroundColor: "#dc3545",
-              color: "#fff",
-              padding: "10px 20px",
-              borderRadius: "4px",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px"
-            }}
           >
-            <span className="content-edit-btn"><FaTimes /></span>
-            Reject
+            <span className="content-edit-btn"><FaTimes /></span>{" "}
+            {t("reviseContent.reject")}
           </button>
         </div>
       </div>
-
-      {/* Info banner for recipe draft workflow */}
-      {isRecipe && (
-        <div className="admin-info-banner" style={{
-          backgroundColor: "#FFF8E7",
-          borderLeft: "4px solid #F59E0B",
-          padding: "12px 20px",
-          margin: "20px auto",
-          maxWidth: "1200px",
-          borderRadius: "8px"
-        }}>
-          <p style={{ margin: 0, color: "#92400E" }}>
-            <strong>ℹ️ Note:</strong> Clicking "Draft" will mark this recipe for final editing. You'll need to edit the food details and publish it before it becomes visible to users.
-          </p>
-        </div>
-      )}
 
       <div className="review-container">
         <div className="review-layout">
           {/* Left Sidebar */}
           <div className="review-left-sidebar">
-            <h3><FaFileAlt /> Submission Details</h3>
+            <h3><FaFileAlt /> {t("reviseContent.submissionDetails")}</h3>
 
             <div className="review-info">
               <div className="info-label">
                 <FaUser className="left-sidebar-icon" />
-                <span> Submitted By</span>
+                <span> {t("reviseContent.submittedBy")}</span>
               </div>
               <strong>{submission.author || submission.username || "Unknown Author"}</strong>
               <p className="email">{submission.email || "N/A"}</p>
             </div>
 
             <div className="review-info">
-              <p><FaCalendarAlt /> Submission Date</p>
+              <p><FaCalendarAlt /> {t("reviseContent.submissionDate")}</p>
               <strong>
                 {submission.date
                   ? new Date(submission.date).toLocaleDateString()
-                  : "Unknown Date"}
+                  : t("reviseContent.unknownDate")}
               </strong>
             </div>
 
             <div className="review-info">
-              <p>Current Status</p>
-              <span className="status-tag" style={{
-                backgroundColor: submission.status === "Draft" ? "#FEF3C7" : 
-                                 submission.status === "Approved" ? "#D1FAE5" :
-                                 submission.status === "Rejected" ? "#FEE2E2" : "#E0E7FF",
-                color: submission.status === "Draft" ? "#92400E" :
-                       submission.status === "Approved" ? "#065F46" :
-                       submission.status === "Rejected" ? "#991B1B" : "#1E40AF",
-                padding: "4px 12px",
-                borderRadius: "20px",
-                fontSize: "0.875rem",
-                fontWeight: "500"
-              }}>
-                {submission.status || "Pending"}
-              </span>
+              <p>{t("reviseContent.status")}</p>
+              <span className="status-tag">{submission.status}</span>
             </div>
           </div>
 
@@ -293,7 +198,7 @@ const ReviewContentPage = () => {
           <div className="review-main">
             {/* Uploaded Image Section */}
             <div className="review-section uploaded-image-card">
-              <h3><FaFileAlt /> Uploaded Image</h3>
+              <h3><FaFileAlt /> {t("reviseContent.uploadedImage")}</h3>
               <div className="uploaded-img-box">
                 <img
                   src={
@@ -303,35 +208,34 @@ const ReviewContentPage = () => {
                   }
                   alt={submission.name || submission.title}
                   className="uploaded-img"
-                  style={{ maxWidth: "100%", height: "auto" }}
                 />
               </div>
             </div>
 
             {/* Basic Information Section */}
             <div className="rcp-review-section rcp-info-grid">
-              <h3>Basic Information</h3>
+              <h3>{t("reviseContent.basicInformation")}</h3>
               <div className="rcp-info-grid">
                 <div className="rcp-info-item">
-                  <h4>{isRecipe ? "Food Name" : "Title"}</h4>
+                  <h4>{t("reviseContent.foodNameTitle")}</h4>
                   <p>{submission.name || submission.foodName || submission.title}</p>
                 </div>
 
                 <div className="rcp-info-item full-width">
-                  <h4>{isRecipe ? "Origin Story" : "Description"}</h4>
+                  <h4>{t("reviseContent.originStory")}</h4>
                   <p style={{ whiteSpace: "pre-wrap" }}>
                     {submission.description ||
                       submission.culturalStory ||
                       submission.content ||
-                      "No description provided"}
+                      t("reviseContent.noDescription")}
                   </p>
                 </div>
 
-                {isRecipe && ((Array.isArray(submission.instructions) && submission.instructions.length > 0) || submission.recipe) && (
+                {(Array.isArray(submission.instructions) && submission.instructions.length > 0) || submission.recipe ? (
                   <div className="rcp-info-item full-width">
-                    <h4>Recipe Instructions</h4>
+                    <h4>{t("reviseContent.recipeInstructions")}</h4>
                     {Array.isArray(submission.instructions) && submission.instructions.length > 0 ? (
-                      <ol style={{ paddingLeft: "20px" }}>
+                      <ol className="list-decimal pl-5">
                         {submission.instructions.map((step, index) => (
                           <li key={index}>{step}</li>
                         ))}
@@ -340,20 +244,19 @@ const ReviewContentPage = () => {
                       <p style={{ whiteSpace: "pre-wrap" }}>{submission.recipe || "N/A"}</p>
                     )}
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
 
             {/* Admin Feedback Section */}
             <div className="rcp-review-section rcp-basic-info-grid">
-              <h3>Admin Feedback</h3>
+              <h3>{t("reviseContent.adminFeedback")}</h3>
               <div className="rcp-edit-info-grid">
                 <div className="rcp-edit-info-item full-width">
                   <textarea
                     className="admin-feedback-input"
-                    placeholder="Provide feedback for the user here..."
+                    placeholder={t("reviseContent.feedbackPlaceholder")}
                     rows="4"
-                    style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
                   ></textarea>
                 </div>
               </div>
@@ -364,65 +267,26 @@ const ReviewContentPage = () => {
 
       {/* Modal Confirmation */}
       {showModal && (
-        <div className="confirm-overlay" style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 1000
-        }}>
-          <div className="confirm-modal" style={{
-            backgroundColor: "#fff",
-            padding: "24px",
-            borderRadius: "8px",
-            maxWidth: "500px",
-            width: "90%"
-          }}>
-            <h3>Confirm Action</h3>
+        <div className="confirm-overlay">
+          <div className="confirm-modal">
+            <h3>{t("reviseContent.warningTitle")}</h3>
             <p>
-              {modalType === "draft" 
-                ? `Are you sure you want to mark this ${submissionType} as DRAFT? It will require final admin editing before publication.`
-                : modalType === "approve"
-                ? `Are you sure you want to APPROVE this ${submissionType}?`
-                : `Are you sure you want to REJECT this ${submissionType}?`
-              }
+              {t("reviseContent.warningConfirm", {
+                action: modalType === "approve" ? t("reviseContent.approve").toLowerCase() : t("reviseContent.reject").toLowerCase(),
+                type: submissionType,
+              })}
             </p>
 
-            <div className="confirm-buttons" style={{ display: "flex", gap: "12px", marginTop: "20px" }}>
-              <button 
-                className="cancel-btn" 
-                onClick={() => setShowModal(false)}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#6c757d",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer"
-                }}
-              >
-                Cancel
+            <div className="confirm-buttons">
+              <button className="cancel-btn" onClick={() => setShowModal(false)}>
+                {t("reviseContent.cancelBtn")}
               </button>
 
               <button
-                className={modalType === "draft" ? "draft-btn" : modalType === "approve" ? "approve-btn" : "delete-btn"}
-                onClick={() => handleConfirmAction(modalType)}
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: modalType === "draft" ? "#F59E0B" : 
-                                   modalType === "approve" ? "#28a745" : "#dc3545",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer"
-                }}
+                className={modalType === "approve" ? "approve-btn" : "delete-btn"}
+                onClick={() => handleConfirmAction(modalType === "approve" ? "Approved" : "Rejected")}
               >
-                {modalType === "draft" ? "Draft" : modalType === "approve" ? "Approve" : "Reject"}
+                {modalType === "approve" ? t("reviseContent.approve") : t("reviseContent.reject")}
               </button>
             </div>
           </div>
