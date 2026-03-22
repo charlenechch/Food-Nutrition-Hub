@@ -30,7 +30,7 @@ router.get("/", async (req, res) => {
       SELECT f.*,
              COALESCE(r.servings, 1) AS servings
       FROM food f
-      LEFT JOIN (
+      INNER JOIN (
         SELECT *
         FROM (
           SELECT r.*,
