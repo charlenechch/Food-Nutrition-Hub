@@ -637,7 +637,7 @@ export default function AdminSystemSettings({
                                                         <div>
                                                             <div className="umg-name">{u.name}</div>
                                                             <div className="umg-subline">{u.email}</div>
-                                                            {u.city && <div className="umg-subline">{u.city}</div>}
+                                                            <div className="umg-subline">{u.role}</div>
                                                         </div>
                                                     </label>
                                                 ))
