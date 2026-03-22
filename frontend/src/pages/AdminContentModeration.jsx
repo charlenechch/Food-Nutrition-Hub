@@ -7,14 +7,16 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // Normalize incoming data
+  // Normalize incoming data with type detection
   const formattedContent = pendingContent.map((item) => ({
     id: item.id || item.recipeID || item.ID || Math.random(),
     name: item.name || item.recipe_name || t("adminContentMode.untitledRecipe"),
     submitter: item.submitter || item.author || t("adminContentMode.unknownAuthor"),
     date: item.date || item.updated || item.updatedAt || "—",
     status: item.status || "Pending",
-    requiresAdminEdit: item.status === "Draft"
+    type: item.type || (item.recipeID ? "recipe" : "communityPost"),
+    recipeID: item.recipeID || item.id,
+    postID: item.postID || item.id
   }));
 
   // === Pagination ===
@@ -35,36 +37,43 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
     ? t("adminContentMode.titleApproved")
     : t("adminContentMode.titlePending");
 
-  // Handle review button click based on status
+  // Handle review button click based on content type and status
   const handleReviewClick = (item) => {
-    if (item.status === "Draft" && item.requiresAdminEdit) {
-      navigate(`/admin/edit-food/${item.id}?mode=finalize`);
+    if (item.type === "recipe" && item.status === "Draft") {
+      // For draft recipes that need admin editing before publishing
+      navigate(`/admin/edit-food/${item.recipeID}?mode=finalize`);
+    } else if (item.type === "recipe") {
+      // For pending recipes
+      navigate(`/admin/reviewcontent/${item.id}`);
     } else {
+      // For community posts
       navigate(`/admin/reviewcontent/${item.id}`);
     }
   };
 
-  // Handle final publish after editing
+  // Handle final publish for recipes only
   const handlePublishClick = async (item) => {
     try {
-      const response = await fetch(`/api/recipes/publishRecipe/${item.id}`, {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const response = await fetch(`${API_URL}/api/recipes/publishRecipe/${item.recipeID}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include'
       });
       
       const result = await response.json();
       
       if (result.success) {
-        alert(t("adminContentMode.publishSuccess"));
+        alert(t("adminContentMode.publishSuccess") || "Recipe published successfully!");
         window.location.reload();
       } else {
-        alert(result.message || t("adminContentMode.publishFailed"));
+        alert(result.message || t("adminContentMode.publishFailed") || "Failed to publish recipe.");
       }
     } catch (error) {
       console.error("Error publishing recipe:", error);
-      alert(t("adminContentMode.publishFailed"));
+      alert(t("adminContentMode.publishFailed") || "Failed to publish recipe.");
     }
   };
 
@@ -98,20 +107,49 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
     ));
   };
 
-  // Get status display text
-  const getStatusDisplay = (status) => {
-    switch(status) {
-      case "Draft":
-        return t("adminContentMode.statusDraft");
-      case "Pending":
-        return t("adminContentMode.statusPending");
-      case "Approved":
-        return t("adminContentMode.statusApproved");
-      case "Rejected":
-        return t("adminContentMode.statusRejected");
+  // Get status badge styling
+  const getStatusBadgeStyle = (status) => {
+    const statusLower = status.toLowerCase();
+    switch(statusLower) {
+      case 'approved':
+        return {
+          backgroundColor: '#D1FAE5',
+          color: '#065F46',
+          border: '1px solid #A7F3D0'
+        };
+      case 'pending':
+        return {
+          backgroundColor: '#E0E7FF',
+          color: '#1E40AF',
+          border: '1px solid #C7D2FE'
+        };
+      case 'rejected':
+        return {
+          backgroundColor: '#FEE2E2',
+          color: '#991B1B',
+          border: '1px solid #FECACA'
+        };
+      case 'draft':
+        return {
+          backgroundColor: '#FEF3C7',
+          color: '#92400E',
+          border: '1px solid #FDE68A'
+        };
       default:
-        return status;
+        return {
+          backgroundColor: '#F3F4F6',
+          color: '#374151',
+          border: '1px solid #E5E7EB'
+        };
     }
+  };
+
+  // Get status display text
+  const getStatusDisplay = (status, type) => {
+    if (type === "recipe" && status === "Draft") {
+      return "Draft - Pending Edit";
+    }
+    return status;
   };
 
   // === Defensive check for empty content ===
@@ -153,52 +191,97 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
         </thead>
 
         <tbody>
-          {currentItems.map((item) => (
-            <tr key={item.id}>
-              <td>{item.name}</td>
-              <td>{item.submitter}</td>
-              <td>{item.date}</td>
-              <td>
-                <span
-                  className={`recipe-status-tag ${item.status
-                    .toLowerCase()
-                    .replace(" ", "-")}`}
-                >
-                  {getStatusDisplay(item.status)}
-                </span>
-              </td>
-
-              {!onlyApproved && (
-                <td className="admin-recipe-action-buttons">
-                  {item.status === "Draft" ? (
-                    // For draft recipes that need final publishing
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        className="edit-btn"
-                        onClick={() => handleReviewClick(item)}
-                      >
-                        <BsPencil /> {t("adminRcpDB.editAndPublish")}
-                      </button>
-                      <button
-                        className="publish-btn"
-                        onClick={() => handlePublishClick(item)}
-                      >
-                        <BsCheckCircle /> {t("adminRcpDB.publish")}
-                      </button>
-                    </div>
-                  ) : (
-                    // For pending recipes that need initial review
-                    <button
-                      className="review-btn"
-                      onClick={() => handleReviewClick(item)}
-                    >
-                      {t("adminRcpDB.review")}
-                    </button>
-                  )}
+          {currentItems.map((item) => {
+            const badgeStyle = getStatusBadgeStyle(item.status);
+            
+            return (
+              <tr key={item.id}>
+                <td>{item.name}</td>
+                <td>{item.submitter}</td>
+                <td>{item.date}</td>
+                <td>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      padding: "4px 12px",
+                      borderRadius: "20px",
+                      fontSize: "0.75rem",
+                      fontWeight: "500",
+                      ...badgeStyle
+                    }}
+                  >
+                    {getStatusDisplay(item.status, item.type)}
+                  </span>
                 </td>
-              )}
-            </tr>
-          ))}
+
+                {!onlyApproved && (
+                  <td className="admin-recipe-action-buttons">
+                    {/* For Recipes with Draft status - show special buttons */}
+                    {item.type === "recipe" && item.status === "Draft" ? (
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                          onClick={() => handleReviewClick(item)}
+                          style={{
+                            backgroundColor: "#F59E0B",
+                            color: "#fff",
+                            padding: "6px 12px",
+                            borderRadius: "4px",
+                            border: "none",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            fontSize: "0.875rem"
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = "#D97706"}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = "#F59E0B"}
+                        >
+                          <BsPencil size={14} /> Edit & Finalize
+                        </button>
+                        <button
+                          onClick={() => handlePublishClick(item)}
+                          style={{
+                            backgroundColor: "#10B981",
+                            color: "#fff",
+                            padding: "6px 12px",
+                            borderRadius: "4px",
+                            border: "none",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            fontSize: "0.875rem"
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = "#059669"}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = "#10B981"}
+                        >
+                          <BsCheckCircle size={14} /> Publish
+                        </button>
+                      </div>
+                    ) : (
+                      // For all other content (pending recipes, community posts)
+                      <button
+                        onClick={() => handleReviewClick(item)}
+                        style={{
+                          backgroundColor: "#3B82F6",
+                          color: "#fff",
+                          padding: "6px 12px",
+                          borderRadius: "4px",
+                          border: "none",
+                          cursor: "pointer",
+                          fontSize: "0.875rem"
+                        }}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = "#2563EB"}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = "#3B82F6"}
+                      >
+                        {t("adminRcpDB.review") || "Review"}
+                      </button>
+                    )}
+                  </td>
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
