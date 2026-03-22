@@ -498,13 +498,13 @@ const EditFoodPage = () => {
               </div>
 
               <div className="edit-food-basic-info-two-col efpage-basic-info">
-                <div>
+              <div>
                   <label className="basic-info-label">{t("addFood.alternativeName")}</label>
-                  <input className="edit-food-input" name="alternative" value={food.alternative} onChange={handleChange} />
+                  <textarea className="edit-food-textarea resizable-field" name="alternative" value={food.alternative} onChange={handleChange} rows={1} />
                 </div>
                 <div>
                   <label className="basic-info-label">{t("addFood.altDescription")}</label>
-                  <input className="edit-food-input" name="altDescription" value={food.altDescription} onChange={handleChange} />
+                  <textarea className="edit-food-textarea resizable-field" name="altDescription" value={food.altDescription} onChange={handleChange} rows={1} />
                 </div>
               </div>
 

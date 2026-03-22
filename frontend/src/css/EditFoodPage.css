@@ -714,6 +714,14 @@
   font-size: 15px;
 }
 
+.resizable-field {
+  resize: vertical;
+  min-height: 48px;
+  max-height: 150px;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+
 @media screen and (max-width: 768px) {
   .edit-food-basic-info-two-col {
     display: grid;
