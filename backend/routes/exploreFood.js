@@ -25,13 +25,13 @@ const parseDietaryTags = (raw) => {
 
 router.get("/", async (req, res) => {
   try {
-    // 1. Use LEFT JOIN so we don't accidentally hide foods without recipes
-    // 2. Use the EXACT same WHERE NOT EXISTS filter from your Admin foods.js
+    // 1. INNER JOIN ensures the frontend never gets a null recipe (prevents the 'servings' crash)
+    // 2. The WHERE clause ensures it exactly matches the Admin Food Database filtering logic
     const [rows] = await db.query(`
       SELECT f.*,
              COALESCE(r.servings, 1) AS servings
       FROM food f
-      LEFT JOIN (
+      INNER JOIN (
         SELECT *
         FROM (
           SELECT r.*,
@@ -41,12 +41,14 @@ router.get("/", async (req, res) => {
         ) t
         WHERE t.rn = 1
       ) r ON r.foodID = f.foodID
-      WHERE NOT EXISTS (
-          SELECT 1 FROM recipe r2
-          JOIN userProfile up ON r2.userProfileID = up.userProfileID
-          JOIN user u ON up.userID = u.userID
-          WHERE r2.foodID = f.foodID AND u.role != 'admin'
-      )
+      WHERE f.Energy_kcal > 0 
+         OR (f.culturalSignificance IS NOT NULL AND f.culturalSignificance != '')
+         OR NOT EXISTS (
+             SELECT 1 FROM recipe r2
+             JOIN userProfile up ON r2.userProfileID = up.userProfileID
+             JOIN user u ON up.userID = u.userID
+             WHERE r2.foodID = f.foodID AND u.role != 'admin'
+         )
     `);
 
     const result = rows.map((r) => {
