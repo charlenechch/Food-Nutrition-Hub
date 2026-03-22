@@ -713,3 +713,22 @@
   outline: none;
   font-size: 15px;
 }
+
+@media screen and (max-width: 768px) {
+  
+  .edit-food-basic-info-two-col {
+    display: grid;
+    grid-template-columns: 1fr; 
+    gap: 16px; 
+  }
+
+  .edit-food-textarea {
+    min-height: 100px; 
+    padding: 12px; 
+  }
+  
+  .basic-info-label {
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+}
