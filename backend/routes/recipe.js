@@ -798,7 +798,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
         message: `You passed foodID ${id} but should pass recipeID. Check your database for the correct recipeID.`
       });
     }
-    
+
     const {
       name, origin, difficulty, prepTime, image, description,
       category, dietaryTags, cookTime, servings, ingredients,
@@ -1662,6 +1662,116 @@ router.post('/add-food-details', async (req, res) => {
     });
   } finally {
     connection.release();
+  }
+});
+
+// for edit recipe page
+// GET recipe by foodID (for a specific food)
+router.get('/recipes/food/:foodId', async (req, res) => {
+  try {
+    const { foodId } = req.params;
+    console.log('Fetching recipe for Food ID:', foodId);
+    
+    const query = `
+      SELECT 
+        r.recipeID,
+        r.foodID,
+        r.userProfileID,
+        r.description,
+        r.ingredients,
+        r.steps,
+        r.cookTime,
+        r.servings,
+        r.DidYouKnow,
+        r.chefTips,
+        r.status,
+      FROM recipe r  
+      LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
+      LEFT JOIN user u ON up.userID = u.userID
+      WHERE r.foodID = ? AND r.status = 'Approved'
+      ORDER BY r.createdAt DESC
+      LIMIT 1
+    `;
+    
+    const [rows] = await db.query(query, [foodId]);
+    
+    if (!rows || rows.length === 0) {
+      // No recipe found, return null instead of error
+      return res.json({ success: true, data: null });
+    }
+    
+    const row = rows[0];
+    
+    const recipe = {
+      recipeID: row.recipeID,
+      foodID: row.foodID,
+      description: row.description || '',
+      ingredients: row.ingredients || '',
+      steps: row.steps || '',
+      cookTime: row.cookTime || null,
+      servings: row.servings || 1,
+      DidYouKnow: row.DidYouKnow || '',
+      chefTips: row.chefTips || '',
+      status: row.status
+    };
+    
+    res.json({ success: true, data: recipe });
+    
+  } catch (error) {
+    console.error('Error fetching recipe:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update recipe
+router.put('/recipes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      description,
+      ingredients,
+      steps,
+      cookTime,
+      servings,
+      DidYouKnow,
+      chefTips
+    } = req.body;
+    
+    const query = `
+      UPDATE recipe 
+      SET 
+        description = ?,
+        ingredients = ?,
+        steps = ?,
+        cookTime = ?,
+        servings = ?,
+        DidYouKnow = ?,
+        chefTips = ?,
+        updatedAt = CURRENT_TIMESTAMP,
+        status = 'Pending' 
+      WHERE recipeID = ?
+    `;
+    
+    const [result] = await db.query(query, [
+      description || null,
+      ingredients,
+      steps,
+      cookTime || null,
+      servings || 1,
+      DidYouKnow || null,
+      chefTips || null,
+      id
+    ]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, error: 'Recipe not found' });
+    }
+    
+    res.json({ success: true, message: 'Recipe updated successfully' });
+    
+  } catch (error) {
+    console.error('Error updating recipe:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
