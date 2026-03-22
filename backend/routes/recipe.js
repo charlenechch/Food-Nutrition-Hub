@@ -712,7 +712,7 @@ try {
       culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
       status: (recipe.status || 'pending').toLowerCase(),
       adminFeedback: recipe.admin_feedback || null,
-      culturalStory: recipe.culturalStory || '',
+      description: recipe.description || '',
       images: images,
       ingredients: ingredients, // ✅ Include ingredients array
       instructions: instructions, // ✅ Include instructions array
@@ -726,7 +726,8 @@ try {
       chefTips: recipe.chefTips || '',
       difficulty: recipe.difficulty || 'Easy',
       prepTime: recipe.prepTime || 0,
-      category: recipe.category || 'Other'
+      category: recipe.category || 'Other',
+      dietaryTags: recipe.dietaryTags || '',
     };
   });
 
@@ -772,6 +773,32 @@ router.put('/revise/recipes/:id', async (req, res) => {
 
   try {
     const { id } = req.params; 
+
+    // Check if the ID exists as a recipeID
+    const [checkRecipe] = await db.query(
+      'SELECT recipeID FROM recipe WHERE recipeID = ?',
+      [id]
+    );
+    
+    // Check if it exists as a foodID
+    const [checkFood] = await db.query(
+      'SELECT foodID FROM food WHERE foodID = ?',
+      [id]
+    );
+    
+    if (checkRecipe.length === 0 && checkFood.length > 0) {
+      console.log('⚠️⚠️⚠️ CRITICAL: Received foodID instead of recipeID!');
+      console.log(`Expected recipeID but got foodID: ${id}`);
+      console.log(`The correct recipeID is likely ${id - 1} or check your database`);
+      
+      return res.status(400).json({ 
+        error: 'Invalid recipe ID. Please use recipeID, not foodID.',
+        receivedId: id,
+        idType: 'foodID',
+        message: `You passed foodID ${id} but should pass recipeID. Check your database for the correct recipeID.`
+      });
+    }
+    
     const {
       name, origin, difficulty, prepTime, image, description,
       category, dietaryTags, cookTime, servings, ingredients,

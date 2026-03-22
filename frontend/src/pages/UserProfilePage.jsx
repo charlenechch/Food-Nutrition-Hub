@@ -577,7 +577,7 @@ const ContributionRow = ({ c }) => {
             recipeID: c.recipeID,
             snapshot: JSON.parse(JSON.stringify(c)),
             contribution: c,
-            description: c.culturalStory || c.description || "",
+            description: c.description || "",
             adminFeedback: c.adminFeedback || c.feedback,
             fieldsWithIssues: c.fieldsWithIssues || [],
           },
