@@ -25,13 +25,14 @@ const parseDietaryTags = (raw) => {
 
 router.get("/", async (req, res) => {
   try {
-    // Pick exactly one approved recipe per food
-    // AND explicitly exclude foods that are just user-submitted recipes
+    // LEFT JOIN ensures we don't accidentally drop real foods.
+    // The WHERE clause explicitly filters OUT raw user-submitted recipes 
+    // by requiring actual food database details (Calories, Cultural Info, etc.)
     const [rows] = await db.query(`
       SELECT f.*,
              COALESCE(r.servings, 1) AS servings
       FROM food f
-      INNER JOIN (
+      LEFT JOIN (
         SELECT *
         FROM (
           SELECT r.*,
@@ -41,12 +42,9 @@ router.get("/", async (req, res) => {
         ) t
         WHERE t.rn = 1
       ) r ON r.foodID = f.foodID
-      WHERE NOT EXISTS (
-          SELECT 1 FROM recipe r2
-          JOIN userProfile up ON r2.userProfileID = up.userProfileID
-          JOIN user u ON up.userID = u.userID
-          WHERE r2.foodID = f.foodID AND u.role != 'admin'
-      )
+      WHERE f.Energy_kcal > 0 
+         OR f.culturalSignificance IS NOT NULL 
+         OR f.commonIngredients IS NOT NULL
     `);
 
     const result = rows.map((r) => {
