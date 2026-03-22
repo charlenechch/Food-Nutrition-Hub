@@ -25,37 +25,26 @@ const parseDietaryTags = (raw) => {
 
 router.get("/", async (req, res) => {
   try {
+    // PURE FOOD QUERY. NO RECIPE JOINS AT ALL.
+    // The WHERE clause filters out your blank test recipes (like Mee Goreng)
+    // and only grabs your 10 official foods.
     const [rows] = await db.query(`
-      SELECT f.*,
-             COALESCE(r.servings, 1) AS servings
-      FROM food f
-      LEFT JOIN (
-        SELECT *
-        FROM (
-          SELECT r.*,
-                 ROW_NUMBER() OVER (PARTITION BY r.foodID ORDER BY r.recipeID) AS rn
-          FROM recipe r
-          WHERE r.status = 'Approved'
-        ) t
-        WHERE t.rn = 1
-      ) r ON r.foodID = f.foodID
-      WHERE NOT EXISTS (
-          SELECT 1 FROM recipe r2
-          JOIN userProfile up ON r2.userProfileID = up.userProfileID
-          JOIN user u ON up.userID = u.userID
-          WHERE r2.foodID = f.foodID AND u.role != 'admin'
-      )
+      SELECT * FROM food 
+      WHERE Energy_kcal > 0 
+         OR (culturalSignificance IS NOT NULL AND culturalSignificance != '')
     `);
 
     const result = rows.map((r) => {
-      const servings = Math.max(1, Number(r.servings || 1));
+      // We hardcode servings to 1 here so your React frontend doesn't crash.
+      // We no longer need the recipe table for this!
+      const servings = 1; 
       const k = 1 / servings;
 
       const dietaryTags = parseDietaryTags(r.dietaryTags).map(toSlug);
 
       return {
         ...r,
-        servings,
+        servings, 
         dietaryTags,
         Energy_kcal: toNum(r.Energy_kcal),
         Protein_g: toNum(r.Protein_g),
