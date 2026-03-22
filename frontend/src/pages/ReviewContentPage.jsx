@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useTranslation } from "react-i18next";
-import { FaArrowLeft, FaUser, FaCalendarAlt, FaFileAlt, FaCheck, FaTimes } from "react-icons/fa";
+import { FaArrowLeft, FaUser, FaCalendarAlt, FaFileAlt, FaCheck, FaTimes, FaPencilAlt } from "react-icons/fa";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -82,6 +82,12 @@ const ReviewContentPage = () => {
       const isCommunityPost = type === "communitypost" || type === "community";
 
       let updateUrl;
+      let finalStatus = newStatus;
+
+      // For recipes: "Approved" becomes "Draft" (two-step approval)
+      if (!isCommunityPost && newStatus === "Approved") {
+        finalStatus = "Draft";
+      }
 
       if (isCommunityPost) {
         if (newStatus === "Approved") {
@@ -100,7 +106,7 @@ const ReviewContentPage = () => {
       };
 
       if (!isCommunityPost) {
-        fetchOptions.body = JSON.stringify({ status: newStatus, feedback });
+        fetchOptions.body = JSON.stringify({ status: finalStatus, feedback });
       }
 
       const res = await fetch(updateUrl, fetchOptions);
@@ -111,11 +117,20 @@ const ReviewContentPage = () => {
       }
 
       setShowModal(false);
-      console.log(`${newStatus === "Approved" ? "✅ Approved" : "❌ Rejected"}\n\nAdmin Feedback:\n${feedback}`);
+      
+      // Different success messages based on content type
+      if (!isCommunityPost && newStatus === "Approved") {
+        console.log(`📝 Recipe marked as Draft for final admin editing\n\nAdmin Feedback:\n${feedback}`);
+        alert(t("reviseContent.recipeMarkedForEdit")); // Optional: Show success message
+      } else {
+        console.log(`${newStatus === "Approved" ? "✅ Approved" : "❌ Rejected"}\n\nAdmin Feedback:\n${feedback}`);
+      }
+      
       navigate("/admin");
     } catch (err) {
       console.error("Failed to update status:", err);
       console.error(`Error: ${err.message}`);
+      alert(err.message); // Optional: Show error to user
     }
   };
 
@@ -124,9 +139,17 @@ const ReviewContentPage = () => {
   if (!submission) return <p className="text-center mt-20">{t("reviseContent.contentNotFound")}</p>;
 
   // Determine submission type for display purposes
-  const submissionType = type === "community"
+  const submissionType = type === "community" || type === "communitypost"
     ? t("reviseContent.communityPostType")
     : t("reviseContent.submissionType");
+  
+  // Check if this is a recipe (not community post)
+  const isRecipe = type !== "community" && type !== "communitypost";
+  
+  // Button text based on content type
+  const approveButtonText = isRecipe 
+    ? t("reviseContent.markForEdit") // "Mark for Edit" or "Approve for Editing"
+    : t("reviseContent.approve");
 
   return (
     <div className="review-content-page">
@@ -150,8 +173,10 @@ const ReviewContentPage = () => {
             className="content-edit-approve-btn"
             onClick={() => { setModalType("approve"); setShowModal(true); }}
           >
-            <span className="content-edit-btn"><FaCheck /></span>{" "}
-            {t("reviseContent.approve")}
+            <span className="content-edit-btn">
+              {isRecipe ? <FaPencilAlt /> : <FaCheck />}
+            </span>{" "}
+            {approveButtonText}
           </button>
 
           <button
@@ -163,6 +188,23 @@ const ReviewContentPage = () => {
           </button>
         </div>
       </div>
+
+      {/* Additional info for recipe draft status */}
+      {isRecipe && (
+        <div className="admin-info-banner" style={{
+          backgroundColor: "#FFF8E7",
+          borderLeft: "4px solid #F59E0B",
+          padding: "12px 20px",
+          margin: "20px auto",
+          maxWidth: "1200px",
+          borderRadius: "8px"
+        }}>
+          <p style={{ margin: 0, color: "#92400E" }}>
+            <strong>ℹ️ {t("reviseContent.recipeWorkflowNotice")}</strong><br />
+            {t("reviseContent.recipeWorkflowDescription")}
+          </p>
+        </div>
+      )}
 
       <div className="review-container">
         <div className="review-layout">
@@ -271,10 +313,18 @@ const ReviewContentPage = () => {
           <div className="confirm-modal">
             <h3>{t("reviseContent.warningTitle")}</h3>
             <p>
-              {t("reviseContent.warningConfirm", {
-                action: modalType === "approve" ? t("reviseContent.approve").toLowerCase() : t("reviseContent.reject").toLowerCase(),
-                type: submissionType,
-              })}
+              {modalType === "approve" 
+                ? (isRecipe 
+                    ? t("reviseContent.warningConfirmRecipe", { type: submissionType })
+                    : t("reviseContent.warningConfirm", { 
+                        action: t("reviseContent.approve").toLowerCase(), 
+                        type: submissionType 
+                      }))
+                : t("reviseContent.warningConfirm", { 
+                    action: t("reviseContent.reject").toLowerCase(), 
+                    type: submissionType 
+                  })
+              }
             </p>
 
             <div className="confirm-buttons">
@@ -286,7 +336,9 @@ const ReviewContentPage = () => {
                 className={modalType === "approve" ? "approve-btn" : "delete-btn"}
                 onClick={() => handleConfirmAction(modalType === "approve" ? "Approved" : "Rejected")}
               >
-                {modalType === "approve" ? t("reviseContent.approve") : t("reviseContent.reject")}
+                {modalType === "approve" 
+                  ? (isRecipe ? t("reviseContent.markForEdit") : t("reviseContent.approve"))
+                  : t("reviseContent.reject")}
               </button>
             </div>
           </div>
