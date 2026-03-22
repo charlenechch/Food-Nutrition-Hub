@@ -508,6 +508,21 @@ const EditFoodPage = () => {
                 </div>
               </div>
 
+              {/* Origin */}
+              <div className="food-origin-field">
+                <label className="basic-info-label">{t("editFood.regionOfOrigin")}</label>
+                <div className="custom-select-wrapper">
+                  <select className="edit-food-select" name="origin" value={food.origin} onChange={handleChange}>
+                    <option value="">{t("editFood.selectOrigin")}</option>
+                    {ORIGIN_OPTIONS.map((origin) => (
+                      <option key={origin} value={origin}>
+                        {origin}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               {/* Category */}
               <div className="food-category-field">
                 <label className="basic-info-label">{t("editFood.category")}</label>
@@ -528,21 +543,6 @@ const EditFoodPage = () => {
                       </label>
                     );
                   })}
-                </div>
-              </div>
-
-              {/* Origin */}
-              <div className="food-origin-field">
-                <label className="basic-info-label">{t("editFood.regionOfOrigin")}</label>
-                <div className="custom-select-wrapper">
-                  <select className="edit-food-select" name="origin" value={food.origin} onChange={handleChange}>
-                    <option value="">{t("editFood.selectOrigin")}</option>
-                    {ORIGIN_OPTIONS.map((origin) => (
-                      <option key={origin} value={origin}>
-                        {origin}
-                      </option>
-                    ))}
-                  </select>
                 </div>
               </div>
             </div>
@@ -587,6 +587,9 @@ const EditFoodPage = () => {
 
             <label className="basic-info-label">{t("addFood.recipeDescription")}</label>
             <textarea className="edit-food-textarea" name="recipeDescription" value={food.recipeDescription} onChange={handleChange} rows={6} placeholder={t("addFood.recipeDescriptionPlace")} />
+
+            <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
+            <textarea className="edit-food-textarea" name="didYouKnow" value={food.didYouKnow} onChange={handleChange} rows={2} placeholder={t("addFood.didYouKnowPlace")} />
             
             <label className="basic-info-label">{t("addFood.chefTips")}</label>
             <textarea className="edit-food-textarea" name="chefTips" value={food.chefTips} onChange={handleChange} rows={3} placeholder={t("addFood.chefTipsPlace")} />
@@ -622,9 +625,6 @@ const EditFoodPage = () => {
               placeholder={t("editFood.traditionalPreparationPlaceholder")}
               rows={5}
             />
-
-            <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
-            <textarea className="edit-food-textarea" name="didYouKnow" value={food.didYouKnow} onChange={handleChange} rows={2} />
           </div>
 
           {/* Nutritional Info */}
