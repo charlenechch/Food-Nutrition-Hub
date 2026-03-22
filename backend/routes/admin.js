@@ -782,6 +782,12 @@ router.post("/announcement", requireAdmin, async (req, res) => {
         await Promise.all(notifPromises);
         console.log(`🔔 Announcement notifications created for ${userIds.length} users.`);
 
+        // Return success immediately after notifications are created
+        res.json({
+            success: true,
+            count: userIds.length
+        });
+
         // Optionally send emails if "Also send as email" is checked
         if (shouldSendEmail && emails && emails.length > 0) {
             const announcementHTML = `
@@ -817,18 +823,11 @@ router.post("/announcement", requireAdmin, async (req, res) => {
                 // We throttle to ~3 emails/second (300ms delay) to stay safely under the limit.
                 // Upgrade Resend plan to remove this limitation.
                 if (emailsSent < emails.length) {
-                    await new Promise(resolve => setTimeout(resolve, 334));
-
+                    await new Promise(resolve => setTimeout(resolve, 300));
                 }
             }
             console.log(`📩 Announcement emails completed. Sent ${emailsSent}/${emails.length} successfully.`);
         }
-
-        return res.json({
-            success: true,
-            message: `Announcement sent to ${userIds.length} users.${shouldSendEmail ? ` Emails sent to ${emails?.length || 0} recipients.` : ""}`
-        });
-
     } catch (error) {
         console.error("❌ Announcement error:", error);
         return res.status(500).json({ success: false, message: "Failed to send announcement." });

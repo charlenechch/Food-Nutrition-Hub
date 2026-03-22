@@ -259,8 +259,10 @@ return {
 router.get('/recipes/:id', async (req, res) => {
 try {
   const { id } = req.params;
-  console.log('Fetching recipe for Food ID:', id); // Updated log for clarity
+  console.log('Fetching recipe for ID (Recipe or Food):', id); 
   
+  // FIXED: Changed the WHERE clause to check BOTH recipeID and foodID.
+  // Added ORDER BY to ensure it grabs the newest submission if there are multiple.
   const query = `
     SELECT 
       f.foodID AS foodId,  
@@ -287,10 +289,13 @@ try {
     LEFT JOIN food f ON r.foodID = f.foodID  
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
     LEFT JOIN user u ON up.userID = u.userID
-    WHERE r.recipeID = ?
+    WHERE r.recipeID = ? OR f.foodID = ?
+    ORDER BY r.createdAt DESC
+    LIMIT 1
   `;
   
-  const [rows] = await db.query(query, [id]);  
+  // Pass the ID twice so it checks both conditions
+  const [rows] = await db.query(query, [id, id]);  
   
   if (!rows || rows.length === 0) {
     return res.status(404).json({ error: 'Recipe not found' });
