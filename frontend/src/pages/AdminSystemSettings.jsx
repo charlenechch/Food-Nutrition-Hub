@@ -796,7 +796,7 @@ export default function AdminSystemSettings({
                                         setSysDialog({
                                             open: true,
                                             title: t("adminSettings.announcementSent"),
-                                            message: data.message,
+                                            message: t("adminSettings.announcementSentMsg", { count: data.count }),
                                             icon: CheckIcon ? <CheckIcon /> : null,
                                             primaryText: t("adminSettings.done"),
                                             onPrimary: closeSysDialog,
