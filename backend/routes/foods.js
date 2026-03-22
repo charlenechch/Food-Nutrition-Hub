@@ -68,14 +68,11 @@ router.post(
 // Get total food count
 router.get("/count", async (req, res) => {
   try {
-    // FIXED: Only count foods if they were created by an Admin
     const query = `
       SELECT COUNT(DISTINCT f.foodID) AS total 
       FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
-      LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
-      LEFT JOIN user u ON up.userID = u.userID
-      WHERE (r.status = 'Approved' AND u.role = 'admin') OR r.recipeID IS NULL
+      WHERE r.status = 'Approved' OR r.status IS NULL
     `;
     const [result] = await db.query(query);
     res.json({ success: true, total: result[0].total });
@@ -85,16 +82,13 @@ router.get("/count", async (req, res) => {
   }
 });
 
-// ✅ UPDATED: Get all foods (Filtered by Admin Role)
+// ✅ UPDATED: Get all foods (Filtered by Approval Status and Deduplicated)
 router.get("/", async (req, res) => {
   try {
-    // FIXED: Only fetch foods if they were created by an Admin
     const query = `
       SELECT f.* FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
-      LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
-      LEFT JOIN user u ON up.userID = u.userID
-      WHERE (r.status = 'Approved' AND u.role = 'admin') OR r.recipeID IS NULL
+      WHERE r.status = 'Approved' OR r.status IS NULL
       GROUP BY f.foodID
       ORDER BY f.name ASC
     `;
