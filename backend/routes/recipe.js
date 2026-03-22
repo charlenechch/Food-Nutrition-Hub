@@ -287,7 +287,7 @@ try {
     LEFT JOIN food f ON r.foodID = f.foodID  
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
     LEFT JOIN user u ON up.userID = u.userID
-    WHERE f.foodID = ?  -- 🎯 MODIFICATION 1: Change r.recipeID to f.foodID
+    WHERE r.recipeID ?
   `;
   
   const [rows] = await db.query(query, [id]);  
@@ -299,7 +299,7 @@ try {
   const row = rows[0];
   
   const recipe = {
-    id: row.foodId,  // 🎯 MODIFICATION 2: Ensure 'id' returned is the foodId
+    id: row.recipeId,  
     foodId: row.foodId,
     name: row.name || '',
     origin: row.origin || '',
@@ -872,7 +872,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
       prepTime || 0,
       finalImage,
       description || '',
-      category || 'Other',
+      Array.isArray(category) ? category.join(', ') : (category || 'Other'),
       Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
       foodID  
     ];
@@ -891,7 +891,8 @@ router.put('/revise/recipes/:id', async (req, res) => {
         DidYouKnow = ?, 
         chefTips = ?, 
         status = ?,
-        description = ?
+        description = ?,
+        updatedAt = CURRENT_TIMESTAMP
       WHERE recipeID = ? AND userProfileID = ?
     `;
     const recipeParams = [
@@ -903,7 +904,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
       chefTips || '',
       status || 'Pending',
       description || '',
-      id,  // ✅ recipeID
+      recipeId,
       userProfileID
     ];
 

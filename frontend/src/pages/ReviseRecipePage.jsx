@@ -125,7 +125,10 @@ export default function ReviseRecipePage() {
 
         if (!recipeId) throw new Error("No recipe ID provided in URL");
 
-        const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${recipeId}`);
+        const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${recipeId}`, {
+          method: "GET",
+          credentials: "include",  
+        });
 
         if (!response.ok) throw new Error(`Failed to fetch recipe: ${response.status}`);
 
