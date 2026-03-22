@@ -1039,7 +1039,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
   console.log(`Attempting to update status for ID: ${recipeId}`);
 
   const { status, feedback } = req.body;
-  const validStatuses = ["Approved", "Rejected", "Pending"];
+  const validStatuses = ["Approved", "Rejected", "Pending", "Draft"];
 
   if (!validStatuses.includes(status)) {
     return res.status(400).json({ 
@@ -1060,6 +1060,13 @@ router.patch('/updateStatus/:id', async (req, res) => {
                              : "No specific feedback provided.";
 
   try {
+    let finalStatus = status;
+    let requiresAdminEdit = false;
+    
+    if (status === "Approved") {
+      finalStatus = "Draft"; // Set to draft until admin edits
+      requiresAdminEdit = true;
+    }
 
     // SQL Update: Use the defined dbFeedbackValue variable
     const [result] = await db.query(
@@ -1143,8 +1150,21 @@ router.patch('/updateStatus/:id', async (req, res) => {
         } else {
             console.log(`📭 Recipe approval email skipped (notifications disabled) for userID: ${userID}`);
         }
-        await createNotification(userID, "recipe_approved", `Your recipe "${recipeName}" has been approved and is now live on SarawakEats!`, db);
-        console.log(`🔔 Approval notification created for userID: ${userID}`);
+        await createNotification(
+          userID, 
+          "recipe_reviewed", 
+          `Your recipe "${recipeName}" has been reviewed. The admin will finalize the publication shortly.`, 
+          db
+        );
+        console.log(`🔔 Review notification created for userID: ${userID}`);
+        
+        // Return success with admin action required
+        return res.json({ 
+          success: true, 
+          message: "Recipe reviewed. Please edit the food details before publishing.",
+          requiresAdminEdit: true,
+          recipeId: recipeId
+        });
       }
 
       // B. REJECTED Logic
@@ -1505,7 +1525,7 @@ router.get('/approved-recipes', async (req, res) => {
 });
 
 // =============================
-// POST - Add/Update food details for approved recipe
+// POST - Select existing recipe to Add/Update food details for approved recipe
 // =============================
 router.post('/add-food-details', async (req, res) => {
   const connection = await db.getConnection();
@@ -1748,7 +1768,7 @@ router.put('/recipes/:id', async (req, res) => {
         DidYouKnow = ?,
         chefTips = ?,
         updatedAt = CURRENT_TIMESTAMP,
-        status = 'Pending' 
+        status = 'Approved' 
       WHERE recipeID = ?
     `;
     
@@ -1772,6 +1792,103 @@ router.put('/recipes/:id', async (req, res) => {
   } catch (error) {
     console.error('Error updating recipe:', error);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Final publish after admin edits food details
+router.post('/publishRecipe/:id', async (req, res) => {
+  const recipeId = req.params.id;
+  
+  try {
+    // Verify recipe exists and is in draft status
+    const [recipeCheck] = await db.query(
+      "SELECT status FROM recipe WHERE foodID = ?",
+      [recipeId]
+    );
+    
+    if (recipeCheck.length === 0) {
+      return res.status(404).json({ success: false, message: "Recipe not found." });
+    }
+    
+    if (recipeCheck[0].status !== "Draft") {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Recipe must be in draft status to publish." 
+      });
+    }
+    
+    // Update status to Approved
+    const [result] = await db.query(
+      "UPDATE recipe SET status = 'Approved', published_at = NOW() WHERE foodID = ?",
+      [recipeId]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Recipe not found." });
+    }
+    
+    // Fetch user info for notification
+    const [rows] = await db.query(`
+      SELECT u.userID, u.email, u.firstname, f.name AS recipeName
+      FROM recipe r
+      JOIN userProfile up ON r.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      JOIN food f ON r.foodID = f.foodID
+      WHERE r.foodID = ?
+    `, [recipeId]);
+    
+    if (rows.length > 0) {
+      const { userID, email, firstname, recipeName } = rows[0];
+      
+      // Send final approval notification
+      const finalApprovalHTML = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <div style="background-color: #28a745; padding: 20px; text-align: center;">
+            <h1 style="color: #fff; margin: 0;">Recipe Published!</h1>
+          </div>
+          <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <h2 style="color: #28a745;">Congratulations ${firstname}!</h2>
+            <p>Your recipe <strong>"${recipeName}"</strong> is now live on SarawakEats!</p>
+            
+            <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <p style="margin: 0;">The community can now discover and enjoy your recipe.</p>
+            </div>
+
+            <p><a href="https://sarawakeats.site/recipes">View your published recipe</a></p>
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+              Best regards,<br>The SarawakEats Team
+            </p>
+          </div>
+        </div>
+      `;
+      
+      const emailEnabled = await isEmailNotificationsEnabled(userID, db);
+      if (emailEnabled) {
+        sendEmail({
+          to: email,
+          subject: "🎉 Your Recipe Has Been Published!",
+          html: finalApprovalHTML,
+          text: `Your recipe "${recipeName}" is now live on SarawakEats!`
+        });
+      }
+      
+      await createNotification(
+        userID, 
+        "recipe_published", 
+        `Your recipe "${recipeName}" has been published and is now visible to all users!`, 
+        db
+      );
+    }
+    
+    res.json({ 
+      success: true, 
+      message: "Recipe published successfully and is now visible to users." 
+    });
+    
+  } catch (error) {
+    console.error("❌ Error publishing recipe:", error);
+    res.status(500).json({ success: false, message: "Failed to publish recipe." });
   }
 });
 

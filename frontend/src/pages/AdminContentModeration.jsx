@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { BsFileEarmarkCheck } from "react-icons/bs";
+import { BsFileEarmarkCheck, BsPencil, BsCheckCircle } from "react-icons/bs";
 
 const ContentModerationSection = ({ pendingContent = [], onlyApproved = false }) => {
   const navigate = useNavigate();
@@ -14,6 +14,7 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
     submitter: item.submitter || item.author || t("adminContentMode.unknownAuthor"),
     date: item.date || item.updated || item.updatedAt || "—",
     status: item.status || "Pending",
+    requiresAdminEdit: item.status === "Draft"
   }));
 
   // === Pagination ===
@@ -33,6 +34,39 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
   const title = onlyApproved
     ? t("adminContentMode.titleApproved")
     : t("adminContentMode.titlePending");
+
+  // Handle review button click based on status
+  const handleReviewClick = (item) => {
+    if (item.status === "Draft" && item.requiresAdminEdit) {
+      navigate(`/admin/edit-food/${item.id}?mode=finalize`);
+    } else {
+      navigate(`/admin/reviewcontent/${item.id}`);
+    }
+  };
+
+  // Handle final publish after editing
+  const handlePublishClick = async (item) => {
+    try {
+      const response = await fetch(`/api/recipes/publishRecipe/${item.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(t("adminContentMode.publishSuccess"));
+        window.location.reload();
+      } else {
+        alert(result.message || t("adminContentMode.publishFailed"));
+      }
+    } catch (error) {
+      console.error("Error publishing recipe:", error);
+      alert(t("adminContentMode.publishFailed"));
+    }
+  };
 
   const renderPageNumbers = () => {
     let start = currentPage - 1;
@@ -62,6 +96,22 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
         {p}
       </button>
     ));
+  };
+
+  // Get status display text
+  const getStatusDisplay = (status) => {
+    switch(status) {
+      case "Draft":
+        return t("adminContentMode.statusDraft");
+      case "Pending":
+        return t("adminContentMode.statusPending");
+      case "Approved":
+        return t("adminContentMode.statusApproved");
+      case "Rejected":
+        return t("adminContentMode.statusRejected");
+      default:
+        return status;
+    }
   };
 
   // === Defensive check for empty content ===
@@ -114,18 +164,37 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
                     .toLowerCase()
                     .replace(" ", "-")}`}
                 >
-                  {item.status}
+                  {getStatusDisplay(item.status)}
                 </span>
               </td>
 
               {!onlyApproved && (
                 <td className="admin-recipe-action-buttons">
-                  <button
-                    className="review-btn"
-                    onClick={() => navigate(`/admin/reviewcontent/${item.id}`)}
-                  >
-                    {t("adminRcpDB.review")}
-                  </button>
+                  {item.status === "Draft" ? (
+                    // For draft recipes that need final publishing
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        className="edit-btn"
+                        onClick={() => handleReviewClick(item)}
+                      >
+                        <BsPencil /> {t("adminRcpDB.editAndPublish")}
+                      </button>
+                      <button
+                        className="publish-btn"
+                        onClick={() => handlePublishClick(item)}
+                      >
+                        <BsCheckCircle /> {t("adminRcpDB.publish")}
+                      </button>
+                    </div>
+                  ) : (
+                    // For pending recipes that need initial review
+                    <button
+                      className="review-btn"
+                      onClick={() => handleReviewClick(item)}
+                    >
+                      {t("adminRcpDB.review")}
+                    </button>
+                  )}
                 </td>
               )}
             </tr>
