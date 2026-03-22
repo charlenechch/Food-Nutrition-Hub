@@ -1495,7 +1495,7 @@ router.get('/pending-food-details', async (req, res) => {
 // =============================
 // GET all approved recipes for selection
 // =============================
-router.get('/approved-recipes', async (req, res) => {
+router.get('/draft-recipes', async (req, res) => {
   try {
     const query = `
       SELECT 
@@ -1506,7 +1506,7 @@ router.get('/approved-recipes', async (req, res) => {
       INNER JOIN food f ON r.foodID = f.foodID
       LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
-      WHERE r.status = 'Approved'
+      WHERE r.status = 'Draft'
       ORDER BY r.createdAt DESC
     `;
 
