@@ -84,94 +84,36 @@ export default function ReviseRecipePage() {
   }, []);
 
   useEffect(() => {
-    const initializeForm = () => {
-      if (contribution) {
-        console.log("📝 Using state contribution:", contribution);
-
-        setItem({
-          ...contribution,
-          feedback: contribution.adminFeedback || contribution.feedback || ""
-        });
-
-        const p = contribution.payload || contribution;
-        const initialForm = {
-          name: p.name || p.title || "",
-          origin: p.origin || "",
-          difficulty: p.difficulty || "Easy",
-          prepTime: p.prepTime ?? "",
-          cookTime: p.cookTime ?? "",
-          servings: p.servings ?? "",
-          imageData: p.imageData || p.image || "",
-          description: p.description || "",
-          ingredients: Array.isArray(p.ingredients) ? p.ingredients.join('\n') : (p.ingredients || ""),
-          instructions: Array.isArray(p.instructions) ? p.instructions.join('\n') : (p.instructions || ""),
-          funFact: p.funFact || p.DidYouKnow || "",
-          chefTips: p.chefTips || "",
-          dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
-          otherDietEnabled: false, otherDietText: "",
-          category: p.category || "Poultry",
-          otherFoodEnabled: false, otherFoodText: "",
-        };
-
-        setForm(initialForm);
-        setIsLoading(false);
-      }
-    };
-
-    const fetchRecipeData = async () => {
-      try {
-        const recipeId = id;
-        console.log("🎯 Using recipe ID from URL:", recipeId);
-
-        if (!recipeId) throw new Error("No recipe ID provided in URL");
-
-        const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${id}`, {
-          method: "GET",
-          credentials: "include",  
-        });
-
-        if (!response.ok) throw new Error(`Failed to fetch recipe: ${response.status}`);
-
-        const recipeData = await response.json();
-        console.log("✅ Recipe data received:", recipeData);
-
-        setItem(prev => ({
-          ...prev, ...recipeData, id: recipeId,
-          feedback: recipeData.adminFeedback || recipeData.feedback || prev?.feedback || "",
-          fieldsWithIssues: recipeData.fieldsWithIssues || prev?.fieldsWithIssues || []
-        }));
-
-        setForm(prev => ({
-          ...prev,
-          name: recipeData.name || "",
-          origin: recipeData.origin || "",
-          difficulty: recipeData.difficulty || "Easy",
-          prepTime: recipeData.prepTime ?? "",
-          cookTime: recipeData.cookTime ?? "",
-          servings: recipeData.servings ?? "",
-          imageData: recipeData.image || "",
-          description: recipeData.description || "",
-          ingredients: recipeData.ingredients || "",
-          instructions: recipeData.instructions || "",
-          funFact: recipeData.funFact || recipeData.DidYouKnow || "",
-          chefTips: recipeData.chefTips || "",
-          dietaryTags: Array.isArray(recipeData.dietaryTags) ? recipeData.dietaryTags : [],
-          category: recipeData.category || "",
-          status: recipeData.status || "Pending"
-        }));
-
-      } catch (error) {
-        console.error("❌ Error fetching from API, using state data:", error);
-        initializeForm();
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchRecipeData();
+  // Use contribution data from navigation state
+  if (contribution) {
+    console.log("📝 Loading contribution data:", contribution);
+    
+      const p = contribution.payload || contribution;
+      setForm({
+        name: p.name || p.foodName || p.title || "",
+        origin: p.origin || p.culturalOrigin || "",
+        difficulty: p.difficulty || "Easy",
+        prepTime: p.prepTime ?? "",
+        cookTime: p.cookTime ?? "",
+        servings: p.servings ?? "",
+        imageData: p.imageData || p.image || "",
+        description: p.description || "",
+        ingredients: Array.isArray(p.ingredients) ? p.ingredients.join('\n') : (p.ingredients || ""),
+        instructions: Array.isArray(p.instructions) ? p.instructions.join('\n') : (p.instructions || ""),
+        funFact: p.funFact || p.DidYouKnow || "",
+        chefTips: p.chefTips || "",
+        dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
+        category: p.category || "Poultry",
+      });
+      
+      setItem({
+        ...contribution,
+        feedback: contribution.adminFeedback || contribution.feedback || ""
+      });
+      
+      setIsLoading(false);
     }
-  }, [id]);
+  }, [contribution]); 
 
   const onChangeForm = (e) => {
     const { name, value } = e.target;
