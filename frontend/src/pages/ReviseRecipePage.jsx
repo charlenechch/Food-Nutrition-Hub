@@ -51,7 +51,7 @@ export default function ReviseRecipePage() {
     imageData: "", description: "", ingredients: "",
     instructions: "", funFact: "", chefTips: "",
     dietaryTags: [],
-    foodType: [],
+    category: [],
   });
 
   const [infoDlg, setInfoDlg] = useState({
@@ -109,7 +109,7 @@ export default function ReviseRecipePage() {
           chefTips: p.chefTips || "",
           dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
           otherDietEnabled: false, otherDietText: "",
-          foodType: p.foodType || "Poultry",
+          category: p.category || "Poultry",
           otherFoodEnabled: false, otherFoodText: "",
         };
 
@@ -153,7 +153,6 @@ export default function ReviseRecipePage() {
           funFact: recipeData.funFact || recipeData.DidYouKnow || "",
           chefTips: recipeData.chefTips || "",
           dietaryTags: Array.isArray(recipeData.dietaryTags) ? recipeData.dietaryTags : [],
-          foodType: recipeData.foodType || "",
           category: recipeData.category || "",
           status: recipeData.status || "Pending"
         }));
@@ -188,12 +187,12 @@ export default function ReviseRecipePage() {
     });
   };
 
-  const toggleFoodType = (tag) => {
+  const toggleCategory = (tag) => {
     setForm(prev => {
-      const exists = prev.foodType.includes(tag);
+      const exists = prev.category.includes(tag);
       return {
         ...prev,
-        foodType: exists ? prev.foodType.filter(t => t !== tag) : [...prev.foodType, tag],
+        category: exists ? prev.category.filter(t => t !== tag) : [...prev.category, tag],
       };
     });
   };
@@ -219,7 +218,7 @@ export default function ReviseRecipePage() {
         cookTime: parseInt(form.cookTime) || 0,
         servings: parseInt(form.servings) || 1,
         image: form.imageData, description: form.description,
-        foodType: form.foodType, dietaryTags: form.dietaryTags,
+        category: form.category, dietaryTags: form.dietaryTags,
         ingredients: form.ingredients, instructions: form.instructions,
         funFact: form.funFact, chefTips: form.chefTips, status: "Pending"
       };
@@ -403,14 +402,14 @@ export default function ReviseRecipePage() {
               </div>
 
               <div className="rp-field">
-                <label>{t("reviseRecipe.foodTypeLabel")}</label>
+                <label>{t("reviseRecipe.categoryLabel")}</label>
                 <div className="rp-diet-grid">
                   {FOOD_TYPE_OPTIONS.map(tag => (
                     <label key={tag} className="rp-diet-item">
                       <input
                         type="checkbox"
-                        checked={form.foodType.includes(tag)}
-                        onChange={() => toggleFoodType(tag)}
+                        checked={form.category.includes(tag)}
+                        onChange={() => toggleCategory(tag)}
                       />
                       <span>{tag}</span>
                     </label>
