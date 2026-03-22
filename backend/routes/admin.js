@@ -758,4 +758,64 @@ router.post("/users", requireAdmin, async (req, res) => {
     }
 });
 
+// Send System Announcement
+router.post("/announcement", requireAdmin, async (req, res) => {
+    try {
+        const { userIds, emails, subject, message, sendEmail: shouldSendEmail } = req.body;
+
+        if (!subject?.trim() || !message?.trim()) {
+            return res.status(400).json({ success: false, message: "Subject and message are required." });
+        }
+
+        if (!userIds || userIds.length === 0) {
+            return res.status(400).json({ success: false, message: "No recipients selected." });
+        }
+
+        // Always create in-app notifications for all selected users
+        const notifPromises = userIds.map(userID =>
+            createNotification(userID, "announcement", `${subject}: ${message}`, db)
+        );
+        await Promise.all(notifPromises);
+        console.log(`🔔 Announcement notifications created for ${userIds.length} users.`);
+
+        // Optionally send emails if "Also send as email" is checked
+        if (shouldSendEmail && emails && emails.length > 0) {
+            const announcementHTML = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                <div style="background-color: #8B4513; padding: 20px; text-align: center;">
+                  <h1 style="color: #fff; margin: 0;">SarawakEats Announcement</h1>
+                </div>
+                <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+                  <h2 style="color: #8B4513;">${subject}</h2>
+                  <p style="white-space: pre-line;">${message}</p>
+                  <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                    Best regards,<br>The SarawakEats Team
+                  </p>
+                </div>
+              </div>
+            `;
+
+            const emailPromises = emails.map(email =>
+                sendEmail({
+                    to: email,
+                    subject: subject,
+                    html: announcementHTML,
+                    text: message
+                })
+            );
+            await Promise.all(emailPromises);
+            console.log(`📩 Announcement emails sent to ${emails.length} recipients.`);
+        }
+
+        return res.json({
+            success: true,
+            message: `Announcement sent to ${userIds.length} users.${shouldSendEmail ? ` Emails sent to ${emails?.length || 0} recipients.` : ""}`
+        });
+
+    } catch (error) {
+        console.error("❌ Announcement error:", error);
+        return res.status(500).json({ success: false, message: "Failed to send announcement." });
+    }
+});
+
 module.exports = router;

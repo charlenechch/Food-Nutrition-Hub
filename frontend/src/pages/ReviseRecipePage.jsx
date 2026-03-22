@@ -51,7 +51,7 @@ export default function ReviseRecipePage() {
     imageData: "", description: "", ingredients: "",
     instructions: "", funFact: "", chefTips: "",
     dietaryTags: [],
-    foodType: [],
+    category: [],
   });
 
   const [infoDlg, setInfoDlg] = useState({
@@ -84,94 +84,68 @@ export default function ReviseRecipePage() {
   }, []);
 
   useEffect(() => {
-    const initializeForm = () => {
-      if (contribution) {
-        console.log("📝 Using state contribution:", contribution);
-
-        setItem({
-          ...contribution,
-          feedback: contribution.adminFeedback || contribution.feedback || ""
-        });
-
-        const p = contribution.payload || contribution;
-        const initialForm = {
-          name: p.name || p.title || "",
-          origin: p.origin || "",
-          difficulty: p.difficulty || "Easy",
-          prepTime: p.prepTime ?? "",
-          cookTime: p.cookTime ?? "",
-          servings: p.servings ?? "",
-          imageData: p.imageData || p.image || "",
-          description: p.description || "",
-          ingredients: Array.isArray(p.ingredients) ? p.ingredients.join('\n') : (p.ingredients || ""),
-          instructions: Array.isArray(p.instructions) ? p.instructions.join('\n') : (p.instructions || ""),
-          funFact: p.funFact || p.DidYouKnow || "",
-          chefTips: p.chefTips || "",
-          dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
-          otherDietEnabled: false, otherDietText: "",
-          foodType: p.foodType || "Poultry",
-          otherFoodEnabled: false, otherFoodText: "",
-        };
-
-        setForm(initialForm);
-        setIsLoading(false);
-      }
-    };
-
-    const fetchRecipeData = async () => {
-      try {
-        const recipeId = id;
-        console.log("🎯 Using recipe ID from URL:", recipeId);
-
-        if (!recipeId) throw new Error("No recipe ID provided in URL");
-
-        const response = await fetch(`${API_BASE_URL}/api/recipe/recipes/${recipeId}`);
-
-        if (!response.ok) throw new Error(`Failed to fetch recipe: ${response.status}`);
-
-        const recipeData = await response.json();
-        console.log("✅ Recipe data received:", recipeData);
-
-        setItem(prev => ({
-          ...prev, ...recipeData, id: recipeId,
-          feedback: recipeData.adminFeedback || recipeData.feedback || prev?.feedback || "",
-          fieldsWithIssues: recipeData.fieldsWithIssues || prev?.fieldsWithIssues || []
-        }));
-
-        setForm(prev => ({
-          ...prev,
-          name: recipeData.name || "",
-          origin: recipeData.origin || "",
-          difficulty: recipeData.difficulty || "Easy",
-          prepTime: recipeData.prepTime ?? "",
-          cookTime: recipeData.cookTime ?? "",
-          servings: recipeData.servings ?? "",
-          imageData: recipeData.image || "",
-          description: recipeData.description || "",
-          ingredients: recipeData.ingredients || "",
-          instructions: recipeData.instructions || "",
-          funFact: recipeData.funFact || recipeData.DidYouKnow || "",
-          chefTips: recipeData.chefTips || "",
-          dietaryTags: Array.isArray(recipeData.dietaryTags) ? recipeData.dietaryTags : [],
-          foodType: recipeData.foodType || "",
-          category: recipeData.category || "",
-          status: recipeData.status || "Pending"
-        }));
-
-      } catch (error) {
-        console.error("❌ Error fetching from API, using state data:", error);
-        initializeForm();
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (contribution) {
-      initializeForm();
-    } else {
-      fetchRecipeData();
+  if (contribution) {
+    console.log("📝 Loading contribution data:", contribution);
+    
+    const p = contribution.payload || contribution;
+    
+    // Handle image - could be array or string
+    let imageValue = "";
+    if (p.images && Array.isArray(p.images) && p.images.length > 0) {
+      imageValue = p.images[0]; 
+    } else if (p.imageData) {
+      imageValue = p.imageData;
+    } else if (p.image) {
+      imageValue = p.image;
     }
-  }, [id, contribution]);
+    
+    // Handle dietary tags
+    let dietaryTagsValue = [];
+    if (p.dietaryTags) {
+      if (Array.isArray(p.dietaryTags)) {
+        dietaryTagsValue = p.dietaryTags;
+      } else if (typeof p.dietaryTags === 'string') {
+        dietaryTagsValue = p.dietaryTags.split(',').map(tag => tag.trim());
+      }
+    }
+    
+    // Handle category
+    let categoryValue = [];
+    if (p.category) {
+      if (Array.isArray(p.category)) {
+        categoryValue = p.category;
+      } else if (typeof p.category === 'string') {
+        categoryValue = [p.category];
+      }
+    } else {
+      categoryValue = ["Poultry"];
+    }
+    
+    setForm({
+      name: p.name || p.foodName || p.title || "",
+      origin: p.origin || p.culturalOrigin || "",
+      difficulty: p.difficulty || "Easy",
+      prepTime: p.prepTime ?? "",
+      cookTime: p.cookTime ?? "",
+      servings: p.servings ?? "",
+      imageData: imageValue, 
+      description: p.description || "",
+      ingredients: Array.isArray(p.ingredients) ? p.ingredients.join('\n') : (p.ingredients || ""),
+      instructions: Array.isArray(p.instructions) ? p.instructions.join('\n') : (p.instructions || ""),
+      funFact: p.funFact || p.DidYouKnow || "",
+      chefTips: p.chefTips || "",
+      dietaryTags: dietaryTagsValue,
+      category: categoryValue,
+    });
+    
+    setItem({
+      ...contribution,
+      feedback: contribution.adminFeedback || contribution.feedback || ""
+    });
+    
+    setIsLoading(false);
+  }
+}, [contribution]); 
 
   const onChangeForm = (e) => {
     const { name, value } = e.target;
@@ -188,12 +162,12 @@ export default function ReviseRecipePage() {
     });
   };
 
-  const toggleFoodType = (tag) => {
+  const toggleCategory = (tag) => {
     setForm(prev => {
-      const exists = prev.foodType.includes(tag);
+      const exists = prev.category.includes(tag);
       return {
         ...prev,
-        foodType: exists ? prev.foodType.filter(t => t !== tag) : [...prev.foodType, tag],
+        category: exists ? prev.category.filter(t => t !== tag) : [...prev.category, tag],
       };
     });
   };
@@ -219,7 +193,7 @@ export default function ReviseRecipePage() {
         cookTime: parseInt(form.cookTime) || 0,
         servings: parseInt(form.servings) || 1,
         image: form.imageData, description: form.description,
-        foodType: form.foodType, dietaryTags: form.dietaryTags,
+        category: form.category, dietaryTags: form.dietaryTags,
         ingredients: form.ingredients, instructions: form.instructions,
         funFact: form.funFact, chefTips: form.chefTips, status: "Pending"
       };
@@ -403,14 +377,14 @@ export default function ReviseRecipePage() {
               </div>
 
               <div className="rp-field">
-                <label>{t("reviseRecipe.foodTypeLabel")}</label>
+                <label>{t("reviseRecipe.categoryLabel")}</label>
                 <div className="rp-diet-grid">
                   {FOOD_TYPE_OPTIONS.map(tag => (
                     <label key={tag} className="rp-diet-item">
                       <input
                         type="checkbox"
-                        checked={form.foodType.includes(tag)}
-                        onChange={() => toggleFoodType(tag)}
+                        checked={form.category.includes(tag)}
+                        onChange={() => toggleCategory(tag)}
                       />
                       <span>{tag}</span>
                     </label>

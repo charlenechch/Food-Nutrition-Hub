@@ -28,6 +28,7 @@ export default function AdminSystemSettings({
     const { t } = useTranslation();
     const navigate = useNavigate();
     const [emailEnabled, setEmailEnabled] = useState(true);
+    const [fetchedUsers, setFetchedUsers] = useState([]);
     const platformName = "SarawakEats";
     const platformemail = "info@sarawakeats.com";
 
@@ -55,31 +56,43 @@ export default function AdminSystemSettings({
         "Maintenance Notice": {
             subject: "Scheduled Maintenance Notice",
             message:
-                `Hello,\n\nWe will perform scheduled maintenance from <Date>, <Time> to <Date>, <Time>. ${platformName} may be unavailable during this time.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWe will perform scheduled maintenance from <Date>, <Time> to <Date>, <Time>. ${platformName} may be unavailable during this time.\n\nThanks,\nSarawakEats Admin`,
         },
         "Policy Update": {
             subject: "Platform Policy Update - {DATE}",
             message:
-                `Hello,\n\nWe've updated our community guidelines and privacy policy on {DATE}. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWe've updated our community guidelines and privacy policy on {DATE}. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSarawakEats Admin`,
         },
         "System Update": {
             subject: `${platformName} Platform Update - {DATE}`,
             message:
-                `Hello,\n\nWe've made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on {DATE}.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWe've made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on {DATE}.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
         },
         "Outage Resolved": {
             subject: `${platformName} Service Restored - {DATE}`,
             message:
-                `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on {DATE}.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on {DATE}.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
         },
     };
 
+    useEffect(() => {
+        const loadUsers = async () => {
+            try {
+                const res = await fetch(`${API_URL}/api/admin/users`, {
+                    credentials: "include",
+                });
+                const data = await res.json();
+                if (data.success) setFetchedUsers(data.users);
+            } catch (err) {
+                console.error("Failed to fetch users:", err);
+            }
+        };
+        loadUsers();
+    }, []);
+
     const allUsers = useMemo(
-        () => (users && users.length ? users : [
-            { id: 1, name: "Admin A", email: "admin.a@example.com", role: "Admin" },
-            { id: 2, name: "User A", email: "user.a@example.com", role: "User" },
-        ]),
-        [users]
+        () => fetchedUsers.length ? fetchedUsers : (users && users.length ? users : []),
+        [fetchedUsers, users]
     );
 
     const adminIds = allUsers.filter(u => u.role === "Admin").map(u => u.id);
@@ -436,7 +449,6 @@ export default function AdminSystemSettings({
             case "All users": return allUsers.length;
             case "Administrators only": return adminIds.length;
             case "Specific users": return sysEmailForm.selectedUserIds.length;
-            case "Custom Email Addresses": return parseCustomEmails(sysEmailForm.customEmails).length;
             default: return 0;
         }
     })();
@@ -576,7 +588,6 @@ export default function AdminSystemSettings({
                                     <option>{t("adminSettings.allUsers")}</option>
                                     <option>{t("adminSettings.administratorsOnly")}</option>
                                     <option>{t("adminSettings.specificUsers")}</option>
-                                    <option>{t("adminSettings.customEmailAddresses")}</option>
                                 </select>
 
                                 {/* Specific users */}
@@ -589,7 +600,9 @@ export default function AdminSystemSettings({
                                             onChange={(e) => setSysSpecificSearch(e.target.value)}
                                         />
                                         <div className="umg-specific-scroll">
-                                            {filteredSysUsers.length === 0 ? (
+                                            {!sysSpecificSearch.trim() ? (
+                                                <div className="umg-empty">Type to search for users</div>
+                                            ) : filteredSysUsers.length === 0 ? (
                                                 <div className="umg-empty">{t("adminSettings.noMatches")}</div>
                                             ) : (
                                                 filteredSysUsers.map(u => (
@@ -617,19 +630,6 @@ export default function AdminSystemSettings({
                                                 ))
                                             )}
                                         </div>
-                                    </div>
-                                )}
-
-                                {/* Custom emails */}
-                                {sysEmailForm.recipientsOption === "Custom Email Addresses" && (
-                                    <div className="umg-field">
-                                        <label className="umg-label">{t("adminSettings.enterEmailAddresses")}</label>
-                                        <textarea
-                                            className="umg-input umg-textarea"
-                                            placeholder={t("adminSettings.emailAddressesPlaceholder")}
-                                            value={sysEmailForm.customEmails}
-                                            onChange={(e) => setSysEmailForm({ ...sysEmailForm, customEmails: e.target.value })}
-                                        />
                                     </div>
                                 )}
 
@@ -702,7 +702,7 @@ export default function AdminSystemSettings({
                             </button>
                             <button
                                 className="umg-btn-primary"
-                                onClick={() => {
+                                onClick={async () => {
                                     if (!sysEmailForm.subject.trim() || !sysEmailForm.message.trim()) {
                                         setSysDialog({
                                             open: true,
@@ -715,33 +715,74 @@ export default function AdminSystemSettings({
                                         return;
                                     }
 
-                                    let recipients = [];
+                                    // Build recipient user IDs and emails based on selection
+                                    let selectedUsers = [];
                                     if (sysEmailForm.recipientsOption === "All users") {
-                                        recipients = allUsers.map(u => u.email);
+                                        selectedUsers = allUsers;
                                     } else if (sysEmailForm.recipientsOption === "Administrators only") {
-                                        recipients = allUsers.filter(u => u.role === "Admin").map(u => u.email);
+                                        selectedUsers = allUsers.filter(u => u.role === "Admin");
                                     } else if (sysEmailForm.recipientsOption === "Specific users") {
                                         const chosen = new Set(sysEmailForm.selectedUserIds);
-                                        recipients = allUsers.filter(u => chosen.has(u.id)).map(u => u.email);
-                                    } else if (sysEmailForm.recipientsOption === "Custom Email Addresses") {
-                                        recipients = parseCustomEmails(sysEmailForm.customEmails);
+                                        selectedUsers = allUsers.filter(u => chosen.has(u.id));
                                     }
 
-                                    console.log("SYSTEM SETTINGS SEND ▶", {
-                                        ...sysEmailForm,
-                                        recipients,
-                                        total: recipients.length,
-                                    });
+                                    const userIds = selectedUsers.map(u => u.id);
+                                    const emails = selectedUsers.map(u => u.email);
 
-                                    setShowSysEmailModal(false);
-                                    setSysDialog({
-                                        open: true,
-                                        title: t("adminSettings.announcementSent"),
-                                        message: t("adminSettings.announcementSentMsg", { count: recipients.length }),
-                                        icon: CheckIcon ? <CheckIcon /> : null,
-                                        primaryText: t("adminSettings.done"),
-                                        onPrimary: closeSysDialog,
-                                    });
+                                    if (userIds.length === 0 && emails.length === 0) {
+                                        setSysDialog({
+                                            open: true,
+                                            title: t("adminSettings.missingRequiredFields"),
+                                            message: t("adminSettings.provideSubjectAndMessage"),
+                                            icon: <AlertTriangle />,
+                                            primaryText: t("adminSettings.ok"),
+                                            onPrimary: closeSysDialog,
+                                        });
+                                        return;
+                                    }
+
+                                    try {
+                                        const csrfRes = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
+                                        const { csrfToken } = await csrfRes.json();
+
+                                        const res = await fetch(`${API_URL}/api/admin/announcement`, {
+                                            method: "POST",
+                                            headers: {
+                                                "Content-Type": "application/json",
+                                                "X-CSRF-Token": csrfToken,
+                                            },
+                                            credentials: "include",
+                                            body: JSON.stringify({
+                                                userIds,
+                                                emails,
+                                                subject: sysEmailForm.subject,
+                                                message: sysEmailForm.message,
+                                                sendEmail: sysEmailForm.markAnnouncement,
+                                            }),
+                                        });
+
+                                        const data = await res.json();
+
+                                        setShowSysEmailModal(false);
+                                        setSysDialog({
+                                            open: true,
+                                            title: t("adminSettings.announcementSent"),
+                                            message: data.message,
+                                            icon: CheckIcon ? <CheckIcon /> : null,
+                                            primaryText: t("adminSettings.done"),
+                                            onPrimary: closeSysDialog,
+                                        });
+                                    } catch (err) {
+                                        console.error("Failed to send announcement:", err);
+                                        setSysDialog({
+                                            open: true,
+                                            title: "Error",
+                                            message: "Failed to send announcement. Please try again.",
+                                            icon: <AlertTriangle />,
+                                            primaryText: t("adminSettings.ok"),
+                                            onPrimary: closeSysDialog,
+                                        });
+                                    }
                                 }}
                             >
                                 {t("adminSettings.sendEmail")}

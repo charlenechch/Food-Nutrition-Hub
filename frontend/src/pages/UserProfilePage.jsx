@@ -576,6 +576,7 @@ const ContributionRow = ({ c }) => {
             id: c.id,
             snapshot: JSON.parse(JSON.stringify(c)),
             contribution: c,
+            description: c.description || "",
             adminFeedback: c.adminFeedback || c.feedback,
             fieldsWithIssues: c.fieldsWithIssues || [],
           },
