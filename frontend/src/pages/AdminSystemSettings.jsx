@@ -56,22 +56,22 @@ export default function AdminSystemSettings({
         "Maintenance Notice": {
             subject: "Scheduled Maintenance Notice",
             message:
-                `Hello,\n\nWe will perform scheduled maintenance from <Date>, <Time> to <Date>, <Time>. ${platformName} may be unavailable during this time.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWe will perform scheduled maintenance from <Date>, <Time> to <Date>, <Time>. ${platformName} may be unavailable during this time.\n\nThanks,\nSarawakEats Admin`,
         },
         "Policy Update": {
             subject: "Platform Policy Update - {DATE}",
             message:
-                `Hello,\n\nWe've updated our community guidelines and privacy policy on {DATE}. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWe've updated our community guidelines and privacy policy on {DATE}. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSarawakEats Admin`,
         },
         "System Update": {
             subject: `${platformName} Platform Update - {DATE}`,
             message:
-                `Hello,\n\nWe've made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on {DATE}.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nWe've made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on {DATE}.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
         },
         "Outage Resolved": {
             subject: `${platformName} Service Restored - {DATE}`,
             message:
-                `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on {DATE}.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSystem Admin`,
+                `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on {DATE}.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
         },
     };
 
@@ -600,7 +600,9 @@ export default function AdminSystemSettings({
                                             onChange={(e) => setSysSpecificSearch(e.target.value)}
                                         />
                                         <div className="umg-specific-scroll">
-                                            {filteredSysUsers.length === 0 ? (
+                                            {!sysSpecificSearch.trim() ? (
+                                                <div className="umg-empty">Type to search for users</div>
+                                            ) : filteredSysUsers.length === 0 ? (
                                                 <div className="umg-empty">{t("adminSettings.noMatches")}</div>
                                             ) : (
                                                 filteredSysUsers.map(u => (
