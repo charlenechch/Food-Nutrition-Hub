@@ -402,21 +402,19 @@ export default function ReviseRecipePage() {
                 </div>
               </div>
 
-              <div className="rp-grid-2">
-                <div className="rp-field">
-                  <label>{t("reviseRecipe.foodTypeLabel")}</label>
-                  <div className="rp-diet-grid">
-                    {FOOD_TYPE_OPTIONS.map(tag => (
-                      <label key={tag} className="rp-diet-item">
-                        <input
-                          type="checkbox"
-                          checked={form.foodType.includes(tag)}
-                          onChange={() => toggleFoodType(tag)}
-                        />
-                        <span>{tag}</span>
-                      </label>
-                    ))}
-                  </div>
+              <div className="rp-field">
+                <label>{t("reviseRecipe.foodTypeLabel")}</label>
+                <div className="rp-diet-grid">
+                  {FOOD_TYPE_OPTIONS.map(tag => (
+                    <label key={tag} className="rp-diet-item">
+                      <input
+                        type="checkbox"
+                        checked={form.foodType.includes(tag)}
+                        onChange={() => toggleFoodType(tag)}
+                      />
+                      <span>{tag}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
