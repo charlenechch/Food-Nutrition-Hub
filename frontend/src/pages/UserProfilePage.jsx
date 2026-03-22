@@ -570,8 +570,7 @@ const ContributionRow = ({ c }) => {
 
     const handleRevise = () => {
       if (isRecipeItem) {
-        const recipeId = c.recipeID || c.id;
-        navigate(`/revise-recipe/${recipeId}`, {
+        navigate(`/revise/${c.id}`, {
           state: {
             owner: `${user.firstName} ${user.lastName}`,
             id: c.id,
