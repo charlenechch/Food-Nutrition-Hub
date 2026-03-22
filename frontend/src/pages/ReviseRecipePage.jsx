@@ -168,12 +168,10 @@ export default function ReviseRecipePage() {
       }
     };
 
-    if (contribution) {
-      initializeForm();
-    } else {
+    if (id) {
       fetchRecipeData();
     }
-  }, [id, contribution]);
+  }, [id]);
 
   const onChangeForm = (e) => {
     const { name, value } = e.target;
