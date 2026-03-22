@@ -31,6 +31,11 @@ const DIET_OPTIONS = [
   "halal", "low-fat", "high-protein", "spicy",
 ];
 
+const FOOD_TYPE_OPTIONS = [
+  "Poultry", "Seafood", "Vegetables", "Fermented", 
+  "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"
+];
+
 export default function ReviseRecipePage() {
   const { t } = useTranslation();
   const { id } = useParams();
@@ -45,8 +50,8 @@ export default function ReviseRecipePage() {
     prepTime: "", cookTime: "", servings: "",
     imageData: "", description: "", ingredients: "",
     instructions: "", funFact: "", chefTips: "",
-    dietaryTags: [], otherDietEnabled: false, otherDietText: "",
-    foodType: "Poultry", otherFoodEnabled: false, otherFoodText: "",
+    dietaryTags: [],
+    category: [],
   });
 
   const [infoDlg, setInfoDlg] = useState({
@@ -104,7 +109,7 @@ export default function ReviseRecipePage() {
           chefTips: p.chefTips || "",
           dietaryTags: Array.isArray(p.dietaryTags) ? p.dietaryTags : [],
           otherDietEnabled: false, otherDietText: "",
-          foodType: p.foodType || "Poultry",
+          category: p.category || "Poultry",
           otherFoodEnabled: false, otherFoodText: "",
         };
 
@@ -148,7 +153,6 @@ export default function ReviseRecipePage() {
           funFact: recipeData.funFact || recipeData.DidYouKnow || "",
           chefTips: recipeData.chefTips || "",
           dietaryTags: Array.isArray(recipeData.dietaryTags) ? recipeData.dietaryTags : [],
-          foodType: recipeData.foodType || "",
           category: recipeData.category || "",
           status: recipeData.status || "Pending"
         }));
@@ -183,6 +187,16 @@ export default function ReviseRecipePage() {
     });
   };
 
+  const toggleCategory = (tag) => {
+    setForm(prev => {
+      const exists = prev.category.includes(tag);
+      return {
+        ...prev,
+        category: exists ? prev.category.filter(t => t !== tag) : [...prev.category, tag],
+      };
+    });
+  };
+
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -204,7 +218,7 @@ export default function ReviseRecipePage() {
         cookTime: parseInt(form.cookTime) || 0,
         servings: parseInt(form.servings) || 1,
         image: form.imageData, description: form.description,
-        foodType: form.foodType, dietaryTags: form.dietaryTags,
+        category: form.category, dietaryTags: form.dietaryTags,
         ingredients: form.ingredients, instructions: form.instructions,
         funFact: form.funFact, chefTips: form.chefTips, status: "Pending"
       };
@@ -387,39 +401,20 @@ export default function ReviseRecipePage() {
                 </div>
               </div>
 
-              <div className="rp-grid-2">
-                <div className="rp-field">
-                  <label>{t("reviseRecipe.foodTypeLabel")}</label>
-                  <select
-                    name="foodType"
-                    value={form.foodType}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (v === "__other__") {
-                        setForm(prev => ({ ...prev, foodType: v, otherFoodEnabled: true }));
-                      } else {
-                        setForm(prev => ({ ...prev, foodType: v, otherFoodEnabled: false, otherFoodText: "" }));
-                      }
-                    }}
-                  >
-                    {["Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"].map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                    <option value="__other__">{t("reviseRecipe.otherOption")}</option>
-                  </select>
+              <div className="rp-field">
+                <label>{t("reviseRecipe.categoryLabel")}</label>
+                <div className="rp-diet-grid">
+                  {FOOD_TYPE_OPTIONS.map(tag => (
+                    <label key={tag} className="rp-diet-item">
+                      <input
+                        type="checkbox"
+                        checked={form.category.includes(tag)}
+                        onChange={() => toggleCategory(tag)}
+                      />
+                      <span>{tag}</span>
+                    </label>
+                  ))}
                 </div>
-
-                {form.otherFoodEnabled && (
-                  <div className="rp-field">
-                    <label>{t("reviseRecipe.specifyFoodTypeLabel")}</label>
-                    <input
-                      type="text"
-                      placeholder={t("reviseRecipe.specifyFoodTypePlaceholder")}
-                      value={form.otherFoodText}
-                      onChange={(e) => setForm(prev => ({ ...prev, otherFoodText: e.target.value }))}
-                    />
-                  </div>
-                )}
               </div>
 
               <div className="rp-grid-2">
@@ -507,27 +502,6 @@ export default function ReviseRecipePage() {
                       <span>{tag.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase())}</span>
                     </label>
                   ))}
-                </div>
-
-                <div className="rp-diet-other">
-                  <label className="rp-diet-item">
-                    <input
-                      type="checkbox"
-                      checked={form.otherDietEnabled}
-                      onChange={(e) => setForm(prev => ({ ...prev, otherDietEnabled: e.target.checked }))}
-                    />
-                    <span>{t("reviseRecipe.otherDiet")}</span>
-                  </label>
-
-                  {form.otherDietEnabled && (
-                    <input
-                      className="rp-input rp-input--sm"
-                      type="text"
-                      placeholder={t("reviseRecipe.otherDietPlaceholder")}
-                      value={form.otherDietText}
-                      onChange={(e) => setForm(prev => ({ ...prev, otherDietText: e.target.value }))}
-                    />
-                  )}
                 </div>
               </div>
 
