@@ -25,25 +25,21 @@ const parseDietaryTags = (raw) => {
 
 router.get("/", async (req, res) => {
   try {
-    // 1. Changed to LEFT JOIN so foods show up even without recipes
-    // 2. Added WHERE f.foodID NOT IN to explicitly block user-created placeholder foods
+    // Pick exactly one approved recipe per food (lowest recipeID; change ORDER BY as needed)
     const [rows] = await db.query(`
       SELECT f.*,
              COALESCE(r.servings, 1) AS servings
       FROM food f
-      LEFT JOIN (
-        SELECT foodID, servings,
-               ROW_NUMBER() OVER (PARTITION BY foodID ORDER BY recipeID) AS rn
-        FROM recipe
-        WHERE status = 'Approved'
-      ) r ON r.foodID = f.foodID AND r.rn = 1
-      WHERE f.foodID NOT IN (
-          SELECT r2.foodID 
-          FROM recipe r2
-          JOIN userProfile up ON r2.userProfileID = up.userProfileID
-          JOIN user u ON up.userID = u.userID
-          WHERE u.role != 'admin'
-      )
+      INNER JOIN (
+        SELECT *
+        FROM (
+          SELECT r.*,
+                 ROW_NUMBER() OVER (PARTITION BY r.foodID ORDER BY r.recipeID) AS rn
+          FROM recipe r
+          WHERE r.status = 'Approved'
+        ) t
+        WHERE t.rn = 1
+      ) r ON r.foodID = f.foodID
     `);
 
     const result = rows.map((r) => {
