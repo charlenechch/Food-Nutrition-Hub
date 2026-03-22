@@ -21,6 +21,11 @@ function saveUsers(obj) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(obj)); } catch {}
 }
 
+const ORIGIN_OPTIONS = [
+  "Malay", "Chinese", "Iban", "Melanau", 
+  "Kadazan", "Bidayuh", "Dayak"
+];
+
 const DIET_OPTIONS = [
   "gluten-free", "dairy-free", "vegetarian", "vegan",
   "halal", "low-fat", "high-protein", "spicy",
@@ -346,7 +351,19 @@ export default function ReviseRecipePage() {
                 </div>
                 <div className={`rp-field ${needsFix.has("origin") ? "needs-fix" : ""}`}>
                   <label>{t("reviseRecipe.originLabel")}</label>
-                  <input name="origin" value={form.origin} onChange={onChangeForm} placeholder={t("reviseRecipe.originPlaceholder")} required />
+                  <select 
+                    name="origin" 
+                    value={form.origin} 
+                    onChange={onChangeForm} 
+                    required
+                  >
+                    <option value="" disabled>
+                      {t("reviseRecipe.originPlaceholder", "Select Origin")}
+                    </option>
+                    {ORIGIN_OPTIONS.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
                   {needsFix.has("origin") && <div className="field-issue-hint">{t("reviseRecipe.reviewAndCorrect")}</div>}
                 </div>
               </div>
