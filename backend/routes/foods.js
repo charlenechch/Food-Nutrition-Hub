@@ -68,7 +68,13 @@ router.post(
 // Get total food count
 router.get("/count", async (req, res) => {
   try {
-    const [result] = await db.query("SELECT COUNT(*) AS total FROM food");
+    const query = `
+      SELECT COUNT(DISTINCT f.foodID) AS total 
+      FROM food f
+      LEFT JOIN recipe r ON f.foodID = r.foodID
+      WHERE r.status = 'Approved' OR r.status IS NULL
+    `;
+    const [result] = await db.query(query);
     res.json({ success: true, total: result[0].total });
   } catch (err) {
     console.error("❌ Count foods error:", err.message);
@@ -76,16 +82,14 @@ router.get("/count", async (req, res) => {
   }
 });
 
-// ✅ UPDATED: Get all foods (Filtered by Approval Status)
+// ✅ UPDATED: Get all foods (Filtered by Approval Status and Deduplicated)
 router.get("/", async (req, res) => {
   try {
-    // We join 'recipe' to check the status.
-    // Logic: Show the food IF (status is 'Approved') OR (status is NULL, meaning it's not a recipe)
     const query = `
-      SELECT f.*, r.status
-      FROM food f
+      SELECT f.* FROM food f
       LEFT JOIN recipe r ON f.foodID = r.foodID
       WHERE r.status = 'Approved' OR r.status IS NULL
+      GROUP BY f.foodID
       ORDER BY f.name ASC
     `;
 
