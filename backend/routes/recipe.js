@@ -770,7 +770,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
   console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
 
   try {
-    const { id } = req.params; 
+    const { recipeId } = req.params; 
     const {
       name, origin, difficulty, prepTime, image, description,
       category, dietaryTags, cookTime, servings, ingredients,
@@ -872,7 +872,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
       prepTime || 0,
       finalImage,
       description || '',
-      category || 'Other',
+      Array.isArray(category) ? category.join(', ') : (category || 'Other'),
       Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
       foodID  
     ];
@@ -891,7 +891,8 @@ router.put('/revise/recipes/:id', async (req, res) => {
         DidYouKnow = ?, 
         chefTips = ?, 
         status = ?,
-        description = ?
+        description = ?,
+        updatedAt = CURRENT_TIMESTAMP
       WHERE recipeID = ? AND userProfileID = ?
     `;
     const recipeParams = [
@@ -903,7 +904,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
       chefTips || '',
       status || 'Pending',
       description || '',
-      id,  // ✅ recipeID
+      recipeId,
       userProfileID
     ];
 
