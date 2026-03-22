@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import { useTranslation } from "react-i18next";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { FaArrowLeftLong } from "react-icons/fa6";
-import { FiSave } from "react-icons/fi";
+import { FiSave, FiPlus, FiCheck } from "react-icons/fi";
 
 // Get the API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -26,6 +26,8 @@ const FOOD_TYPE_OPTIONS = [
   "Poultry", "Seafood", "Vegetables", "Fermented", 
   "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"
 ];
+
+const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"];
 
 const DIETARY_TAG_OPTIONS = [
   "Vegetarian", "Vegan", "Halal", "Gluten Free", 
@@ -107,6 +109,14 @@ const EditFoodPage = () => {
             didYouKnow: data.data.didYouKnow || "",
             healthTips: data.data.healthTips || "",
             image: data.data.image || "",
+            difficulty: data.data.difficulty || "Medium",
+            prepTime: data.data.prepTime || "",
+            cookTime: data.data.cookTime || "",
+            servings: data.data.servings || "1",
+            ingredients: data.data.ingredients || "",
+            steps: data.data.steps || "",
+            recipeDescription: data.data.recipeDescription || "",
+            chefTips: data.data.chefTips || "",
           });
 
           if (data.data.dietaryTags) {
@@ -309,7 +319,15 @@ const EditFoodPage = () => {
       image: finalImageUrl,
       commonIngredients: ingredientsString,
       dietaryTags: dietaryString, 
-      healthTips: food.healthTips
+      healthTips: food.healthTips,
+      difficulty: food.difficulty,
+      prepTime: food.prepTime || "0",
+      cookTime: food.cookTime || "0",
+      servings: food.servings || "1",
+      ingredients: food.ingredients,
+      steps: food.steps,
+      recipeDescription: food.recipeDescription,
+      chefTips: food.chefTips
     };
 
     try {
@@ -480,13 +498,28 @@ const EditFoodPage = () => {
               </div>
 
               <div className="edit-food-basic-info-two-col efpage-basic-info">
-                <div>
+              <div>
                   <label className="basic-info-label">{t("addFood.alternativeName")}</label>
-                  <input className="edit-food-input" name="alternative" value={food.alternative} onChange={handleChange} />
+                  <textarea className="edit-food-textarea resizable-field" name="alternative" value={food.alternative} onChange={handleChange} rows={1} />
                 </div>
                 <div>
                   <label className="basic-info-label">{t("addFood.altDescription")}</label>
-                  <input className="edit-food-input" name="altDescription" value={food.altDescription} onChange={handleChange} />
+                  <textarea className="edit-food-textarea resizable-field" name="altDescription" value={food.altDescription} onChange={handleChange} rows={1} />
+                </div>
+              </div>
+
+              {/* Origin */}
+              <div className="food-origin-field">
+                <label className="basic-info-label">{t("editFood.regionOfOrigin")}</label>
+                <div className="custom-select-wrapper">
+                  <select className="edit-food-select" name="origin" value={food.origin} onChange={handleChange}>
+                    <option value="">{t("editFood.selectOrigin")}</option>
+                    {ORIGIN_OPTIONS.map((origin) => (
+                      <option key={origin} value={origin}>
+                        {origin}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -512,22 +545,54 @@ const EditFoodPage = () => {
                   })}
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Origin */}
-              <div className="food-origin-field">
-                <label className="basic-info-label">{t("editFood.regionOfOrigin")}</label>
+          <div className="edit-cultural-context-card">
+            <h3>{t("addFood.recipeDetails")}</h3>
+            
+            <div className="edit-food-basic-info-two-col">
+              <div>
+                <label className="basic-info-label">{t("addFood.difficultyLevel")}</label>
                 <div className="custom-select-wrapper">
-                  <select className="edit-food-select" name="origin" value={food.origin} onChange={handleChange}>
-                    <option value="">{t("editFood.selectOrigin")}</option>
-                    {ORIGIN_OPTIONS.map((origin) => (
-                      <option key={origin} value={origin}>
-                        {origin}
-                      </option>
+                  <select className="edit-food-select" name="difficulty" value={food.difficulty} onChange={handleChange}>
+                    {DIFFICULTY_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
                     ))}
                   </select>
                 </div>
               </div>
+              <div>
+                <label className="basic-info-label">{t("addFood.servings")}</label>
+                <input type="number" className="edit-food-input" name="servings" value={food.servings} onChange={handleChange} placeholder={t("addFood.servingsPlace")} />
+              </div>
             </div>
+
+            <div className="edit-food-basic-info-two-col">
+              <div>
+                <label className="basic-info-label">{t("addFood.prepTime")}</label>
+                <input type="number" className="edit-food-input" name="prepTime" value={food.prepTime} onChange={handleChange} placeholder={t("addFood.prepTimePlace")} />
+              </div>
+              <div>
+                <label className="basic-info-label">{t("addFood.cookTime")}</label>
+                <input type="number" className="edit-food-input" name="cookTime" value={food.cookTime} onChange={handleChange} placeholder={t("addFood.cookTimePlace")} />
+              </div>
+            </div>
+
+            <label className="basic-info-label">{t("addFood.ingredientsList")}</label>
+            <textarea className="edit-food-textarea" name="ingredients" value={food.ingredients} onChange={handleChange} rows={5} placeholder={t("addFood.ingredientsListPlace")} />
+
+            <label className="basic-info-label">{t("addFood.stepsList")}</label>
+            <textarea className="edit-food-textarea" name="steps" value={food.steps} onChange={handleChange} rows={6} placeholder={t("addFood.stepsListPlace")} />
+
+            <label className="basic-info-label">{t("addFood.recipeDescription")}</label>
+            <textarea className="edit-food-textarea" name="recipeDescription" value={food.recipeDescription} onChange={handleChange} rows={6} placeholder={t("addFood.recipeDescriptionPlace")} />
+
+            <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
+            <textarea className="edit-food-textarea" name="didYouKnow" value={food.didYouKnow} onChange={handleChange} rows={2} placeholder={t("addFood.didYouKnowPlace")} />
+            
+            <label className="basic-info-label">{t("addFood.chefTips")}</label>
+            <textarea className="edit-food-textarea" name="chefTips" value={food.chefTips} onChange={handleChange} rows={3} placeholder={t("addFood.chefTipsPlace")} />
           </div>
 
           {/* Cultural Context */}
@@ -560,9 +625,6 @@ const EditFoodPage = () => {
               placeholder={t("editFood.traditionalPreparationPlaceholder")}
               rows={5}
             />
-
-            <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
-            <textarea className="edit-food-textarea" name="didYouKnow" value={food.didYouKnow} onChange={handleChange} rows={2} />
           </div>
 
           {/* Nutritional Info */}
@@ -600,11 +662,13 @@ const EditFoodPage = () => {
                 return (
                   <button key={ing} type="button" style={getChipStyle(isSelected)} onClick={() => toggleIngredient(ing)}>
                     {ing}
+                    {isSelected && <FiPlus style={{transform: 'rotate(45deg)'}} />}
                   </button>
                 );
               })}
               <button type="button" style={getChipStyle(showOtherIngredient)} onClick={() => setShowOtherIngredient(!showOtherIngredient)}>
                 {t("addFood.other")}
+                {showOtherIngredient && <FiCheck />}
               </button>
             </div>
 
@@ -622,6 +686,7 @@ const EditFoodPage = () => {
                 return (
                   <button key={tag} type="button" style={getChipStyle(isSelected)} onClick={() => toggleDietary(tag)}>
                     {tag}
+                    {isSelected && <FiCheck />}
                   </button>
                 );
               })}
