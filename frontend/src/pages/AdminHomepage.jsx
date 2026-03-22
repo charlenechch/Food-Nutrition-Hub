@@ -52,7 +52,11 @@ const AdminDashboard = () => {
     totalFoods: 0,
     totalUsers: 0,
     pendingApproval: 0,
+    pendingRecipes: 0, // Added breakdown state
+    pendingPosts: 0,   // Added breakdown state
     flaggedContent: 0,
+    rejectedRecipes: 0, // Added breakdown state
+    rejectedPosts: 0,   // Added breakdown state
   });
 
   const [foodData, setFoodData] = useState([]);
@@ -193,7 +197,7 @@ const AdminDashboard = () => {
   }, []);
 
   // ========================================================
-  // Summary calculation
+  // Summary calculation (UPDATED WITH BREAKDOWNS)
   // ========================================================
   useEffect(() => {
     const pendingRecipeCount = recipes.filter(r => (r.status || "").toLowerCase() === "pending").length;
@@ -204,8 +208,12 @@ const AdminDashboard = () => {
     setSummary((prev) => ({
       ...prev,
       pendingApproval: pendingRecipeCount + pendingPostCount,
+      pendingRecipes: pendingRecipeCount,
+      pendingPosts: pendingPostCount,
       totalUsers: userList.length,
       flaggedContent: rejectedRecipeCount + rejectedPostCount,
+      rejectedRecipes: rejectedRecipeCount,
+      rejectedPosts: rejectedPostCount,
     }));
     
     console.log(`[Dashboard] Summary Calculated: Pending: ${pendingRecipeCount + pendingPostCount}, Rejected: ${rejectedRecipeCount + rejectedPostCount}`);
@@ -296,29 +304,46 @@ const AdminDashboard = () => {
             <div className="summary-icon"><GoPeople /></div>
           </div>
 
+          {/* === MODIFIED PENDING APPROVAL CARD === */}
           <div 
             className="summary-card" 
             onClick={() => handleTabChange("moderation", "Pending")}
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "pointer", flexDirection: "column", alignItems: "stretch", gap: "10px" }}
           >
-            <div>
-              <h3>{t("adminHome.pendingApproval")}</h3>
-              <p>{summary.pendingApproval}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <h3>{t("adminHome.pendingApproval")}</h3>
+                <p>{summary.pendingApproval}</p>
+              </div>
+              <div className="summary-icon"><LuFileCheck /></div>
             </div>
-            <div className="summary-icon"><LuFileCheck /></div>
+            {/* Added Breakdown */}
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", color: "inherit", opacity: 0.8, borderTop: "1px solid rgba(0,0,0,0.1)", paddingTop: "8px", marginTop: "auto" }}>
+              <span>Posts: <strong>{summary.pendingPosts}</strong></span>
+              <span>Recipes: <strong>{summary.pendingRecipes}</strong></span>
+            </div>
           </div>
 
+          {/* === MODIFIED REJECTED CONTENT CARD === */}
           <div 
             className="summary-card"
             onClick={() => handleTabChange("moderation", "Rejected")}
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "pointer", flexDirection: "column", alignItems: "stretch", gap: "10px" }}
           >
-            <div>
-              <h3>{t("adminHome.rejectedContent")}</h3>
-              <p>{summary.flaggedContent}</p> 
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <h3>{t("adminHome.rejectedContent")}</h3>
+                <p>{summary.flaggedContent}</p> 
+              </div>
+              <div className="summary-icon"><FaRegFlag /></div>
             </div>
-            <div className="summary-icon"><FaRegFlag /></div>
+            {/* Added Breakdown */}
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", color: "inherit", opacity: 0.8, borderTop: "1px solid rgba(0,0,0,0.1)", paddingTop: "8px", marginTop: "auto" }}>
+              <span>Posts: <strong>{summary.rejectedPosts}</strong></span>
+              <span>Recipes: <strong>{summary.rejectedRecipes}</strong></span>
+            </div>
           </div>
+
         </div>
 
         {/* === Tab Navigation === */}
