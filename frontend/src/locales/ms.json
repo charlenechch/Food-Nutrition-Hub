@@ -1311,5 +1311,17 @@
     "exportSuccessful": "Eksport Berjaya",
     "exportSuccessfulMsg": "Laporan analitik berjaya dieksport sebagai {{format}}.",
     "ok": "OK"
+  },
+
+  "privacyPolicy": {
+    "back": "← Kembali",
+    "title": "Dasar Privasi",
+    "lastUpdated": "Tarikh Kemaskini: {{date}}"
+  },
+
+  "termsAndConditions": {
+    "back": "← Kembali",
+    "title": "Terma & Syarat",
+    "lastUpdated": "Tarikh Kemaskini: {{date}}"
   }
 }

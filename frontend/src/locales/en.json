@@ -1312,5 +1312,17 @@
     "exportSuccessful": "Export Successful",
     "exportSuccessfulMsg": "Analytics report exported successfully as {{format}}.",
     "ok": "OK"
+  },
+
+  "privacyPolicy": {
+    "back": "← Back",
+    "title": "Privacy Policy",
+    "lastUpdated": "Last Updated: {{date}}"
+  },
+
+  "termsAndConditions": {
+    "back": "← Back",
+    "title": "Terms & Conditions",
+    "lastUpdated": "Last Updated: {{date}}"
   }
 }   

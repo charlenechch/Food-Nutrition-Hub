@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Header from "../components/Header";
@@ -6,10 +6,20 @@ import Footer from "../components/Footer";
 import { FaArrowLeft } from "react-icons/fa";
 import "../css/TermsAndConditionsPage.css";
 import TermsAndConditionsContent from "../components/TermsAndConditionsContent";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function TermsAndConditionsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  const [policyDate, setPolicyDate] = useState("");
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/auth/policyversion`)
+      .then(res => res.json())
+      .then(data => setPolicyDate(data.lastUpdated))
+      .catch(() => setPolicyDate(""));
+  }, []);
 
   return (
     <div className="terms-page">
@@ -17,12 +27,12 @@ export default function TermsAndConditionsPage() {
 
       <div className="terms-content-wrapper">
         <button className="terms-back-btn" onClick={() => navigate(-1)}>
-          <FaArrowLeft /> Back
+          <FaArrowLeft /> {t("termsAndConditions.back")}
         </button>
 
-        <h1 className="terms-title">Terms & Conditions</h1>
+        <h1 className="terms-title">{t("termsAndConditions.title")}</h1>
 
-        <p className="terms-updated-text">Last Updated: 9th March 2026</p>
+        <p className="terms-updated-text">{t("termsAndConditions.lastUpdated", { date: policyDate })}</p>
 
         <TermsAndConditionsContent />
         
