@@ -456,7 +456,7 @@ export default function AdminSystemSettings({
                     {/* Content */}
                     <div className="admset-card-content">
 
-                        {/* Section 1: Email notifications switch */}
+                        {/* Section 1: Email notifications switch
                         <div className="admset-block">
                             <div className="admset-row between">
                                 <label htmlFor="admset-notif" className="admset-label">
@@ -475,6 +475,7 @@ export default function AdminSystemSettings({
                         </div>
 
                         <hr className="admset-sep" />
+                        */}
 
                         {/* Section 2: Communication */}
                         <div className="admset-block">
