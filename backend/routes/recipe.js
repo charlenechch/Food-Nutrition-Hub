@@ -299,8 +299,8 @@ try {
   const row = rows[0];
   
   const recipe = {
-    id: row.recipeId,  
-    foodId: row.foodId,
+    id: row.recipeID,  
+    foodId: row.foodID,
     name: row.name || '',
     origin: row.origin || '',
     difficulty: row.difficulty || 'Easy',
