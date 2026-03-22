@@ -614,7 +614,7 @@ export default function AdminSystemSettings({
                                         />
                                         <div className="umg-specific-scroll">
                                             {!sysSpecificSearch.trim() ? (
-                                                <div className="umg-empty">Type to search for users</div>
+                                                <div className="umg-empty">{t("adminSettings.typeToSearchUsers")}</div>
                                             ) : filteredSysUsers.length === 0 ? (
                                                 <div className="umg-empty">{t("adminSettings.noMatches")}</div>
                                             ) : (

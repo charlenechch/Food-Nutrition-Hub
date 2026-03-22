@@ -1257,6 +1257,7 @@
     "subjectPlaceholder": "Enter email subject",
     "message": "Message",
     "messagePlaceholder": "Enter your message",
+    "typeToSearchUsers": "Type to search for users",
     "markAsAnnouncement": "Also send as email",
     "announcementHint": "When checked, this announcement will also be sent as an email to all selected recipients, regardless of their email notification preferences. Only check this for important announcements.",
     "cancel": "Cancel",

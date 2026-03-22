@@ -1256,6 +1256,7 @@
     "subjectPlaceholder": "Masukkan subjek e-mel",
     "message": "Mesej",
     "messagePlaceholder": "Masukkan mesej anda",
+    "typeToSearchUsers": "Taip untuk mencari pengguna",
     "markAsAnnouncement": "Hantar juga sebagai e-mel",
     "announcementHint": "Jika ditanda, pengumuman ini akan dihantar sebagai e-mel kepada semua penerima yang dipilih, tanpa mengira tetapan pemberitahuan e-mel mereka. Hanya tandakan ini untuk pengumuman penting sahaja.",
     "cancel": "Batal",
