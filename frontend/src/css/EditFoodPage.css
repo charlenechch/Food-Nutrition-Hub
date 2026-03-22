@@ -715,7 +715,6 @@
 }
 
 @media screen and (max-width: 768px) {
-  
   .edit-food-basic-info-two-col {
     display: grid;
     grid-template-columns: 1fr; 
