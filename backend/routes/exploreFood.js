@@ -25,7 +25,8 @@ const parseDietaryTags = (raw) => {
 
 router.get("/", async (req, res) => {
   try {
-    // Pick exactly one approved recipe per food (lowest recipeID; change ORDER BY as needed)
+    // Pick exactly one approved recipe per food
+    // AND explicitly exclude foods that are just user-submitted recipes
     const [rows] = await db.query(`
       SELECT f.*,
              COALESCE(r.servings, 1) AS servings
@@ -40,6 +41,12 @@ router.get("/", async (req, res) => {
         ) t
         WHERE t.rn = 1
       ) r ON r.foodID = f.foodID
+      WHERE NOT EXISTS (
+          SELECT 1 FROM recipe r2
+          JOIN userProfile up ON r2.userProfileID = up.userProfileID
+          JOIN user u ON up.userID = u.userID
+          WHERE r2.foodID = f.foodID AND u.role != 'admin'
+      )
     `);
 
     const result = rows.map((r) => {
