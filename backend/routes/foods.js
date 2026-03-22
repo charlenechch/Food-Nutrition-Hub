@@ -61,22 +61,14 @@ router.post(
   }
 );
 
-// ============================
-// 🧾 FOOD ROUTES
-// ============================
-
-// Get total food count (Hides user-submitted placeholder foods)
+// Get total food count (Strictly hides empty recipe shells)
 router.get("/count", async (req, res) => {
   try {
     const query = `
-      SELECT COUNT(DISTINCT f.foodID) AS total 
-      FROM food f
-      WHERE NOT EXISTS (
-          SELECT 1 FROM recipe r
-          JOIN userProfile up ON r.userProfileID = up.userProfileID
-          JOIN user u ON up.userID = u.userID
-          WHERE r.foodID = f.foodID AND u.role != 'admin'
-      )
+      SELECT COUNT(DISTINCT foodID) AS total 
+      FROM food
+      WHERE Energy_kcal > 0 
+         OR (culturalSignificance IS NOT NULL AND culturalSignificance != '')
     `;
     const [result] = await db.query(query);
     res.json({ success: true, total: result[0].total });
@@ -86,18 +78,14 @@ router.get("/count", async (req, res) => {
   }
 });
 
-// ✅ UPDATED: Get all foods (Hides user-submitted placeholder foods)
+// Get all foods (Strictly hides empty recipe shells)
 router.get("/", async (req, res) => {
   try {
     const query = `
-      SELECT f.* FROM food f
-      WHERE NOT EXISTS (
-          SELECT 1 FROM recipe r
-          JOIN userProfile up ON r.userProfileID = up.userProfileID
-          JOIN user u ON up.userID = u.userID
-          WHERE r.foodID = f.foodID AND u.role != 'admin'
-      )
-      ORDER BY f.name ASC
+      SELECT * FROM food
+      WHERE Energy_kcal > 0 
+         OR (culturalSignificance IS NOT NULL AND culturalSignificance != '')
+      ORDER BY name ASC
     `;
 
     const [foods] = await db.query(query);

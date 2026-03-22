@@ -25,9 +25,9 @@ const parseDietaryTags = (raw) => {
 
 router.get("/", async (req, res) => {
   try {
-    // PURE FOOD QUERY. NO RECIPE JOINS AT ALL.
-    // The WHERE clause filters out your blank test recipes (like Mee Goreng)
-    // and only grabs your 10 official foods.
+    // 🚨 PURE FOOD QUERY. NO RECIPE JOINS AT ALL. 🚨
+    // This strictly filters out the empty "recipe shells" (like Mee Goreng)
+    // by requiring the row to have actual nutritional or cultural data.
     const [rows] = await db.query(`
       SELECT * FROM food 
       WHERE Energy_kcal > 0 
@@ -35,16 +35,14 @@ router.get("/", async (req, res) => {
     `);
 
     const result = rows.map((r) => {
-      // We hardcode servings to 1 here so your React frontend doesn't crash.
-      // We no longer need the recipe table for this!
-      const servings = 1; 
+      const servings = 1; // <-- We hardcode this so React doesn't crash, no recipe table needed!
       const k = 1 / servings;
 
       const dietaryTags = parseDietaryTags(r.dietaryTags).map(toSlug);
 
       return {
         ...r,
-        servings, 
+        servings,
         dietaryTags,
         Energy_kcal: toNum(r.Energy_kcal),
         Protein_g: toNum(r.Protein_g),
