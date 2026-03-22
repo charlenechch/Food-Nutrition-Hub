@@ -59,17 +59,17 @@ export default function AdminSystemSettings({
                 `Hello,\n\nWe will perform scheduled maintenance from <Date>, <Time> to <Date>, <Time>. ${platformName} may be unavailable during this time.\n\nThanks,\nSarawakEats Admin`,
         },
         "Policy Update": {
-            subject: "Platform Policy Update - <Date>",
+            subject: "Platform Policy Update",
             message:
                 `Hello,\n\nWe've updated our community guidelines and privacy policy on <Date>. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSarawakEats Admin`,
         },
         "System Update": {
-            subject: `${platformName} Platform Update - <Date>`,
+            subject: `${platformName} Platform Update`,
             message:
                 `Hello,\n\nWe've made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on <Date>.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
         },
         "Outage Resolved": {
-            subject: `${platformName} Service Restored - <Date>`,
+            subject: `${platformName} Service Restored`,
             message:
                 `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on <Date>.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
         },
@@ -670,6 +670,7 @@ export default function AdminSystemSettings({
                                         <option key={k} value={k}>{k}</option>
                                     ))}
                                 </select>
+                                <div className="umg-hint">{t("adminSettings.templateHint")}</div>
                             </div>
 
                             {/* Subject */}
@@ -720,7 +721,20 @@ export default function AdminSystemSettings({
                                         setSysDialog({
                                             open: true,
                                             title: t("adminSettings.missingRequiredFields"),
-                                            message: t("adminSettings.provideSubjectAndMessage"),
+                                            message: t("adminSettings.provideRecipient"),
+                                            icon: <AlertTriangle />,
+                                            primaryText: t("adminSettings.ok"),
+                                            onPrimary: closeSysDialog,
+                                        });
+                                        return;
+                                    }
+
+                                    const combinedText = sysEmailForm.subject + " " + sysEmailForm.message;
+                                    if (combinedText.includes("<Date>") || combinedText.includes("<Time>")) {
+                                        setSysDialog({
+                                            open: true,
+                                            title: t("adminSettings.unfilledPlaceholdersTitle"),
+                                            message: t("adminSettings.unfilledPlaceholders"),
                                             icon: <AlertTriangle />,
                                             primaryText: t("adminSettings.ok"),
                                             onPrimary: closeSysDialog,
@@ -746,7 +760,7 @@ export default function AdminSystemSettings({
                                         setSysDialog({
                                             open: true,
                                             title: t("adminSettings.missingRequiredFields"),
-                                            message: t("adminSettings.provideSubjectAndMessage"),
+                                            message: t("adminSettings.provideRecipient"),
                                             icon: <AlertTriangle />,
                                             primaryText: t("adminSettings.ok"),
                                             onPrimary: closeSysDialog,
