@@ -21,9 +21,8 @@ return value;
 
 // ✅ NEW: Joi schema for recipe create/update inputs
 const recipeSchema = Joi.object({
-foodID: Joi.number().integer().allow(null, ""), // ✅ NEW: Added for the dropdown approach
-name: Joi.string().max(100).allow("", null), // ✅ CHANGED: Relaxed since we use foodID now
-origin: Joi.string().max(100).allow("", null), // ✅ CHANGED: Relaxed since we use foodID now
+name: Joi.string().max(100).required(),
+origin: Joi.string().max(100).required(),
 difficulty: Joi.string().max(50).allow("", null),
 prepTime: Joi.number().integer().min(0).allow(null),
 image: Joi.string().uri().allow("", null),
@@ -340,15 +339,15 @@ try {
 }
 });
 
-// POST new recipe (Attaching to an EXISTING official food)
+// POST new recipe 
 router.post('/create/recipes', async (req, res) => {
 console.log('🔍 START: Recipe creation endpoint called');
 console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
 
 try {
-  // Notice we now expect 'foodID' instead of 'name', 'origin', etc.
   const {
-    foodID, description, cookTime, servings, ingredients, 
+    name, origin, difficulty, prepTime, image, description, 
+    category, dietaryTags, cookTime, servings, ingredients, 
     instructions, funFact, chefTips
   } = req.body;
 
@@ -360,10 +359,37 @@ try {
     Object.assign(req.body, cleanData);
   }
 
-  // Validate required field
-  if (!foodID) {
-    console.log('❌ Validation failed: missing foodID');
-    return res.status(400).json({ error: 'You must select an official food to attach this recipe to.' });
+  // image size validation
+  if (image && image.startsWith('data:image')) {
+    const base64Size = (image.length * 3) / 4; // Base64 size estimate in bytes
+    const maxSize = 10 * 1024 * 1024; // 10MB limit
+    
+    console.log(`📏 Image size check: ${Math.round(base64Size / 1024)} KB`);
+    
+    if (base64Size > maxSize) {
+      return res.status(400).json({ 
+        error: 'Image too large. Please use an image smaller than 10MB.' 
+      });
+    }
+  }
+
+  console.log('📊 Request data analysis:', {
+    name, 
+    origin, 
+    category,
+    ingredientsType: typeof ingredients,
+    instructionsType: typeof instructions,
+    ingredientsIsArray: Array.isArray(ingredients),
+    instructionsIsArray: Array.isArray(instructions),
+    ingredientsLength: Array.isArray(ingredients) ? ingredients.length : 'N/A',
+    instructionsLength: Array.isArray(instructions) ? instructions.length : 'N/A',
+    imageSize: image ? (image.startsWith('data:image') ? `${Math.round((image.length * 3) / 4 / 1024)} KB` : 'URL') : 'None'
+  });
+
+  // Validate required fields
+  if (!name || !origin) {
+    console.log('❌ Validation failed: missing name or origin');
+    return res.status(400).json({ error: 'Name and origin are required' });
   }
 
   // Check authentication
@@ -388,15 +414,66 @@ try {
   const userProfileID = profileResult[0].userProfileID;
   console.log('✅ User authenticated - userID:', userID, 'userProfileID:', userProfileID);
 
-  // Verify the foodID actually exists in the database
-  const [foodCheck] = await db.query('SELECT foodID FROM food WHERE foodID = ?', [foodID]);
-  if (foodCheck.length === 0) {
-    return res.status(404).json({ error: 'Selected food does not exist in the official database.' });
+  let processedImage = image || 
+  'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
+
+  // CLOUDINARY UPLOAD LOGIC with size protection
+  if (image && image.startsWith('data:image')) {
+    try {
+      console.log('📤 Uploading image to Cloudinary...');
+      const uploadResult = await cloudinary.uploader.upload(image, {
+        folder: 'food-recipes',
+        resource_type: 'image',
+        timeout: 30000 // 30 second timeout
+      });
+      processedImage = uploadResult.secure_url;
+      console.log('✅ Image uploaded to Cloudinary:', processedImage);
+    } catch (uploadError) {
+      console.error('❌ Cloudinary upload failed:', uploadError.message);
+      // Continue with default image - don't fail the entire recipe
+    }
+  } else if (image && image.startsWith('http')) {
+    processedImage = image;
+    console.log('✅ Using existing image URL');
+  }
+  
+  console.log('🚀 About to execute FIRST INSERT (food table)');
+
+  // Insert into food table
+  const foodQuery = `
+    INSERT INTO food (
+      name, origin, difficulty, prepTime, image, description, 
+      category, dietaryTags, commonIngredients
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+  
+  const foodParams = [
+    name, 
+    origin, 
+    difficulty || 'Easy', 
+    prepTime || 0, 
+    processedImage, 
+    description || '', 
+    category || 'Other',
+    Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
+    null
+  ];
+  
+  console.log('📝 Executing food insert with params:', foodParams);
+  
+  // Try using query() instead of execute() to avoid prepared statement issues
+  const [foodResult] = await db.query(foodQuery, foodParams);
+  console.log('✅ Food insert successful - insertId:', foodResult.insertId);
+  
+  const foodId = foodResult.insertId;
+
+  if (!foodId) {
+    throw new Error('Could not retrieve the inserted food ID');
   }
 
-  console.log('🚀 About to execute INSERT (recipe table only)');
+  console.log('🚀 About to execute SECOND INSERT (recipe table)');
 
-  // Insert directly into the recipe table (SKIPPING the food table insert!)
+  // Insert into recipe table
   const recipeQuery = `
     INSERT INTO recipe (
       foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description
@@ -404,7 +481,7 @@ try {
   `;
   
   const recipeParams = [
-    foodID, 
+    foodId, 
     userProfileID,
     Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
     Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
@@ -416,11 +493,13 @@ try {
     description || ''
   ];
   
-  console.log('📝 Executing recipe insert with foodID:', foodID);
+  console.log('📝 Executing recipe insert with foodID:', foodId);
+  console.log('📋 Recipe params:', recipeParams);
   
   await db.query(recipeQuery, recipeParams);
   
   console.log('✅ Recipe insert successful');
+  console.log('🎉 Recipe created successfully with ID:', foodId);
 
   // Force the stats to recount immediately after submission
   await updateUserStats(userID); 
@@ -428,7 +507,7 @@ try {
   
   res.status(201).json({ 
     message: 'Recipe created successfully', 
-    id: foodID,
+    id: foodId,
     status: 'Pending'
   });
   
