@@ -102,7 +102,7 @@ const LinkFoodPage = () => {
     
     try {
       // Fetch from food table using your existing GET endpoint
-      const response = await fetch(`${API_URL}/api/foods/${selectedRecipeId}`, {
+      const response = await fetch(`${API_URL}/api/foods/by-recipe/${selectedRecipeId}`, {
         credentials: "include"
       });
       

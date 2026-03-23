@@ -121,6 +121,48 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// Get food by recipe ID (using the foodId from recipe table)
+router.get("/by-recipe/:recipeId", async (req, res) => {
+  try {
+    // get the recipe to find its foodId
+    const [recipes] = await db.query(
+      "SELECT foodId FROM recipe WHERE recipeID = ?",
+      [req.params.recipeId]
+    );
+
+    if (recipes.length === 0) {
+      return res.status(404).json({ success: false, error: "Recipe not found" });
+    }
+
+    const foodId = recipes[0].foodId;
+
+    // If there's no foodId linked yet (null or 0), return 404 to create new food
+    if (!foodId) {
+      return res.status(404).json({ success: false, error: "No food linked to this recipe yet" });
+    }
+
+    // Get the food data using the foodId
+    const [foods] = await db.query("SELECT * FROM food WHERE foodID = ?", [foodId]);
+
+    if (foods.length === 0) {
+      return res.status(404).json({ success: false, error: "Food not found" });
+    }
+
+    const food = foods[0];
+    res.json({
+      success: true,
+      data: {
+        ...food,
+        createdAt: food.createdAt,
+        updatedAt: food.updatedAt,
+      },
+    });
+  } catch (err) {
+    console.error("❌ Get food by recipe error:", err.message);
+    res.status(500).json({ success: false, error: "Failed to fetch food" });
+  }
+});
+
 // ============================
 // CREATE NEW FOOD ROUTE
 // ============================
