@@ -12,7 +12,7 @@ import LaksaImg from "../assets/laksa.jpg";
 import KoloImg from "../assets/kolomee.jpg";
 import KekImg from "../assets/keklapis.jpg";
 
-import { FaSearch, FaStar, FaLightbulb, FaSyncAlt, FaUserEdit, FaDice, FaDatabase, FaUsers, FaShieldHalved, FaChartLine, FaGear } from "react-icons/fa6";
+import { FaSearch, FaStar, FaLightbulb, FaSyncAlt, FaUserEdit, FaDice } from "react-icons/fa";
 import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
 
 import { useAuth } from "../context/AuthContext";
@@ -31,7 +31,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const [allFoods, setAllFoods] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isSticky, setIsSticky] = useState(false); // State for sticky bar styling
   const searchRef = useRef(null);
   
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -43,7 +42,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const [randomizerText, setRandomizerText] = useState("");
   const [randomizerResult, setRandomizerResult] = useState(null);
 
-  // Heritage facts for your Management System
   const heritageFacts = [
     { titleKey: "home.fact1Title", textKey: "home.fact1Text" },
     { titleKey: "home.fact2Title", textKey: "home.fact2Text" },
@@ -76,16 +74,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       }
     };
     fetchFoods();
-  }, []);
-
-  // Sticky Bar Scroll Listener
-  useEffect(() => {
-    const handleScroll = () => {
-      // Logic: Stick once we scroll past the Hero section
-      setIsSticky(window.scrollY > window.innerHeight - 80);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleDishClick = (dish) => {
@@ -285,17 +273,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           ))}
         </div>
       </header>
-
-      {/* NEW STICKY MANAGEMENT TAB BAR */}
-      <div className={`sticky-admin-nav ${isSticky ? "is-scrolled" : ""}`}>
-        <div className="sticky-nav-inner">
-          <button className="nav-tab active"><FaDatabase /> Database</button>
-          <button className="nav-tab"><FaUsers /> User Management</button>
-          <button className="nav-tab"><FaShieldHalved /> Content Moderation</button>
-          <button className="nav-tab"><FaChartLine /> Analytics</button>
-          <button className="nav-tab"><FaGear /> System Settings</button>
-        </div>
-      </div>
 
       <main className="features-layout-wrapper">
         <section className="features-grid">
