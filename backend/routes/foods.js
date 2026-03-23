@@ -5,6 +5,7 @@ const { requireAuth, requireAdmin } = require("../middleware/auth");
 const cloudinary = require("cloudinary").v2;
 const { sendEmail } = require("../config/mailer");
 const { embedFood } = require("../utils/embeddings");
+const { logActivity } = require("./adminActivityLog");
 
 // ============================
 // 📂 CLOUDINARY CONFIG
@@ -327,6 +328,10 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     }
     
     // 6. Return Success Response
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "food_created", `Added new food "${name}" (ID: ${foodId}).`);
+
     res.json({
       success: true,
       message: "Food created successfully",
@@ -448,6 +453,10 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
       });
     }
 
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "food_updated", `Updated food "${name || existing[0].name}" (ID: ${foodId}).`);
+
     res.json({ success: true, message: "Food updated successfully." });
   } catch (err) {
     console.error("❌ Update food error:", err.message);
@@ -466,6 +475,11 @@ router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
       return res.status(404).json({ success: false, error: "Food not found" });
 
     await db.query("DELETE FROM food WHERE foodID = ?", [req.params.id]);
+
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "food_deleted", `Deleted food "${existing[0].name}" (ID: ${req.params.id}).`);
+    
     res.json({ success: true, message: "Food deleted successfully" });
   } catch (err) {
     console.error("❌ Delete food error:", err.message);

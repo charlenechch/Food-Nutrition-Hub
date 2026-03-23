@@ -8,6 +8,7 @@ const fs = require('fs');
 const { sendEmail } = require("../config/mailer");
 const { createNotification, isEmailNotificationsEnabled } = require("./notifications");
 const { updateUserStats } = require('./userProfile');
+const { logActivity } = require("./adminActivityLog");
 
 //  Validation and sanitization imports
 const Joi = require("joi");
@@ -1236,6 +1237,11 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
     }
 
     console.log(`✅ [ADMIN] Post ${id} approved successfully.`);
+
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "post_approved", `Approved community post "${foodName}" (Post ID: ${id}).`);
+
     res.json({ success: true, message: "Post approved successfully." });
   } catch (err) {
     console.error(`❌ [ADMIN] Error approving post ${id}:`, err);
@@ -1328,6 +1334,11 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
     }
 
     console.log(`✅ [ADMIN] Post ${id} rejected successfully.`);
+
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "post_rejected", `Rejected community post "${foodName}" (Post ID: ${id}).`);
+    
     res.json({ success: true, message: "Post rejected successfully." });
   } catch (err) {
     console.error(`❌ [ADMIN] Error rejecting post ${id}:`, err);

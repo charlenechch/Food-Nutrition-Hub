@@ -5,6 +5,7 @@ const cloudinary = require('cloudinary').v2;
 const { updateUserStats } = require('./userProfile');
 const { sendEmail } = require("../config/mailer");
 const { createNotification, isEmailNotificationsEnabled } = require("./notifications");
+const { logActivity } = require("./adminActivityLog");
 
 // ✅ NEW: Validation + sanitization setup (added without removing anything)
 const Joi = require("joi");
@@ -1074,6 +1075,11 @@ router.patch('/updateStatus/:id', async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Recipe not found." });
     }
+
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    const actionType = status === "Approved" ? "recipe_approved" : "recipe_rejected";
+    await logActivity(db, adminID, adminName, actionType, `${status} recipe for food ID ${recipeId}.`);
 
     // Fetch User Info & Recipe Details
     const [rows] = await db.query(`
