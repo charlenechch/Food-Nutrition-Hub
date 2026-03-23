@@ -29,6 +29,7 @@ import ConsentModal from './components/ConsentModal';
 
 // // === Admin Pages ===
 import AdminHomepage from "./pages/AdminHomepage";
+import AdminActivityLog from "./pages/AdminActivityLog";
 import EditFoodPage from "./pages/EditFoodPage";
 import AddFoodPage from "./pages/AddFoodPage";
 import AddRecipe from "./pages/AddRecipePage";
@@ -245,6 +246,14 @@ function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <AdminHomepage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/activityLog"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminActivityLog />
               </ProtectedRoute>
             }
           />

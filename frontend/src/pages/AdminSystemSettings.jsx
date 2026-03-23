@@ -11,7 +11,8 @@ import {
     FiFileText as FileText,
     FiX as X,
     FiCheckCircle as CheckIcon,
-    FiCalendar as Calendar
+    FiCalendar as Calendar,
+    FiActivity as Activity
 } from "react-icons/fi";
 import Modal from "../components/Modal";
 import { useNavigate } from "react-router-dom";
@@ -512,6 +513,13 @@ export default function AdminSystemSettings({
                                 >
                                     <Mail className="admset-ic-sm" />
                                     {t("adminSettings.sendAnnouncement")}
+                                </button>
+                                <button
+                                    className="admset-btn admset-btn-outline justify-start"
+                                    onClick={() => navigate("/admin/activityLog")}
+                                >
+                                    <Activity className="admset-ic-sm" />
+                                    View Activity Log
                                 </button>
                             </div>
                         </div>
