@@ -121,9 +121,7 @@ const getStatusClass = (status) => {
   return statusMap[status] || "chip-gray";
 };
 
-// ==========================================
-// GAMIFICATION: USER XP BAR COMPONENT
-// ==========================================
+// GAMIFICATION: XP BAR
 const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 2500, 5000];
 
 const calculateLevelInfo = (totalXp) => {
