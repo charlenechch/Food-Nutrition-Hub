@@ -2616,14 +2616,17 @@
 /* Admin Activity Log Page */
 
 .activity-log-header {
-  margin-top: 100px;
+  margin-top: 20px;
 }
 
-.activity-log-header h1 {
+.dashboard-header.activity-log-header h1 {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 0;
+  font-size: clamp(24px, 4vw, 36px);
+  color: #916848;
+  font-weight: 500;
 }
 
 .activity-log-title-row {

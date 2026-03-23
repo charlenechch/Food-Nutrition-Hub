@@ -212,7 +212,6 @@
     "clear": "Clear",
     "close": "Close",
     "ok": "OK",
-    "viewActivityLog": "View Activity Log",
     "searchPlaceholder": "Search recipes, origins, or descriptions...",
     "allDifficulties": "All Difficulties",
     "cookTime": "Cook Time",
@@ -1312,7 +1311,8 @@
     "futureDatesMsg": "Cannot export data from future dates. Please select dates up to today.",
     "exportSuccessful": "Export Successful",
     "exportSuccessfulMsg": "Analytics report exported successfully as {{format}}.",
-    "ok": "OK"
+    "ok": "OK",
+    "viewActivityLog": "View Activity Log"
   },
 
   "adminActivityLog": {

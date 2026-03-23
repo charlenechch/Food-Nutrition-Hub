@@ -27,20 +27,20 @@ const ACTION_TYPE_KEYS = [
 ];
 
 const ACTION_BADGE = {
-    user_created:       { label: "User Created",       color: "#2e7d32", bg: "#e8f5e9" },
-    user_updated:       { label: "User Updated",       color: "#1565c0", bg: "#e3f2fd" },
-    user_suspended:     { label: "User Suspended",     color: "#b71c1c", bg: "#ffebee" },
-    user_unsuspended:   { label: "User Unsuspended",   color: "#2e7d32", bg: "#e8f5e9" },
-    user_deleted:       { label: "User Deleted",       color: "#b71c1c", bg: "#ffebee" },
-    food_created:       { label: "Food Created",       color: "#e65100", bg: "#fff3e0" },
-    food_updated:       { label: "Food Updated",       color: "#e65100", bg: "#fff3e0" },
-    food_deleted:       { label: "Food Deleted",       color: "#b71c1c", bg: "#ffebee" },
-    post_approved:      { label: "Post Approved",      color: "#2e7d32", bg: "#e8f5e9" },
-    post_rejected:      { label: "Post Rejected",      color: "#b71c1c", bg: "#ffebee" },
-    recipe_approved:    { label: "Recipe Approved",    color: "#2e7d32", bg: "#e8f5e9" },
-    recipe_rejected:    { label: "Recipe Rejected",    color: "#b71c1c", bg: "#ffebee" },
-    announcement_sent:  { label: "Announcement Sent", color: "#6a1b9a", bg: "#f3e5f5" },
-    logs_cleared:       { label: "Logs Cleared",       color: "#5f5040", bg: "#f1e6d8" },
+    user_created:       { key: "userCreated",       color: "#2e7d32", bg: "#e8f5e9" },
+    user_updated:       { key: "userUpdated",       color: "#1565c0", bg: "#e3f2fd" },
+    user_suspended:     { key: "userSuspended",     color: "#b71c1c", bg: "#ffebee" },
+    user_unsuspended:   { key: "userUnsuspended",   color: "#2e7d32", bg: "#e8f5e9" },
+    user_deleted:       { key: "userDeleted",       color: "#b71c1c", bg: "#ffebee" },
+    food_created:       { key: "foodCreated",       color: "#e65100", bg: "#fff3e0" },
+    food_updated:       { key: "foodUpdated",       color: "#e65100", bg: "#fff3e0" },
+    food_deleted:       { key: "foodDeleted",       color: "#b71c1c", bg: "#ffebee" },
+    post_approved:      { key: "postApproved",      color: "#2e7d32", bg: "#e8f5e9" },
+    post_rejected:      { key: "postRejected",      color: "#b71c1c", bg: "#ffebee" },
+    recipe_approved:    { key: "recipeApproved",    color: "#2e7d32", bg: "#e8f5e9" },
+    recipe_rejected:    { key: "recipeRejected",    color: "#b71c1c", bg: "#ffebee" },
+    announcement_sent:  { key: "announcementSent",  color: "#6a1b9a", bg: "#f3e5f5" },
+    logs_cleared:       { key: "logsCleared",       color: "#5f5040", bg: "#f1e6d8" },
 };
 
 function formatDate(dateStr) {
