@@ -472,26 +472,11 @@ export default function AdminSystemSettings({
             <div className="admset-single-card-container">
                 <div className="admset-card">
                     {/* Header */}
-                    <div className="dashboard-header activity-log-header">
-                        <button
-                            onClick={() => navigate("/admin")}
-                            style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", color: "#916848", fontWeight: 600, fontSize: "15px", marginBottom: "12px", padding: 0 }}
-                        >
-                            <FiArrowLeft size={18} /> Back to Dashboard
-                        </button>
-                        <div className="activity-log-title-row">
-                            <div>
-                                <h1><FiActivity /> Admin Activity Log</h1>
-                                <p>A record of all admin actions performed on the platform.</p>
-                            </div>
-                            <button
-                                className="admset-btn admset-btn-outline"
-                                onClick={() => setShowClearConfirm(true)}
-                                style={{ display: "flex", alignItems: "center", gap: "6px", color: "#d94141", borderColor: "#f3b4b4", whiteSpace: "nowrap" }}
-                            >
-                                <FiTrash2 size={15} /> Clear Old Logs
-                            </button>
-                        </div>
+                    <div className="admset-card-header">
+                        <h3 className="admset-card-title">
+                            <Settings className="admset-ic" />
+                            {t("adminSettings.pageTitle")}
+                        </h3>
                     </div>
 
                     {/* Content */}
