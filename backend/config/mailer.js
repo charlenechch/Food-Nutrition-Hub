@@ -1,6 +1,8 @@
 const axios = require("axios");
 require("dotenv").config();
 
+console.log("🔑 Brevo API Key loaded:", process.env.BREVO_API_KEY ? "✅ Found" : "❌ Missing");
+
 const sendEmail = async ({ to, subject, html, text }) => {
   try {
     await axios.post(
