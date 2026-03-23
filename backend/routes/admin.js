@@ -7,6 +7,7 @@ const deleteUser = userProfileRoutes.deleteUser;
 const { updateFirebaseEmail, createFirebaseUser } = userProfileRoutes;
 const { sendEmail } = require("../config/mailer");
 const { createNotification, isEmailNotificationsEnabled } = require("./notifications");
+const { logActivity } = require("./adminActivityLog");
 
 // ✅ Example Admin API – only admins can access
 router.get("/dashboard", requireAdmin, (req, res) => {
@@ -151,6 +152,10 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
 
     // Call the helper function
     const result = await deleteUser(targetUserID, firebaseUID);
+
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "user_deleted", `Deleted user "${userName}" (ID: ${targetUserID}).`);
 
     return res.status(200).json({
       success: true,
@@ -421,6 +426,10 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
         console.log(`📩 Suspension email sent to ${finalEmail}`);
         await createNotification(targetUserID, "suspended", `Your account has been suspended until ${finalsuspendedUntil}. Reason: ${suspensionReason || "No specific reason provided."}`, db);
         console.log(`🔔 Suspension notification created for userID: ${targetUserID}`);
+
+        const adminID = req.session.user.userID;
+        const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+        await logActivity(db, adminID, adminName, "user_suspended", `Suspended user "${firstname} ${lastname}".trim() (ID: ${targetUserID}) until ${finalsuspendedUntil}. Reason: ${suspensionReason || "No reason provided."}`);
     }
 
     // Case B: Account Unsuspended (Manually)
@@ -456,6 +465,10 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
         console.log(`📩 Unsuspension email sent to ${finalEmail}`);
         await createNotification(targetUserID, "unsuspended", "Your account suspension has been lifted. You can now log in.", db);
         console.log(`🔔 Unsuspension notification created for userID: ${targetUserID}`);
+
+        const adminID = req.session.user.userID;
+        const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+        await logActivity(db, adminID, adminName, "user_unsuspended", `Lifted suspension for user "${firstname} ${lastname}".trim() (ID: ${targetUserID}).`);
     }
 
     const statusEmailSent = (!wasSuspended && isNowSuspended) || (wasSuspended && !isNowSuspended);
@@ -572,6 +585,12 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       approved: approvedCount,
       lastLogin: formattedLastLogin
     };
+
+    if (!wasSuspended && !isNowSuspended && !(!wasSuspended && isNowSuspended) && !(wasSuspended && !isNowSuspended)) {
+      const adminID = req.session.user.userID;
+      const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+      await logActivity(db, adminID, adminName, "user_updated", `Updated user "${firstname} ${lastname}".trim() (ID: ${targetUserID}). Changes: ${changes.join(", ")}.`);
+    }
 
     return res.json({
       success: true,
@@ -743,6 +762,10 @@ router.post("/users", requireAdmin, async (req, res) => {
             lastLogin: "—"
         };
 
+        const adminID = req.session.user.userID;
+        const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+        await logActivity(db, adminID, adminName, "user_created", `Created new user "${name}" (${email}) with ${role} role .`);
+
         return res.status(201).json({
             success: true,
             message: "User created successfully. User must use 'Forgot Password' to set initial password.",
@@ -787,6 +810,10 @@ router.post("/announcement", requireAdmin, async (req, res) => {
             success: true,
             count: userIds.length
         });
+
+        const adminID = req.session.user.userID;
+        const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+        await logActivity(db, adminID, adminName, "announcement_sent", `Sent announcement to ${userIds.length} user(s). Subject: "${subject}".`);
 
         // Optionally send emails if "Also send as email" is checked
         if (shouldSendEmail && emails && emails.length > 0) {
