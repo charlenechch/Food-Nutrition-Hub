@@ -1,30 +1,29 @@
-const nodemailer = require("nodemailer");
+const axios = require("axios");
 require("dotenv").config();
-
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.BREVO_EMAIL,
-    pass: process.env.BREVO_SMTP_KEY,
-  },
-});
 
 const sendEmail = async ({ to, subject, html, text }) => {
   try {
-    await transporter.sendMail({
-      from: "SarawakEats <noreply@sarawakeats.site>",
-      to: to,
-      subject: subject,
-      html: html,
-      text: text || "View this email in HTML",
-    });
+    await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: { name: "SarawakEats", email: "noreply@sarawakeats.site" },
+        to: [{ email: to }],
+        subject: subject,
+        htmlContent: html,
+        textContent: text || "View this email in HTML",
+      },
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     console.log("📩 Email sent successfully to:", to);
     return { success: true };
   } catch (error) {
-    console.error("❌ Unexpected Error:", error);
+    console.error("❌ Unexpected Error:", error.response?.data || error.message);
     return { success: false, error: error.message };
   }
 };
