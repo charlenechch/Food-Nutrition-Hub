@@ -160,9 +160,16 @@ const AdminDashboard = () => {
       case "food":
         return (
           <div className="tab-content-wrapper">
-            <FoodDatabaseSection foodData={foodData} categories={categories} />
-            <RecipeDatabaseSection recipes={approvedRecipes} categories={categories} sectionType="approved" />
-            <CommunityPostDatabaseSection categories={categories} posts={approvedCommunityPosts} sectionType="approved" />
+            {/* Added Section Branding Wrappers */}
+            <div className="section-container food-section-accent">
+              <FoodDatabaseSection foodData={foodData} categories={categories} />
+            </div>
+            <div className="section-container recipe-section-accent">
+              <RecipeDatabaseSection recipes={approvedRecipes} categories={categories} sectionType="approved" />
+            </div>
+            <div className="section-container community-section-accent">
+              <CommunityPostDatabaseSection categories={categories} posts={approvedCommunityPosts} sectionType="approved" />
+            </div>
           </div>
         );
 
@@ -172,18 +179,20 @@ const AdminDashboard = () => {
       case "moderation":
         return (
           <div className="tab-content-wrapper">
-            <CommunityPostDatabaseSection 
-              categories={categories} 
-              posts={combinedModerationPosts} 
-              sectionType="pending" 
-              initialStatus={initialFilter} 
-            />
-            <RecipeDatabaseSection 
-              recipes={pendingRecipes} 
-              categories={categories} 
-              sectionType="pending" 
-              initialStatus={initialFilter} 
-            />
+            <div className="section-container moderation-section-accent">
+              <CommunityPostDatabaseSection 
+                categories={categories} 
+                posts={combinedModerationPosts} 
+                sectionType="pending" 
+                initialStatus={initialFilter} 
+              />
+              <RecipeDatabaseSection 
+                recipes={pendingRecipes} 
+                categories={categories} 
+                sectionType="pending" 
+                initialStatus={initialFilter} 
+              />
+            </div>
           </div>
         );
 
@@ -202,60 +211,58 @@ const AdminDashboard = () => {
           <p className="heritage-subtitle">Sarawakian Food Heritage Management System</p>
         </div>
 
-        {/* === Summary Cards (Enhanced with Project Focus) === */}
+        {/* === Summary Cards (Enhanced with Status Accents) === */}
         <div className="summary-cards">
           
-          <div className="summary-card stat-primary" onClick={() => handleTabChange("food")} style={{ cursor: "pointer" }}>
+          <div className="summary-card stat-primary" onClick={() => handleTabChange("food")}>
             <div className="card-info">
               <h3>{t("adminHome.totalFoodDatabase")}</h3>
               <p className="stat-number">{summary.totalFoods}</p>
               <span className="trend-label"><FiTrendingUp /> Heritage Items</span>
             </div>
-            <div className="summary-icon"><FiDatabase /></div>
+            <div className="summary-icon icon-bg-primary"><FiDatabase /></div>
           </div>
 
-          <div className="summary-card stat-users" onClick={() => handleTabChange("users")} style={{ cursor: "pointer" }}>
+          <div className="summary-card stat-users" onClick={() => handleTabChange("users")}>
             <div className="card-info">
               <h3>{t("adminHome.totalUserManagement")}</h3>
               <p className="stat-number">{summary.totalUsers}</p>
               <span className="trend-label">Active Community</span>
             </div>
-            <div className="summary-icon"><GoPeople /></div>
+            <div className="summary-icon icon-bg-users"><GoPeople /></div>
           </div>
 
-          <div className="summary-card stat-pending" onClick={() => handleTabChange("moderation", "Pending")}
-            style={{ cursor: "pointer", flexDirection: "column", alignItems: "stretch", gap: "10px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
+          <div className="summary-card stat-pending" onClick={() => handleTabChange("moderation", "Pending")}>
+            <div className="card-flex-column">
+              <div className="card-header-row">
                 <h3>{t("adminHome.pendingApproval")}</h3>
-                <p className="stat-number">{summary.pendingApproval}</p>
+                <div className="summary-icon icon-bg-pending"><LuFileCheck /></div>
               </div>
-              <div className="summary-icon icon-pending"><LuFileCheck /></div>
-            </div>
-            <div className="breakdown-tags">
-              <span className="b-tag">Posts: {summary.pendingPosts}</span>
-              <span className="b-tag">Recipes: {summary.pendingRecipes}</span>
+              <p className="stat-number">{summary.pendingApproval}</p>
+              <div className="breakdown-tags">
+                <span className="b-tag">Posts: {summary.pendingPosts}</span>
+                <span className="b-tag">Recipes: {summary.pendingRecipes}</span>
+              </div>
             </div>
           </div>
 
-          <div className="summary-card stat-rejected" onClick={() => handleTabChange("moderation", "Rejected")}
-            style={{ cursor: "pointer", flexDirection: "column", alignItems: "stretch", gap: "10px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
+          <div className="summary-card stat-rejected" onClick={() => handleTabChange("moderation", "Rejected")}>
+            <div className="card-flex-column">
+              <div className="card-header-row">
                 <h3>{t("adminHome.rejectedContent")}</h3>
-                <p className="stat-number">{summary.flaggedContent}</p> 
+                <div className="summary-icon icon-bg-rejected"><FaRegFlag /></div>
               </div>
-              <div className="summary-icon icon-rejected"><FaRegFlag /></div>
-            </div>
-            <div className="breakdown-tags">
-              <span className="b-tag">Posts: {summary.rejectedPosts}</span>
-              <span className="b-tag">Recipes: {summary.rejectedRecipes}</span>
+              <p className="stat-number">{summary.flaggedContent}</p> 
+              <div className="breakdown-tags">
+                <span className="b-tag">Posts: {summary.rejectedPosts}</span>
+                <span className="b-tag">Recipes: {summary.rejectedRecipes}</span>
+              </div>
             </div>
           </div>
 
         </div>
 
-        {/* === Tab Navigation (Made Sticky) === */}
+        {/* === Tab Navigation (Sticky for better UX) === */}
         <div className="dashboard-tabs sticky-nav">
           <button className={activeTab === "food" ? "active" : ""} onClick={() => handleTabChange("food")}>
             <FiDatabase /> {t("adminHome.tabDatabase")}
@@ -275,7 +282,11 @@ const AdminDashboard = () => {
         </div>
 
         <div className="dashboard-content">
-          {loading ? <p className="umg-loading-text">{t("adminHome.loadingData")}</p> : renderContent()}
+          {loading ? (
+            <div className="skeleton-loader-container">
+              <p className="umg-loading-text">{t("adminHome.loadingData")}</p>
+            </div>
+          ) : renderContent()}
         </div>
       </div>
       <Footer />

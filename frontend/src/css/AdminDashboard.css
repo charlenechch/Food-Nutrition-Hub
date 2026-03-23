@@ -2612,3 +2612,73 @@
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* --- UI/UX Section Branding --- */
+.food-section-accent { border-top: 5px solid #916848 !important; }    /* Heritage Brown */
+.recipe-section-accent { border-top: 5px solid #2e7d32 !important; }  /* Cooking Green */
+.community-section-accent { border-top: 5px solid #e67e22 !important; } /* Social Orange */
+.moderation-section-accent { border-top: 5px solid #d9534f !important; } /* Alert Red */
+
+/* --- Enhanced Table UX --- */
+.food-table tbody tr:nth-child(even), .content-table tbody tr:nth-child(even) {
+  background-color: #fcf9f6; 
+}
+
+.food-table tbody tr:hover, .content-table tbody tr:hover {
+  background-color: #f7f2ec !important;
+  box-shadow: inset 4px 0 0 #916848;
+  cursor: pointer;
+}
+
+/* --- Image Thumbnail Logic --- */
+.table-img-wrapper {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #e8dccf;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.table-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+/* --- Sticky Navigation & Loader --- */
+.sticky-nav {
+  position: sticky;
+  top: 70px;
+  z-index: 100;
+  background: #fdfbf9;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-radius: 0 0 20px 20px;
+}
+
+.skeleton-loader-container {
+  width: 100%;
+  height: 350px;
+  background: linear-gradient(90deg, #f0e6da 25%, #f7f2ec 50%, #f0e6da 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.5s infinite;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes loading-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* --- Summary Card Icon Backgrounds --- */
+.card-header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px; }
+.icon-bg-primary { background: #f0e6da; color: #916848; padding: 10px; border-radius: 12px; }
+.icon-bg-users { background: #e8e0d9; color: #5d412a; padding: 10px; border-radius: 12px; }
+.icon-bg-pending { background: #fdf2e2; color: #d4a373; padding: 10px; border-radius: 12px; }
