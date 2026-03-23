@@ -132,12 +132,6 @@ const LinkFoodPage = () => {
         if (foodItem.image) {
           setExistingImageUrl(foodItem.image);
         }
-        
-        setShowNotification({
-            visible: true,
-            message: t("addFood.foodLoaded", { name: foodItem.name }),
-            type: "success"
-          });
         } else if (response.status === 404) {
           // No existing food found 
           console.log("No existing food found for recipe ID:", selectedRecipeId);
