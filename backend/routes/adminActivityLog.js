@@ -7,7 +7,7 @@ const { requireAdmin } = require("../middleware/auth");
 async function logActivity(db, adminID, adminName, actionType, description) {
   try {
     await db.execute(
-      `INSERT INTO admin_activity_log (adminID, adminName, actionType, description)
+      `INSERT INTO adminActivityLog (adminID, adminName, actionType, description)
        VALUES (?, ?, ?, ?)`,
       [adminID, adminName, actionType, description]
     );
@@ -50,7 +50,7 @@ router.get("/", requireAdmin, async (req, res) => {
 
     const [rows] = await db.query(
       `SELECT logID, adminID, adminName, actionType, description, createdAt
-       FROM admin_activity_log
+       FROM adminActivityLog
        ${whereClause}
        ORDER BY createdAt DESC
        LIMIT ? OFFSET ?`,
@@ -58,7 +58,7 @@ router.get("/", requireAdmin, async (req, res) => {
     );
 
     const [[{ total }]] = await db.query(
-      `SELECT COUNT(*) AS total FROM admin_activity_log ${whereClause}`,
+      `SELECT COUNT(*) AS total FROM adminActivityLog ${whereClause}`,
       values
     );
 
