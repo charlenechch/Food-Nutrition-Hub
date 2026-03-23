@@ -260,7 +260,7 @@ app.use("/api/ai", cors({ origin: allowedOrigins, credentials: true }), aiRoutes
 
 app.use("/api/userProfile", hppProtect({ policy: "none", allowlist: ["dietary", "allergies", "emailNotifications", "pushNotifications", "profileVisibility", "language", "location", "bio", "pdpaConsent", "tncConsent"], logger: (tag, meta) => logger.warn(`HPP UserProfile Parameter: ${tag}`, meta) }), userProfileRoutes);
 
-app.use("/api/recipe", hppProtect({ policy: "first", allowlist: ["includeAll", "status", "foodID", "name", "origin", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "category", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory", "recipe", "content", "image", "userProfileID", "status", "comment", "feedback"], logger: (tag, meta) => logger.warn(`HPP Recipe Parameter: ${tag}`, meta) }), recipeRoutes);
+app.use("/api/recipe", hppProtect({ policy: "first", allowlist: ["includeAll", "status", "foodID", "name", "origin", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "category", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory", "recipe", "content", "image", "userProfileID", "status", "comment", "feedback", "steps", "DidYouKnow"], logger: (tag, meta) => logger.warn(`HPP Recipe Parameter: ${tag}`, meta) }), recipeRoutes);
 
 app.use("/api/foods", hppProtect({ policy: "first", allowlist: ["name", "category", "culturalSignificance", "traditionalPreparation", "origin", "description", "image", "dietaryTags", "ingredients", "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg", "difficulty", "prepTime", "commonIngredients", "alternative", "altDescription", "healthTips", "servings", "cookTime", "steps", "DidYouKnow", "chefTips", "foodItems", "recipeDescription", "foodDescription", "didYouKnow"], skipArrays: true, logger: (tag, meta) => logger.warn(`HPP Foods Parameter: ${tag}`, meta) }), foodRoutes);
 
@@ -284,6 +284,7 @@ app.use("/api/foodDiscussion", foodDiscussionRoutes);
 app.use("/api/saveFood", saveFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/likes", likeRoutes);
+app.use("/api/admin/announcement", hppProtect({ policy: "none", allowlist: ["userIds", "emails", "subject", "message", "sendEmail"], logger: (tag, meta) => logger.warn(`HPP Announcement: ${tag}`, meta) }));
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationRoutes);

@@ -1249,23 +1249,24 @@
     "allUsers": "All users",
     "administratorsOnly": "Administrators only",
     "specificUsers": "Specific users",
-    "customEmailAddresses": "Custom Email Addresses",
     "searchUsersPlaceholder": "Search users to select…",
     "noMatches": "No matches.",
     "totalRecipients": "Total Recipients: {{count}}",
-    "enterEmailAddresses": "Enter email addresses",
-    "emailAddressesPlaceholder": "alice@mail.com, bob@mail.com",
     "emailTemplate": "Email Template",
     "subject": "Subject",
     "subjectPlaceholder": "Enter email subject",
     "message": "Message",
     "messagePlaceholder": "Enter your message",
+    "typeToSearchUsers": "Type to search for users",
     "markAsAnnouncement": "Also send as email",
     "announcementHint": "When checked, this announcement will also be sent as an email to all selected recipients, regardless of their email notification preferences. Only check this for important announcements.",
     "cancel": "Cancel",
-    "sendEmail": "Send Email",
     "missingRequiredFields": "Missing Required Fields",
     "provideSubjectAndMessage": "Please provide a subject and message.",
+    "provideRecipient": "Please select at least one recipient.",
+    "unfilledPlaceholders": "Your announcement contains unfilled placeholders. Please replace <Date> and <Time> with actual values before sending, or remove them if they are not needed.",
+    "unfilledPlaceholdersTitle": "Unfilled Placeholders",
+    "templateHint": "Templates are pre-filled suggestions. Feel free to edit the subject and message to suit your needs.",
     "announcementSent": "Announcement Sent",
     "announcementSentMsg": "Your message will be sent to {{count}} recipient(s).",
     "done": "Done",
@@ -1311,5 +1312,17 @@
     "exportSuccessful": "Export Successful",
     "exportSuccessfulMsg": "Analytics report exported successfully as {{format}}.",
     "ok": "OK"
+  },
+
+  "privacyPolicy": {
+    "back": "Back",
+    "title": "Privacy Policy",
+    "lastUpdated": "Last Updated: {{date}}"
+  },
+
+  "termsAndConditions": {
+    "back": "Back",
+    "title": "Terms & Conditions",
+    "lastUpdated": "Last Updated: {{date}}"
   }
 }   

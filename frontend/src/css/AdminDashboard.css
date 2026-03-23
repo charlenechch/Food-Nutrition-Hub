@@ -57,6 +57,16 @@
   color: #3d2b1f;
 }
 
+.summary-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e8dccf;
+}
+
+.summary-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(145, 104, 72, 0.15);
+  border-color: #916848;
+}
 /* ==========================================================================
    Tabs Navigation
    ========================================================================== */
@@ -2532,4 +2542,73 @@
   flex: 2; /* Gives the calorie slider twice as much room */
   min-width: 250px;
   padding-bottom: 8px; /* Aligns the slider handle with the select text */
+}
+
+/* Sticky Navigation */
+.sticky-nav {
+  position: sticky;
+  top: 80px; /* Adjust based on your Header height */
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Enhanced Summary Cards */
+.summary-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-left: 5px solid transparent;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(145, 104, 72, 0.1);
+}
+
+.stat-primary { border-left-color: #916848; }
+.stat-users { border-left-color: #5d412a; }
+.stat-pending { border-left-color: #d4a373; }
+.stat-rejected { border-left-color: #d9534f; }
+
+.stat-number {
+  font-size: 28px !important;
+  margin: 5px 0;
+}
+
+.trend-label {
+  font-size: 12px;
+  color: #2e7d32;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.breakdown-tags {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.b-tag {
+  background: rgba(0,0,0,0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.icon-pending { color: #d4a373; }
+.icon-rejected { color: #d9534f; }
+
+/* Skeleton Loading State */
+.skeleton-table {
+  width: 100%;
+  height: 400px;
+  background: linear-gradient(90deg, #f0e6da 25%, #f7f2ec 50%, #f0e6da 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 14px;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

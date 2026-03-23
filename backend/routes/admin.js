@@ -764,8 +764,8 @@ router.post("/announcement", requireAdmin, async (req, res) => {
         const { userIds: rawUserIds, emails: rawEmails, subject, message, sendEmail: shouldSendEmail } = req.body;
 
         // Ensure userIds and emails are always arrays
-        const userIds = Array.isArray(rawUserIds) ? rawUserIds : (rawUserIds ? [rawUserIds] : []);
-        const emails = Array.isArray(rawEmails) ? rawEmails : (rawEmails ? [rawEmails] : []);
+        const userIds = rawUserIds ? String(rawUserIds).split(",").map(id => parseInt(id, 10)).filter(id => !isNaN(id)) : [];
+        const emails = rawEmails ? String(rawEmails).split(",").filter(e => e.trim()) : [];
 
         if (!subject?.trim() || !message?.trim()) {
             return res.status(400).json({ success: false, message: "Subject and message are required." });
@@ -781,6 +781,12 @@ router.post("/announcement", requireAdmin, async (req, res) => {
         );
         await Promise.all(notifPromises);
         console.log(`🔔 Announcement notifications created for ${userIds.length} users.`);
+
+        // Return success immediately after notifications are created
+        res.json({
+            success: true,
+            count: userIds.length
+        });
 
         // Optionally send emails if "Also send as email" is checked
         if (shouldSendEmail && emails && emails.length > 0) {
@@ -799,23 +805,29 @@ router.post("/announcement", requireAdmin, async (req, res) => {
               </div>
             `;
 
-            const emailPromises = emails.map(email =>
-                sendEmail({
-                    to: email,
-                    subject: subject,
-                    html: announcementHTML,
-                    text: message
-                })
-            );
-            await Promise.all(emailPromises);
-            console.log(`📩 Announcement emails sent to ${emails.length} recipients.`);
+            let emailsSent = 0;
+            for (const email of emails) {
+                try {
+                    await sendEmail({
+                        to: email,
+                        subject: subject,
+                        html: announcementHTML,
+                        text: message
+                    });
+                    emailsSent++;
+                    console.log(`📩 Announcement email sent to ${email} (${emailsSent}/${emails.length})`);
+                } catch (emailErr) {
+                    console.error(`❌ Failed to send announcement email to ${email}:`, emailErr.message);
+                }
+                // Known limitation: Resend free tier allows max 5 requests/second.
+                // We throttle to ~3 emails/second (300ms delay) to stay safely under the limit.
+                // Upgrade Resend plan to remove this limitation.
+                if (emailsSent < emails.length) {
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+            }
+            console.log(`📩 Announcement emails completed. Sent ${emailsSent}/${emails.length} successfully.`);
         }
-
-        return res.json({
-            success: true,
-            message: `Announcement sent to ${userIds.length} users.${shouldSendEmail ? ` Emails sent to ${emails?.length || 0} recipients.` : ""}`
-        });
-
     } catch (error) {
         console.error("❌ Announcement error:", error);
         return res.status(500).json({ success: false, message: "Failed to send announcement." });

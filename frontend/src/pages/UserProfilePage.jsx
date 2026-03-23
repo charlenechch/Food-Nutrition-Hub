@@ -112,9 +112,11 @@ const getStatusClass = (status) => {
     "approved": "chip-blue",
     "pending": "chip-yellow", 
     "rejected": "chip-red",
+    "draft": "chip-orange",
     "Approved": "chip-blue",
     "Pending": "chip-yellow",
-    "Rejected": "chip-red"
+    "Rejected": "chip-red",
+    "Draft": "chip-orange"
   };
   return statusMap[status] || "chip-gray";
 };
@@ -151,9 +153,11 @@ export default function UserProfilePage() {
         "approved": t("profile.statusApproved"),
         "pending": t("profile.statusPending"),
         "rejected": t("profile.statusRejected"),
+        "draft": t("profile.statusDraft"),
         "Approved": t("profile.statusApproved"),
         "Pending": t("profile.statusPending"),
-        "Rejected": t("profile.statusRejected")
+        "Rejected": t("profile.statusRejected"),
+        "Draft": t("profile.statusDraft")
       };
       
       return statusMap[s] || t("profile.unknown");
@@ -577,7 +581,7 @@ const ContributionRow = ({ c }) => {
             recipeID: c.recipeID,
             snapshot: JSON.parse(JSON.stringify(c)),
             contribution: c,
-            description: c.culturalStory || c.description || "",
+            description: c.description || "",
             adminFeedback: c.adminFeedback || c.feedback,
             fieldsWithIssues: c.fieldsWithIssues || [],
           },
@@ -606,6 +610,8 @@ const ContributionRow = ({ c }) => {
         return { bg: "#F0FFF4", border: "#48BB78", text: "#2F855A" }; // Green
       } else if (s === "rejected") {
         return { bg: "#FFF5F5", border: "#E53E3E", text: "#C53030" }; // Red
+      } else if (s === "draft") {
+        return { bg: "#FFF8E7", border: "#6B7280", text: "#374151" };
       } else {
         return { bg: "#EBF8FF", border: "#4299E1", text: "#2B6CB0" }; // Blue (Pending/Default)
       }

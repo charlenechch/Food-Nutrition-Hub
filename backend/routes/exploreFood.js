@@ -25,25 +25,17 @@ const parseDietaryTags = (raw) => {
 
 router.get("/", async (req, res) => {
   try {
-    // Pick exactly one approved recipe per food (lowest recipeID; change ORDER BY as needed)
+    // 🚨 PURE FOOD QUERY. NO RECIPE JOINS AT ALL. 🚨
+    // This strictly filters out the empty "recipe shells" (like Mee Goreng)
+    // by requiring the row to have actual nutritional or cultural data.
     const [rows] = await db.query(`
-      SELECT f.*,
-             COALESCE(r.servings, 1) AS servings
-      FROM food f
-      INNER JOIN (
-        SELECT *
-        FROM (
-          SELECT r.*,
-                 ROW_NUMBER() OVER (PARTITION BY r.foodID ORDER BY r.recipeID) AS rn
-          FROM recipe r
-          WHERE r.status = 'Approved'
-        ) t
-        WHERE t.rn = 1
-      ) r ON r.foodID = f.foodID
+      SELECT * FROM food 
+      WHERE Energy_kcal > 0 
+         OR (culturalSignificance IS NOT NULL AND culturalSignificance != '')
     `);
 
     const result = rows.map((r) => {
-      const servings = Math.max(1, Number(r.servings || 1));
+      const servings = 1; // <-- We hardcode this so React doesn't crash, no recipe table needed!
       const k = 1 / servings;
 
       const dietaryTags = parseDietaryTags(r.dietaryTags).map(toSlug);

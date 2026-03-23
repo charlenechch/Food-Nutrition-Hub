@@ -61,14 +61,16 @@ router.post(
   }
 );
 
-// ============================
-// 🧾 FOOD ROUTES
-// ============================
-
-// Get total food count
+// Get total food count (Strictly hides empty recipe shells)
 router.get("/count", async (req, res) => {
   try {
-    const [result] = await db.query("SELECT COUNT(*) AS total FROM food");
+    const query = `
+      SELECT COUNT(DISTINCT foodID) AS total 
+      FROM food
+      WHERE Energy_kcal > 0 
+         OR (culturalSignificance IS NOT NULL AND culturalSignificance != '')
+    `;
+    const [result] = await db.query(query);
     res.json({ success: true, total: result[0].total });
   } catch (err) {
     console.error("❌ Count foods error:", err.message);
@@ -76,17 +78,14 @@ router.get("/count", async (req, res) => {
   }
 });
 
-// ✅ UPDATED: Get all foods (Filtered by Approval Status)
+// Get all foods (Strictly hides empty recipe shells)
 router.get("/", async (req, res) => {
   try {
-    // We join 'recipe' to check the status.
-    // Logic: Show the food IF (status is 'Approved') OR (status is NULL, meaning it's not a recipe)
     const query = `
-      SELECT f.*, r.status
-      FROM food f
-      LEFT JOIN recipe r ON f.foodID = r.foodID
-      WHERE r.status = 'Approved' OR r.status IS NULL
-      ORDER BY f.name ASC
+      SELECT * FROM food
+      WHERE Energy_kcal > 0 
+         OR (culturalSignificance IS NOT NULL AND culturalSignificance != '')
+      ORDER BY name ASC
     `;
 
     const [foods] = await db.query(query);
@@ -473,6 +472,9 @@ router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: "Failed to delete food" });
   }
 });
+
+// Get edit food
+
 
 // ✅ ADMIN ONLY: Get all foods with ALL recipes
 router.get("/admin/all", async (req, res) => {

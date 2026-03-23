@@ -259,8 +259,10 @@ return {
 router.get('/recipes/:id', async (req, res) => {
 try {
   const { id } = req.params;
-  console.log('Fetching recipe for Food ID:', id); // Updated log for clarity
+  console.log('Fetching recipe for ID (Recipe or Food):', id); 
   
+  // FIXED: Changed the WHERE clause to check BOTH recipeID and foodID.
+  // Added ORDER BY to ensure it grabs the newest submission if there are multiple.
   const query = `
     SELECT 
       f.foodID AS foodId,  
@@ -287,10 +289,13 @@ try {
     LEFT JOIN food f ON r.foodID = f.foodID  
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
     LEFT JOIN user u ON up.userID = u.userID
-    WHERE r.recipeID = ?
+    WHERE r.recipeID = ? OR f.foodID = ?
+    ORDER BY r.createdAt DESC
+    LIMIT 1
   `;
   
-  const [rows] = await db.query(query, [id]);  
+  // Pass the ID twice so it checks both conditions
+  const [rows] = await db.query(query, [id, id]);  
   
   if (!rows || rows.length === 0) {
     return res.status(404).json({ error: 'Recipe not found' });
@@ -712,7 +717,7 @@ try {
       culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
       status: (recipe.status || 'pending').toLowerCase(),
       adminFeedback: recipe.admin_feedback || null,
-      culturalStory: recipe.culturalStory || '',
+      description: recipe.description || '',
       images: images,
       ingredients: ingredients, // ✅ Include ingredients array
       instructions: instructions, // ✅ Include instructions array
@@ -726,7 +731,8 @@ try {
       chefTips: recipe.chefTips || '',
       difficulty: recipe.difficulty || 'Easy',
       prepTime: recipe.prepTime || 0,
-      category: recipe.category || 'Other'
+      category: recipe.category || 'Other',
+      dietaryTags: recipe.dietaryTags || '',
     };
   });
 
@@ -772,6 +778,32 @@ router.put('/revise/recipes/:id', async (req, res) => {
 
   try {
     const { id } = req.params; 
+
+    // Check if the ID exists as a recipeID
+    const [checkRecipe] = await db.query(
+      'SELECT recipeID FROM recipe WHERE recipeID = ?',
+      [id]
+    );
+    
+    // Check if it exists as a foodID
+    const [checkFood] = await db.query(
+      'SELECT foodID FROM food WHERE foodID = ?',
+      [id]
+    );
+    
+    if (checkRecipe.length === 0 && checkFood.length > 0) {
+      console.log('⚠️⚠️⚠️ CRITICAL: Received foodID instead of recipeID!');
+      console.log(`Expected recipeID but got foodID: ${id}`);
+      console.log(`The correct recipeID is likely ${id - 1} or check your database`);
+      
+      return res.status(400).json({ 
+        error: 'Invalid recipe ID. Please use recipeID, not foodID.',
+        receivedId: id,
+        idType: 'foodID',
+        message: `You passed foodID ${id} but should pass recipeID. Check your database for the correct recipeID.`
+      });
+    }
+
     const {
       name, origin, difficulty, prepTime, image, description,
       category, dietaryTags, cookTime, servings, ingredients,
@@ -1012,7 +1044,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
   console.log(`Attempting to update status for ID: ${recipeId}`);
 
   const { status, feedback } = req.body;
-  const validStatuses = ["Approved", "Rejected", "Pending"];
+  const validStatuses = ["Approved", "Rejected", "Pending", "Draft"];
 
   if (!validStatuses.includes(status)) {
     return res.status(400).json({ 
@@ -1022,22 +1054,29 @@ router.patch('/updateStatus/:id', async (req, res) => {
   }
 
   // Coerce feedback into a string and trim whitespace
-    const inputFeedback = String(feedback || '').trim();
+  const inputFeedback = String(feedback || '').trim();
 
-    // Define the variable for the database (NULL if empty)
-    const dbFeedbackValue = inputFeedback.length > 0 ? inputFeedback : null;
+  // Define the variable for the database (NULL if empty)
+  const dbFeedbackValue = inputFeedback.length > 0 ? inputFeedback : null;
 
-    // Define the variable for email display (includes the default fallback)
-    const rejectionContent = inputFeedback.length > 0 
-                             ? inputFeedback 
-                             : "No specific feedback provided.";
+  // Define the variable for email display (includes the default fallback)
+  const rejectionContent = inputFeedback.length > 0 
+                           ? inputFeedback 
+                           : "No specific feedback provided.";
 
   try {
+    let finalStatus = status;
+    let requiresAdminEdit = false;
+    
+    if (status === "Draft") {
+      finalStatus = "Draft";
+      requiresAdminEdit = true;
+    }
 
-    // SQL Update: Use the defined dbFeedbackValue variable
+    // Use finalStatus instead of status
     const [result] = await db.query(
       "UPDATE recipe SET status = ?, admin_feedback = ? WHERE foodID = ?",
-      [status, dbFeedbackValue, recipeId] 
+      [finalStatus, dbFeedbackValue, recipeId]  // ✅ Using finalStatus
     );
 
     if (result.affectedRows === 0) {
@@ -1067,36 +1106,34 @@ router.patch('/updateStatus/:id', async (req, res) => {
           await updateUserStats(userID);
       }
 
-      // A. APPROVED Logic
-      if (status === "Approved") {
+      // A. DRAFT Logic (formerly APPROVED)
+      if (finalStatus === "Draft") {
         
         let feedbackHtmlBlock = "";
         if (inputFeedback.length > 0) {
           feedbackHtmlBlock = `
-            <div style="background-color: #f0fff4; border: 1px solid #c3e6cb; padding: 15px; margin: 20px 0; border-left: 5px solid #28a745;">
-               <strong style="color: #155724;">Admin Note:</strong><br/>
-               <p style="margin-top: 5px; margin-bottom: 0; color: #155724;">${inputFeedback}</p>
+            <div style="background-color: #fff8e7; border: 1px solid #fed7aa; padding: 15px; margin: 20px 0; border-left: 5px solid #f59e0b;">
+               <strong style="color: #92400e;">Admin Note:</strong><br/>
+               <p style="margin-top: 5px; margin-bottom: 0; color: #92400e;">${inputFeedback}</p>
             </div>
           `;
         }
 
-        const approvedHTML = `
+        const draftHTML = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-            <div style="background-color: #28a745; padding: 20px; text-align: center;">
-              <h1 style="color: #fff; margin: 0;">Recipe Approved!</h1>
+            <div style="background-color: #f59e0b; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Recipe Under Review</h1>
             </div>
             <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
-              <h2 style="color: #28a745;">Great news, ${firstname}!</h2>
-              <p>Your recipe <strong>"${recipeName}"</strong> has been reviewed and approved by our team.</p>
+              <h2 style="color: #f59e0b;">Hello ${firstname},</h2>
+              <p>Your recipe <strong>"${recipeName}"</strong> has been reviewed and is pending final approval.</p>
               
               ${feedbackHtmlBlock}
 
-              <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <p style="margin: 0;">It is now live on SarawakEats for the whole community to enjoy!</p>
+              <div style="background-color: #fff8e7; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p style="margin: 0; color: #92400e;">Our admin team will review your recipe details and make it live shortly.</p>
               </div>
 
-              <p><a href="https://sarawakeats.site/recipes">View the recipes page</a></p>
-              
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
                 Best regards,<br>The SarawakEats Team
               </p>
@@ -1104,24 +1141,38 @@ router.patch('/updateStatus/:id', async (req, res) => {
           </div>
         `;
 
-        const approvalEmailEnabled = await isEmailNotificationsEnabled(userID, db);
-        if (approvalEmailEnabled) {
+        const draftEmailEnabled = await isEmailNotificationsEnabled(userID, db);
+        if (draftEmailEnabled) {
             sendEmail({
               to: email,
-              subject: "🎉 Your Recipe Has Been Approved!",
-              html: approvedHTML,
-              text: `Your recipe "${recipeName}" is approved.`
+              subject: "📝 Your Recipe Has Been Reviewed!",
+              html: draftHTML,
+              text: `Your recipe "${recipeName}" has been reviewed and is pending final approval.`
             });
-            console.log(`📩 Recipe approval email sent to ${email}`);
+            console.log(`📩 Recipe review email sent to ${email}`);
         } else {
-            console.log(`📭 Recipe approval email skipped (notifications disabled) for userID: ${userID}`);
+            console.log(`📭 Recipe review email skipped (notifications disabled) for userID: ${userID}`);
         }
-        await createNotification(userID, "recipe_approved", `Your recipe "${recipeName}" has been approved and is now live on SarawakEats!`, db);
-        console.log(`🔔 Approval notification created for userID: ${userID}`);
+        
+        await createNotification(
+          userID, 
+          "recipe_reviewed", 
+          `Your recipe "${recipeName}" has been reviewed. The admin will finalize the publication shortly.`, 
+          db
+        );
+        console.log(`🔔 Review notification created for userID: ${userID}`);
+        
+        // Return success with admin action required
+        return res.json({ 
+          success: true, 
+          message: "Recipe marked as draft. Please edit the food details before publishing.",
+          requiresAdminEdit: true,
+          recipeId: recipeId
+        });
       }
 
       // B. REJECTED Logic
-      else if (status === "Rejected") {
+      else if (finalStatus === "Rejected") {
         
         const rejectedHTML = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -1153,7 +1204,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
         if (rejectionEmailEnabled) {
             sendEmail({
               to: email,
-              subject: `Action Required: Please Revise "${recipeName}`,
+              subject: `Action Required: Please Revise "${recipeName}"`,
               html: rejectedHTML,
               text: `Your recipe "${recipeName}" has been rejected. Admin Feedback: ${rejectionContent}`
             });
@@ -1166,7 +1217,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
       }
     }
 
-    res.json({ success: true, message: `Recipe marked as ${status}.` });
+    res.json({ success: true, message: `Recipe marked as ${finalStatus}.` });
 
   } catch (error) {
     console.error("❌ Error updating recipe status:", error);
@@ -1443,7 +1494,7 @@ router.get('/pending-food-details', async (req, res) => {
 // =============================
 // GET all approved recipes for selection
 // =============================
-router.get('/approved-recipes', async (req, res) => {
+router.get('/draft-recipes', async (req, res) => {
   try {
     const query = `
       SELECT 
@@ -1454,7 +1505,7 @@ router.get('/approved-recipes', async (req, res) => {
       INNER JOIN food f ON r.foodID = f.foodID
       LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
-      WHERE r.status = 'Approved'
+      WHERE r.status = 'Draft'
       ORDER BY r.createdAt DESC
     `;
 
@@ -1478,7 +1529,7 @@ router.get('/approved-recipes', async (req, res) => {
 });
 
 // =============================
-// POST - Add/Update food details for approved recipe
+// POST - Select existing recipe to Add/Update food details for approved recipe
 // =============================
 router.post('/add-food-details', async (req, res) => {
   const connection = await db.getConnection();
@@ -1635,6 +1686,228 @@ router.post('/add-food-details', async (req, res) => {
     });
   } finally {
     connection.release();
+  }
+});
+
+// GET recipe by foodID (for a specific food)
+router.get('/recipes/food/:foodId', async (req, res) => {
+  try {
+    const { foodId } = req.params;
+    console.log('Fetching recipe for Food ID:', foodId);
+    
+    const query = `
+      SELECT 
+        r.recipeID,
+        r.foodID,
+        r.description,
+        r.ingredients,
+        r.steps,
+        r.cookTime,
+        r.servings,
+        r.DidYouKnow,
+        r.chefTips,
+        r.status,
+        r.createdAt,
+        r.updatedAt
+      FROM recipe r  
+      WHERE r.foodID = ? AND r.status = 'Approved'
+      ORDER BY r.createdAt DESC
+      LIMIT 1
+    `;
+    
+    const [rows] = await db.query(query, [foodId]);
+    
+    // 🚨 THIS IS THE CRASH FIX 🚨
+    // Instead of returning null, we return a safe fallback object so the frontend can read 'servings'
+    if (!rows || rows.length === 0) {
+      return res.json({ 
+        success: true, 
+        data: {
+          recipeID: 0,
+          foodID: parseInt(foodId),
+          description: "Official Food Item",
+          ingredients: "Recipe coming soon...",
+          steps: "",
+          cookTime: 0,
+          servings: 1,  // <-- This stops the React crash!
+          DidYouKnow: "",
+          chefTips: "",
+          status: "Approved"
+        } 
+      });
+    }
+    
+    const row = rows[0];
+    
+    const recipe = {
+      recipeID: row.recipeID,
+      foodID: row.foodID,
+      description: row.description || '',
+      ingredients: row.ingredients || '',
+      steps: row.steps || '',
+      cookTime: row.cookTime || null,
+      servings: row.servings || 1,
+      DidYouKnow: row.DidYouKnow || '',
+      chefTips: row.chefTips || '',
+      status: row.status,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt
+    };
+    
+    res.json({ success: true, data: recipe });
+    
+  } catch (error) {
+    console.error('Error fetching recipe:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update recipe
+router.put('/recipes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      description,
+      ingredients,
+      steps,
+      cookTime,
+      servings,
+      DidYouKnow,
+      chefTips
+    } = req.body;
+    
+    const query = `
+      UPDATE recipe 
+      SET 
+        description = ?,
+        ingredients = ?,
+        steps = ?,
+        cookTime = ?,
+        servings = ?,
+        DidYouKnow = ?,
+        chefTips = ?,
+        updatedAt = CURRENT_TIMESTAMP,
+        status = 'Approved' 
+      WHERE recipeID = ?
+    `;
+    
+    const [result] = await db.query(query, [
+      description || null,
+      ingredients,
+      steps,
+      cookTime || null,
+      servings || 1,
+      DidYouKnow || null,
+      chefTips || null,
+      id
+    ]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, error: 'Recipe not found' });
+    }
+    
+    res.json({ success: true, message: 'Recipe updated successfully' });
+    
+  } catch (error) {
+    console.error('Error updating recipe:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Final publish after admin edits food details
+router.post('/publishRecipe/:id', async (req, res) => {
+  const recipeId = req.params.id;
+  
+  try {
+    // Verify recipe exists and is in draft status
+    const [recipeCheck] = await db.query(
+      "SELECT status FROM recipe WHERE foodID = ?",
+      [recipeId]
+    );
+    
+    if (recipeCheck.length === 0) {
+      return res.status(404).json({ success: false, message: "Recipe not found." });
+    }
+    
+    if (recipeCheck[0].status !== "Draft") {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Recipe must be in draft status to publish." 
+      });
+    }
+    
+    // Update status to Approved
+    const [result] = await db.query(
+      "UPDATE recipe SET status = 'Approved', published_at = NOW() WHERE foodID = ?",
+      [recipeId]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Recipe not found." });
+    }
+    
+    // Fetch user info for notification
+    const [rows] = await db.query(`
+      SELECT u.userID, u.email, u.firstname, f.name AS recipeName
+      FROM recipe r
+      JOIN userProfile up ON r.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      JOIN food f ON r.foodID = f.foodID
+      WHERE r.foodID = ?
+    `, [recipeId]);
+    
+    if (rows.length > 0) {
+      const { userID, email, firstname, recipeName } = rows[0];
+      
+      // Send final approval notification
+      const finalApprovalHTML = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <div style="background-color: #28a745; padding: 20px; text-align: center;">
+            <h1 style="color: #fff; margin: 0;">Recipe Published!</h1>
+          </div>
+          <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+            <h2 style="color: #28a745;">Congratulations ${firstname}!</h2>
+            <p>Your recipe <strong>"${recipeName}"</strong> is now live on SarawakEats!</p>
+            
+            <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <p style="margin: 0;">The community can now discover and enjoy your recipe.</p>
+            </div>
+
+            <p><a href="https://sarawakeats.site/recipes">View your published recipe</a></p>
+            
+            <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+              Best regards,<br>The SarawakEats Team
+            </p>
+          </div>
+        </div>
+      `;
+      
+      const emailEnabled = await isEmailNotificationsEnabled(userID, db);
+      if (emailEnabled) {
+        sendEmail({
+          to: email,
+          subject: "🎉 Your Recipe Has Been Published!",
+          html: finalApprovalHTML,
+          text: `Your recipe "${recipeName}" is now live on SarawakEats!`
+        });
+      }
+      
+      await createNotification(
+        userID, 
+        "recipe_published", 
+        `Your recipe "${recipeName}" has been published and is now visible to all users!`, 
+        db
+      );
+    }
+    
+    res.json({ 
+      success: true, 
+      message: "Recipe published successfully and is now visible to users." 
+    });
+    
+  } catch (error) {
+    console.error("❌ Error publishing recipe:", error);
+    res.status(500).json({ success: false, message: "Failed to publish recipe." });
   }
 });
 

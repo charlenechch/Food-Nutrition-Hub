@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; 
 import { useTranslation } from "react-i18next";
 import "../css/AdminDashboard.css";
@@ -14,7 +14,7 @@ import AdminSystemSettings from "./AdminSystemSettings.jsx";
 import CommunityPostDatabaseSection from "./AdminCommunityPostDatabase.jsx";
 
 // === Icons ===
-import { FiDatabase } from "react-icons/fi";
+import { FiDatabase, FiTrendingUp } from "react-icons/fi";
 import { GoPeople } from "react-icons/go";
 import { LuFileCheck } from "react-icons/lu";
 import { FaRegFlag } from "react-icons/fa6";
@@ -52,7 +52,11 @@ const AdminDashboard = () => {
     totalFoods: 0,
     totalUsers: 0,
     pendingApproval: 0,
+    pendingRecipes: 0, // Added breakdown state
+    pendingPosts: 0,   // Added breakdown state
     flaggedContent: 0,
+    rejectedRecipes: 0, // Added breakdown state
+    rejectedPosts: 0,   // Added breakdown state
   });
 
   const [foodData, setFoodData] = useState([]);
@@ -88,112 +92,43 @@ const AdminDashboard = () => {
   };
 
   // ========================================================
-  // Fetching Data
+  // Fetching Data (Consolidated into one effect for performance)
   // ========================================================
   useEffect(() => {
-    const fetchTotalFoods = async () => {
+    const loadData = async () => {
+      setLoading(true);
       try {
-        const response = await fetch(`${API_URL}/api/foods/count`);
-        const data = await response.json();
-        if (data.success) {
-          setSummary((prev) => ({ ...prev, totalFoods: data.total }));
-          console.log(`[Dashboard] Total Foods Count: ${data.total}`);
-        }
-      } catch (err) { console.error("❌ Error fetching total foods:", err.message); }
-    };
-    fetchTotalFoods();
-  }, []);
+        // Run all fetches in parallel
+        const [foodCount, foods, allRecipes, users, pending, rejected, approved] = await Promise.all([
+          fetch(`${API_URL}/api/foods/count`).then(res => res.json()),
+          fetch(`${API_URL}/api/foods`).then(res => res.json()),
+          fetch(`${API_URL}/api/recipe/all/recipes?includeAll=true`).then(res => res.json()),
+          fetch(`${API_URL}/api/admin/users`, { credentials: "include" }).then(res => res.json()),
+          fetch(`${API_URL}/api/communityPost/admin/pending`, { credentials: "include" }).then(res => res.json()),
+          fetch(`${API_URL}/api/communityPost/admin/rejected`, { credentials: "include" }).then(res => res.json()),
+          fetch(`${API_URL}/api/communityPost/counts`, { credentials: "include" }).then(res => res.json())
+        ]);
 
-  useEffect(() => {
-    const fetchFoods = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/foods`);
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setFoodData(data);
-          console.log(`[Dashboard] Fetched Food Data: ${data.length} items.`);
-        }
-      } catch (error) { console.error("❌ Error fetching food data:", error); }
-    };
-    fetchFoods();
-  }, []);
+        if (foodCount.success) setSummary(prev => ({ ...prev, totalFoods: foodCount.total }));
+        if (Array.isArray(foods)) setFoodData(foods);
+        if (Array.isArray(allRecipes)) setRecipes(allRecipes);
+        if (users.success) setUserList(users.users);
+        if (pending.success) setPendingCommunityPosts(pending.data || []);
+        if (rejected.success) setRejectedCommunityPosts(rejected.data || []);
+        if (approved.success) setApprovedCommunityPosts(approved.data || []);
 
-  useEffect(() => {
-    const fetchRecipes = async () => {
-      try {
-        console.log(`[Dashboard] Fetching ALL recipes from: ${API_URL}/api/recipe/all/recipes?includeAll=true`);
-        const recipeRes = await fetch(
-          `${API_URL}/api/recipe/all/recipes?includeAll=true`
-        );
-        const data = await recipeRes.json();
-        if (Array.isArray(data)) {
-          setRecipes(data);
-          console.log(`[Dashboard] Fetched Recipe Data: ${data.length} items.`);
-        }
-      } catch (error) { console.error("❌ Error fetching recipes:", error); } finally { setLoading(false); }
-    };
-    fetchRecipes();
-  }, []);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoadingUsers(true);
-        console.log(`[Dashboard] Fetching all users from: ${API_URL}/api/admin/users`);
-        const response = await fetch(`${API_URL}/api/admin/users`, { credentials: "include" });
-        if (!response.ok) throw new Error(`Failed to fetch users: ${response.status}`);
-        const data = await response.json();
-        if (data.success && Array.isArray(data.users)) {
-          setUserList(data.users);
-          setErrorUsers(null);
-          console.log(`[Dashboard] Total Users: ${data.users.length}`);
-        } else throw new Error("Invalid response format");
       } catch (err) {
-        console.error("❌ Error fetching users:", err);
-        setErrorUsers(err.message);
-        setUserList([]);
+        console.error("❌ Dashboard Data Load Error:", err);
       } finally {
+        setLoading(false);
         setLoadingUsers(false);
       }
     };
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    const fetchPending = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/communityPost/admin/pending`, { credentials: "include" });
-        const data = await res.json();
-        if (data.success) setPendingCommunityPosts(data.data || []);
-      } catch (error) { console.error("❌ Error fetching pending posts:", error); }
-    };
-    fetchPending();
-  }, []);
-
-  useEffect(() => {
-    const fetchRejected = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/communityPost/admin/rejected`, { credentials: "include" });
-        const data = await res.json();
-        if (data.success) setRejectedCommunityPosts(data.data || []);
-      } catch (error) { console.error("❌ Error fetching rejected posts:", error); }
-    };
-    fetchRejected();
-  }, []);
-
-  useEffect(() => {
-    const fetchApproved = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/communityPost/counts`, { credentials: "include" });
-        const result = await response.json();
-        if (result.success) setApprovedCommunityPosts(result.data || []);
-      } catch (error) { console.error("⚠️ Error fetching approved community posts:", error); }
-    };
-    fetchApproved();
+    loadData();
   }, []);
 
   // ========================================================
-  // Summary calculation
+  // Summary calculation (UPDATED WITH BREAKDOWNS)
   // ========================================================
   useEffect(() => {
     const pendingRecipeCount = recipes.filter(r => (r.status || "").toLowerCase() === "pending").length;
@@ -204,20 +139,21 @@ const AdminDashboard = () => {
     setSummary((prev) => ({
       ...prev,
       pendingApproval: pendingRecipeCount + pendingPostCount,
+      pendingRecipes: pendingRecipeCount,
+      pendingPosts: pendingPostCount,
       totalUsers: userList.length,
       flaggedContent: rejectedRecipeCount + rejectedPostCount,
+      rejectedRecipes: rejectedRecipeCount,
+      rejectedPosts: rejectedPostCount,
     }));
-    
-    console.log(`[Dashboard] Summary Calculated: Pending: ${pendingRecipeCount + pendingPostCount}, Rejected: ${rejectedRecipeCount + rejectedPostCount}`);
-
   }, [recipes, userList, pendingCommunityPosts, rejectedCommunityPosts]);
 
   // ========================================================
-  // Derived datasets for tables
+  // Derived datasets for tables (Memoized for UX)
   // ========================================================
-  const approvedRecipes = recipes.filter((r) => r.status === "Approved");
-  const pendingRecipes = recipes.filter((r) => r.status === "Pending" || r.status === "Rejected");
-  const combinedModerationPosts = [...pendingCommunityPosts, ...rejectedCommunityPosts];
+  const approvedRecipes = useMemo(() => recipes.filter((r) => r.status === "Approved"), [recipes]);
+  const pendingRecipes = useMemo(() => recipes.filter((r) => r.status === "Pending" || r.status === "Rejected"), [recipes]);
+  const combinedModerationPosts = useMemo(() => [...pendingCommunityPosts, ...rejectedCommunityPosts], [pendingCommunityPosts, rejectedCommunityPosts]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -257,72 +193,70 @@ const AdminDashboard = () => {
     }
   };
 
-  // ========================================================
-  // Render Main UI
-  // ========================================================
   return (
     <div>
       <Header />
       <div className="admin-dashboard">
         <div className="dashboard-header">
           <h1>{t("adminHome.title")}</h1>
-          <p>{t("adminHome.subtitle")}</p>
+          <p className="heritage-subtitle">Sarawakian Food Heritage Management System</p>
         </div>
 
-        {/* === Summary Cards === */}
+        {/* === Summary Cards (Enhanced with Project Focus) === */}
         <div className="summary-cards">
           
-          <div 
-            className="summary-card" 
-            onClick={() => handleTabChange("food")} 
-            style={{ cursor: "pointer" }} 
-          >
-            <div>
+          <div className="summary-card stat-primary" onClick={() => handleTabChange("food")} style={{ cursor: "pointer" }}>
+            <div className="card-info">
               <h3>{t("adminHome.totalFoodDatabase")}</h3>
-              <p>{summary.totalFoods}</p>
+              <p className="stat-number">{summary.totalFoods}</p>
+              <span className="trend-label"><FiTrendingUp /> Heritage Items</span>
             </div>
             <div className="summary-icon"><FiDatabase /></div>
           </div>
 
-          <div 
-            className="summary-card" 
-            onClick={() => handleTabChange("users")} 
-            style={{ cursor: "pointer" }}
-          >
-            <div>
+          <div className="summary-card stat-users" onClick={() => handleTabChange("users")} style={{ cursor: "pointer" }}>
+            <div className="card-info">
               <h3>{t("adminHome.totalUserManagement")}</h3>
-              <p>{summary.totalUsers}</p>
+              <p className="stat-number">{summary.totalUsers}</p>
+              <span className="trend-label">Active Community</span>
             </div>
             <div className="summary-icon"><GoPeople /></div>
           </div>
 
-          <div 
-            className="summary-card" 
-            onClick={() => handleTabChange("moderation", "Pending")}
-            style={{ cursor: "pointer" }}
-          >
-            <div>
-              <h3>{t("adminHome.pendingApproval")}</h3>
-              <p>{summary.pendingApproval}</p>
+          <div className="summary-card stat-pending" onClick={() => handleTabChange("moderation", "Pending")}
+            style={{ cursor: "pointer", flexDirection: "column", alignItems: "stretch", gap: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <h3>{t("adminHome.pendingApproval")}</h3>
+                <p className="stat-number">{summary.pendingApproval}</p>
+              </div>
+              <div className="summary-icon icon-pending"><LuFileCheck /></div>
             </div>
-            <div className="summary-icon"><LuFileCheck /></div>
+            <div className="breakdown-tags">
+              <span className="b-tag">Posts: {summary.pendingPosts}</span>
+              <span className="b-tag">Recipes: {summary.pendingRecipes}</span>
+            </div>
           </div>
 
-          <div 
-            className="summary-card"
-            onClick={() => handleTabChange("moderation", "Rejected")}
-            style={{ cursor: "pointer" }}
-          >
-            <div>
-              <h3>{t("adminHome.rejectedContent")}</h3>
-              <p>{summary.flaggedContent}</p> 
+          <div className="summary-card stat-rejected" onClick={() => handleTabChange("moderation", "Rejected")}
+            style={{ cursor: "pointer", flexDirection: "column", alignItems: "stretch", gap: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <h3>{t("adminHome.rejectedContent")}</h3>
+                <p className="stat-number">{summary.flaggedContent}</p> 
+              </div>
+              <div className="summary-icon icon-rejected"><FaRegFlag /></div>
             </div>
-            <div className="summary-icon"><FaRegFlag /></div>
+            <div className="breakdown-tags">
+              <span className="b-tag">Posts: {summary.rejectedPosts}</span>
+              <span className="b-tag">Recipes: {summary.rejectedRecipes}</span>
+            </div>
           </div>
+
         </div>
 
-        {/* === Tab Navigation === */}
-        <div className="dashboard-tabs">
+        {/* === Tab Navigation (Made Sticky) === */}
+        <div className="dashboard-tabs sticky-nav">
           <button className={activeTab === "food" ? "active" : ""} onClick={() => handleTabChange("food")}>
             <FiDatabase /> {t("adminHome.tabDatabase")}
           </button>
@@ -340,7 +274,6 @@ const AdminDashboard = () => {
           </button>
         </div>
 
-        {/* === Dashboard Content === */}
         <div className="dashboard-content">
           {loading ? <p className="umg-loading-text">{t("adminHome.loadingData")}</p> : renderContent()}
         </div>

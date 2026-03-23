@@ -1248,23 +1248,24 @@
     "allUsers": "Semua pengguna",
     "administratorsOnly": "Pentadbir sahaja",
     "specificUsers": "Pengguna tertentu",
-    "customEmailAddresses": "Alamat E-mel Tersuai",
     "searchUsersPlaceholder": "Cari pengguna untuk dipilih…",
     "noMatches": "Tiada padanan.",
     "totalRecipients": "Jumlah Penerima: {{count}}",
-    "enterEmailAddresses": "Masukkan alamat e-mel",
-    "emailAddressesPlaceholder": "alice@mel.com, bob@mel.com",
     "emailTemplate": "Templat E-mel",
     "subject": "Subjek",
     "subjectPlaceholder": "Masukkan subjek e-mel",
     "message": "Mesej",
     "messagePlaceholder": "Masukkan mesej anda",
+    "typeToSearchUsers": "Taip untuk mencari pengguna",
     "markAsAnnouncement": "Hantar juga sebagai e-mel",
     "announcementHint": "Jika ditanda, pengumuman ini akan dihantar sebagai e-mel kepada semua penerima yang dipilih, tanpa mengira tetapan pemberitahuan e-mel mereka. Hanya tandakan ini untuk pengumuman penting sahaja.",
     "cancel": "Batal",
-    "sendEmail": "Hantar E-mel",
     "missingRequiredFields": "Medan Wajib Tidak Lengkap",
     "provideSubjectAndMessage": "Sila berikan subjek dan mesej.",
+    "provideRecipient": "Sila pilih sekurang-kurangnya satu penerima.",
+    "unfilledPlaceholders": "Pengumuman anda mengandungi ruang kosong yang belum diisi. Sila gantikan <Date> dan <Time> dengan nilai sebenar sebelum menghantar, atau buang jika tidak diperlukan.",
+    "unfilledPlaceholdersTitle": "Ruang Kosong Belum Diisi",
+    "templateHint": "Templat adalah cadangan yang telah diisi terlebih dahulu. Anda boleh mengedit tajuk dan mesej mengikut keperluan anda.",
     "announcementSent": "Pengumuman Dihantar",
     "announcementSentMsg": "Mesej anda akan dihantar kepada {{count}} penerima.",
     "done": "Selesai",
@@ -1310,5 +1311,17 @@
     "exportSuccessful": "Eksport Berjaya",
     "exportSuccessfulMsg": "Laporan analitik berjaya dieksport sebagai {{format}}.",
     "ok": "OK"
+  },
+
+  "privacyPolicy": {
+    "back": "Kembali",
+    "title": "Dasar Privasi",
+    "lastUpdated": "Tarikh Kemaskini: {{date}}"
+  },
+
+  "termsAndConditions": {
+    "back": "Kembali",
+    "title": "Terma & Syarat",
+    "lastUpdated": "Tarikh Kemaskini: {{date}}"
   }
 }

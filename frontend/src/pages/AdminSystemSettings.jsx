@@ -45,11 +45,11 @@ export default function AdminSystemSettings({
         }).format(new Date());
     }
 
-    function fillTokens(str) {
-        if (!str) return "";
-        const now = formatNowKuching();
-        return str.replaceAll("{DATE}", now);
-    }
+    // function fillTokens(str) {
+    //     if (!str) return "";
+    //     const now = formatNowKuching();
+    //     return str.replaceAll("{DATE}", now);
+    // }
 
     const SYSTEM_EMAIL_TEMPLATES = {
         "Custom message": { subject: "", message: "" },
@@ -59,19 +59,19 @@ export default function AdminSystemSettings({
                 `Hello,\n\nWe will perform scheduled maintenance from <Date>, <Time> to <Date>, <Time>. ${platformName} may be unavailable during this time.\n\nThanks,\nSarawakEats Admin`,
         },
         "Policy Update": {
-            subject: "Platform Policy Update - {DATE}",
+            subject: "Platform Policy Update",
             message:
-                `Hello,\n\nWe've updated our community guidelines and privacy policy on {DATE}. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSarawakEats Admin`,
+                `Hello,\n\nWe've updated our community guidelines and privacy policy on <Date>. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSarawakEats Admin`,
         },
         "System Update": {
-            subject: `${platformName} Platform Update - {DATE}`,
+            subject: `${platformName} Platform Update`,
             message:
-                `Hello,\n\nWe've made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on {DATE}.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
+                `Hello,\n\nWe've made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on <Date>.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
         },
         "Outage Resolved": {
-            subject: `${platformName} Service Restored - {DATE}`,
+            subject: `${platformName} Service Restored`,
             message:
-                `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on {DATE}.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
+                `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on <Date>.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
         },
     };
 
@@ -129,6 +129,19 @@ export default function AdminSystemSettings({
     });
 
     const closeSysDialog = () => setSysDialog((m) => ({ ...m, open: false, onPrimary: null }));
+
+    const resetAnnouncementForm = () => {
+        setSysEmailForm({
+            recipientsOption: "All users",
+            selectedUserIds: [],
+            customEmails: "",
+            template: "Custom message",
+            subject: "",
+            message: "",
+            markAnnouncement: false,
+        });
+        setSysSpecificSearch("");
+    };
 
     const [showExportModal, setShowExportModal] = useState(false);
     const [exportOptions, setExportOptions] = useState({
@@ -424,7 +437,7 @@ export default function AdminSystemSettings({
 
     useEffect(() => {
         if (!showSysEmailModal) return;
-        const onKey = (e) => e.key === "Escape" && setShowSysEmailModal(false);
+        const onKey = (e) => { if (e.key === "Escape") { setShowSysEmailModal(false); resetAnnouncementForm(); } };
         document.addEventListener("keydown", onKey);
         const prev = document.body.style.overflow;
         document.body.style.overflow = "hidden";
@@ -566,13 +579,13 @@ export default function AdminSystemSettings({
                     className="umg-modal-backdrop"
                     role="dialog"
                     aria-modal="true"
-                    onClick={() => setShowSysEmailModal(false)}
+                    onClick={() => { setShowSysEmailModal(false); resetAnnouncementForm(); }}
                 >
                     <div className="umg-modal" onClick={(e) => e.stopPropagation()}>
                         {/* Header */}
                         <div className="umg-modal-header">
                             <h3><Mail size={18} /> {t("adminSettings.sendSystemAnnouncementTitle")}</h3>
-                            <button className="umg-modal-close" onClick={() => setShowSysEmailModal(false)} aria-label="Close">×</button>
+                            <button className="umg-modal-close" onClick={() => { setShowSysEmailModal(false); resetAnnouncementForm(); }} aria-label="Close">×</button>
                         </div>
 
                         {/* Body */}
@@ -585,9 +598,9 @@ export default function AdminSystemSettings({
                                     value={sysEmailForm.recipientsOption}
                                     onChange={(e) => setSysEmailForm({ ...sysEmailForm, recipientsOption: e.target.value })}
                                 >
-                                    <option>{t("adminSettings.allUsers")}</option>
-                                    <option>{t("adminSettings.administratorsOnly")}</option>
-                                    <option>{t("adminSettings.specificUsers")}</option>
+                                    <option value="All users">{t("adminSettings.allUsers")}</option>
+                                    <option value="Administrators only">{t("adminSettings.administratorsOnly")}</option>
+                                    <option value="Specific users">{t("adminSettings.specificUsers")}</option>
                                 </select>
 
                                 {/* Specific users */}
@@ -601,7 +614,7 @@ export default function AdminSystemSettings({
                                         />
                                         <div className="umg-specific-scroll">
                                             {!sysSpecificSearch.trim() ? (
-                                                <div className="umg-empty">Type to search for users</div>
+                                                <div className="umg-empty">{t("adminSettings.typeToSearchUsers")}</div>
                                             ) : filteredSysUsers.length === 0 ? (
                                                 <div className="umg-empty">{t("adminSettings.noMatches")}</div>
                                             ) : (
@@ -624,7 +637,7 @@ export default function AdminSystemSettings({
                                                         <div>
                                                             <div className="umg-name">{u.name}</div>
                                                             <div className="umg-subline">{u.email}</div>
-                                                            {u.city && <div className="umg-subline">{u.city}</div>}
+                                                            <div className="umg-subline">{u.role}</div>
                                                         </div>
                                                     </label>
                                                 ))
@@ -648,8 +661,8 @@ export default function AdminSystemSettings({
                                         setSysEmailForm(prev => ({
                                             ...prev,
                                             template: value,
-                                            subject: fillTokens(tpl.subject),
-                                            message: fillTokens(tpl.message),
+                                            subject: tpl.subject,
+                                            message: tpl.message,
                                         }));
                                     }}
                                 >
@@ -657,6 +670,7 @@ export default function AdminSystemSettings({
                                         <option key={k} value={k}>{k}</option>
                                     ))}
                                 </select>
+                                <div className="umg-hint">{t("adminSettings.templateHint")}</div>
                             </div>
 
                             {/* Subject */}
@@ -697,7 +711,7 @@ export default function AdminSystemSettings({
 
                         {/* Footer */}
                         <div className="umg-modal-footer">
-                            <button className="umg-btn-secondary" onClick={() => setShowSysEmailModal(false)}>
+                            <button className="umg-btn-secondary" onClick={() => { setShowSysEmailModal(false); resetAnnouncementForm(); }}>
                                 {t("adminSettings.cancel")}
                             </button>
                             <button
@@ -707,7 +721,20 @@ export default function AdminSystemSettings({
                                         setSysDialog({
                                             open: true,
                                             title: t("adminSettings.missingRequiredFields"),
-                                            message: t("adminSettings.provideSubjectAndMessage"),
+                                            message: t("adminSettings.provideRecipient"),
+                                            icon: <AlertTriangle />,
+                                            primaryText: t("adminSettings.ok"),
+                                            onPrimary: closeSysDialog,
+                                        });
+                                        return;
+                                    }
+
+                                    const combinedText = sysEmailForm.subject + " " + sysEmailForm.message;
+                                    if (combinedText.includes("<Date>") || combinedText.includes("<Time>")) {
+                                        setSysDialog({
+                                            open: true,
+                                            title: t("adminSettings.unfilledPlaceholdersTitle"),
+                                            message: t("adminSettings.unfilledPlaceholders"),
                                             icon: <AlertTriangle />,
                                             primaryText: t("adminSettings.ok"),
                                             onPrimary: closeSysDialog,
@@ -733,7 +760,7 @@ export default function AdminSystemSettings({
                                         setSysDialog({
                                             open: true,
                                             title: t("adminSettings.missingRequiredFields"),
-                                            message: t("adminSettings.provideSubjectAndMessage"),
+                                            message: t("adminSettings.provideRecipient"),
                                             icon: <AlertTriangle />,
                                             primaryText: t("adminSettings.ok"),
                                             onPrimary: closeSysDialog,
@@ -752,9 +779,9 @@ export default function AdminSystemSettings({
                                                 "X-CSRF-Token": csrfToken,
                                             },
                                             credentials: "include",
-                                            body: JSON.stringify({
-                                                userIds,
-                                                emails,
+                                                body: JSON.stringify({
+                                                userIds: userIds.join(","),
+                                                emails: emails.join(","),
                                                 subject: sysEmailForm.subject,
                                                 message: sysEmailForm.message,
                                                 sendEmail: sysEmailForm.markAnnouncement,
@@ -764,10 +791,12 @@ export default function AdminSystemSettings({
                                         const data = await res.json();
 
                                         setShowSysEmailModal(false);
+                                        resetAnnouncementForm();
+
                                         setSysDialog({
                                             open: true,
                                             title: t("adminSettings.announcementSent"),
-                                            message: data.message,
+                                            message: t("adminSettings.announcementSentMsg", { count: data.count }),
                                             icon: CheckIcon ? <CheckIcon /> : null,
                                             primaryText: t("adminSettings.done"),
                                             onPrimary: closeSysDialog,
@@ -785,7 +814,7 @@ export default function AdminSystemSettings({
                                     }
                                 }}
                             >
-                                {t("adminSettings.sendEmail")}
+                                {t("adminSettings.sendAnnouncement")}
                             </button>
                         </div>
                     </div>
