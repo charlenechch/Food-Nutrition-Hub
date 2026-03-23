@@ -1592,13 +1592,19 @@ router.post('/add-food-details', async (req, res) => {
       foodId
     ]);
 
+    // Update recipe publish status to 'publish'
+    const [publishUpdate] = await connection.query(
+      `UPDATE recipe SET publish = 'publish' WHERE recipeID = ?`,
+      [recipeId]
+    );
+
     await connection.commit();
 
-    console.log('✅ Food details added for approved recipe ID:', recipeId);
+    console.log('✅ Food details added and recipe published for ID:', recipeId);
 
     res.status(200).json({
       success: true,
-      message: 'Food details added successfully for approved recipe!',
+      message: 'Food details added successfully and recipe is now published!',
       foodId: foodId,
       recipeId: recipeId
     });
