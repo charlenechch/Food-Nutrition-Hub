@@ -286,7 +286,7 @@ app.use("/api/saveFood", saveFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/likes", likeRoutes);
 app.use("/api/admin/announcement", hppProtect({ policy: "none", allowlist: ["userIds", "emails", "subject", "message", "sendEmail"], logger: (tag, meta) => logger.warn(`HPP Announcement: ${tag}`, meta) }));
-app.use("/api/admin/activityLog", hppProtect({ policy: "none", allowlist: ["cutoffDate"], logger: (tag, meta) => logger.warn(`HPP Activity Log: ${tag}`, meta) }), activityLogRoutes);
+app.use("/api/admin/activityLog", hppProtect({ policy: "first", allowlist: ["cutoffDate", "actionType", "startDate", "endDate", "search", "page"], logger: (tag, meta) => logger.warn(`HPP Activity Log: ${tag}`, meta) }), activityLogRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationRoutes);

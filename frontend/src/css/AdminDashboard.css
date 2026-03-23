@@ -2612,3 +2612,148 @@
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* Admin Activity Log Page */
+
+.activity-log-header {
+  margin-top: 100px;
+}
+
+.activity-log-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 0;
+}
+
+.activity-log-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.al-back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #916848;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 12px;
+  padding: 0;
+}
+
+.al-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #d94141;
+  border-color: #f3b4b4;
+  white-space: nowrap;
+}
+
+.al-filters {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.al-search-box {
+  min-width: 220px;
+  flex: 2;
+}
+
+.al-filter-select {
+  min-width: 180px;
+  flex: 1;
+  width: 100%;
+}
+
+.al-filter-date {
+  min-width: 150px;
+  flex: 1;
+  width: 100%;
+  cursor: pointer;
+}
+
+.al-reset-btn {
+  height: 42px;
+  white-space: nowrap;
+}
+
+.al-entries-count {
+  font-size: 13px;
+  color: #7a6b5a;
+  margin-bottom: 16px;
+}
+
+.al-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.al-table-wrapper {
+  overflow-x: auto;
+}
+
+.al-td-number {
+  color: #a4886e;
+  font-size: 13px;
+}
+
+.al-td-admin {
+  font-weight: 500;
+}
+
+.al-td-description {
+  color: #5f5040;
+  font-size: 14px;
+}
+
+.al-td-datetime {
+  color: #7a6b5a;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.al-badge {
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.al-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.al-pagination-btn {
+  border-radius: 8px;
+}
+
+.al-pagination-text {
+  font-size: 14px;
+  color: #5f5040;
+}
+
+.al-modal-desc {
+  margin-bottom: 16px;
+  color: #5f5040;
+}
+
+.al-custom-date-field {
+  margin-top: 12px;
+}
+
+.al-confirm-delete-btn {
+  background: #d94141;
+}
