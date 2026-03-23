@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FiActivity, FiSearch, FiArrowLeft, FiChevronLeft, FiChevronRight, FiTrash2 } from "react-icons/fi";
+import { FiActivity, FiSearch, FiChevronLeft, FiChevronRight, FiTrash2 } from "react-icons/fi";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/AdminDashboard.css";
@@ -164,7 +164,7 @@ export default function AdminActivityLog() {
                     onClick={() => navigate("/admin")}
                     className="al-back-btn"
                 >
-                    <FiArrowLeft size={18} /> {t("adminActivityLog.backToDashboard")}
+                    ← {t("adminActivityLog.backToDashboard")}
                 </button>
                 <div className="activity-log-title-row">
                     <div>
