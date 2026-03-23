@@ -42,6 +42,7 @@ const mapRoutes = require("./routes/map");
 // Admin
 const adminRoutes = require("./routes/admin");
 const analyticsRoutes = require("./routes/analytics");
+const { router: activityLogRoutes } = require("./routes/adminActivityLog");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -285,6 +286,7 @@ app.use("/api/saveFood", saveFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/likes", likeRoutes);
 app.use("/api/admin/announcement", hppProtect({ policy: "none", allowlist: ["userIds", "emails", "subject", "message", "sendEmail"], logger: (tag, meta) => logger.warn(`HPP Announcement: ${tag}`, meta) }));
+app.use("/api/admin/activityLog", activityLogRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationRoutes);
