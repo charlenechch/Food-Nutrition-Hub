@@ -81,7 +81,7 @@ const LinkFoodPage = () => {
         const csrfData = await csrfRes.json();
         setCsrfToken(csrfData.csrfToken);
 
-        const recipesRes = await fetch(`${API_URL}/api/recipe/draft-recipes`, { 
+        const recipesRes = await fetch(`${API_URL}/api/recipe/waiting-recipes`, { 
         credentials: "include" 
         });
         if (recipesRes.ok) {

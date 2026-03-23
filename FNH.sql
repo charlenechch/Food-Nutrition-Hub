@@ -98,7 +98,8 @@ CREATE TABLE recipe (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     admin_feedback TEXT NULL,
-    status ENUM('Approved', 'Pending', 'Rejected', 'Draft') DEFAULT 'Pending',
+    status ENUM('Approved', 'Pending', 'Rejected') DEFAULT 'Pending',
+    publish ENUM('waiting', 'publish') DEFAULT 'waiting';
     FOREIGN KEY (foodID) REFERENCES food(foodID) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON UPDATE CASCADE ON DELETE CASCADE
 );
