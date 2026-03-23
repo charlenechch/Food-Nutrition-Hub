@@ -560,6 +560,173 @@ router.get("/admin/all", async (req, res) => {
   }
 });
 
+// =============================
+// POST - Select existing recipe to Add/Update food details for approved recipe
+// =============================
+router.post('/add-food-details', async (req, res) => {
+  const connection = await db.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+
+    const {
+      recipeId,
+      name,
+      alternative,
+      altDescription,
+      category,
+      origin,
+      description,
+      culturalSignificance,
+      traditionalPreparation,
+      Energy_kcal,
+      Protein_g,
+      Carbohydrates_g,
+      Fat_g,
+      Fiber_g,
+      VitaminC_mg,
+      image,
+      commonIngredients,
+      dietaryTags,
+      healthTips
+    } = req.body;
+
+    console.log('Adding food details for approved recipe:', recipeId);
+
+    // Validate required fields
+    if (!recipeId) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'Recipe ID is required'
+      });
+    }
+
+    if (!origin) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'Origin is required'
+      });
+    }
+
+    if (!category) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'Category is required'
+      });
+    }
+
+    // Check if recipe exists and is approved
+    const [recipeCheck] = await connection.query(
+      `SELECT r.recipeID, r.foodID, r.status, f.name as currentFoodName
+       FROM recipe r
+       INNER JOIN food f ON r.foodID = f.foodID
+       WHERE r.recipeID = ?`,
+      [recipeId]
+    );
+
+    if (recipeCheck.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({
+        success: false,
+        error: 'Recipe not found'
+      });
+    }
+
+    if (recipeCheck[0].status !== 'Approved') {
+      await connection.rollback();
+      return res.status(403).json({
+        success: false,
+        error: 'Only approved recipes can have food details added'
+      });
+    }
+
+    const foodId = recipeCheck[0].foodID;
+
+    // Convert arrays to comma-separated strings for database
+    const dietaryTagsString = Array.isArray(dietaryTags) ? dietaryTags.join(', ') : dietaryTags;
+    const commonIngredientsString = Array.isArray(commonIngredients) ? commonIngredients.join(', ') : commonIngredients;
+    const categoryString = Array.isArray(category) ? category.join(', ') : (category || null);
+
+    // Update food details
+    const updateQuery = `
+      UPDATE food SET
+        name = COALESCE(?, name),
+        alternative = ?,
+        altDescription = ?,
+        category = COALESCE(?, category),
+        origin = ?,
+        description = COALESCE(?, description),
+        culturalSignificance = ?,
+        traditionalPreparation = ?,
+        Energy_kcal = ?,
+        Protein_g = ?,
+        Carbohydrates_g = ?,
+        Fat_g = ?,
+        Fiber_g = ?,
+        VitaminC_mg = ?,
+        image = COALESCE(?, image),
+        commonIngredients = ?,
+        dietaryTags = ?,
+        healthTips = ?,
+        updatedAt = NOW()
+      WHERE foodID = ?
+    `;
+
+    const [updateResult] = await connection.query(updateQuery, [
+      name || null,
+      alternative || null,
+      altDescription || null,
+      category || null,
+      origin,
+      description || null,
+      culturalSignificance || null,
+      traditionalPreparation || null,
+      Energy_kcal || 0,
+      Protein_g || 0,
+      Carbohydrates_g || 0,
+      Fat_g || 0,
+      Fiber_g || 0,
+      VitaminC_mg || 0,
+      image || null,
+      commonIngredientsString || null,
+      dietaryTagsString || null,
+      healthTips || null,
+      foodId
+    ]);
+
+    // Update recipe publish status to 'publish'
+    const [publishUpdate] = await connection.query(
+      `UPDATE recipe SET publish = 'publish' WHERE recipeID = ?`,
+      [recipeId]
+    );
+
+    await connection.commit();
+
+    console.log('✅ Food details added and recipe published for ID:', recipeId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Food details added successfully and recipe is now published!',
+      foodId: foodId,
+      recipeId: recipeId
+    });
+
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error adding food details:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add food details',
+      message: error.message
+    });
+  } finally {
+    connection.release();
+  }
+});
+
 // bulk import function
 router.post("/bulk-import", async (req, res) => {
   console.log("📥 [BULK IMPORT] Received request body:", req.body);

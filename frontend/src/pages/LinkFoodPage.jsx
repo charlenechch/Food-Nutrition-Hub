@@ -196,7 +196,7 @@ const LinkFoodPage = () => {
         healthTips: food.healthTips
       };
 
-      const response = await fetch(`${API_URL}/api/recipe/add-food-details`, {
+      const response = await fetch(`${API_URL}/api/food/add-food-details`, {
         method: "POST", 
         headers: { 
           "Content-Type": "application/json", 
