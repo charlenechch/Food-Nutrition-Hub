@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiActivity, FiSearch, FiArrowLeft, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiActivity, FiSearch, FiArrowLeft, FiChevronLeft, FiChevronRight, FiTrash2 } from "react-icons/fi";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 import "../css/AdminDashboard.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -20,6 +22,7 @@ const ACTION_TYPES = [
     { value: "recipe_approved", label: "Recipe Approved" },
     { value: "recipe_rejected", label: "Recipe Rejected" },
     { value: "announcement_sent", label: "Announcement Sent" },
+    { value: "logs_cleared", label: "Logs Cleared" },
 ];
 
 const ACTION_BADGE = {
@@ -36,6 +39,7 @@ const ACTION_BADGE = {
     recipe_approved:    { label: "Recipe Approved",    color: "#2e7d32", bg: "#e8f5e9" },
     recipe_rejected:    { label: "Recipe Rejected",    color: "#b71c1c", bg: "#ffebee" },
     announcement_sent:  { label: "Announcement Sent", color: "#6a1b9a", bg: "#f3e5f5" },
+    logs_cleared:       { label: "Logs Cleared",       color: "#5f5040", bg: "#f1e6d8" },
 };
 
 function formatDate(dateStr) {
@@ -68,6 +72,41 @@ export default function AdminActivityLog() {
     });
 
     const [searchInput, setSearchInput] = useState("");
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [clearing, setClearing] = useState(false);
+    const [clearOption, setClearOption] = useState("30");
+    const [customCutoff, setCustomCutoff] = useState("");
+
+    const getCutoffDate = () => {
+        if (clearOption === "custom") return customCutoff;
+        const date = new Date();
+        date.setDate(date.getDate() - parseInt(clearOption));
+        return date.toISOString().split("T")[0];
+    };
+
+    const handleClearLogs = async () => {
+        const cutoffDate = getCutoffDate();
+        if (!cutoffDate) return alert("Please select a valid cutoff date.");
+        setClearing(true);
+        try {
+            const res = await fetch(`${API_URL}/api/admin/activityLog`, {
+                method: "DELETE",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cutoffDate }),
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+            setShowClearConfirm(false);
+            setClearOption("30");
+            setCustomCutoff("");
+            await fetchLogs();
+        } catch (err) {
+            alert("Failed to clear logs: " + err.message);
+        } finally {
+            setClearing(false);
+        }
+    };
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -114,6 +153,8 @@ export default function AdminActivityLog() {
     };
 
     return (
+        <>
+        <Header />
         <div className="admin-dashboard">
             {/* Header */}
             <div className="dashboard-header">
@@ -123,11 +164,78 @@ export default function AdminActivityLog() {
                 >
                     <FiArrowLeft size={18} /> Back to Dashboard
                 </button>
-                <h1 style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <FiActivity /> Admin Activity Log
-                </h1>
-                <p>A record of all admin actions performed on the platform.</p>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px" }}>
+                    <div>
+                        <h1 style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <FiActivity /> Admin Activity Log
+                        </h1>
+                        <p>A record of all admin actions performed on the platform.</p>
+                    </div>
+                    <button
+                        className="admset-btn admset-btn-outline"
+                        onClick={() => setShowClearConfirm(true)}
+                        style={{ display: "flex", alignItems: "center", gap: "6px", color: "#d94141", borderColor: "#f3b4b4", whiteSpace: "nowrap" }}
+                    >
+                        <FiTrash2 size={15} /> Clear Old Logs
+                    </button>
+                </div>
             </div>
+
+            {/* Clear Logs Modal */}
+            {showClearConfirm && (
+                <div className="modal-overlay" onClick={() => setShowClearConfirm(false)}>
+                    <div className="modal-box" onClick={e => e.stopPropagation()}>
+                        <div className="modal-title">Clear Old Logs</div>
+                        <div className="modal-body">
+                            <p style={{ marginBottom: "16px", color: "#5f5040" }}>
+                                Select how far back to delete logs. Entries older than the selected period will be permanently removed.
+                            </p>
+                            <div className="umg-field">
+                                <label className="umg-label">Delete logs older than</label>
+                                <select
+                                    className="umg-input"
+                                    value={clearOption}
+                                    onChange={e => { setClearOption(e.target.value); setCustomCutoff(""); }}
+                                >
+                                    <option value="30">30 days</option>
+                                    <option value="60">60 days</option>
+                                    <option value="90">90 days</option>
+                                    <option value="365">1 year</option>
+                                    <option value="custom">Custom date...</option>
+                                </select>
+                            </div>
+                            {clearOption === "custom" && (
+                                <div className="umg-field" style={{ marginTop: "12px" }}>
+                                    <label className="umg-label">Delete logs older than this date</label>
+                                    <input
+                                        type="date"
+                                        className="umg-input"
+                                        value={customCutoff}
+                                        max={new Date().toISOString().split("T")[0]}
+                                        onChange={e => setCustomCutoff(e.target.value)}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-actions">
+                            <button
+                                className="admset-btn admset-btn-outline"
+                                onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="umg-error-retry-btn"
+                                onClick={handleClearLogs}
+                                disabled={clearing || (clearOption === "custom" && !customCutoff)}
+                                style={{ background: "#d94141" }}
+                            >
+                                {clearing ? "Clearing..." : "Confirm Delete"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Filters */}
             <div className="food-database-section">
@@ -284,5 +392,7 @@ export default function AdminActivityLog() {
                 )}
             </div>
         </div>
+        <Footer />
+        </>
     );
 }

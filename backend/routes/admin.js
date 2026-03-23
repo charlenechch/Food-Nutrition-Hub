@@ -764,7 +764,7 @@ router.post("/users", requireAdmin, async (req, res) => {
 
         const adminID = req.session.user.userID;
         const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-        await logActivity(db, adminID, adminName, "user_created", `Created new user "${name}" (${email}) with ${role} role .`);
+        await logActivity(db, adminID, adminName, "user_created", `Created new user "${name}" (${email}) with ${role} role.`);
 
         return res.status(201).json({
             success: true,
