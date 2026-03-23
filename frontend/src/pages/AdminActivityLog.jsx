@@ -159,7 +159,7 @@ export default function AdminActivityLog() {
         <Header />
         <div className="admin-dashboard">
             {/* Header */}
-            <div className="dashboard-header">
+            <div className="dashboard-header activity-log-header">
                 <button
                     onClick={() => navigate("/admin")}
                     className="al-back-btn"
