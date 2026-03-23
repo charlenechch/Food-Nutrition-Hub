@@ -97,7 +97,7 @@ const LinkFoodPage = () => {
   }, []);
 
   useEffect(() => {
-  const fetchRecipeDetails = async () => {
+  const fetchFoodDetails = async () => {
     if (!selectedRecipeId) return;
     
     try {
