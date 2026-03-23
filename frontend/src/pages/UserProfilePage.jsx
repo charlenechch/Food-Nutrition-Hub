@@ -121,53 +121,44 @@ const getStatusClass = (status) => {
   return statusMap[status] || "chip-gray";
 };
 
-// GAMIFICATION: XP BAR
-const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 2500, 5000];
 
-const calculateLevelInfo = (totalXp) => {
-  const displayXp = totalXp;
-  const effectiveXp = Math.max(0, totalXp);
-
-  let currentLevel = 1;
-  let currentBase = 0;
-  let nextBase = LEVEL_THRESHOLDS[1];
-
-  for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
-    if (effectiveXp >= LEVEL_THRESHOLDS[i]) {
-      currentLevel = i + 1;
-      currentBase = LEVEL_THRESHOLDS[i];
-      nextBase = LEVEL_THRESHOLDS[i + 1] || LEVEL_THRESHOLDS[i] + 1000;
-    } else {
-      break;
-    }
-  }
-
-  const xpIntoLevel = displayXp - currentBase;
-  const levelSize = nextBase - currentBase;
+// GAMIFICATION: USER XP BAR COMPONENT
+const calculateLevelInfo = (totalXp, highestLevel) => {
+  const safeXpForMath = Math.max(0, totalXp);
+  const naturalLevel = Math.floor(1 + Math.pow(safeXpForMath / 100, 2/3));
   
-  let progressPercent = (Math.max(0, xpIntoLevel) / levelSize) * 100;
-  progressPercent = Math.min(100, Math.max(0, progressPercent));
+  const displayLevel = Math.max(naturalLevel, highestLevel || 1);
+
+  const currentBaseXp = Math.floor(100 * Math.pow(displayLevel - 1, 1.5));
+  const nextBaseXp = Math.floor(100 * Math.pow(displayLevel, 1.5));
+
+  const levelSize = nextBaseXp - currentBaseXp;
+  const xpIntoLevel = totalXp - currentBaseXp;
+
+  let progressPercent = 0;
+  if (xpIntoLevel > 0) {
+    progressPercent = (xpIntoLevel / levelSize) * 100;
+  }
+  
+  progressPercent = Math.min(100, progressPercent);
 
   return {
-    level: currentLevel,
-    currentXp: displayXp,
-    nextLevelXp: nextBase,
-    progressPercent: progressPercent,
-    isNegative: displayXp < 0
+    level: displayLevel,
+    currentXp: totalXp, 
+    nextLevelXp: nextBaseXp,
+    progressPercent: progressPercent
   };
 };
 
-const UserXpBar = ({ totalXp }) => {
-  const info = calculateLevelInfo(totalXp);
+const UserXpBar = ({ totalXp, highestLevel }) => {
+  const info = calculateLevelInfo(totalXp, highestLevel);
 
   return (
     <div className="xp-bar-container">
       <div className="xp-bar-header">
         <div className="xp-level-badge">Lvl {info.level}</div>
         <div className="xp-numbers">
-          <span className={`xp-current ${info.isNegative ? 'xp-negative' : ''}`}>
-            {info.currentXp}
-          </span>
+          <span className="xp-current">{info.currentXp}</span>
           <span className="xp-divider"> / </span>
           <span className="xp-next">{info.nextLevelXp} XP</span>
         </div>
@@ -178,9 +169,6 @@ const UserXpBar = ({ totalXp }) => {
           style={{ width: `${info.progressPercent}%` }}
         ></div>
       </div>
-      {info.isNegative && (
-        <div className="xp-warning">XP deficit. Earn positive XP to recover!</div>
-      )}
     </div>
   );
 };
@@ -1289,7 +1277,7 @@ const ContributionRow = ({ c }) => {
               </p>
             )}
             
-            <UserXpBar totalXp={user?.total_xp !== undefined ? user.total_xp : 185} />
+            <UserXpBar totalXp={200} highestLevel={3} />
           </div>
 
           {user?.isPrivateView ? (

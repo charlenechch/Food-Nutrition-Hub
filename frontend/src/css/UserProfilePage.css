@@ -1126,10 +1126,6 @@
   font-size: 1.1rem;
 }
 
-.xp-current.xp-negative {
-  color: #dc3545; 
-}
-
 .xp-divider {
   color: #ddd2c6;
   margin: 0 4px;
@@ -1171,12 +1167,4 @@
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
-}
-
-.xp-warning {
-  font-size: 0.8rem;
-  color: #dc3545;
-  margin-top: 8px;
-  text-align: right;
-  font-style: italic;
 }
