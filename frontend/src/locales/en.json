@@ -792,7 +792,7 @@
     "chefTipsPlace": "Optional tips for cooking this dish perfectly",
     "didYouKnowPlace": "Optional interesting fact about this food",
     "linkRecipeTitle": "Link Food to Recipe",
-    "linkBtn": "Link & Save",
+    "linkBtn": "Add Food",
     "selectRecipeHeader": "Select Existing Recipe",
     "selectRecipeDesc": "Search and select an approved standalone recipe. The details you enter below will create a new Food Database profile linked directly to it.",
     "searchRecipePlaceholder": "Search recipes by name or author...",
