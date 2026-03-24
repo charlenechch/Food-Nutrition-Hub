@@ -236,7 +236,8 @@ const csrfExclude = [
   '/api/register',
   '/api/otp/verifyLogin',
   '/api/translate',
-  'api/map',  
+  '/api/map',  
+  '/api/search',
   '/api/auth/checkLoginMethod',
 ];
 
