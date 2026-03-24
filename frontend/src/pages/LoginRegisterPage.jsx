@@ -318,7 +318,7 @@ export default function LoginRegisterPage() {
           return;
       }
       if (res.status === 403 && data.googleUserBlocked) {
-          setLoginError("You signed up with Google. Please use Google to sign in.");
+          setLoginError(t("auth.googleUserBlocked"));
           return;
       }
       if (data.requires2FA) {
@@ -367,11 +367,11 @@ export default function LoginRegisterPage() {
       return;
     }
     if (!pdpaConsent) {
-      setRegisterError("You must agree to the Privacy Policy to register.");
+      setRegisterError(t("auth.pdpaConsentRequired"));
       return;
     }
     if (!tncConsent) {
-      setRegisterError("You must agree to the Terms & Conditions to register.");
+      setRegisterError(t("auth.tncConsentRequired"));
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -703,7 +703,7 @@ export default function LoginRegisterPage() {
                       onChange={(e) => setPdpaConsent(e.target.checked)} 
                     />
                     <span className="pdpa-checkbox-text">
-                      I have read and agree to the <a href="/privacypolicy" target="_blank" rel="noopener noreferrer" className="pdpa-link">Privacy Policy</a>.
+                      {t("auth.pdpaConsentText")} <a href="/privacypolicy" target="_blank" rel="noopener noreferrer" className="pdpa-link">{t("auth.pdpaConsentLink")}</a>.
                     </span>
                   </label>
                 </div>
@@ -716,7 +716,7 @@ export default function LoginRegisterPage() {
                       onChange={(e) => setTncConsent(e.target.checked)} 
                     />
                     <span className="pdpa-checkbox-text">
-                      I have read and agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" className="pdpa-link">Terms & Conditions</a>.
+                      {t("auth.tncConsentText")} <a href="/terms" target="_blank" rel="noopener noreferrer" className="pdpa-link">{t("auth.tncConsentLink")}</a>.
                     </span>
                   </label>
                 </div>
@@ -734,10 +734,10 @@ export default function LoginRegisterPage() {
                       alt="G"
                       className="mh-google-icon"
                     />
-                    Continue with Google
+                    {t("auth.continueWithGoogle")}
                   </button>
                   <p className="mh-google-note">
-                    Signing up with Google means you'll need to use Google to sign in every time.
+                    {t("auth.googleSignUpNote")}
                   </p>
                 </div>
               </>

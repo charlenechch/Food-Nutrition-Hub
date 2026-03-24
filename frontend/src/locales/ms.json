@@ -536,7 +536,16 @@
     "pwdNeedsUpper": "Kata laluan mesti mengandungi huruf besar",
     "pwdNeedsLower": "Kata laluan mesti mengandungi huruf kecil",
     "pwdNeedsNumber": "Kata laluan mesti mengandungi nombor",
-    "pwdNeedsSpecial": "Kata laluan mesti mengandungi aksara khas"
+    "pwdNeedsSpecial": "Kata laluan mesti mengandungi aksara khas",
+    "pdpaConsentText": "Saya telah membaca dan bersetuju dengan",
+    "pdpaConsentLink": "Dasar Privasi",
+    "tncConsentText": "Saya telah membaca dan bersetuju dengan",
+    "tncConsentLink": "Terma & Syarat",
+    "pdpaConsentRequired": "Anda mesti bersetuju dengan Dasar Privasi untuk mendaftar.",
+    "tncConsentRequired": "Anda mesti bersetuju dengan Terma & Syarat untuk mendaftar.",
+    "continueWithGoogle": "Teruskan dengan Google",
+    "googleSignUpNote": "Mendaftar dengan Google bermakna anda perlu menggunakan Google untuk log masuk setiap masa.",
+    "googleUserBlocked": "Anda mendaftar dengan Google. Sila gunakan Google untuk log masuk."
   },
 
   "emailVerification": {

@@ -100,12 +100,13 @@ router.delete("/", requireAdmin, async (req, res) => {
                       : diffDays === 60 ? "60 days" 
                       : diffDays === 90 ? "90 days" 
                       : diffDays === 365 ? "1 year" 
-                      : `custom date`;
+                      : null;
 
-    await logActivity(
-      db, adminID, adminName, "logs_cleared",
-      `Deleted ${deletedCount} activity log ${deletedCount === 1 ? "entry" : "entries"} older than ${periodLabel} (before ${cutoffDate}).`
-    );
+    const description = periodLabel
+      ? `Deleted ${deletedCount} activity log ${deletedCount === 1 ? "entry" : "entries"} older than ${periodLabel} (before ${cutoffDate}).`
+      : `Deleted ${deletedCount} activity log ${deletedCount === 1 ? "entry" : "entries"} older than ${cutoffDate}.`;
+
+    await logActivity(db, adminID, adminName, "logs_cleared", description);
 
     res.json({ success: true, message: `Deleted ${deletedCount} log ${deletedCount === 1 ? "entry" : "entries"}.`, deletedCount });
   } catch (err) {

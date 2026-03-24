@@ -537,7 +537,16 @@
     "pwdNeedsUpper": "Password must contain an uppercase letter",
     "pwdNeedsLower": "Password must contain a lowercase letter",
     "pwdNeedsNumber": "Password must contain a number",
-    "pwdNeedsSpecial": "Password must contain a special character"
+    "pwdNeedsSpecial": "Password must contain a special character",
+    "pdpaConsentText": "I have read and agree to the",
+    "pdpaConsentLink": "Privacy Policy",
+    "tncConsentText": "I have read and agree to the",
+    "tncConsentLink": "Terms & Conditions",
+    "pdpaConsentRequired": "You must agree to the Privacy Policy to register.",
+    "tncConsentRequired": "You must agree to the Terms & Conditions to register.",
+    "continueWithGoogle": "Continue with Google",
+    "googleSignUpNote": "Signing up with Google means you'll need to use Google to sign in every time.",
+    "googleUserBlocked": "You signed up with Google. Please use Google to sign in."
   },
   
   "emailVerification": {

@@ -730,6 +730,9 @@ router.post("/users", requireAdmin, async (req, res) => {
                 <li>Look for the notification saying "Email not verified" and click the <strong>"Resend Verification Email"</strong> button.</li>
                 <li>Check your inbox for the verification link to fully activate your account.</li>
               </ol>
+              <p style="background-color: #fff8f0; padding: 12px; border-left: 4px solid #8B4513; border-radius: 4px; font-size: 13px;">
+                <strong>Note:</strong> Some email apps automatically scan links in emails for security, which can cause the verification link to appear expired. If this happens, try logging in anyway. It may still work.
+              </p>
               
               <p><a href="https://sarawakeats.site/loginregister">Go to the login page</a></p>
               
