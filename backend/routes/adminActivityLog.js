@@ -54,7 +54,7 @@ router.get("/", requireAdmin, async (req, res) => {
        ${whereClause}
        ORDER BY createdAt DESC
        LIMIT ? OFFSET ?`,
-      [...values, limit, offset]
+      [...values, Number(limit), Number(offset)]
     );
 
     const [[{ total }]] = await db.query(
