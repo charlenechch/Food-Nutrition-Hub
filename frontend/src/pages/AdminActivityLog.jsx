@@ -79,6 +79,7 @@ export default function AdminActivityLog() {
     const [clearOption, setClearOption] = useState("30");
     const [customCutoff, setCustomCutoff] = useState("");
     const [clearError, setClearError] = useState("");
+    const [csrfToken, setCsrfToken] = useState("");
 
     const getCutoffDate = () => {
         if (clearOption === "custom") return customCutoff;
@@ -99,7 +100,7 @@ export default function AdminActivityLog() {
             const res = await fetch(`${API_URL}/api/admin/activityLog`, {
                 method: "DELETE",
                 credentials: "include",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
                 body: JSON.stringify({ cutoffDate }),
             });
             const data = await res.json();
@@ -115,6 +116,19 @@ export default function AdminActivityLog() {
             setClearing(false);
         }
     };
+
+    useEffect(() => {
+        const fetchCsrfToken = async () => {
+            try {
+                const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
+                const data = await res.json();
+                setCsrfToken(data.csrfToken);
+            } catch (err) {
+                console.error("Failed to fetch CSRF token", err);
+            }
+        };
+        fetchCsrfToken();
+    }, []);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
