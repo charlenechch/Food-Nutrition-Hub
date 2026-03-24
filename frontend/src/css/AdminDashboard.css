@@ -2616,7 +2616,7 @@
 /* Admin Activity Log Page */
 
 .activity-log-header {
-  margin-top: 20px;
+  margin-top: 80px;
 }
 
 .dashboard-header.activity-log-header h1 {
@@ -2759,4 +2759,25 @@
 
 .al-confirm-delete-btn {
   background: #d94141;
+}
+
+.umg-btn-danger {
+  background: #d94141;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.umg-btn-danger:hover {
+  background: #b71c1c;
+}
+
+.umg-btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

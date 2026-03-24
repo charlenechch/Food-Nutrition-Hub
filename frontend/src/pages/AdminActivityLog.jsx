@@ -182,10 +182,13 @@ export default function AdminActivityLog() {
 
             {/* Clear Logs Modal */}
             {showClearConfirm && (
-                <div className="modal-overlay" onClick={() => setShowClearConfirm(false)}>
-                    <div className="modal-box" onClick={e => e.stopPropagation()}>
-                        <div className="modal-title">{t("adminActivityLog.clearLogsTitle")}</div>
-                        <div className="modal-body">
+                <div className="umg-modal-backdrop" role="dialog" aria-modal="true" onClick={() => setShowClearConfirm(false)}>
+                    <div className="umg-modal" onClick={e => e.stopPropagation()}>
+                        <div className="umg-modal-header">
+                            <h3>{t("adminActivityLog.clearLogsTitle")}</h3>
+                            <button className="umg-modal-close" onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); }} aria-label="Close">×</button>
+                        </div>
+                        <div className="umg-modal-body">
                             <p className="al-modal-desc">
                                 {t("adminActivityLog.clearLogsDesc")}
                             </p>
@@ -216,15 +219,15 @@ export default function AdminActivityLog() {
                                 </div>
                             )}
                         </div>
-                        <div className="modal-actions">
+                        <div className="umg-modal-footer">
                             <button
-                                className="admset-btn admset-btn-outline"
+                                className="umg-btn-secondary"
                                 onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); }}
                             >
                                 {t("adminActivityLog.cancel")}
                             </button>
                             <button
-                                className="umg-error-retry-btn al-confirm-delete-btn"
+                                className="umg-btn-danger"
                                 onClick={handleClearLogs}
                                 disabled={clearing || (clearOption === "custom" && !customCutoff)}
                             >
