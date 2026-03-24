@@ -24,8 +24,8 @@
 .foodmap-page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px); /* subtract your navbar height */
-  margin-top: 60px;           /* push down below fixed navbar */
+  height: calc(100vh - 80px); /* subtract your navbar height */
+  margin-top: 80px;           /* push down below fixed navbar */
   background: #faf8f5;
   font-family: "Poppins", sans-serif;
   overflow: hidden;
