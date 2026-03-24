@@ -228,6 +228,7 @@ export default function Header() {
           <li><NavLink to="/analyzer">{t("nav.analyzer")}</NavLink></li>
           <li><NavLink to="/recipes">{t("nav.recipes")}</NavLink></li>
           <li><NavLink to="/community">{t("nav.community")}</NavLink></li>
+          <li><NavLink to="/map">{t("nav.map")}</NavLink></li>
         </ul>
 
         {/* Mobile Menu Drawer */}
@@ -238,6 +239,7 @@ export default function Header() {
             <NavLink to="/analyzer" onClick={closeMenu}>{t("nav.analyzer")}</NavLink>
             <NavLink to="/recipes" onClick={closeMenu}>{t("nav.recipes")}</NavLink>
             <NavLink to="/community" onClick={closeMenu}>{t("nav.community")}</NavLink>
+            <NavLink to="/map" onClick={closeMenu}>{t("nav.map")}</NavLink>
 
             <button onClick={toggleLanguage} className="mobile-btn">
               <FaGlobe className="mobile-icon" /> {currentLang}

@@ -5,6 +5,7 @@
     "analyzer": "Nutrition Analyzer",
     "recipes": "Recipes",
     "community": "Community",
+    "map": "Food Map",
     "profile": "Profile",
     "logout": "Logout",
     "login": "Login / Register"

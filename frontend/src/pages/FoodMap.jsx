@@ -1,12 +1,10 @@
-// src/pages/FoodMap/FoodMap.jsx
-// npm install leaflet react-leaflet
-// Add route in App.jsx: <Route path="/map" element={<FoodMap />} />
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "../css/FoodMap.css";
+import Header from "../components/Header";  
+import Footer from "../components/Footer";
 
 const API = import.meta.env.VITE_API_URL || "https://api.sarawakeats.site";
 
@@ -140,6 +138,7 @@ export default function FoodMap() {
 
       {/* TOPBAR */}
       <div className="foodmap-topbar">
+        <Header />
         <div className="foodmap-search-wrap">
           <span className="foodmap-search-icon">🔍</span>
           <input
@@ -269,6 +268,7 @@ export default function FoodMap() {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
