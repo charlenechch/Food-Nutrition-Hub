@@ -1,7 +1,7 @@
 /* FoodMap.css */
-/* Matches existing project CSS style — plain CSS, no Tailwind */
+/* Place in: src/css/FoodMap.css */
 
-/* ── LEAFLET FIX ─────────────────────────────────────────── */
+/* ── LEAFLET FIX ────────────────────────────────────────────── */
 .leaflet-container {
   z-index: 0;
   height: 100% !important;
@@ -12,25 +12,26 @@
 }
 .leaflet-control-attribution {
   font-size: 9px !important;
-  background: rgba(255,255,255,0.7) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
 }
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── PAGE WRAPPER ────────────────────────────────────────── */
+/* ── PAGE WRAPPER ───────────────────────────────────────────── */
+/* Sits below the fixed navbar — fills remaining screen height */
 .foodmap-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - 60px); /* subtract your navbar height */
+  margin-top: 60px;           /* push down below fixed navbar */
   background: #faf8f5;
   font-family: "Poppins", sans-serif;
-  padding-top: 60px; /* account for your fixed navbar */
   overflow: hidden;
 }
 
-/* ── TOPBAR ──────────────────────────────────────────────── */
+/* ── TOPBAR ─────────────────────────────────────────────────── */
 .foodmap-topbar {
   display: flex;
   align-items: center;
@@ -38,7 +39,7 @@
   padding: 10px 20px;
   background: #fff;
   border-bottom: 1px solid #e8ddd0;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
   z-index: 10;
 }
@@ -48,7 +49,6 @@
   flex: 1;
   max-width: 440px;
 }
-
 .foodmap-search-icon {
   position: absolute;
   left: 12px;
@@ -58,7 +58,6 @@
   color: #9a8878;
   pointer-events: none;
 }
-
 .foodmap-search-input {
   width: 100%;
   padding: 9px 16px 9px 36px;
@@ -74,11 +73,9 @@
 .foodmap-search-input:focus {
   border-color: #8b5e3c;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(139,94,60,0.1);
+  box-shadow: 0 0 0 3px rgba(139, 94, 60, 0.1);
 }
-.foodmap-search-input::placeholder {
-  color: #b0a090;
-}
+.foodmap-search-input::placeholder { color: #b0a090; }
 
 .foodmap-searching {
   position: absolute;
@@ -87,9 +84,9 @@
   transform: translateY(-50%);
   font-size: 11px;
   color: #9a8878;
-  animation: pulse 1s infinite;
+  animation: blink 1s infinite;
 }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
 .foodmap-mode-badge {
   font-size: 11px;
@@ -104,12 +101,10 @@
   background: #fde8d8;
   color: #c4532a;
 }
-
 .foodmap-count {
   font-size: 12px;
   color: #b0a090;
 }
-
 .foodmap-nearbtn {
   display: flex;
   align-items: center;
@@ -129,14 +124,15 @@
 }
 .foodmap-nearbtn:hover { background: #6b3e26; }
 
-/* ── BODY ────────────────────────────────────────────────── */
+/* ── BODY ───────────────────────────────────────────────────── */
 .foodmap-body {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0; /* critical for flex children to respect overflow */
 }
 
-/* ── SIDEBAR ─────────────────────────────────────────────── */
+/* ── SIDEBAR ────────────────────────────────────────────────── */
 .foodmap-sidebar {
   width: 320px;
   background: #fff;
@@ -145,6 +141,7 @@
   flex-direction: column;
   overflow: hidden;
   flex-shrink: 0;
+  min-height: 0;
 }
 
 .foodmap-legend {
@@ -153,6 +150,7 @@
   padding: 8px 16px;
   background: #faf8f5;
   border-bottom: 1px solid #f0e8df;
+  flex-shrink: 0;
 }
 .foodmap-legend-item {
   display: flex;
@@ -174,6 +172,7 @@
   justify-content: space-between;
   padding: 8px 16px;
   border-bottom: 1px solid #f0e8df;
+  flex-shrink: 0;
 }
 .foodmap-list-title {
   font-size: 11px;
@@ -182,19 +181,16 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
-.foodmap-list-count {
-  font-size: 11px;
-  color: #b0a090;
-}
+.foodmap-list-count { font-size: 11px; color: #b0a090; }
 
 .foodmap-cards {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 .foodmap-cards::-webkit-scrollbar { width: 3px; }
 .foodmap-cards::-webkit-scrollbar-thumb { background: #e8ddd0; border-radius: 4px; }
 
-/* Section labels */
 .foodmap-section-label {
   padding: 8px 16px 4px;
   font-size: 10px;
@@ -205,7 +201,7 @@
 .foodmap-section-label.curated { color: #c4532a; }
 .foodmap-section-label.google  { color: #1a73e8; }
 
-/* ── RESTAURANT CARD ─────────────────────────────────────── */
+/* ── RESTAURANT CARD ────────────────────────────────────────── */
 .foodmap-card {
   display: flex;
   gap: 10px;
@@ -220,7 +216,6 @@
   background: #fef6ee;
   border-left-color: #8b5e3c;
 }
-
 .foodmap-card-dot {
   width: 10px;
   height: 10px;
@@ -228,9 +223,7 @@
   flex-shrink: 0;
   margin-top: 4px;
 }
-
 .foodmap-card-body { flex: 1; min-width: 0; }
-
 .foodmap-card-top {
   display: flex;
   align-items: flex-start;
@@ -252,7 +245,6 @@
   color: #f59e0b;
   flex-shrink: 0;
 }
-
 .foodmap-pick-badge {
   display: inline-block;
   font-size: 10px;
@@ -263,7 +255,6 @@
   border-radius: 10px;
   margin-bottom: 4px;
 }
-
 .foodmap-card-address {
   font-size: 11px;
   color: #9a8878;
@@ -272,18 +263,17 @@
   text-overflow: ellipsis;
   margin-bottom: 4px;
 }
-
 .foodmap-card-meta {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .foodmap-card-price { font-size: 11px; color: #6b3e26; }
-.foodmap-open  { font-size: 10px; font-weight: 700; color: #3a6b3e; background: #e8f2e9; padding: 2px 6px; border-radius: 4px; }
-.foodmap-closed{ font-size: 10px; font-weight: 700; color: #c0392b; background: #fce8e6; padding: 2px 6px; border-radius: 4px; }
-.foodmap-halal { font-size: 10px; font-weight: 700; color: #3a6b3e; background: #e8f2e9; padding: 2px 6px; border-radius: 10px; }
+.foodmap-open   { font-size: 10px; font-weight: 700; color: #3a6b3e; background: #e8f2e9; padding: 2px 6px; border-radius: 4px; }
+.foodmap-closed { font-size: 10px; font-weight: 700; color: #c0392b; background: #fce8e6; padding: 2px 6px; border-radius: 4px; }
+.foodmap-halal  { font-size: 10px; font-weight: 700; color: #3a6b3e; background: #e8f2e9; padding: 2px 6px; border-radius: 10px; }
 
-/* ── LOADING / ERROR / EMPTY STATES ─────────────────────── */
+/* ── LOADING / ERROR / EMPTY ────────────────────────────────── */
 .foodmap-state {
   display: flex;
   flex-direction: column;
@@ -295,7 +285,8 @@
 .foodmap-state-icon { font-size: 32px; margin-bottom: 12px; }
 .foodmap-state p { font-size: 13px; text-align: center; line-height: 1.6; }
 .foodmap-spinner {
-  width: 28px; height: 28px;
+  width: 28px;
+  height: 28px;
   border: 3px solid #e8ddd0;
   border-top-color: #8b5e3c;
   border-radius: 50%;
@@ -303,7 +294,6 @@
   margin-bottom: 12px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
 .foodmap-error {
   margin: 12px;
   padding: 12px 14px;
@@ -314,14 +304,15 @@
   color: #c0392b;
 }
 
-/* ── MAP WRAPPER ─────────────────────────────────────────── */
+/* ── MAP WRAPPER ────────────────────────────────────────────── */
 .foodmap-map-wrap {
   flex: 1;
   position: relative;
   overflow: hidden;
+  min-height: 0; /* critical — lets flex child fill remaining height */
 }
 
-/* ── ZOOM BUTTONS ────────────────────────────────────────── */
+/* ── ZOOM BUTTONS ───────────────────────────────────────────── */
 .foodmap-zoom {
   position: absolute;
   top: 14px;
@@ -332,21 +323,24 @@
   gap: 4px;
 }
 .foodmap-zoom-btn {
-  width: 36px; height: 36px;
+  width: 36px;
+  height: 36px;
   background: #fff;
   border: 1px solid #e8ddd0;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   font-size: 20px;
   font-weight: 300;
   color: #3d2b1f;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.15s, color 0.15s;
 }
 .foodmap-zoom-btn:hover { background: #faf8f5; color: #8b5e3c; }
 
-/* ── DETAIL CARD ─────────────────────────────────────────── */
+/* ── DETAIL CARD ────────────────────────────────────────────── */
 .foodmap-detail {
   position: absolute;
   bottom: 20px;
@@ -354,39 +348,41 @@
   width: 280px;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(61,43,31,0.18);
+  box-shadow: 0 8px 32px rgba(61, 43, 31, 0.18);
   overflow: hidden;
   z-index: 1000;
   animation: fadeUp 0.22s ease;
 }
-
 .foodmap-detail-head {
   padding: 14px 14px 12px;
   position: relative;
 }
 .foodmap-detail-close {
   position: absolute;
-  top: 10px; right: 10px;
-  width: 22px; height: 22px;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.25);
   border: none;
   color: white;
   font-size: 12px;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.15s;
 }
-.foodmap-detail-close:hover { background: rgba(255,255,255,0.4); }
-
+.foodmap-detail-close:hover { background: rgba(255, 255, 255, 0.4); }
 .foodmap-detail-pick-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 10px;
   font-weight: 700;
-  color: rgba(255,255,255,0.85);
-  background: rgba(255,255,255,0.18);
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.18);
   padding: 2px 8px;
   border-radius: 10px;
   margin-bottom: 6px;
@@ -400,7 +396,7 @@
 }
 .foodmap-detail-desc {
   font-size: 11px;
-  color: rgba(255,255,255,0.75);
+  color: rgba(255, 255, 255, 0.75);
   margin-top: 4px;
   font-style: italic;
   display: -webkit-box;
@@ -408,9 +404,7 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 .foodmap-detail-body { padding: 12px 14px; }
-
 .foodmap-detail-row {
   display: flex;
   gap: 8px;
@@ -421,14 +415,12 @@
 .foodmap-detail-icon { width: 16px; text-align: center; flex-shrink: 0; margin-top: 1px; }
 .foodmap-detail-text { color: #3d2b1f; line-height: 1.4; }
 .foodmap-detail-text b { font-weight: 700; }
-
 .foodmap-detail-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
   margin: 8px 0;
 }
-
 .foodmap-detail-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -445,7 +437,10 @@
   font-family: "Poppins", sans-serif;
   color: #6b3e26;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   transition: background 0.12s, border-color 0.12s;
 }
 .foodmap-detail-btn:hover { background: #fef6ee; border-color: #8b5e3c; }
@@ -456,11 +451,11 @@
 }
 .foodmap-detail-btn.primary:hover { background: #6b3e26; border-color: #6b3e26; }
 
-/* ── RESPONSIVE ──────────────────────────────────────────── */
+/* ── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .foodmap-sidebar { width: 100%; height: 40vh; border-right: none; border-top: 1px solid #e8ddd0; order: 2; }
-  .foodmap-map-wrap { height: 60vh; order: 1; }
-  .foodmap-body { flex-direction: column; }
-  .foodmap-detail { left: 10px; right: 10px; width: auto; bottom: 44vh; }
-  .foodmap-count { display: none; }
+  .foodmap-body        { flex-direction: column; }
+  .foodmap-sidebar     { width: 100%; height: 40vh; border-right: none; border-top: 1px solid #e8ddd0; order: 2; }
+  .foodmap-map-wrap    { height: 60vh; order: 1; min-height: 0; }
+  .foodmap-detail      { left: 10px; right: 10px; width: auto; bottom: 42vh; }
+  .foodmap-count       { display: none; }
 }
