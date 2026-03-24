@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "css/FoodMap.css";
+import "../css/FoodMap.css";
 
 const API = import.meta.env.VITE_API_URL || "https://api.sarawakeats.site";
 
