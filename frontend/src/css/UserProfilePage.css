@@ -1088,9 +1088,11 @@
 }
 
 .xp-bar-container {
-  max-width: 450px;
-  margin: 20px auto 0;
-  padding: 16px;
+  width: 100%;
+  max-width: none;    
+  box-sizing: border-box;
+  margin: 24px 0 0 0;
+  padding: 16px 20px;
   background: #fff;
   border: 1px solid #eee3d8;
   border-radius: 14px;
