@@ -88,7 +88,7 @@ export default function FoodMap() {
     setSearching(true);
     setSelected(null);
     try {
-      const res  = await fetch(`${API}/api/map/search?q=${encodeURIComponent(q)}`);
+      const res  = await fetch(`${API}/api/search?q=${encodeURIComponent(q)}`);
       if (!res.ok) throw new Error(`Search error ${res.status}`);
       const data = await res.json();
       setPins(data.pins || []);
@@ -111,12 +111,15 @@ export default function FoodMap() {
   const geolocate = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(({ coords }) => {
-      const pos = [coords.latitude, coords.longitude];
-      setUserPos(pos);
-      setFlyTarget(pos);
-      loadMap(coords.latitude, coords.longitude);
+        const pos = [coords.latitude, coords.longitude];
+        setUserPos(pos);
+        setFlyTarget(pos);
+        loadMap(coords.latitude, coords.longitude); // ← passes lat/lng
+    }, (err) => {
+        console.error("Geolocation error:", err);
+        alert("Could not get your location. Please allow location access.");
     });
-  };
+    };
 
   // ── Detail ────────────────────────────────────────────────
   const openDetail    = (pin) => { setSelected(pin); setFlyTarget([pin.lat, pin.lng]); };

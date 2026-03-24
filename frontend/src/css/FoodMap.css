@@ -35,20 +35,22 @@
 .foodmap-topbar {
   display: flex;
   align-items: center;
+  justify-content: center;   /* ← center everything */
   gap: 12px;
   padding: 10px 20px;
   background: #fff;
   border-bottom: 1px solid #e8ddd0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   flex-shrink: 0;
   z-index: 10;
 }
 
 .foodmap-search-wrap {
   position: relative;
-  flex: 1;
-  max-width: 440px;
+  width: 400px;       /* ← fixed width instead of flex:1 */
+  max-width: 400px;
 }
+
 .foodmap-search-icon {
   position: absolute;
   left: 12px;
