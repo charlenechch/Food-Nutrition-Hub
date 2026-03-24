@@ -2699,6 +2699,15 @@
   cursor: pointer;
 }
 
+.al-filter-date .admin-beige-trigger {
+  width: 100%;
+}
+
+.al-filter-select .admin-beige-trigger {
+  width: 100%;
+  padding-right: 32px;
+}
+
 .al-reset-btn {
   height: 42px;
   white-space: nowrap;
@@ -2783,6 +2792,10 @@
 
 .al-filter-label-hidden {
   visibility: hidden;
+}
+
+.al-search-box .search-icon {
+  top: calc(50% + 10px);
 }
 
 .al-confirm-delete-btn {
