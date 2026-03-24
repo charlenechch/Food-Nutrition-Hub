@@ -1270,8 +1270,6 @@ const ContributionRow = ({ c }) => {
                 {user.bio}
               </p>
             )}
-            
-            <UserXpBar totalXp={9900} highestLevel={2} />
           </div>
 
           {user?.isPrivateView ? (
@@ -1284,6 +1282,7 @@ const ContributionRow = ({ c }) => {
           </div>
         ) : (
           <>
+          <UserXpBar totalXp={11100} highestLevel={2} />
           {/* ===== TABS ===== */}
           <div className="upp-tabs">
             {[
