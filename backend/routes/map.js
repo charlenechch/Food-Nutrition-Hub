@@ -57,7 +57,7 @@ function fromMySQL(row) {
 //  Default explore view — MySQL picks + Google Places nearby
 //  Query params: lat, lng (optional), radius (optional, metres)
 // ────────────────────────────────────────────────────────────
-router.get('/map', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const lat    = parseFloat(req.query.lat)  || KUCHING.lat;
     const lng    = parseFloat(req.query.lng)  || KUCHING.lng;
