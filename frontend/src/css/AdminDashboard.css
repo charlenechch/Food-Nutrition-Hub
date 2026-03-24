@@ -2772,6 +2772,14 @@
   margin-top: 12px;
 }
 
+.al-filter-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #7a6b5a;
+  margin-bottom: 4px;
+}
+
 .al-confirm-delete-btn {
   background: #d94141;
 }
