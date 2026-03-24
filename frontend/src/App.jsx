@@ -26,6 +26,7 @@ import UserProfilePage from "./pages/UserProfilePage";
 import Analytics from "./pages/Analytics";
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import ConsentModal from './components/ConsentModal';
+import FoodMap from "./pages/FoodMap";
 
 // // === Admin Pages ===
 import AdminHomepage from "./pages/AdminHomepage";
@@ -215,6 +216,7 @@ function AppRoutes() {
           <Route path="/community/:id" element={<CommunityPost />} />
           <Route path="/privacypolicy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsAndConditionsPage />} />
+          <Route path="/map" element={<FoodMap />} />
 
         {/* === Gated Tools (Protected) === */}
         <Route
