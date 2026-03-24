@@ -183,7 +183,7 @@ export default function AdminActivityLog() {
             {/* Clear Logs Modal */}
             {showClearConfirm && (
                 <div className="umg-modal-backdrop" role="dialog" aria-modal="true" onClick={() => setShowClearConfirm(false)}>
-                    <div className="umg-modal" onClick={e => e.stopPropagation()}>
+                    <div className="umg-modal umg-small-modal" onClick={e => e.stopPropagation()}>
                         <div className="umg-modal-header">
                             <h3>{t("adminActivityLog.clearLogsTitle")}</h3>
                             <button className="umg-modal-close" onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); }} aria-label="Close">×</button>

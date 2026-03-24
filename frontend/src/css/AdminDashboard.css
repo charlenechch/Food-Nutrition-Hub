@@ -2317,12 +2317,18 @@
   transform: translateY(0);
 }
 
-/* New smaller modal for suspension */
 .umg-suspend-modal {
     width: 480px;
     max-width: 90vw;
     max-height: 400px;
     height: auto;
+}
+
+.umg-small-modal {
+  width: 480px;
+  max-width: 90vw;
+  max-height: 400px;
+  height: auto;
 }
 
 /* New, smaller textarea for the reason input */
@@ -2699,6 +2705,15 @@
   cursor: pointer;
 }
 
+.al-filter-date .admin-beige-trigger {
+  width: 100%;
+}
+
+.al-filter-select .admin-beige-trigger {
+  width: 100%;
+  padding-right: 32px;
+}
+
 .al-reset-btn {
   height: 42px;
   white-space: nowrap;
@@ -2783,6 +2798,10 @@
 
 .al-filter-label-hidden {
   visibility: hidden;
+}
+
+.al-search-box .search-icon {
+  top: calc(50% + 10px);
 }
 
 .al-confirm-delete-btn {
