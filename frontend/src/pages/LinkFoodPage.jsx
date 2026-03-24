@@ -38,6 +38,7 @@ const LinkFoodPage = () => {
 
   // --- States ---
   const [selectedImage, setSelectedImage] = useState(null);
+  const [existingImageUrl, setExistingImageUrl] = useState(null);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
   
@@ -81,7 +82,7 @@ const LinkFoodPage = () => {
         const csrfData = await csrfRes.json();
         setCsrfToken(csrfData.csrfToken);
 
-        const recipesRes = await fetch(`${API_URL}/api/recipe/draft-recipes`, { 
+        const recipesRes = await fetch(`${API_URL}/api/recipe/waiting-recipes`, { 
         credentials: "include" 
         });
         if (recipesRes.ok) {
@@ -94,6 +95,76 @@ const LinkFoodPage = () => {
     };
     fetchInitialData();
   }, []);
+
+  useEffect(() => {
+  const fetchFoodDetails = async () => {
+    if (!selectedRecipeId) return;
+    
+    try {
+      // Fetch from food table using your existing GET endpoint
+      const response = await fetch(`${API_URL}/api/foods/by-recipe/${selectedRecipeId}`, {
+        credentials: "include"
+      });
+      
+      if (response.ok) {
+        const foodData = await response.json();
+        const foodItem = foodData.data || foodData; // Handle different response structures
+        
+        // Auto-populate form fields with existing food data
+        setFood(prev => ({
+          ...prev,
+          name: foodItem.name || "",
+          origin: foodItem.origin || "",
+          category: foodItem.category ? 
+            (Array.isArray(foodItem.category) ? foodItem.category : foodItem.category.split(", ")) : 
+            [],
+        }));
+        
+        // Handle dietary tags
+        if (foodItem.dietaryTags) {
+          const dietaryTagsArray = typeof foodItem.dietaryTags === 'string' 
+            ? foodItem.dietaryTags.split(", ") 
+            : (Array.isArray(foodItem.dietaryTags) ? foodItem.dietaryTags : []);
+          setSelectedDietary(dietaryTagsArray);
+        }
+        
+        // Handle image preview if image exists
+        if (foodItem.image) {
+          setExistingImageUrl(foodItem.image);
+        }
+        } else if (response.status === 404) {
+          // No existing food found 
+          console.log("No existing food found for recipe ID:", selectedRecipeId);
+          // Clear existing data
+          setExistingImageUrl(null);
+          setFood(prev => ({
+            ...prev,
+            name: "",
+            origin: "",
+            description: "",
+            category: [],
+          }));
+          setSelectedDietary([]);
+        } else {
+          console.error("Failed to fetch food details");
+          setShowNotification({
+            visible: true,
+            message: t("addFood.foodLoadError"),
+            type: "error"
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching food details:", error);
+        setShowNotification({
+          visible: true,
+          message: t("addFood.networkError"),
+          type: "error"
+        });
+      } 
+    };
+    
+    fetchFoodDetails();
+  }, [selectedRecipeId, t]);
 
   const handleChange = (e) => {
     setFood({ ...food, [e.target.name]: e.target.value });
@@ -165,7 +236,10 @@ const LinkFoodPage = () => {
           setShowNotification({ visible: true, message: t("addFood.imageUploadFailed"), type: "error" });
           return;
         }
+      } else if (existingImageUrl) {
+        finalImageUrl = existingImageUrl;
       }
+
 
       const dietaryString = selectedDietary.join(", ");
       let ingredientsString = selectedIngredients.join(", ");
@@ -196,7 +270,7 @@ const LinkFoodPage = () => {
         healthTips: food.healthTips
       };
 
-      const response = await fetch(`${API_URL}/api/recipe/add-food-details`, {
+      const response = await fetch(`${API_URL}/api/foods/add-food-details`, {
         method: "POST", 
         headers: { 
           "Content-Type": "application/json", 
@@ -318,6 +392,8 @@ const LinkFoodPage = () => {
             <div className="image-preview">
               {selectedImage ? (
                 <img src={URL.createObjectURL(selectedImage)} alt="Preview" />
+              ) : existingImageUrl ? (
+                <img src={existingImageUrl} alt="Existing food" />
               ) : (
                 <p>{t("addFood.noImageSelected")}</p>
               )}
@@ -328,12 +404,15 @@ const LinkFoodPage = () => {
               type="file"
               accept="image/*"
               style={{ display: "none" }}
-              onChange={(e) => setSelectedImage(e.target.files[0])}
+              onChange={(e) => {
+                setSelectedImage(e.target.files[0]);
+                setExistingImageUrl(null);
+              }}
             />
             
             <button className="admin-edit-food-upload-btn" onClick={() => fileInputRef.current.click()}>
               <span className="admin-edit-food-upload-icon"><MdOutlineFileUpload /></span>
-              {t("addFood.selectImage")}
+              {selectedImage || existingImageUrl ? t("addFood.changeImage") : t("addFood.selectImage")}
             </button>
           </div>
 

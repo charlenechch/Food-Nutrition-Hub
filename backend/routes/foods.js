@@ -5,6 +5,7 @@ const { requireAuth, requireAdmin } = require("../middleware/auth");
 const cloudinary = require("cloudinary").v2;
 const { sendEmail } = require("../config/mailer");
 const { embedFood } = require("../utils/embeddings");
+const { logActivity } = require("./adminActivityLog");
 
 // ============================
 // 📂 CLOUDINARY CONFIG
@@ -117,6 +118,48 @@ router.get("/:id", async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Get food error:", err.message);
+    res.status(500).json({ success: false, error: "Failed to fetch food" });
+  }
+});
+
+// Get food by recipe ID (using the foodId from recipe table)
+router.get("/by-recipe/:recipeId", async (req, res) => {
+  try {
+    // get the recipe to find its foodId
+    const [recipes] = await db.query(
+      "SELECT foodId FROM recipe WHERE recipeID = ?",
+      [req.params.recipeId]
+    );
+
+    if (recipes.length === 0) {
+      return res.status(404).json({ success: false, error: "Recipe not found" });
+    }
+
+    const foodId = recipes[0].foodId;
+
+    // If there's no foodId linked yet (null or 0), return 404 to create new food
+    if (!foodId) {
+      return res.status(404).json({ success: false, error: "No food linked to this recipe yet" });
+    }
+
+    // Get the food data using the foodId
+    const [foods] = await db.query("SELECT * FROM food WHERE foodID = ?", [foodId]);
+
+    if (foods.length === 0) {
+      return res.status(404).json({ success: false, error: "Food not found" });
+    }
+
+    const food = foods[0];
+    res.json({
+      success: true,
+      data: {
+        ...food,
+        createdAt: food.createdAt,
+        updatedAt: food.updatedAt,
+      },
+    });
+  } catch (err) {
+    console.error("❌ Get food by recipe error:", err.message);
     res.status(500).json({ success: false, error: "Failed to fetch food" });
   }
 });
@@ -327,6 +370,10 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     }
     
     // 6. Return Success Response
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "food_created", `Added new food "${name}" (ID: ${foodId}).`);
+
     res.json({
       success: true,
       message: "Food created successfully",
@@ -448,6 +495,10 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
       });
     }
 
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "food_updated", `Updated food "${name || existing[0].name}" (ID: ${foodId}).`);
+
     res.json({ success: true, message: "Food updated successfully." });
   } catch (err) {
     console.error("❌ Update food error:", err.message);
@@ -466,6 +517,11 @@ router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
       return res.status(404).json({ success: false, error: "Food not found" });
 
     await db.query("DELETE FROM food WHERE foodID = ?", [req.params.id]);
+
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "food_deleted", `Deleted food "${existing[0].name}" (ID: ${req.params.id}).`);
+    
     res.json({ success: true, message: "Food deleted successfully" });
   } catch (err) {
     console.error("❌ Delete food error:", err.message);
@@ -557,6 +613,173 @@ router.get("/admin/all", async (req, res) => {
   } catch (err) {
     console.error("❌ Admin get foods error:", err.message);
     res.status(500).json({ success: false, error: "Failed to fetch admin foods" });
+  }
+});
+
+// =============================
+// POST - Select existing recipe to Add/Update food details for approved recipe
+// =============================
+router.post('/add-food-details', async (req, res) => {
+  const connection = await db.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+
+    const {
+      recipeId,
+      name,
+      alternative,
+      altDescription,
+      category,
+      origin,
+      description,
+      culturalSignificance,
+      traditionalPreparation,
+      Energy_kcal,
+      Protein_g,
+      Carbohydrates_g,
+      Fat_g,
+      Fiber_g,
+      VitaminC_mg,
+      image,
+      commonIngredients,
+      dietaryTags,
+      healthTips
+    } = req.body;
+
+    console.log('Adding food details for approved recipe:', recipeId);
+
+    // Validate required fields
+    if (!recipeId) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'Recipe ID is required'
+      });
+    }
+
+    if (!origin) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'Origin is required'
+      });
+    }
+
+    if (!category) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'Category is required'
+      });
+    }
+
+    // Check if recipe exists and is approved
+    const [recipeCheck] = await connection.query(
+      `SELECT r.recipeID, r.foodID, r.status, f.name as currentFoodName
+       FROM recipe r
+       INNER JOIN food f ON r.foodID = f.foodID
+       WHERE r.recipeID = ?`,
+      [recipeId]
+    );
+
+    if (recipeCheck.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({
+        success: false,
+        error: 'Recipe not found'
+      });
+    }
+
+    if (recipeCheck[0].status !== 'Approved') {
+      await connection.rollback();
+      return res.status(403).json({
+        success: false,
+        error: 'Only approved recipes can have food details added'
+      });
+    }
+
+    const foodId = recipeCheck[0].foodID;
+
+    // Convert arrays to comma-separated strings for database
+    const dietaryTagsString = Array.isArray(dietaryTags) ? dietaryTags.join(', ') : dietaryTags;
+    const commonIngredientsString = Array.isArray(commonIngredients) ? commonIngredients.join(', ') : commonIngredients;
+    const categoryString = Array.isArray(category) ? category.join(', ') : (category || null);
+
+    // Update food details
+    const updateQuery = `
+      UPDATE food SET
+        name = COALESCE(?, name),
+        alternative = ?,
+        altDescription = ?,
+        category = COALESCE(?, category),
+        origin = ?,
+        description = COALESCE(?, description),
+        culturalSignificance = ?,
+        traditionalPreparation = ?,
+        Energy_kcal = ?,
+        Protein_g = ?,
+        Carbohydrates_g = ?,
+        Fat_g = ?,
+        Fiber_g = ?,
+        VitaminC_mg = ?,
+        image = COALESCE(?, image),
+        commonIngredients = ?,
+        dietaryTags = ?,
+        healthTips = ?,
+        updatedAt = NOW()
+      WHERE foodID = ?
+    `;
+
+    const [updateResult] = await connection.query(updateQuery, [
+      name || null,
+      alternative || null,
+      altDescription || null,
+      category || null,
+      origin,
+      description || null,
+      culturalSignificance || null,
+      traditionalPreparation || null,
+      Energy_kcal || 0,
+      Protein_g || 0,
+      Carbohydrates_g || 0,
+      Fat_g || 0,
+      Fiber_g || 0,
+      VitaminC_mg || 0,
+      image || null,
+      commonIngredientsString || null,
+      dietaryTagsString || null,
+      healthTips || null,
+      foodId
+    ]);
+
+    // Update recipe publish status to 'publish'
+    const [publishUpdate] = await connection.query(
+      `UPDATE recipe SET publish = 'publish' WHERE recipeID = ?`,
+      [recipeId]
+    );
+
+    await connection.commit();
+
+    console.log('✅ Food details added and recipe published for ID:', recipeId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Food details added successfully and recipe is now published!',
+      foodId: foodId,
+      recipeId: recipeId
+    });
+
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error adding food details:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add food details',
+      message: error.message
+    });
+  } finally {
+    connection.release();
   }
 });
 

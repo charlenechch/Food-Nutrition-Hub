@@ -5,6 +5,7 @@ const cloudinary = require('cloudinary').v2;
 const { updateUserStats } = require('./userProfile');
 const { sendEmail } = require("../config/mailer");
 const { createNotification, isEmailNotificationsEnabled } = require("./notifications");
+const { logActivity } = require("./adminActivityLog");
 
 // ✅ NEW: Validation + sanitization setup (added without removing anything)
 const Joi = require("joi");
@@ -1044,7 +1045,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
   console.log(`Attempting to update status for ID: ${recipeId}`);
 
   const { status, feedback } = req.body;
-  const validStatuses = ["Approved", "Rejected", "Pending", "Draft"];
+  const validStatuses = ["Approved", "Rejected", "Pending"];
 
   if (!validStatuses.includes(status)) {
     return res.status(400).json({ 
@@ -1065,23 +1066,20 @@ router.patch('/updateStatus/:id', async (req, res) => {
                            : "No specific feedback provided.";
 
   try {
-    let finalStatus = status;
-    let requiresAdminEdit = false;
-    
-    if (status === "Draft") {
-      finalStatus = "Draft";
-      requiresAdminEdit = true;
-    }
-
-    // Use finalStatus instead of status
+    // Update recipe status
     const [result] = await db.query(
       "UPDATE recipe SET status = ?, admin_feedback = ? WHERE foodID = ?",
-      [finalStatus, dbFeedbackValue, recipeId]  // ✅ Using finalStatus
+      [status, dbFeedbackValue, recipeId]
     );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Recipe not found." });
     }
+
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    const actionType = status === "Approved" ? "recipe_approved" : "recipe_rejected";
+    await logActivity(db, adminID, adminName, actionType, `${status} recipe for food ID ${recipeId}.`);
 
     // Fetch User Info & Recipe Details
     const [rows] = await db.query(`
@@ -1106,73 +1104,8 @@ router.patch('/updateStatus/:id', async (req, res) => {
           await updateUserStats(userID);
       }
 
-      // A. DRAFT Logic (formerly APPROVED)
-      if (finalStatus === "Draft") {
-        
-        let feedbackHtmlBlock = "";
-        if (inputFeedback.length > 0) {
-          feedbackHtmlBlock = `
-            <div style="background-color: #fff8e7; border: 1px solid #fed7aa; padding: 15px; margin: 20px 0; border-left: 5px solid #f59e0b;">
-               <strong style="color: #92400e;">Admin Note:</strong><br/>
-               <p style="margin-top: 5px; margin-bottom: 0; color: #92400e;">${inputFeedback}</p>
-            </div>
-          `;
-        }
-
-        const draftHTML = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-            <div style="background-color: #f59e0b; padding: 20px; text-align: center;">
-              <h1 style="color: #fff; margin: 0;">Recipe Under Review</h1>
-            </div>
-            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
-              <h2 style="color: #f59e0b;">Hello ${firstname},</h2>
-              <p>Your recipe <strong>"${recipeName}"</strong> has been reviewed and is pending final approval.</p>
-              
-              ${feedbackHtmlBlock}
-
-              <div style="background-color: #fff8e7; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <p style="margin: 0; color: #92400e;">Our admin team will review your recipe details and make it live shortly.</p>
-              </div>
-
-              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
-                Best regards,<br>The SarawakEats Team
-              </p>
-            </div>
-          </div>
-        `;
-
-        const draftEmailEnabled = await isEmailNotificationsEnabled(userID, db);
-        if (draftEmailEnabled) {
-            sendEmail({
-              to: email,
-              subject: "📝 Your Recipe Has Been Reviewed!",
-              html: draftHTML,
-              text: `Your recipe "${recipeName}" has been reviewed and is pending final approval.`
-            });
-            console.log(`📩 Recipe review email sent to ${email}`);
-        } else {
-            console.log(`📭 Recipe review email skipped (notifications disabled) for userID: ${userID}`);
-        }
-        
-        await createNotification(
-          userID, 
-          "recipe_reviewed", 
-          `Your recipe "${recipeName}" has been reviewed. The admin will finalize the publication shortly.`, 
-          db
-        );
-        console.log(`🔔 Review notification created for userID: ${userID}`);
-        
-        // Return success with admin action required
-        return res.json({ 
-          success: true, 
-          message: "Recipe marked as draft. Please edit the food details before publishing.",
-          requiresAdminEdit: true,
-          recipeId: recipeId
-        });
-      }
-
-      // B. REJECTED Logic
-      else if (finalStatus === "Rejected") {
+      // REJECTED Logic
+      if (status === "Rejected") {
         
         const rejectedHTML = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -1217,7 +1150,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
       }
     }
 
-    res.json({ success: true, message: `Recipe marked as ${finalStatus}.` });
+    res.json({ success: true, message: `Recipe marked as ${status}.` });
 
   } catch (error) {
     console.error("❌ Error updating recipe status:", error);
@@ -1494,7 +1427,7 @@ router.get('/pending-food-details', async (req, res) => {
 // =============================
 // GET all approved recipes for selection
 // =============================
-router.get('/draft-recipes', async (req, res) => {
+router.get('/waiting-recipes', async (req, res) => {
   try {
     const query = `
       SELECT 
@@ -1505,7 +1438,7 @@ router.get('/draft-recipes', async (req, res) => {
       INNER JOIN food f ON r.foodID = f.foodID
       LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
-      WHERE r.status = 'Draft'
+      WHERE r.status = 'Approved' and r.publish = 'waiting'
       ORDER BY r.createdAt DESC
     `;
 
@@ -1525,167 +1458,6 @@ router.get('/draft-recipes', async (req, res) => {
       success: false,
       error: error.message 
     });
-  }
-});
-
-// =============================
-// POST - Select existing recipe to Add/Update food details for approved recipe
-// =============================
-router.post('/add-food-details', async (req, res) => {
-  const connection = await db.getConnection();
-  
-  try {
-    await connection.beginTransaction();
-
-    const {
-      recipeId,
-      name,
-      alternative,
-      altDescription,
-      category,
-      origin,
-      description,
-      culturalSignificance,
-      traditionalPreparation,
-      Energy_kcal,
-      Protein_g,
-      Carbohydrates_g,
-      Fat_g,
-      Fiber_g,
-      VitaminC_mg,
-      image,
-      commonIngredients,
-      dietaryTags,
-      healthTips
-    } = req.body;
-
-    console.log('Adding food details for approved recipe:', recipeId);
-
-    // Validate required fields
-    if (!recipeId) {
-      await connection.rollback();
-      return res.status(400).json({
-        success: false,
-        error: 'Recipe ID is required'
-      });
-    }
-
-    if (!origin) {
-      await connection.rollback();
-      return res.status(400).json({
-        success: false,
-        error: 'Origin is required'
-      });
-    }
-
-    if (!category) {
-      await connection.rollback();
-      return res.status(400).json({
-        success: false,
-        error: 'Category is required'
-      });
-    }
-
-    // Check if recipe exists and is approved
-    const [recipeCheck] = await connection.query(
-      `SELECT r.recipeID, r.foodID, r.status, f.name as currentFoodName
-       FROM recipe r
-       INNER JOIN food f ON r.foodID = f.foodID
-       WHERE r.recipeID = ?`,
-      [recipeId]
-    );
-
-    if (recipeCheck.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({
-        success: false,
-        error: 'Recipe not found'
-      });
-    }
-
-    if (recipeCheck[0].status !== 'Approved') {
-      await connection.rollback();
-      return res.status(403).json({
-        success: false,
-        error: 'Only approved recipes can have food details added'
-      });
-    }
-
-    const foodId = recipeCheck[0].foodID;
-
-    // Convert arrays to comma-separated strings for database
-    const dietaryTagsString = Array.isArray(dietaryTags) ? dietaryTags.join(', ') : dietaryTags;
-    const commonIngredientsString = Array.isArray(commonIngredients) ? commonIngredients.join(', ') : commonIngredients;
-    const categoryString = Array.isArray(category) ? category.join(', ') : (category || null);
-
-    // Update food details
-    const updateQuery = `
-      UPDATE food SET
-        name = COALESCE(?, name),
-        alternative = ?,
-        altDescription = ?,
-        category = COALESCE(?, category),
-        origin = ?,
-        description = COALESCE(?, description),
-        culturalSignificance = ?,
-        traditionalPreparation = ?,
-        Energy_kcal = ?,
-        Protein_g = ?,
-        Carbohydrates_g = ?,
-        Fat_g = ?,
-        Fiber_g = ?,
-        VitaminC_mg = ?,
-        image = COALESCE(?, image),
-        commonIngredients = ?,
-        dietaryTags = ?,
-        healthTips = ?,
-        updatedAt = NOW()
-      WHERE foodID = ?
-    `;
-
-    const [updateResult] = await connection.query(updateQuery, [
-      name || null,
-      alternative || null,
-      altDescription || null,
-      category || null,
-      origin,
-      description || null,
-      culturalSignificance || null,
-      traditionalPreparation || null,
-      Energy_kcal || 0,
-      Protein_g || 0,
-      Carbohydrates_g || 0,
-      Fat_g || 0,
-      Fiber_g || 0,
-      VitaminC_mg || 0,
-      image || null,
-      commonIngredientsString || null,
-      dietaryTagsString || null,
-      healthTips || null,
-      foodId
-    ]);
-
-    await connection.commit();
-
-    console.log('✅ Food details added for approved recipe ID:', recipeId);
-
-    res.status(200).json({
-      success: true,
-      message: 'Food details added successfully for approved recipe!',
-      foodId: foodId,
-      recipeId: recipeId
-    });
-
-  } catch (error) {
-    await connection.rollback();
-    console.error('Error adding food details:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to add food details',
-      message: error.message
-    });
-  } finally {
-    connection.release();
   }
 });
 
