@@ -142,8 +142,8 @@ const calculateLevelInfo = (totalXp, highestLevel) => {
 
   return {
     level: displayLevel,
-    currentXp: totalXp, 
-    nextLevelXp: nextBaseXp,
+    relativeCurrentXp: Math.max(0, Math.floor(xpIntoLevel)), 
+    relativeNextXp: levelSize,
     progressPercent: progressPercent
   };
 };
@@ -156,9 +156,9 @@ const UserXpBar = ({ totalXp, highestLevel }) => {
       <div className="xp-bar-header">
         <div className="xp-level-badge">Lvl {info.level}</div>
         <div className="xp-numbers">
-          <span className="xp-current">{info.currentXp}</span>
+          <span className="xp-current">{info.relativeCurrentXp}</span>
           <span className="xp-divider"> / </span>
-          <span className="xp-next">{info.nextLevelXp} XP</span>
+          <span className="xp-next">{info.relativeNextXp} XP</span>
         </div>
       </div>
       <div className="xp-track">
