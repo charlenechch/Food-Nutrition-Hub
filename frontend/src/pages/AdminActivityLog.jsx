@@ -78,6 +78,7 @@ export default function AdminActivityLog() {
     const [clearing, setClearing] = useState(false);
     const [clearOption, setClearOption] = useState("30");
     const [customCutoff, setCustomCutoff] = useState("");
+    const [clearError, setClearError] = useState("");
 
     const getCutoffDate = () => {
         if (clearOption === "custom") return customCutoff;
@@ -88,8 +89,12 @@ export default function AdminActivityLog() {
 
     const handleClearLogs = async () => {
         const cutoffDate = getCutoffDate();
-        if (!cutoffDate) return alert("Please select a valid cutoff date.");
+        if (!cutoffDate) {
+            setClearError("Please select a valid cutoff date.");
+            return;
+        }
         setClearing(true);
+        setClearError("");
         try {
             const res = await fetch(`${API_URL}/api/admin/activityLog`, {
                 method: "DELETE",
@@ -102,9 +107,10 @@ export default function AdminActivityLog() {
             setShowClearConfirm(false);
             setClearOption("30");
             setCustomCutoff("");
+            setClearError("");
             await fetchLogs();
         } catch (err) {
-            alert("Failed to clear logs: " + err.message);
+            setClearError("Failed to clear logs: " + err.message);
         } finally {
             setClearing(false);
         }
@@ -182,11 +188,11 @@ export default function AdminActivityLog() {
 
             {/* Clear Logs Modal */}
             {showClearConfirm && (
-                <div className="umg-modal-backdrop" role="dialog" aria-modal="true" onClick={() => setShowClearConfirm(false)}>
+                <div className="umg-modal-backdrop" role="dialog" aria-modal="true" onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); setClearError(""); }}>
                     <div className="umg-modal umg-small-modal" onClick={e => e.stopPropagation()}>
                         <div className="umg-modal-header">
                             <h3>{t("adminActivityLog.clearLogsTitle")}</h3>
-                            <button className="umg-modal-close" onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); }} aria-label="Close">×</button>
+                            <button className="umg-modal-close" onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); setClearError(""); }} aria-label="Close">×</button>
                         </div>
                         <div className="umg-modal-body">
                             <p className="al-modal-desc">
@@ -219,10 +225,15 @@ export default function AdminActivityLog() {
                                 </div>
                             )}
                         </div>
+                        {clearError && (
+                            <div className="umg-modal-body">
+                                <p className="al-clear-error">{clearError}</p>
+                            </div>
+                        )}
                         <div className="umg-modal-footer">
                             <button
                                 className="umg-btn-secondary"
-                                onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); }}
+                                onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); setClearError(""); }}
                             >
                                 {t("adminActivityLog.cancel")}
                             </button>

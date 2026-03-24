@@ -2808,6 +2808,13 @@
   background: #d94141;
 }
 
+.al-clear-error {
+  padding: 0 0 8px 0;
+  color: #d94141;
+  font-size: 13px;
+  margin: 0;
+}
+
 .umg-btn-danger {
   background: #d94141;
   color: #fff;
