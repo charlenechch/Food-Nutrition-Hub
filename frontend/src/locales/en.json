@@ -1359,7 +1359,9 @@
     "cancel": "Cancel",
     "confirmDelete": "Confirm Delete",
     "clearing": "Clearing...",
-    "resetFilters": "Reset Filters"
+    "resetFilters": "Reset Filters",
+    "startDate": "Start Date",
+    "endDate": "End Date"
   },
 
   "privacyPolicy": {

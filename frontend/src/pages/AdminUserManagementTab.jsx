@@ -12,8 +12,12 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 // Suspend User Modal Component
 const SuspendUserModal = ({ user, onClose, onSave, onAlert }) => {
   const { t } = useTranslation();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
   const [suspensionDate, setSuspensionDate] = useState(
-    user?.suspendedUntil ? user.suspendedUntil.split('T')[0] : new Date().toISOString().slice(0, 10)
+    user?.suspendedUntil ? user.suspendedUntil.split('T')[0] : tomorrowStr
   );
   const [reason, setReason] = useState(user?.suspensionReason || "");
 
@@ -42,7 +46,7 @@ const SuspendUserModal = ({ user, onClose, onSave, onAlert }) => {
             <input
               className="umg-input"
               type="date"
-              min={new Date().toISOString().slice(0, 10)}
+              min={tomorrowStr}
               value={suspensionDate}
               onChange={(e) => setSuspensionDate(e.target.value)}
             />
