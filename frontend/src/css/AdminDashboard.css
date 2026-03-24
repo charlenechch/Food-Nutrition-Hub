@@ -2317,12 +2317,18 @@
   transform: translateY(0);
 }
 
-/* New smaller modal for suspension */
 .umg-suspend-modal {
     width: 480px;
     max-width: 90vw;
     max-height: 400px;
     height: auto;
+}
+
+.umg-small-modal {
+  width: 480px;
+  max-width: 90vw;
+  max-height: 400px;
+  height: auto;
 }
 
 /* New, smaller textarea for the reason input */
