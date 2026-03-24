@@ -32,7 +32,7 @@ const restaurantData = [
     },
 
     {
-        "restaurantID": 1,
+        "restaurantID": 3,
         "foodID": 3,
         "name": "Lepau Restaurant",
         "city": "Kuching",
@@ -47,7 +47,7 @@ const restaurantData = [
     },
 
     {
-        "restaurantID": 1,
+        "restaurantID": 4,
         "foodID": 3,
         "name": "Jak Maan Restaurant",
         "city": "Kuching",
@@ -62,7 +62,7 @@ const restaurantData = [
     },
 
     {
-        "restaurantID": 1,
+        "restaurantID": 5,
         "foodID": 3,
         "name": "The Lamin",
         "city": "Kuching",
@@ -82,7 +82,7 @@ const restaurantData = [
   try {
     for (const r of restaurantData) {
     const sql = `
-      INSERT INTO restaurant (restaurantID, foodID, name, city, latitude, longitude, rating, price, address, description, opening_hours, is_halal)
+      INSERT INTO restaurants (restaurantID, foodID, name, city, latitude, longitude, rating, price, address, description, opening_hours, is_halal)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
