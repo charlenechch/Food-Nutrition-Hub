@@ -733,6 +733,7 @@ export default function UserManagement() {
                       onChange={(e) => setUserForm(prev => ({ ...prev, name: e.target.value }))}
                       placeholder={t("adminUser.namePlaceholder")}
                     />
+                    <div className="umg-hint">{t("adminUser.nameHint")}</div>
                   </div>
 
                   <div className="umg-field">

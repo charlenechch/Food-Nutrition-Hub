@@ -93,9 +93,18 @@ router.delete("/", requireAdmin, async (req, res) => {
 
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    const today = new Date();
+    const cutoff = new Date(cutoffDate);
+    const diffDays = Math.round((today - cutoff) / (1000 * 60 * 60 * 24));
+    const periodLabel = diffDays === 30 ? "30 days" 
+                      : diffDays === 60 ? "60 days" 
+                      : diffDays === 90 ? "90 days" 
+                      : diffDays === 365 ? "1 year" 
+                      : `custom date`;
+
     await logActivity(
       db, adminID, adminName, "logs_cleared",
-      `Deleted ${deletedCount} activity log ${deletedCount === 1 ? "entry" : "entries"} older than ${cutoffDate}.`
+      `Deleted ${deletedCount} activity log ${deletedCount === 1 ? "entry" : "entries"} older than ${periodLabel} (before ${cutoffDate}).`
     );
 
     res.json({ success: true, message: `Deleted ${deletedCount} log ${deletedCount === 1 ? "entry" : "entries"}.`, deletedCount });
