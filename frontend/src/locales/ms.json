@@ -1358,7 +1358,9 @@
     "cancel": "Batal",
     "confirmDelete": "Sahkan Padam",
     "clearing": "Memadam...",
-    "resetFilters": "Tetapkan Semula Penapis"
+    "resetFilters": "Tetapkan Semula Penapis",
+    "startDate": "Tarikh Mula",
+    "endDate": "Tarikh Tamat"
   },
 
 

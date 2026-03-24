@@ -2638,17 +2638,32 @@
 }
 
 .al-back-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #916848;
+  background: #f8f5f0;
+  border: 1px solid #d8c9b6;
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: #60482e;
   font-weight: 600;
   font-size: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 12px;
-  padding: 0;
+  line-height: 1;
+  transition: background 0.2s ease;
+}
+
+.al-back-btn:hover {
+  background: #ede5da;
+}
+
+.al-back-btn:focus,
+.al-back-btn:focus-visible,
+.al-back-btn:active {
+  outline: none;
+  box-shadow: none;
+  border: 1px solid #d8c9b6;
 }
 
 .al-clear-btn {
@@ -2663,6 +2678,7 @@
 .al-filters {
   flex-wrap: wrap;
   gap: 12px;
+  align-items: flex-end;
 }
 
 .al-search-box {
@@ -2755,6 +2771,18 @@
 
 .al-custom-date-field {
   margin-top: 12px;
+}
+
+.al-filter-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #7a6b5a;
+  margin-bottom: 4px;
+}
+
+.al-filter-label-hidden {
+  visibility: hidden;
 }
 
 .al-confirm-delete-btn {
