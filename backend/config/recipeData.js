@@ -33,6 +33,7 @@ const recipeData = [
     servings: 1,
     DidYouKnow: "Linut is also known as ambuyat in Brunei and is considered a national dish there. The sago starch used comes from the sago palm, which is abundant in Borneo.",
     chefTips: "For the perfect linut consistency, stir continuously while cooking and adjust water gradually. The final texture should be smooth and glue-like.",
+    publish: "publish",
   },
 
   {
@@ -87,6 +88,7 @@ const recipeData = [
     servings: 1,
     DidYouKnow: "Kolo Mee is unique to Sarawak and differs from Peninsular Malaysian wantan mee. The name comes from the Cantonese 'gàn lò mihn' meaning 'dry-tossed noodles'.",
     chefTips: "For authentic Kuching-style kolo mee, use fresh yellow egg noodles and don't overcook them. The noodles should be springy (QQ texture).",
+    publish: "publish",
   },
 
   {
@@ -116,6 +118,7 @@ const recipeData = [
     servings: 1,
     DidYouKnow: "Umai is often called the 'Sarawakian ceviche'. The Melanau people traditionally used freshly caught fish from the South China Sea, with the lime juice 'cooking' the protein.",
     chefTips: "Use only the freshest seafood possible. The lime juice should turn the prawns opaque within 10 minutes. If not, the prawns may not be fresh enough.",
+    publish: "publish",
   },
 
   {
@@ -138,6 +141,7 @@ const recipeData = [
     servings: 1,
     DidYouKnow: "Nasi Aruk is unique because it's cooked without any additional oil - the rice is toasted in its own natural oils and the residual oil from frying ingredients.",
     chefTips: "Use day-old rice for best results as it's drier. The key is to keep stirring until each grain is separate and slightly toasted.",
+    publish: "publish",
   },
 
   {
@@ -166,6 +170,7 @@ const recipeData = [
     servings: 4,
     DidYouKnow: "Asam Siok is a traditional Bidayuh method of cooking where the bamboo not only serves as a cooking vessel but also imparts a unique smoky, earthy flavor to the dish.",
     chefTips: "Choose young, green bamboo for cooking as it contains natural moisture that creates steam. Older, drier bamboo may burn too quickly.",
+    publish: "publish",
   },
 
   {
@@ -194,6 +199,7 @@ const recipeData = [
     servings: 3,
     DidYouKnow: "Belacan Bihun is a Kuching specialty that combines Chinese rice vermicelli with Malay-style belacan gravy, showcasing Sarawak's cultural fusion.",
     chefTips: "Toast the belacan properly until fragrant but not burnt. The gravy should be thick enough to coat the noodles but still pourable.",
+    publish: "publish",
   },
 
   {
@@ -218,6 +224,7 @@ const recipeData = [
     servings: 1,
     DidYouKnow: "Cassava leaves must be thoroughly cooked as they contain cyanogenic glycosides which can be toxic when raw. Traditional pounding helps break down these compounds.",
     chefTips: "Young cassava leaves are more tender and less bitter. Always cook cassava leaves for at least 15-20 minutes to ensure safety.",
+    publish: "publish",
   },
 
   {
@@ -239,6 +246,7 @@ const recipeData = [
     servings: 1,
     DidYouKnow: "Manicai (Sauropus androgynus) is also called 'Sweet Leaf' or 'Cekur Manis'. It's rich in vitamins A, B, and C, and contains more protein than most leafy vegetables.",
     chefTips: "Don't overcook manicai as it becomes bitter. The salting process helps reduce its natural sliminess and enhances the flavor.",
+    publish: "publish",
   },
 
   {
@@ -266,6 +274,7 @@ const recipeData = [
     servings: 1,
     DidYouKnow: "Midin is a wild fern found only in Sarawak and is considered a delicacy. The fiddleheads are harvested young when they're still curled up.",
     chefTips: "Midin cooks very quickly - just blanch or stir-fry for 1-2 minutes. Overcooking makes it slimy. Always choose tightly curled fiddleheads.",
+    publish: "publish",
   },
 
   {
@@ -296,6 +305,7 @@ const recipeData = [
     servings: 4,
     DidYouKnow: "Ayam Pansuh (or Manok Pansoh) is the ultimate Iban hospitality dish. It's traditionally served to honored guests during Gawai festivals and special occasions.",
     chefTips: "Use fresh bamboo for authentic flavor. The bamboo should be green and moist inside. Listen for the bubbling sound - it means the dish is cooking properly inside the sealed bamboo.",
+    publish: "publish",
   }
 ];
 
@@ -305,8 +315,8 @@ const recipeData = [
   try {
     for (const recipe of recipeData) {
     const sql = `
-      INSERT INTO recipe (foodID, userProfileID, description, ingredients, steps, cookTime, servings, DidYouKnow, chefTips)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO recipe (foodID, userProfileID, description, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, publish)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     const values = [
@@ -318,6 +328,7 @@ const recipeData = [
       recipe.servings,
       recipe.DidYouKnow,
       recipe.chefTips,
+      recipe.publish,
     ];
     await db.pool.query(sql, values);
     }
