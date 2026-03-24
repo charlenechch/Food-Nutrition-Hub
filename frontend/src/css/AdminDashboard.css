@@ -2678,6 +2678,7 @@
 .al-filters {
   flex-wrap: wrap;
   gap: 12px;
+  align-items: flex-end;
 }
 
 .al-search-box {
@@ -2778,6 +2779,10 @@
   font-weight: 600;
   color: #7a6b5a;
   margin-bottom: 4px;
+}
+
+.al-filter-label-hidden {
+  visibility: hidden;
 }
 
 .al-confirm-delete-btn {

@@ -244,6 +244,7 @@ export default function AdminActivityLog() {
 
                     {/* Search */}
                     <form onSubmit={handleSearchSubmit} className="search-box al-search-box">
+                        <label className="al-filter-label al-filter-label-hidden">​</label>
                         <span className="search-icon"><FiSearch /></span>
                         <input
                             type="text"
@@ -255,6 +256,7 @@ export default function AdminActivityLog() {
 
                     {/* Action Type */}
                     <div className="filter-item al-filter-select">
+                        <label className="al-filter-label al-filter-label-hidden">​</label>
                         <select
                             className="admin-beige-trigger"
                             value={filters.actionType}
