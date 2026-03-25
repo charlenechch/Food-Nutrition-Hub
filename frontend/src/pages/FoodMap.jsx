@@ -162,26 +162,32 @@ export default function FoodMap() {
   const geolocate = () => {
     setGeoError(null);
     if (!navigator.geolocation) {
-      setGeoError("Geolocation not supported by your browser.");
+      setGeoError("Geolocation not supported.");
       return;
     }
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         const lat = coords.latitude;
         const lng = coords.longitude;
+
+        // ✅ Validate — Kuching is roughly lat 1.0–2.5, lng 109–111
+        if (lat < 0.5 || lat > 3.0 || lng < 108 || lng > 112) {
+          setGeoError(`Location seems incorrect (${lat.toFixed(4)}, ${lng.toFixed(4)}). Showing Kuching centre.`);
+          return;
+        }
+
         const pos = [lat, lng];
         setUserPos(pos);
         setFlyTarget(pos);
         loadMap(lat, lng);
       },
       (err) => {
-        console.error("Geolocation error:", err);
         switch (err.code) {
           case err.PERMISSION_DENIED:
-            setGeoError("Location access denied. Please allow location in your browser settings.");
+            setGeoError("Location access denied. Please allow location in browser settings.");
             break;
           case err.POSITION_UNAVAILABLE:
-            setGeoError("Location unavailable. Showing Kuching centre instead.");
+            setGeoError("Location unavailable. Showing Kuching centre.");
             break;
           default:
             setGeoError("Could not get your location. Try again.");
