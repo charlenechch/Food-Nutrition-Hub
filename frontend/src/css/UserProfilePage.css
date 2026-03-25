@@ -1263,6 +1263,10 @@
   font-size: 1rem;
 }
 
+.xlp-pagination {
+  margin-top: 24px;
+}
+
 @media (max-width: 500px) {
   .xp-log-item {
     flex-direction: column;

@@ -99,19 +99,18 @@ export default function XpLogsPage() {
       <Header />
       
       <div className="upp-page">
-        <div className="upp-stack" style={{ maxWidth: "800px", margin: "0 auto" }}>
+        <div className="upp-stack stack">
           
           <button 
-            className="lrp-btn lrp-btn-outline" 
-            style={{ width: "fit-content", marginBottom: "16px" }}
+            className="lrp-btn lrp-btn-outline xlp-btn" 
             onClick={() => navigate(-1)}
           >
             {t("profile.backToProfile")}
           </button>
 
           <div className="upp-card">
-            <h2 className="upp-card-title" style={{ fontSize: "1.8rem" }}>{t("profile.xpLogsTitle")}</h2>
-            <p className="upp-muted2" style={{ marginBottom: "24px", fontSize: "1rem" }}>
+            <h2 className="upp-card-title xlp-card-title">{t("profile.xpLogsTitle")}</h2>
+            <p className="upp-muted2 xlp-muted2">
                 {t("profile.xpLogsDesc")}
             </p>
 
@@ -139,7 +138,7 @@ export default function XpLogsPage() {
             </div>
 
             {totalPages > 1 && (
-              <div className="efp-pagination upp-pagination" style={{ marginTop: "24px" }}>
+              <div className="efp-pagination upp-pagination xlp-pagination">
                 <button
                   className="efp-btn nav-btn"
                   disabled={currentPage === 1}
