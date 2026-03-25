@@ -199,4 +199,19 @@ CREATE TABLE notifications (
     FOREIGN KEY (userID) REFERENCES user(userID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-
+CREATE TABLE adminActivityLog (
+    logID INT AUTO_INCREMENT PRIMARY KEY,
+    adminID INT NOT NULL,
+    adminName VARCHAR(100) NOT NULL,
+    actionType ENUM(
+        'user_created', 'user_updated', 'user_suspended', 'user_unsuspended', 'user_deleted',
+        'food_created', 'food_updated', 'food_deleted',
+        'post_approved', 'post_rejected',
+        'recipe_approved', 'recipe_rejected',
+        'announcement_sent', 'logs_cleared'
+    ) NOT NULL,
+    description TEXT NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    KEY adminID (adminID),
+    FOREIGN KEY (adminID) REFERENCES user (userID) ON DELETE CASCADE
+);
