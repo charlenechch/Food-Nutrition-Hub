@@ -1703,7 +1703,6 @@ const ContributionRow = ({ c }) => {
                     {MOCK_XP_LOGS.map((log) => (
                       <div key={log.id} className="xp-log-item">
                         <div className="xp-log-info">
-                          {/* Format the ENUM string from the database */}
                           <div className="xp-log-action">{formatActionType(log.action_type)}</div>
                           <div className="xp-log-details">{log.reference_title}</div>
                           <div className="upp-muted2">
