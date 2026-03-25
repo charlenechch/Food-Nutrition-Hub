@@ -62,7 +62,6 @@ const MOCK_XP_LOGS = [
   { id: 142, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-02-12T09:05:00Z" },
   { id: 143, action_type: "RECIPE_LIKED", reference_id: 44, xp_awarded: 2, created_at: "2026-02-11T15:25:00Z" },
   { id: 144, action_type: "POST_LIKED", reference_id: 90, xp_awarded: 2, created_at: "2026-02-10T18:50:00Z" },
-  { id: 145, action_type: "ACCOUNT_CREATION", reference_id: null, xp_awarded: 0, created_at: "2026-02-09T08:00:00Z" }
 ];
 
 const formatActionType = (actionType, t) => {
