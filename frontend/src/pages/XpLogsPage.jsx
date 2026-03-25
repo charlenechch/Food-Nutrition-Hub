@@ -146,7 +146,8 @@ export default function XpLogsPage() {
                 >
                   {t("profile.prev")}
                 </button>
-                <div className="efp-page-numbers">
+                
+                <div className="efp-page-numbers desktop-only">
                   {getPaginationGroup(currentPage, totalPages).map((item, index) => (
                     item === "..." ? (
                       <span key={`ellipsis-${index}`} className="efp-ellipsis">...</span>
@@ -161,6 +162,11 @@ export default function XpLogsPage() {
                     )
                   ))}
                 </div>
+
+                <div className="mobile-page-indicator">
+                  Page {currentPage} of {totalPages}
+                </div>
+
                 <button
                   className="efp-btn nav-btn"
                   disabled={currentPage === totalPages}

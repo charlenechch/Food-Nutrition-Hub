@@ -1267,6 +1267,14 @@
   margin-top: 24px;
 }
 
+.mobile-page-indicator {
+  display: none; 
+  font-weight: 600;
+  color: #6a4a2f;
+  font-size: 0.95rem;
+  margin: 0 12px;
+}
+
 @media (max-width: 500px) {
   .xp-log-item {
     flex-direction: column;
@@ -1282,5 +1290,12 @@
   
   .xp-log-list {
     min-height: 950px; 
+  }
+  .desktop-only {
+    display: none !important; 
+  }
+
+  .mobile-page-indicator {
+    display: block; 
   }
 }
