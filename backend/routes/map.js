@@ -10,12 +10,13 @@ const axios      = require('axios');
 const PLACES_KEY = process.env.GOOGLE_PLACES_KEY;
 const KUCHING    = { lat: 1.5535, lng: 110.3493 };
 
-// ── Normalize Google Places result ───────────────────────────
+// ── Normalize Google Places result ────────────────────────────
 function fromGoogle(place) {
   return {
     id:       `g_${place.id || place.place_id}`,
     source:   'google',
     name:     place.displayName?.text || place.name,
+    dish:     '',                              // used by detectCategory on frontend
     address:  place.formattedAddress  || place.vicinity || '',
     city:     'Kuching',
     lat:      place.location?.latitude  ?? place.geometry?.location?.lat,
@@ -37,6 +38,7 @@ function fromMySQL(row) {
     id:      `m_${row.restaurantID}`,
     source:  'mysql',
     name:    row.name,
+    dish:    row.food_name || '',              // food name from food table join
     address: row.address,
     city:    row.city,
     lat:     parseFloat(row.latitude),
@@ -48,7 +50,7 @@ function fromMySQL(row) {
     halal:   Boolean(row.is_halal),
     desc:    row.description,
     photo:   null,
-    is_pick: true,   // shows "Sarawak Eats Pick" badge
+    is_pick: true,
   };
 }
 
@@ -59,9 +61,13 @@ function fromMySQL(row) {
 // ────────────────────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
-    const lat    = parseFloat(req.query.lat)  || KUCHING.lat;
-    const lng    = parseFloat(req.query.lng)  || KUCHING.lng;
-    const radius = parseInt(req.query.radius) || 5000;
+    // ✅ Use parseFloat for all numbers — Google requires float not int
+    const lat    = parseFloat(req.query.lat)    || KUCHING.lat;
+    const lng    = parseFloat(req.query.lng)    || KUCHING.lng;
+    const radius = parseFloat(req.query.radius) || 5000.0;
+
+    // ← ADD THIS TEMPORARILY
+    console.log('[MAP] lat:', lat, typeof lat, '| lng:', lng, typeof lng, '| radius:', radius, typeof radius);
 
     // 1. Google Places Nearby Search
     const googleRes = await axios.post(
@@ -71,8 +77,11 @@ router.get('/', async (req, res) => {
         maxResultCount: 20,
         locationRestriction: {
           circle: {
-            center: { latitude: lat, longitude: lng },
-            radius,
+            center: {
+              latitude:  parseFloat(lat),   // ✅ explicit float
+              longitude: parseFloat(lng),
+            },
+            radius: parseFloat(radius),     // ✅ explicit float
           },
         },
       },
@@ -96,7 +105,7 @@ router.get('/', async (req, res) => {
 
     const googlePins = (googleRes.data.places || []).map(fromGoogle);
 
-    // 2. MySQL curated picks — matches your exact column names
+    // 2. MySQL curated picks
     const rows = await many(`
       SELECT
         r.restaurantID,
@@ -152,8 +161,11 @@ router.get('/search', async (req, res) => {
         maxResultCount: 20,
         locationBias: {
           circle: {
-            center: { latitude: lat, longitude: lng },
-            radius: 10000,
+            center: {
+              latitude:  parseFloat(lat),   // ✅ explicit float
+              longitude: parseFloat(lng),
+            },
+            radius: 10000.0,                // ✅ float
           },
         },
       },
@@ -177,7 +189,6 @@ router.get('/search', async (req, res) => {
     );
 
     const pins = (googleRes.data.places || []).map(fromGoogle);
-
     res.json({ pins, total: pins.length, query });
 
   } catch (err) {

@@ -15,27 +15,70 @@ L.Icon.Default.mergeOptions({
   shadowUrl:     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
-const PIN_COLORS = {
-  mysql:  "#c4532a",
-  google: "#1a73e8",
+// ── Food categories — TasteAtlas style ───────────────────────
+const CATEGORIES = {
+  laksa:   { label: "Laksa",    emoji: "🍜", color: "#c4532a" },
+  kolomee: { label: "Kolo Mee", emoji: "🍝", color: "#d4921e" },
+  umai:    { label: "Umai",     emoji: "🐟", color: "#3a6b3e" },
+  linut:   { label: "Linut",    emoji: "🥣", color: "#4a7fa5" },
+  seafood: { label: "Seafood",  emoji: "🦐", color: "#7a4a90" },
+  others:  { label: "Others",   emoji: "🍽️", color: "#888888" },
 };
 
+// ── Detect food category from name/dish ───────────────────────
+function detectCategory(name = "", dish = "") {
+  const text = `${name} ${dish}`.toLowerCase();
+
+  if (text.includes("laksa"))                                     return "laksa";
+  if (
+    text.includes("kolo") || text.includes("kampua") ||
+    text.includes("mee")  || text.includes("noodle") ||
+    text.includes("mie")
+  )                                                               return "kolomee";
+  if (text.includes("umai"))                                      return "umai";
+  if (text.includes("linut"))                                     return "linut";
+  if (
+    text.includes("seafood") || text.includes("prawn")  ||
+    text.includes("fish")    || text.includes("crab")   ||
+    text.includes("ikan")    || text.includes("udang")  ||
+    text.includes("sotong")  || text.includes("ketam")  ||
+    text.includes("tom yam") || text.includes("steam")
+  )                                                               return "seafood";
+  return "others";
+}
+
 // ── Custom pin icon ───────────────────────────────────────────
-function makePin(color, isPick = false) {
-  const size   = isPick ? 40 : 34;
-  const shadow = isPick ? "0 4px 14px rgba(196,83,42,0.45)" : "0 3px 10px rgba(0,0,0,0.22)";
-  const star   = isPick
+function makePin(category, isPick = false) {
+  const cat    = CATEGORIES[category] || CATEGORIES.others;
+  const size   = isPick ? 42 : 34;
+  const shadow = isPick
+    ? `0 4px 14px ${cat.color}66`
+    : "0 3px 10px rgba(0,0,0,0.22)";
+  const star = isPick
     ? `<div style="position:absolute;top:-8px;right:-6px;background:#f59e0b;color:white;font-size:9px;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700;border:1.5px solid white;">★</div>`
     : "";
+
   return L.divIcon({
     html: `
-      <div style="position:relative;width:${size}px;height:${size}px;">
-        <div style="width:${size}px;height:${size}px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);background:${color};border:2px solid rgba(255,255,255,0.5);box-shadow:${shadow};"></div>
+      <div style="position:relative;width:${size}px;height:${size + 8}px;">
+        <div style="
+          width:${size}px;height:${size}px;
+          border-radius:50% 50% 50% 4px;
+          transform:rotate(-45deg);
+          background:${cat.color};
+          border:2px solid rgba(255,255,255,0.5);
+          box-shadow:${shadow};
+          display:flex;align-items:center;justify-content:center;
+        ">
+          <span style="transform:rotate(45deg);font-size:${isPick ? 17 : 14}px;line-height:1;">
+            ${cat.emoji}
+          </span>
+        </div>
         ${star}
       </div>`,
     className:  "",
-    iconSize:   [size, size],
-    iconAnchor: [size / 2, size],
+    iconSize:   [size, size + 8],
+    iconAnchor: [size / 2, size + 8],
   });
 }
 
@@ -43,7 +86,7 @@ function makePin(color, isPick = false) {
 function FlyTo({ target }) {
   const map = useMap();
   useEffect(() => {
-    if (target) map.flyTo(target, 17, { duration: 0.8 });
+    if (target) map.flyTo(target, 16, { duration: 0.8 });
   }, [target, map]);
   return null;
 }
@@ -58,31 +101,39 @@ export default function FoodMap() {
   const [searchInput, setSearchInput] = useState("");
   const [searching,   setSearching]   = useState(false);
   const [mode,        setMode]        = useState("explore");
+  const [activeFilter,setActiveFilter]= useState("all");  // food category filter
   const [userPos,     setUserPos]     = useState(null);
+  const [geoError,    setGeoError]    = useState(null);
   const mapRef      = useRef(null);
   const searchTimer = useRef(null);
 
-  // ── Load explore map ──────────────────────────────────────
+  // ── Normalise pin with category ────────────────────────────
+  const normalisePin = useCallback((pin) => ({
+    ...pin,
+    category: detectCategory(pin.name, pin.dish || ""),
+  }), []);
+
+  // ── Load explore map ───────────────────────────────────────
   const loadMap = useCallback(async (lat, lng) => {
     setLoading(true);
     setError(null);
     try {
-      const params = lat ? `?lat=${lat}&lng=${lng}` : "";
+      const params = (lat && lng) ? `?lat=${lat}&lng=${lng}` : "";
       const res    = await fetch(`${API}/api/map${params}`);
       if (!res.ok) throw new Error(`API error ${res.status}`);
       const data   = await res.json();
-      setPins(data.pins || []);
+      setPins((data.pins || []).map(normalisePin));
       setMode("explore");
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [normalisePin]);
 
   useEffect(() => { loadMap(); }, [loadMap]);
 
-  // ── Search ────────────────────────────────────────────────
+  // ── Search ─────────────────────────────────────────────────
   const doSearch = useCallback(async (q) => {
     if (!q.trim()) { loadMap(); return; }
     setSearching(true);
@@ -91,14 +142,14 @@ export default function FoodMap() {
       const res  = await fetch(`${API}/api/search?q=${encodeURIComponent(q)}`);
       if (!res.ok) throw new Error(`Search error ${res.status}`);
       const data = await res.json();
-      setPins(data.pins || []);
+      setPins((data.pins || []).map(normalisePin));
       setMode("search");
     } catch (e) {
       setError(e.message);
     } finally {
       setSearching(false);
     }
-  }, [loadMap]);
+  }, [loadMap, normalisePin]);
 
   const handleSearchChange = (val) => {
     setSearchInput(val);
@@ -107,39 +158,74 @@ export default function FoodMap() {
     searchTimer.current = setTimeout(() => doSearch(val), 500);
   };
 
-  // ── Geolocate ─────────────────────────────────────────────
+  // ── Geolocate — fixed with proper error handling ────────────
   const geolocate = () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(({ coords }) => {
-        const pos = [coords.latitude, coords.longitude];
+    setGeoError(null);
+    if (!navigator.geolocation) {
+      setGeoError("Geolocation not supported.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const lat = coords.latitude;
+        const lng = coords.longitude;
+
+        // ✅ Validate — Kuching is roughly lat 1.0–2.5, lng 109–111
+        if (lat < 0.5 || lat > 3.0 || lng < 108 || lng > 112) {
+          setGeoError(`Location seems incorrect (${lat.toFixed(4)}, ${lng.toFixed(4)}). Showing Kuching centre.`);
+          return;
+        }
+
+        const pos = [lat, lng];
         setUserPos(pos);
         setFlyTarget(pos);
-        loadMap(coords.latitude, coords.longitude); // ← passes lat/lng
-    }, (err) => {
-        console.error("Geolocation error:", err);
-        alert("Could not get your location. Please allow location access.");
-    });
-    };
+        loadMap(lat, lng);
+      },
+      (err) => {
+        switch (err.code) {
+          case err.PERMISSION_DENIED:
+            setGeoError("Location access denied. Please allow location in browser settings.");
+            break;
+          case err.POSITION_UNAVAILABLE:
+            setGeoError("Location unavailable. Showing Kuching centre.");
+            break;
+          default:
+            setGeoError("Could not get your location. Try again.");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
-  // ── Detail ────────────────────────────────────────────────
+  // ── Detail ─────────────────────────────────────────────────
   const openDetail    = (pin) => { setSelected(pin); setFlyTarget([pin.lat, pin.lng]); };
   const closeDetail   = () => setSelected(null);
   const openDirections = () => {
     if (!selected) return;
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${selected.lat},${selected.lng}`, "_blank");
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${selected.lat},${selected.lng}`,
+      "_blank"
+    );
   };
 
-  const curatedPins = pins.filter((p) => p.is_pick);
-  const googlePins  = pins.filter((p) => !p.is_pick);
+  // ── Filter pins by category ────────────────────────────────
+  const visiblePins = activeFilter === "all"
+    ? pins
+    : pins.filter((p) => p.category === activeFilter);
+
+  const curatedPins = visiblePins.filter((p) => p.is_pick);
+  const googlePins  = visiblePins.filter((p) => !p.is_pick);
+
+  // ── Count per category for badges ─────────────────────────
+  const catCount = (cat) => pins.filter((p) => p.category === cat).length;
 
   return (
     <>
-      {/* Header sits outside the map layout so it doesn't affect heights */}
       <Header />
 
       <div className="foodmap-page">
 
-        {/* TOPBAR — search + controls */}
+        {/* TOPBAR */}
         <div className="foodmap-topbar">
           <div className="foodmap-search-wrap">
             <span className="foodmap-search-icon">🔍</span>
@@ -147,7 +233,7 @@ export default function FoodMap() {
               type="text"
               value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search for a dish… e.g. Kolo Mee, Laksa"
+              placeholder="Search for a dish… e.g. Kolo Mee, Laksa, Umai"
               className="foodmap-search-input"
             />
             {searching && <span className="foodmap-searching">Searching…</span>}
@@ -157,11 +243,40 @@ export default function FoodMap() {
             {mode === "search" ? `"${searchInput}"` : "Explore Mode"}
           </span>
 
-          {!loading && <span className="foodmap-count">{pins.length} places</span>}
+          {!loading && <span className="foodmap-count">{visiblePins.length} places</span>}
 
           <button className="foodmap-nearbtn" onClick={geolocate}>
             📍 Near Me
           </button>
+        </div>
+
+        {/* GEO ERROR BANNER */}
+        {geoError && (
+          <div className="foodmap-geo-error">
+            ⚠️ {geoError}
+            <button onClick={() => setGeoError(null)}>✕</button>
+          </div>
+        )}
+
+        {/* CATEGORY FILTER CHIPS — TasteAtlas style */}
+        <div className="foodmap-cats">
+          <button
+            className={`foodmap-cat-chip ${activeFilter === "all" ? "active all" : ""}`}
+            onClick={() => setActiveFilter("all")}
+          >
+            🍽️ All <span className="foodmap-cat-count">{pins.length}</span>
+          </button>
+          {Object.entries(CATEGORIES).map(([key, cat]) => (
+            <button
+              key={key}
+              className={`foodmap-cat-chip ${activeFilter === key ? "active" : ""}`}
+              style={activeFilter === key ? { borderColor: cat.color, background: cat.color + "18", color: cat.color } : {}}
+              onClick={() => setActiveFilter(key)}
+            >
+              {cat.emoji} {cat.label}
+              <span className="foodmap-cat-count">{catCount(key)}</span>
+            </button>
+          ))}
         </div>
 
         {/* BODY */}
@@ -169,22 +284,11 @@ export default function FoodMap() {
 
           {/* SIDEBAR */}
           <div className="foodmap-sidebar">
-            <div className="foodmap-legend">
-              <div className="foodmap-legend-item">
-                <div className="foodmap-legend-dot" style={{ background: "#c4532a" }}/>
-                Sarawak Eats Pick
-              </div>
-              <div className="foodmap-legend-item">
-                <div className="foodmap-legend-dot" style={{ background: "#1a73e8" }}/>
-                Google Places
-              </div>
-            </div>
-
             <div className="foodmap-list-head">
               <span className="foodmap-list-title">
                 {mode === "search" ? "Search Results" : "Nearby Restaurants"}
               </span>
-              <span className="foodmap-list-count">{pins.length} places</span>
+              <span className="foodmap-list-count">{visiblePins.length} places</span>
             </div>
 
             <div className="foodmap-cards">
@@ -195,12 +299,13 @@ export default function FoodMap() {
                 </div>
               )}
               {error && <div className="foodmap-error">⚠️ {error}</div>}
-              {!loading && !error && pins.length === 0 && (
+              {!loading && !error && visiblePins.length === 0 && (
                 <div className="foodmap-state">
                   <div className="foodmap-state-icon">🍃</div>
-                  <p>No restaurants found.<br />Try a different search term.</p>
+                  <p>No restaurants found.<br />Try a different filter or search.</p>
                 </div>
               )}
+
               {!loading && !error && (
                 <>
                   {curatedPins.length > 0 && (
@@ -250,6 +355,7 @@ export default function FoodMap() {
               />
               <FlyTo target={flyTarget} />
 
+              {/* User location dot */}
               {userPos && (
                 <Marker
                   position={userPos}
@@ -262,20 +368,31 @@ export default function FoodMap() {
                 />
               )}
 
-              {pins.map((pin) => (
+              {/* All visible pins */}
+              {visiblePins.map((pin) => (
                 <Marker
                   key={pin.id}
                   position={[pin.lat, pin.lng]}
-                  icon={makePin(PIN_COLORS[pin.source] || "#888", pin.is_pick)}
+                  icon={makePin(pin.category, pin.is_pick)}
                   eventHandlers={{ click: () => openDetail(pin) }}
                 />
               ))}
             </MapContainer>
 
-            {/* Custom zoom buttons */}
+            {/* Custom zoom */}
             <div className="foodmap-zoom">
               <button className="foodmap-zoom-btn" onClick={() => mapRef.current?.zoomIn()}>+</button>
               <button className="foodmap-zoom-btn" onClick={() => mapRef.current?.zoomOut()}>−</button>
+            </div>
+
+            {/* Map legend */}
+            <div className="foodmap-map-legend">
+              {Object.entries(CATEGORIES).map(([key, cat]) => (
+                <div key={key} className="foodmap-map-legend-item">
+                  <div className="foodmap-map-legend-dot" style={{ background: cat.color }} />
+                  {cat.emoji} {cat.label}
+                </div>
+              ))}
             </div>
 
             {/* Detail card */}
@@ -295,15 +412,24 @@ export default function FoodMap() {
 
 // ── Pin card in sidebar ───────────────────────────────────────
 function PinCard({ pin, active, onClick }) {
+  const cat = CATEGORIES[pin.category] || CATEGORIES.others;
   return (
     <div className={`foodmap-card ${active ? "active" : ""}`} onClick={onClick}>
-      <div className="foodmap-card-dot" style={{ background: PIN_COLORS[pin.source] || "#888" }} />
+      <div
+        className="foodmap-card-dot"
+        style={{ background: cat.color }}
+      />
       <div className="foodmap-card-body">
         <div className="foodmap-card-top">
-          <span className="foodmap-card-name">{pin.name}</span>
+          <span className="foodmap-card-name">{cat.emoji} {pin.name}</span>
           {pin.rating && <span className="foodmap-card-rating">⭐ {pin.rating}</span>}
         </div>
-        {pin.is_pick && <div className="foodmap-pick-badge">Sarawak Eats Pick</div>}
+
+        <div className="foodmap-card-cat" style={{ color: cat.color }}>
+          {cat.label}
+          {pin.is_pick && <span className="foodmap-pick-badge">⭐ Sarawak Eats Pick</span>}
+        </div>
+
         <div className="foodmap-card-address">{pin.address}</div>
         <div className="foodmap-card-meta">
           {pin.price          && <span className="foodmap-card-price">{pin.price}</span>}
@@ -318,11 +444,15 @@ function PinCard({ pin, active, onClick }) {
 
 // ── Detail card overlay ───────────────────────────────────────
 function DetailCard({ pin, onClose, onDirections }) {
+  const cat = CATEGORIES[pin.category] || CATEGORIES.others;
   return (
     <div className="foodmap-detail">
-      <div className="foodmap-detail-head" style={{ background: pin.is_pick ? "#c4532a" : "#1a73e8" }}>
+      <div className="foodmap-detail-head" style={{ background: cat.color }}>
         <button className="foodmap-detail-close" onClick={onClose}>✕</button>
-        {pin.is_pick && <div className="foodmap-detail-pick-badge">⭐ Sarawak Eats Pick</div>}
+        <div className="foodmap-detail-cat-badge">
+          {cat.emoji} {cat.label}
+          {pin.is_pick && " · ⭐ Sarawak Eats Pick"}
+        </div>
         <div className="foodmap-detail-name">{pin.name}</div>
         {pin.desc && <div className="foodmap-detail-desc">{pin.desc}</div>}
       </div>
@@ -360,7 +490,9 @@ function DetailCard({ pin, onClose, onDirections }) {
         </div>
         <div className="foodmap-detail-actions">
           <button className="foodmap-detail-btn" onClick={onDirections}>🗺️ Directions</button>
-          <button className="foodmap-detail-btn primary">🔖 Save</button>
+          <button className="foodmap-detail-btn primary" style={{ background: cat.color, borderColor: cat.color }}>
+            🔖 Save
+          </button>
         </div>
       </div>
     </div>

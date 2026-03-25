@@ -115,11 +115,11 @@ async function updateStaleAndExpiredUsers() {
             console.log("ℹ️ No stale users to mark as Inactive.");
         }
 
-        // --- AUTO-DELETION: Warn users approaching 2 years inactive ---
+        // Warn users approaching 2 years inactive 
         const warningCutoffStart = new Date();
         warningCutoffStart.setDate(warningCutoffStart.getDate() - 700);
         const warningCutoffEnd = new Date();
-        warningCutoffEnd.setDate(warningCutoffEnd.getDate() - 699);
+        warningCutoffEnd.setDate(warningCutoffEnd.getDate() - 730);
         const warningStart = warningCutoffStart.toISOString().slice(0, 19).replace("T", " ");
         const warningEnd = warningCutoffEnd.toISOString().slice(0, 19).replace("T", " ");
 
