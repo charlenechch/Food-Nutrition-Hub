@@ -1149,7 +1149,6 @@ const ContributionRow = ({ c }) => {
         highestLevelAchieved={2} 
         hasUnseenLevelUp={testUnseenLevelUp} 
         onDismiss={(newLevel) => {
-          console.log(`User acknowledged reaching Level ${newLevel}!`);
           setTestUnseenLevelUp(false);
         }}
       />
