@@ -5,6 +5,7 @@ import { FaRegFlag } from "react-icons/fa6";
 import { CiSearch, CiFilter } from "react-icons/ci";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
+import { FiFilter } from "react-icons/fi";
 import Modal from "../components/Modal"; 
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -224,9 +225,11 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
               </ul>
             )}
           </div>
-          <button className="admin-recipe-btn-filter" onClick={() => setShowFilters(!showFilters)}>
-            <CiFilter className="filter-icon" style={{ marginRight: "8px" }} /> 
-            {t("explore.filters")}
+          <button className="admin-food-btn-filter" onClick={() => setShowFilters(!showFilters)}>
+            <div style={{ display: "grid", gridTemplateColumns: "auto auto", gap: "8px", alignItems: "center" }}>
+              <FiFilter size={18} style={{ margin: 0, position: "static" }} />
+              <span style={{ margin: 0, position: "static" }}>{t("explore.filters")}</span>
+            </div>
           </button>
         </div>
 
