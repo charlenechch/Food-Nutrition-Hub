@@ -1302,4 +1302,22 @@
   .nav-btn { 
     padding: 6px 8px;
   }
+
+  .efp-pagination { 
+    gap: 4px; 
+    justify-content: center; 
+    flex-wrap: nowrap; 
+  }
+  .efp-page-numbers { 
+    gap: 2px; 
+    flex-wrap: nowrap; 
+  }
+  .efp-btn { 
+    padding: 6px 8px; 
+    font-size: 0.85rem; 
+    min-width: 32px; 
+  }
+  .efp-ellipsis {
+    padding: 0 2px;
+  }
 }
