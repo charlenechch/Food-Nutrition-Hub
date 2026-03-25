@@ -1299,25 +1299,25 @@
     display: block; 
   }
 
-  .nav-btn { 
+  .xlp-stack .nav-btn { 
     padding: 6px 8px;
   }
 
-  .efp-pagination { 
+  .xlp-stack .efp-pagination { 
     gap: 4px; 
     justify-content: center; 
     flex-wrap: nowrap; 
   }
-  .efp-page-numbers { 
+  .xlp-stack .efp-page-numbers { 
     gap: 2px; 
     flex-wrap: nowrap; 
   }
-  .efp-btn { 
+  .xlp-stack .efp-btn { 
     padding: 6px 8px; 
     font-size: 0.85rem; 
     min-width: 32px; 
   }
-  .efp-ellipsis {
+  .xlp-stack .efp-ellipsis {
     padding: 0 2px;
   }
 }
