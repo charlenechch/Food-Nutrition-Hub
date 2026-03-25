@@ -66,6 +66,9 @@ router.get('/', async (req, res) => {
     const lng    = parseFloat(req.query.lng)    || KUCHING.lng;
     const radius = parseFloat(req.query.radius) || 5000.0;
 
+    // ← ADD THIS TEMPORARILY
+    console.log('[MAP] lat:', lat, typeof lat, '| lng:', lng, typeof lng, '| radius:', radius, typeof radius);
+
     // 1. Google Places Nearby Search
     const googleRes = await axios.post(
       'https://places.googleapis.com/v1/places:searchNearby',
