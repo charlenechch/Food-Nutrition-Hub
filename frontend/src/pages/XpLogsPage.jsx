@@ -27,6 +27,15 @@ const MOCK_XP_LOGS = [
   { id: 107, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-03-19T08:00:00Z" },
   { id: 108, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-03-18T10:00:00Z" },
   { id: 109, action_type: "RECIPE_APPROVED", reference_id: 43, xp_awarded: 100, created_at: "2026-03-17T11:00:00Z" },
+  { id: 101, action_type: "RECIPE_APPROVED", reference_id: 42, xp_awarded: 100, created_at: "2026-03-25T10:30:00Z" },
+  { id: 102, action_type: "RECIPE_UNLIKED", reference_id: 42, xp_awarded: -2, created_at: "2026-03-24T18:20:00Z" },
+  { id: 103, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-03-24T14:15:00Z" },
+  { id: 104, action_type: "POST_UNLIKED", reference_id: 88, xp_awarded: -2, created_at: "2026-03-23T11:05:00Z" },
+  { id: 105, action_type: "POST_APPROVED", reference_id: 90, xp_awarded: 25, created_at: "2026-03-21T09:00:00Z" },
+  { id: 106, action_type: "RECIPE_LIKED", reference_id: 44, xp_awarded: 2, created_at: "2026-03-20T16:45:00Z" },
+  { id: 107, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-03-19T08:00:00Z" },
+  { id: 108, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-03-18T10:00:00Z" },
+  { id: 109, action_type: "RECIPE_APPROVED", reference_id: 43, xp_awarded: 100, created_at: "2026-03-17T11:00:00Z" },
 ];
 
 const formatActionType = (actionType) => {
