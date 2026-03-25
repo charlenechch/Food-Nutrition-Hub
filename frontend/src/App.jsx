@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 
 import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // // === User & Public Pages ===
@@ -26,6 +26,7 @@ import UserProfilePage from "./pages/UserProfilePage";
 import Analytics from "./pages/Analytics";
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import ConsentModal from './components/ConsentModal';
+import LevelUpModal from './components/LevelUpModal';
 import FoodMap from "./pages/FoodMap";
 import XpLogs from "./pages/XpLogsPage";
 
@@ -182,6 +183,22 @@ function FoodDiscussionRoute() {
   return <FoodDiscussion food={food} onBack={() => navigate(`/fooddetail?id=${food.id}`)} />;
 }
 
+function LevelUpOverlays() {
+  const [showTestModal, setShowTestModal] = useState(true);
+
+  return (
+    <LevelUpModal 
+      totalXp={11500} 
+      highestLevelAchieved={2}       
+      hasUnseenLevelUp={showTestModal} 
+      onDismiss={(newLevel) => {
+        console.log(`Frontend Test: User acknowledged reaching Level ${newLevel}!`);
+        setShowTestModal(false); 
+      }}
+    />
+  );
+}
+
 // -------------------------------
 //  Main App Component
 // -------------------------------
@@ -194,6 +211,7 @@ function AppRoutes() {
       <SessionChecker />
       <ScrollToTop />
       <ConsentModal />
+      <LevelUpOverlays />
       <Routes>
         {/* === Default Landing (GUEST FIRST) === */}
           <Route path="/" element={<UserHomepage />} />
