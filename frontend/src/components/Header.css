@@ -395,7 +395,7 @@
   color: #dc3545;
 }
 
-@media (min-width: 1251px) and (max-width: 1300px) {
+@media (min-width: 1251px) and (max-width: 1570px) {
   .navbar {
     padding: 0.7rem 1rem; 
   }
