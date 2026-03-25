@@ -30,6 +30,44 @@ const DEFAULT_PREFS = {
   language: "en"
 };
 
+const MOCK_XP_LOGS = [
+  { 
+    id: 101, 
+    action_type: "RECIPE_APPROVED", 
+    reference_title: "Manok Pansoh", 
+    xp_awarded: 100, 
+    created_at: "2026-03-23T10:30:00Z" 
+  },
+  { 
+    id: 102, 
+    action_type: "POST_LIKED", 
+    reference_title: "Best places to eat in Kuching", 
+    xp_awarded: 5, 
+    created_at: "2026-03-22T14:15:00Z" 
+  },
+  { 
+    id: 103, 
+    action_type: "RECIPE_REJECTED", 
+    reference_title: "Nasi Lemak", 
+    xp_awarded: -20, 
+    created_at: "2026-03-20T09:00:00Z" 
+  },
+  { 
+    id: 104, 
+    action_type: "ACCOUNT_CREATION", 
+    reference_title: "Welcome to the Hub!", 
+    xp_awarded: 50, 
+    created_at: "2026-03-15T08:00:00Z" 
+  }
+];
+
+const formatActionType = (actionType) => {
+  return actionType
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
 // Better normalization that ensures clean string arrays
 const normalizePrefs = (data = {}) => {
   const prefsData = data.prefs || data;
@@ -1290,6 +1328,7 @@ const ContributionRow = ({ c }) => {
               ["info", t("profile.tabInfo")],
               ["saved", t("profile.tabSaved")],
               ["status", t("profile.tabStatus")],
+              ["xp", "XP History"],
               ["prefs", t("profile.tabPrefs")],
               ["settings", t("profile.tabSettings")],
             ]
@@ -1649,6 +1688,38 @@ const ContributionRow = ({ c }) => {
                   );
                 })()}
               </>
+            )}
+
+            {/* ===== XP History ===== */}
+            {tab === "xp" && !userProfileID && (
+              <div className="upp-stack">
+                <div className="upp-card">
+                  <h3 className="upp-card-title">XP Ledger</h3>
+                  <p className="upp-muted2" style={{ marginBottom: "20px" }}>
+                    Track your contributions and see how you earned your current rank.
+                  </p>
+
+                  <div className="xp-log-list">
+                    {MOCK_XP_LOGS.map((log) => (
+                      <div key={log.id} className="xp-log-item">
+                        <div className="xp-log-info">
+                          {/* Format the ENUM string from the database */}
+                          <div className="xp-log-action">{formatActionType(log.action_type)}</div>
+                          <div className="xp-log-details">{log.reference_title}</div>
+                          <div className="upp-muted2">
+                            {new Date(log.created_at).toLocaleDateString("en-US", {
+                              year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+                            })}
+                          </div>
+                        </div>
+                        <div className={`xp-log-amount ${log.xp_awarded > 0 ? "xp-positive" : "xp-negative"}`}>
+                          {log.xp_awarded > 0 ? "+" : ""}{log.xp_awarded} XP
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* ===== Preferences ===== */}
