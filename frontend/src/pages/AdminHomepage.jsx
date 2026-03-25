@@ -256,7 +256,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* === Tab Navigation (Made Sticky) === */}
-        <div className="dashboard-tabs sticky-nav">
+        <div className="dashboard-tabs">
           <button className={activeTab === "food" ? "active" : ""} onClick={() => handleTabChange("food")}>
             <FiDatabase /> {t("adminHome.tabDatabase")}
           </button>
