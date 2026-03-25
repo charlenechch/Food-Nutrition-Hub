@@ -1298,4 +1298,8 @@
   .mobile-page-indicator {
     display: block; 
   }
+
+  .nav-btn { 
+    padding: 6px 8px;
+  }
 }

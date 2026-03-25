@@ -56,28 +56,33 @@ const getReferenceTitle = (actionType, referenceId, t) => {
   return t("profile.deletedItem", { id: referenceId });
 };
 
-const getPaginationGroup = (currentPage, totalPages) => {
-  if (totalPages <= 5) {
+const getPaginationGroup = (currentPage, totalPages, isMobile) => {
+  const siblings = isMobile ? 1 : 2; 
+  const maxPagesWithoutTruncation = isMobile ? 5 : 7;
+
+  if (totalPages <= maxPagesWithoutTruncation) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  const pages = [];
-  pages.push(1); 
+  let start = Math.max(2, currentPage - siblings);
+  let end = Math.min(totalPages - 1, currentPage + siblings);
 
-  if (currentPage > 3) {
-    pages.push("..."); 
+  if (currentPage - siblings < 2) {
+    end = Math.min(totalPages - 1, start + (siblings * 2));
+  }
+  if (currentPage + siblings > totalPages - 1) {
+    start = Math.max(2, end - (siblings * 2));
   }
 
-  let start = Math.max(2, currentPage - 1);
-  let end = Math.min(totalPages - 1, currentPage + 1);
+  const pages = [1]; 
+
+  if (start > 2) pages.push("..."); 
 
   for (let i = start; i <= end; i++) {
     pages.push(i);
   }
 
-  if (currentPage < totalPages - 2) {
-    pages.push("..."); 
-  }
+  if (end < totalPages - 1) pages.push("...");
 
   pages.push(totalPages); 
   return pages;
