@@ -336,17 +336,7 @@
     "loading": "Memuatkan...",
     "error": "Ralat",
     "notFound": "Siaran tidak dijumpai",
-    "unknownChef": "Chef Tidak Diketahui",
-    "backToProfile": "← Kembali ke Profil",
-    "xpLogsTitle": "Log XP",
-    "xpLogsDesc": "Sejarah lengkap bagaimana anda memperoleh pangkat anda di Hab Makanan-Nutrisi.",
-    "systemAward": "Ganjaran Sistem",
-    "referenceId": "ID Rujukan: #{{id}}",
-    "deletedRecipe": "Resipi Dibuang #{{id}}",
-    "deletedPost": "Siaran Dibuang #{{id}}",
-    "deletedItem": "Item #{{id}}",
-    "prev": "‹ Sebelum",
-    "next": "Seterusnya ›"
+    "unknownChef": "Chef Tidak Diketahui"
   },
 
   "profile": {
@@ -475,7 +465,17 @@
     "exportBtn": "Eksport",
     "password": "Kata Laluan",
     "enterPassword": "Masukkan kata laluan anda",
-    "confirmDelete": "Sahkan Pemadaman"
+    "confirmDelete": "Sahkan Pemadaman",
+    "backToProfile": "← Kembali ke Profil",
+    "xpLogsTitle": "Log XP",
+    "xpLogsDesc": "Sejarah lengkap bagaimana anda memperoleh pangkat anda di Hab Makanan-Nutrisi.",
+    "systemAward": "Ganjaran Sistem",
+    "referenceId": "ID Rujukan: #{{id}}",
+    "deletedRecipe": "Resipi Dibuang #{{id}}",
+    "deletedPost": "Siaran Dibuang #{{id}}",
+    "deletedItem": "Item #{{id}}",
+    "prev": "‹ Sebelum",
+    "next": "Seterusnya ›"
   },
 
   "auth": {
