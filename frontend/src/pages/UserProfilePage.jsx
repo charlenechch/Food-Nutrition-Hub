@@ -248,7 +248,6 @@ const formatContributionDate = (dateString) => {
   const [prefs, setPrefs] = useState(DEFAULT_PREFS);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", location: "" });
   const [bio, setBio] = useState("");
-  const [testUnseenLevelUp, setTestUnseenLevelUp] = useState(true);
 
   const [tab, setTab] = useState(() => {
   // ✅ Read URL param immediately on first load
