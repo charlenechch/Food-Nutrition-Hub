@@ -1187,6 +1187,7 @@
   border: 1px solid #f0eae4;
   border-radius: 12px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  gap: 16px;
 }
 
 .xp-log-item:hover {
@@ -1198,6 +1199,8 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
+  min-width: 0;
 }
 
 .xp-log-action {
@@ -1209,6 +1212,7 @@
 .xp-log-details {
   color: #6a4a2f;
   font-size: 0.9rem;
+  white-space: normal; 
 }
 
 .xp-log-amount {
@@ -1217,6 +1221,7 @@
   padding: 8px 16px;
   border-radius: 8px;
   background: white;
+  flex-shrink: 0;
 }
 
 .xp-positive {
@@ -1256,4 +1261,22 @@
 .xlp-muted2 {
   margin-bottom: 24px;
   font-size: 1rem;
+}
+
+@media (max-width: 500px) {
+  .xp-log-item {
+    flex-direction: column;
+    align-items: flex-start; 
+    gap: 14px;
+  }
+
+  .xp-log-amount {
+    width: 100%; 
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  .xp-log-list {
+    min-height: 750px; 
+  }
 }
