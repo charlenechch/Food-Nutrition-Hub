@@ -4,18 +4,46 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/UserProfilePage.css"; 
 
+const MOCK_RECIPES = [
+  { id: 42, title: "Manok Pansoh" },
+  { id: 43, title: "Sarawak Laksa" },
+  { id: 44, title: "Authentic Kolo Mee" }
+];
+
+const MOCK_POSTS = [
+  { id: 88, title: "Best places to eat in Kuching" },
+  { id: 89, title: "Where to find fresh Midin?" },
+  { id: 90, title: "My first time making Kek Lapis!" }
+];
+
 const MOCK_XP_LOGS = [
-  { id: 101, action_type: "RECIPE_APPROVED", reference_id: 42, xp_awarded: 100, created_at: "2026-03-23T10:30:00Z" },
-  { id: 102, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-03-22T14:15:00Z" },
-  { id: 103, action_type: "POST_APPROVED", reference_id: 88, xp_awarded: 25, created_at: "2026-03-21T09:00:00Z" },
-  { id: 104, action_type: "RECIPE_LIKED", reference_id: 42, xp_awarded: 2, created_at: "2026-03-20T16:45:00Z" },
-  { id: 105, action_type: "RECIPE_LIKED", reference_id: 42, xp_awarded: 2, created_at: "2026-03-19T08:00:00Z" },
-  { id: 106, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-03-18T10:00:00Z" },
-  { id: 107, action_type: "RECIPE_APPROVED", reference_id: 43, xp_awarded: 100, created_at: "2026-03-17T11:00:00Z" }
+  { id: 101, action_type: "RECIPE_APPROVED", reference_id: 42, xp_awarded: 100, created_at: "2026-03-25T10:30:00Z" },
+  { id: 102, action_type: "RECIPE_UNLIKED", reference_id: 42, xp_awarded: -2, created_at: "2026-03-24T18:20:00Z" },
+  { id: 103, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-03-24T14:15:00Z" },
+  { id: 104, action_type: "POST_UNLIKED", reference_id: 88, xp_awarded: -2, created_at: "2026-03-23T11:05:00Z" },
+  { id: 105, action_type: "POST_APPROVED", reference_id: 90, xp_awarded: 25, created_at: "2026-03-21T09:00:00Z" },
+  { id: 106, action_type: "RECIPE_LIKED", reference_id: 44, xp_awarded: 2, created_at: "2026-03-20T16:45:00Z" },
+  { id: 107, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-03-19T08:00:00Z" },
+  { id: 108, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-03-18T10:00:00Z" },
+  { id: 109, action_type: "RECIPE_APPROVED", reference_id: 43, xp_awarded: 100, created_at: "2026-03-17T11:00:00Z" },
 ];
 
 const formatActionType = (actionType) => {
   return actionType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+};
+
+const getReferenceTitle = (actionType, referenceId) => {
+  if (actionType.includes("RECIPE")) {
+    const recipe = MOCK_RECIPES.find(r => r.id === referenceId);
+    return recipe ? recipe.title : `Deleted Recipe #${referenceId}`;
+  }
+
+  if (actionType.includes("POST")) {
+    const post = MOCK_POSTS.find(p => p.id === referenceId);
+    return post ? post.title : `Deleted Post #${referenceId}`;
+  }
+
+  return `Item #${referenceId}`;
 };
 
 export default function XpLogsPage() {
@@ -44,7 +72,7 @@ export default function XpLogsPage() {
           </button>
 
           <div className="upp-card">
-            <h2 className="upp-card-title" style={{ fontSize: "1.8rem" }}>XP Ledger</h2>
+            <h2 className="upp-card-title" style={{ fontSize: "1.8rem" }}>XP Logs</h2>
             <p className="upp-muted2" style={{ marginBottom: "24px", fontSize: "1rem" }}>
               A complete history of how you've earned your rank on the Food-Nutrition Hub.
             </p>
@@ -56,7 +84,7 @@ export default function XpLogsPage() {
                     <div className="xp-log-action">{formatActionType(log.action_type)}</div>
                     
                     <div className="xp-log-details">
-                      {log.reference_id ? `Reference ID: #${log.reference_id}` : "System Award"}
+                      {getReferenceTitle(log.action_type, log.reference_id)}
                     </div>
                     
                     <div className="upp-muted2">
