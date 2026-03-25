@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/UserProfilePage.css"; 
+import { useTranslation } from "react-i18next";
 
 const MOCK_RECIPES = [
   { id: 42, title: "Manok Pansoh" },
@@ -32,21 +33,22 @@ const formatActionType = (actionType) => {
   return actionType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 };
 
-const getReferenceTitle = (actionType, referenceId) => {
+const getReferenceTitle = (actionType, referenceId, t) => {
   if (actionType.includes("RECIPE")) {
     const recipe = MOCK_RECIPES.find(r => r.id === referenceId);
-    return recipe ? recipe.title : `Deleted Recipe #${referenceId}`;
+    return recipe ? recipe.title : t("profile.deletedRecipe", { id: referenceId });
   }
 
   if (actionType.includes("POST")) {
     const post = MOCK_POSTS.find(p => p.id === referenceId);
-    return post ? post.title : `Deleted Post #${referenceId}`;
+    return post ? post.title : t("profile.deletedPost", { id: referenceId });
   }
 
-  return `Item #${referenceId}`;
+  return t("profile.deletedItem", { id: referenceId });
 };
 
 export default function XpLogsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,13 +70,13 @@ export default function XpLogsPage() {
             style={{ width: "fit-content", marginBottom: "16px" }}
             onClick={() => navigate(-1)}
           >
-            ← Back to Profile
+            {t("profile.backToProfile")}
           </button>
 
           <div className="upp-card">
-            <h2 className="upp-card-title" style={{ fontSize: "1.8rem" }}>XP Logs</h2>
+            <h2 className="upp-card-title" style={{ fontSize: "1.8rem" }}>{t("profile.xpLogsTitle")}</h2>
             <p className="upp-muted2" style={{ marginBottom: "24px", fontSize: "1rem" }}>
-              A complete history of how you've earned your rank on the Food-Nutrition Hub.
+                {t("profile.xpLogsDesc")}
             </p>
 
             <div className="xp-log-list">
@@ -84,7 +86,7 @@ export default function XpLogsPage() {
                     <div className="xp-log-action">{formatActionType(log.action_type)}</div>
                     
                     <div className="xp-log-details">
-                      {getReferenceTitle(log.action_type, log.reference_id)}
+                      {getReferenceTitle(log.action_type, log.reference_id, t)}
                     </div>
                     
                     <div className="upp-muted2">

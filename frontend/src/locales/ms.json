@@ -336,7 +336,17 @@
     "loading": "Memuatkan...",
     "error": "Ralat",
     "notFound": "Siaran tidak dijumpai",
-    "unknownChef": "Chef Tidak Diketahui"
+    "unknownChef": "Chef Tidak Diketahui",
+    "backToProfile": "← Kembali ke Profil",
+    "xpLogsTitle": "Log XP",
+    "xpLogsDesc": "Sejarah lengkap bagaimana anda memperoleh pangkat anda di Hab Makanan-Nutrisi.",
+    "systemAward": "Ganjaran Sistem",
+    "referenceId": "ID Rujukan: #{{id}}",
+    "deletedRecipe": "Resipi Dibuang #{{id}}",
+    "deletedPost": "Siaran Dibuang #{{id}}",
+    "deletedItem": "Item #{{id}}",
+    "prev": "‹ Sebelum",
+    "next": "Seterusnya ›"
   },
 
   "profile": {

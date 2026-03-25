@@ -466,7 +466,17 @@
     "exportBtn": "Export",
     "password": "Password",
     "enterPassword": "Enter your password",
-    "confirmDelete": "Confirm Delete"
+    "confirmDelete": "Confirm Delete",
+    "backToProfile": "← Back to Profile",
+    "xpLogsTitle": "XP Logs",
+    "xpLogsDesc": "A complete history of how you've earned your rank on the Food-Nutrition Hub.",
+    "systemAward": "System Award",
+    "referenceId": "Reference ID: #{{id}}",
+    "deletedRecipe": "Deleted Recipe #{{id}}",
+    "deletedPost": "Deleted Post #{{id}}",
+    "deletedItem": "Item #{{id}}",
+    "prev": "‹ Prev",
+    "next": "Next ›"
   },
  
   "auth": {
