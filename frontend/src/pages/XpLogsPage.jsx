@@ -189,7 +189,7 @@ export default function XpLogsPage() {
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 >
-                  {t("profile.prev")}
+                  {isMobile ? "‹" : t("profile.prev")}
                 </button>
                 
                 <div className="efp-page-numbers">
@@ -213,7 +213,7 @@ export default function XpLogsPage() {
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 >
-                  {t("profile.next")}
+                  {isMobile ? "›" : t("profile.next")}
                 </button>
               </div>
             )}
