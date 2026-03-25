@@ -1174,6 +1174,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 480px; 
+  justify-content: flex-start;
 }
 
 .xp-log-item {
