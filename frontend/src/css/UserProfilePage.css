@@ -1169,3 +1169,60 @@
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
+
+.xp-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.xp-log-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #faf7f3;
+  border: 1px solid #f0eae4;
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.xp-log-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(106, 74, 47, 0.05);
+}
+
+.xp-log-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.xp-log-action {
+  font-weight: 600;
+  color: #554332;
+  font-size: 1rem;
+}
+
+.xp-log-details {
+  color: #6a4a2f;
+  font-size: 0.9rem;
+}
+
+.xp-log-amount {
+  font-weight: 800;
+  font-size: 1.2rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: white;
+}
+
+.xp-positive {
+  color: #2F855A;
+  border: 1px solid #C6F6D5;
+}
+
+.xp-negative {
+  color: #C53030;
+  border: 1px solid #FED7D7;
+}
