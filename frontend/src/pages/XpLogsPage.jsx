@@ -176,6 +176,9 @@ export default function XpLogsPage() {
                       )}
                     </div>
                   </div>
+                  <div className={`xp-log-amount ${log.xp_awarded > 0 ? "xp-positive" : "xp-negative"}`}>
+                    {log.xp_awarded > 0 ? "+" : ""}{log.xp_awarded} XP
+                  </div>
                 </div>
               ))}
             </div>
