@@ -1403,5 +1403,10 @@
     "back": "Back",
     "title": "Terms & Conditions",
     "lastUpdated": "Last Updated: {{date}}"
+  },
+  "gamification": {
+    "levelUpTitle": "Level Up!",
+    "levelUpMessage": "Congratulations! You have reached Level {{level}}. Keep sharing your culinary knowledge!",
+    "levelUpBtn": "Awesome!"
   }
 }   

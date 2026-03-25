@@ -1403,5 +1403,10 @@
     "back": "Kembali",
     "title": "Terma & Syarat",
     "lastUpdated": "Tarikh Kemaskini: {{date}}"
+  },
+  "gamification": {
+    "levelUpTitle": "Naik Tahap!",
+    "levelUpMessage": "Tahniah! Anda telah mencapai Tahap {{level}}. Teruskan berkongsi pengetahuan masakan anda!",
+    "levelUpBtn": "Hebat!"
   }
 }
