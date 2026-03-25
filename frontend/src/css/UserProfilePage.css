@@ -1242,7 +1242,7 @@
   margin: 0 auto;
 }
 
-.xlp-btn {
+.xlp-stack .xlp-btn {
   width: fit-content;
   margin-bottom: 16px;
 }
