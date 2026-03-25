@@ -56,6 +56,33 @@ const getReferenceTitle = (actionType, referenceId, t) => {
   return t("profile.deletedItem", { id: referenceId });
 };
 
+const getPaginationGroup = (currentPage, totalPages) => {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const pages = [];
+  pages.push(1); 
+
+  if (currentPage > 3) {
+    pages.push("..."); 
+  }
+
+  let start = Math.max(2, currentPage - 1);
+  let end = Math.min(totalPages - 1, currentPage + 1);
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+
+  if (currentPage < totalPages - 2) {
+    pages.push("..."); 
+  }
+
+  pages.push(totalPages); 
+  return pages;
+};
+
 export default function XpLogsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -121,14 +148,18 @@ export default function XpLogsPage() {
                   {t("profile.prev")}
                 </button>
                 <div className="efp-page-numbers">
-                  {Array.from({ length: totalPages }, (_, i) => (
-                    <button
-                      key={i}
-                      className={`efp-btn ${currentPage === i + 1 ? "is-active" : ""}`}
-                      onClick={() => setCurrentPage(i + 1)}
-                    >
-                      {i + 1}
-                    </button>
+                  {getPaginationGroup(currentPage, totalPages).map((item, index) => (
+                    item === "..." ? (
+                      <span key={`ellipsis-${index}`} className="efp-ellipsis">...</span>
+                    ) : (
+                      <button
+                        key={item}
+                        className={`efp-btn ${currentPage === item ? "is-active" : ""}`}
+                        onClick={() => setCurrentPage(item)}
+                      >
+                        {item}
+                      </button>
+                    )
                   ))}
                 </div>
                 <button
