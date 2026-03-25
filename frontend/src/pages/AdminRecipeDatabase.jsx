@@ -234,8 +234,8 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
             )}
           </div>
           <button className="admin-recipe-btn-filter" onClick={() => setShowFilters(!showFilters)}>
-            <CiFilter className="filter-icon" /> 
-            <span>{t("explore.filters")}</span>
+            <FiFilter className="filter-icon" /> 
+            <span>{t("explore.filters")}</span> 
           </button>
         </div>
 
