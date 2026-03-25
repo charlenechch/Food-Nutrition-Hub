@@ -1226,3 +1226,13 @@
   color: #C53030;
   border: 1px solid #FED7D7;
 }
+
+.xp-bar-clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.xp-bar-clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(106, 74, 47, 0.12);
+}

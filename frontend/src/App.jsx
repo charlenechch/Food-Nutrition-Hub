@@ -27,6 +27,7 @@ import Analytics from "./pages/Analytics";
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import ConsentModal from './components/ConsentModal';
 import FoodMap from "./pages/FoodMap";
+import XpLogs from "./pages/XpLogsPage";
 
 // // === Admin Pages ===
 import AdminHomepage from "./pages/AdminHomepage";
@@ -241,6 +242,7 @@ function AppRoutes() {
 
         {/* === Member Pages === */}
         <Route path="/profile/:userProfileID" element={<UserProfilePage />} />
+        <Route path="/xplogs" element={<XpLogs />} />
 
         {/* === Admin Pages === */}
           <Route
