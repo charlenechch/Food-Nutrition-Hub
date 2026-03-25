@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -27,15 +27,15 @@ const MOCK_XP_LOGS = [
   { id: 107, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-03-19T08:00:00Z" },
   { id: 108, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-03-18T10:00:00Z" },
   { id: 109, action_type: "RECIPE_APPROVED", reference_id: 43, xp_awarded: 100, created_at: "2026-03-17T11:00:00Z" },
-  { id: 101, action_type: "RECIPE_APPROVED", reference_id: 42, xp_awarded: 100, created_at: "2026-03-25T10:30:00Z" },
-  { id: 102, action_type: "RECIPE_UNLIKED", reference_id: 42, xp_awarded: -2, created_at: "2026-03-24T18:20:00Z" },
-  { id: 103, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-03-24T14:15:00Z" },
-  { id: 104, action_type: "POST_UNLIKED", reference_id: 88, xp_awarded: -2, created_at: "2026-03-23T11:05:00Z" },
-  { id: 105, action_type: "POST_APPROVED", reference_id: 90, xp_awarded: 25, created_at: "2026-03-21T09:00:00Z" },
-  { id: 106, action_type: "RECIPE_LIKED", reference_id: 44, xp_awarded: 2, created_at: "2026-03-20T16:45:00Z" },
-  { id: 107, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-03-19T08:00:00Z" },
-  { id: 108, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-03-18T10:00:00Z" },
-  { id: 109, action_type: "RECIPE_APPROVED", reference_id: 43, xp_awarded: 100, created_at: "2026-03-17T11:00:00Z" },
+  { id: 110, action_type: "RECIPE_APPROVED", reference_id: 42, xp_awarded: 100, created_at: "2026-03-16T10:30:00Z" },
+  { id: 111, action_type: "RECIPE_UNLIKED", reference_id: 42, xp_awarded: -2, created_at: "2026-03-15T18:20:00Z" },
+  { id: 112, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-03-14T14:15:00Z" },
+  { id: 113, action_type: "POST_UNLIKED", reference_id: 88, xp_awarded: -2, created_at: "2026-03-13T11:05:00Z" },
+  { id: 114, action_type: "POST_APPROVED", reference_id: 90, xp_awarded: 25, created_at: "2026-03-12T09:00:00Z" },
+  { id: 115, action_type: "RECIPE_LIKED", reference_id: 44, xp_awarded: 2, created_at: "2026-03-11T16:45:00Z" },
+  { id: 116, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-03-10T08:00:00Z" },
+  { id: 117, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-03-09T10:00:00Z" },
+  { id: 118, action_type: "RECIPE_APPROVED", reference_id: 43, xp_awarded: 100, created_at: "2026-03-08T11:00:00Z" },
 ];
 
 const formatActionType = (actionType) => {
@@ -91,6 +91,13 @@ const getPaginationGroup = (currentPage, totalPages, isMobile) => {
 export default function XpLogsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 500);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 500);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 5; 
@@ -152,8 +159,8 @@ export default function XpLogsPage() {
                   {t("profile.prev")}
                 </button>
                 
-                <div className="efp-page-numbers desktop-only">
-                  {getPaginationGroup(currentPage, totalPages).map((item, index) => (
+                <div className="efp-page-numbers">
+                  {getPaginationGroup(currentPage, totalPages, isMobile).map((item, index) => (
                     item === "..." ? (
                       <span key={`ellipsis-${index}`} className="efp-ellipsis">...</span>
                     ) : (
