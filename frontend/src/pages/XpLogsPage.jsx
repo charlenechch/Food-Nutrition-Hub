@@ -27,15 +27,42 @@ const MOCK_XP_LOGS = [
   { id: 107, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-03-19T08:00:00Z" },
   { id: 108, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-03-18T10:00:00Z" },
   { id: 109, action_type: "RECIPE_APPROVED", reference_id: 43, xp_awarded: 100, created_at: "2026-03-17T11:00:00Z" },
-  { id: 110, action_type: "RECIPE_APPROVED", reference_id: 42, xp_awarded: 100, created_at: "2026-03-16T10:30:00Z" },
-  { id: 111, action_type: "RECIPE_UNLIKED", reference_id: 42, xp_awarded: -2, created_at: "2026-03-15T18:20:00Z" },
-  { id: 112, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-03-14T14:15:00Z" },
-  { id: 113, action_type: "POST_UNLIKED", reference_id: 88, xp_awarded: -2, created_at: "2026-03-13T11:05:00Z" },
-  { id: 114, action_type: "POST_APPROVED", reference_id: 90, xp_awarded: 25, created_at: "2026-03-12T09:00:00Z" },
-  { id: 115, action_type: "RECIPE_LIKED", reference_id: 44, xp_awarded: 2, created_at: "2026-03-11T16:45:00Z" },
-  { id: 116, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-03-10T08:00:00Z" },
-  { id: 117, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-03-09T10:00:00Z" },
-  { id: 118, action_type: "RECIPE_APPROVED", reference_id: 43, xp_awarded: 100, created_at: "2026-03-08T11:00:00Z" },
+  { id: 110, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-03-16T15:30:00Z" },
+  { id: 111, action_type: "RECIPE_LIKED", reference_id: 42, xp_awarded: 2, created_at: "2026-03-15T12:00:00Z" },
+  { id: 112, action_type: "RECIPE_LIKED", reference_id: 42, xp_awarded: 2, created_at: "2026-03-14T09:15:00Z" },
+  { id: 113, action_type: "POST_APPROVED", reference_id: 89, xp_awarded: 25, created_at: "2026-03-13T14:45:00Z" },
+  { id: 114, action_type: "RECIPE_UNLIKED", reference_id: 43, xp_awarded: -2, created_at: "2026-03-12T08:30:00Z" },
+  { id: 115, action_type: "POST_LIKED", reference_id: 90, xp_awarded: 2, created_at: "2026-03-11T19:20:00Z" },
+  { id: 116, action_type: "RECIPE_APPROVED", reference_id: 44, xp_awarded: 100, created_at: "2026-03-10T10:00:00Z" },
+  { id: 117, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-03-09T16:10:00Z" },
+  { id: 118, action_type: "RECIPE_LIKED", reference_id: 44, xp_awarded: 2, created_at: "2026-03-08T11:45:00Z" },
+  { id: 119, action_type: "POST_UNLIKED", reference_id: 89, xp_awarded: -2, created_at: "2026-03-07T13:25:00Z" },
+  { id: 120, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-03-06T09:50:00Z" },
+  { id: 121, action_type: "POST_APPROVED", reference_id: 88, xp_awarded: 25, created_at: "2026-03-05T14:00:00Z" },
+  { id: 122, action_type: "RECIPE_LIKED", reference_id: 42, xp_awarded: 2, created_at: "2026-03-04T18:30:00Z" },
+  { id: 123, action_type: "RECIPE_LIKED", reference_id: 42, xp_awarded: 2, created_at: "2026-03-03T08:15:00Z" },
+  { id: 124, action_type: "POST_LIKED", reference_id: 90, xp_awarded: 2, created_at: "2026-03-02T20:10:00Z" },
+  { id: 125, action_type: "RECIPE_UNLIKED", reference_id: 44, xp_awarded: -2, created_at: "2026-03-01T12:45:00Z" },
+  { id: 126, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-02-28T09:30:00Z" },
+  { id: 127, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-02-27T15:20:00Z" },
+  { id: 128, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-02-26T11:05:00Z" },
+  { id: 129, action_type: "POST_UNLIKED", reference_id: 88, xp_awarded: -2, created_at: "2026-02-25T14:50:00Z" },
+  { id: 130, action_type: "RECIPE_LIKED", reference_id: 42, xp_awarded: 2, created_at: "2026-02-24T08:40:00Z" },
+  { id: 131, action_type: "POST_LIKED", reference_id: 90, xp_awarded: 2, created_at: "2026-02-23T19:15:00Z" },
+  { id: 132, action_type: "RECIPE_LIKED", reference_id: 44, xp_awarded: 2, created_at: "2026-02-22T10:25:00Z" },
+  { id: 133, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-02-21T13:10:00Z" },
+  { id: 134, action_type: "RECIPE_UNLIKED", reference_id: 43, xp_awarded: -2, created_at: "2026-02-20T17:55:00Z" },
+  { id: 135, action_type: "RECIPE_LIKED", reference_id: 42, xp_awarded: 2, created_at: "2026-02-19T09:05:00Z" },
+  { id: 136, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-02-18T14:30:00Z" },
+  { id: 137, action_type: "RECIPE_LIKED", reference_id: 44, xp_awarded: 2, created_at: "2026-02-17T11:45:00Z" },
+  { id: 138, action_type: "POST_LIKED", reference_id: 90, xp_awarded: 2, created_at: "2026-02-16T08:20:00Z" },
+  { id: 139, action_type: "RECIPE_LIKED", reference_id: 43, xp_awarded: 2, created_at: "2026-02-15T16:50:00Z" },
+  { id: 140, action_type: "POST_UNLIKED", reference_id: 89, xp_awarded: -2, created_at: "2026-02-14T10:15:00Z" },
+  { id: 141, action_type: "RECIPE_LIKED", reference_id: 42, xp_awarded: 2, created_at: "2026-02-13T13:40:00Z" },
+  { id: 142, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-02-12T09:05:00Z" },
+  { id: 143, action_type: "RECIPE_LIKED", reference_id: 44, xp_awarded: 2, created_at: "2026-02-11T15:25:00Z" },
+  { id: 144, action_type: "POST_LIKED", reference_id: 90, xp_awarded: 2, created_at: "2026-02-10T18:50:00Z" },
+  { id: 145, action_type: "ACCOUNT_CREATION", reference_id: null, xp_awarded: 0, created_at: "2026-02-09T08:00:00Z" }
 ];
 
 const formatActionType = (actionType) => {
@@ -57,8 +84,8 @@ const getReferenceTitle = (actionType, referenceId, t) => {
 };
 
 const getPaginationGroup = (currentPage, totalPages, isMobile) => {
-  const siblings = isMobile ? 1 : 2; 
-  const maxPagesWithoutTruncation = isMobile ? 5 : 7;
+  const siblings = isMobile ? 0 : 1; 
+  const maxPagesWithoutTruncation = isMobile ? 3 : 5;
 
   if (totalPages <= maxPagesWithoutTruncation) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -173,10 +200,6 @@ export default function XpLogsPage() {
                       </button>
                     )
                   ))}
-                </div>
-
-                <div className="mobile-page-indicator">
-                  Page {currentPage} of {totalPages}
                 </div>
 
                 <button
