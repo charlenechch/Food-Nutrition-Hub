@@ -28,15 +28,22 @@ const CATEGORIES = {
 // ── Detect food category from name/dish ───────────────────────
 function detectCategory(name = "", dish = "") {
   const text = `${name} ${dish}`.toLowerCase();
-  if (text.includes("laksa"))                           return "laksa";
-  if (text.includes("kolo") || text.includes("kampua")) return "kolomee";
-  if (text.includes("umai"))                            return "umai";
-  if (text.includes("linut"))                           return "linut";
+
+  if (text.includes("laksa"))                                     return "laksa";
   if (
-    text.includes("seafood") || text.includes("prawn") ||
-    text.includes("fish")    || text.includes("crab")  ||
-    text.includes("ikan")    || text.includes("udang")
-  )                                                     return "seafood";
+    text.includes("kolo") || text.includes("kampua") ||
+    text.includes("mee")  || text.includes("noodle") ||
+    text.includes("mie")
+  )                                                               return "kolomee";
+  if (text.includes("umai"))                                      return "umai";
+  if (text.includes("linut"))                                     return "linut";
+  if (
+    text.includes("seafood") || text.includes("prawn")  ||
+    text.includes("fish")    || text.includes("crab")   ||
+    text.includes("ikan")    || text.includes("udang")  ||
+    text.includes("sotong")  || text.includes("ketam")  ||
+    text.includes("tom yam") || text.includes("steam")
+  )                                                               return "seafood";
   return "others";
 }
 
