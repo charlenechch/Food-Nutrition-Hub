@@ -84,34 +84,40 @@ const getReferenceTitle = (actionType, referenceId, t) => {
 };
 
 const getPaginationGroup = (currentPage, totalPages, isMobile) => {
-  const siblings = isMobile ? 0 : 1; 
-  const maxPagesWithoutTruncation = isMobile ? 3 : 5;
+  const visibleCount = isMobile ? 3 : 5;
 
-  if (totalPages <= maxPagesWithoutTruncation) {
+  if (totalPages <= visibleCount) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  let start = Math.max(2, currentPage - siblings);
-  let end = Math.min(totalPages - 1, currentPage + siblings);
+  const pages = [];
+  let startPage, endPage;
 
-  if (currentPage - siblings < 2) {
-    end = Math.min(totalPages - 1, start + (siblings * 2));
+  const half = Math.floor(visibleCount / 2);
+
+  if (currentPage <= half + 1) {
+    startPage = 1;
+    endPage = visibleCount;
+  } else if (currentPage >= totalPages - half) {
+    startPage = totalPages - visibleCount + 1;
+    endPage = totalPages;
+  } else {
+    startPage = currentPage - half;
+    endPage = currentPage + half;
   }
-  if (currentPage + siblings > totalPages - 1) {
-    start = Math.max(2, end - (siblings * 2));
+
+  if (startPage > 1) {
+    pages.push("...");
   }
 
-  const pages = [1]; 
-
-  if (start > 2) pages.push("..."); 
-
-  for (let i = start; i <= end; i++) {
+  for (let i = startPage; i <= endPage; i++) {
     pages.push(i);
   }
 
-  if (end < totalPages - 1) pages.push("...");
+  if (endPage < totalPages) {
+    pages.push("...");
+  }
 
-  pages.push(totalPages); 
   return pages;
 };
 
