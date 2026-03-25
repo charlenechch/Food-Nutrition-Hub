@@ -249,7 +249,7 @@ const formatContributionDate = (dateString) => {
   const [prefs, setPrefs] = useState(DEFAULT_PREFS);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", location: "" });
   const [bio, setBio] = useState("");
-  const [showLevelUp, setShowLevelUp] = useState(true);
+  const [testUnseenLevelUp, setTestUnseenLevelUp] = useState(true);
 
   const [tab, setTab] = useState(() => {
   // ✅ Read URL param immediately on first load
@@ -1145,9 +1145,13 @@ const ContributionRow = ({ c }) => {
   return (
     <div className="user-profile-page">
       <LevelUpModal 
-        isOpen={showLevelUp} 
-        onClose={() => setShowLevelUp(false)} 
-        newLevel={5} 
+        totalXp={11500} 
+        highestLevelAchieved={2} 
+        hasUnseenLevelUp={testUnseenLevelUp} 
+        onDismiss={(newLevel) => {
+          console.log(`User acknowledged reaching Level ${newLevel}!`);
+          setTestUnseenLevelUp(false);
+        }}
       />
       <Header />
 
