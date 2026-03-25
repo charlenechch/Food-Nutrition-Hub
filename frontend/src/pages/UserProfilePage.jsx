@@ -9,7 +9,6 @@ import { Bell, Eye, EyeOff, Globe, Shield, ExternalLink, OctagonX, Camera, X, Al
 import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
 import Modal from "../components/Modal";
 import { useTranslation } from "react-i18next";
-import LevelUpModal from "../components/LevelUpModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -1144,14 +1143,6 @@ const ContributionRow = ({ c }) => {
   // ===== MAIN UI START =====
   return (
     <div className="user-profile-page">
-      <LevelUpModal 
-        totalXp={11500} 
-        highestLevelAchieved={2} 
-        hasUnseenLevelUp={testUnseenLevelUp} 
-        onDismiss={(newLevel) => {
-          setTestUnseenLevelUp(false);
-        }}
-      />
       <Header />
 
       {/* If guest, show pop-up modal instead of redirect */}
