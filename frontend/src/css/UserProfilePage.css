@@ -1236,3 +1236,22 @@
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(106, 74, 47, 0.12);
 }
+
+.xlp-stack {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.xlp-btn {
+  width: fit-content;
+  margin-bottom: 16px;
+}
+
+.xlp-card-title {
+  font-size: 1.8rem;
+}
+
+.xlp-muted2 {
+  margin-bottom: 24px;
+  font-size: 1rem;
+}

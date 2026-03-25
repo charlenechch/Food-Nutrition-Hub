@@ -23,19 +23,18 @@ export default function XpLogsPage() {
       <Header />
       
       <div className="upp-page">
-        <div className="upp-stack" style={{ maxWidth: "800px", margin: "0 auto" }}>
+        <div className="upp-stack xlp-stack">
           
           <button 
-            className="lrp-btn lrp-btn-outline" 
-            style={{ width: "fit-content", marginBottom: "16px" }}
+            className="lrp-btn lrp-btn-outline xlp-btn" 
             onClick={() => navigate(-1)}
           >
             ← Back to Profile
           </button>
 
           <div className="upp-card">
-            <h2 className="upp-card-title" style={{ fontSize: "1.8rem" }}>XP Ledger</h2>
-            <p className="upp-muted2" style={{ marginBottom: "24px", fontSize: "1rem" }}>
+            <h2 className="upp-card-title xlp-card-title">XP Logs</h2>
+            <p className="upp-muted2 xlp-muted2">
               A complete history of how you've earned your rank on the Food-Nutrition Hub.
             </p>
 
