@@ -99,7 +99,7 @@ export default function XpLogsPage() {
       <Header />
       
       <div className="upp-page">
-        <div className="upp-stack stack">
+        <div className="upp-stack xlp-stack">
           
           <button 
             className="lrp-btn lrp-btn-outline xlp-btn" 
