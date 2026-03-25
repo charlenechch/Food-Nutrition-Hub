@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import "../css/LevelUpModal.css";
+import "./LevelUpModal.css";
 
 const calculateNaturalLevel = (totalXp) => {
   const safeXpForMath = Math.max(0, totalXp || 0);
