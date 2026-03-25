@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import "../css/UserProfilePage.css";
+import "../css/UserProfilePage.css"; 
 
 const MOCK_XP_LOGS = [
-  { id: 101, action_type: "RECIPE_APPROVED", reference_title: "Manok Pansoh", xp_awarded: 100, created_at: "2026-03-23T10:30:00Z" },
-  { id: 102, action_type: "POST_LIKED", reference_title: "Best places to eat in Kuching", xp_awarded: 5, created_at: "2026-03-22T14:15:00Z" },
-  { id: 103, action_type: "RECIPE_REJECTED", reference_title: "Nasi Lemak", xp_awarded: -20, created_at: "2026-03-20T09:00:00Z" },
-  { id: 104, action_type: "ACCOUNT_CREATION", reference_title: "Welcome to the Hub!", xp_awarded: 50, created_at: "2026-03-15T08:00:00Z" }
+  { id: 101, action_type: "RECIPE_APPROVED", reference_id: 42, xp_awarded: 100, created_at: "2026-03-23T10:30:00Z" },
+  { id: 102, action_type: "POST_LIKED", reference_id: 88, xp_awarded: 2, created_at: "2026-03-22T14:15:00Z" },
+  { id: 103, action_type: "POST_APPROVED", reference_id: 88, xp_awarded: 25, created_at: "2026-03-21T09:00:00Z" },
+  { id: 104, action_type: "RECIPE_LIKED", reference_id: 42, xp_awarded: 2, created_at: "2026-03-20T16:45:00Z" },
+  { id: 105, action_type: "RECIPE_LIKED", reference_id: 42, xp_awarded: 2, created_at: "2026-03-19T08:00:00Z" },
+  { id: 106, action_type: "POST_LIKED", reference_id: 89, xp_awarded: 2, created_at: "2026-03-18T10:00:00Z" },
+  { id: 107, action_type: "RECIPE_APPROVED", reference_id: 43, xp_awarded: 100, created_at: "2026-03-17T11:00:00Z" }
 ];
 
 const formatActionType = (actionType) => {
@@ -18,32 +21,44 @@ const formatActionType = (actionType) => {
 export default function XpLogsPage() {
   const navigate = useNavigate();
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5; 
+
+  const totalPages = Math.ceil(MOCK_XP_LOGS.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentLogs = MOCK_XP_LOGS.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   return (
     <div className="user-profile-page">
       <Header />
       
       <div className="upp-page">
-        <div className="upp-stack xlp-stack">
+        <div className="upp-stack" style={{ maxWidth: "800px", margin: "0 auto" }}>
           
           <button 
-            className="lrp-btn lrp-btn-outline xlp-btn" 
+            className="lrp-btn lrp-btn-outline" 
+            style={{ width: "fit-content", marginBottom: "16px" }}
             onClick={() => navigate(-1)}
           >
             ← Back to Profile
           </button>
 
           <div className="upp-card">
-            <h2 className="upp-card-title xlp-card-title">XP Logs</h2>
-            <p className="upp-muted2 xlp-muted2">
+            <h2 className="upp-card-title" style={{ fontSize: "1.8rem" }}>XP Ledger</h2>
+            <p className="upp-muted2" style={{ marginBottom: "24px", fontSize: "1rem" }}>
               A complete history of how you've earned your rank on the Food-Nutrition Hub.
             </p>
 
             <div className="xp-log-list">
-              {MOCK_XP_LOGS.map((log) => (
+              {currentLogs.map((log) => (
                 <div key={log.id} className="xp-log-item">
                   <div className="xp-log-info">
                     <div className="xp-log-action">{formatActionType(log.action_type)}</div>
-                    <div className="xp-log-details">{log.reference_title}</div>
+                    
+                    <div className="xp-log-details">
+                      {log.reference_id ? `Reference ID: #${log.reference_id}` : "System Award"}
+                    </div>
+                    
                     <div className="upp-muted2">
                       {new Date(log.created_at).toLocaleDateString("en-US", {
                         year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
@@ -56,6 +71,36 @@ export default function XpLogsPage() {
                 </div>
               ))}
             </div>
+
+            {totalPages > 1 && (
+              <div className="efp-pagination upp-pagination" style={{ marginTop: "24px" }}>
+                <button
+                  className="efp-btn nav-btn"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  ‹ Prev
+                </button>
+                <div className="efp-page-numbers">
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <button
+                      key={i}
+                      className={`efp-btn ${currentPage === i + 1 ? "is-active" : ""}`}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  className="efp-btn nav-btn"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  Next ›
+                </button>
+              </div>
+            )}
             
           </div>
         </div>
