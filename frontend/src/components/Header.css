@@ -206,7 +206,7 @@
 
 /* RESPONSIVE (TABLET & MOBILE)*/
 /* Mobile  */
-@media (max-width: 1200px) {
+@media (max-width: 1250px) {
 
   /* Hide desktop nav + actions */
   .navbar-links {
@@ -230,7 +230,7 @@
 }
 
 /* Desktop  */
-@media (min-width: 1201px) {
+@media (min-width: 1251px) {
   /* Hide mobile menu drawer on desktop */
   .mobile-menu {
     display: none !important;
@@ -395,7 +395,7 @@
   color: #dc3545;
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 1251px) and (max-width: 1300px) {
   .navbar {
     padding: 0.7rem 1rem; 
   }
