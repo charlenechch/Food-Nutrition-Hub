@@ -65,8 +65,8 @@ const MOCK_XP_LOGS = [
   { id: 145, action_type: "ACCOUNT_CREATION", reference_id: null, xp_awarded: 0, created_at: "2026-02-09T08:00:00Z" }
 ];
 
-const formatActionType = (actionType) => {
-  return actionType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+const formatActionType = (actionType, t) => {
+  return t(`profile.action_${actionType}`); 
 };
 
 const getReferenceTitle = (actionType, referenceId, t) => {
@@ -116,7 +116,7 @@ const getPaginationGroup = (currentPage, totalPages, isMobile) => {
 };
 
 export default function XpLogsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 500);
@@ -157,20 +157,18 @@ export default function XpLogsPage() {
               {currentLogs.map((log) => (
                 <div key={log.id} className="xp-log-item">
                   <div className="xp-log-info">
-                    <div className="xp-log-action">{formatActionType(log.action_type)}</div>
+                    <div className="xp-log-action">{formatActionType(log.action_type, t)}</div>
                     
                     <div className="xp-log-details">
                       {getReferenceTitle(log.action_type, log.reference_id, t)}
                     </div>
                     
                     <div className="upp-muted2">
-                      {new Date(log.created_at).toLocaleDateString("en-US", {
-                        year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
-                      })}
+                      {new Date(log.created_at).toLocaleDateString(
+                        i18n.language === 'ms' ? 'ms-MY' : 'en-US',
+                        { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }
+                      )}
                     </div>
-                  </div>
-                  <div className={`xp-log-amount ${log.xp_awarded > 0 ? "xp-positive" : "xp-negative"}`}>
-                    {log.xp_awarded > 0 ? "+" : ""}{log.xp_awarded} XP
                   </div>
                 </div>
               ))}

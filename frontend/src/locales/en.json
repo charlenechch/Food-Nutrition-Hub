@@ -476,7 +476,15 @@
     "deletedPost": "Deleted Post #{{id}}",
     "deletedItem": "Item #{{id}}",
     "prev": "‹ Prev",
-    "next": "Next ›"
+    "next": "Next ›",
+    "action_RECIPE_APPROVED": "Recipe Approved",
+    "action_RECIPE_REJECTED": "Recipe Rejected",
+    "action_RECIPE_LIKED": "Recipe Liked",
+    "action_RECIPE_UNLIKED": "Recipe Unliked",
+    "action_POST_APPROVED": "Post Approved",
+    "action_POST_LIKED": "Post Liked",
+    "action_POST_UNLIKED": "Post Unliked",
+    "action_ACCOUNT_CREATION": "Account Creation"
   },
  
   "auth": {

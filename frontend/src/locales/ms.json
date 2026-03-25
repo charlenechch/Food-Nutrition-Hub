@@ -475,7 +475,15 @@
     "deletedPost": "Siaran Dibuang #{{id}}",
     "deletedItem": "Item #{{id}}",
     "prev": "‹ Sebelum",
-    "next": "Seterusnya ›"
+    "next": "Seterusnya ›",
+    "action_RECIPE_APPROVED": "Resipi Diluluskan",
+    "action_RECIPE_REJECTED": "Resipi Ditolak",
+    "action_RECIPE_LIKED": "Resipi Disukai",
+    "action_RECIPE_UNLIKED": "Resipi Tidak Disukai",
+    "action_POST_APPROVED": "Siaran Diluluskan",
+    "action_POST_LIKED": "Siaran Disukai",
+    "action_POST_UNLIKED": "Siaran Tidak Disukai",
+    "action_ACCOUNT_CREATION": "Penciptaan Akaun"
   },
 
   "auth": {
