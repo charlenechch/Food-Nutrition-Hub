@@ -5,7 +5,6 @@ import { FaRegFlag } from "react-icons/fa6";
 import { CiSearch, CiFilter } from "react-icons/ci";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
-import { FiFilter } from "react-icons/fi";
 import Modal from "../components/Modal";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -233,9 +232,8 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
               </ul>
             )}
           </div>
-          <button className="admin-recipe-btn-filter" onClick={() => setShowFilters(!showFilters)}>
-            <FiFilter className="filter-icon" /> 
-            <span>{t("explore.filters")}</span> 
+          <button className="admin-food-btn-filter" onClick={() => setShowFilters(!showFilters)}>
+            <CiFilter /> <span>{t("explore.filters")}</span>
           </button>
         </div>
 
