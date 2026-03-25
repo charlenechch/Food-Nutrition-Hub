@@ -206,7 +206,7 @@
 
 /* RESPONSIVE (TABLET & MOBILE)*/
 /* Mobile  */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
 
   /* Hide desktop nav + actions */
   .navbar-links {
@@ -230,7 +230,7 @@
 }
 
 /* Desktop  */
-@media (min-width: 1025px) {
+@media (min-width: 1201px) {
   /* Hide mobile menu drawer on desktop */
   .mobile-menu {
     display: none !important;
@@ -393,32 +393,4 @@
 
 .notification-dismiss:hover {
   color: #dc3545;
-}
-
-@media (min-width: 1025px) and (max-width: 1200px) {
-  .navbar {
-    padding: 0.7rem 1rem; 
-  }
-
-  .navbar-links {
-    gap: 0.5rem; 
-  }
-
-  .navbar-links a {
-    padding: 6px 8px; 
-    font-size: 0.85rem; 
-  }
-
-  .navbar-actions {
-    gap: 0.8rem; 
-  }
-
-  .navbar-actions button {
-    font-size: 0.85rem;
-    gap: 4px; 
-  }
-
-  .logo-text {
-    font-size: 1.1rem; 
-  }
 }
