@@ -81,7 +81,9 @@ SELECT
       r.status,
       r.createdAt AS date,
       r.updatedAt,
-      CONCAT(u.firstname, ' ', u.lastname) AS author
+      CONCAT(u.firstname, ' ', u.lastname) AS author,
+      up.avatar AS authorImage,
+      up.userProfileID AS authorId
       FROM recipe r
       INNER JOIN food f ON r.foodID = f.foodID
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
@@ -148,7 +150,9 @@ SELECT
       id: getSafe(data, 'id') || 0,
       name: getSafe(data, 'name') || 'Unknown Recipe',
       author: getSafe(data, 'author') || 'Unknown Author', 
-      date: getSafe(data, 'date') ? new Date(data.date).toLocaleDateString() : '—', 
+      authorImage: getSafe(data, 'authorImage') || null,
+      authorId: getSafe(data, 'authorId') || null,
+      date: getSafe(data, 'date') ? new Date(data.date).toLocaleDateString() : '—',
       updatedAt: getSafe(data, 'updatedAt') ? new Date(data.updatedAt).toISOString() : null,
       origin: getSafe(data, 'origin') || 'Unknown',
       difficulty: getSafe(data, 'difficulty') || 'Easy',

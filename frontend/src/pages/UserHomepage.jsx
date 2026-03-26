@@ -227,7 +227,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
                   onBlur={() => setIsCarouselPaused(false)} 
                   autoComplete="off"
                 />
-                <span className="search-shortcut-hint hide-on-mobile">Press /</span>
                 <button type="submit" className="search-button">{t("home.searchBtn")}</button>
               </div>
             </form>

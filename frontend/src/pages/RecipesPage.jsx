@@ -727,6 +727,30 @@ export default function RecipesPage() {
                   {Array.isArray(r.dietaryTags) && r.dietaryTags.includes("vegetarian") && <span className="efp-badge-topright">V</span>}
                 </div>
                 <div className="efp-food-body">
+                  <div 
+                    className="rp-author-info"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!r.authorId) return;
+                      
+                      const currentUID = user?.userProfileID;
+                      if (user && String(currentUID) === String(r.authorId)) {
+                        navigate("/profile");
+                      } else {
+                        navigate(`/profile/${r.authorId}`);
+                      }
+                    }}
+                    style={{ cursor: "pointer" }}
+                    title={`View ${r.author}'s profile`}
+                  >
+                    <img 
+                      src={r.authorImage || 'https://via.placeholder.com/40/8b5e3c/FFFFFF?text=U'} 
+                      alt={r.author} 
+                      className="rp-author-img" 
+                      loading="lazy"
+                    />
+                    <span className="rp-author-name">{r.author}</span>
+                  </div>
                   <h3 className="efp-food-title">{translatedRecipes[`name_${r.id}`] || r.name || t("recipes.unknownRecipe")}</h3>
                   <p className="efp-desc">{translatedRecipes[`desc_${r.id}`] || r.description || t("recipes.noDescription")}</p>
                   <button className="efp-card-cta" onClick={() => navigate(`/recipes/${recipeId}`)}>{t("recipes.viewRecipe")}</button>

@@ -38,6 +38,7 @@ const exportRoutes = require("./routes/export");
 const notificationRoutes = require("./routes/notifications");
 const translateRoutes = require("./routes/translation");
 const mapRoutes = require("./routes/map");
+const xpRoutes = require("./routes/xp");
 
 // Admin
 const adminRoutes = require("./routes/admin");
@@ -292,6 +293,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/map", mapRoutes);
+app.use("/api/xp", xpRoutes);
 
 // ---------- Static Files ----------
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

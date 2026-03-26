@@ -1278,7 +1278,7 @@ const ContributionRow = ({ c }) => {
               </p>
             )}
 
-          <UserXpBar totalXp={11500} highestLevel={2} />
+          <UserXpBar totalXp={user?.total_xp || 0} highestLevel={1} />
           </div>
 
           {user?.isPrivateView ? (

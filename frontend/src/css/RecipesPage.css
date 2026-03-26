@@ -455,3 +455,37 @@
     max-height: 220px;
   }
 }
+
+/* Recipe Card Author Info */
+.rp-author-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.rp-author-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #e8dccf;
+}
+
+.rp-author-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #7a4d2a;
+}
+
+.rp-author-info {
+  transition: opacity 0.2s ease;
+}
+
+.rp-author-info:hover {
+  opacity: 0.8;
+}
+
+.rp-author-name:hover {
+  text-decoration: underline;
+}
