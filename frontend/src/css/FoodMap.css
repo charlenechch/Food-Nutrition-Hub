@@ -369,3 +369,17 @@
   .foodmap-cats    { padding: 8px 12px; gap: 6px; }
   .foodmap-cat-chip{ padding: 5px 10px; font-size: 11px; }
 }
+
+.foodmap-card-foods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.foodmap-card-food-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}

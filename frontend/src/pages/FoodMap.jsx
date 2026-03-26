@@ -280,22 +280,34 @@ export default function FoodMap() {
 
               {!loading && !error && (
                 <>
-                  {/* Curated picks first */}
                   {curatedPins.length > 0 && (
                     <>
                       <div className="foodmap-section-label curated">
                         ⭐ Sarawak Eats Picks
                       </div>
-                      {curatedPins.map((pin) => (
+                      {/* Group curated picks by restaurant name */}
+                      {Object.values(
+                        curatedPins.reduce((acc, pin) => {
+                          const key = pin.name;
+                          if (!acc[key]) {
+                            acc[key] = { ...pin, foods: [pin.food] };
+                          } else {
+                            if (!acc[key].foods.includes(pin.food)) {
+                              acc[key].foods.push(pin.food);
+                            }
+                          }
+                          return acc;
+                        }, {})
+                      ).map((pin) => (
                         <PinCard
-                          key={pin.id} pin={pin}
+                          key={pin.id}
+                          pin={pin}
                           active={selected?.id === pin.id}
                           onClick={() => openDetail(pin)}
                         />
                       ))}
                     </>
                   )}
-                  {/* Google results */}
                   {googlePins.length > 0 && (
                     <>
                       <div className="foodmap-section-label google">
@@ -303,7 +315,8 @@ export default function FoodMap() {
                       </div>
                       {googlePins.map((pin) => (
                         <PinCard
-                          key={pin.id} pin={pin}
+                          key={pin.id}
+                          pin={pin}
                           active={selected?.id === pin.id}
                           onClick={() => openDetail(pin)}
                         />
@@ -374,24 +387,39 @@ export default function FoodMap() {
 
 // ── Pin card in sidebar ───────────────────────────────────────
 function PinCard({ pin, active, onClick }) {
-  const meta = getFoodMeta(pin.food);
+  const foods = pin.foods || [pin.food];
+  const primaryMeta = getFoodMeta(foods[0]);
+
   return (
     <div className={`foodmap-card ${active ? "active" : ""}`} onClick={onClick}>
       <div className="foodmap-card-emoji-wrap"
-        style={{ background: meta.color + "18", border: `1.5px solid ${meta.color}33` }}>
-        <span>{meta.emoji}</span>
+        style={{ background: primaryMeta.color + "18", border: `1.5px solid ${primaryMeta.color}33` }}>
+        <span>{primaryMeta.emoji}</span>
       </div>
       <div className="foodmap-card-body">
         <div className="foodmap-card-top">
           <span className="foodmap-card-name">{pin.name}</span>
           {pin.rating && <span className="foodmap-card-rating">⭐ {pin.rating}</span>}
         </div>
-        {pin.food && (
-          <div className="foodmap-card-food" style={{ color: meta.color }}>
-            {meta.emoji} {pin.food}
-            {pin.is_pick && <span className="foodmap-pick-badge">⭐ Pick</span>}
-          </div>
-        )}
+
+        {/* Show all foods this restaurant serves */}
+        <div className="foodmap-card-foods">
+          {foods.filter(Boolean).map((food) => {
+            const meta = getFoodMeta(food);
+            return (
+              <span
+                key={food}
+                className="foodmap-card-food-tag"
+                style={{ color: meta.color, background: meta.color + "14",
+                         border: `1px solid ${meta.color}33` }}
+              >
+                {meta.emoji} {food}
+              </span>
+            );
+          })}
+          {pin.is_pick && <span className="foodmap-pick-badge">⭐ Pick</span>}
+        </div>
+
         <div className="foodmap-card-address">{pin.address}</div>
         <div className="foodmap-card-meta">
           {pin.price          && <span className="foodmap-card-price">{pin.price}</span>}
