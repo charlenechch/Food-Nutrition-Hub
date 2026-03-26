@@ -216,3 +216,17 @@ CREATE TABLE adminActivityLog (
     KEY userID (userID),
     FOREIGN KEY (userID) REFERENCES user (userID) ON DELETE CASCADE
 );
+
+ALTER TABLE userProfile 
+ADD COLUMN total_xp INT DEFAULT 0;
+
+CREATE TABLE xp_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    userProfileID INT NOT NULL,
+    action_type VARCHAR(50) NOT NULL, 
+    reference_id INT, 
+    xp_awarded INT NOT NULL, 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_xp_userProfile FOREIGN KEY (userProfileID) 
+        REFERENCES userProfile(userProfileID) ON DELETE CASCADE ON UPDATE CASCADE
+);
