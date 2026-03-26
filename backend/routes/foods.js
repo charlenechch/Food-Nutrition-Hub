@@ -240,7 +240,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     name,
     origin,
     category,
-    description,
+    foodDescription,
     culturalSignificance,
     traditionalPreparation,
     Energy_kcal,
@@ -298,7 +298,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       name,
       origin,
       category || "",
-      description || "",
+      foodDescription || "",
       culturalSignificance || "",
       traditionalPreparation || "",
       Energy_kcal || 0,
@@ -355,7 +355,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       // Combine relevant fields from both tables for better semantic search
       const searchText = [
         name,
-        description || "",
+        foodDescription || "",
         commonIngredients || "",
         ingredients || "",
         culturalSignificance || "",
