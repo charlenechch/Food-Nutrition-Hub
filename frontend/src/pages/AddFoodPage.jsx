@@ -517,7 +517,7 @@ const AddFoodPage = () => {
         {/* === Cultural Context === */}
         <div className="edit-cultural-context-card">
           <h3>{t("addFood.culturalContext")}</h3>
-          <label className="basic-info-label">{t("addFood.description")}</label>
+          <label className="basic-info-label">{t("addFood.foodDescription")}</label>
           <textarea 
             className="edit-food-textarea" 
             name="foodDescription" 
