@@ -737,7 +737,7 @@ router.post('/add-food-details', async (req, res) => {
       altDescription || null,
       category || null,
       origin,
-      description || null,
+      description !== undefined ? description : null,
       culturalSignificance || null,
       traditionalPreparation || null,
       Energy_kcal || 0,
