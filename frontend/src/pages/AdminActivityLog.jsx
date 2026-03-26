@@ -363,11 +363,11 @@ export default function AdminActivityLog() {
                                     const badge = ACTION_BADGE[log.actionType] || { key: null, color: "#5f5040", bg: "#f1e6d8" };
                                     return (
                                         <tr key={log.logID}>
-                                            <td className="al-td-number">
+                                            <td className="al-td-number" data-label="ID">
                                                 {(filters.page - 1) * 20 + index + 1}
                                             </td>
-                                            <td className="al-td-admin">{log.adminName}</td>
-                                            <td>
+                                            <td className="al-td-admin" data-label="Name">{log.adminName}</td>
+                                            <td data-label="Action">
                                                 <span
                                                     className="al-badge"
                                                     style={{ background: badge.bg, color: badge.color }}
@@ -375,8 +375,8 @@ export default function AdminActivityLog() {
                                                     {badge.key ? t(`adminActivityLog.${badge.key}`) : log.actionType}
                                                 </span>
                                             </td>
-                                            <td className="al-td-description">{log.description}</td>
-                                            <td className="al-td-datetime">
+                                            <td className="al-td-description" data-label="Description">{log.description}</td>
+                                            <td className="al-td-datetime" data-label="Created At">
                                                 {formatDate(log.createdAt)}
                                             </td>
                                         </tr>
