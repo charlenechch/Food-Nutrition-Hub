@@ -59,7 +59,12 @@ function fromMySQL(row) {
     lng:     parseFloat(row.longitude),
     rating:  parseFloat(row.rating) || null,
     reviews: null,
-    price:   row.price ? `RM ${row.price}` : null,
+    // ✅ Use price_min and price_max
+    price:   (row.price_min && row.price_max)
+               ? `RM ${row.price_min} - ${row.price_max}`
+               : row.price_min
+               ? `From RM ${row.price_min}`
+               : null,
     hours:   row.opening_hours || null,
     halal:   Boolean(row.is_halal),
     desc:    row.description   || '',
@@ -132,7 +137,8 @@ router.get('/', async (req, res) => {
     const rows = await many(`
       SELECT
         r.restaurantID, r.foodID, r.name, r.city,
-        r.latitude, r.longitude, r.rating, r.price,
+        r.latitude, r.longitude, r.rating,
+        r.price_min, r.price_max,       
         r.address, r.description, r.opening_hours, r.is_halal,
         f.name AS food_name
       FROM restaurants r
@@ -179,7 +185,8 @@ router.get('/search', async (req, res) => {
     const rows = await many(`
       SELECT
         r.restaurantID, r.foodID, r.name, r.city,
-        r.latitude, r.longitude, r.rating, r.price,
+        r.latitude, r.longitude, r.rating, 
+        r.price_min, r.price_max,
         r.address, r.description, r.opening_hours, r.is_halal,
         f.name AS food_name
       FROM restaurants r
