@@ -348,7 +348,7 @@ export default function AdminActivityLog() {
                     </div>
                 ) : (
                     <div className="al-table-wrapper">
-                        <table className="food-table">
+                        <table className="food-table al-table-mobile">
                             <thead>
                                 <tr>
                                     <th>{t("adminActivityLog.col_number")}</th>
