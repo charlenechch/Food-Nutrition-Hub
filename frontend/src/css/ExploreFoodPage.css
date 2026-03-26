@@ -27,7 +27,7 @@
 /* Large screens (desktop) */
 @media (min-width: 1200px) {
   .efp-container {
-    max-width: 1320px;         
+    max-width: 1140px;         
     padding-inline: 2rem;
   }
 }
@@ -35,7 +35,7 @@
 /* Extra large screens (ultrawide monitors) */
 @media (min-width: 1600px) {
   .efp-container {
-    max-width: 1600px;          
+    max-width: 1200px;          
     padding-inline: 3rem;
   }
 }
