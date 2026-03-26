@@ -181,11 +181,12 @@ CREATE TABLE restaurants (
     latitude DECIMAL(10,8),
     longitude DECIMAL(11,8),
     rating DECIMAL(3,2),
-    price DECIMAL(10,2),
     address VARCHAR(255),
     description TEXT,
     opening_hours VARCHAR(100),
     is_halal BOOLEAN,
+    price_min DECIMAL(10,2),
+    price_max DECIMAL(10,2),
     FOREIGN KEY (foodID) REFERENCES food(foodID)
 );
 
