@@ -37,7 +37,8 @@ function fromGoogle(place, foodLabel = '') {
     lng:      place.location?.longitude ?? place.geometry?.location?.lng,
     rating:   place.rating          || null,
     reviews:  place.userRatingCount || 0,
-    price:    null,
+    price_min:    null,
+    price_max:    null,
     hours:    null,
     halal:    false,
     photo:    place.photos?.[0]?.name || null,
@@ -59,7 +60,12 @@ function fromMySQL(row) {
     lng:     parseFloat(row.longitude),
     rating:  parseFloat(row.rating) || null,
     reviews: null,
-    price:   row.price ? `RM ${row.price}` : null,
+    price:
+      row.price_min != null && row.price_max != null
+        ? (parseFloat(row.price_min) === parseFloat(row.price_max)
+            ? `RM ${parseFloat(row.price_min)}`
+            : `RM ${parseFloat(row.price_min)}-${parseFloat(row.price_max)}`)
+        : (row.price ? `RM ${row.price}` : null),
     hours:   row.opening_hours || null,
     halal:   Boolean(row.is_halal),
     desc:    row.description   || '',
@@ -179,7 +185,7 @@ router.get('/search', async (req, res) => {
     const rows = await many(`
       SELECT
         r.restaurantID, r.foodID, r.name, r.city,
-        r.latitude, r.longitude, r.rating, r.price,
+        r.latitude, r.longitude, r.rating, r.price_min, r.price_max,
         r.address, r.description, r.opening_hours, r.is_halal,
         f.name AS food_name
       FROM restaurants r
