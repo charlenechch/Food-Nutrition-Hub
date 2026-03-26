@@ -1,6 +1,6 @@
 // routes/map.js
-// GET /api/map    → Explore mode (Google Places nearby + MySQL curated picks)
-// GET /api/search → Search mode  (Google Places Text Search by dish name)
+// GET /api/map        → MySQL picks + 2-3 Google results per Sarawak food
+// GET /api/map/search → MySQL + Google filtered by specific food
 
 const express    = require('express');
 const router     = express.Router();
@@ -10,19 +10,33 @@ const axios      = require('axios');
 const PLACES_KEY = process.env.GOOGLE_PLACES_KEY;
 const KUCHING    = { lat: 1.5535, lng: 110.3493 };
 
+// ── All Sarawak foods to search on default load ───────────────
+const SARAWAK_FOODS = [
+  'Linut',
+  'Kolo Mee',
+  'Umai',
+  'Nasi Aruk',
+  'Asam Siok',
+  'Belacan Bihun',
+  'Daun Ubi Tumbuk',
+  'Manicai',
+  'Midin',
+  'Ayam Pansuh',
+];
+
 // ── Normalize Google Places result ────────────────────────────
-function fromGoogle(place) {
+function fromGoogle(place, foodLabel = '') {
   return {
-    id:       `g_${place.id || place.place_id}`,
+    id:       `g_${place.id || place.place_id}_${foodLabel.replace(/\s+/g, '')}`,
     source:   'google',
     name:     place.displayName?.text || place.name,
-    dish:     '',                              // used by detectCategory on frontend
-    address:  place.formattedAddress  || place.vicinity || '',
+    food:     foodLabel,
+    address:  place.formattedAddress || place.vicinity || '',
     city:     'Kuching',
     lat:      place.location?.latitude  ?? place.geometry?.location?.lat,
     lng:      place.location?.longitude ?? place.geometry?.location?.lng,
-    rating:   place.rating           || null,
-    reviews:  place.userRatingCount  || 0,
+    rating:   place.rating          || null,
+    reviews:  place.userRatingCount || 0,
     price:    null,
     hours:    null,
     halal:    false,
@@ -32,56 +46,40 @@ function fromGoogle(place) {
   };
 }
 
-// ── Normalize MySQL curated pick ──────────────────────────────
+// ── Normalize MySQL row ───────────────────────────────────────
 function fromMySQL(row) {
   return {
     id:      `m_${row.restaurantID}`,
     source:  'mysql',
     name:    row.name,
-    dish:    row.food_name || '',              // food name from food table join
-    address: row.address,
-    city:    row.city,
+    food:    row.food_name || '',
+    address: row.address   || '',
+    city:    row.city      || 'Kuching',
     lat:     parseFloat(row.latitude),
     lng:     parseFloat(row.longitude),
-    rating:  parseFloat(row.rating),
+    rating:  parseFloat(row.rating) || null,
     reviews: null,
     price:   row.price ? `RM ${row.price}` : null,
-    hours:   row.opening_hours,
+    hours:   row.opening_hours || null,
     halal:   Boolean(row.is_halal),
-    desc:    row.description,
+    desc:    row.description   || '',
     photo:   null,
     is_pick: true,
   };
 }
 
-// ────────────────────────────────────────────────────────────
-//  GET /api/map
-//  Default explore view — MySQL picks + Google Places nearby
-//  Query params: lat, lng (optional), radius (optional, metres)
-// ────────────────────────────────────────────────────────────
-router.get('/', async (req, res) => {
+// ── Search Google for one specific food (used for default load) ──
+async function searchGoogleForFood(foodName, lat, lng, limit = 3) {
   try {
-    // ✅ Use parseFloat for all numbers — Google requires float not int
-    const lat    = parseFloat(req.query.lat)    || KUCHING.lat;
-    const lng    = parseFloat(req.query.lng)    || KUCHING.lng;
-    const radius = parseFloat(req.query.radius) || 5000.0;
-
-    // ← ADD THIS TEMPORARILY
-    console.log('[MAP] lat:', lat, typeof lat, '| lng:', lng, typeof lng, '| radius:', radius, typeof radius);
-
-    // 1. Google Places Nearby Search
-    const googleRes = await axios.post(
-      'https://places.googleapis.com/v1/places:searchNearby',
+    const res = await axios.post(
+      'https://places.googleapis.com/v1/places:searchText',
       {
-        includedTypes:  ['restaurant', 'cafe', 'food_court'],
-        maxResultCount: 20,
-        locationRestriction: {
+        textQuery:      `${foodName} Kuching Sarawak`,
+        maxResultCount: limit,
+        locationBias: {
           circle: {
-            center: {
-              latitude:  parseFloat(lat),   // ✅ explicit float
-              longitude: parseFloat(lng),
-            },
-            radius: parseFloat(radius),     // ✅ explicit float
+            center: { latitude: parseFloat(lat), longitude: parseFloat(lng) },
+            radius: 15000.0,
           },
         },
       },
@@ -102,49 +100,72 @@ router.get('/', async (req, res) => {
         },
       }
     );
+    return (res.data.places || []).map((p) => fromGoogle(p, foodName));
+  } catch (e) {
+    console.error(`[Google] "${foodName}":`, e.response?.data?.error?.message || e.message);
+    return [];
+  }
+}
 
-    const googlePins = (googleRes.data.places || []).map(fromGoogle);
+// ── Deduplicate pins by place id ──────────────────────────────
+function dedupe(pins) {
+  const seen = new Set();
+  return pins.filter((p) => {
+    if (seen.has(p.id)) return false;
+    seen.add(p.id);
+    return true;
+  });
+}
 
-    // 2. MySQL curated picks
+// ────────────────────────────────────────────────────────────
+//  GET /api/map
+//  Default view:
+//  - All MySQL curated picks (with food labels)
+//  - 2-3 Google results per Sarawak food (all in parallel)
+// ────────────────────────────────────────────────────────────
+router.get('/', async (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat) || KUCHING.lat;
+    const lng = parseFloat(req.query.lng) || KUCHING.lng;
+
+    // 1. MySQL curated picks — always show these
     const rows = await many(`
       SELECT
-        r.restaurantID,
-        r.name,
-        r.city,
-        r.latitude,
-        r.longitude,
-        r.rating,
-        r.price,
-        r.address,
-        r.description,
-        r.opening_hours,
-        r.is_halal,
+        r.restaurantID, r.foodID, r.name, r.city,
+        r.latitude, r.longitude, r.rating, r.price,
+        r.address, r.description, r.opening_hours, r.is_halal,
         f.name AS food_name
       FROM restaurants r
       LEFT JOIN food f ON f.foodID = r.foodID
+      ORDER BY r.rating DESC
     `);
-
     const mysqlPins = rows.map(fromMySQL);
 
-    // 3. Merge — curated picks first so they render on top
-    res.json({
-      pins:  [...mysqlPins, ...googlePins],
-      total: mysqlPins.length + googlePins.length,
-    });
+    // 2. Google — search all 10 Sarawak foods in parallel
+    //    Each returns up to 3 restaurants properly labelled
+    const googleResults = await Promise.all(
+      SARAWAK_FOODS.map((food) => searchGoogleForFood(food, lat, lng, 3))
+    );
+
+    // Flatten + deduplicate (same restaurant may appear in multiple food searches)
+    const googlePins = dedupe(googleResults.flat());
+
+    // 3. Merge — MySQL picks first, then Google results
+    const allPins = [...mysqlPins, ...googlePins];
+
+    res.json({ pins: allPins, total: allPins.length });
 
   } catch (err) {
-    console.error('[GET /api/map]', err.response?.data || err.message);
-    res.status(500).json({
-      error:  'Failed to load map data',
-      detail: err.response?.data?.error?.message || err.message,
-    });
+    console.error('[GET /api/map]', err.message);
+    res.status(500).json({ error: 'Failed to load map data', detail: err.message });
   }
 });
 
 // ────────────────────────────────────────────────────────────
-//  GET /api/search?q=kolo+mee
-//  Search by dish name via Google Places Text Search
-//  Query params: q (required), lat, lng (optional)
+//  GET /api/map/search?q=Umai
+//  Filter by specific food:
+//  - MySQL restaurants serving this food
+//  - Google text search for this food (up to 20 results)
 // ────────────────────────────────────────────────────────────
 router.get('/search', async (req, res) => {
   try {
@@ -154,49 +175,29 @@ router.get('/search', async (req, res) => {
     const lat = parseFloat(req.query.lat) || KUCHING.lat;
     const lng = parseFloat(req.query.lng) || KUCHING.lng;
 
-    const googleRes = await axios.post(
-      'https://places.googleapis.com/v1/places:searchText',
-      {
-        textQuery:      `${query} restaurant Kuching Sarawak`,
-        maxResultCount: 20,
-        locationBias: {
-          circle: {
-            center: {
-              latitude:  parseFloat(lat),   // ✅ explicit float
-              longitude: parseFloat(lng),
-            },
-            radius: 10000.0,                // ✅ float
-          },
-        },
-      },
-      {
-        headers: {
-          'Content-Type':     'application/json',
-          'X-Goog-Api-Key':   PLACES_KEY,
-          'X-Goog-FieldMask': [
-            'places.id',
-            'places.displayName',
-            'places.formattedAddress',
-            'places.location',
-            'places.rating',
-            'places.userRatingCount',
-            'places.regularOpeningHours.openNow',
-            'places.photos',
-            'places.priceLevel',
-          ].join(','),
-        },
-      }
-    );
+    // 1. MySQL — restaurants serving this food
+    const rows = await many(`
+      SELECT
+        r.restaurantID, r.foodID, r.name, r.city,
+        r.latitude, r.longitude, r.rating, r.price,
+        r.address, r.description, r.opening_hours, r.is_halal,
+        f.name AS food_name
+      FROM restaurants r
+      LEFT JOIN food f ON f.foodID = r.foodID
+      WHERE f.name LIKE ? OR r.name LIKE ?
+      ORDER BY r.rating DESC
+    `, [`%${query}%`, `%${query}%`]);
+    const mysqlPins = rows.map(fromMySQL);
 
-    const pins = (googleRes.data.places || []).map(fromGoogle);
-    res.json({ pins, total: pins.length, query });
+    // 2. Google — full search for this specific food (more results when filtering)
+    const googlePins = await searchGoogleForFood(query, lat, lng, 20);
+
+    const allPins = [...mysqlPins, ...dedupe(googlePins)];
+    res.json({ pins: allPins, total: allPins.length, query });
 
   } catch (err) {
-    console.error('[GET /api/search]', err.response?.data || err.message);
-    res.status(500).json({
-      error:  'Search failed',
-      detail: err.response?.data?.error?.message || err.message,
-    });
+    console.error('[GET /api/map/search]', err.message);
+    res.status(500).json({ error: 'Search failed', detail: err.message });
   }
 });
 
