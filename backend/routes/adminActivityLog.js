@@ -7,7 +7,7 @@ const { requireAdmin } = require("../middleware/auth");
 async function logActivity(db, adminID, adminName, actionType, description) {
   try {
     await db.execute(
-      `INSERT INTO adminActivityLog (adminID, adminName, actionType, description)
+      `INSERT INTO adminActivityLog (userID, adminName, actionType, description)
        VALUES (?, ?, ?, ?)`,
       [adminID, adminName, actionType, description]
     );
@@ -49,7 +49,7 @@ router.get("/", requireAdmin, async (req, res) => {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const [rows] = await db.query(
-      `SELECT logID, adminID, adminName, actionType, description, createdAt
+      `SELECT logID, userID, adminName, actionType, description, createdAt
        FROM adminActivityLog
        ${whereClause}
        ORDER BY createdAt DESC
