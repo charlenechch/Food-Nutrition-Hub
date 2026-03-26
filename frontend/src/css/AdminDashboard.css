@@ -2837,27 +2837,41 @@
 }
 
 @media (max-width: 768px) {
+    .admin-dashboard {
+        padding: 20px 3%;
+        overflow-x: hidden;
+    }
+
+    .food-database-section {
+        padding: 15px;
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
     .food-filters.al-filters {
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 12px;
         align-items: stretch;
     }
 
     .al-search-box, .al-filter-select, .al-filter-date {
-        width: 100% !important;
+        width: 100%;
         min-width: unset;
-    }
-
-    .al-filter-label-hidden {
-        display: none;
-    }
-
-    .al-search-box .search-icon {
-        top: 50% !important;
+        box-sizing: border-box;
     }
 
     .al-table-wrapper {
+        overflow-x: hidden; 
+        width: 100%;
+        display: block;
+    }
+
+    .food-table.al-table-mobile {
+        display: block;
+        width: 100%;
         border: none;
     }
 
@@ -2865,25 +2879,34 @@
         display: none; 
     }
 
-    .food-table.al-table-mobile tbody tr {
+    .food-table.al-table-mobile tbody,
+    .food-table.al-table-mobile tr {
         display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .food-table.al-table-mobile tbody tr {
         background: #fff;
         border: 1px solid #e8dccf;
         border-radius: 12px;
-        padding: 15px;
+        padding: 12px;
         margin-bottom: 15px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
 
     .food-table.al-table-mobile td {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        justify-content: flex-start; 
+        align-items: flex-start;     
+        padding: 8px 0;
+        width: 100%;
         border-bottom: 1px solid #f3ece2;
-        padding: 10px 0;
+        box-sizing: border-box;
+        white-space: normal; 
+        word-break: break-word; 
+        overflow: visible;
         height: auto;
-        text-align: right;
-        white-space: normal;
     }
 
     .food-table.al-table-mobile td:last-child {
@@ -2892,69 +2915,37 @@
 
     .food-table.al-table-mobile td::before {
         content: attr(data-label);
+        flex: 0 0 30%; 
         font-weight: 600;
         color: #916848;
-        text-align: left;
         font-size: 13px;
         padding-right: 10px;
+        text-align: left;
+    }
+
+    .al-td-description,
+    .al-td-admin,
+    .al-td-datetime,
+    .food-table.al-table-mobile td > span {
+        flex: 1; 
+        text-align: left;
+        font-size: 14px;
+        min-width: 0;
+    }
+
+    .al-td-description {
+        line-height: 1.4;
     }
 
     .activity-log-title-row {
         flex-direction: column;
         align-items: flex-start;
+        gap: 15px;
     }
 
     .al-clear-btn {
         width: 100%;
+        margin-top: 5px;
         justify-content: center;
-        margin-top: 10px;
-    }
-    .al-table-wrapper {
-        overflow-x: hidden; 
-        width: 100%;
-    }
-
-    .food-table.al-table-mobile {
-        display: block;
-        width: 100%;
-    }
-
-    .food-table.al-table-mobile tbody,
-    .food-table.al-table-mobile tr {
-        display: block;
-        width: 100%;
-    }
-
-    .food-table.al-table-mobile td {
-        display: flex;
-        justify-content: flex-start; 
-        align-items: flex-start;     
-        padding: 10px 0;
-        width: 100%;
-        border-bottom: 1px solid #f3ece2;
-        
-        white-space: normal; 
-        word-break: break-word; 
-    }
-
-    .food-table.al-table-mobile td::before {
-        content: attr(data-label);
-        flex: 0 0 35%; 
-        font-weight: 600;
-        color: #916848;
-        font-size: 13px;
-        padding-right: 10px;
-    }
-
-    .food-table.al-table-mobile td > span,
-    .food-table.al-table-mobile td:not(::before) {
-        flex: 1; 
-        text-align: left;
-        font-size: 14px;
-    }
-
-    .al-td-datetime, .al-td-number, .al-td-admin {
-        width: auto;
-        min-width: 0;
     }
 }
