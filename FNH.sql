@@ -227,3 +227,5 @@ CREATE TABLE xp_logs (
     CONSTRAINT fk_xp_userProfile FOREIGN KEY (userProfileID) 
         REFERENCES userProfile(userProfileID) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+ALTER TABLE userProfile ADD COLUMN total_xp INT DEFAULT 0;
