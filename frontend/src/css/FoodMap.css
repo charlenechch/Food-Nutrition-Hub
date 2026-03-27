@@ -361,17 +361,19 @@
 
 /* ── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .foodmap-page {
-    margin-top: 60px;
-    height: calc(100dvh - 60px);
-    padding-top: 0;
+.foodmap-page {
+    margin-top: 0;
+    padding-top: 60px; 
+    height: 100dvh;
     box-sizing: border-box;
+    background-color: #ffffff; 
   }
   
   .foodmap-body { 
     flex-direction: column; 
     flex: 1;
     min-height: 0;
+    background-color: #f8f5f1; 
   }
   
   .foodmap-map-wrap { 
