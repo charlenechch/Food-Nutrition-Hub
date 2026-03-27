@@ -213,17 +213,17 @@
   }
 
   .navbar-links {
-    display: none !important;
+    display: none;
   }
 
   .navbar-actions {
-    display: flex !important;
+    display: flex;
     order: 2;
     margin-left: auto;
   }
 
   .navbar-actions > button {
-    display: none !important;
+    display: none;
   }
 
   .hamburger {
