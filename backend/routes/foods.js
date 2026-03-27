@@ -699,6 +699,9 @@ router.post('/add-food-details', async (req, res) => {
       });
     }
 
+    console.log('Update result:', updateResult);
+    console.log('Publish update result:', publishUpdate);
+
     const foodId = recipeCheck[0].foodID;
 
     // Convert arrays to comma-separated strings for database

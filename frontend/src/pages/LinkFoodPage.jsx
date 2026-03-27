@@ -87,7 +87,9 @@ const LinkFoodPage = () => {
         });
         if (recipesRes.ok) {
           const recipeData = await recipesRes.json();
-          setExistingRecipes(recipeData || []); 
+          console.log('Recipe data structure:', recipeData); 
+          const recipes = recipeData.data || recipeData;
+          setExistingRecipes(recipes); 
         }
       } catch (err) {
         console.error("Failed to fetch initial data", err);
@@ -222,6 +224,8 @@ const LinkFoodPage = () => {
       setShowNotification({ visible: true, message: t("addFood.selectRecipeError"), type: "error" });
       return;
     }
+    console.log('Sending recipeId:', selectedRecipeId);
+    console.log('Recipe ID type:', typeof selectedRecipeId);
     if (!food.origin) {
       setShowNotification({ visible: true, message: t("addFood.selectOrigin"), type: "error" });
       return;
@@ -362,9 +366,9 @@ const LinkFoodPage = () => {
             {filteredRecipes.length > 0 ? (
               filteredRecipes.map(recipe => (
                 <div 
-                  key={recipe.id}
+                  key={recipe.id || recipe.recipeID}
                   className={`recipe-selection-item ${selectedRecipeId === recipe.id ? "selected" : ""}`}
-                  onClick={() => setSelectedRecipeId(recipe.id)}
+                  onClick={() => setSelectedRecipeId(recipe.id || recipe.recipeID)}
                 >
                   <div className="recipe-selection-info">
                     <div className="recipe-selection-name">{recipe.name}</div>
