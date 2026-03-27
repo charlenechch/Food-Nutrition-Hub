@@ -5,20 +5,14 @@ import Footer from "../components/Footer";
 import "../css/UserProfilePage.css"; 
 import { useTranslation } from "react-i18next";
 
-// 1. DELETED MOCK_RECIPES, MOCK_POSTS, and MOCK_XP_LOGS! 
-// We don't need them anymore. The database handles this.
-
 const formatActionType = (actionType, t) => {
   return t(`profile.action_${actionType}`); 
 };
 
-// 2. UPDATED getReferenceTitle
 // Your backend's COALESCE SQL command now sends the title directly inside 'log.reference_title'.
-// So this function is much simpler now.
 const getReferenceTitle = (actionType, referenceId, referenceTitle, t) => {
-  if (referenceTitle) return referenceTitle; // The backend found the title
+  if (referenceTitle) return referenceTitle; 
   
-  // Fallbacks if the recipe/post was deleted from the database
   if (actionType.includes("RECIPE")) {
     return t("profile.deletedRecipe", { id: referenceId });
   }
@@ -29,7 +23,6 @@ const getReferenceTitle = (actionType, referenceId, referenceTitle, t) => {
 };
 
 const getPaginationGroup = (currentPage, totalPages, isMobile) => {
-  // ... (Keep this function exactly the same, it works perfectly) ...
   const visibleCount = isMobile ? 3 : 5;
 
   if (totalPages <= visibleCount) {
@@ -64,9 +57,8 @@ export default function XpLogsPage() {
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 500);
   
-  // 3. NEW STATE VARIABLES
   const [currentPage, setCurrentPage] = useState(1);
-  const [logs, setLogs] = useState([]); // Replaces currentLogs
+  const [logs, setLogs] = useState([]); 
   const [totalPages, setTotalPages] = useState(1); 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -76,14 +68,16 @@ export default function XpLogsPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 4. THE API FETCH CALL
-  // This runs every time the component loads or the user clicks a new page number
+  // THE API FETCH CALL
   useEffect(() => {
     const fetchXpLogs = async () => {
       setIsLoading(true);
       try {
-        // We use credentials: "include" because your server.js uses session cookies for auth
-        const response = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:5000"}/api/xp/logs?page=${currentPage}`, {
+        // FIXED: Using Vite's environment variable syntax so it works locally and on Railway
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        
+        // FIXED: Points exactly to the /api/xp/logs route
+        const response = await fetch(`${API_BASE_URL}/api/xp/logs?page=${currentPage}`, {
           method: "GET",
           credentials: "include", 
           headers: {
@@ -129,7 +123,6 @@ export default function XpLogsPage() {
                 {t("profile.xpLogsDesc")}
             </p>
 
-            {/* 5. ADDED A LOADING STATE */}
             {isLoading ? (
                <div className="loading-spinner" style={{ textAlign: "center", padding: "2rem" }}>
                  {t("profile.loadingLogs", "Loading your XP history...")}
@@ -140,14 +133,12 @@ export default function XpLogsPage() {
                </div>
             ) : (
               <div className="xp-log-list">
-                {/* 6. MAPPED OVER THE LIVE 'logs' INSTEAD OF 'currentLogs' */}
                 {logs.map((log) => (
                   <div key={log.id} className="xp-log-item">
                     <div className="xp-log-info">
                       <div className="xp-log-action">{formatActionType(log.action_type, t)}</div>
                       
                       <div className="xp-log-details">
-                        {/* 7. UPDATED TO USE THE NEW reference_title FROM THE DATABASE */}
                         {getReferenceTitle(log.action_type, log.reference_id, log.reference_title, t)}
                       </div>
                       
@@ -166,10 +157,8 @@ export default function XpLogsPage() {
               </div>
             )}
 
-            {/* Pagination remains the same, but now uses the dynamic totalPages from the API */}
             {totalPages > 1 && !isLoading && (
               <div className="efp-pagination upp-pagination xlp-pagination">
-                {/* ... (Keep your pagination buttons exactly as they were) ... */}
                 <button
                   className="efp-btn nav-btn"
                   disabled={currentPage === 1}
