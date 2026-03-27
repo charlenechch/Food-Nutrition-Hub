@@ -326,9 +326,9 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       INSERT INTO recipe 
       (
         foodID, userProfileID, description, ingredients, steps, 
-        cookTime, servings, DidYouKnow, chefTips, status
+        cookTime, servings, DidYouKnow, chefTips, status, publish
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const recipeValues = [
@@ -341,7 +341,8 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       servings || "1",
       didYouKnow || "",
       chefTips || "", 
-      'Approved'
+      'Approved',
+      'publish'
     ];
 
     await connection.query(recipeSql, recipeValues);
