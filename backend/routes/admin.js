@@ -402,19 +402,14 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
         </div>
       `;
 
-      // Send account update email notification
-      const emailEnabled = await isEmailNotificationsEnabled(targetUserID, db);
-      if (emailEnabled) {
-          sendEmail({
-              to: currentUser.email, 
-              subject: "Important: Your Account Details Have Been Updated",
-              html: updateHTML,
-              text: "Your account details have been updated by an administrator."
-          });
-          console.log(`📩 Account update email sent to ${currentUser.email}`);
-      } else {
-          console.log(`📭 Account update email skipped (notifications disabled) for userID: ${targetUserID}`);
-      }
+      // Role change emails bypass notification toggle
+      sendEmail({
+          to: currentUser.email, 
+          subject: "Important: Your Account Details Have Been Updated",
+          html: updateHTML,
+          text: "Your account details have been updated by an administrator."
+      });
+      console.log(`📩 Account update email sent to ${currentUser.email}`);
       await createNotification(targetUserID, "account_updated", `Your account details have been updated by an administrator. Changes: ${changes.join(", ")}.`, db);
       console.log(`🔔 Account update notification created for userID: ${targetUserID}`);
     } 
