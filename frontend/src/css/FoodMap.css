@@ -362,9 +362,9 @@
 /* ── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .foodmap-page {
-    margin-top: 0; 
-    padding-top: 70px;
-    height: 100dvh;
+    margin-top: 60px;
+    height: calc(100dvh - 60px);
+    padding-top: 0;
     box-sizing: border-box;
   }
   
