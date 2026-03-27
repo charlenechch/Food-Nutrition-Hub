@@ -177,10 +177,6 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
 router.put("/users/:id", requireAdmin, async (req, res) => {
   console.log("Admin user update request received");
 
-  let shouldResetVerification = false;
-  let firebaseUID = null;
-  let currentEmail = null;
-
   try {
     const targetUserID = parseInt(req.params.id, 10);
     
@@ -191,26 +187,13 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
       });
     }
 
-    const { name, email, city, role, status, suspendedUntil, suspensionReason } = req.body;
+    const { role, status, suspendedUntil, suspensionReason } = req.body;
 
-    // This catches the 'undefined' parameter error.
-    if ((name !== undefined || email !== undefined || role !== undefined) && (!name || !email || !role)) {
-      console.warn("❌ Admin update validation failed. Missing data:", { name, email, role });
+    if (role !== undefined && !role) {
       return res.status(400).json({ 
-        success: false, 
-        message: "Validation failed. When updating info, Name, email, and role are required." 
+        success: false,
+        message: "Role is required." 
       });
-    }
-
-    // Validate email format
-    if (email !== undefined) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Invalid email format" 
-        });
-      }
     }
 
     // Fetch User and Profile to compare old values
@@ -230,27 +213,9 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     }
 
     const currentUser = existingUser[0];
-    currentEmail = currentUser.email;
-    firebaseUID = currentUser.firebase_uid;
 
     // Detect changes for email content
     const changes = [];
-
-    // Check Name
-    const currentFullName = `${currentUser.firstname || ''} ${currentUser.lastname || ''}`.trim();
-    if (name && name.trim() !== currentFullName) {
-        changes.push(`Name updated to ${name.trim()}`);
-    }
-
-    // Check Email
-    if (email && email !== currentUser.email) {
-        changes.push(`Email address updated to ${email}`);
-    }
-
-    // Check City (Location)
-    if (city !== undefined && city !== currentUser.location) {
-        changes.push(`Location updated to ${city || 'Cleared'}`);
-    }
 
     // Check role (Standardize and Compare)
     const currentDbRole = currentUser.role; // Database value: 'admin' or 'member'
@@ -293,86 +258,21 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     if (!finalsuspendedUntil && currentUser.status === 'Active') {
       finalStatus = 'Active';
     }
-
-    // Synchronize Email with Firebase Auth
-    if (email && email !== currentEmail) {
-      // Check if email is being changed to one that already exists
-      const [emailCheck] = await db.execute(
-        'SELECT userID FROM user WHERE email = ? AND userID != ?',
-        [email, targetUserID]
-      );
-
-          if (emailCheck.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Email already exists for another user"
-        });
-      }
-
-      // Update Firebase Auth first
-      if (firebaseUID) {
-          try {
-              await updateFirebaseEmail(firebaseUID, email);
-              shouldResetVerification = true;
-          } catch (firebaseError) {
-              // If Firebase update fails, stop the MySQL update too
-              console.error("❌ Failed to update email in Firebase Auth:", firebaseError.message);
-              return res.status(500).json({ 
-                  success: false, 
-                  message: "Failed to update user email (Authentication sync failed)." 
-              });
-          }
-      }
-    }
-
-    // Split name into firstname and lastname
-    const nameToSplit = name || `${currentUser.firstname || ''} ${currentUser.lastname || ''}`;
-    const nameParts = nameToSplit.trim().split(' ');
-    const firstname = nameParts[0] || '';
-    const lastname = nameParts.slice(1).join(' ') || '';
-
-    const newVerificationStatus = shouldResetVerification ? 'False' : currentUser.verified;
     
     // Update user table
     const userRole = role ? (role === 'Admin' ? 'admin' : 'member') : currentUser.role;
-    const finalEmail = email || currentUser.email;
     await db.execute(
-      'UPDATE user SET firstname = ?, lastname = ?, email = ?, verified = ?, role = ?, status = ?, suspendedUntil = ? WHERE userID = ?',
-      [firstname, lastname, finalEmail, newVerificationStatus, userRole, finalStatus, finalsuspendedUntil, targetUserID]
+      'UPDATE user SET role = ?, status = ?, suspendedUntil = ? WHERE userID = ?',
+      [userRole, finalStatus, finalsuspendedUntil, targetUserID]
     );
 
-    // Update or create userProfile
-    const [profileCheck] = await db.execute(
-      'SELECT userProfileID FROM userProfile WHERE userID = ?',
-      [targetUserID]
-    );
-
-    if (profileCheck.length === 0) {
-      // Create profile if it doesn't exist
-      await db.execute(
-        `INSERT INTO userProfile 
-         (userID, location, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, recipes, posts, likes) 
-         VALUES (?, ?, '[]', '[]', true, true, true, 'en', 0, 0, 0)`,
-        [targetUserID, city || null]
-      );
-    } else {
-      // Update existing profile
-      if (city !== undefined) {
-        await db.execute(
-          'UPDATE userProfile SET location = ? WHERE userID = ?',
-          [city || null, targetUserID]
-        );
-      }
-    }
-
-    console.log(`✅ Admin updated user: ${email} (ID: ${targetUserID})`);
+    console.log(`✅ Admin updated user ID: ${targetUserID}`);
 
     // Invalidate sessions if suspended OR role changed OR email changed if the user is currently logged in
     const roleChanged = (role && (role === 'Admin' ? 'admin' : 'member') !== currentUser.role);
-    const emailChanged = (email && email !== currentUser.email);
     const isSuspended = (finalsuspendedUntil && new Date(finalsuspendedUntil) > new Date());
 
-    if (isSuspended || roleChanged || emailChanged) {
+    if (isSuspended || roleChanged) {
       console.log(`🔒 Security Update for user ${targetUserID} (Suspended: ${isSuspended}, Role Changed: ${roleChanged})`);
       console.log(`🚫 Invalidating active sessions to enforce new permissions.`);
       try {
@@ -395,7 +295,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
               <h1 style="color: #fff; margin: 0;">Account Suspended</h1>
             </div>
             <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
-              <h2 style="color: #dc3545;">Hello ${firstname},</h2>
+              <h2 style="color: #dc3545;">Hello ${currentUser.firstname},</h2>
               <p>Your account has been suspended by an administrator.</p>
               
               <div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #dc3545;">
@@ -418,18 +318,18 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
         `;
 
         sendEmail({
-            to: finalEmail,
+            to: currentUser.email,
             subject: "Important: Your Account Has Been Suspended",
             html: suspendHTML,
             text: `Your account has been suspended until ${finalsuspendedUntil}. Reason: ${suspensionReason}`
         });
-        console.log(`📩 Suspension email sent to ${finalEmail}`);
+        console.log(`📩 Suspension email sent to ${currentUser.email}`);
         await createNotification(targetUserID, "suspended", `Your account has been suspended until ${finalsuspendedUntil}. Reason: ${suspensionReason || "No specific reason provided."}`, db);
         console.log(`🔔 Suspension notification created for userID: ${targetUserID}`);
 
         const adminID = req.session.user.userID;
         const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-        await logActivity(db, adminID, adminName, "user_suspended", `Suspended user "${`${firstname} ${lastname}`.trim()}" (ID: ${targetUserID}) until ${finalsuspendedUntil}. Reason: ${suspensionReason || "No reason provided."}`);
+        await logActivity(db, adminID, adminName, "user_suspended", `Suspended user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (ID: ${targetUserID}) until ${finalsuspendedUntil}. Reason: ${suspensionReason || "No reason provided."}`);
     }
 
     // Case B: Account Unsuspended (Manually)
@@ -440,7 +340,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
               <h1 style="color: #fff; margin: 0;">Account Reactivated</h1>
             </div>
             <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
-              <h2 style="color: #28a745;">Welcome back, ${firstname}!</h2>
+              <h2 style="color: #28a745;">Welcome back, ${currentUser.firstname}!</h2>
               <p>Your account suspension has been lifted.</p>
               
               <div style="background-color: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #28a745;">
@@ -457,43 +357,23 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
         `;
 
         sendEmail({
-            to: finalEmail,
+            to: currentUser.email,
             subject: "Important: Your Account Suspension Has Been Lifted By An Admin",
             html: unsuspendHTML,
             text: "Your account suspension has been lifted by an admin. You can now log in."
         });
-        console.log(`📩 Unsuspension email sent to ${finalEmail}`);
+        console.log(`📩 Unsuspension email sent to ${currentUser.email}`);
         await createNotification(targetUserID, "unsuspended", "Your account suspension has been lifted. You can now log in.", db);
         console.log(`🔔 Unsuspension notification created for userID: ${targetUserID}`);
 
         const adminID = req.session.user.userID;
         const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-        await logActivity(db, adminID, adminName, "user_unsuspended", `Lifted suspension for user "${`${firstname} ${lastname}`.trim()}" (ID: ${targetUserID}).`);
+        await logActivity(db, adminID, adminName, "user_unsuspended", `Lifted suspension for user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (ID: ${targetUserID}).`);
     }
 
     const statusEmailSent = (!wasSuspended && isNowSuspended) || (wasSuspended && !isNowSuspended);
 
     if (!statusEmailSent) {
-      // Send "Account Updated" Email Notification when user details is edited
-      
-      // Verification Reminder Block
-      let verificationReminderHTML = '';
-      if (emailChanged) {
-          // If the email was changed, the verification status was reset.
-          // The user needs explicit instructions.
-          verificationReminderHTML = `
-            <h3 style="color: #dc3545; margin-top: 25px; border-bottom: 1px solid #eee; padding-bottom: 5px;">⚠️ Action Required: Re-verify Your Account</h3>
-            <p>Because your email address was changed, your account verification status has been reset for security reasons.</p>
-            <p><strong>To re-verify your new email (${finalEmail}), please follow these steps:</strong></p>
-            <ol style="line-height: 1.6; padding-left: 20px;">
-              <li>Try to log in using your new email and current password.</li>
-              <li>You will see a message that the email is not verified.</li>
-              <li>Click the <strong>"Resend Verification Email"</strong> button that appears.</li>
-              <li>Check your inbox for the new verification link to fully reactivate your account.</li>
-            </ol>
-          `;
-      }
-
       // Send "Account Updated" Email Notification when user details is edited
       const updateHTML = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -501,7 +381,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
             <h1 style="color: #fff; margin: 0;">Account Details Updated</h1>
           </div>
           <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
-            <h2 style="color: #17a2b8;">Hello ${firstname},</h2>
+            <h2 style="color: #17a2b8;">Hello ${currentUser.firstname},</h2>
             <p>This is a notification that your SarawakEats account details have been updated by an administrator.</p>
             
             <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #17a2b8;">
@@ -510,8 +390,6 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
                 ${changesListHTML} 
               </ul>
             </div>
-
-            ${verificationReminderHTML}
 
             <p>If you did not request this change, please contact support immediately.</p>
             
@@ -524,16 +402,16 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
         </div>
       `;
 
-      // Send to the FINAL email (in case the admin changed the email address too)
+      // Send account update email notification
       const emailEnabled = await isEmailNotificationsEnabled(targetUserID, db);
       if (emailEnabled) {
           sendEmail({
-              to: finalEmail, 
+              to: currentUser.email, 
               subject: "Important: Your Account Details Have Been Updated",
               html: updateHTML,
               text: "Your account details have been updated by an administrator."
           });
-          console.log(`📩 Account update email sent to ${finalEmail}`);
+          console.log(`📩 Account update email sent to ${currentUser.email}`);
       } else {
           console.log(`📭 Account update email skipped (notifications disabled) for userID: ${targetUserID}`);
       }
@@ -589,7 +467,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     if (!wasSuspended && !isNowSuspended && !(!wasSuspended && isNowSuspended) && !(wasSuspended && !isNowSuspended)) {
       const adminID = req.session.user.userID;
       const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-      await logActivity(db, adminID, adminName, "user_updated", `Updated user "${`${firstname} ${lastname}`.trim()}" (ID: ${targetUserID}). Changes: ${changes.join(", ")}.`);
+      await logActivity(db, adminID, adminName, "user_updated", `Updated user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (ID: ${targetUserID}). Changes: ${changes.join(", ")}.`);
     }
 
     return res.json({
@@ -600,32 +478,6 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
   } catch (error) {
     console.error("Admin user update error:", error);
-
-    // Check if we attempted a Firebase email change that needs to be reverted
-    // 'shouldResetVerification' is the flag that Firebase was successfully changed
-    
-    // Rollback Firebase if needed
-    if (shouldResetVerification === true && firebaseUID && currentEmail) {
-        
-        console.warn(`MySQL update failed. Attempting to roll back Firebase email change for UID: ${firebaseUID}`);
-        
-        try {
-            // Revert Firebase email to the original
-            await updateFirebaseEmail(firebaseUID, currentEmail);
-            
-            console.warn(`✅ Firebase email successfully rolled back to: ${currentEmail}`);
-        
-        } catch (rollbackError) {
-            console.error(`❌ CRITICAL: Firebase rollback FAILED for UID: ${firebaseUID}.`, rollbackError);
-            
-            // This is the worst-case scenario: data is now inconsistent
-            return res.status(500).json({ 
-                success: false, 
-                message: "Failed to update user in database AND Firebase rollback failed. Data is inconsistent.",
-                error: error.message 
-            });
-        }
-    }
 
     return res.status(500).json({ 
       success: false, 
