@@ -221,6 +221,58 @@ export default function Header() {
           <span></span>
         </div>
 
+        {user && user.role !== "guest" && (
+            <div className="notification-wrapper" ref={notificationRef}>
+              <button className="bell-btn" onClick={handleBellClick}>
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                  <span className="notification-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="notification-panel">
+                  <div className="notification-panel-header">
+                    <span className="notification-panel-title">Notifications</span>
+                    {unreadCount > 0 && (
+                      <button className="mark-all-read-btn" onClick={handleMarkAllRead}>
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="notification-list">
+                    {notifications.length === 0 ? (
+                      <p className="notification-empty">No notifications yet.</p>
+                    ) : (
+                      notifications.map(n => (
+                        <div
+                          key={n.notificationID}
+                          className={`notification-item ${n.is_read === 0 ? "unread" : ""}`}
+                          onClick={() => handleNotificationClick(n)}
+                        >
+                          <p className="notification-message">{n.message}</p>
+                          <span className="notification-time">
+                            {new Date(n.created_at).toLocaleDateString("en-GB", {
+                              day: "2-digit", month: "short", year: "numeric",
+                              hour: "2-digit", minute: "2-digit"
+                            })}
+                          </span>
+                          <button
+                            className="notification-dismiss"
+                            onClick={(e) => { e.stopPropagation(); handleDismissNotification(n.notificationID); }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
         {/* Desktop Nav Links */}
         <ul className="navbar-links">
           <li><NavLink to={user?.role === "admin" ? "/admin" : "/home"}>{t("nav.home")}</NavLink></li>
@@ -273,58 +325,6 @@ export default function Header() {
           <button className="lang-btn" onClick={toggleLanguage}>
             <FaGlobe className="icon" /> {currentLang}
           </button>
-
-          {user && user.role !== "guest" && (
-            <div className="notification-wrapper" ref={notificationRef}>
-              <button className="bell-btn" onClick={handleBellClick}>
-                <Bell size={18} />
-                {unreadCount > 0 && (
-                  <span className="notification-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
-                )}
-              </button>
-
-              {showNotifications && (
-                <div className="notification-panel">
-                  <div className="notification-panel-header">
-                    <span className="notification-panel-title">Notifications</span>
-                    {unreadCount > 0 && (
-                      <button className="mark-all-read-btn" onClick={handleMarkAllRead}>
-                        Mark all as read
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="notification-list">
-                    {notifications.length === 0 ? (
-                      <p className="notification-empty">No notifications yet.</p>
-                    ) : (
-                      notifications.map(n => (
-                        <div
-                          key={n.notificationID}
-                          className={`notification-item ${n.is_read === 0 ? "unread" : ""}`}
-                          onClick={() => handleNotificationClick(n)}
-                        >
-                          <p className="notification-message">{n.message}</p>
-                          <span className="notification-time">
-                            {new Date(n.created_at).toLocaleDateString("en-GB", {
-                              day: "2-digit", month: "short", year: "numeric",
-                              hour: "2-digit", minute: "2-digit"
-                            })}
-                          </span>
-                          <button
-                            className="notification-dismiss"
-                            onClick={(e) => { e.stopPropagation(); handleDismissNotification(n.notificationID); }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
 
           <button onClick={handleProfileClick}>
             <User size={18} /> {t("nav.profile")}

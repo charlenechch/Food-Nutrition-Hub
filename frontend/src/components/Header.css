@@ -231,7 +231,6 @@
 
 /* Desktop  */
 @media (min-width: 1251px) {
-  /* Hide mobile menu drawer on desktop */
   .mobile-menu {
     display: none !important;
   }
@@ -420,5 +419,52 @@
 
   .logo-text {
     font-size: 1.1rem; 
+  }
+}
+
+.notification-wrapper.mobile-visible {
+  display: flex;
+  align-items: center;
+  margin-left: auto; 
+  margin-right: 15px; 
+}
+
+@media (max-width: 1250px) {
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .hamburger {
+    order: 3;
+    display: flex;
+  }
+
+  .notification-wrapper.mobile-visible {
+    order: 2;
+    margin-left: auto; 
+  }
+
+  .navbar-logo {
+    order: 1;
+  }
+
+  .notification-panel {
+    position: fixed; 
+    top: 60px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1251px) {
+  .notification-wrapper.mobile-visible {
+    order: unset;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
