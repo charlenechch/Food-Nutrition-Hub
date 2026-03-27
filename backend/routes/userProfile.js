@@ -1119,8 +1119,8 @@ router.get("/:identifier", async (req, res) => {
         likes: freshStats.likes || profile.likes || 0,
       },
       prefs: {
-        dietary: profile.dietary ? JSON.parse(profile.dietary || "[]") : [],
-        allergies: profile.allergies ? JSON.parse(profile.allergies || "[]") : [],
+        dietary: (() => { try { return JSON.parse(profile.dietary || "[]"); } catch { return []; } })(),
+        allergies: (() => { try { return JSON.parse(profile.allergies || "[]"); } catch { return []; } })(),
         emailNotifications: profile.emailNotifications ?? true,
         pushNotifications: profile.pushNotifications ?? true,
         profileVisibility: profile.profileVisibility ?? true,
