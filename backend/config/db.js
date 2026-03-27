@@ -41,7 +41,7 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   connectTimeout: 60000,
-  acquireTimeout: 60000,
+  // acquireTimeout: 60000
   timeout: 60000,
   multipleStatements: false, // 🚫 Prevent stacked queries (SQL injection hardening)
 });
