@@ -1180,9 +1180,32 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
       const { email, firstname, foodName, userID, userProfileID } = rows[0];
 
       // Recount User Stats
+      // Recount User Stats
       if (userID) {
         await updateUserStats(userID);
         console.log(`✅ User stats recounted for userProfileID: ${userProfileID}`);
+
+        // --- NEW XP TRIGGER FOR COMMUNITY POST (+25 XP) ---
+        try {
+          // 1. Write the receipt to the history log
+          await db.query(
+            `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
+             VALUES (?, 'POST_APPROVED', ?, 25)`,
+            [userProfileID, id]
+          );
+
+          // 2. Update the user's total bank balance
+          await db.query(
+            `UPDATE userProfile 
+             SET total_xp = COALESCE(total_xp, 0) + 25 
+             WHERE userProfileID = ?`,
+            [userProfileID]
+          );
+          console.log(`✅ Awarded 25 XP to userProfileID ${userProfileID} for Community Post ${id}`);
+        } catch (xpError) {
+          console.error("❌ Failed to award XP for Community Post:", xpError);
+        }
+        // --- END XP TRIGGER ---
       }
 
       // 3. Add Feedback Section to the Email HTML (only if feedback exists)
