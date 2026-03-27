@@ -699,9 +699,6 @@ router.post('/add-food-details', async (req, res) => {
       });
     }
 
-    console.log('Update result:', updateResult);
-    console.log('Publish update result:', publishUpdate);
-
     const foodId = recipeCheck[0].foodID;
 
     // Convert arrays to comma-separated strings for database
@@ -734,11 +731,11 @@ router.post('/add-food-details', async (req, res) => {
       WHERE foodID = ?
     `;
 
-    const [updateResult] = await connection.query(updateQuery, [
+    const updateValues = [
       name || null,
       alternative || null,
       altDescription || null,
-      category || null,
+      categoryString || null,
       origin,
       description !== undefined ? description : null,
       culturalSignificance || null,
@@ -754,13 +751,30 @@ router.post('/add-food-details', async (req, res) => {
       dietaryTagsString || null,
       healthTips || null,
       foodId
-    ]);
+    ];
+
+    // Execute update - DECLARE THE VARIABLE HERE
+    let updateResult;
+    try {
+      [updateResult] = await connection.query(updateQuery, updateValues);
+      console.log('Update result:', updateResult);
+    } catch (updateError) {
+      console.error('Error in food update:', updateError);
+      throw updateError;
+    }
 
     // Update recipe publish status to 'publish'
-    const [publishUpdate] = await connection.query(
-      `UPDATE recipe SET publish = 'publish' WHERE recipeID = ?`,
-      [recipeId]
-    );
+    let publishUpdate;
+    try {
+      [publishUpdate] = await connection.query(
+        `UPDATE recipe SET publish = 'publish' WHERE recipeID = ?`,
+        [recipeId]
+      );
+      console.log('Publish update result:', publishUpdate);
+    } catch (publishError) {
+      console.error('Error in publish update:', publishError);
+      throw publishError;
+    }
 
     await connection.commit();
 
@@ -770,12 +784,14 @@ router.post('/add-food-details', async (req, res) => {
       success: true,
       message: 'Food details added successfully and recipe is now published!',
       foodId: foodId,
-      recipeId: recipeId
+      recipeId: recipeId,
+      affectedRows: updateResult?.affectedRows || 0
     });
 
   } catch (error) {
     await connection.rollback();
     console.error('Error adding food details:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       error: 'Failed to add food details',
