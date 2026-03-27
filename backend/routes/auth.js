@@ -206,7 +206,14 @@ router.post("/google-login", async (req, res) => {
         });
       }
 
-      // Optional: Update Firebase UID if it wasn't there before
+      // Auto-activate inactive users on login
+      if (user.status === "Inactive") {
+        await db.execute("UPDATE user SET status = 'Active' WHERE userID = ?", [user.userID]);
+        user.status = "Active";
+        console.log(`✅ Auto-activated inactive user: ${email}`);
+      }
+
+      // Update Firebase UID if it wasn't there before
       if (!user.firebase_uid && firebaseUID) {
         await db.execute("UPDATE user SET firebase_uid = ? WHERE userID = ?", [firebaseUID, user.userID]);
       }
