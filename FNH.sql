@@ -217,9 +217,6 @@ CREATE TABLE adminActivityLog (
     FOREIGN KEY (userID) REFERENCES user (userID) ON DELETE CASCADE
 );
 
-ALTER TABLE userProfile 
-ADD COLUMN total_xp INT DEFAULT 0;
-
 CREATE TABLE xp_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     userProfileID INT NOT NULL,
