@@ -1379,8 +1379,8 @@
     "col_datetime": "Tarikh & Masa",
     "page": "Halaman {{current}} daripada {{total}}",
     "resetFilters": "Tetapkan Semula Penapis",
-    "startDate": "Tarikh Mula",
-    "endDate": "Tarikh Tamat",
+    "startDate": "Dari",
+    "endDate": "Hingga",
     "autoDeleteNotice": "Nota: Log yang lebih lama daripada 60 hari akan dipadam secara automatik."
   },
 
