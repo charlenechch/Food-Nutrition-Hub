@@ -3,7 +3,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: clamp(0.7rem, 1vw + 0.4rem, 1rem) clamp(1rem, 4vw, 2rem);
+  padding: 0 clamp(1rem, 4vw, 2rem);
+  height: 75px; 
+  box-sizing: border-box; 
   background-color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   position: fixed;
@@ -12,7 +14,7 @@
   width: 100%;
   z-index: 1000;
   transition: all 0.3s ease;
-  line-height: 1; /* Ensures even vertical rhythm */
+  line-height: 1; 
 }
 
 /* LOGO SECTION (Perfect Center)*/
@@ -90,7 +92,7 @@
 /* MOBILE MENU */
 .mobile-menu {
   position: absolute;
-  top: 50px;
+  top: 75px;
   left: 0;
   width: 100%;
   text-align: center;
