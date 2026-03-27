@@ -772,7 +772,7 @@ router.get("/", async (req, res) => {
     const [rows] = await db.execute(
       `SELECT
         u.userID, u.firstname AS firstName, u.lastname AS lastName, u.email, u.role,
-        up.userProfileID, up.location, up.bio, up.avatar,
+        up.userProfileID, up.location, up.bio, up.avatar, up.total_xp,
         up.dietaryPreference AS dietary, up.allergies,
         up.emailNotifications, up.pushNotifications, up.profileVisibility, up.language,
         up.recipes, up.posts, up.likes
@@ -858,6 +858,7 @@ router.get("/", async (req, res) => {
       location: profile.location,
       bio: profile.bio,
       avatar: profile.avatar,
+      total_xp: profile.total_xp,
 
       savedFoods: savedFoodsData,
       status: contributions,
@@ -986,7 +987,7 @@ router.get("/:identifier", async (req, res) => {
     const [rows] = await db.execute(
       `SELECT 
         u.userID, u.firstname AS firstName, u.lastname AS lastName, u.email, u.role,
-        up.userProfileID, up.location, up.bio, up.avatar,
+        up.userProfileID, up.location, up.bio, up.avatar, up.total_xp, 
         up.dietaryPreference AS dietary, up.allergies,
         up.emailNotifications, up.pushNotifications, up.profileVisibility, up.language,
         up.recipes, up.posts, up.likes
@@ -1093,6 +1094,7 @@ router.get("/:identifier", async (req, res) => {
         lastName: "",                    // Hide their real last name
         role: profile.role,
         bio: profile.bio,                // Keep Bio visible
+        total_xp: profile.total_xp,
         avatar: profile.avatar,          // Keep Avatar visible
         status: contributions,           // Keep Contributions visible
         stats: {
@@ -1108,6 +1110,7 @@ router.get("/:identifier", async (req, res) => {
     console.log("📤 Sending user profile response");
     res.json({
       ...profile,
+      total_xp: profile.total_xp,
       savedFoods: savedFoodsData, 
       status: contributions, 
       stats: {

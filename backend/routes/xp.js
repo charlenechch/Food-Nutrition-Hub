@@ -5,7 +5,7 @@ const router = express.Router();
 const db = require('../config/db'); 
 
 // GET /api/xp-logs?page=1
-router.get('/xp-logs', async (req, res) => {
+router.get('/logs', async (req, res) => {
   try {
     // 1. Identify the User 
     // In a real app, you get this from your JWT auth middleware (e.g., req.user.userProfileID)

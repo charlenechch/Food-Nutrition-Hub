@@ -1662,8 +1662,35 @@ router.post('/publishRecipe/:id', async (req, res) => {
       WHERE r.foodID = ?
     `, [recipeId]);
     
-    if (rows.length > 0) {
+   if (rows.length > 0) {
       const { userID, email, firstname, recipeName } = rows[0];
+      
+      // --- NEW XP TRIGGER FOR FINAL PUBLISH (+100 XP) ---
+      const [profileResult] = await db.query("SELECT userProfileID FROM userProfile WHERE userID = ?", [userID]);
+      if (profileResult.length > 0) {
+          const userProfileID = profileResult[0].userProfileID;
+          
+          try {
+            await db.query(
+              `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
+               VALUES (?, 'RECIPE_APPROVED', ?, 100)`,
+              [userProfileID, recipeId]
+            );
+
+            await db.query(
+              `UPDATE userProfile 
+               SET total_xp = COALESCE(total_xp, 0) + 100 
+               WHERE userProfileID = ?`,
+              [userProfileID]
+            );
+            console.log(`✅ Awarded 100 XP to userProfileID ${userProfileID} for published recipe ${recipeId}`);
+          } catch (xpError) {
+            console.error("❌ Failed to award XP on publish:", xpError);
+          }
+      }
+      // --- END XP TRIGGER ---
+
+      // Send final approval notification
       
       // Send final approval notification
       const finalApprovalHTML = `
