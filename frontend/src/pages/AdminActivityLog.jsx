@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FiActivity, FiSearch, FiChevronLeft, FiChevronRight, FiTrash2 } from "react-icons/fi";
+import { FiActivity, FiSearch, FiChevronLeft, FiChevronRight} from "react-icons/fi";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/AdminDashboard.css";
@@ -74,61 +74,6 @@ export default function AdminActivityLog() {
     });
 
     const [searchInput, setSearchInput] = useState("");
-    const [showClearConfirm, setShowClearConfirm] = useState(false);
-    const [clearing, setClearing] = useState(false);
-    const [clearOption, setClearOption] = useState("30");
-    const [customCutoff, setCustomCutoff] = useState("");
-    const [clearError, setClearError] = useState("");
-    const [csrfToken, setCsrfToken] = useState("");
-
-    const getCutoffDate = () => {
-        if (clearOption === "custom") return customCutoff;
-        const date = new Date();
-        date.setDate(date.getDate() - parseInt(clearOption));
-        return date.toISOString().split("T")[0];
-    };
-
-    const handleClearLogs = async () => {
-        const cutoffDate = getCutoffDate();
-        if (!cutoffDate) {
-            setClearError("Please select a valid cutoff date.");
-            return;
-        }
-        setClearing(true);
-        setClearError("");
-        try {
-            const res = await fetch(`${API_URL}/api/admin/activityLog`, {
-                method: "DELETE",
-                credentials: "include",
-                headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
-                body: JSON.stringify({ cutoffDate }),
-            });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.message);
-            setShowClearConfirm(false);
-            setClearOption("30");
-            setCustomCutoff("");
-            setClearError("");
-            await fetchLogs();
-        } catch (err) {
-            setClearError("Failed to clear logs: " + err.message);
-        } finally {
-            setClearing(false);
-        }
-    };
-
-    useEffect(() => {
-        const fetchCsrfToken = async () => {
-            try {
-                const res = await fetch(`${API_URL}/api/csrf-token`, { credentials: "include" });
-                const data = await res.json();
-                setCsrfToken(data.csrfToken);
-            } catch (err) {
-                console.error("Failed to fetch CSRF token", err);
-            }
-        };
-        fetchCsrfToken();
-    }, []);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -191,77 +136,8 @@ export default function AdminActivityLog() {
                         <h1><FiActivity /> {t("adminActivityLog.pageTitle")}</h1>
                         <p>{t("adminActivityLog.pageSubtitle")}</p>
                     </div>
-                    <button
-                        className="admset-btn admset-btn-outline al-clear-btn"
-                        onClick={() => setShowClearConfirm(true)}
-                    >
-                        <FiTrash2 size={15} /> {t("adminActivityLog.clearOldLogs")}
-                    </button>
                 </div>
             </div>
-
-            {/* Clear Logs Modal */}
-            {showClearConfirm && (
-                <div className="umg-modal-backdrop" role="dialog" aria-modal="true" onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); setClearError(""); }}>
-                    <div className="umg-modal umg-small-modal" onClick={e => e.stopPropagation()}>
-                        <div className="umg-modal-header">
-                            <h3>{t("adminActivityLog.clearLogsTitle")}</h3>
-                            <button className="umg-modal-close" onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); setClearError(""); }} aria-label="Close">×</button>
-                        </div>
-                        <div className="umg-modal-body">
-                            <p className="al-modal-desc">
-                                {t("adminActivityLog.clearLogsDesc")}
-                            </p>
-                            <div className="umg-field">
-                                <label className="umg-label">{t("adminActivityLog.deleteOlderThan")}</label>
-                                <select
-                                    className="umg-input"
-                                    value={clearOption}
-                                    onChange={e => { setClearOption(e.target.value); setCustomCutoff(""); }}
-                                >
-                                    <option value="30">{t("adminActivityLog.30days")}</option>
-                                    <option value="60">{t("adminActivityLog.60days")}</option>
-                                    <option value="90">{t("adminActivityLog.90days")}</option>
-                                    <option value="365">{t("adminActivityLog.1year")}</option>
-                                    <option value="custom">{t("adminActivityLog.customDate")}</option>
-                                </select>
-                            </div>
-                            {clearOption === "custom" && (
-                                <div className="umg-field al-custom-date-field">
-                                    <label className="umg-label">{t("adminActivityLog.deleteOlderThanDate")}</label>
-                                    <input
-                                        type="date"
-                                        className="umg-input"
-                                        value={customCutoff}
-                                        max={new Date().toISOString().split("T")[0]}
-                                        onChange={e => setCustomCutoff(e.target.value)}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                        {clearError && (
-                            <div className="umg-modal-body">
-                                <p className="al-clear-error">{clearError}</p>
-                            </div>
-                        )}
-                        <div className="umg-modal-footer">
-                            <button
-                                className="umg-btn-secondary"
-                                onClick={() => { setShowClearConfirm(false); setClearOption("30"); setCustomCutoff(""); setClearError(""); }}
-                            >
-                                {t("adminActivityLog.cancel")}
-                            </button>
-                            <button
-                                className="umg-btn-danger"
-                                onClick={handleClearLogs}
-                                disabled={clearing || (clearOption === "custom" && !customCutoff)}
-                            >
-                                {clearing ? t("adminActivityLog.clearing") : t("adminActivityLog.confirmDelete")}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Filters */}
             <div className="food-database-section">

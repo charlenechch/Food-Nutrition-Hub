@@ -273,7 +273,7 @@ app.use("/api/foodSearch", foodSearchRoutes);
 app.use("/api/translate", hppProtect({ policy: "none", allowlist: ["texts", "targetLang"], logger: (tag, meta) => logger.warn(`HPP Translate: ${tag}`, meta) }), translateRoutes);
 
 // ---------- Global HPP for everything else ----------
-app.use(hppProtect({ policy: "first", allowlist: ["id", "page", "q", "sort", "email", "password", "newPassword", "userID", "code", "rememberDevice", "token", "role", "userProfileID", "firebase_uid", "googlePhotoUrl", "firebaseUID", "bio", "location", "firstname", "lastname", "city", "suspendedUntil", "suspensionReason", "avatar", "allergies", "dietary", "emailNotifications", "prefs", "pushNotifications", "profileVisibility", "language", "recipes", "status", "stats", "saveFoods", "likes", "type", "postId", "postID", "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID", "likeID", "name", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "category", "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll", "view", "year", "feedback", "format", "saveIds", "month", "pdpaConsent", "tncConsent", "userIds", "emails", "subject", "message", "sendEmail", "cutoffDate", "actionType", "search", "startDate", "endDate"], logger: (tag, meta) => { logger.warn(`[GLOBAL HPP] ${tag}`, meta); }, }));
+app.use(hppProtect({ policy: "first", allowlist: ["id", "page", "q", "sort", "email", "password", "newPassword", "userID", "code", "rememberDevice", "token", "role", "userProfileID", "firebase_uid", "googlePhotoUrl", "firebaseUID", "bio", "location", "firstname", "lastname", "city", "suspendedUntil", "suspensionReason", "avatar", "allergies", "dietary", "emailNotifications", "prefs", "pushNotifications", "profileVisibility", "language", "recipes", "status", "stats", "saveFoods", "likes", "type", "postId", "postID", "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID", "likeID", "name", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "category", "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll", "view", "year", "feedback", "format", "saveIds", "month", "pdpaConsent", "tncConsent", "userIds", "emails", "subject", "message", "sendEmail", "actionType", "search", "startDate", "endDate"], logger: (tag, meta) => { logger.warn(`[GLOBAL HPP] ${tag}`, meta); }, }));
 
 // ---------- Other Routes ----------
 app.use("/api/logout", logoutRoutes);
@@ -288,7 +288,7 @@ app.use("/api/saveFood", saveFoodRoutes);
 app.use("/api/communityPost", communityPostRoutes);
 app.use("/api/likes", likeRoutes);
 app.use("/api/admin/announcement", hppProtect({ policy: "none", allowlist: ["userIds", "emails", "subject", "message", "sendEmail"], logger: (tag, meta) => logger.warn(`HPP Announcement: ${tag}`, meta) }));
-app.use("/api/admin/activityLog", hppProtect({ policy: "first", allowlist: ["cutoffDate", "actionType", "startDate", "endDate", "search", "page"], logger: (tag, meta) => logger.warn(`HPP Activity Log: ${tag}`, meta) }), activityLogRoutes);
+app.use("/api/admin/activityLog", hppProtect({ policy: "first", allowlist: ["actionType", "startDate", "endDate", "search", "page"], logger: (tag, meta) => logger.warn(`HPP Activity Log: ${tag}`, meta) }), activityLogRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationRoutes);
