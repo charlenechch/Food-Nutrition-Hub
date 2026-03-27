@@ -8,7 +8,10 @@
     "map": "Food Map",
     "profile": "Profile",
     "logout": "Logout",
-    "login": "Login / Register"
+    "login": "Login / Register",
+    "notifications": "Notifications",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No notifications yet."
   },
 
   "footer": {

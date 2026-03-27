@@ -8,7 +8,10 @@
     "map": "Peta Makanan",
     "profile": "Profil",
     "logout": "Log Keluar",
-    "login": "Log Masuk / Daftar"
+    "login": "Log Masuk / Daftar",
+    "notifications": "Pemberitahuan",
+    "markAllRead": "Tandakan semua sebagai dibaca",
+    "noNotifications": "Tiada pemberitahuan lagi."
   },
 
   "footer": {
