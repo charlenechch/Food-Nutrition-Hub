@@ -1098,14 +1098,44 @@ router.patch('/updateStatus/:id', async (req, res) => {
     if (rows.length > 0) {
       const { email, firstname, recipeName } = rows[0];
 
-      // Force stats recount
+      // Force stats recount and AWARD XP
       let userID = null;
-      const [userResult] = await db.query("SELECT userProfileID FROM recipe WHERE foodID = ?", [recipeId]);
+      // 1. Notice I added 'recipeID' to this SELECT statement so we can log the exact recipe!
+      const [userResult] = await db.query("SELECT userProfileID, recipeID FROM recipe WHERE foodID = ?", [recipeId]);
+      
       if (userResult.length > 0) {
           const userProfileID = userResult[0].userProfileID;
+          const actualRecipeID = userResult[0].recipeID; 
+
           const [userRow] = await db.query("SELECT userID FROM userProfile WHERE userProfileID = ?", [userProfileID]);
           userID = userRow[0].userID;
           await updateUserStats(userID);
+
+          // 2. --- NEW XP TRIGGER LOGIC ---
+          // Only award points if the status being passed in is "Approved"
+          if (status === "Approved") {
+            try {
+              // Write the receipt to the history log
+              await db.query(
+                `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
+                 VALUES (?, 'RECIPE_APPROVED', ?, 100)`,
+                [userProfileID, actualRecipeID]
+              );
+
+              // Update the user's total bank balance
+              await db.query(
+                `UPDATE userProfile 
+                 SET total_xp = COALESCE(total_xp, 0) + 100 
+                 WHERE userProfileID = ?`,
+                [userProfileID]
+              );
+              
+              console.log(`✅ Awarded 100 XP to userProfileID ${userProfileID} for recipe ${actualRecipeID}`);
+            } catch (xpError) {
+              console.error("❌ Failed to award XP:", xpError);
+            }
+          }
+          // --- END OF NEW XP LOGIC ---
       }
 
       // REJECTED Logic
