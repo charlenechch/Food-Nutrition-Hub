@@ -1380,7 +1380,8 @@
     "page": "Halaman {{current}} daripada {{total}}",
     "resetFilters": "Tetapkan Semula Penapis",
     "startDate": "Tarikh Mula",
-    "endDate": "Tarikh Tamat"
+    "endDate": "Tarikh Tamat",
+    "autoDeleteNotice": "Nota: Log yang lebih lama daripada 60 hari akan dipadam secara automatik."
   },
 
 

@@ -260,6 +260,12 @@ async function updateStaleAndExpiredUsers() {
             `DELETE FROM notifications WHERE created_at < NOW() - INTERVAL 30 DAY`
         );
         console.log(`✅ Cleaned up ${notifResult.affectedRows} old notifications.`);
+
+        // Auto-delete activity logs older than 60 days
+        const [logResult] = await db.execute(
+            `DELETE FROM adminActivityLog WHERE createdAt < NOW() - INTERVAL 60 DAY`
+        );
+        console.log(`✅ Cleaned up ${logResult.affectedRows} old activity log entries.`);
         
         console.log("✅ Status Cleanup Complete.");
 

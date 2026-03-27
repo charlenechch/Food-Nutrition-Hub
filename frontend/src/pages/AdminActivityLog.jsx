@@ -135,6 +135,7 @@ export default function AdminActivityLog() {
                     <div>
                         <h1><FiActivity /> {t("adminActivityLog.pageTitle")}</h1>
                         <p>{t("adminActivityLog.pageSubtitle")}</p>
+                        <p className="al-auto-delete-notice">{t("adminActivityLog.autoDeleteNotice")}</p>
                     </div>
                 </div>
             </div>

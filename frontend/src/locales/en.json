@@ -1381,7 +1381,8 @@
     "page": "Page {{current}} of {{total}}",
     "resetFilters": "Reset Filters",
     "startDate": "Start Date",
-    "endDate": "End Date"
+    "endDate": "End Date",
+    "autoDeleteNotice": "Note: Logs older than 60 days are automatically deleted."
   },
 
   "privacyPolicy": {
