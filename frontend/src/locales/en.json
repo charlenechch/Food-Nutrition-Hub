@@ -1228,7 +1228,8 @@
     "revisedSuccessTitle": "Recipe revised successfully!",
     "revisedSuccessMsg": "Your recipe contribution has been resubmitted and is awaiting admin review.",
     "failedTitle": "Failed to update recipe.",
-    "pleaseRetry": "Please try again."
+    "pleaseRetry": "Please try again.",
+    "categoryLabel": "Category"
   },
 
   "reviseContent": {

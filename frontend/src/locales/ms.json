@@ -1227,7 +1227,8 @@
     "revisedSuccessTitle": "Resipi berjaya disemak semula!",
     "revisedSuccessMsg": "Sumbangan resipi anda telah dihantar semula dan menunggu semakan admin.",
     "failedTitle": "Gagal mengemas kini resipi.",
-    "pleaseRetry": "Sila cuba lagi."
+    "pleaseRetry": "Sila cuba lagi.",
+    "categoryLabel": "Kategori"
   },
 
   "reviseContent": {
