@@ -8,9 +8,11 @@ const db = require('../config/db');
 router.get('/logs', async (req, res) => {
   try {
     // 1. Identify the User 
-    // In a real app, you get this from your JWT auth middleware (e.g., req.user.userProfileID)
-    // For testing right now, you might hardcode a valid userProfileID from your database
-    const userProfileID = req.user ? req.user.userProfileID : 1; 
+    if (!req.user || !req.user.userProfileID) {
+  return res.status(401).json({ success: false, message: "Unauthorized" });
+}
+
+const userProfileID = req.user.userProfileID;
 
     // 2. Setup Pagination
     // This matches the logic in your XpLogsPage.jsx
