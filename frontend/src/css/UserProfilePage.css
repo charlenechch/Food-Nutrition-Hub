@@ -1321,3 +1321,102 @@
     padding: 0 2px;
   }
 }
+
+.upp-equipped-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 18px;
+  margin-left: 12px;
+  vertical-align: middle;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  cursor: help;
+}
+
+.upp-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.upp-badge-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.upp-badge-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  transition: transform 0.2s ease;
+}
+
+.upp-badge-container:hover .upp-badge-icon {
+  transform: translateY(-2px);
+}
+
+.badge-locked {
+  filter: grayscale(100%);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Tooltip*/
+.upp-badge-tooltip {
+  display: none; 
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  background: #ffffff;
+  border: 1px solid #eadfd3;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  z-index: 100;
+  text-align: center;
+  cursor: default;
+}
+
+.upp-badge-container:hover .upp-badge-tooltip {
+  display: block;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.upp-badge-tooltip h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+.upp-badge-tooltip p {
+  margin: 0;
+  color: #7a6b5a;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.upp-locked-text {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #d94141; 
+}
+
+.upp-equip-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 6px 0;
+  font-size: 12px;
+}

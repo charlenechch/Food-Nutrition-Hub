@@ -9,6 +9,7 @@ import { Bell, Eye, EyeOff, Globe, Shield, ExternalLink, OctagonX, Camera, X, Al
 import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
 import Modal from "../components/Modal";
 import { useTranslation } from "react-i18next";
+import { TIERS, getTierById } from "../utils/gamificationTiers";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -1271,7 +1272,19 @@ const ContributionRow = ({ c }) => {
                 </div>
               )}
             </div>
-            <h1 className="upp-title">{!userProfileID ? t("profile.myProfile") : t("profile.othersProfile", { name: user?.firstName })}</h1>
+            <h1 className="upp-title">
+              {!userProfileID ? t("profile.myProfile") : t("profile.othersProfile", { name: user?.firstName })}
+              <span 
+                className="upp-equipped-badge" 
+                title={getTierById(equippedBadge).title}
+                style={{ 
+                  backgroundColor: getTierById(equippedBadge).color + "20", 
+                  color: getTierById(equippedBadge).color 
+                }}
+              >
+                {getTierById(equippedBadge).icon}
+              </span>
+            </h1>
             {user?.bio && (
               <p className="upp-sub">
                 {user.bio}
@@ -1453,6 +1466,47 @@ const ContributionRow = ({ c }) => {
                     <div className="upp-stat">
                       <div className="upp-stat-val">{user?.stats?.likes || 0}</div>
                       <div className="upp-muted">{t("profile.likesReceived")}</div>
+                    </div>
+                  </div>
+
+                  <div className="upp-card" style={{ marginTop: "16px" }}>
+                    <h3 className="upp-card-title">{t("profile.badgesAndTitles", "Badges & Titles")}</h3>
+                    <div className="upp-badges-grid">
+                      {TIERS.map((tier) => {
+                        const currentLevel = Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3)));
+                        const isUnlocked = currentLevel >= tier.minLevel;
+                        const isEquipped = equippedBadge === tier.id;
+
+                        return (
+                          <div key={tier.id} className={`upp-badge-container ${!isUnlocked ? "badge-locked" : ""}`}>
+                            <div 
+                              className="upp-badge-icon"
+                              style={{ 
+                                backgroundColor: isUnlocked ? tier.color + "20" : "#f0f0f0",
+                                border: isEquipped ? `2px solid ${tier.color}` : "2px solid transparent"
+                              }}
+                            >
+                              {tier.icon}
+                            </div>
+
+                            <div className="upp-badge-tooltip">
+                              <h4 style={{ color: tier.color }}>{tier.title}</h4>
+                              <p>{tier.desc}</p>
+                              {!isUnlocked && <span className="upp-locked-text">Unlocks at Level {tier.minLevel}</span>}
+
+                              {isUnlocked && !userProfileID && (
+                                <button 
+                                  className={`lrp-btn ${isEquipped ? "lrp-btn-outline" : "lrp-btn-primary"} upp-equip-btn`}
+                                  disabled={isEquipped}
+                                  onClick={() => setEquippedBadge(tier.id)}
+                                >
+                                  {isEquipped ? "Equipped" : "Equip Title"}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </aside>
