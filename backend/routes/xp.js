@@ -1,28 +1,36 @@
 // routes/xp.js
 const express = require('express');
 const router = express.Router();
-// Import your database connection pool (adjust the path to match your setup)
-const db = require('../config/db'); 
 
-// GET /api/xp-logs?page=1
+// FIXED: Correctly imports your database pool from db.js
+const { pool: db } = require('../config/db'); 
+
+// GET /api/xp/logs?page=1
 router.get('/logs', async (req, res) => {
   try {
-    // 1. Identify the User 
-    if (!req.user || !req.user.userProfileID) {
-  return res.status(401).json({ success: false, message: "Unauthorized" });
-}
+    // FIXED: Reads the real user session instead of req.user
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ success: false, message: "Not logged in" });
+    }
 
-const userProfileID = req.user.userProfileID;
+    const userID = req.session.user.userID;
 
-    // 2. Setup Pagination
-    // This matches the logic in your XpLogsPage.jsx
+    // Convert userID into userProfileID
+    const [profileRows] = await db.query(
+      "SELECT userProfileID FROM userProfile WHERE userID = ?", 
+      [userID]
+    );
+
+    if (profileRows.length === 0) {
+      return res.status(404).json({ success: false, message: "User profile not found" });
+    }
+
+    const userProfileID = profileRows[0].userProfileID;
+
     const page = parseInt(req.query.page) || 1;
     const limit = 5; 
     const offset = (page - 1) * limit;
 
-    // 3. The Main Query
-    // We use LEFT JOIN to grab the actual recipe description or post foodName
-    // COALESCE picks the first one that isn't null, acting as your 'reference_title'
     const logsQuery = `
       SELECT 
         xl.id,
@@ -39,21 +47,18 @@ const userProfileID = req.user.userProfileID;
       LIMIT ? OFFSET ?
     `;
 
-    // 4. The Count Query
-    // Your React pagination needs to know how many total pages exist
     const countQuery = `
       SELECT COUNT(*) as totalCount 
       FROM xp_logs 
       WHERE userProfileID = ?
     `;
 
-    // 5. Execute Queries (using mysql2 promise wrapper)
-    const [logs] = await db.promise().query(logsQuery, [userProfileID, limit, offset]);
-    const [countResult] = await db.promise().query(countQuery, [userProfileID]);
+    // FIXED: Uses db.query correctly based on your config (no .promise() needed)
+    const [logs] = await db.query(logsQuery, [userProfileID, limit, offset]);
+    const [countResult] = await db.query(countQuery, [userProfileID]);
 
     const totalCount = countResult[0].totalCount;
 
-    // 6. Send the Response back to React
     res.json({
       success: true,
       logs: logs,
@@ -62,8 +67,8 @@ const userProfileID = req.user.userProfileID;
     });
 
   } catch (error) {
-    console.error("Error fetching XP logs:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch XP logs" });
+    console.error("❌ Error fetching XP logs:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch XP logs", error: error.message });
   }
 });
 
