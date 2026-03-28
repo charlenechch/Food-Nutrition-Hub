@@ -63,14 +63,16 @@ export default function ConsentModal() {
   const [tncScrolled, setTncScrolled] = useState(false);
 
   const [policyVersion, setPolicyVersion] = useState(null);
-  const [policyLastUpdated, setPolicyLastUpdated] = useState(null);
+  const [policyLastUpdatedEN, setPolicyLastUpdatedEN] = useState(null);
+  const [policyLastUpdatedMS, setPolicyLastUpdatedMS] = useState(null);
 
   useEffect(() => {
     fetch(`${API_URL}/api/auth/policyversion`)
       .then(res => res.json())
       .then(data => {
         setPolicyVersion(data.version);
-        setPolicyLastUpdated(data.lastUpdated);
+        setPolicyLastUpdatedEN(data.lastUpdatedEN);
+        setPolicyLastUpdatedMS(data.lastUpdatedMS);
       })
       .catch(err => console.error("Failed to fetch policy version", err));
   }, []);
@@ -158,7 +160,7 @@ export default function ConsentModal() {
           <div className="tpm-docs">
             <ScrollableDoc
               title={t("privacyPolicy.title")}
-              lastUpdated={policyLastUpdated ? t("consent.lastUpdated", { date: policyLastUpdated }) : ""}
+              lastUpdated={(policyLastUpdatedEN || policyLastUpdatedMS) ? t("consent.lastUpdated", { date: i18n.language === "ms" ? policyLastUpdatedMS : policyLastUpdatedEN }) : ""}
               icon={FaShieldAlt}
               onScrolledToBottom={() => setPdpaScrolled(true)}
               hasScrolled={pdpaScrolled}
@@ -169,7 +171,7 @@ export default function ConsentModal() {
 
             <ScrollableDoc
               title={t("termsAndConditions.title")}
-              lastUpdated={policyLastUpdated ? t("consent.lastUpdated", { date: policyLastUpdated }) : ""}
+              lastUpdated={(policyLastUpdatedEN || policyLastUpdatedMS) ? t("consent.lastUpdated", { date: i18n.language === "ms" ? policyLastUpdatedMS : policyLastUpdatedEN }) : ""}
               icon={FaFileAlt}
               onScrolledToBottom={() => setTncScrolled(true)}
               hasScrolled={tncScrolled}

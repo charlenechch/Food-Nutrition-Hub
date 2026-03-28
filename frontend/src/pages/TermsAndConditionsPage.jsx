@@ -10,14 +10,14 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function TermsAndConditionsPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [policyDate, setPolicyDate] = useState("");
 
   useEffect(() => {
     fetch(`${API_URL}/api/auth/policyversion`)
       .then(res => res.json())
-      .then(data => setPolicyDate(data.lastUpdated))
+      .then(data => setPolicyDate(i18n.language === "ms" ? data.lastUpdatedMS : data.lastUpdatedEN))
       .catch(() => setPolicyDate(""));
   }, []);
 
