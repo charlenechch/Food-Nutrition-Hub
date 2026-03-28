@@ -114,13 +114,13 @@ export default function ReviseRecipePage() {
     if (p.category) {
       if (Array.isArray(p.category)) {
         categoryValue = p.category;
+        console.log('Category is already array:', categoryValue);
       } else if (typeof p.category === 'string') {
-        categoryValue = [p.category];
+        categoryValue = p.category.split(',').map(c => c.trim());
+        console.log('✅ Split string into array:', categoryValue);
       }
-    } else {
-      categoryValue = ["Poultry"];
-    }
-    
+    } 
+
     setForm({
       name: p.name || p.foodName || p.title || "",
       origin: p.origin || p.culturalOrigin || "",
