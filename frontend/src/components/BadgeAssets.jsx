@@ -61,9 +61,20 @@ export const UtensilsIcon = ({ materialId, size = 24, glow = false }) => (
 export const ChefKnifeIcon = ({ materialId, size = 24, glow = false, extraSparkle = false }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={`url(#${materialId})`} filter={glow ? "url(#glow)" : "none"}>
     {MATERIAL_DEFS}
-    <path d="M21.7 4.3C21.3 3.9 20.7 3.9 20.3 4.3L18.9 5.7L18.9 5.7C17.1 7.5 11.3 11 4.5 12.3C3.5 12.5 3 13.5 3 14.5V19.5C3 20.3 3.7 21 4.5 21H7.5C8.1 21 8.7 20.6 8.9 20L10.3 16.3L19.7 6.9C20.1 6.5 20.1 5.9 19.7 5.5L21.7 4.3Z" />
+    
+    <path 
+      d="M 8 12 L 22 2 C 22 10 17 16 10 17 L 10 14 L 6 18 A 1.41 1.41 0 0 1 4 16 L 8 12 Z" 
+    />
+    
+    <circle cx="8" cy="14" r="0.8" fill="#ffffff" opacity="0.35" />
+    <circle cx="6" cy="16" r="0.8" fill="#ffffff" opacity="0.35" />
+
     {extraSparkle && (
-      <path fill="#ffffff" opacity="0.6" d="M16 6L17 4L18 6L20 7L18 8L17 10L16 8L14 7L16 6Z" />
+      <path 
+        fill="#ffffff" 
+        opacity="0.7" 
+        d="M 19 3 L 19.5 5.5 L 22 6 L 19.5 6.5 L 19 9 L 18.5 6.5 L 16 6 L 18.5 5.5 Z" 
+      />
     )}
   </svg>
 );
