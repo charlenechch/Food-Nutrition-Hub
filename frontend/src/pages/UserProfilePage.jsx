@@ -149,17 +149,18 @@ const calculateLevelInfo = (totalXp, highestLevel) => {
   };
 };
 
-const UserXpBar = ({ totalXp, highestLevel }) => {
+const UserXpBar = ({ totalXp, highestLevel, isOwner }) => {
   const info = calculateLevelInfo(totalXp, highestLevel);
   const navigate = useNavigate(); 
 
   return (
     <div 
-      className="xp-bar-container xp-bar-clickable" 
-      onClick={() => navigate('/xplogs')}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter') navigate('/xplogs'); }}
+      className={`xp-bar-container ${isOwner ? 'xp-bar-clickable' : ''}`} 
+      onClick={() => { if (isOwner) navigate('/xplogs'); }}
+      role={isOwner ? "button" : "presentation"}
+      tabIndex={isOwner ? 0 : undefined}
+      onKeyDown={(e) => { if (isOwner && e.key === 'Enter') navigate('/xplogs'); }}
+      style={{ cursor: isOwner ? 'pointer' : 'default' }}
     >
       <div className="xp-bar-header">
         <div className="xp-level-badge">Lvl {info.level}</div>
@@ -1358,6 +1359,7 @@ const handleDeleteAccount = async () => {
           <UserXpBar 
             totalXp={user?.total_xp || 0} 
             highestLevel={Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3)))} 
+            isOwner={!userProfileID} 
           />
           </div>
 
