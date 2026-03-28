@@ -51,10 +51,16 @@ const MATERIAL_DEFS = (
 );
 
 export const UtensilsIcon = ({ materialId, size = 24, glow = false }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={`url(#${materialId})`} filter={glow ? "url(#glow)" : "none"}>
+  <svg width={size} height={size} viewBox="0 0 24 24" filter={glow ? "url(#glow)" : "none"}>
     {MATERIAL_DEFS}
-    <path d="M15.5 2C15.5 2 17 2 17 4V8.5C17 10 16 11.5 14.5 12L16 22H13L11.5 12C10 11.5 9 10 9 8.5V4C9 2 10.5 2 10.5 2V8H11.5V2H13.5V8H14.5V2H15.5Z" />
-    <path d="M8.5 2C5.5 2 4 4.5 4 7C4 9.5 6 11.5 7 12L5 22H8L10 12C11 11.5 13 9.5 13 7C13 4.5 11.5 2 8.5 2Z" />
+    <path 
+      fill={`url(#${materialId})`} 
+      d="M 7 2 C 3 2 3 9 6.2 10 L 6.2 21 A 0.8 0.8 0 0 0 7.8 21 L 7.8 10 C 11 9 11 2 7 2 Z" 
+    />
+    <path 
+      fill={`url(#${materialId})`} 
+      d="M 14 2 L 14 6 C 14 8 15 9 16.2 9.5 L 16.2 21 A 0.8 0.8 0 0 0 17.8 21 L 17.8 9.5 C 19 9 20 8 20 6 L 20 2 L 18.5 2 L 18.5 6 C 18.5 6.5 17.5 6.5 17.5 6 L 17.5 2 L 16.5 2 L 16.5 6 C 16.5 6.5 15.5 6.5 15.5 6 L 15.5 2 Z" 
+    />
   </svg>
 );
 
