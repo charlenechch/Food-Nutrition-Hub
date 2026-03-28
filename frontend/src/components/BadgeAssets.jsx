@@ -54,14 +54,14 @@ export const UtensilsIcon = ({ materialId, size = 24, glow = false }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" filter={glow ? "url(#glow)" : "none"}>
     {MATERIAL_DEFS}
     
-    <g transform="translate(2.5, 0)">
+    <g transform="translate(2, 0)">
       <path 
         fill={`url(#${materialId})`} 
         d="M 7 2 C 3 2 3 9 6.2 10 L 6.2 21 A 0.8 0.8 0 0 0 7.8 21 L 7.8 10 C 11 9 11 2 7 2 Z" 
       />
     </g>
 
-    <g transform="translate(-2.5, 0)">
+    <g transform="translate(-2, 0)">
       <path 
         fill={`url(#${materialId})`} 
         d="M 14 2 L 14 6 C 14 8 15 9 16.2 9.5 L 16.2 21 A 0.8 0.8 0 0 0 17.8 21 L 17.8 9.5 C 19 9 20 8 20 6 L 20 2 L 18.5 2 L 18.5 6 C 18.5 6.5 17.5 6.5 17.5 6 L 17.5 2 L 16.5 2 L 16.5 6 C 16.5 6.5 15.5 6.5 15.5 6 L 15.5 2 Z" 
