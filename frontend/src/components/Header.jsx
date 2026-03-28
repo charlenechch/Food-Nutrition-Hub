@@ -248,7 +248,7 @@ export default function Header() {
             {user && user.role !== "guest" && (
               <button className="mobile-btn" onClick={handleBellClick}>
                 <Bell className="mobile-icon" size={18} />
-                Notifications {unreadCount > 0 && `(${unreadCount})`}
+                {t("nav.notifications")} {unreadCount > 0 && `(${unreadCount})`}
               </button>
             )}
 
@@ -286,17 +286,15 @@ export default function Header() {
               {showNotifications && (
                 <div className="notification-panel">
                   <div className="notification-panel-header">
-                    <span className="notification-panel-title">Notifications</span>
-                    {unreadCount > 0 && (
-                      <button className="mark-all-read-btn" onClick={handleMarkAllRead}>
-                        Mark all as read
-                      </button>
-                    )}
+                    <span className="notification-panel-title">{t("nav.notifications")}</span>
+                    <button className="mark-all-read-btn" onClick={handleMarkAllRead}>
+                      {t("nav.markAllRead")}
+                    </button>
                   </div>
 
                   <div className="notification-list">
                     {notifications.length === 0 ? (
-                      <p className="notification-empty">No notifications yet.</p>
+                      <p className="notification-empty">{t("nav.noNotifications")}</p>
                     ) : (
                       notifications.map(n => (
                         <div

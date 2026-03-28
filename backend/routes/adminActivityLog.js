@@ -75,44 +75,4 @@ router.get("/", requireAdmin, async (req, res) => {
   }
 });
 
-// Clear logs older than a cutoff date
-router.delete("/", requireAdmin, async (req, res) => {
-  try {
-    const { cutoffDate } = req.body;
-
-    if (!cutoffDate) {
-      return res.status(400).json({ success: false, message: "cutoffDate is required." });
-    }
-
-    const [result] = await db.execute(
-      "DELETE FROM adminActivityLog WHERE DATE(createdAt) < ?",
-      [cutoffDate]
-    );
-
-    const deletedCount = result.affectedRows;
-
-    const adminID = req.session.user.userID;
-    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-    const today = new Date();
-    const cutoff = new Date(cutoffDate);
-    const diffDays = Math.round((today - cutoff) / (1000 * 60 * 60 * 24));
-    const periodLabel = diffDays === 30 ? "30 days" 
-                      : diffDays === 60 ? "60 days" 
-                      : diffDays === 90 ? "90 days" 
-                      : diffDays === 365 ? "1 year" 
-                      : null;
-
-    const description = periodLabel
-      ? `Deleted ${deletedCount} activity log ${deletedCount === 1 ? "entry" : "entries"} older than ${periodLabel} (before ${cutoffDate}).`
-      : `Deleted ${deletedCount} activity log ${deletedCount === 1 ? "entry" : "entries"} older than ${cutoffDate}.`;
-
-    await logActivity(db, adminID, adminName, "logs_cleared", description);
-
-    res.json({ success: true, message: `Deleted ${deletedCount} log ${deletedCount === 1 ? "entry" : "entries"}.`, deletedCount });
-  } catch (err) {
-    console.error("❌ Failed to clear activity log:", err.message);
-    res.status(500).json({ success: false, message: "Failed to clear logs." });
-  }
-});
-
 module.exports = { router, logActivity };

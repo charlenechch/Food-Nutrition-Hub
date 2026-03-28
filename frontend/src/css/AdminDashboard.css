@@ -2725,6 +2725,13 @@
   margin-bottom: 16px;
 }
 
+.al-auto-delete-notice {
+  font-size: 12px;
+  color: #a4886e;
+  margin-top: 4px;
+  font-style: italic;
+}
+
 .al-empty-icon {
   font-size: 48px;
   margin-bottom: 16px;

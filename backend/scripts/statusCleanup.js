@@ -14,10 +14,10 @@ async function updateStaleAndExpiredUsers() {
         const now = new Date();
         const nowString = now.toISOString().slice(0, 19).replace("T", " "); // Current timestamp
         
-        // Calculate the cutoff date (7 days ago)
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const cutoffDate = sevenDaysAgo.toISOString().slice(0, 19).replace("T", " "); // 7 days ago timestamp
+        // Calculate the cutoff date (14 days ago)
+        const fourteenDaysAgo = new Date();
+        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+        const cutoffDate = fourteenDaysAgo.toISOString().slice(0, 19).replace("T", " "); // 14 days ago timestamp
         
         // Find users whose status is "Suspended" but whose suspendedUntil date is in the past.
         const [expiredSuspensions] = await db.execute(
@@ -260,6 +260,12 @@ async function updateStaleAndExpiredUsers() {
             `DELETE FROM notifications WHERE created_at < NOW() - INTERVAL 30 DAY`
         );
         console.log(`✅ Cleaned up ${notifResult.affectedRows} old notifications.`);
+
+        // Auto-delete activity logs older than 60 days
+        const [logResult] = await db.execute(
+            `DELETE FROM adminActivityLog WHERE createdAt < NOW() - INTERVAL 60 DAY`
+        );
+        console.log(`✅ Cleaned up ${logResult.affectedRows} old activity log entries.`);
         
         console.log("✅ Status Cleanup Complete.");
 

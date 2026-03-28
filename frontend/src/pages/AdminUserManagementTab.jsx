@@ -342,13 +342,15 @@ export default function UserManagement() {
   };
 
   const saveUser = async () => {
-    if (!userForm.name.trim()) {
-      setDlg({ open: true, title: t("adminUser.missingName"), message: t("adminUser.nameRequired"), icon: <AlertIcon />, onPrimary: closeDlg });
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email)) {
-      setDlg({ open: true, title: t("adminUser.invalidEmail"), message: t("adminUser.invalidEmailMsg"), icon: <AlertIcon />, onPrimary: closeDlg });
-      return;
+    if (userMode === "create") {
+      if (!userForm.name.trim()) {
+        setDlg({ open: true, title: t("adminUser.missingName"), message: t("adminUser.nameRequired"), icon: <AlertIcon />, onPrimary: closeDlg });
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email)) {
+        setDlg({ open: true, title: t("adminUser.invalidEmail"), message: t("adminUser.invalidEmailMsg"), icon: <AlertIcon />, onPrimary: closeDlg });
+        return;
+      }
     }
     try {
       if (userMode === "create") {
@@ -377,8 +379,7 @@ export default function UserManagement() {
           headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
           credentials: "include",
           body: JSON.stringify({
-            name: userForm.name, email: userForm.email,
-            city: userForm.city, role: userForm.role,
+            role: userForm.role,
           }),
         });
 
@@ -727,35 +728,48 @@ export default function UserManagement() {
                 <div className="umg-modal-body">
                   <div className="umg-field">
                     <label className="umg-label">{t("adminUser.nameLabel")}</label>
-                    <input
-                      className="umg-input"
-                      value={userForm.name}
-                      onChange={(e) => setUserForm(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder={t("adminUser.namePlaceholder")}
-                    />
-                    <div className="umg-hint">{t("adminUser.nameHint")}</div>
+                    {userMode === "edit" ? (
+                      <div className="umg-value">{userForm.name}</div>
+                    ) : (
+                      <>
+                        <input
+                          className="umg-input"
+                          value={userForm.name}
+                          onChange={(e) => setUserForm(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder={t("adminUser.namePlaceholder")}
+                        />
+                        <div className="umg-hint">{t("adminUser.nameHint")}</div>
+                      </>
+                    )}
                   </div>
 
                   <div className="umg-field">
                     <label className="umg-label">{t("adminUser.emailLabel")}</label>
-                    <input
-                      className="umg-input"
-                      value={userForm.email}
-                      onChange={(e) => setUserForm(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder={t("adminUser.emailPlaceholder")}
-                    />
+                    {userMode === "edit" ? (
+                      <div className="umg-value">{userForm.email}</div>
+                    ) : (
+                      <input
+                        className="umg-input"
+                        value={userForm.email}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder={t("adminUser.emailPlaceholder")}
+                      />
+                    )}
                   </div>
 
                   <div className="umg-field">
                     <label className="umg-label">{t("adminUser.cityLabel")}</label>
-                    <input
-                      className="umg-input"
-                      value={userForm.city}
-                      onChange={(e) => setUserForm(prev => ({ ...prev, city: e.target.value }))}
-                      placeholder={t("adminUser.cityPlaceholder")}
-                    />
+                    {userMode === "edit" ? (
+                      <div className="umg-value">{userForm.city || "—"}</div>
+                    ) : (
+                      <input
+                        className="umg-input"
+                        value={userForm.city}
+                        onChange={(e) => setUserForm(prev => ({ ...prev, city: e.target.value }))}
+                        placeholder={t("adminUser.cityPlaceholder")}
+                      />
+                    )}
                   </div>
-
                   <div className="umg-metrics-row">
                     <div className="umg-field">
                       <label className="umg-label">{t("adminUser.roleLabel")}</label>
