@@ -1483,9 +1483,10 @@ const ContributionRow = ({ c }) => {
                             <div 
                               className="upp-badge-icon"
                               style={{ 
-                                backgroundColor: isUnlocked ? tier.color + "20" : "#f0f0f0",
-                                border: isEquipped ? `2px solid ${tier.color}` : "2px solid transparent"
-                              }}
+                                  background: "transparent", 
+                                  border: isEquipped ? `2px solid ${tier.color}` : "2px solid transparent",
+                                  filter: !isUnlocked ? "grayscale(100%) opacity(0.3)" : "none"
+                                }}
                             >
                               {tier.icon}
                             </div>
