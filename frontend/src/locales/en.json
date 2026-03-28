@@ -487,7 +487,10 @@
     "action_POST_APPROVED": "Post Approved",
     "action_POST_LIKED": "Post Liked",
     "action_POST_UNLIKED": "Post Unliked",
-    "action_ACCOUNT_CREATION": "Account Creation"
+    "action_ACCOUNT_CREATION": "Account Creation",
+    "deletionOtpMsg": "A verification code has been sent to your email. Please enter it below to confirm account deletion.",
+    "verificationCode": "Verification Code",
+    "verifying": "Verifying..."
   },
  
   "auth": {

@@ -1330,6 +1330,70 @@ async function updateFirebaseEmail(firebaseUID, newEmail) {
 }
 
 console.log("✅ UserProfile router loaded with debug logging");
+
+// Send OTP for account deletion (Google SSO users)
+router.post("/sendDeletionOTP", async (req, res) => {
+  if (!req.session?.user) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  const userID = req.session.user.userID;
+  const email = req.session.user.email;
+
+  try {
+    const crypto = require("crypto");
+
+    // Throttle check
+    const [existingOtps] = await db.execute(
+      "SELECT created_at FROM otp WHERE userID = ? ORDER BY created_at DESC LIMIT 1",
+      [userID]
+    );
+
+    if (existingOtps.length > 0) {
+      const lastOtpTime = new Date(existingOtps[0].created_at).getTime();
+      const timeDiff = (Date.now() - lastOtpTime) / 1000;
+      if (timeDiff < 60) {
+        return res.status(429).json({
+          error: `Please wait ${Math.ceil(60 - timeDiff)} seconds before requesting a new code.`
+        });
+      }
+    }
+
+    const otpCode = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await db.execute("DELETE FROM otp WHERE userID = ?", [userID]);
+    await db.execute(
+      "INSERT INTO otp (userID, code, expires_at) VALUES (?, ?, ?)",
+      [userID, otpCode, expiresAt]
+    );
+
+    const otpHTML = `
+      <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+        <h2>Account Deletion Verification</h2>
+        <p>You have requested to delete your SarawakEats account. Your verification code is:</p>
+        <h1 style="font-size: 32px; letter-spacing: 5px; color: #8B4513;">${otpCode}</h1>
+        <p>This code expires in 10 minutes.</p>
+        <p>If you did not request this, please ignore this email.</p>
+      </div>
+    `;
+
+    await sendEmail({
+      to: email,
+      subject: "SarawakEats Account Deletion Verification Code",
+      html: otpHTML,
+      text: `Your account deletion verification code is ${otpCode}`
+    });
+
+    console.log(`📩 Deletion OTP sent to ${email}`);
+    return res.json({ success: true, message: "Verification code sent to your email." });
+
+  } catch (err) {
+    console.error("❌ Failed to send deletion OTP:", err);
+    return res.status(500).json({ error: "Failed to send verification code." });
+  }
+});
+
 module.exports = router;
 module.exports.deleteUser = deleteUser;
 module.exports.updateUserStats = updateUserStats;

@@ -567,4 +567,37 @@ router.get('/policyversion', (req, res) => {
   res.json({ version: CURRENT_POLICY_VERSION, lastUpdatedEN: POLICY_LAST_UPDATED_EN, lastUpdatedMS: POLICY_LAST_UPDATED_MS });
 });
 
+// Verify OTP for account deletion (Google SSO users)
+router.post("/verifyDeletionOTP", async (req, res) => {
+  if (!req.session?.user) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  const { code } = req.body;
+  const userID = req.session.user.userID;
+
+  if (!code) {
+    return res.status(400).json({ error: "Verification code is required." });
+  }
+
+  try {
+    const [rows] = await db.execute(
+      "SELECT * FROM otp WHERE userID = ? AND code = ? AND expires_at > NOW()",
+      [userID, code]
+    );
+
+    if (rows.length === 0) {
+      return res.status(400).json({ error: "Invalid or expired code." });
+    }
+
+    await db.execute("DELETE FROM otp WHERE userID = ?", [userID]);
+
+    return res.json({ success: true, message: "Code verified." });
+
+  } catch (err) {
+    console.error("❌ Deletion OTP verify error:", err);
+    return res.status(500).json({ error: "Verification failed." });
+  }
+});
+
 module.exports = router;

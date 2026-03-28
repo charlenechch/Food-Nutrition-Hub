@@ -333,10 +333,21 @@ const formatContributionDate = (dateString) => {
     password: "",
     onSubmit: null,
   });
+
+  const [otpModal, setOtpModal] = useState({
+    open: false,
+    otp: "",
+    error: "",
+    loading: false,
+  });
+
   const openPasswordModal = (onSubmit) =>
     setPwModal({ open: true, title: t("profile.confirmDeletion"), message: t("profile.confirmDeletionMsg"), password: "", onSubmit });
   const closePasswordModal = () =>
     setPwModal(m => ({ ...m, open: false, onSubmit: null, password: "" }));
+
+  const openOtpModal = () => setOtpModal({ open: true, otp: "", error: "", loading: false });
+  const closeOtpModal = () => setOtpModal({ open: false, otp: "", error: "", loading: false });
 
   const fetchExportData = async () => {
     setExportModal(m => ({ ...m, exportLoading: true }));
@@ -384,6 +395,52 @@ const formatContributionDate = (dateString) => {
 
 const closeExportModal = () => {
   setExportModal(m => ({ ...m, open: false, loading: false }));
+};
+
+const handleDeletionOtpSubmit = async () => {
+  if (!otpModal.otp || otpModal.otp.length !== 6) return;
+
+  setOtpModal(m => ({ ...m, loading: true, error: "" }));
+
+  try {
+    // Verify OTP
+    const verifyRes = await fetch(`${API_BASE_URL}/api/auth/verifyDeletionOTP`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+      body: JSON.stringify({ code: otpModal.otp })
+    });
+
+    const verifyData = await verifyRes.json().catch(() => ({}));
+
+    if (!verifyRes.ok) {
+      setOtpModal(m => ({ ...m, loading: false, error: verifyData.error || t("profile.incorrectPassword") }));
+      return;
+    }
+
+    // OTP verified — proceed with deletion
+    const res = await fetch(`${API_BASE_URL}/api/userProfile/delete`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', "X-CSRF-Token": csrfToken }
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok && data.success) {
+      closeOtpModal();
+      openAlert(t("profile.accountDeleted"), t("profile.accountDeletedMsg"), <CheckCircle2 />, () => {
+        closeDlg();
+        window.location.href = '/';
+      });
+    } else {
+      setOtpModal(m => ({ ...m, loading: false, error: data.error || t("profile.deleteFailedMsg") }));
+    }
+
+  } catch (err) {
+    console.error('Error deleting account:', err);
+    setOtpModal(m => ({ ...m, loading: false, error: t("profile.deleteFailedMsg") }));
+  }
 };
 
 // Toggle individual food selection
@@ -870,72 +927,78 @@ const ContributionRow = ({ c }) => {
     fetchCommunityPosts();
   }, [tab, user]);
 
-  // Delete account handler - Backend password verification
-  const handleDeleteAccount = async () => {
+// Delete account handler 
+const handleDeleteAccount = async () => {
     openConfirm({
       title: t("profile.deleteAccount"),
       message: t("profile.deleteAccountConfirm"),
       confirmText: t("profile.delete"),
       cancelText: t("profile.cancel"),
-      onConfirm: () => {
-        // Step 2: ask for password in controlled modal
-        openPasswordModal(async (password) => {
-          // State to track error inside the password modal
-          setPwModal(m => ({ ...m, loading: true, error: null }));
+      onConfirm: async () => {
+        const isGoogleUser = user?.loginMethod === "google";
 
+        if (isGoogleUser) {
+          // Step 2a: Send OTP and show OTP modal for Google SSO users
           try {
-            // Verify password with backend
-            const verifyRes = await fetch(`${API_BASE_URL}/api/auth/verifyAccountDeletion`, {
+            const sendRes = await fetch(`${API_BASE_URL}/api/userProfile/sendDeletionOTP`, {
               method: "POST",
               credentials: "include",
-              headers: { "Content-Type": "application/json",
-              "X-CSRF-Token": csrfToken
-            },
-              body: JSON.stringify({ password })
+              headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }
             });
+            const sendData = await sendRes.json().catch(() => ({}));
+            if (!sendRes.ok) {
+              openAlert(t("profile.deleteFailed"), sendData.error || t("profile.deleteFailedMsg"), <AlertTriangle />);
+              return;
+            }
+            openOtpModal();
+          } catch (err) {
+            openAlert(t("profile.deleteFailed"), t("profile.deleteFailedMsg"), <AlertTriangle />);
+          }
+        } else {
+          // Step 2b: Ask for password for email/password users
+          openPasswordModal(async (password) => {
+            setPwModal(m => ({ ...m, loading: true, error: null }));
 
-            if (!verifyRes.ok) {
-                  const verifyData = await verifyRes.json().catch(() => ({}));
-                
-                  closePasswordModal(); 
+            try {
+              const verifyRes = await fetch(`${API_BASE_URL}/api/auth/verifyAccountDeletion`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+                body: JSON.stringify({ password })
+              });
 
-                  openAlert(
-                      t("profile.verificationFailed"),
-                      verifyData.error || t("profile.incorrectPassword"),
-                      <AlertTriangle />
-                  );
-                    return;
-                }
+              if (!verifyRes.ok) {
+                const verifyData = await verifyRes.json().catch(() => ({}));
+                closePasswordModal();
+                openAlert(t("profile.verificationFailed"), verifyData.error || t("profile.incorrectPassword"), <AlertTriangle />);
+                return;
+              }
 
-            console.log("Password verified");
+              const res = await fetch(`${API_BASE_URL}/api/userProfile/delete`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json', "X-CSRF-Token": csrfToken }
+              });
 
-            // Delete account (backend handles both MySQL and Firebase)
-            const res = await fetch(`${API_BASE_URL}/api/userProfile/delete`, {
-              method: 'DELETE',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json',
-              "X-CSRF-Token": csrfToken
-               }
-            });
-            
-            const data = await res.json().catch(() => ({}));
-            
-            if (res.ok && data.success) {
+              const data = await res.json().catch(() => ({}));
+
+              if (res.ok && data.success) {
                 openAlert(t("profile.accountDeleted"), t("profile.accountDeletedMsg"), <CheckCircle2 />, () => {
                   closeDlg();
                   window.location.href = '/';
                 });
-            } else {
-              openAlert(t("profile.deleteFailed"), data.error || t("profile.deleteFailedMsg"), <AlertTriangle />);
+              } else {
+                openAlert(t("profile.deleteFailed"), data.error || t("profile.deleteFailedMsg"), <AlertTriangle />);
+              }
+
+            } catch (error) {
+              console.error('Error deleting account:', error);
+              openAlert(t("profile.deleteFailed"), t("profile.deleteFailedMsg"), <AlertTriangle />);
+            } finally {
+              closePasswordModal();
             }
-            
-          } catch (error) {
-            console.error('Error deleting account:', error);
-            openAlert(t("profile.deleteFailed"), t("profile.deleteFailedMsg"), <AlertTriangle />);
-          }finally {
-            closePasswordModal();
-          }
-        });
+          });
+        }
       },
     });
   };
@@ -2265,6 +2328,48 @@ const ContributionRow = ({ c }) => {
                 disabled={!pwModal.password}
               >
                 {t("profile.confirmDelete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {otpModal.open && (
+        <div className="upp-modal-overlay">
+          <div className="upp-modal">
+            <div className="upp-modal-header">
+              <h3>{t("profile.confirmDeletion")}</h3>
+              <button className="upp-modal-close" onClick={closeOtpModal}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="upp-modal-body">
+              <p className="upp-muted" style={{ marginBottom: 12 }}>
+                {t("profile.deletionOtpMsg")}
+              </p>
+              <label className="upp-block">
+                <span>{t("profile.verificationCode")}</span>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={otpModal.otp}
+                  onChange={(e) => setOtpModal(m => ({ ...m, otp: e.target.value.replace(/[^0-9]/g, '').slice(0, 6) }))}
+                  placeholder="000000"
+                />
+              </label>
+              {otpModal.error && (
+                <p className="upp-error-inline">{otpModal.error}</p>
+              )}
+            </div>
+            <div className="upp-modal-footer">
+              <button className="lrp-btn lrp-btn-outline" onClick={closeOtpModal}>
+                {t("profile.cancel")}
+              </button>
+              <button
+                className="lrp-btn lrp-btn-primary"
+                onClick={handleDeletionOtpSubmit}
+                disabled={otpModal.otp.length !== 6 || otpModal.loading}
+              >
+                {otpModal.loading ? t("profile.verifying") : t("profile.confirmDelete")}
               </button>
             </div>
           </div>

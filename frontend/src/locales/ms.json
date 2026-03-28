@@ -486,7 +486,10 @@
     "action_POST_APPROVED": "Siaran Diluluskan",
     "action_POST_LIKED": "Siaran Disukai",
     "action_POST_UNLIKED": "Siaran Tidak Disukai",
-    "action_ACCOUNT_CREATION": "Penciptaan Akaun"
+    "action_ACCOUNT_CREATION": "Penciptaan Akaun",
+    "deletionOtpMsg": "Kod pengesahan telah dihantar ke e-mel anda. Sila masukkan kod tersebut untuk mengesahkan pemadaman akaun.",
+    "verificationCode": "Kod Pengesahan",
+    "verifying": "Mengesahkan..."
   },
 
   "auth": {
