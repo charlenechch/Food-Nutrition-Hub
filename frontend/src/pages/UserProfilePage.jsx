@@ -183,7 +183,7 @@ export default function UserProfilePage() {
   const { t } = useTranslation();
   const { userProfileID } = useParams();
   const navigate = useNavigate();
-  const { setBypassSessionCheck } = useAuth();
+  const { setBypassSessionCheck, user: authUser } = useAuth();
   //Controls view and edit mode
   const [isEditing, setIsEditing] = useState(false);
   const [equippedBadge, setEquippedBadge] = useState("culinary_legend");
@@ -935,10 +935,9 @@ const handleDeleteAccount = async () => {
       confirmText: t("profile.delete"),
       cancelText: t("profile.cancel"),
       onConfirm: async () => {
-        const isGoogleUser = user?.loginMethod === "google";
+        const isGoogleUser = authUser?.loginMethod === "google";
 
         if (isGoogleUser) {
-          // Step 2a: Send OTP and show OTP modal for Google SSO users
           try {
             const sendRes = await fetch(`${API_BASE_URL}/api/userProfile/sendDeletionOTP`, {
               method: "POST",
@@ -955,7 +954,6 @@ const handleDeleteAccount = async () => {
             openAlert(t("profile.deleteFailed"), t("profile.deleteFailedMsg"), <AlertTriangle />);
           }
         } else {
-          // Step 2b: Ask for password for email/password users
           openPasswordModal(async (password) => {
             setPwModal(m => ({ ...m, loading: true, error: null }));
 
