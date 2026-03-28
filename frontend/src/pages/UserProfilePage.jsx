@@ -186,7 +186,7 @@ export default function UserProfilePage() {
   const { setBypassSessionCheck } = useAuth();
   //Controls view and edit mode
   const [isEditing, setIsEditing] = useState(false);
-  const [equippedBadge, setEquippedBadge] = useState("culinary_master");
+  const [equippedBadge, setEquippedBadge] = useState("nutrition_enthusiast");
 
   //CSRF Token State
   const [csrfToken, setCsrfToken] = useState("");
