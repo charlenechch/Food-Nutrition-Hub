@@ -1459,6 +1459,20 @@
     "s13Text1": "If you have any questions about these Terms & Conditions, please contact us at:",
     "s13Text2": "Email: info@sarawakeats.com\nPhone: +60 82-123456"
   },
+
+  "consent": {
+    "titleNew": "Welcome to SarawakEats",
+    "titleUpdated": "Updated Legal Policies",
+    "subtitleNew": "Before you get started, please read and accept our Privacy Policy and Terms & Conditions.",
+    "subtitleUpdated": "Our policies have been updated. Please read and accept both documents below to continue using SarawakEats.",
+    "scrollHint": "↓ Scroll to read",
+    "lastUpdated": "Last Updated: {{date}}",
+    "checkboxPdpa": "I have read and agree to the",
+    "checkboxTnc": "I have read and agree to the",
+    "agreeBtn": "I Agree & Continue",
+    "saving": "Saving...",
+    "error": "Failed to save consent. Please try again."
+  },
   
   "gamification": {
     "levelUpTitle": "Level Up!",

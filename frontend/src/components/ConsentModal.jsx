@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import { FaGlobe } from "react-icons/fa";
 import { createPortal } from "react-dom";
 import axios from "axios";
 import { FaShieldAlt, FaFileAlt, FaCheckCircle } from "react-icons/fa";
@@ -11,7 +13,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Scrollable document panel
 
-function ScrollableDoc({ title, lastUpdated, icon: Icon, children, onScrolledToBottom, hasScrolled }) {
+function ScrollableDoc({ title, lastUpdated, icon: Icon, children, onScrolledToBottom, hasScrolled, scrollHint }) {
   const scrollRef = useRef(null);
 
   const handleScroll = () => {
@@ -36,7 +38,7 @@ function ScrollableDoc({ title, lastUpdated, icon: Icon, children, onScrolledToB
         {children}
       </div>
       {!hasScrolled && (
-        <div className="tpm-doc-scroll-hint">↓ Scroll to read</div>
+        <div className="tpm-doc-scroll-hint">{scrollHint}</div>
       )}
     </div>
   );
@@ -46,6 +48,14 @@ function ScrollableDoc({ title, lastUpdated, icon: Icon, children, onScrolledToB
 
 export default function ConsentModal() {
   const { user, setUser } = useAuth();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language === "en" ? "EN" : "BM";
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "en" ? "ms" : "en";
+    i18n.changeLanguage(newLang);
+    localStorage.setItem("sarawakeats_lang", newLang);
+  };
 
   const [isPdpaChecked, setIsPdpaChecked] = useState(false);
   const [isTncChecked, setIsTncChecked] = useState(false);
@@ -120,7 +130,7 @@ export default function ConsentModal() {
 
     } catch (err) {
       console.error("Consent Error:", err);
-      const errorMessage = err.response?.data?.error || "Failed to save consent. Please try again.";
+      const errorMessage = err.response?.data?.error || t("consent.error");
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -134,33 +144,36 @@ export default function ConsentModal() {
 
           {/* Header */}
           <div className="tpm-header">
+            <button onClick={toggleLanguage} className="tpm-lang-btn">
+              <FaGlobe /> {currentLang}
+            </button>
             <FaShieldAlt className="tpm-header-icon" />
-            <h2 className="tpm-title">{isNewUser ? "Welcome to SarawakEats" : "Updated Legal Policies"}</h2>
+            <h2 className="tpm-title">{isNewUser ? t("consent.titleNew") : t("consent.titleUpdated")}</h2>
             <p className="tpm-subtitle">
-              {isNewUser
-                ? "Before you get started, please read and accept our Privacy Policy and Terms & Conditions."
-                : "Our policies have been updated. Please read and accept both documents below to continue using SarawakEats."}
+              {isNewUser ? t("consent.subtitleNew") : t("consent.subtitleUpdated")}
             </p>
           </div>
 
           {/* Documents */}
           <div className="tpm-docs">
             <ScrollableDoc
-              title="Privacy Policy"
-              lastUpdated={policyLastUpdated ? `Last Updated: ${policyLastUpdated}` : ""}
+              title={t("privacyPolicy.title")}
+              lastUpdated={policyLastUpdated ? t("consent.lastUpdated", { date: policyLastUpdated }) : ""}
               icon={FaShieldAlt}
               onScrolledToBottom={() => setPdpaScrolled(true)}
               hasScrolled={pdpaScrolled}
+              scrollHint={t("consent.scrollHint")}
             >
               <PrivacyPolicyContent />
             </ScrollableDoc>
 
             <ScrollableDoc
-              title="Terms & Conditions"
-              lastUpdated={policyLastUpdated ? `Last Updated: ${policyLastUpdated}` : ""}
+              title={t("termsAndConditions.title")}
+              lastUpdated={policyLastUpdated ? t("consent.lastUpdated", { date: policyLastUpdated }) : ""}
               icon={FaFileAlt}
               onScrolledToBottom={() => setTncScrolled(true)}
               hasScrolled={tncScrolled}
+              scrollHint={t("consent.scrollHint")}
             >
               <TermsAndConditionsContent />
             </ScrollableDoc>
@@ -177,7 +190,7 @@ export default function ConsentModal() {
                 onChange={(e) => setIsPdpaChecked(e.target.checked)}
               />
               <label htmlFor="pdpa-agree" className="tpm-checkbox-label">
-                I have read and agree to the <strong>Privacy Policy</strong>.
+                {t("consent.checkboxPdpa")} <strong>{t("privacyPolicy.title")}</strong>.
               </label>
             </div>
 
@@ -190,7 +203,7 @@ export default function ConsentModal() {
                 onChange={(e) => setIsTncChecked(e.target.checked)}
               />
               <label htmlFor="tnc-agree" className="tpm-checkbox-label">
-                I have read and agree to the <strong>Terms & Conditions</strong>.
+                {t("consent.checkboxTnc")} <strong>{t("termsAndConditions.title")}</strong>.
               </label>
             </div>
           </div>
@@ -204,7 +217,7 @@ export default function ConsentModal() {
             onClick={handleAgree}
             disabled={!isPdpaChecked || !isTncChecked || isSubmitting}
           >
-            {isSubmitting ? "Saving..." : "I Agree & Continue"}
+            {isSubmitting ? t("consent.saving") : t("consent.agreeBtn")}
           </button>
 
         </div>
@@ -219,7 +232,7 @@ export default function ConsentModal() {
         }
         .tpm-card {
           background: #ffffff; border-radius: 20px; width: 100%; max-width: 640px;
-          max-height: 90vh; overflow-y: auto;
+          max-height: 90vh; overflow-y: auto; position: relative;
           padding: 36px 36px 32px; box-shadow: 0 25px 60px rgba(0,0,0,0.35);
           font-family: 'Poppins', sans-serif;
           animation: tpmPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -236,6 +249,14 @@ export default function ConsentModal() {
           color: #5c3a21; margin: 0 0 10px; font-weight: 700;
         }
         .tpm-subtitle { font-size: 0.9rem; color: #777; line-height: 1.5; margin: 0; }
+        .tpm-lang-btn {
+          position: absolute; top: 16px; right: 16px;
+          background: none; border: 1px solid #c6a87c;
+          border-radius: 8px; padding: 6px 12px;
+          cursor: pointer; display: flex; align-items: center;
+          gap: 6px; font-size: 0.85rem; color: #5c3a21; font-weight: 600;
+        }
+        .tpm-lang-btn:hover { background: #f7f2ed; }
         .tpm-docs { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
         .tpm-doc-panel {
           border: 1px solid rgba(92,58,33,0.15); border-radius: 12px; overflow: hidden;

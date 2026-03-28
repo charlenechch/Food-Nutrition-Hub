@@ -1460,6 +1460,20 @@
     "s13Text2": "E-mel: info@sarawakeats.com\nTelefon: +60 82-123456"
   },
 
+  "consent": {
+    "titleNew": "Selamat Datang ke SarawakEats",
+    "titleUpdated": "Dasar Undang-undang Dikemas Kini",
+    "subtitleNew": "Sebelum bermula, sila baca dan terima Dasar Privasi dan Terma & Syarat kami.",
+    "subtitleUpdated": "Dasar kami telah dikemas kini. Sila baca dan terima kedua-dua dokumen di bawah untuk terus menggunakan SarawakEats.",
+    "scrollHint": "↓ Tatal untuk membaca",
+    "lastUpdated": "Tarikh Kemaskini: {{date}}",
+    "checkboxPdpa": "Saya telah membaca dan bersetuju dengan",
+    "checkboxTnc": "Saya telah membaca dan bersetuju dengan",
+    "agreeBtn": "Saya Bersetuju & Teruskan",
+    "saving": "Menyimpan...",
+    "error": "Gagal menyimpan persetujuan. Sila cuba lagi."
+  },
+
   "gamification": {
     "levelUpTitle": "Naik Tahap!",
     "levelUpMessage": "Tahniah! Anda telah mencapai Tahap {{level}}. Teruskan berkongsi pengetahuan masakan anda!",
