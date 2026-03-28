@@ -490,7 +490,8 @@
     "action_ACCOUNT_CREATION": "Account Creation",
     "deletionOtpMsg": "A verification code has been sent to your email. Please enter it below to confirm account deletion.",
     "verificationCode": "Verification Code",
-    "verifying": "Verifying..."
+    "verifying": "Verifying...",
+    "invalidOrExpiredCode": "Invalid or expired code. Please try again."
   },
  
   "auth": {

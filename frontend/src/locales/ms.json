@@ -489,7 +489,8 @@
     "action_ACCOUNT_CREATION": "Penciptaan Akaun",
     "deletionOtpMsg": "Kod pengesahan telah dihantar ke e-mel anda. Sila masukkan kod tersebut untuk mengesahkan pemadaman akaun.",
     "verificationCode": "Kod Pengesahan",
-    "verifying": "Mengesahkan..."
+    "verifying": "Mengesahkan...",
+    "invalidOrExpiredCode": "Kod tidak sah atau telah tamat tempoh. Sila cuba lagi."
   },
 
   "auth": {

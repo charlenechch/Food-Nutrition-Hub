@@ -415,7 +415,7 @@ const handleDeletionOtpSubmit = async () => {
     const verifyData = await verifyRes.json().catch(() => ({}));
 
     if (!verifyRes.ok) {
-      setOtpModal(m => ({ ...m, loading: false, error: verifyData.error || t("profile.incorrectPassword") }));
+      setOtpModal(m => ({ ...m, loading: false, error: t("profile.invalidOrExpiredCode") }));
       return;
     }
 
@@ -969,7 +969,7 @@ const handleDeleteAccount = async () => {
               if (!verifyRes.ok) {
                 const verifyData = await verifyRes.json().catch(() => ({}));
                 closePasswordModal();
-                openAlert(t("profile.verificationFailed"), verifyData.error || t("profile.incorrectPassword"), <AlertTriangle />);
+                openAlert(t("profile.verificationFailed"), t("profile.incorrectPassword"), <AlertTriangle />);
                 return;
               }
 

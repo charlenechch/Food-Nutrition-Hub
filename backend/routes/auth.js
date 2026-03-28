@@ -587,7 +587,7 @@ router.post("/verifyDeletionOTP", async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(400).json({ error: "Invalid or expired code." });
+      setOtpModal(m => ({ ...m, loading: false, error: verifyData.error || t("profile.incorrectPassword") }));
     }
 
     await db.execute("DELETE FROM otp WHERE userID = ?", [userID]);
