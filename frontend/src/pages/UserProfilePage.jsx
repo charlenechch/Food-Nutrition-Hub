@@ -1341,8 +1341,8 @@ const handleDeleteAccount = async () => {
                 className="upp-equipped-badge" 
                 title={getTierById(equippedBadge).title}
                 style={{ 
-                  backgroundColor: getTierById(equippedBadge).color + "20", 
-                  color: getTierById(equippedBadge).color 
+                  background: "transparent",
+                  boxShadow: `0 4px 12px ${getTierById(equippedBadge).color}40`,
                 }}
               >
                 {getTierById(equippedBadge).icon}
