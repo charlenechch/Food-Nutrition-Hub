@@ -1513,26 +1513,6 @@ const handleDeleteAccount = async () => {
                           )}
                         </div>
                   </div>
-                </div>
-
-                {/* Sidebar Stats (Unchanged) */}
-                <aside className="upp-sticky">
-                  <div className="upp-card">
-                    <h3 className="upp-card-title">{t("profile.myContributions")}</h3>
-                    <div className="upp-stat">
-                      <div className="upp-stat-val">{user?.stats?.recipes || 0}</div>
-                      <div className="upp-muted">{t("profile.recipesShared")}</div>
-                    </div>
-                    <div className="upp-stat">
-                      <div className="upp-stat-val">{user?.stats?.posts || 0}</div>
-                      <div className="upp-muted">{t("profile.storiesShared")}</div>
-                    </div>
-                    <div className="upp-stat">
-                      <div className="upp-stat-val">{user?.stats?.likes || 0}</div>
-                      <div className="upp-muted">{t("profile.likesReceived")}</div>
-                    </div>
-                  </div>
-
                   <div className="upp-card" style={{ marginTop: "16px" }}>
                     <h3 className="upp-card-title">{t("profile.badgesAndTitles", "Badges & Titles")}</h3>
                     <div className="upp-badges-grid">
@@ -1572,6 +1552,25 @@ const handleDeleteAccount = async () => {
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sidebar Stats (Unchanged) */}
+                <aside className="upp-sticky">
+                  <div className="upp-card">
+                    <h3 className="upp-card-title">{t("profile.myContributions")}</h3>
+                    <div className="upp-stat">
+                      <div className="upp-stat-val">{user?.stats?.recipes || 0}</div>
+                      <div className="upp-muted">{t("profile.recipesShared")}</div>
+                    </div>
+                    <div className="upp-stat">
+                      <div className="upp-stat-val">{user?.stats?.posts || 0}</div>
+                      <div className="upp-muted">{t("profile.storiesShared")}</div>
+                    </div>
+                    <div className="upp-stat">
+                      <div className="upp-stat-val">{user?.stats?.likes || 0}</div>
+                      <div className="upp-muted">{t("profile.likesReceived")}</div>
                     </div>
                   </div>
                 </aside>
