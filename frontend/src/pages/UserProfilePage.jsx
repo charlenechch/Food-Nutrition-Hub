@@ -1371,6 +1371,51 @@ const handleDeleteAccount = async () => {
           </div>
         ) : (
           <>
+          <div className="upp-card" style={{ margin: "0 auto 24px", maxWidth: "800px", border: "none", background: "transparent", boxShadow: "none" }}>
+            <h3 className="upp-card-title" style={{ textAlign: "center", marginBottom: "16px" }}>
+              {t("profile.badgesAndTitles", "Badges & Titles")}
+            </h3>
+            
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px" }}>
+              {TIERS.map((tier) => {
+                const currentLevel = Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3)));
+                const isUnlocked = currentLevel >= tier.minLevel;
+                const isEquipped = equippedBadge === tier.id;
+
+                return (
+                  <div key={tier.id} className={`upp-badge-container ${!isUnlocked ? "badge-locked" : ""}`}>
+                    <div 
+                      className="upp-badge-icon"
+                      style={{ 
+                          background: "transparent", 
+                          border: isEquipped ? `2px solid ${tier.color}` : "2px solid transparent",
+                          filter: !isUnlocked ? "grayscale(100%) opacity(0.3)" : "none",
+                          padding: "4px"
+                        }}
+                    >
+                      {tier.icon}
+                    </div>
+
+                    <div className="upp-badge-tooltip">
+                      <h4 style={{ color: tier.color }}>{tier.title}</h4>
+                      <p>{tier.desc}</p>
+                      {!isUnlocked && <span className="upp-locked-text">Unlocks at Level {tier.minLevel}</span>}
+
+                      {isUnlocked && !userProfileID && (
+                        <button 
+                          className={`lrp-btn ${isEquipped ? "lrp-btn-outline" : "lrp-btn-primary"} upp-equip-btn`}
+                          disabled={isEquipped}
+                          onClick={() => setEquippedBadge(tier.id)}
+                        >
+                          {isEquipped ? "Equipped" : "Equip Title"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
           {/* ===== TABS ===== */}
           <div className="upp-tabs">
             {[
@@ -1512,47 +1557,6 @@ const handleDeleteAccount = async () => {
                             </div>
                           )}
                         </div>
-                  </div>
-                  <div className="upp-card" style={{ marginTop: "16px" }}>
-                    <h3 className="upp-card-title">{t("profile.badgesAndTitles", "Badges & Titles")}</h3>
-                    <div className="upp-badges-grid">
-                      {TIERS.map((tier) => {
-                        const currentLevel = Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3)));
-                        const isUnlocked = currentLevel >= tier.minLevel;
-                        const isEquipped = equippedBadge === tier.id;
-
-                        return (
-                          <div key={tier.id} className={`upp-badge-container ${!isUnlocked ? "badge-locked" : ""}`}>
-                            <div 
-                              className="upp-badge-icon"
-                              style={{ 
-                                  background: "transparent", 
-                                  border: isEquipped ? `2px solid ${tier.color}` : "2px solid transparent",
-                                  filter: !isUnlocked ? "grayscale(100%) opacity(0.3)" : "none"
-                                }}
-                            >
-                              {tier.icon}
-                            </div>
-
-                            <div className="upp-badge-tooltip">
-                              <h4 style={{ color: tier.color }}>{tier.title}</h4>
-                              <p>{tier.desc}</p>
-                              {!isUnlocked && <span className="upp-locked-text">Unlocks at Level {tier.minLevel}</span>}
-
-                              {isUnlocked && !userProfileID && (
-                                <button 
-                                  className={`lrp-btn ${isEquipped ? "lrp-btn-outline" : "lrp-btn-primary"} upp-equip-btn`}
-                                  disabled={isEquipped}
-                                  onClick={() => setEquippedBadge(tier.id)}
-                                >
-                                  {isEquipped ? "Equipped" : "Equip Title"}
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
                   </div>
                 </div>
 
