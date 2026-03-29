@@ -124,7 +124,7 @@ const getStatusClass = (status) => {
 // GAMIFICATION: USER XP BAR COMPONENT
 const calculateLevelInfo = (totalXp, highestLevel) => {
   const safeXpForMath = Math.max(0, totalXp);
-  const naturalLevel = Math.floor(1 + Math.pow(safeXpForMath / 100, 2/3));
+  const naturalLevel = Math.floor(1 + Math.pow(safeXpForMath / 100, 2/3) + 0.0001);
   
   const displayLevel = Math.max(naturalLevel, highestLevel || 1);
 
@@ -1356,7 +1356,7 @@ const handleDeleteAccount = async () => {
 
           <UserXpBar 
             totalXp={user?.total_xp || 0} 
-            highestLevel={Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3)))} 
+            highestLevel={Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3) + 0.0001))} 
             isOwner={!userProfileID} 
           />
           </div>
@@ -1380,7 +1380,7 @@ const handleDeleteAccount = async () => {
             
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px" }}>
               {TIERS.map((tier) => {
-                const currentLevel = Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3)));
+                const currentLevel = Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3) + 0.0001));
                 const isUnlocked = currentLevel >= tier.minLevel;
                 const isEquipped = equippedBadge === tier.id;
 
