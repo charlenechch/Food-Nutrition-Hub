@@ -1203,8 +1203,6 @@ const handleDeleteAccount = async () => {
     );
   }
 
-  const camelCaseId = tier.id.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
-
   // ===== MAIN UI START =====
   return (
     <div className="user-profile-page">
@@ -1388,6 +1386,7 @@ const handleDeleteAccount = async () => {
                 const currentLevel = Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3) + 0.0001));
                 const isUnlocked = currentLevel >= tier.minLevel;
                 const isEquipped = equippedBadge === tier.id;
+                const camelCaseId = tier.id.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
 
                 return (
                   <div key={tier.id} className="upp-badge-container" style={{ cursor: !isUnlocked ? "not-allowed" : "pointer" }}>
