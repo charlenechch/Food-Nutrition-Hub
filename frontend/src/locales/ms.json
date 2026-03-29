@@ -1481,6 +1481,20 @@
   "gamification": {
     "levelUpTitle": "Naik Tahap!",
     "levelUpMessage": "Tahniah! Anda telah mencapai Tahap {{level}}. Teruskan berkongsi pengetahuan masakan anda!",
-    "levelUpBtn": "Hebat!"
+    "levelUpBtn": "Hebat!",
+    "noviceTitle": "Novis",
+    "noviceDesc": "Tahap pengenalan. Semua bermula di sini untuk belajar.",
+    "foodieTitle": "Kaki Makan",
+    "foodieDesc": "Anda telah mengumpul 800 XP dan mula arif dengan komuniti ini!",
+    "nutritionEnthusiastTitle": "Peminat Nutrisi",
+    "nutritionEnthusiastDesc": "Halangan utama pertama. Membuktikan anda tidak hanya mendaftar akaun lalu dibiarkan.",
+    "nutritionScholarTitle": "Ilmuwan Nutrisi",
+    "nutritionScholarDesc": "Pengguna harian utama. Mencapai tahap ini memerlukan penglibatan tulen yang konsisten.",
+    "nutritionExpertTitle": "Pakar Nutrisi",
+    "nutritionExpertDesc": "Ahli komuniti yang amat dihormati. Komen dan resipi anda dipandang tinggi.",
+    "culinaryMasterTitle": "Pakar Kulinari",
+    "culinaryMasterDesc": "Pengguna hebat. Anda berkemungkinan besar memacu peratusan besar kandungan kami.",
+    "culinaryLegendTitle": "Legenda Kulinari",
+    "culinaryLegendDesc": "Kemuncak SarawakEats. Seorang legenda mutlak."
   }
 }

@@ -1202,6 +1202,8 @@ const handleDeleteAccount = async () => {
       </div>
     );
   }
+  
+  const camelCaseId = tier.id.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
 
   // ===== MAIN UI START =====
   return (
@@ -1402,8 +1404,12 @@ const handleDeleteAccount = async () => {
                     </div>
 
                     <div className="upp-badge-tooltip">
-                      <h4 style={{ color: tier.color }}>{tier.title}</h4>
-                      <p>{tier.desc}</p>
+                      <h4 style={{ color: tier.color }}>
+                        {t(`gamification.${camelCaseId}Title`)}
+                      </h4>
+                      <p>
+                        {t(`gamification.${camelCaseId}Desc`)}
+                      </p>
                       {!isUnlocked && <span className="upp-locked-text">Unlocks at Level {tier.minLevel}</span>}
 
                       {isUnlocked && !userProfileID && (
