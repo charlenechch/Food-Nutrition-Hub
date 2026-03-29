@@ -1371,10 +1371,12 @@ const handleDeleteAccount = async () => {
           </div>
         ) : (
           <>
-          <div className="upp-card" style={{ margin: "0 auto 24px", maxWidth: "800px", border: "none", background: "transparent", boxShadow: "none" }}>
-            <h3 className="upp-card-title" style={{ textAlign: "center", marginBottom: "16px" }}>
-              {t("profile.badgesAndTitles", "Badges & Titles")}
-            </h3>
+          <div className="xp-bar-container" style={{ marginBottom: "24px", marginTop: "16px" }}>
+            <div className="xp-bar-header" style={{ justifyContent: "center", marginBottom: "20px" }}>
+              <h3 style={{ margin: 0, color: "#6a4a2f", fontSize: "1.1rem", fontWeight: "700" }}>
+                {t("profile.badgesAndTitles", "Badges & Titles")}
+              </h3>
+            </div>
             
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px" }}>
               {TIERS.map((tier) => {
