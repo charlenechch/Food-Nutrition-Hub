@@ -1385,7 +1385,7 @@ const handleDeleteAccount = async () => {
                 const isEquipped = equippedBadge === tier.id;
 
                 return (
-                  <div key={tier.id} className={`upp-badge-container ${!isUnlocked ? "badge-locked" : ""}`}>
+                  <div key={tier.id} className="upp-badge-container" style={{ cursor: !isUnlocked ? "not-allowed" : "pointer" }}>
                     <div 
                       className="upp-badge-icon"
                       style={{ 
