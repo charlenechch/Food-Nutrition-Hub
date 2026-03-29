@@ -1333,7 +1333,31 @@
   margin-left: 12px;
   vertical-align: middle;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  cursor: help;
+  cursor: default;
+  position: relative;
+}
+
+.upp-mini-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #eadfd3;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 100;
+  pointer-events: none;
+}
+
+.upp-equipped-badge:hover .upp-mini-tooltip {
+  display: block;
+  animation: fadeIn 0.2s ease-in-out;
 }
 
 .upp-badges-grid {
