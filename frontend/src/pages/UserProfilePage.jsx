@@ -1409,7 +1409,11 @@ const handleDeleteAccount = async () => {
                       <p>
                         {t(`gamification.${camelCaseId}Desc`)}
                       </p>
-                      {!isUnlocked && <span className="upp-locked-text">Unlocks at Level {tier.minLevel}</span>}
+                      {!isUnlocked && (
+                        <span className="upp-locked-text">
+                          {t("gamification.unlocksAtLevel", { level: tier.minLevel })}
+                        </span>
+                      )}
 
                       {isUnlocked && !userProfileID && (
                         <button 
@@ -1417,7 +1421,7 @@ const handleDeleteAccount = async () => {
                           disabled={isEquipped}
                           onClick={() => setEquippedBadge(tier.id)}
                         >
-                          {isEquipped ? "Equipped" : "Equip Title"}
+                          {isEquipped ? t("gamification.equipped") : t("gamification.equipTitle")}
                         </button>
                       )}
                     </div>

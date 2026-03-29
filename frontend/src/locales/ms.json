@@ -1496,6 +1496,9 @@
     "culinaryMasterDesc": "Pengguna hebat. Anda berkemungkinan besar memacu peratusan besar kandungan kami.",
     "culinaryLegendTitle": "Legenda Kulinari",
     "culinaryLegendDesc": "Kemuncak SarawakEats. Seorang legenda mutlak.",
-    "badgesAndTitles": "Lencana & Gelaran"
+    "badgesAndTitles": "Lencana & Gelaran",
+    "unlocksAtLevel": "Terbuka pada Tahap {{level}}",
+    "equipped": "Telah Dipakai",
+    "equipTitle": "Pakai Gelaran"
   }
 }

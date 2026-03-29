@@ -1496,6 +1496,9 @@
     "culinaryMasterDesc": "The power users. You are likely driving a huge percentage of our content.",
     "culinaryLegendTitle": "Culinary Legend",
     "culinaryLegendDesc": "The pinnacle of SarawakEats. An absolute legend.",
-    "badgesAndTitles": "Badges & Titles"
+    "badgesAndTitles": "Badges & Titles",
+    "unlocksAtLevel": "Unlocks at Level {{level}}",
+    "equipped": "Equipped",
+    "equipTitle": "Equip Title"
   }
 }   
