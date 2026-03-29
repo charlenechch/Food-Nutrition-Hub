@@ -1202,7 +1202,7 @@ const handleDeleteAccount = async () => {
       </div>
     );
   }
-  
+
   const camelCaseId = tier.id.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
 
   // ===== MAIN UI START =====
@@ -1379,7 +1379,7 @@ const handleDeleteAccount = async () => {
           <div className="xp-bar-container" style={{ marginBottom: "24px", marginTop: "16px" }}>
             <div className="xp-bar-header" style={{ justifyContent: "center", marginBottom: "20px" }}>
               <h3 style={{ margin: 0, color: "#6a4a2f", fontSize: "1.1rem", fontWeight: "700" }}>
-                {t("profile.badgesAndTitles", "Badges & Titles")}
+                {t("gamification.badgesAndTitles")}
               </h3>
             </div>
             
