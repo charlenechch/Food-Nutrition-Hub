@@ -1744,4 +1744,83 @@ router.post('/publishRecipe/:id', async (req, res) => {
   }
 });
 
+// ==========================================
+// ⭐️ POST: RATE A RECIPE (1-5 Stars)
+// ==========================================
+router.post("/:id/rate", async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ success: false, message: "Must be logged in to rate." });
+    }
+
+    const recipeID = req.params.id;
+    const { rating } = req.body; // Expected to be 1, 2, 3, 4, or 5
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
+    }
+
+    // 1. Get the Rater's Profile ID
+    const likerUserID = req.session.user.userID;
+    const [likerProfile] = await db.query("SELECT userProfileID FROM userProfile WHERE userID = ?", [likerUserID]);
+    
+    if (likerProfile.length === 0) {
+        return res.status(404).json({ success: false, message: "User profile not found." });
+    }
+    const raterProfileID = likerProfile[0].userProfileID;
+
+    // 2. Get the Recipe Author's Profile ID
+    const [recipeRows] = await db.query("SELECT userProfileID FROM recipe WHERE recipeID = ?", [recipeID]);
+    if (recipeRows.length === 0) {
+      return res.status(404).json({ success: false, message: "Recipe not found." });
+    }
+    const authorProfileID = recipeRows[0].userProfileID;
+
+    // 3. Check if the user has ALREADY rated this recipe
+    const [existingRating] = await db.query(
+      "SELECT id FROM recipe_ratings WHERE recipeID = ? AND userProfileID = ?",
+      [recipeID, raterProfileID]
+    );
+
+    // 4. Save or Update the Rating in the database
+    await db.query(
+      `INSERT INTO recipe_ratings (recipeID, userProfileID, rating) 
+       VALUES (?, ?, ?) 
+       ON DUPLICATE KEY UPDATE rating = ?`,
+      [recipeID, raterProfileID, rating, rating]
+    );
+
+    // 5. Award XP (Only if it's their FIRST time rating this recipe AND they aren't rating their own recipe)
+    if (existingRating.length === 0 && raterProfileID !== authorProfileID) {
+      await db.query(
+        `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
+         VALUES (?, 'RECIPE_RATED', ?, 2)`,
+        [authorProfileID, recipeID]
+      );
+      await db.query(
+        `UPDATE userProfile SET total_xp = COALESCE(total_xp, 0) + 2 WHERE userProfileID = ?`,
+        [authorProfileID]
+      );
+      console.log(`⭐ Recipe Rated: Awarded 2 XP to Author ${authorProfileID}`);
+    }
+
+    // 6. Calculate the new Average Rating to send back to React
+    const [avgResult] = await db.query(
+      "SELECT ROUND(AVG(rating), 1) as avgRating, COUNT(*) as totalRatings FROM recipe_ratings WHERE recipeID = ?",
+      [recipeID]
+    );
+
+    res.json({ 
+      success: true, 
+      message: "Rating saved!", 
+      avgRating: avgResult[0].avgRating || rating,
+      totalRatings: avgResult[0].totalRatings || 1
+    });
+
+  } catch (error) {
+    console.error("❌ Error rating recipe:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 module.exports = router;

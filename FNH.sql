@@ -229,3 +229,14 @@ CREATE TABLE xp_logs (
 );
 
 ALTER TABLE userProfile ADD COLUMN total_xp INT DEFAULT 0;
+
+CREATE TABLE recipe_ratings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    recipeID INT NOT NULL,
+    userProfileID INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_user_recipe (recipeID, userProfileID),
+    FOREIGN KEY (recipeID) REFERENCES recipe(recipeID) ON DELETE CASCADE,
+    FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON DELETE CASCADE
+);
