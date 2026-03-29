@@ -1374,14 +1374,14 @@ const handleDeleteAccount = async () => {
           </div>
         ) : (
           <>
-          <div className="xp-bar-container" style={{ marginBottom: "24px", marginTop: "16px" }}>
-            <div className="xp-bar-header" style={{ justifyContent: "center", marginBottom: "20px" }}>
-              <h3 style={{ margin: 0, color: "#6a4a2f", fontSize: "1.1rem", fontWeight: "700" }}>
+          <div className="xp-bar-container upp-xp-bar-container">
+            <div className="xp-bar-header upp-xp-header">
+              <h3 className = "upp-xp-h3">
                 {t("gamification.badgesAndTitles")}
               </h3>
             </div>
             
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px" }}>
+            <div className = "xp-tiers-container">
               {TIERS.map((tier) => {
                 const currentLevel = Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3) + 0.0001));
                 const isUnlocked = currentLevel >= tier.minLevel;
@@ -1834,7 +1834,7 @@ const handleDeleteAccount = async () => {
                         {id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                       </label>
                     ))}
-                    {prefs.allergies.length === 0 && <div className="upp-muted" style={{ marginTop: 8 }}>{t("profile.noAllergies")}</div>}
+                    {prefs.allergies.length === 0 && <div className="upp-muted upp-muted3">{t("profile.noAllergies")}</div>}
                   </div>
                 </div>
 

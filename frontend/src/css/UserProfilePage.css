@@ -1453,3 +1453,31 @@
   height: 15px; 
   background: transparent;
 }
+
+.upp-xp-bar-container {
+  margin-bottom: 24px;
+  margin-top: 16px;
+}
+
+.upp-xp-header {
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.upp-xp-h3 {
+  margin: 0;
+  color: #6a4a2f;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.xp-tiers-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+
+.upp-muted3 {
+  margin-top: 8px;
+}
