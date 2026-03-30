@@ -204,6 +204,17 @@ const authLimiter = rateLimit({
   }
 });
 
+const otpLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many OTP attempts. Please request a new code."
+  }
+});
+
 // ---------- Sessions ----------
 // ✅ FIXED: Passing existing database pool 'db' to prevent ECONNRESET
 const sessionStore = new MySQLStore({
@@ -282,6 +293,7 @@ app.use("/api/logout", logoutRoutes);
 app.use("/api/verifyEmail", verifyEmailRoute);
 app.use("/api/resendVerification", resendVerificationRoute);
 app.use("/api/auth", authRoutes);
+app.use("/api/otp/verifyLogin", otpLimiter);
 app.use("/api/otp", otpRoutes);
 app.use("/api/exploreFood", hppProtect({ policy: "first", allowlist: ["q", "page", "sort"] }), exploreFoodRoutes);
 app.use("/api/foodDetail", foodDetailRoutes);
