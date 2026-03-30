@@ -536,6 +536,8 @@ export default function LoginRegisterPage() {
                     <p className="mh-otp-label">
                       {t("auth.codeSentTo")} <strong>{email}</strong>
                     </p>
+
+                    {loginError && <div className="mh-error-msg">{loginError}</div>}
                     
                     <div className="mh-otp-input-wrapper">
                       <input 
