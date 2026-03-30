@@ -262,86 +262,98 @@ return {
 
 // GET single recipe by ID  
 router.get('/recipes/:id', async (req, res) => {
-try {
-  const { id } = req.params;
-  console.log('Fetching recipe for ID (Recipe or Food):', id); 
-  
-  // FIXED: Changed the WHERE clause to check BOTH recipeID and foodID.
-  // Added ORDER BY to ensure it grabs the newest submission if there are multiple.
-  const query = `
-    SELECT 
-      f.foodID AS foodId,  
-      r.recipeID AS recipeID,   
-      f.name, 
-      f.origin, 
-      f.difficulty, 
-      f.prepTime, 
-      f.image, 
-      r.description, 
-      f.category,
-      f.dietaryTags,
-      r.cookTime, 
-      r.servings, 
-      r.ingredients, 
-      r.steps AS instructions, 
-      r.DidYouKnow AS funFact, 
-      r.chefTips,
-      r.status,
-      r.admin_feedback,
-      CONCAT(u.firstname, ' ', u.lastname) AS authorName,
-      u.email AS authorEmail
-    FROM recipe r  
-    LEFT JOIN food f ON r.foodID = f.foodID  
-    LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
-    LEFT JOIN user u ON up.userID = u.userID
-    WHERE r.recipeID = ? OR f.foodID = ?
-    ORDER BY r.createdAt DESC
-    LIMIT 1
-  `;
-  
-  // Pass the ID twice so it checks both conditions
-  const [rows] = await db.query(query, [id, id]);  
-  
-  if (!rows || rows.length === 0) {
-    return res.status(404).json({ error: 'Recipe not found' });
+  try {
+    const { id } = req.params;
+    console.log('Fetching recipe for ID (Recipe or Food):', id); 
+
+    // 1. Identify if user is logged in to fetch their specific yellow stars
+    let viewerProfileID = null;
+    if (req.session && req.session.user) {
+      const [profileRows] = await db.query("SELECT userProfileID FROM userProfile WHERE userID = ?", [req.session.user.userID]);
+      if (profileRows.length > 0) viewerProfileID = profileRows[0].userProfileID;
+    }
+    
+    // 2. Updated SQL Query
+    const query = `
+      SELECT 
+        f.foodID AS foodId,  
+        r.recipeID AS recipeID,   
+        f.name, 
+        f.origin, 
+        f.difficulty, 
+        f.prepTime, 
+        f.image, 
+        r.description, 
+        f.category,
+        f.dietaryTags,
+        r.cookTime, 
+        r.servings, 
+        r.ingredients, 
+        r.steps AS instructions, 
+        r.DidYouKnow AS funFact, 
+        r.chefTips,
+        r.status,
+        r.admin_feedback,
+        CONCAT(u.firstname, ' ', u.lastname) AS authorName,
+        u.email AS authorEmail,
+        (SELECT COALESCE(ROUND(AVG(rating), 1), 0) FROM recipe_ratings WHERE recipeID = r.recipeID) AS avgRating,
+        (SELECT COUNT(ratingID) FROM recipe_ratings WHERE recipeID = r.recipeID) AS totalRatings,
+        (SELECT rating FROM recipe_ratings WHERE recipeID = r.recipeID AND userProfileID = ?) AS userRating
+      FROM recipe r  
+      LEFT JOIN food f ON r.foodID = f.foodID  
+      LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
+      LEFT JOIN user u ON up.userID = u.userID
+      WHERE r.recipeID = ? OR f.foodID = ?
+      ORDER BY r.createdAt DESC
+      LIMIT 1
+    `;
+    
+    // Pass the viewer ID first, then the recipe/food ID twice
+    const [rows] = await db.query(query, [viewerProfileID, id, id]);  
+    
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ error: 'Recipe not found' });
+    }
+    
+    const row = rows[0];
+    
+    const recipe = {
+      id: row.recipeID,  
+      foodId: row.foodID,
+      name: row.name || '',
+      origin: row.origin || '',
+      difficulty: row.difficulty || 'Easy',
+      prepTime: row.prepTime || 0,
+      cookTime: row.cookTime || 0,
+      servings: row.servings || 0,
+      image: row.image || '',
+      description: row.description || '',
+      category: row.category || 'Other',
+      dietaryTags: row.dietaryTags
+        ? (typeof row.dietaryTags === 'string'
+            ? row.dietaryTags.split(',').map(tag => tag.trim()).filter(tag => tag)
+            : [])
+        : [],
+      ingredients: row.ingredients || '',
+      instructions: row.instructions || '',
+      funFact: row.funFact || '',
+      chefTips: row.chefTips || '',
+      status: row.status || 'Unknown',
+      adminFeedback: row.admin_feedback || '',
+      authorName: row.authorName || 'Unknown Author',
+      authorEmail: row.authorEmail || 'N/A',
+      createdAt: row.createdAt,
+      avgRating: row.avgRating || 0,
+      totalRatings: row.totalRatings || 0,
+      userRating: row.userRating || 0
+    };
+    
+    res.json(recipe);
+    
+  } catch (error) {
+    console.error('Error fetching recipe:', error);
+    res.status(500).json({ error: error.message });
   }
-  
-  const row = rows[0];
-  
-  const recipe = {
-    id: row.recipeID,  
-    foodId: row.foodID,
-    name: row.name || '',
-    origin: row.origin || '',
-    difficulty: row.difficulty || 'Easy',
-    prepTime: row.prepTime || 0,
-    cookTime: row.cookTime || 0,
-    servings: row.servings || 0,
-    image: row.image || '',
-    description: row.description || '',
-    category: row.category || 'Other',
-    dietaryTags: row.dietaryTags
-      ? (typeof row.dietaryTags === 'string'
-          ? row.dietaryTags.split(',').map(tag => tag.trim()).filter(tag => tag)
-          : [])
-      : [],
-    ingredients: row.ingredients || '',
-    instructions: row.instructions || '',
-    funFact: row.funFact || '',
-    chefTips: row.chefTips || '',
-    status: row.status || 'Unknown',
-    adminFeedback: row.admin_feedback || '',
-    authorName: row.authorName || 'Unknown Author',
-    authorEmail: row.authorEmail || 'N/A',
-    createdAt: row.createdAt
-  };
-  
-  res.json(recipe);
-  
-} catch (error) {
-  console.error('Error fetching recipe:', error);
-  res.status(500).json({ error: error.message });
-}
 });
 
 // POST new recipe 

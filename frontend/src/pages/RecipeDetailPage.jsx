@@ -409,6 +409,7 @@ export default function RecipeDetailPage() {
                         initialAvg={recipe.avgRating || 0} 
                         initialCount={recipe.totalRatings || 0} 
                         csrfToken={csrfToken}
+                        initialUserRating={recipe.userRating || 0}
                       />
 
                       <div className="rdp-badges" style={{ marginTop: '8px', marginBottom: '0' }}>
