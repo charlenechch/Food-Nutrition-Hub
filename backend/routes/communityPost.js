@@ -1257,14 +1257,13 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
       }
       await createNotification(userID, "post_approved", `Your community story "${foodName}" has been approved and is now live on SarawakEats!`, db);
       console.log(`🔔 Post approval notification created for userID: ${userID}`);
+
+      const adminID = req.session.user.userID;
+      const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+      await logActivity(db, adminID, adminName, "post_approved", `Approved community post "${foodName}" (Post ID: ${id}).`);
     }
 
     console.log(`✅ [ADMIN] Post ${id} approved successfully.`);
-
-    const adminID = req.session.user.userID;
-    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-    const logFoodName = rows.length > 0 ? rows[0].foodName : `Post ID ${id}`;
-    await logActivity(db, adminID, adminName, "post_approved", `Approved community post "${foodName}" (Post ID: ${id}).`);
 
     res.json({ success: true, message: "Post approved successfully." });
   } catch (err) {
