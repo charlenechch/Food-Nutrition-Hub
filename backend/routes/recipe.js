@@ -1124,25 +1124,34 @@ router.patch('/updateStatus/:id', async (req, res) => {
           await updateUserStats(userID);
 
           // 2. --- NEW XP TRIGGER LOGIC ---
-          // Only award points if the status being passed in is "Approved"
           if (status === "Approved") {
             try {
-              // Write the receipt to the history log
-              await db.query(
-                `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
-                 VALUES (?, 'RECIPE_APPROVED', ?, 100)`,
+              // GUARD: Check if XP was already awarded for this specific recipe
+              const [existingXp] = await db.query(
+                `SELECT id FROM xp_logs WHERE userProfileID = ? AND action_type = 'RECIPE_APPROVED' AND reference_id = ?`,
                 [userProfileID, actualRecipeID]
               );
 
-              // Update the user's total bank balance
-              await db.query(
-                `UPDATE userProfile 
-                 SET total_xp = COALESCE(total_xp, 0) + 100 
-                 WHERE userProfileID = ?`,
-                [userProfileID]
-              );
-              
-              console.log(`✅ Awarded 100 XP to userProfileID ${userProfileID} for recipe ${actualRecipeID}`);
+              if (existingXp.length === 0) {
+                // Write the receipt to the history log
+                await db.query(
+                  `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
+                   VALUES (?, 'RECIPE_APPROVED', ?, 100)`,
+                  [userProfileID, actualRecipeID]
+                );
+
+                // Update the user's total bank balance
+                await db.query(
+                  `UPDATE userProfile 
+                   SET total_xp = COALESCE(total_xp, 0) + 100 
+                   WHERE userProfileID = ?`,
+                  [userProfileID]
+                );
+                
+                console.log(`✅ Awarded 100 XP to userProfileID ${userProfileID} for recipe ${actualRecipeID}`);
+              } else {
+                console.log(`⚠️ Skipped XP: User already received XP for recipe ${actualRecipeID}`);
+              }
             } catch (xpError) {
               console.error("❌ Failed to award XP:", xpError);
             }
@@ -1717,24 +1726,33 @@ router.post('/publishRecipe/:id', async (req, res) => {
       const { userID, email, firstname, recipeName } = rows[0];
       
       // --- NEW XP TRIGGER FOR FINAL PUBLISH (+100 XP) ---
-      const [profileResult] = await db.query("SELECT userProfileID FROM userProfile WHERE userID = ?", [userID]);
+      const [profileResult] = await db.query("SELECT userProfileID, recipeID FROM recipe WHERE userID = ? AND foodID = ?", [userID, recipeId]);
+      
       if (profileResult.length > 0) {
           const userProfileID = profileResult[0].userProfileID;
+          const actualRecipeID = profileResult[0].recipeID; // Use actual recipe ID, not foodID!
           
           try {
-            await db.query(
-              `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
-               VALUES (?, 'RECIPE_APPROVED', ?, 100)`,
-              [userProfileID, recipeId]
+            const [existingXp] = await db.query(
+              `SELECT id FROM xp_logs WHERE userProfileID = ? AND action_type = 'RECIPE_APPROVED' AND reference_id = ?`,
+              [userProfileID, actualRecipeID]
             );
 
-            await db.query(
-              `UPDATE userProfile 
-               SET total_xp = COALESCE(total_xp, 0) + 100 
-               WHERE userProfileID = ?`,
-              [userProfileID]
-            );
-            console.log(`✅ Awarded 100 XP to userProfileID ${userProfileID} for published recipe ${recipeId}`);
+            if (existingXp.length === 0) {
+              await db.query(
+                `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
+                 VALUES (?, 'RECIPE_APPROVED', ?, 100)`,
+                [userProfileID, actualRecipeID]
+              );
+
+              await db.query(
+                `UPDATE userProfile 
+                 SET total_xp = COALESCE(total_xp, 0) + 100 
+                 WHERE userProfileID = ?`,
+                [userProfileID]
+              );
+              console.log(`✅ Awarded 100 XP to userProfileID ${userProfileID} for published recipe ${actualRecipeID}`);
+            }
           } catch (xpError) {
             console.error("❌ Failed to award XP on publish:", xpError);
           }

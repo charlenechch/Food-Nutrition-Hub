@@ -1404,6 +1404,30 @@ router.post("/sendDeletionOTP", async (req, res) => {
   }
 });
 
+// Acknowledge Level Up
+router.put("/acknowledge-level", async (req, res) => {
+  if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
+  
+  const { newLevel } = req.body;
+  const userID = req.session.user.userID;
+
+  try {
+    await db.execute(
+      "UPDATE userProfile SET acknowledged_level = ? WHERE userID = ?",
+      [newLevel, userID]
+    );
+    
+    // Update the active session
+    req.session.user.acknowledged_level = newLevel;
+    req.session.save();
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error updating acknowledged level:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 module.exports = router;
 module.exports.deleteUser = deleteUser;
 module.exports.updateUserStats = updateUserStats;
