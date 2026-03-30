@@ -139,10 +139,10 @@ router.post("/login", async (req, res) => {
     let total_xp = 0;
     if (profiles.length === 0) {
       const [result] = await db.execute(
-        `INSERT INTO userProfile (userID, firstname, lastname)
-         VALUES (?, ?, ?)`,
-        [user.userID, user.firstname || "", user.lastname || ""]
-      );
+  `INSERT INTO userProfile (userID, firstname, lastname)
+   VALUES (?, ?, ?)`,
+  [user.userID, user.firstname || "", user.lastname || ""]
+);
       userProfileID = result.insertId;
     } else {
       userProfileID = profiles[0].userProfileID;
