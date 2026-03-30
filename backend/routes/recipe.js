@@ -1150,6 +1150,45 @@ router.patch('/updateStatus/:id', async (req, res) => {
           // --- END OF NEW XP LOGIC ---
       }
 
+      // APPROVED Logic
+      if (status === "Approved") {
+        const approvalEmailEnabled = await isEmailNotificationsEnabled(userID, db);
+        if (approvalEmailEnabled) {
+            const approvedHTML = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                <div style="background-color: #28a745; padding: 20px; text-align: center;">
+                  <h1 style="color: #fff; margin: 0;">Recipe Approved!</h1>
+                </div>
+                <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+                  <h2 style="color: #28a745;">Great news, ${firstname}!</h2>
+                  <p>Your recipe <strong>"${recipeName}"</strong> has been reviewed and approved by our team.</p>
+
+                  <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p style="margin: 0;">It is now live on SarawakEats for the whole community to enjoy!</p>
+                  </div>
+
+                  <p><a href="https://sarawakeats.site/recipes">View Recipes</a></p>
+
+                  <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                    Best regards,<br>The SarawakEats Team
+                  </p>
+                </div>
+              </div>
+            `;
+            sendEmail({
+              to: email,
+              subject: "🎉 Your Recipe Has Been Approved!",
+              html: approvedHTML,
+              text: `Your recipe "${recipeName}" has been approved and is now live on SarawakEats!`
+            });
+            console.log(`📩 Recipe approval email sent to ${email}`);
+        } else {
+            console.log(`📭 Recipe approval email skipped (notifications disabled) for userID: ${userID}`);
+        }
+        await createNotification(userID, "recipe_approved", `Your recipe "${recipeName}" has been approved and is now live on SarawakEats!`, db);
+        console.log(`🔔 Approval notification created for userID: ${userID}`);
+      }
+
       // REJECTED Logic
       if (status === "Rejected") {
         
