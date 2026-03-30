@@ -1263,6 +1263,7 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
 
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    const logFoodName = rows.length > 0 ? rows[0].foodName : `Post ID ${id}`;
     await logActivity(db, adminID, adminName, "post_approved", `Approved community post "${foodName}" (Post ID: ${id}).`);
 
     res.json({ success: true, message: "Post approved successfully." });
