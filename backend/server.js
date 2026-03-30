@@ -91,6 +91,7 @@ app.set("trust proxy", 1);
 app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
+    hidePoweredBy: true,
   })
 );
 
@@ -118,6 +119,7 @@ app.use(
         "https://food-nutrition-hub-production.up.railway.app",
         "https://sarawakeats.site",
         "https://www.sarawakeats.site",
+        "https://api.sarawakeats.site",
         "https://places.googleapis.com",
         process.env.INFERENCE_URL?.replace(/(https?:\/\/[^/]+).*/, "$1"),
       ],
@@ -311,7 +313,7 @@ app.use((err, req, res, next) => {
     return res.status(403).json({ error: "Invalid CSRF token" });
   }
   logger.error("Internal Server Error", { message: err.message, stack: err.stack, path: req.path, method: req.method });
-  res.status(err.status || 500).json({ error: err.status === 500 ? "Internal Server Error" : err.message });
+  res.status(err.status || 500).json({ error: "An unexpected error occurred." });
 });
 
 app.listen(PORT, () => {
