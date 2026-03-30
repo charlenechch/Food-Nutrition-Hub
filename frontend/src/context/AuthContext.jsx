@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
     // Calculate the level based on their XP!
     // This formula makes each level progressively harder to reach
     const xp = raw.total_xp || 0;
-    const calculatedLevel = Math.max(1, Math.floor(1 + Math.pow(xp / 100, 2/3)));
+    const calculatedLevel = Math.max(1, Math.floor(1 + Math.pow(xp / 100, 2/3) + 0.0001));
 
     return {
       ...raw,

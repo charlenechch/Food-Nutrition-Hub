@@ -138,11 +138,13 @@ router.post("/login", async (req, res) => {
     let userProfileID;
     let total_xp = 0;
     if (profiles.length === 0) {
-      const [result] = await db.execute(
-        `INSERT INTO userProfile (userID, firstname, lastname)
-         VALUES (?, ?, ?)`,
-        [user.userID, user.firstname || "", user.lastname || ""]
-      );
+      // In auth.js
+const [result] = await db.execute(
+  `INSERT INTO userProfile 
+   (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, total_xp) 
+   VALUES (?, '[]', '[]', true, true, true, 'en', 0)`,
+  [user.userID]
+);
       userProfileID = result.insertId;
     } else {
       userProfileID = profiles[0].userProfileID;
