@@ -91,9 +91,9 @@ function FetchInterceptorSetup() {
     return () => {
       window.fetch = originalFetch;
     };
-  }, [user, forceLogout]); // Re-run if user or logout function changes
+  }, [user, forceLogout]); 
 
-  return null; // This component renders nothing visually
+  return null; 
 }
 
 function AxiosInterceptorSetup() {
@@ -107,22 +107,18 @@ function AxiosInterceptorSetup() {
     // Add response interceptor
     const interceptor = axios.interceptors.response.use(
       (response) => {
-        // If response is successful, return it as-is
         return response;
       },
       (error) => {
-        // If 401 Unauthorized, the session is invalid (user suspended or logged out)
+        // If 401 Unauthorized, the session is invalid
         if (error.response?.status === 401) {
           console.log("🔒 Session invalid or user suspended - Logging out via forceLogout");
           forceLogout();
         }
-        
-        // Pass the error forward so individual components can handle it if needed
         return Promise.reject(error);
       }
     );
 
-    // Cleanup: remove interceptor when component unmounts
     return () => {
       axios.interceptors.response.eject(interceptor);
     };
@@ -142,8 +138,6 @@ function SessionChecker() {
 
   // Active Polling
   useEffect(() => {
-    // Stop if a guest or not logged in. 
-    // Guests don't need to be polled (don't want to kick them out).
     if (!user || user.role === "guest") return;
 
     // Run checkSession every 60 seconds
@@ -152,9 +146,8 @@ function SessionChecker() {
       checkSession(); 
     }, 60000);
 
-    // Cleanup the timer when component unmounts or user logs out
     return () => clearInterval(interval);
-  }, [user?.role]); // Only restart the timer if the user's role changes
+  }, [user?.role]); 
 
   return null;
 }
@@ -189,31 +182,33 @@ function LevelUpOverlays() {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    // 1. Make sure we have a real user (not a guest) with a level property
+    // 1. Make sure we have a real user with a calculated level
     if (user && user.role !== "guest" && user.level) {
-      const storageKey = `last_seen_level_${user._id}`;
+      // 2. Use user.userID, NOT user._id
+      const storageKey = `last_seen_level_${user.userID}`; 
       const savedLevel = localStorage.getItem(storageKey);
       
-      // 2. If we have a saved level, and their current level is higher, they leveled up!
+      // 3. Compare current level to saved level
       if (savedLevel && user.level > parseInt(savedLevel, 10)) {
-        setShowModal(true);
+        setShowModal(true); 
+      } else if (!savedLevel) {
+        // If they are brand new to this system, silently save their starting level
+        localStorage.setItem(storageKey, user.level);
       }
-
-      // 3. Always update localStorage so we know their baseline for next time
-      localStorage.setItem(storageKey, user.level);
     }
-  }, [user]); // This runs every time the 'user' object from AuthContext changes
+  }, [user]);
 
   if (!user || user.role === "guest") return null;
 
   const handleDismiss = () => {
     setShowModal(false); 
-    console.log(`Frontend: User acknowledged reaching Level ${user.level}!`);
+    // 4. Save the new level ONLY AFTER they click dismiss, so it doesn't pop up again
+    localStorage.setItem(`last_seen_level_${user.userID}`, user.level);
   };
 
   return (
     <LevelUpModal 
-      totalXp={user.totalXp || 0} 
+      totalXp={user.total_xp || 0} 
       highestLevelAchieved={user.level || 1} 
       hasUnseenLevelUp={showModal} 
       onDismiss={handleDismiss}
