@@ -5,7 +5,7 @@ const ALL_PUBLIC_PATHS = [
   '/loginregister', '/auth/action', '/verifyemail',
   '/forgotpassword', '/resetpassword', '/otpverification',
   '/', '/home', '/foods', '/analyzer', '/recipes', '/community', 
-  '/privacypolicy', '/terms', '/profile', '/map'
+  '/privacypolicy', '/terms', '/profile'
 ];
 
 const AuthContext = createContext();
@@ -30,12 +30,6 @@ export function AuthProvider({ children }) {
 
   const normalizeUser = useCallback((raw) => {
     if (!raw) return null;
-    
-    // Calculate the level based on their XP!
-    // This formula makes each level progressively harder to reach
-    const xp = raw.total_xp || 0;
-    const calculatedLevel = Math.max(1, Math.floor(1 + Math.pow(xp / 100, 2/3) + 0.0001));
-
     return {
       ...raw,
       userID: raw.userID ?? raw.id ?? null,
@@ -46,8 +40,6 @@ export function AuthProvider({ children }) {
       firstname: raw.firstname ?? raw.firstName ?? null,
       lastname: raw.lastname ?? raw.lastName ?? null,
       viewMode: raw.viewMode || raw.role || "member",
-      total_xp: xp,
-      level: calculatedLevel // Now the rest of the app knows their level!
     };
   }, []);
 

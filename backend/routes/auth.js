@@ -6,9 +6,10 @@ const { sendEmail } = require("../config/mailer");
 const { CURRENT_POLICY_VERSION, POLICY_LAST_UPDATED_EN, POLICY_LAST_UPDATED_MS } = require('../config/policyVersion');
 
 // Parse JSON Bodies
+// This middleware must come before your routes to parse req.body
 router.use(express.json());
 
-// Session Check (Supports Guests + Verifies Suspension + Grabs Fresh XP)
+// Session Check (Supports Guests + Verifies Suspension)
 router.get("/session", async (req, res) => {
   if (!req.session || !req.session.user) {
     return res.status(401).json({
@@ -19,12 +20,10 @@ router.get("/session", async (req, res) => {
   }
 
   try {
-    // ✅ THE FIX: Join userProfile to grab the fresh total_xp from the database!
+    // Query DB to ensure user isn't suspended/deleted
+    // Query the 'user' table using the ID stored in the session
     const [rows] = await db.execute(
-      `SELECT u.userID, u.role, u.status, u.suspendedUntil, up.total_xp, up.acknowledged_level 
-       FROM user u 
-       LEFT JOIN userProfile up ON u.userID = up.userID 
-       WHERE u.userID = ?`,
+      "SELECT userID, role, status, suspendedUntil FROM user WHERE userID = ?",
       [req.session.user.userID]
     );
 
@@ -43,6 +42,7 @@ router.get("/session", async (req, res) => {
       // Kill the session immediately
       req.session.destroy((err) => {
         if (err) console.error("Session destroy error:", err);
+        // Return 401 so the frontend interceptor catches it
         return res.status(401).json({ 
           authenticated: false, 
           message: "Account suspended",
@@ -52,10 +52,6 @@ router.get("/session", async (req, res) => {
       return;
     }
 
-    // ✅ THE FIX: Inject the fresh XP into the session before sending to React!
-    req.session.user.total_xp = user.total_xp || 0;
-    req.session.user.acknowledged_level = user.acknowledged_level || 1;
-
     // If safe, return the session data
     return res.status(200).json({
       authenticated: true,
@@ -64,6 +60,7 @@ router.get("/session", async (req, res) => {
 
   } catch (err) {
     console.error("Session validation error:", err);
+    // If DB fails, returning 500 is safer than letting them stay logged in
     return res.status(500).json({ authenticated: false, message: "Server error" });
   }
 });
@@ -132,27 +129,20 @@ router.post("/login", async (req, res) => {
     }
 
     const [profiles] = await db.execute(
-      `SELECT userProfileID, total_xp FROM userProfile WHERE userID = ?`,
+      `SELECT userProfileID FROM userProfile WHERE userID = ?`,
       [user.userID]
     );
 
     let userProfileID;
-    let total_xp = 0;
-    let acknowledged_level = 1;
-
     if (profiles.length === 0) {
-      // In auth.js
-const [result] = await db.execute(
-  `INSERT INTO userProfile 
-   (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, total_xp) 
-   VALUES (?, '[]', '[]', true, true, true, 'en', 0)`,
-  [user.userID]
-);
+      const [result] = await db.execute(
+        `INSERT INTO userProfile (userID, firstname, lastname)
+         VALUES (?, ?, ?)`,
+        [user.userID, user.firstname || "", user.lastname || ""]
+      );
       userProfileID = result.insertId;
     } else {
       userProfileID = profiles[0].userProfileID;
-      total_xp = profiles[0].total_xp || 0;
-      acknowledged_level = profiles[0].acknowledged_level || 1;
     }
 
     await db.execute(
@@ -169,9 +159,7 @@ const [result] = await db.execute(
       role: user.role,
       pdpa_consent: user.pdpa_consent,
       tnc_consent: user.tnc_consent,
-      agreed_version: user.agreed_version ?? 0,
-      total_xp: total_xp, // Inject XP on login
-      acknowledged_level: acknowledged_level
+      agreed_version: user.agreed_version ?? 0
     };
 
     return res.json({
@@ -260,11 +248,11 @@ router.post("/google-login", async (req, res) => {
 
       const newUserID = result.insertId;
 
-      // Create their UserProfile 
+      // Create their UserProfile (Same logic as register.js)
       await db.execute(
         `INSERT INTO userProfile 
-         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, recipes, posts, likes, avatar, total_xp) 
-         VALUES (?, '[]', '[]', true, true, true, 'en', 0, 0, 0, ?, 0)`,
+         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, recipes, posts, likes, avatar) 
+         VALUES (?, '[]', '[]', true, true, true, 'en', 0, 0, 0, ?)`,
         [newUserID, googlePhotoUrl || null]
       );
 
@@ -290,10 +278,9 @@ router.post("/google-login", async (req, res) => {
         req.session.rememberMe = false;
       }
 
-      // Fetch profile ID and XP for session
-      const [profiles] = await db.execute("SELECT userProfileID, total_xp FROM userProfile WHERE userID = ?", [user.userID]);
+      // Fetch profile ID for session
+      const [profiles] = await db.execute("SELECT userProfileID FROM userProfile WHERE userID = ?", [user.userID]);
       const userProfileID = profiles.length > 0 ? profiles[0].userProfileID : null;
-      const total_xp = profiles.length > 0 ? profiles[0].total_xp || 0 : 0;
 
       req.session.user = {
         userID: user.userID,
@@ -305,8 +292,7 @@ router.post("/google-login", async (req, res) => {
         pdpa_consent: user.pdpa_consent,
         tnc_consent: user.tnc_consent,
         agreed_version: user.agreed_version ?? 0,
-        loginMethod: "google",
-        total_xp: total_xp
+        loginMethod: "google"
       };
 
       // Save session
