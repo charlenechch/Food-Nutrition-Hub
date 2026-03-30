@@ -262,86 +262,98 @@ return {
 
 // GET single recipe by ID  
 router.get('/recipes/:id', async (req, res) => {
-try {
-  const { id } = req.params;
-  console.log('Fetching recipe for ID (Recipe or Food):', id); 
-  
-  // FIXED: Changed the WHERE clause to check BOTH recipeID and foodID.
-  // Added ORDER BY to ensure it grabs the newest submission if there are multiple.
-  const query = `
-    SELECT 
-      f.foodID AS foodId,  
-      r.recipeID AS recipeID,   
-      f.name, 
-      f.origin, 
-      f.difficulty, 
-      f.prepTime, 
-      f.image, 
-      r.description, 
-      f.category,
-      f.dietaryTags,
-      r.cookTime, 
-      r.servings, 
-      r.ingredients, 
-      r.steps AS instructions, 
-      r.DidYouKnow AS funFact, 
-      r.chefTips,
-      r.status,
-      r.admin_feedback,
-      CONCAT(u.firstname, ' ', u.lastname) AS authorName,
-      u.email AS authorEmail
-    FROM recipe r  
-    LEFT JOIN food f ON r.foodID = f.foodID  
-    LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
-    LEFT JOIN user u ON up.userID = u.userID
-    WHERE r.recipeID = ? OR f.foodID = ?
-    ORDER BY r.createdAt DESC
-    LIMIT 1
-  `;
-  
-  // Pass the ID twice so it checks both conditions
-  const [rows] = await db.query(query, [id, id]);  
-  
-  if (!rows || rows.length === 0) {
-    return res.status(404).json({ error: 'Recipe not found' });
+  try {
+    const { id } = req.params;
+    console.log('Fetching recipe for ID (Recipe or Food):', id); 
+
+    // 1. Identify if user is logged in to fetch their specific yellow stars
+    let viewerProfileID = null;
+    if (req.session && req.session.user) {
+      const [profileRows] = await db.query("SELECT userProfileID FROM userProfile WHERE userID = ?", [req.session.user.userID]);
+      if (profileRows.length > 0) viewerProfileID = profileRows[0].userProfileID;
+    }
+    
+    // 2. Updated SQL Query 
+    const query = `
+      SELECT 
+        f.foodID AS foodId,  
+        r.recipeID AS recipeID,   
+        f.name, 
+        f.origin, 
+        f.difficulty, 
+        f.prepTime, 
+        f.image, 
+        r.description, 
+        f.category,
+        f.dietaryTags,
+        r.cookTime, 
+        r.servings, 
+        r.ingredients, 
+        r.steps AS instructions, 
+        r.DidYouKnow AS funFact, 
+        r.chefTips,
+        r.status,
+        r.admin_feedback,
+        CONCAT(u.firstname, ' ', u.lastname) AS authorName,
+        u.email AS authorEmail,
+        (SELECT COALESCE(ROUND(AVG(rating), 1), 0) FROM recipe_ratings WHERE recipeID = r.recipeID) AS avgRating,
+        (SELECT COUNT(id) FROM recipe_ratings WHERE recipeID = r.recipeID) AS totalRatings,
+        (SELECT rating FROM recipe_ratings WHERE recipeID = r.recipeID AND userProfileID = ?) AS userRating
+      FROM recipe r  
+      LEFT JOIN food f ON r.foodID = f.foodID  
+      LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
+      LEFT JOIN user u ON up.userID = u.userID
+      WHERE r.recipeID = ? OR f.foodID = ?
+      ORDER BY r.createdAt DESC
+      LIMIT 1
+    `;
+    
+    // Pass the viewer ID first, then the recipe/food ID twice
+    const [rows] = await db.query(query, [viewerProfileID, id, id]);  
+    
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ error: 'Recipe not found' });
+    }
+    
+    const row = rows[0];
+    
+    const recipe = {
+      id: row.recipeID,  
+      foodId: row.foodID,
+      name: row.name || '',
+      origin: row.origin || '',
+      difficulty: row.difficulty || 'Easy',
+      prepTime: row.prepTime || 0,
+      cookTime: row.cookTime || 0,
+      servings: row.servings || 0,
+      image: row.image || '',
+      description: row.description || '',
+      category: row.category || 'Other',
+      dietaryTags: row.dietaryTags
+        ? (typeof row.dietaryTags === 'string'
+            ? row.dietaryTags.split(',').map(tag => tag.trim()).filter(tag => tag)
+            : [])
+        : [],
+      ingredients: row.ingredients || '',
+      instructions: row.instructions || '',
+      funFact: row.funFact || '',
+      chefTips: row.chefTips || '',
+      status: row.status || 'Unknown',
+      adminFeedback: row.admin_feedback || '',
+      authorName: row.authorName || 'Unknown Author',
+      authorEmail: row.authorEmail || 'N/A',
+      createdAt: row.createdAt,
+      avgRating: row.avgRating || 0,
+      totalRatings: row.totalRatings || 0,
+      userRating: row.userRating || 0
+    };
+    
+    res.json(recipe);
+    
+  } catch (error) {
+    console.error('Error fetching recipe:', error);
+    res.status(500).json({ error: error.message });
   }
-  
-  const row = rows[0];
-  
-  const recipe = {
-    id: row.recipeID,  
-    foodId: row.foodID,
-    name: row.name || '',
-    origin: row.origin || '',
-    difficulty: row.difficulty || 'Easy',
-    prepTime: row.prepTime || 0,
-    cookTime: row.cookTime || 0,
-    servings: row.servings || 0,
-    image: row.image || '',
-    description: row.description || '',
-    category: row.category || 'Other',
-    dietaryTags: row.dietaryTags
-      ? (typeof row.dietaryTags === 'string'
-          ? row.dietaryTags.split(',').map(tag => tag.trim()).filter(tag => tag)
-          : [])
-      : [],
-    ingredients: row.ingredients || '',
-    instructions: row.instructions || '',
-    funFact: row.funFact || '',
-    chefTips: row.chefTips || '',
-    status: row.status || 'Unknown',
-    adminFeedback: row.admin_feedback || '',
-    authorName: row.authorName || 'Unknown Author',
-    authorEmail: row.authorEmail || 'N/A',
-    createdAt: row.createdAt
-  };
-  
-  res.json(recipe);
-  
-} catch (error) {
-  console.error('Error fetching recipe:', error);
-  res.status(500).json({ error: error.message });
-}
 });
 
 // POST new recipe 
@@ -1741,6 +1753,103 @@ router.post('/publishRecipe/:id', async (req, res) => {
   } catch (error) {
     console.error("❌ Error publishing recipe:", error);
     res.status(500).json({ success: false, message: "Failed to publish recipe." });
+  }
+});
+
+// ==========================================
+// ⭐️ POST: RATE A RECIPE (1-5 Stars)
+// ==========================================
+router.post("/:id/rate", async (req, res) => {
+  try {
+    console.log(`\n⭐ --- RATING INITIATED --- ⭐`);
+    console.log(`Target ID: ${req.params.id} | Rating Value: ${req.body.rating}`);
+    console.log(`Session Active: ${!!req.session} | User Found: ${!!(req.session && req.session.user)}`);
+
+    // 1. Check Session
+    if (!req.session || !req.session.user) {
+      console.log("❌ Blocked: User is not logged in or session expired.");
+      return res.status(401).json({ success: false, message: "Must be logged in to rate." });
+    }
+
+    const incomingID = req.params.id;
+    const { rating } = req.body; 
+
+    // 2. Check Rating Value
+    if (!rating || rating < 1 || rating > 5) {
+      console.log("❌ Blocked: Invalid rating value received.");
+      return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
+    }
+
+    // 3. Get the Rater's Profile
+    const likerUserID = req.session.user.userID;
+    const [likerProfile] = await db.query("SELECT userProfileID FROM userProfile WHERE userID = ?", [likerUserID]);
+    
+    if (likerProfile.length === 0) {
+        console.log("❌ Blocked: User profile missing in database.");
+        return res.status(404).json({ success: false, message: "User profile not found." });
+    }
+    const raterProfileID = likerProfile[0].userProfileID;
+
+    // 4. Safely find the ACTUAL recipeID (In case the frontend sent the foodID!)
+    const [recipeRows] = await db.query(
+      "SELECT userProfileID, recipeID FROM recipe WHERE recipeID = ? OR foodID = ? LIMIT 1", 
+      [incomingID, incomingID]
+    );
+    
+    if (recipeRows.length === 0) {
+      console.log(`❌ Blocked: No recipe or food found matching ID ${incomingID}`);
+      return res.status(404).json({ success: false, message: "Recipe not found." });
+    }
+    
+    const authorProfileID = recipeRows[0].userProfileID;
+    const actualRecipeID = recipeRows[0].recipeID; 
+    console.log(`✅ ID Matched! Using actual RecipeID: ${actualRecipeID}`);
+
+    // 5. Check if they already rated it
+    const [existingRating] = await db.query(
+      "SELECT id FROM recipe_ratings WHERE recipeID = ? AND userProfileID = ?",
+      [actualRecipeID, raterProfileID]
+    );
+
+    // 6. Save the Rating
+    await db.query(
+      `INSERT INTO recipe_ratings (recipeID, userProfileID, rating) 
+       VALUES (?, ?, ?) 
+       ON DUPLICATE KEY UPDATE rating = ?`,
+      [actualRecipeID, raterProfileID, rating, rating]
+    );
+    console.log(`✅ Rating of ${rating} saved successfully!`);
+
+    // 7. Award XP (First time only)
+    if (existingRating.length === 0 && raterProfileID !== authorProfileID) {
+      await db.query(
+        `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
+         VALUES (?, 'RECIPE_RATED', ?, 2)`,
+        [authorProfileID, actualRecipeID]
+      );
+      await db.query(
+        `UPDATE userProfile SET total_xp = COALESCE(total_xp, 0) + 2 WHERE userProfileID = ?`,
+        [authorProfileID]
+      );
+      console.log(`🎁 SUCCESS: Awarded +2 XP to Author ${authorProfileID}`);
+    }
+
+    // 8. Send the new math back to React
+    const [avgResult] = await db.query(
+      "SELECT ROUND(AVG(rating), 1) as avgRating, COUNT(id) as totalRatings FROM recipe_ratings WHERE recipeID = ?",
+      [actualRecipeID]
+    );
+
+    res.json({ 
+      success: true, 
+      message: "Rating saved!", 
+      avgRating: avgResult[0].avgRating || rating,
+      totalRatings: avgResult[0].totalRatings || 1
+    });
+
+  } catch (error) {
+    console.error("❌ CRITICAL SERVER ERROR:", error.message);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 });
 

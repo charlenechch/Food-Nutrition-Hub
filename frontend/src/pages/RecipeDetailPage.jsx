@@ -7,6 +7,7 @@ import "../css/RecipeDetailPage.css";
 import Modal from "../components/Modal";
 import { Info, NotebookText, Share2, ShoppingBasket, CheckCircle2, AlertTriangle  } from "lucide-react";
 import { translateTexts } from "../hooks/useAITranslation";
+import RecipeStarRating from "../components/RecipeStarRating";
 
 // ✅ Import Auth & Login Modal
 import { useAuth } from "../context/AuthContext";
@@ -403,6 +404,13 @@ export default function RecipeDetailPage() {
                       </div>
 
                       <h1 className="rdp-title">{recipe.name}</h1>
+                      <RecipeStarRating 
+                        recipeId={id} 
+                        initialAvg={recipe.avgRating || 0} 
+                        initialCount={recipe.totalRatings || 0} 
+                        csrfToken={csrfToken}
+                        initialUserRating={recipe.userRating || 0}
+                      />
 
                       <div className="rdp-badges" style={{ marginTop: '8px', marginBottom: '0' }}>
                         {recipe.category && (
