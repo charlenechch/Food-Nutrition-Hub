@@ -183,18 +183,48 @@ function FoodDiscussionRoute() {
   return <FoodDiscussion food={food} onBack={() => navigate(`/fooddetail?id=${food.id}`)} />;
 }
 
+// ✅ NEW: The LIVE Database-Driven Level Up Overlay
 function LevelUpOverlays() {
-  const [showTestModal, setShowTestModal] = useState(true);
+  const { user, setBypassSessionCheck } = useAuth();
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    // Check if the user's actual level is greater than their acknowledged level in the DB
+    if (user && user.role !== "guest" && user.level) {
+      const acknowledged = user.acknowledged_level || 1;
+      
+      if (user.level > acknowledged) {
+        setShowModal(true); 
+      }
+    }
+  }, [user]);
+
+  if (!user || user.role === "guest") return null;
+
+  const handleDismiss = async () => {
+    setShowModal(false); 
+    
+    try {
+      // Fire the PUT request to save the new level into the database
+      await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/userProfile/acknowledge-level`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ newLevel: user.level })
+      });
+      
+      if (setBypassSessionCheck) setBypassSessionCheck(true);
+    } catch (err) {
+      console.error("Failed to acknowledge level up", err);
+    }
+  };
 
   return (
     <LevelUpModal 
-      totalXp={11500} 
-      highestLevelAchieved={2}       
-      hasUnseenLevelUp={showTestModal} 
-      onDismiss={(newLevel) => {
-        console.log(`Frontend Test: User acknowledged reaching Level ${newLevel}!`);
-        setShowTestModal(false); 
-      }}
+      totalXp={user.total_xp || 0} 
+      highestLevelAchieved={user.level || 1} 
+      hasUnseenLevelUp={showModal} 
+      onDismiss={handleDismiss}
     />
   );
 }
