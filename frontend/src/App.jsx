@@ -184,17 +184,41 @@ function FoodDiscussionRoute() {
 }
 
 function LevelUpOverlays() {
-  const [showTestModal, setShowTestModal] = useState(false);
+  const { user } = useAuth(); // Pull real user data from AuthContext
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    // Watch the user object. If the backend flags that they have leveled up, show the modal.
+    if (user && user.hasUnseenLevelUp) {
+      setShowModal(true);
+    }
+  }, [user]);
+
+  // If there's no logged-in user, we don't need to render the gamification overlays
+  if (!user || user.role === "guest") return null;
+
+  const handleDismiss = async (newLevel) => {
+    setShowModal(false); // Hide it on the frontend immediately for a snappy UI
+
+    try {
+      // Tell the backend the user has seen the modal so it doesn't pop up again on refresh.
+      await axios.put(`/api/users/acknowledge-levelup`, { 
+        userId: user._id, 
+        hasUnseenLevelUp: false 
+      });
+
+      console.log(`Success: User acknowledged reaching Level ${newLevel}!`);
+    } catch (error) {
+      console.error("Failed to acknowledge level up on the backend:", error);
+    }
+  };
 
   return (
     <LevelUpModal 
-      totalXp={11500} 
-      highestLevelAchieved={2}       
-      hasUnseenLevelUp={showTestModal} 
-      onDismiss={(newLevel) => {
-        console.log(`Frontend Test: User acknowledged reaching Level ${newLevel}!`);
-        setShowTestModal(false); 
-      }}
+      totalXp={user.totalXp || 0} 
+      highestLevelAchieved={user.level || 1} 
+      hasUnseenLevelUp={showModal} 
+      onDismiss={handleDismiss}
     />
   );
 }
