@@ -91,9 +91,9 @@ function FetchInterceptorSetup() {
     return () => {
       window.fetch = originalFetch;
     };
-  }, [user, forceLogout]); 
+  }, [user, forceLogout]); // Re-run if user or logout function changes
 
-  return null; 
+  return null; // This component renders nothing visually
 }
 
 function AxiosInterceptorSetup() {
@@ -107,18 +107,22 @@ function AxiosInterceptorSetup() {
     // Add response interceptor
     const interceptor = axios.interceptors.response.use(
       (response) => {
+        // If response is successful, return it as-is
         return response;
       },
       (error) => {
-        // If 401 Unauthorized, the session is invalid
+        // If 401 Unauthorized, the session is invalid (user suspended or logged out)
         if (error.response?.status === 401) {
           console.log("🔒 Session invalid or user suspended - Logging out via forceLogout");
           forceLogout();
         }
+        
+        // Pass the error forward so individual components can handle it if needed
         return Promise.reject(error);
       }
     );
 
+    // Cleanup: remove interceptor when component unmounts
     return () => {
       axios.interceptors.response.eject(interceptor);
     };
@@ -138,6 +142,8 @@ function SessionChecker() {
 
   // Active Polling
   useEffect(() => {
+    // Stop if a guest or not logged in. 
+    // Guests don't need to be polled (don't want to kick them out).
     if (!user || user.role === "guest") return;
 
     // Run checkSession every 60 seconds
@@ -146,8 +152,9 @@ function SessionChecker() {
       checkSession(); 
     }, 60000);
 
+    // Cleanup the timer when component unmounts or user logs out
     return () => clearInterval(interval);
-  }, [user?.role]); 
+  }, [user?.role]); // Only restart the timer if the user's role changes
 
   return null;
 }
@@ -176,46 +183,60 @@ function FoodDiscussionRoute() {
   return <FoodDiscussion food={food} onBack={() => navigate(`/fooddetail?id=${food.id}`)} />;
 }
 
-// --- UPDATED LEVEL UP OVERLAYS ---
+// 1. Helper function using your FYP level formula
+// Level = 1 + (XP/100)^(2/3)
+const getLevelFromXp = (xp) => {
+  const safeXp = Math.max(0, xp || 0);
+  return Math.floor(1 + Math.pow(safeXp / 100, 2/3) + 0.0001);
+};
+
 function LevelUpOverlays() {
-  const { user } = useAuth();
+  const { user } = useAuth(); // Accesses total_xp from your session
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    // 1. Make sure we have a real user with a calculated level
-    if (user && user.role !== "guest" && user.level) {
-      // 2. Use user.userID, NOT user._id
-      const storageKey = `last_seen_level_${user.userID}`; 
-      const savedLevel = localStorage.getItem(storageKey);
+    // Ensure we have a valid member/admin with XP data
+    if (user && user.role !== "guest" && user.total_xp !== undefined) {
       
-      // 3. Compare current level to saved level
-      if (savedLevel && user.level > parseInt(savedLevel, 10)) {
-        setShowModal(true); 
-      } else if (!savedLevel) {
-        // If they are brand new to this system, silently save their starting level
-        localStorage.setItem(storageKey, user.level);
+      const currentLevel = getLevelFromXp(user.total_xp);
+      const storageKey = `last_seen_level_${user.userID}`;
+      const savedLevel = localStorage.getItem(storageKey);
+
+      // CASE 1: First time user logs in on this device
+      if (!savedLevel) {
+        localStorage.setItem(storageKey, currentLevel);
+        return;
+      }
+
+      // CASE 2: User has actually leveled up since last time we checked
+      if (currentLevel > parseInt(savedLevel, 10)) {
+        setShowModal(true);
       }
     }
-  }, [user]);
+  }, [user]); // Automatically triggers when user XP updates via polling
 
+  // Guests don't participate in the XP system
   if (!user || user.role === "guest") return null;
 
   const handleDismiss = () => {
-    setShowModal(false); 
-    // 4. Save the new level ONLY AFTER they click dismiss, so it doesn't pop up again
-    localStorage.setItem(`last_seen_level_${user.userID}`, user.level);
+    setShowModal(false);
+    
+    // Update LocalStorage so the modal doesn't keep popping up
+    const currentLevel = getLevelFromXp(user.total_xp);
+    localStorage.setItem(`last_seen_level_${user.userID}`, currentLevel);
+    
+    console.log(`✅ Level ${currentLevel} acknowledged by user.`);
   };
 
   return (
     <LevelUpModal 
       totalXp={user.total_xp || 0} 
-      highestLevelAchieved={user.level || 1} 
+      highestLevelAchieved={getLevelFromXp(user.total_xp)} 
       hasUnseenLevelUp={showModal} 
       onDismiss={handleDismiss}
     />
   );
 }
-// ---------------------------------
 
 // -------------------------------
 //  Main App Component

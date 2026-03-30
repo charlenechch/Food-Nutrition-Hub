@@ -222,11 +222,11 @@ app.use(
     proxy: true, 
     cookie: {
       httpOnly: true,
-      sameSite: 'none',
-      secure: true, 
-      domain: '.sarawakeats.site', 
+      sameSite: IS_PROD ? "none" : "lax",
+      secure: IS_PROD,
+      domain: IS_PROD ? ".sarawakeats.site" : undefined,
       maxAge: 24 * 60 * 60 * 1000,
-    },
+    }
   })
 );
 
