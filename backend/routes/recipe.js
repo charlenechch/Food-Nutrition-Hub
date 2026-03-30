@@ -273,7 +273,7 @@ router.get('/recipes/:id', async (req, res) => {
       if (profileRows.length > 0) viewerProfileID = profileRows[0].userProfileID;
     }
     
-    // 2. Updated SQL Query
+    // 2. Updated SQL Query 
     const query = `
       SELECT 
         f.foodID AS foodId,  
@@ -297,7 +297,7 @@ router.get('/recipes/:id', async (req, res) => {
         CONCAT(u.firstname, ' ', u.lastname) AS authorName,
         u.email AS authorEmail,
         (SELECT COALESCE(ROUND(AVG(rating), 1), 0) FROM recipe_ratings WHERE recipeID = r.recipeID) AS avgRating,
-        (SELECT COUNT(ratingID) FROM recipe_ratings WHERE recipeID = r.recipeID) AS totalRatings,
+        (SELECT COUNT(id) FROM recipe_ratings WHERE recipeID = r.recipeID) AS totalRatings,
         (SELECT rating FROM recipe_ratings WHERE recipeID = r.recipeID AND userProfileID = ?) AS userRating
       FROM recipe r  
       LEFT JOIN food f ON r.foodID = f.foodID  
