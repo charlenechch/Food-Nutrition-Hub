@@ -21,7 +21,7 @@ router.get("/session", async (req, res) => {
   try {
     // ✅ THE FIX: Join userProfile to grab the fresh total_xp from the database!
     const [rows] = await db.execute(
-      `SELECT u.userID, u.role, u.status, u.suspendedUntil, up.total_xp 
+      `SELECT u.userID, u.role, u.status, u.suspendedUntil, up.total_xp, up.acknowledged_level 
        FROM user u 
        LEFT JOIN userProfile up ON u.userID = up.userID 
        WHERE u.userID = ?`,
@@ -54,6 +54,7 @@ router.get("/session", async (req, res) => {
 
     // ✅ THE FIX: Inject the fresh XP into the session before sending to React!
     req.session.user.total_xp = user.total_xp || 0;
+    req.session.user.acknowledged_level = user.acknowledged_level || 1;
 
     // If safe, return the session data
     return res.status(200).json({
@@ -137,6 +138,8 @@ router.post("/login", async (req, res) => {
 
     let userProfileID;
     let total_xp = 0;
+    let acknowledged_level = 1;
+
     if (profiles.length === 0) {
       // In auth.js
 const [result] = await db.execute(
@@ -149,6 +152,7 @@ const [result] = await db.execute(
     } else {
       userProfileID = profiles[0].userProfileID;
       total_xp = profiles[0].total_xp || 0;
+      acknowledged_level = profiles[0].acknowledged_level || 1;
     }
 
     await db.execute(
@@ -166,7 +170,8 @@ const [result] = await db.execute(
       pdpa_consent: user.pdpa_consent,
       tnc_consent: user.tnc_consent,
       agreed_version: user.agreed_version ?? 0,
-      total_xp: total_xp // Inject XP on login
+      total_xp: total_xp, // Inject XP on login
+      acknowledged_level: acknowledged_level
     };
 
     return res.json({
