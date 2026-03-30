@@ -1108,22 +1108,32 @@ router.get("/:identifier", async (req, res) => {
     }
     
     console.log("📤 Sending user profile response");
+    const isSensitiveViewer = isOwner || isAdmin;
     res.json({
-      ...profile,
+      userID: profile.userID,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      role: profile.role,
+      userProfileID: profile.userProfileID,
+      location: profile.location,
+      bio: profile.bio,
+      avatar: profile.avatar,
       total_xp: profile.total_xp,
-      savedFoods: savedFoodsData, 
-      status: contributions, 
+      // Only expose email and sensitive prefs to owner or admin
+      ...(isSensitiveViewer && { email: profile.email }),
+      savedFoods: isSensitiveViewer ? savedFoodsData : [],
+      status: contributions,
       stats: {
         recipes: freshStats.recipes || profile.recipes || 0,
         posts: freshStats.posts || profile.posts || 0,
         likes: freshStats.likes || profile.likes || 0,
       },
       prefs: {
-        dietary: (() => { try { return JSON.parse(profile.dietary || "[]"); } catch { return []; } })(),
-        allergies: (() => { try { return JSON.parse(profile.allergies || "[]"); } catch { return []; } })(),
-        emailNotifications: profile.emailNotifications ?? true,
-        pushNotifications: profile.pushNotifications ?? true,
-        profileVisibility: profile.profileVisibility ?? true,
+        dietary: isSensitiveViewer ? (() => { try { return JSON.parse(profile.dietary || "[]"); } catch { return []; } })() : [],
+        allergies: isSensitiveViewer ? (() => { try { return JSON.parse(profile.allergies || "[]"); } catch { return []; } })() : [],
+        emailNotifications: isSensitiveViewer ? (profile.emailNotifications ?? true) : undefined,
+        pushNotifications: isSensitiveViewer ? (profile.pushNotifications ?? true) : undefined,
+        profileVisibility: isSensitiveViewer ? (profile.profileVisibility ?? true) : undefined,
         language: profile.language || "en",
       },
     });
