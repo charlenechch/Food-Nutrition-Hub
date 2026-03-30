@@ -183,34 +183,32 @@ function FoodDiscussionRoute() {
   return <FoodDiscussion food={food} onBack={() => navigate(`/fooddetail?id=${food.id}`)} />;
 }
 
+// --- UPDATED LEVEL UP OVERLAYS ---
 function LevelUpOverlays() {
-  const { user } = useAuth(); // Pull real user data from AuthContext
+  const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    // Watch the user object. If the backend flags that they have leveled up, show the modal.
-    if (user && user.hasUnseenLevelUp) {
-      setShowModal(true);
-    }
-  }, [user]);
+    // 1. Make sure we have a real user (not a guest) with a level property
+    if (user && user.role !== "guest" && user.level) {
+      const storageKey = `last_seen_level_${user._id}`;
+      const savedLevel = localStorage.getItem(storageKey);
+      
+      // 2. If we have a saved level, and their current level is higher, they leveled up!
+      if (savedLevel && user.level > parseInt(savedLevel, 10)) {
+        setShowModal(true);
+      }
 
-  // If there's no logged-in user, we don't need to render the gamification overlays
+      // 3. Always update localStorage so we know their baseline for next time
+      localStorage.setItem(storageKey, user.level);
+    }
+  }, [user]); // This runs every time the 'user' object from AuthContext changes
+
   if (!user || user.role === "guest") return null;
 
-  const handleDismiss = async (newLevel) => {
-    setShowModal(false); // Hide it on the frontend immediately for a snappy UI
-
-    try {
-      // Tell the backend the user has seen the modal so it doesn't pop up again on refresh.
-      await axios.put(`/api/users/acknowledge-levelup`, { 
-        userId: user._id, 
-        hasUnseenLevelUp: false 
-      });
-
-      console.log(`Success: User acknowledged reaching Level ${newLevel}!`);
-    } catch (error) {
-      console.error("Failed to acknowledge level up on the backend:", error);
-    }
+  const handleDismiss = () => {
+    setShowModal(false); 
+    console.log(`Frontend: User acknowledged reaching Level ${user.level}!`);
   };
 
   return (
@@ -222,6 +220,7 @@ function LevelUpOverlays() {
     />
   );
 }
+// ---------------------------------
 
 // -------------------------------
 //  Main App Component
