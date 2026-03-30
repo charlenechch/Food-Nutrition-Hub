@@ -1354,14 +1354,14 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
       }
       await createNotification(userID, "post_rejected", `Your community story "${foodName}" was not approved. Feedback: ${rejectionEmailContent}`, db);
       console.log(`🔔 Post rejection notification created for userID: ${userID}`);
+
+      const adminID = req.session.user.userID;
+      const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+      await logActivity(db, adminID, adminName, "post_rejected", `Rejected community post "${foodName}" (Post ID: ${id}).`);
     }
 
     console.log(`✅ [ADMIN] Post ${id} rejected successfully.`);
 
-    const adminID = req.session.user.userID;
-    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-    await logActivity(db, adminID, adminName, "post_rejected", `Rejected community post "${foodName}" (Post ID: ${id}).`);
-    
     res.json({ success: true, message: "Post rejected successfully." });
   } catch (err) {
     console.error(`❌ [ADMIN] Error rejecting post ${id}:`, err);
