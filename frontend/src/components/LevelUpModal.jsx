@@ -1,44 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import "./LevelUpModal.css";
 
-const calculateNaturalLevel = (totalXp) => {
-  const safeXpForMath = Math.max(0, totalXp || 0);
-  return Math.floor(1 + Math.pow(safeXpForMath / 100, 2 / 3));
-};
-
 export default function LevelUpModal({ 
-  totalXp = 0, 
   highestLevelAchieved = 1, 
   hasUnseenLevelUp = false,
   onDismiss 
 }) {
   const { t } = useTranslation();
-  const [isVisible, setIsVisible] = useState(false);
-  const [calculatedLevel, setCalculatedLevel] = useState(1);
 
+  // Lock scrolling when the modal is visible
   useEffect(() => {
     if (hasUnseenLevelUp) {
-      const newLevel = calculateNaturalLevel(totalXp);
-      
-      if (newLevel > highestLevelAchieved) {
-        setCalculatedLevel(newLevel);
-        setIsVisible(true);
-        document.body.style.overflow = "hidden"; 
-      }
+      document.body.style.overflow = "hidden"; 
+    } else {
+      document.body.style.overflow = "auto";
     }
-  }, [hasUnseenLevelUp, totalXp, highestLevelAchieved]);
+    // Cleanup function in case component unmounts
+    return () => { document.body.style.overflow = "auto"; };
+  }, [hasUnseenLevelUp]);
 
   const handleDismiss = () => {
-    setIsVisible(false);
     document.body.style.overflow = "auto"; 
-
     if (onDismiss) {
-      onDismiss(calculatedLevel);
+      onDismiss(highestLevelAchieved);
     }
   };
 
-  if (!isVisible) return null;
+  // If App.jsx says we shouldn't show the modal, render nothing
+  if (!hasUnseenLevelUp) return null;
 
   return (
     <div className="levelup-backdrop" onClick={handleDismiss}>
@@ -46,20 +36,20 @@ export default function LevelUpModal({
         
         <div className="levelup-badge-container">
           <div className="levelup-badge">
-            <span className="levelup-level-text">{calculatedLevel}</span>
+            <span className="levelup-level-text">{highestLevelAchieved}</span>
           </div>
         </div>
 
         <h2 className="levelup-title">{t("gamification.levelUpTitle")}</h2>
         
+        {/* MAGIC INJECTION: This passes the live level number to your en.json {{level}} placeholder */}
         <p className="levelup-message">
-          {t("gamification.levelUpMessage", { level: calculatedLevel })}
+          {t("gamification.levelUpMessage", { level: highestLevelAchieved })}
         </p>
-
-        <button className="levelup-btn" onClick={handleDismiss}>
+        
+        <button className="lrp-btn lrp-btn-primary levelup-btn" onClick={handleDismiss}>
           {t("gamification.levelUpBtn")}
         </button>
-
       </div>
     </div>
   );
