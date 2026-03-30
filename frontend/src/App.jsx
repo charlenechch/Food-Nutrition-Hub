@@ -91,9 +91,9 @@ function FetchInterceptorSetup() {
     return () => {
       window.fetch = originalFetch;
     };
-  }, [user, forceLogout]); 
+  }, [user, forceLogout]); // Re-run if user or logout function changes
 
-  return null; 
+  return null; // This component renders nothing visually
 }
 
 function AxiosInterceptorSetup() {
@@ -107,18 +107,22 @@ function AxiosInterceptorSetup() {
     // Add response interceptor
     const interceptor = axios.interceptors.response.use(
       (response) => {
+        // If response is successful, return it as-is
         return response;
       },
       (error) => {
-        // If 401 Unauthorized, the session is invalid
+        // If 401 Unauthorized, the session is invalid (user suspended or logged out)
         if (error.response?.status === 401) {
           console.log("🔒 Session invalid or user suspended - Logging out via forceLogout");
           forceLogout();
         }
+        
+        // Pass the error forward so individual components can handle it if needed
         return Promise.reject(error);
       }
     );
 
+    // Cleanup: remove interceptor when component unmounts
     return () => {
       axios.interceptors.response.eject(interceptor);
     };
@@ -138,6 +142,8 @@ function SessionChecker() {
 
   // Active Polling
   useEffect(() => {
+    // Stop if a guest or not logged in. 
+    // Guests don't need to be polled (don't want to kick them out).
     if (!user || user.role === "guest") return;
 
     // Run checkSession every 60 seconds
@@ -146,8 +152,9 @@ function SessionChecker() {
       checkSession(); 
     }, 60000);
 
+    // Cleanup the timer when component unmounts or user logs out
     return () => clearInterval(interval);
-  }, [user?.role]); 
+  }, [user?.role]); // Only restart the timer if the user's role changes
 
   return null;
 }
@@ -176,52 +183,21 @@ function FoodDiscussionRoute() {
   return <FoodDiscussion food={food} onBack={() => navigate(`/fooddetail?id=${food.id}`)} />;
 }
 
-// --- UPDATED LEVEL UP OVERLAYS ---
 function LevelUpOverlays() {
-  const { user, setBypassSessionCheck } = useAuth();
-  const [showModal, setShowModal] = useState(false);
-
-  useEffect(() => {
-    if (user && user.role !== "guest" && user.level) {
-      const acknowledged = user.acknowledged_level || 1;
-      
-      if (user.level > acknowledged) {
-        setShowModal(true); 
-      }
-    }
-  }, [user]);
-
-  if (!user || user.role === "guest") return null;
-
-  const handleDismiss = async () => {
-    setShowModal(false); 
-    
-    try {
-      // Tell the database we saw the new level
-      await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/userProfile/acknowledge-level`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ newLevel: user.level })
-      });
-      
-      // Briefly bypass the session check so the app doesn't immediately overwrite our state
-      setBypassSessionCheck(true);
-    } catch (err) {
-      console.error("Failed to acknowledge level up", err);
-    }
-  };
+  const [showTestModal, setShowTestModal] = useState(true);
 
   return (
     <LevelUpModal 
-      totalXp={user.total_xp || 0} 
-      highestLevelAchieved={user.level || 1} 
-      hasUnseenLevelUp={showModal} 
-      onDismiss={handleDismiss}
+      totalXp={11500} 
+      highestLevelAchieved={2}       
+      hasUnseenLevelUp={showTestModal} 
+      onDismiss={(newLevel) => {
+        console.log(`Frontend Test: User acknowledged reaching Level ${newLevel}!`);
+        setShowTestModal(true); 
+      }}
     />
   );
 }
-// ---------------------------------
 
 // -------------------------------
 //  Main App Component
