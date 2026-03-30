@@ -220,9 +220,9 @@ app.use(
     proxy: true, 
     cookie: {
       httpOnly: true,
-      sameSite: IS_PROD ? 'none' : 'lax',
-      secure: IS_PROD, // Dynamic security
-      domain: IS_PROD ? '.sarawakeats.site' : undefined, // Prevents domain mismatch on localhost
+      sameSite: 'none',
+      secure: true, 
+      domain: '.sarawakeats.site', 
       maxAge: 24 * 60 * 60 * 1000,
     },
   })
