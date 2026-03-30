@@ -178,36 +178,38 @@ function FoodDiscussionRoute() {
 
 // --- UPDATED LEVEL UP OVERLAYS ---
 function LevelUpOverlays() {
-  const { user } = useAuth();
+  const { user, setBypassSessionCheck } = useAuth();
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    // 1. Make sure we have a real user with a calculated level
     if (user && user.role !== "guest" && user.level) {
+      const acknowledged = user.acknowledged_level || 1;
       
-      const storageKey = `last_seen_level_${user.userID}`; 
-      const savedLevel = localStorage.getItem(storageKey);
-      
-      // 2. Treat a missing saved level as Level 1
-      const previousLevel = savedLevel ? parseInt(savedLevel, 10) : 1;
-      
-      // 3. Compare current level to previous level
-      if (user.level > previousLevel) {
-        // They leveled up! (Or they are a high level logging in on a new device)
+      if (user.level > acknowledged) {
         setShowModal(true); 
-      } else if (!savedLevel) {
-        // They are exactly Level 1 and have no save data, just save it silently
-        localStorage.setItem(storageKey, user.level);
       }
     }
   }, [user]);
 
   if (!user || user.role === "guest") return null;
 
-  const handleDismiss = () => {
+  const handleDismiss = async () => {
     setShowModal(false); 
-    // 4. Save the NEW level only after they click dismiss
-    localStorage.setItem(`last_seen_level_${user.userID}`, user.level);
+    
+    try {
+      // Tell the database we saw the new level
+      await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/userProfile/acknowledge-level`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ newLevel: user.level })
+      });
+      
+      // Briefly bypass the session check so the app doesn't immediately overwrite our state
+      setBypassSessionCheck(true);
+    } catch (err) {
+      console.error("Failed to acknowledge level up", err);
+    }
   };
 
   return (
