@@ -184,7 +184,7 @@ function FoodDiscussionRoute() {
 }
 
 function LevelUpOverlays() {
-  const [showTestModal, setShowTestModal] = useState(false);
+  const [showTestModal, setShowTestModal] = useState(true);
 
   return (
     <LevelUpModal 
