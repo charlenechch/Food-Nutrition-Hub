@@ -184,15 +184,19 @@ function LevelUpOverlays() {
   useEffect(() => {
     // 1. Make sure we have a real user with a calculated level
     if (user && user.role !== "guest" && user.level) {
-      // 2. Use user.userID, NOT user._id
+      
       const storageKey = `last_seen_level_${user.userID}`; 
       const savedLevel = localStorage.getItem(storageKey);
       
-      // 3. Compare current level to saved level
-      if (savedLevel && user.level > parseInt(savedLevel, 10)) {
+      // 2. Treat a missing saved level as Level 1
+      const previousLevel = savedLevel ? parseInt(savedLevel, 10) : 1;
+      
+      // 3. Compare current level to previous level
+      if (user.level > previousLevel) {
+        // They leveled up! (Or they are a high level logging in on a new device)
         setShowModal(true); 
       } else if (!savedLevel) {
-        // If they are brand new to this system, silently save their starting level
+        // They are exactly Level 1 and have no save data, just save it silently
         localStorage.setItem(storageKey, user.level);
       }
     }
@@ -202,7 +206,7 @@ function LevelUpOverlays() {
 
   const handleDismiss = () => {
     setShowModal(false); 
-    // 4. Save the new level ONLY AFTER they click dismiss, so it doesn't pop up again
+    // 4. Save the NEW level only after they click dismiss
     localStorage.setItem(`last_seen_level_${user.userID}`, user.level);
   };
 
