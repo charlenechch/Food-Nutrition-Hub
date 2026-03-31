@@ -324,7 +324,7 @@ export default function Community() {
                             }}
                             style={{ cursor: "pointer" }}>
                             {post.author}
-                            <span className="user-badge-inline" style={{ boxShadow: `0 2px 6px ${getTierById(post.equippedBadge || "novice").color}40` }}>
+                            <span className="user-badge-inline">
                               {getTierById(post.equippedBadge || "novice").icon}
                               <span className="badge-tooltip-mini" style={{ color: getTierById(post.equippedBadge || "novice").color }}>
                                 {getTierById(post.equippedBadge || "novice").title}

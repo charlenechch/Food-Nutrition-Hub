@@ -177,7 +177,7 @@ const Comment = React.memo(function Comment({
         <div className="fd-disc-meta">
           <span className="fd-disc-user">
             {username}
-            <span className="user-badge-inline" style={{ boxShadow: `0 2px 6px ${getTierById(item.equippedBadge || "novice").color}40` }}>
+            <span className="user-badge-inline">
               {getTierById(item.equippedBadge || "novice").icon}
               <span className="badge-tooltip-mini" style={{ color: getTierById(item.equippedBadge || "novice").color }}>
                 {getTierById(item.equippedBadge || "novice").title}

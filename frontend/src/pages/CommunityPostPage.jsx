@@ -250,7 +250,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                     onMouseLeave={(e) => e.target.style.textDecoration = "underline transparent"}
                   >
                     {c.username || c.author || "User"}
-                    <span className="user-badge-inline" style={{ boxShadow: `0 2px 6px ${getTierById(c.equippedBadge || "novice").color}40` }}>
+                    <span className="user-badge-inline">
                       {getTierById(c.equippedBadge || "novice").icon}
                       <span className="badge-tooltip-mini" style={{ color: getTierById(c.equippedBadge || "novice").color }}>
                         {getTierById(c.equippedBadge || "novice").title}

@@ -82,20 +82,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  width: 20px;
+  height: 20px;
   margin-left: 6px;
-  vertical-align: middle;
+  vertical-align: middle; 
   cursor: default;
   position: relative;
-  background: transparent;
 }
 
 .user-badge-inline img {
-  width: 80% !important;
-  height: 80% !important;
+  width: 100% !important;
+  height: 100% !important;
   object-fit: contain;
+  filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.15)); 
 }
 
 .badge-tooltip-mini {

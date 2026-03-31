@@ -752,7 +752,7 @@ export default function RecipesPage() {
                     />
                     <span className="rp-author-name">
                       {r.author}
-                      <span className="user-badge-inline" style={{ boxShadow: `0 2px 6px ${getTierById(r.equippedBadge || "novice").color}40` }}>
+                      <span className="user-badge-inline">
                         {getTierById(r.equippedBadge || "novice").icon}
                         <span className="badge-tooltip-mini" style={{ color: getTierById(r.equippedBadge || "novice").color }}>
                           {getTierById(r.equippedBadge || "novice").title}
