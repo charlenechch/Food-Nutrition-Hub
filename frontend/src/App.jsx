@@ -183,7 +183,7 @@ function FoodDiscussionRoute() {
   return <FoodDiscussion food={food} onBack={() => navigate(`/fooddetail?id=${food.id}`)} />;
 }
 
-// ✅ NEW: The LIVE Database-Driven Level Up Overlay
+// The LIVE Database-Driven Level Up Overlay
 function LevelUpOverlays() {
   const { user, setBypassSessionCheck } = useAuth();
   const [showModal, setShowModal] = useState(false);
@@ -205,10 +205,20 @@ function LevelUpOverlays() {
     setShowModal(false); 
     
     try {
-      // Fire the PUT request to save the new level into the database
+      // 1. Ask the server for the CSRF VIP Pass
+      const csrfRes = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/csrf-token`, { 
+        credentials: "include" 
+      });
+      const csrfData = await csrfRes.json();
+      const token = csrfData.csrfToken;
+
+      // 2. Fire the PUT request WITH the VIP Pass in the headers!
       await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/userProfile/acknowledge-level`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-CSRF-Token": token // 🔑 The magic key that stops the 403 error!
+        },
         credentials: "include",
         body: JSON.stringify({ newLevel: user.level })
       });
