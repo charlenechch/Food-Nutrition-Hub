@@ -131,6 +131,7 @@ export default function FoodMap() {
   const doSearch = useCallback(async (q) => {
     if (!q.trim()) { loadAll(); return; }
     setSearching(true);
+    setLoading(false);
     setSelected(null);
     setActiveFilter("all");
     try {
