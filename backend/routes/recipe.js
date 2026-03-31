@@ -1818,7 +1818,7 @@ router.post('/publishRecipe/:id', async (req, res) => {
 });
 
 // ==========================================
-// ⭐️ POST: RATE A RECIPE (1-5 Stars) - WITH DYNAMIC XP
+// ⭐️ POST: RATE A RECIPE (1-5 Stars) - REWARDS THE AUTHOR
 // ==========================================
 router.post("/:id/rate", async (req, res) => {
   try {
@@ -1850,7 +1850,7 @@ router.post("/:id/rate", async (req, res) => {
     }
     const raterProfileID = likerProfile[0].userProfileID;
 
-    // 4. Safely find the ACTUAL recipeID
+    // 4. Safely find the ACTUAL recipeID and the AUTHOR
     const [recipeRows] = await db.query(
       "SELECT userProfileID, recipeID FROM recipe WHERE recipeID = ? OR foodID = ? LIMIT 1", 
       [incomingID, incomingID]
@@ -1882,31 +1882,32 @@ router.post("/:id/rate", async (req, res) => {
     );
     console.log(`✅ Rating of ${rating} saved successfully!`);
 
-    // 7. Dynamic XP System (1 Star = 1 XP)
+    // 7. Dynamic XP System (1 Star = 1 XP) - REWARDS THE AUTHOR
     // Prevent users from rating their own recipes to farm XP
     if (raterProfileID !== authorProfileID) {
       const xpDifference = rating - oldRatingValue;
 
       // Only adjust if the rating actually changed
       if (xpDifference !== 0) {
-        // Log "RECIPE_RATED" for the first time, and "RECIPE_RATING_UPDATED" for changes
         const actionType = isNewRating ? 'RECIPE_RATED' : 'RECIPE_RATING_UPDATED';
 
-        // Add the log entry (supports negative values for downgrades)
+        // Add the log entry to the AUTHOR's profile
         await db.query(
           `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
            VALUES (?, ?, ?, ?)`,
           [authorProfileID, actionType, actualRecipeID, xpDifference]
         );
 
-        // Update the author's total XP bank
+        // Update the AUTHOR's total XP bank
         await db.query(
           `UPDATE userProfile SET total_xp = COALESCE(total_xp, 0) + ? WHERE userProfileID = ?`,
           [xpDifference, authorProfileID]
         );
 
-        console.log(`🎁 SUCCESS: Adjusted Author ${authorProfileID} XP by ${xpDifference} (Old: ${oldRatingValue}, New: ${rating})`);
+        console.log(`🎁 SUCCESS: Awarded ${xpDifference} XP to Author ${authorProfileID}`);
       }
+    } else {
+      console.log(`🛡️ Anti-Cheat: User tried to rate their own recipe. No XP awarded.`);
     }
 
     // 8. Send the new math back to React
