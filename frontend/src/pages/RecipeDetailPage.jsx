@@ -160,6 +160,19 @@ export default function RecipeDetailPage() {
 
   const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false }));
 
+  const handleProfileClick = (e, targetProfileID) => {
+    if (e) e.stopPropagation();
+    if (!targetProfileID) return;
+    
+    const currentUID = user?.userProfileID || user?.userID || user?.id;
+    
+    if (currentUID && String(currentUID) === String(targetProfileID)) {
+      navigate("/profile"); 
+    } else {
+      navigate(`/profile/${targetProfileID}`); 
+    }
+  };
+
   const isLoggedIn = () => {
     const loggedIn = user && user.role !== "guest";
     console.log('🔐 isLoggedIn check:', {
@@ -405,6 +418,23 @@ export default function RecipeDetailPage() {
                       </div>
 
                       <h1 className="rdp-title">{recipe.name}</h1>
+                      <div 
+                        className="rdp-author-inline"
+                        onClick={(e) => handleProfileClick(e, recipe.authorProfileID)}
+                        style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px", marginBottom: "12px", transition: "opacity 0.2s" }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = "0.8"}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                        title={`View ${recipe.authorName}'s profile`}
+                      >
+                        <img 
+                          src={recipe.authorAvatar || 'https://via.placeholder.com/40/8b5e3c/FFFFFF?text=U'} 
+                          alt={recipe.authorName} 
+                          style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.8)" }}
+                        />
+                        <span style={{ color: "#fff", fontWeight: "500", textShadow: "1px 1px 4px rgba(0,0,0,0.8)" }}>
+                          By {recipe.authorName}
+                        </span>
+                      </div>
                       <RecipeStarRating 
                         recipeId={id} 
                         initialAvg={recipe.avgRating || 0} 
