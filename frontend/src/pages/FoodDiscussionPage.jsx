@@ -10,7 +10,6 @@ import {CheckCircle2, AlertTriangle} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Modal from "../components/Modal";
 import LoginPromptModal from "../components/LoginPromptModal";
-import { getTierById } from "../utils/gamificationTiers";
 
 // ✅ Delete Confirmation Modal Component
 const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", isAdminAction = false }) => {
@@ -101,6 +100,7 @@ const Comment = React.memo(function Comment({
   setShowLoginPrompt,
   currentUserId,
   isAdmin = false, 
+  onProfileClick
 }) {
   const itemId = isReply ? (item.replyID || item.id) : (item.id || item.discussionID);
   const username = item.username || item.user || item.author || 'Unknown User';
@@ -156,7 +156,12 @@ const Comment = React.memo(function Comment({
 
   return (
     <div className={`fd-disc-comment ${isReply ? "fd-disc-reply" : ""}`}>
-      <div className="fd-disc-avatar">
+      <div 
+        className="fd-disc-avatar"
+        onClick={() => onProfileClick && onProfileClick(commentUserId)}
+        style={{ cursor: "pointer" }}
+        title={`View ${username}'s profile`}
+      >
           {item.avatar ? (
             <img 
               src={item.avatar} 
@@ -175,14 +180,15 @@ const Comment = React.memo(function Comment({
         </div>
       <div className="fd-disc-body">
         <div className="fd-disc-meta">
-          <span className="fd-disc-user">
+          <span 
+            className="fd-disc-user"
+            onClick={() => onProfileClick && onProfileClick(commentUserId)}
+            style={{ cursor: "pointer", textDecoration: "underline transparent", transition: "text-decoration 0.2s" }}
+            onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+            onMouseLeave={(e) => e.target.style.textDecoration = "underline transparent"}
+            title={`View ${username}'s profile`}
+          >
             {username}
-            <span className="user-badge-inline">
-              {getTierById(item.equippedBadge || "novice").icon}
-              <span className="badge-tooltip-mini" style={{ color: getTierById(item.equippedBadge || "novice").color }}>
-                {getTierById(item.equippedBadge || "novice").title}
-              </span>
-            </span>
           </span>
           <span className="fd-disc-time">• {getTimeAgo(timestamp)}</span>
           
@@ -256,6 +262,7 @@ const Comment = React.memo(function Comment({
                   setShowLoginPrompt={setShowLoginPrompt}
                   currentUserId={currentUserId}
                   isAdmin={isAdmin} // ✅ PASS ADMIN PROP TO REPLIES
+                  onProfileClick={onProfileClick}
                 />
               ))}
             </div>
@@ -354,6 +361,16 @@ export default function FoodDiscussionPage() {
     setInfoDlg({ open: true, title, message, icon, primaryText });
 
   const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false}));
+
+  //FoodDiscussionPage clickable Profile
+  const handleProfileClick = (commentUserProfileID) => {
+    const currentUID = userProfileID || user?.userProfileID || user?.userID || user?.id;
+    if (currentUID && String(currentUID) === String(commentUserProfileID)) {
+      navigate("/profile"); 
+    } else if (commentUserProfileID) {
+      navigate(`/profile/${commentUserProfileID}`); 
+    }
+  };
 
   useEffect(() => {
     if (user?.userID && !userProfileID) {
@@ -1207,6 +1224,7 @@ const postReply = async (discussionId) => {
                     setShowLoginPrompt={setShowLoginPrompt}
                     currentUserId={actualUserID}
                     isAdmin={isAdmin} // ✅ PASS ADMIN PROP
+                    onProfileClick={handleProfileClick}
                   />
                   {i < comments.length - 1 && <hr className="fd-divider" />}
                 </React.Fragment>
