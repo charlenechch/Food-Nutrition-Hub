@@ -418,31 +418,7 @@ export default function RecipeDetailPage() {
                       </div>
 
                       <h1 className="rdp-title">{recipe.name}</h1>
-                      <div 
-                        className="rdp-author-inline"
-                        onClick={(e) => handleProfileClick(e, recipe.authorProfileID)}
-                        style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px", marginBottom: "12px", transition: "opacity 0.2s" }}
-                        onMouseEnter={(e) => e.currentTarget.style.opacity = "0.8"}
-                        onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-                        title={`View ${recipe.authorName}'s profile`}
-                      >
-                        <img 
-                          src={recipe.authorAvatar || 'https://via.placeholder.com/40/8b5e3c/FFFFFF?text=U'} 
-                          alt={recipe.authorName} 
-                          style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.8)" }}
-                        />
-                        <span style={{ color: "#fff", fontWeight: "500", textShadow: "1px 1px 4px rgba(0,0,0,0.8)" }}>
-                          By {recipe.authorName}
-                        </span>
-                      </div>
-                      <RecipeStarRating 
-                        recipeId={id} 
-                        initialAvg={recipe.avgRating || 0} 
-                        initialCount={recipe.totalRatings || 0} 
-                        csrfToken={csrfToken}
-                        initialUserRating={recipe.userRating || 0}
-                      />
-
+                    
                       <div className="rdp-badges" style={{ marginTop: '8px', marginBottom: '0' }}>
                         {recipe.category && (
                           (Array.isArray(recipe.category) ? recipe.category : recipe.category.split(','))
@@ -458,7 +434,102 @@ export default function RecipeDetailPage() {
                 )}
               </div>
 
-              <div className="rdp-card2 rdp-meta">
+              {/* ✅ NEW: AUTHOR & RATING SUMMARY BAR */}
+              <div 
+                className="rdp-summary-bar"
+                style={{ 
+                  display: "flex", 
+                  justifyContent: "space-between", 
+                  alignItems: "center", 
+                  flexWrap: "wrap",
+                  gap: "16px",
+                  padding: "24px 20px 16px 20px", 
+                  borderBottom: "1px solid #f0f0f0", 
+                  backgroundColor: "#fff"
+                }}
+              >
+                {/* Left Side: Clickable Author */}
+                <div 
+                  className="rdp-author-section"
+                  onClick={(e) => handleProfileClick(e, recipe.authorProfileID)}
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: "12px", 
+                    cursor: "pointer",
+                    transition: "opacity 0.2s"
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+                  title={`View ${recipe.authorName}'s profile`}
+                >
+                  <img 
+                    src={recipe.authorAvatar || 'https://via.placeholder.com/40/8b5e3c/FFFFFF?text=U'} 
+                    alt={recipe.authorName} 
+                    style={{ 
+                      width: "48px", 
+                      height: "48px", 
+                      borderRadius: "50%", 
+                      objectFit: "cover",
+                      border: "1px solid #eaeaea",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
+                    }}
+                  />
+                  <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                    <span style={{ fontSize: "0.85rem", color: "#888", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "2px" }}>
+                      Recipe By
+                    </span>
+                    <span style={{ fontWeight: "700", color: "#2c2c2c", fontSize: "1.1rem" }}>
+                      {recipe.authorName}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Side: Recipe Rating */}
+                <div 
+                  className="rdp-rating-section"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end",
+                    justifyContent: "center",
+                    gap: "6px" // Keeps the stars and text perfectly spaced
+                  }}
+                >
+                  <RecipeStarRating 
+                    recipeId={id} 
+                    initialAvg={recipe.avgRating || 0} 
+                    initialCount={recipe.totalRatings || 0} 
+                    csrfToken={csrfToken}
+                    initialUserRating={recipe.userRating || 0}
+                  />
+                  
+                  {/* Clean, pill-shaped badge that only shows when there are actual reviews */}
+                  {recipe.totalRatings > 0 && (
+                    <div style={{ 
+                      display: "inline-flex", 
+                      alignItems: "center",
+                      backgroundColor: "#fcf8f5", // Very soft, warm background matching your theme
+                      border: "1px solid #efe5dc",
+                      color: "#6a4a2f", // Your theme's dark brown
+                      padding: "4px 12px", 
+                      borderRadius: "20px", // Makes it a sleek pill shape
+                      fontSize: "0.85rem", 
+                      fontWeight: "700",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.02)"
+                    }}>
+                      <span style={{ color: "#e6b800", marginRight: "6px", fontSize: "1rem" }}>★</span>
+                      {recipe.avgRating} <span style={{ color: "#a88d75", margin: "0 4px", fontWeight: "400" }}>/</span> 5
+                      <span style={{ color: "#a88d75", marginLeft: "6px", fontWeight: "500", fontSize: "0.8rem" }}>
+                        ({recipe.totalRatings} {recipe.totalRatings === 1 ? 'Review' : 'Reviews'})
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* ✅ END SUMMARY BAR */}
+
+              <div className="rdp-card2 rdp-meta" style={{ borderTop: "none", paddingTop: "16px" }}>
                 <div className="rdp-meta-item">
                   <div className="rdp-meta-label">{t("recipeDetail.prepTime")}</div>
                   <div className="rdp-meta-val">{fmtTime(recipe.prepTime, recipe.prepTimeLabel)}</div>
