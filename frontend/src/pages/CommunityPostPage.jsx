@@ -373,7 +373,7 @@ export default function CommunityPost() {
                 <div className="author-text-info">
                   <span className="author-name-large">
                     {post.author || t("communityPost.unknownChef")}
-                    <span className="user-badge-inline" style={{ width: "28px", height: "28px", boxShadow: `0 2px 6px ${getTierById(post.equippedBadge || "novice").color}40` }}>
+                    <span className="user-badge-inline">
                       {getTierById(post.equippedBadge || "novice").icon}
                       <span className="badge-tooltip-mini" style={{ color: getTierById(post.equippedBadge || "novice").color }}>
                         {getTierById(post.equippedBadge || "novice").title}
