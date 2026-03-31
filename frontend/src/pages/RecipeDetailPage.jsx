@@ -464,8 +464,8 @@ export default function RecipeDetailPage() {
                   title={`View ${recipe.authorName}'s profile`}
                 >
                   <img 
-                    src={recipe.authorAvatar || 'https://via.placeholder.com/40/8b5e3c/FFFFFF?text=U'} 
-                    alt={recipe.authorName} 
+                    src={recipe.authorAvatar || `https://ui-avatars.com/api/?name=${recipe.authorName}&background=8b5e3c&color=fff&rounded=true`} 
+                    alt={recipe.authorName}
                     style={{ 
                       width: "48px", 
                       height: "48px", 

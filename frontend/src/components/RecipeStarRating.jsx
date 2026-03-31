@@ -100,7 +100,7 @@ const RecipeStarRating = ({
           <span>Be the first to rate this recipe!</span>
         ) : (
           <span>
-            <strong>{avg.toFixed(1)}</strong> out of 5 ({count} {count === 1 ? "review" : "reviews"})
+            <strong>{Number(avg).toFixed(1)}</strong> out of 5 ({count} {count === 1 ? "review" : "reviews"})
           </span>
         )}
       </div>
