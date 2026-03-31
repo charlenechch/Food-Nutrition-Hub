@@ -110,21 +110,29 @@
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-/* --- IMPROVED RATING VISIBILITY --- */
+/* --- IMPROVED RATING VISIBILITY (SLEEK VERSION) --- */
 .rdp-rating-highlight {
     display: inline-flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 8px 16px;
-    border-radius: 50px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: transparent; /* Removed the harsh white background */
+    padding: 5px 0;
+    margin-top: 5px;
+    margin-bottom: 15px;
 }
 
-/* Ensure stars and text inside the highlight are visible against the white background */
+/* Style the text inside (e.g., "Be the first to rate this recipe!") */
 .rdp-rating-highlight * {
-    color: #3b2b1e !important; 
+    color: #ffffff !important; 
+    text-shadow: 0 2px 6px rgba(0,0,0,0.9); /* Strong shadow for readability */
+    font-weight: 500;
+}
+
+/* Make the stars bright gold with their own drop shadow */
+.rdp-rating-highlight svg {
+    color: #FFC107 !important; /* Vibrant Gold/Amber */
+    fill: #FFC107 !important;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));
+    margin-right: 2px;
 }
 
 /* Kept original hero styles in case they are used elsewhere */
