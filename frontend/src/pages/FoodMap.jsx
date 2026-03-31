@@ -150,6 +150,7 @@ export default function FoodMap() {
     const q = searchParams.get("q");
     if (q) {
       setSearchInput(q);
+      setActiveFilter(q);
       doSearch(q);
     } else {
       loadAll();
