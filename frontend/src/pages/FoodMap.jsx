@@ -109,16 +109,6 @@ export default function FoodMap() {
     }
   }, []);
 
-  useEffect(() => {
-    const q = searchParams.get("q");
-    if (q) {
-      setSearchInput(q);
-      doSearch(q);
-    } else {
-      loadAll();
-    }
-  }, [loadAll, doSearch]);
-
   // Filter by food category
   const filterByFood = useCallback(async (foodName) => {
     if (foodName === "all") { loadAll(); return; }
@@ -154,6 +144,16 @@ export default function FoodMap() {
       setSearching(false);
     }
   }, [loadAll]);
+
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) {
+      setSearchInput(q);
+      doSearch(q);
+    } else {
+      loadAll();
+    }
+  }, [loadAll, doSearch]);
 
   const handleSearchChange = (val) => {
     setSearchInput(val);
