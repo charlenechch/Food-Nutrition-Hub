@@ -11,6 +11,7 @@ import { GrDocumentMissing } from "react-icons/gr";
 import { PiChefHat } from "react-icons/pi";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { useTranslation } from "react-i18next";
+import { getTierById } from "../utils/gamificationTiers";
 
 export default function Community() {
   const navigate = useNavigate();
@@ -323,6 +324,12 @@ export default function Community() {
                             }}
                             style={{ cursor: "pointer" }}>
                             {post.author}
+                            <span className="user-badge-inline" style={{ boxShadow: `0 2px 6px ${getTierById(post.equippedBadge || "novice").color}40` }}>
+                              {getTierById(post.equippedBadge || "novice").icon}
+                              <span className="badge-tooltip-mini" style={{ color: getTierById(post.equippedBadge || "novice").color }}>
+                                {getTierById(post.equippedBadge || "novice").title}
+                              </span>
+                            </span>
                           </span>
                           <span className="post-date">{post.daysAgo}</span>
                         </div>

@@ -8,6 +8,7 @@ import Modal from "../components/Modal";
 import { Info, NotebookText, Share2, ShoppingBasket, CheckCircle2, AlertTriangle  } from "lucide-react";
 import { translateTexts } from "../hooks/useAITranslation";
 import RecipeStarRating from "../components/RecipeStarRating";
+import { getTierById } from "../utils/gamificationTiers";
 
 // ✅ Import Auth & Login Modal
 import { useAuth } from "../context/AuthContext";

@@ -10,6 +10,7 @@ import { GrDocumentMissing } from "react-icons/gr";
 import { PiChefHat } from "react-icons/pi";
 import { Filter, Sliders, X } from "lucide-react";
 import { translateTexts } from "../hooks/useAITranslation";
+import { getTierById } from "../utils/gamificationTiers";
 
 // Guest detection + modal
 import { useAuth } from "../context/AuthContext";
@@ -749,7 +750,15 @@ export default function RecipesPage() {
                       className="rp-author-img" 
                       loading="lazy"
                     />
-                    <span className="rp-author-name">{r.author}</span>
+                    <span className="rp-author-name">
+                      {r.author}
+                      <span className="user-badge-inline" style={{ boxShadow: `0 2px 6px ${getTierById(r.equippedBadge || "novice").color}40` }}>
+                        {getTierById(r.equippedBadge || "novice").icon}
+                        <span className="badge-tooltip-mini" style={{ color: getTierById(r.equippedBadge || "novice").color }}>
+                          {getTierById(r.equippedBadge || "novice").title}
+                        </span>
+                      </span>
+                    </span>
                   </div>
                   <h3 className="efp-food-title">{translatedRecipes[`name_${r.id}`] || r.name || t("recipes.unknownRecipe")}</h3>
                   <p className="efp-desc">{translatedRecipes[`desc_${r.id}`] || r.description || t("recipes.noDescription")}</p>

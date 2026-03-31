@@ -9,6 +9,7 @@ import LoginPromptModal from "../components/LoginPromptModal";
 import Modal from "../components/Modal";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useTranslation } from "react-i18next";
+import { getTierById } from "../utils/gamificationTiers";
 
 function computeIsLoggedIn(user) {
   if (user?.role === "admin") {
@@ -249,6 +250,12 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                     onMouseLeave={(e) => e.target.style.textDecoration = "underline transparent"}
                   >
                     {c.username || c.author || "User"}
+                    <span className="user-badge-inline" style={{ boxShadow: `0 2px 6px ${getTierById(c.equippedBadge || "novice").color}40` }}>
+                      {getTierById(c.equippedBadge || "novice").icon}
+                      <span className="badge-tooltip-mini" style={{ color: getTierById(c.equippedBadge || "novice").color }}>
+                        {getTierById(c.equippedBadge || "novice").title}
+                      </span>
+                    </span>
                   </span>
                   <span className="comment-meta-dot">•</span>
                   <span className="comment-time">{c.daysAgo}</span>
@@ -364,7 +371,15 @@ export default function CommunityPost() {
                     : (post.author || "U").charAt(0).toUpperCase()}
                 </div>
                 <div className="author-text-info">
-                  <span className="author-name-large">{post.author || t("communityPost.unknownChef")}</span>
+                  <span className="author-name-large">
+                    {post.author || t("communityPost.unknownChef")}
+                    <span className="user-badge-inline" style={{ width: "28px", height: "28px", boxShadow: `0 2px 6px ${getTierById(post.equippedBadge || "novice").color}40` }}>
+                      {getTierById(post.equippedBadge || "novice").icon}
+                      <span className="badge-tooltip-mini" style={{ color: getTierById(post.equippedBadge || "novice").color }}>
+                        {getTierById(post.equippedBadge || "novice").title}
+                      </span>
+                    </span>
+                  </span>
                   <div className="post-metadata-row">
                     <span className="post-date">{post.daysAgo}</span>
                     <span className="meta-dot">•</span>

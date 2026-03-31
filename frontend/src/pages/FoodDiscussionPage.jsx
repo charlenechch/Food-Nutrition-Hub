@@ -10,6 +10,7 @@ import {CheckCircle2, AlertTriangle} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Modal from "../components/Modal";
 import LoginPromptModal from "../components/LoginPromptModal";
+import { getTierById } from "../utils/gamificationTiers";
 
 // ✅ Delete Confirmation Modal Component
 const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", isAdminAction = false }) => {
@@ -174,7 +175,15 @@ const Comment = React.memo(function Comment({
         </div>
       <div className="fd-disc-body">
         <div className="fd-disc-meta">
-          <span className="fd-disc-user">{username}</span>
+          <span className="fd-disc-user">
+            {username}
+            <span className="user-badge-inline" style={{ boxShadow: `0 2px 6px ${getTierById(item.equippedBadge || "novice").color}40` }}>
+              {getTierById(item.equippedBadge || "novice").icon}
+              <span className="badge-tooltip-mini" style={{ color: getTierById(item.equippedBadge || "novice").color }}>
+                {getTierById(item.equippedBadge || "novice").title}
+              </span>
+            </span>
+          </span>
           <span className="fd-disc-time">• {getTimeAgo(timestamp)}</span>
           
           {/* ✅ UPDATED DELETE BUTTON - Show for owners AND admins */}
