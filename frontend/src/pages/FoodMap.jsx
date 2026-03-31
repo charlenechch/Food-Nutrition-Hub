@@ -128,7 +128,7 @@ export default function FoodMap() {
   }, [loadAll]);
 
   // Search bar
-  const doSearch = useCallback(async (q) => {
+  const doSearch = useCallback(async (q, preserveFilter = false) => {
     if (!q.trim()) { loadAll(); return; }
     setSearching(true);
     setLoading(false);
