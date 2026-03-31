@@ -296,6 +296,8 @@ router.get('/recipes/:id', async (req, res) => {
         r.admin_feedback,
         CONCAT(u.firstname, ' ', u.lastname) AS authorName,
         u.email AS authorEmail,
+        up.userProfileID AS authorProfileID,
+        up.avatar AS authorAvatar,
         (SELECT COALESCE(ROUND(AVG(rating), 1), 0) FROM recipe_ratings WHERE recipeID = r.recipeID) AS avgRating,
         (SELECT COUNT(id) FROM recipe_ratings WHERE recipeID = r.recipeID) AS totalRatings,
         (SELECT rating FROM recipe_ratings WHERE recipeID = r.recipeID AND userProfileID = ?) AS userRating
@@ -342,6 +344,8 @@ router.get('/recipes/:id', async (req, res) => {
       adminFeedback: row.admin_feedback || '',
       authorName: row.authorName || 'Unknown Author',
       authorEmail: row.authorEmail || 'N/A',
+      authorProfileID: row.authorProfileID || null,
+      authorAvatar: row.authorAvatar || null,
       createdAt: row.createdAt,
       avgRating: row.avgRating || 0,
       totalRatings: row.totalRatings || 0,

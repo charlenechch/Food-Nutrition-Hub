@@ -420,6 +420,20 @@ export default function RecipesPage() {
     });
   }
 
+  const handleProfileClick = (e, authorProfileID) => {
+    e.stopPropagation(); // Prevents clicking the card and navigating to the recipe detail
+    if (!authorProfileID) return;
+    
+    // Fallback checks to find the correct current user ID
+    const currentUID = user?.userProfileID || user?.userID || user?.id;
+    
+    if (currentUID && String(currentUID) === String(authorProfileID)) {
+      navigate("/profile"); 
+    } else {
+      navigate(`/profile/${authorProfileID}`); 
+    }
+  };
+
   if (loading) return <div className="loading">{t("recipes.loading")}</div>;
 
   return (
@@ -730,17 +744,7 @@ export default function RecipesPage() {
                 <div className="efp-food-body">
                   <div 
                     className="rp-author-info"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!r.authorId) return;
-                      
-                      const currentUID = user?.userProfileID;
-                      if (user && String(currentUID) === String(r.authorId)) {
-                        navigate("/profile");
-                      } else {
-                        navigate(`/profile/${r.authorId}`);
-                      }
-                    }}
+                    onClick={(e) => handleProfileClick(e, r.authorId || r.userProfileID)}
                     style={{ cursor: "pointer" }}
                     title={`View ${r.author}'s profile`}
                   >
