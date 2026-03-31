@@ -10,6 +10,7 @@ import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { useTranslation } from "react-i18next";
 import { translateTexts } from "../hooks/useAITranslation";
+import { getTierById } from "../utils/gamificationTiers";
 
 export default function FoodDetailPage() {
   const { id } = useParams();
@@ -400,6 +401,12 @@ export default function FoodDetailPage() {
                             title={`View ${c.username || c.user}'s profile`}
                           >
                             {c.username || c.user}
+                            <span className="user-badge-inline">
+                              {getTierById(c.equippedBadge || "novice").icon}
+                              <span className="badge-tooltip-mini" style={{ color: getTierById(c.equippedBadge || "novice").color }}>
+                                {getTierById(c.equippedBadge || "novice").title}
+                              </span>
+                            </span>
                           </span>
                           <span className="fdp-time">{c.timeAgo}</span>
                         </div>
