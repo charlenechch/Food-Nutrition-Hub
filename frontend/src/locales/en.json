@@ -65,7 +65,15 @@
     "fact3Title": "The Red Noodles",
     "fact3Text": "The red color in traditional Kuching Kolo Mee often comes from 'Char Siu' oil, giving it a distinct savory sweetness compared to the white version.",
     "fact4Title": "Liquid Gold",
-    "fact4Text": "\"Gula Apong\" is a natural palm sugar made from the Nipah palm found in Sarawak's coastal areas. It has a unique caramel-salty flavor profile."
+    "fact4Text": "\"Gula Apong\" is a natural palm sugar made from the Nipah palm found in Sarawak's coastal areas. It has a unique caramel-salty flavor profile.",
+    "scrollExplore": "Explore",
+    "unlockPremium": "Unlock Premium",
+    "signUpToUnlock": "Sign up to Unlock",
+    "randomizerFinding": "Finding a place to eat...",
+    "randomizerHowAbout": "How about...",
+    "randomizerFindOnMap": "📍 Find on Map",
+    "randomizerSpinAgain": "Spin Again",
+    "randomizerCancel": "Cancel"
   },
 
   "explore": {

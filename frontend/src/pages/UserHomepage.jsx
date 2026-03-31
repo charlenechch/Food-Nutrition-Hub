@@ -256,7 +256,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         </div>
 
         <div className="scroll-hint-container" onClick={() => window.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}>
-          <span className="scroll-text">Explore</span>
+          <span className="scroll-text">{t("home.scrollExplore")}</span>
           <FaAnglesDown className="bounce-icon" />
         </div>
 
@@ -291,7 +291,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           <div className="feature-card restricted-card">
             <div className="card-content-top">
               {(!user || user.role === "guest") && (
-                <div className="premium-badge">✨ {t("home.unlockPremium", "Unlock Premium")}</div>
+                <div className="premium-badge">✨ {t("home.unlockPremium")}</div>
               )}
               <div className="feature-icon-wrapper premium-icon-wrapper">
                 <FaWandMagicSparkles className="feature-icon-svg" />
@@ -303,14 +303,14 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               className="feature-btn btn-accent"
               onClick={() => handleProtectedAction("/analyzer", "nav.analyzer")}
             >
-              {(!user || user.role === "guest") ? t("home.signUpToUnlock", "Sign up to Unlock") : t("home.analyzerBtn")}
+              {(!user || user.role === "guest") ? t("home.signUpToUnlock") : t("home.analyzerBtn")}
             </button>
           </div>
 
           <div className="feature-card restricted-card">
             <div className="card-content-top">
               {(!user || user.role === "guest") && (
-                <div className="premium-badge">✨ {t("home.unlockPremium", "Unlock Premium")}</div>
+                <div className="premium-badge">✨ {t("home.unlockPremium")}</div>
               )}
               <div className="feature-icon-wrapper premium-icon-wrapper">
                 <FaUserEdit className="feature-icon-svg" />
@@ -322,7 +322,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               className="feature-btn"
               onClick={() => handleProtectedAction("/profile", "home.profileTitle")}
             >
-              {(!user || user.role === "guest") ? t("home.signUpToUnlock", "Sign up to Unlock") : t("home.profileBtn")}
+              {(!user || user.role === "guest") ? t("home.signUpToUnlock") : t("home.profileBtn")}
             </button>
           </div>
         </section>
@@ -406,12 +406,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             {!randomizerResult ? (
               <>
                 <FaDice className="spinning-dice" />
-                <h3>Finding a place to eat...</h3>
+                <h3>{t("home.randomizerFinding")}</h3>
                 <div className="slot-machine-text">{randomizerText}</div>
               </>
             ) : (
               <div className="result-reveal slide-up">
-                <h3>How about...</h3>
+                <h3>{t("home.randomizerHowAbout")}</h3>
                 <div className="slot-machine-text highlight-winner">{randomizerResult.name}</div>
                 
                 <div className="randomizer-actions">
@@ -422,12 +422,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
                       navigate(`/map?q=${encodeURIComponent(randomizerResult.name)}`);
                     }}
                   >
-                    📍 Find on Map
+                    {t("home.randomizerFindOnMap")}
                   </button>
                   
                   <div className="secondary-actions">
-                    <button className="text-btn" onClick={handleRandomize}>Spin Again</button>
-                    <button className="text-btn close-btn" onClick={() => setIsRandomizing(false)}>Cancel</button>
+                    <button className="text-btn" onClick={handleRandomize}>{t("home.randomizerSpinAgain")}</button>
+                    <button className="text-btn close-btn" onClick={() => setIsRandomizing(false)}>{t("home.randomizerCancel")}</button>
                   </div>
                 </div>
               </div>
