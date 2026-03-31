@@ -133,7 +133,7 @@ export default function FoodMap() {
     setSearching(true);
     setLoading(false);
     setSelected(null);
-    setActiveFilter("all");
+    if (!preserveFilter) setActiveFilter("all");
     try {
       const res  = await fetch(`${API}/api/map/search?q=${encodeURIComponent(q)}`);
       if (!res.ok) throw new Error(`Search error ${res.status}`);
@@ -151,7 +151,7 @@ export default function FoodMap() {
     if (q) {
       setSearchInput(q);
       setActiveFilter(q);
-      doSearch(q);
+      doSearch(q, true);
     } else {
       loadAll();
     }
