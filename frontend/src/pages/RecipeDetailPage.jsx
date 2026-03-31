@@ -385,65 +385,65 @@ export default function RecipeDetailPage() {
           {t("recipeDetail.back")}
         </button>
 
-        <div className={`rdp-grid ${!hasSideNotes ? "rdp-grid--single" : ""}`}>
-          {/* LEFT: main column */}
-          <div className="rdp-main">
-            <div className="rdp-card">
-              <div className="rdp-hero">
-                {recipe.image && (
-                  <>
-                    <img className="rdp-hero-img" src={recipe.image} alt={recipe.name} />
-                    <div className="rdp-hero-overlay" />
-                    <div className="rdp-hero-text">
-                      <div className="rdp-badges">
-                        {recipe.origin && (
-                          <span className="rdp-badge rdp-badge-origin">
-                            {recipe.origin}
-                          </span>
-                        )}
-                      </div>
-
-                      <h1 className="rdp-title">{recipe.name}</h1>
-                      <RecipeStarRating 
-                        recipeId={id} 
-                        initialAvg={recipe.avgRating || 0} 
-                        initialCount={recipe.totalRatings || 0} 
-                        csrfToken={csrfToken}
-                        initialUserRating={recipe.userRating || 0}
-                      />
-
-                      <div className="rdp-badges" style={{ marginTop: '8px', marginBottom: '0' }}>
-                        {recipe.category && (
-                          (Array.isArray(recipe.category) ? recipe.category : recipe.category.split(','))
-                            .map((cat, index) => (
-                              <span key={`cat-${index}`} className="rdp-badge">
-                                {cat.trim()}
-                              </span>
-                            ))
-                        )}
-                      </div>
-                    </div>
-                                      </>
+        {/* --- MODIFIED HERO SECTION (Moved out of grid for larger display) --- */}
+        {recipe.image && (
+          <div className="rdp-hero-container">
+            <img className="rdp-hero-img-large" src={recipe.image} alt={recipe.name} />
+            <div className="rdp-hero-content">
+              <div className="rdp-badges">
+                {recipe.origin && (
+                  <span className="rdp-badge rdp-badge-origin">
+                    {recipe.origin}
+                  </span>
                 )}
               </div>
 
-              <div className="rdp-card2 rdp-meta">
-                <div className="rdp-meta-item">
-                  <div className="rdp-meta-label">{t("recipeDetail.prepTime")}</div>
-                  <div className="rdp-meta-val">{fmtTime(recipe.prepTime, recipe.prepTimeLabel)}</div>
-                </div>
-                <div className="rdp-meta-item">
-                  <div className="rdp-meta-label">{t("recipeDetail.cookTime")}</div>
-                  <div className="rdp-meta-val">{fmtTime(recipe.cookTime, recipe.cookTimeLabel)}</div>
-                </div>
-                <div className="rdp-meta-item">
-                  <div className="rdp-meta-label">{t("recipeDetail.servings")}</div>
-                  <div className="rdp-meta-val">{recipe.servings || 1}</div>
-                </div>
-                <div className="rdp-meta-item">
-                  <div className="rdp-meta-label">{t("recipeDetail.difficulty")}</div>
-                  <div className="rdp-meta-val">{recipe.difficulty || ""}</div>
-                </div>
+              <h1 className="rdp-main-title">{recipe.name}</h1>
+              
+              <div className="rdp-rating-highlight">
+                <RecipeStarRating 
+                  recipeId={id} 
+                  initialAvg={recipe.avgRating || 0} 
+                  initialCount={recipe.totalRatings || 0} 
+                  csrfToken={csrfToken}
+                  initialUserRating={recipe.userRating || 0}
+                />
+              </div>
+
+              <div className="rdp-badges" style={{ marginTop: '8px', marginBottom: '0' }}>
+                {recipe.category && (
+                  (Array.isArray(recipe.category) ? recipe.category : recipe.category.split(','))
+                    .map((cat, index) => (
+                      <span key={`cat-${index}`} className="rdp-badge">
+                        {cat.trim()}
+                      </span>
+                    ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className={`rdp-grid ${!hasSideNotes ? "rdp-grid--single" : ""}`}>
+          {/* LEFT: main column */}
+          <div className="rdp-main">
+            {/* Meta info removed from the main card and placed directly in main column */}
+            <div className="rdp-card2 rdp-meta" style={{ border: '1px solid #eadfd2' }}>
+              <div className="rdp-meta-item">
+                <div className="rdp-meta-label">{t("recipeDetail.prepTime")}</div>
+                <div className="rdp-meta-val">{fmtTime(recipe.prepTime, recipe.prepTimeLabel)}</div>
+              </div>
+              <div className="rdp-meta-item">
+                <div className="rdp-meta-label">{t("recipeDetail.cookTime")}</div>
+                <div className="rdp-meta-val">{fmtTime(recipe.cookTime, recipe.cookTimeLabel)}</div>
+              </div>
+              <div className="rdp-meta-item">
+                <div className="rdp-meta-label">{t("recipeDetail.servings")}</div>
+                <div className="rdp-meta-val">{recipe.servings || 1}</div>
+              </div>
+              <div className="rdp-meta-item">
+                <div className="rdp-meta-label">{t("recipeDetail.difficulty")}</div>
+                <div className="rdp-meta-val">{recipe.difficulty || ""}</div>
               </div>
             </div>
 
