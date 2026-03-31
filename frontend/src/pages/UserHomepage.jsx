@@ -232,7 +232,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             </form>
 
             <button className="randomizer-btn" onClick={handleRandomize} type="button">
-              <FaDice className="dice-icon" /> I'm Feeling Hungry
+              <FaDice className="dice-icon" /> {t("home.randomizerBtn")}
             </button>
 
             {showSuggestions && suggestions.length > 0 && (
