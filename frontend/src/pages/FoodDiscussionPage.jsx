@@ -10,6 +10,7 @@ import {CheckCircle2, AlertTriangle} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Modal from "../components/Modal";
 import LoginPromptModal from "../components/LoginPromptModal";
+import { getTierById } from "../utils/gamificationTiers";
 
 // ✅ Delete Confirmation Modal Component
 const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", isAdminAction = false }) => {
