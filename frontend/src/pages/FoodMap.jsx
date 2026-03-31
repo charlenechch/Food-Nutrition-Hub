@@ -175,15 +175,19 @@ export default function FoodMap() {
     if (!navigator.geolocation) { setGeoError("Geolocation not supported."); return; }
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        const lat = parseFloat(coords.latitude.toFixed(7));
-        const lng = parseFloat(coords.longitude.toFixed(7));
+        let lat = parseFloat(coords.latitude.toFixed(7));
+        let lng = parseFloat(coords.longitude.toFixed(7));
+
+        // If outside Sarawak bounds, fall back to Kuching center
         if (lat < 0.5 || lat > 3.0 || lng < 108 || lng > 112) {
-          setGeoError("Location seems incorrect. Showing Kuching.");
-          return;
+          setGeoError("Location seems outside Sarawak. Showing Kuching instead.");
+          lat = 1.5535;
+          lng = 110.3493;
         }
+
         setUserPos([lat, lng]);
         setFlyTarget([lat, lng]);
-        loadAll(lat, lng);
+        loadAll(lat, lng); // ← always called now
       },
       (err) => {
         const msgs = {
