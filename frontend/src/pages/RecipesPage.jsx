@@ -735,7 +735,12 @@ export default function RecipesPage() {
             const diffClass = (r.difficulty || "").toLowerCase() === "easy" ? "efp-badge efp-badge--ok" : (r.difficulty || "").toLowerCase() === "medium" ? "efp-badge efp-badge--warn" : "efp-badge efp-badge--high";
 
             return (
-              <div key={`recipe-${recipeId}-${index}`} className="efp-food-card">
+              <div 
+                key={`recipe-${recipeId}-${index}`} 
+                className="efp-food-card"
+                onClick={() => navigate(`/recipes/${recipeId}`)}
+                style={{ cursor: "pointer" }}
+              >
                 <div className="efp-food-media">
                   <img src={r.image || 'https://via.placeholder.com/300x200?text=No+Image'} alt={r.name} className="efp-image" loading="lazy" />
                   <div className="efp-badges"><span className={diffClass}>{r.difficulty || t("explore.easy")}</span></div>
@@ -766,7 +771,15 @@ export default function RecipesPage() {
                   </div>
                   <h3 className="efp-food-title">{translatedRecipes[`name_${r.id}`] || r.name || t("recipes.unknownRecipe")}</h3>
                   <p className="efp-desc">{translatedRecipes[`desc_${r.id}`] || r.description || t("recipes.noDescription")}</p>
-                  <button className="efp-card-cta" onClick={() => navigate(`/recipes/${recipeId}`)}>{t("recipes.viewRecipe")}</button>
+                  <button 
+                    className="efp-card-cta" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/recipes/${recipeId}`);
+                    }}
+                  >
+                    {t("recipes.viewRecipe")}
+                  </button>
                 </div>
               </div>
             );
