@@ -481,6 +481,12 @@ export default function RecipeDetailPage() {
                     </span>
                     <span style={{ fontWeight: "700", color: "#2c2c2c", fontSize: "1.1rem" }}>
                       {recipe.authorName}
+                      <span className="user-badge-inline">
+                        {getTierById(recipe.equippedBadge || "novice").icon}
+                        <span className="badge-tooltip-mini" style={{ color: getTierById(recipe.equippedBadge || "novice").color }}>
+                          {getTierById(recipe.equippedBadge || "novice").title}
+                        </span>
+                      </span>
                     </span>
                   </div>
                 </div>
