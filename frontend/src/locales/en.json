@@ -500,7 +500,9 @@
     "deletionOtpMsg": "A verification code has been sent to your email. Please enter it below to confirm account deletion.",
     "verificationCode": "Verification Code",
     "verifying": "Verifying...",
-    "invalidOrExpiredCode": "Invalid or expired code. Please try again."
+    "invalidOrExpiredCode": "Invalid or expired code. Please try again.",
+    "action_RECIPE_RATED": "Recipe Received a Rating",
+    "action_RECIPE_RATING_UPDATED": "Recipe Rating Changed"
   },
  
   "auth": {

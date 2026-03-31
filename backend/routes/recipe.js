@@ -1818,13 +1818,12 @@ router.post('/publishRecipe/:id', async (req, res) => {
 });
 
 // ==========================================
-// ⭐️ POST: RATE A RECIPE (1-5 Stars)
+// ⭐️ POST: RATE A RECIPE (1-5 Stars) - WITH DYNAMIC XP
 // ==========================================
 router.post("/:id/rate", async (req, res) => {
   try {
     console.log(`\n⭐ --- RATING INITIATED --- ⭐`);
     console.log(`Target ID: ${req.params.id} | Rating Value: ${req.body.rating}`);
-    console.log(`Session Active: ${!!req.session} | User Found: ${!!(req.session && req.session.user)}`);
 
     // 1. Check Session
     if (!req.session || !req.session.user) {
@@ -1851,7 +1850,7 @@ router.post("/:id/rate", async (req, res) => {
     }
     const raterProfileID = likerProfile[0].userProfileID;
 
-    // 4. Safely find the ACTUAL recipeID (In case the frontend sent the foodID!)
+    // 4. Safely find the ACTUAL recipeID
     const [recipeRows] = await db.query(
       "SELECT userProfileID, recipeID FROM recipe WHERE recipeID = ? OR foodID = ? LIMIT 1", 
       [incomingID, incomingID]
@@ -1864,13 +1863,15 @@ router.post("/:id/rate", async (req, res) => {
     
     const authorProfileID = recipeRows[0].userProfileID;
     const actualRecipeID = recipeRows[0].recipeID; 
-    console.log(`✅ ID Matched! Using actual RecipeID: ${actualRecipeID}`);
 
-    // 5. Check if they already rated it
+    // 5. Check if they already rated it AND get their previous rating
     const [existingRating] = await db.query(
-      "SELECT id FROM recipe_ratings WHERE recipeID = ? AND userProfileID = ?",
+      "SELECT id, rating FROM recipe_ratings WHERE recipeID = ? AND userProfileID = ?",
       [actualRecipeID, raterProfileID]
     );
+
+    const isNewRating = existingRating.length === 0;
+    const oldRatingValue = isNewRating ? 0 : existingRating[0].rating;
 
     // 6. Save the Rating
     await db.query(
@@ -1881,18 +1882,31 @@ router.post("/:id/rate", async (req, res) => {
     );
     console.log(`✅ Rating of ${rating} saved successfully!`);
 
-    // 7. Award XP (First time only)
-    if (existingRating.length === 0 && raterProfileID !== authorProfileID) {
-      await db.query(
-        `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
-         VALUES (?, 'RECIPE_RATED', ?, 2)`,
-        [authorProfileID, actualRecipeID]
-      );
-      await db.query(
-        `UPDATE userProfile SET total_xp = COALESCE(total_xp, 0) + 2 WHERE userProfileID = ?`,
-        [authorProfileID]
-      );
-      console.log(`🎁 SUCCESS: Awarded +2 XP to Author ${authorProfileID}`);
+    // 7. Dynamic XP System (1 Star = 1 XP)
+    // Prevent users from rating their own recipes to farm XP
+    if (raterProfileID !== authorProfileID) {
+      const xpDifference = rating - oldRatingValue;
+
+      // Only adjust if the rating actually changed
+      if (xpDifference !== 0) {
+        // Log "RECIPE_RATED" for the first time, and "RECIPE_RATING_UPDATED" for changes
+        const actionType = isNewRating ? 'RECIPE_RATED' : 'RECIPE_RATING_UPDATED';
+
+        // Add the log entry (supports negative values for downgrades)
+        await db.query(
+          `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
+           VALUES (?, ?, ?, ?)`,
+          [authorProfileID, actionType, actualRecipeID, xpDifference]
+        );
+
+        // Update the author's total XP bank
+        await db.query(
+          `UPDATE userProfile SET total_xp = COALESCE(total_xp, 0) + ? WHERE userProfileID = ?`,
+          [xpDifference, authorProfileID]
+        );
+
+        console.log(`🎁 SUCCESS: Adjusted Author ${authorProfileID} XP by ${xpDifference} (Old: ${oldRatingValue}, New: ${rating})`);
+      }
     }
 
     // 8. Send the new math back to React

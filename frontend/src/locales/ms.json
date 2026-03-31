@@ -499,7 +499,13 @@
     "deletionOtpMsg": "Kod pengesahan telah dihantar ke e-mel anda. Sila masukkan kod tersebut untuk mengesahkan pemadaman akaun.",
     "verificationCode": "Kod Pengesahan",
     "verifying": "Mengesahkan...",
-    "invalidOrExpiredCode": "Kod tidak sah atau telah tamat tempoh. Sila cuba lagi."
+    "invalidOrExpiredCode": "Kod tidak sah atau telah tamat tempoh. Sila cuba lagi.",
+    "deletionOtpMsg": "Kod pengesahan telah dihantar ke e-mel anda. Sila masukkan kod tersebut untuk mengesahkan pemadaman akaun.",
+    "verificationCode": "Kod Pengesahan",
+    "verifying": "Mengesahkan...",
+    "invalidOrExpiredCode": "Kod tidak sah atau telah tamat tempoh. Sila cuba lagi.",
+    "action_RECIPE_RATED": "Resipi Menerima Penilaian",
+    "action_RECIPE_RATING_UPDATED": "Penilaian Resipi Dikemas Kini"
   },
 
   "auth": {
