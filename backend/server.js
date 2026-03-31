@@ -121,6 +121,7 @@ app.use(
         "https://www.sarawakeats.site",
         "https://api.sarawakeats.site",
         "https://places.googleapis.com",
+        "https://apis.google.com",
         process.env.INFERENCE_URL?.replace(/(https?:\/\/[^/]+).*/, "$1"),
       ],
       "frame-ancestors": ["'none'"],
