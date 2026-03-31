@@ -418,10 +418,8 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
                   <button 
                     className="feature-btn btn-accent map-btn" 
                     onClick={() => {
-                      const searchQuery = encodeURIComponent(`${randomizerResult.name} near me`);
-                      const mapsUrl = `https://www.google.com/maps/search/${searchQuery}`;
-                      window.open(mapsUrl, "_blank", "noopener,noreferrer");
                       setIsRandomizing(false);
+                      navigate(`/map?q=${encodeURIComponent(randomizerResult.name)}`);
                     }}
                   >
                     📍 Find on Map

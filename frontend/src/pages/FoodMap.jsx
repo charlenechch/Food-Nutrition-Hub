@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -14,7 +15,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl:     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
-// ── Sarawak food categories from your database ───────────────
+// Sarawak food categories from your database
 const FOODS = {
   "Linut":           { emoji: "🥣", color: "#0070cc" },
   "Kolo Mee":        { emoji: "🍝", color: "#e68c00" },
@@ -42,7 +43,7 @@ function getFoodMeta(foodName = "") {
   return key ? FOODS[key] : DEFAULT_FOOD;
 }
 
-// ── TasteAtlas-style pin: emoji + food name label ─────────────
+// TasteAtlas-style pin: emoji + food name label
 function makePin(foodName, isPick = false) {
   const meta  = getFoodMeta(foodName);
   const label = foodName || "Restaurant";
@@ -65,7 +66,7 @@ function makePin(foodName, isPick = false) {
   });
 }
 
-// ── FlyTo helper ─────────────────────────────────────────────
+// FlyTo helper
 function FlyTo({ target }) {
   const map = useMap();
   useEffect(() => {
@@ -74,8 +75,9 @@ function FlyTo({ target }) {
   return null;
 }
 
-// ── Main component ────────────────────────────────────────────
+// Main component
 export default function FoodMap() {
+  const [searchParams] = useSearchParams();
   const [pins,         setPins]         = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [error,        setError]        = useState(null);
@@ -89,7 +91,7 @@ export default function FoodMap() {
   const mapRef      = useRef(null);
   const searchTimer = useRef(null);
 
-  // ── Load all pins ─────────────────────────────────────────
+  // Load all pins
   const loadAll = useCallback(async (lat, lng) => {
     setLoading(true);
     setError(null);
@@ -107,9 +109,17 @@ export default function FoodMap() {
     }
   }, []);
 
-  useEffect(() => { loadAll(); }, [loadAll]);
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) {
+      setSearchInput(q);
+      doSearch(q);
+    } else {
+      loadAll();
+    }
+  }, [loadAll, doSearch]);
 
-  // ── Filter by food category ───────────────────────────────
+  // Filter by food category
   const filterByFood = useCallback(async (foodName) => {
     if (foodName === "all") { loadAll(); return; }
     setSearching(true);
@@ -127,7 +137,7 @@ export default function FoodMap() {
     }
   }, [loadAll]);
 
-  // ── Search bar ────────────────────────────────────────────
+  // Search bar
   const doSearch = useCallback(async (q) => {
     if (!q.trim()) { loadAll(); return; }
     setSearching(true);
@@ -157,7 +167,7 @@ export default function FoodMap() {
     filterByFood(food);
   };
 
-  // ── Geolocate ─────────────────────────────────────────────
+  // Geolocate
   const geolocate = () => {
     setGeoError(null);
     if (!navigator.geolocation) { setGeoError("Geolocation not supported."); return; }
@@ -385,7 +395,7 @@ export default function FoodMap() {
   );
 }
 
-// ── Pin card in sidebar ───────────────────────────────────────
+// Pin card in sidebar
 function PinCard({ pin, active, onClick }) {
   const foods = pin.foods || [pin.food];
   const primaryMeta = getFoodMeta(foods[0]);
@@ -432,7 +442,7 @@ function PinCard({ pin, active, onClick }) {
   );
 }
 
-// ── Detail card ───────────────────────────────────────────────
+// Detail card
 function DetailCard({ pin, onClose, onDirections }) {
   const meta = getFoodMeta(pin.food);
   return (
