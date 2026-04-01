@@ -22,13 +22,13 @@
 
 .leaderboard-header h1 {
   font-size: 2rem;
-  color: #2c3e2f;
+  color: #916848;
   margin-bottom: 0.5rem;
   font-weight: 600;
 }
 
 .leaderboard-header p {
-  color: #6c757d;
+  color: #5f5040;
   font-size: 0.95rem;
 }
 
@@ -67,7 +67,7 @@
 /* Info Banner */
 .info-banner {
   background: #e8f0e8;
-  border-left: 4px solid #2c5e2a;
+  border-left: 4px solid #e2e8f0;
   padding: 0.75rem 1rem;
   margin-bottom: 1.5rem;
   border-radius: 6px;
@@ -75,7 +75,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: #2c3e2f;
+  color: #916848;
 }
 
 .info-icon {
@@ -190,13 +190,26 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2c5e2a, #4a7c48);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   font-weight: 600;
   font-size: 0.8rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* For profile images */
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Fallback for when no image is available (initials) */
+.user-avatar.initials {
+  background: linear-gradient(135deg, #916848, #916848);
+  color: white;
 }
 
 .user-name {
@@ -208,7 +221,7 @@
 /* Metric Column */
 .metric-col {
   font-weight: 600;
-  color: #2c5e2a;
+  color: #916848;
   font-size: 1rem;
 }
 
@@ -247,13 +260,13 @@
 /* Sticky Note Styles */
 .rewards-sticky-note {
   flex: 1;
-  background: #fff9e6;
+  background: #fffdfb;
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 100px;
-  border: 1px solid #ffe6b3;
+  border: 1px solid #e8dccf;
   transition: all 0.3s ease;
   animation: slideIn 0.3s ease-out;
 }

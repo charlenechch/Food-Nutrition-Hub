@@ -129,9 +129,9 @@ const Leaderboard = () => {
   const getInfoText = () => {
     switch(activeTab) {
       case "recipes":
-        return "🏆 Top Recipe Contributors for this month • Refreshes monthly";
+        return "Top Recipe Contributors for this month • Refreshes monthly";
       case "posts":
-        return "💬 Top Community Post Contributors for this month • Refreshes monthly";
+        return "Top Community Post Contributors for this month • Refreshes monthly";
       case "level":
         return null;
       default:
@@ -240,10 +240,14 @@ const Leaderboard = () => {
                       </div>
                       <div className="user-col">
                         <div className="user-avatar">
-                          {user.avatar}
+                            {user.profilePicture ? (
+                            <img src={user.profilePicture} alt={user.name} />
+                            ) : (
+                            <span>{user.avatar || user.name.charAt(0)}</span>
+                            )}
                         </div>
                         <span className="user-name">{user.name}</span>
-                      </div>
+                        </div>
                       <div className="metric-col">
                         <span className="metric-value">{getMetricValue(user).toLocaleString()}</span>
                       </div>
@@ -273,7 +277,7 @@ const Leaderboard = () => {
                 <h3>{rewards.title}</h3>
               </div>
               <div className="sticky-note-content">
-                <p className="reward-intro">🏅 Congratulations to our top contributors! You'll receive:</p>
+                <p className="reward-intro">🎉 Reward Alert! Top 3 contributors will receive:</p>
                 <div className="rewards-list">
                   {rewards.rewards.map((reward, idx) => (
                     <div key={idx} className="reward-item">
