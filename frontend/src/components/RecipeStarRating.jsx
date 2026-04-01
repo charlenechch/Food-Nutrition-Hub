@@ -22,6 +22,17 @@ const RecipeStarRating = ({
   const [count, setCount] = useState(initialCount);       
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  React.useEffect(() => {
+    setRating(initialUserRating);
+  }, [initialUserRating]);
+
+  React.useEffect(() => {
+    setAvg(initialAvg);
+    setCount(initialCount);
+  }, [initialAvg, initialCount]);
+
+  const handleRate = async (selectedRating) => {
+
   const handleRate = async (selectedRating) => {
     // ✅ CHECK FOR GUEST BEFORE DOING ANYTHING
     if (isGuest) {
