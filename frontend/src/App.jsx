@@ -29,6 +29,7 @@ import ConsentModal from './components/ConsentModal';
 import LevelUpModal from './components/LevelUpModal';
 import FoodMap from "./pages/FoodMap";
 import XpLogs from "./pages/XpLogsPage";
+import Leaderboard from "./pages/Leaderboard";
 
 // // === Admin Pages ===
 import AdminHomepage from "./pages/AdminHomepage";
