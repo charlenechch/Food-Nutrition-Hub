@@ -12,7 +12,7 @@ const Leaderboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Dummy data for demonstration
+  // Dummy data without badge property
   const dummyData = {
     recipes: [
       { id: 1, name: "Sarah Johnson", contributions: 156, avatar: "SJ" },
@@ -83,7 +83,6 @@ const Leaderboard = () => {
   };
 
   useEffect(() => {
-    // Load initial data
     setLeaderboardData(dummyData);
     setLoading(false);
   }, []);
@@ -140,99 +139,159 @@ const Leaderboard = () => {
     }
   };
 
+  const getRewardsData = () => {
+    switch(activeTab) {
+      case "recipes":
+        return {
+          title: "🏆 Recipe Contributor Rewards",
+          rewards: [
+            { rank: "1st Place", points: "200 XP", description: "Top Recipe Contributor" },
+            { rank: "2nd Place", points: "150 XP", description: "Second Best Recipe Contributor" },
+            { rank: "3rd Place", points: "100 XP", description: "Third Best Recipe Contributor" }
+          ]
+        };
+      case "posts":
+        return {
+          title: "💬 Community Post Rewards",
+          rewards: [
+            { rank: "1st Place", points: "100 XP", description: "Top Community Poster" },
+            { rank: "2nd Place", points: "50 XP", description: "Second Best Community Poster" },
+            { rank: "3rd Place", points: "25 XP", description: "Third Best Community Poster" }
+          ]
+        };
+      case "level":
+        return null;
+      default:
+        return null;
+    }
+  };
+
   if (loading) {
     return (
-      <div className="leaderboard-container">
-        <div className="loading-spinner">Loading leaderboard...</div>
-      </div>
+      <>
+        <Header />
+        <div className="leaderboard-container">
+          <div className="loading-spinner">Loading leaderboard...</div>
+        </div>
+        <Footer />
+      </>
     );
   }
 
+  const rewards = getRewardsData();
+
   return (
     <>
-    <Header />
-    <div className="leaderboard-container">
-      <div className="leaderboard-header">
-        <h1>Community Leaderboard</h1>
-        <p>Celebrating our top contributors!</p>
-      </div>
-
-      <div className="tabs">
-        <button
-          className={`tab-btn ${activeTab === "recipes" ? "active" : ""}`}
-          onClick={() => setActiveTab("recipes")}
-        >
-          🍳 Top Recipe Contributors
-        </button>
-        <button
-          className={`tab-btn ${activeTab === "posts" ? "active" : ""}`}
-          onClick={() => setActiveTab("posts")}
-        >
-          💬 Top Community Posters
-        </button>
-        <button
-          className={`tab-btn ${activeTab === "level" ? "active" : ""}`}
-          onClick={() => setActiveTab("level")}
-        >
-          ⭐ Level Leaders
-        </button>
-      </div>
-
-      {/* Info text for recipe and post tabs */}
-      {getInfoText() && (
-        <div className="info-banner">
-          <span className="info-icon">ℹ️</span>
-          <span className="info-text">{getInfoText()}</span>
+      <Header />
+      <div className="leaderboard-container">
+        <div className="leaderboard-header">
+          <h1>Community Leaderboard</h1>
+          <p>Celebrating our top contributors!</p>
         </div>
-      )}
 
-      <div className="leaderboard-content">
-        <div className="leaderboard-table-wrapper">
-          <div className="leaderboard-table">
-            <div className="table-header">
-              <div className="rank-col">RANK</div>
-              <div className="user-col">USER</div>
-              <div className="metric-col">{getMetricLabel()}</div>
-              {activeTab === "level" && <div className="level-col">LEVEL</div>}
-            </div>
-            
-            <div className="table-body">
-              {getCurrentData().map((user, index) => (
-                <div key={user.id} className={`table-row ${index < 3 ? "top-three" : ""}`}>
-                  <div className="rank-col">
-                    {index === 0 && <span className="rank-badge gold">🥇</span>}
-                    {index === 1 && <span className="rank-badge silver">🥈</span>}
-                    {index === 2 && <span className="rank-badge bronze">🥉</span>}
-                    {index > 2 && <span className="rank-number">{index + 1}</span>}
-                  </div>
-                  <div className="user-col">
-                    <div className="user-avatar">
-                      {user.avatar}
-                    </div>
-                    <span className="user-name">{user.name}</span>
-                  </div>
-                  <div className="metric-col">
-                    <span className="metric-value">{getMetricValue(user).toLocaleString()}</span>
-                  </div>
-                  {activeTab === "level" && (
-                    <div className="level-col">
-                      <span className="level-number">Lv.{user.level}</span>
-                      <div className="xp-progress">
-                        <div 
-                          className="xp-progress-fill" 
-                          style={{ width: `${(user.xp % 500) / 5}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  )}
+        <div className="tabs">
+          <button
+            className={`tab-btn ${activeTab === "recipes" ? "active" : ""}`}
+            onClick={() => setActiveTab("recipes")}
+          >
+            🍳 Top Recipe Contributors
+          </button>
+          <button
+            className={`tab-btn ${activeTab === "posts" ? "active" : ""}`}
+            onClick={() => setActiveTab("posts")}
+          >
+            💬 Top Community Posters
+          </button>
+          <button
+            className={`tab-btn ${activeTab === "level" ? "active" : ""}`}
+            onClick={() => setActiveTab("level")}
+          >
+            ⭐ Level Leaders
+          </button>
+        </div>
+
+        {/* Info text for recipe and post tabs */}
+        {getInfoText() && (
+          <div className="info-banner">
+            <span className="info-icon">ℹ️</span>
+            <span className="info-text">{getInfoText()}</span>
+          </div>
+        )}
+
+        <div className="leaderboard-main">
+          <div className="leaderboard-content">
+            <div className="leaderboard-table-wrapper">
+              <div className="leaderboard-table">
+                <div className="table-header">
+                  <div className="rank-col">RANK</div>
+                  <div className="user-col">USER</div>
+                  <div className="metric-col">{getMetricLabel()}</div>
+                  {activeTab === "level" && <div className="level-col">LEVEL</div>}
                 </div>
-              ))}
+                
+                <div className="table-body">
+                  {getCurrentData().map((user, index) => (
+                    <div key={user.id} className={`table-row ${index < 3 ? "top-three" : ""}`}>
+                      <div className="rank-col">
+                        {index === 0 && <span className="rank-badge gold">🥇</span>}
+                        {index === 1 && <span className="rank-badge silver">🥈</span>}
+                        {index === 2 && <span className="rank-badge bronze">🥉</span>}
+                        {index > 2 && <span className="rank-number">{index + 1}</span>}
+                      </div>
+                      <div className="user-col">
+                        <div className="user-avatar">
+                          {user.avatar}
+                        </div>
+                        <span className="user-name">{user.name}</span>
+                      </div>
+                      <div className="metric-col">
+                        <span className="metric-value">{getMetricValue(user).toLocaleString()}</span>
+                      </div>
+                      {activeTab === "level" && (
+                        <div className="level-col">
+                          <span className="level-number">Lv.{user.level}</span>
+                          <div className="xp-progress">
+                            <div 
+                              className="xp-progress-fill" 
+                              style={{ width: `${(user.xp % 500) / 5}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Sticky Note for Rewards */}
+          {rewards && (
+            <div className="rewards-sticky-note">
+              <div className="sticky-note-header">
+                <span className="sticky-note-icon">📝</span>
+                <h3>{rewards.title}</h3>
+              </div>
+              <div className="sticky-note-content">
+                <p className="reward-intro">🏅 Congratulations to our top contributors! You'll receive:</p>
+                <div className="rewards-list">
+                  {rewards.rewards.map((reward, idx) => (
+                    <div key={idx} className="reward-item">
+                      <div className="reward-rank">{reward.rank}</div>
+                      <div className="reward-points">{reward.points}</div>
+                      <div className="reward-desc">{reward.description}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="reward-footer">
+                  <span>✨ XP will be awarded automatically at the end of each month ✨</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-    <Footer />
+      <Footer />
     </>
   );
 };
