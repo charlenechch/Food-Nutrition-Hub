@@ -3,7 +3,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 80px 2rem 2rem 2rem;
-  background: #f8f9fa;
+  background: #fdfbf9;
   min-height: 100vh;
 }
 
@@ -47,7 +47,7 @@
   font-weight: 500;
   border: 1px solid #e0e0e0;
   background: white;
-  color: #5a6e5a;
+  color: #5f5040;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -59,9 +59,9 @@
 }
 
 .tab-btn.active {
-  background: #2c5e2a;
+  background: #5f5040;
   color: white;
-  border-color: #2c5e2a;
+  border-color: #4b4036;
 }
 
 /* Info Banner */
