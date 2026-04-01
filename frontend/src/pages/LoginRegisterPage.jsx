@@ -324,7 +324,8 @@ export default function LoginRegisterPage() {
       if (data.requires2FA) {
           setTempUserId(data.tempUserId);
           setTempRememberMe(data.rememberDevice);
-          setShowOtpInput(true); 
+          setShowOtpInput(true);
+          setOtpCode("");
           setLoginError(""); 
           return; 
       }
