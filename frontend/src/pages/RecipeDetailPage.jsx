@@ -512,6 +512,7 @@ export default function RecipeDetailPage() {
                     csrfToken={csrfToken}
                     initialUserRating={recipe.userRating || 0}
                     onRateSuccess={(newAvg, newCount) => {
+                      console.log("🔥 RATING SUCCESS TRIGGERED! New Avg:", newAvg, "| New Count:", newCount);
                       setRecipe(prev => ({
                         ...prev,
                         avgRating: newAvg,
