@@ -229,6 +229,7 @@ export default function Header() {
           <li><NavLink to="/recipes">{t("nav.recipes")}</NavLink></li>
           <li><NavLink to="/community">{t("nav.community")}</NavLink></li>
           <li><NavLink to="/map">{t("nav.map")}</NavLink></li>
+          <li>Quiz</li>
         </ul>
 
         {/* Mobile Menu Drawer */}
@@ -270,6 +271,9 @@ export default function Header() {
 
         {/* Desktop Actions */}
         <div className="navbar-actions">
+          <button className="lang-btn" onClick={toggleLanguage}>
+            <FaGlobe className="icon" /> {currentLang}
+          </button>
           <button className="lang-btn" onClick={toggleLanguage}>
             <FaGlobe className="icon" /> {currentLang}
           </button>
