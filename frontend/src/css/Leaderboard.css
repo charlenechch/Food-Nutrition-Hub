@@ -47,7 +47,7 @@
   font-weight: 500;
   border: 1px solid #e0e0e0;
   background: white;
-  color: #5f5040;
+  color: #916848;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -59,14 +59,14 @@
 }
 
 .tab-btn.active {
-  background: #5f5040;
+  background: #916848;
   color: white;
-  border-color: #4b4036;
+  border-color: #916848;
 }
 
 /* Info Banner */
 .info-banner {
-  background: #e8f0e8;
+  background: #e6d8cd;
   border-left: 4px solid #e2e8f0;
   padding: 0.75rem 1rem;
   margin-bottom: 1.5rem;
@@ -130,7 +130,7 @@
   background: #f8f9fa;
   padding: 1rem 1.5rem;
   font-weight: 600;
-  color: #495057;
+  color: #916848;
   border-bottom: 2px solid #e9ecef;
   font-size: 0.8rem;
   text-transform: uppercase;
@@ -298,7 +298,7 @@
 
 .sticky-note-header h3 {
   font-size: 1.2rem;
-  color: #b45f06;
+  color: #5e3a1a;
   margin: 0;
   font-weight: 600;
 }
@@ -356,7 +356,7 @@
 
 .reward-desc {
   font-size: 0.8rem;
-  color: #6b4c2c;
+  color: #8b5a2b;
   flex: 1;
 }
 
@@ -366,7 +366,7 @@
   border-top: 1px dashed #ffd966;
   font-size: 0.75rem;
   text-align: center;
-  color: #b45f06;
+  color: #8b5a2b;
   font-style: italic;
 }
 
