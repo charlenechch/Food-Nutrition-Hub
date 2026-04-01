@@ -229,6 +229,7 @@ export default function Header() {
           <li><NavLink to="/recipes">{t("nav.recipes")}</NavLink></li>
           <li><NavLink to="/community">{t("nav.community")}</NavLink></li>
           <li><NavLink to="/map">{t("nav.map")}</NavLink></li>
+          <li>Quiz</li>
         </ul>
 
         {/* Mobile Menu Drawer */}
