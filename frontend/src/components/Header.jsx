@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { FaGlobe, FaSignOutAlt, FaUser } from "react-icons/fa";
+import { FaGlobe, FaSignOutAlt, FaUser, FaTrophy } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { User, Bell } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal";
@@ -113,6 +113,10 @@ export default function Header() {
     } else {
       navigate("/profile");
     }
+  };
+
+  const handleLeaderboardClick = () => {
+    navigate("/leaderboard");
   };
 
   const handleBellClick = () => {
@@ -245,6 +249,10 @@ export default function Header() {
               <FaGlobe className="mobile-icon" /> {currentLang}
             </button>
 
+            <button onClick={handleLeaderboardClick} className="mobile-btn">
+              <FaTrophy className="mobile-icon" /> {t("nav.leaderboard") || "Leaderboard"}
+            </button>
+
             {user && user.role !== "guest" && (
               <button className="mobile-btn" onClick={handleBellClick}>
                 <Bell className="mobile-icon" size={18} />
@@ -272,6 +280,10 @@ export default function Header() {
         <div className="navbar-actions">
           <button className="lang-btn" onClick={toggleLanguage}>
             <FaGlobe className="icon" /> {currentLang}
+          </button>
+
+          <button className="leaderboard-btn" onClick={handleLeaderboardClick}>
+            <FaTrophy className="icon" /> {t("nav.leaderboard") || "Leaderboard"}
           </button>
 
           {user && user.role !== "guest" && (

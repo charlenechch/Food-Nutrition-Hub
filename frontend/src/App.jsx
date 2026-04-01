@@ -277,6 +277,7 @@ function AppRoutes() {
           <Route path="/privacypolicy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsAndConditionsPage />} />
           <Route path="/map" element={<FoodMap />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
 
         {/* === Gated Tools (Protected) === */}
         <Route
