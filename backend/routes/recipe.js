@@ -352,38 +352,6 @@ router.get('/recipes/:id', async (req, res) => {
       userRating: row.userRating || 0
     };
     
-    // ==========================================
-    // ✅ FETCH THE SPECIFIC USER'S RATING
-    // ==========================================
-    let userRating = 0;
-    const incomingUserID = req.query.userID;
-
-    if (incomingUserID && incomingUserID !== 'undefined') {
-      try {
-        const [profile] = await db.query("SELECT userProfileID FROM userProfile WHERE userID = ?", [incomingUserID]);
-        if (profile.length > 0) {
-          const raterProfileID = profile[0].userProfileID;
-          
-          const [recipeRows] = await db.query("SELECT recipeID FROM recipe WHERE recipeID = ? OR foodID = ? LIMIT 1", [req.params.id, req.params.id]);
-
-          if (recipeRows.length > 0) {
-            const actualRecipeID = recipeRows[0].recipeID;
-            const [ratingData] = await db.query(
-              "SELECT rating FROM recipe_ratings WHERE recipeID = ? AND userProfileID = ?",
-              [actualRecipeID, raterProfileID]
-            );
-            
-            if (ratingData.length > 0) {
-              userRating = ratingData[0].rating;
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch user specific rating:", err);
-      }
-    }
-    recipe.userRating = userRating;
-    
     res.json(recipe);
     
   } catch (error) {
