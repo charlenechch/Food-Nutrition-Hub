@@ -32,8 +32,6 @@ const RecipeStarRating = ({
   }, [initialAvg, initialCount]);
 
   const handleRate = async (selectedRating) => {
-
-  const handleRate = async (selectedRating) => {
     // ✅ CHECK FOR GUEST BEFORE DOING ANYTHING
     if (isGuest) {
       setShowLoginPrompt(true);
