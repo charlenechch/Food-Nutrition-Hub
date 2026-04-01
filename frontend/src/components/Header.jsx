@@ -250,7 +250,7 @@ export default function Header() {
             </button>
 
             <button onClick={handleLeaderboardClick} className="mobile-btn">
-              <FaTrophy className="mobile-icon" /> {t("nav.leaderboard") || "Leaderboard"}
+              <FaTrophy className="mobile-icon" />
             </button>
 
             {user && user.role !== "guest" && (
@@ -283,7 +283,7 @@ export default function Header() {
           </button>
 
           <button className="leaderboard-btn" onClick={handleLeaderboardClick}>
-            <FaTrophy className="icon" /> {t("nav.leaderboard") || "Leaderboard"}
+            <FaTrophy className="icon" /> 
           </button>
 
           {user && user.role !== "guest" && (

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 import "../css/Leaderboard.css";
 
 const Leaderboard = () => {
@@ -13,9 +15,9 @@ const Leaderboard = () => {
   // Dummy data for demonstration
   const dummyData = {
     recipes: [
-      { id: 1, name: "Sarah Johnson", contributions: 156, avatar: "SJ", badge: "👑" },
-      { id: 2, name: "Michael Chen", contributions: 142, avatar: "MC", badge: "🥈" },
-      { id: 3, name: "Emma Williams", contributions: 128, avatar: "EW", badge: "🥉" },
+      { id: 1, name: "Sarah Johnson", contributions: 156, avatar: "SJ" },
+      { id: 2, name: "Michael Chen", contributions: 142, avatar: "MC" },
+      { id: 3, name: "Emma Williams", contributions: 128, avatar: "EW" },
       { id: 4, name: "David Brown", contributions: 115, avatar: "DB" },
       { id: 5, name: "Lisa Anderson", contributions: 108, avatar: "LA" },
       { id: 6, name: "James Taylor", contributions: 97, avatar: "JT" },
@@ -35,9 +37,9 @@ const Leaderboard = () => {
       { id: 20, name: "Mark Jackson", contributions: 30, avatar: "MJ" }
     ],
     posts: [
-      { id: 1, name: "Emily Chen", contributions: 89, avatar: "EC", badge: "👑" },
-      { id: 2, name: "Oliver Wang", contributions: 76, avatar: "OW", badge: "🥈" },
-      { id: 3, name: "Sophia Kim", contributions: 68, avatar: "SK", badge: "🥉" },
+      { id: 1, name: "Emily Chen", contributions: 89, avatar: "EC" },
+      { id: 2, name: "Oliver Wang", contributions: 76, avatar: "OW" },
+      { id: 3, name: "Sophia Kim", contributions: 68, avatar: "SK" },
       { id: 4, name: "Lucas Martinez", contributions: 62, avatar: "LM" },
       { id: 5, name: "Isabella Garcia", contributions: 57, avatar: "IG" },
       { id: 6, name: "Mason Rodriguez", contributions: 51, avatar: "MR" },
@@ -57,9 +59,9 @@ const Leaderboard = () => {
       { id: 20, name: "Daniel Young", contributions: 15, avatar: "DY" }
     ],
     level: [
-      { id: 1, name: "Alex Thompson", xp: 12500, level: 25, avatar: "AT", badge: "👑" },
-      { id: 2, name: "Rachel Green", xp: 11250, level: 23, avatar: "RG", badge: "🥈" },
-      { id: 3, name: "Monica Geller", xp: 10800, level: 22, avatar: "MG", badge: "🥉" },
+      { id: 1, name: "Alex Thompson", xp: 12500, level: 25, avatar: "AT" },
+      { id: 2, name: "Rachel Green", xp: 11250, level: 23, avatar: "RG" },
+      { id: 3, name: "Monica Geller", xp: 10800, level: 22, avatar: "MG" },
       { id: 4, name: "Chandler Bing", xp: 9500, level: 20, avatar: "CB" },
       { id: 5, name: "Phoebe Buffay", xp: 8900, level: 19, avatar: "PB" },
       { id: 6, name: "Ross Geller", xp: 8200, level: 18, avatar: "RG" },
@@ -80,42 +82,10 @@ const Leaderboard = () => {
     ]
   };
 
-  // Simulate real-time XP updates for level leaderboard
   useEffect(() => {
     // Load initial data
     setLeaderboardData(dummyData);
     setLoading(false);
-
-    // Simulate real-time XP updates for level leaderboard
-    const interval = setInterval(() => {
-      setLeaderboardData(prev => {
-        const updatedLevel = [...prev.level];
-        // Randomly update XP for some users to simulate real-time activity
-        const randomIndex = Math.floor(Math.random() * updatedLevel.length);
-        const xpGain = Math.floor(Math.random() * 50) + 10;
-        updatedLevel[randomIndex] = {
-          ...updatedLevel[randomIndex],
-          xp: updatedLevel[randomIndex].xp + xpGain,
-          level: Math.floor((updatedLevel[randomIndex].xp + xpGain) / 500) + 1
-        };
-        // Re-sort by XP
-        updatedLevel.sort((a, b) => b.xp - a.xp);
-        // Update badges
-        updatedLevel.forEach((user, idx) => {
-          if (idx === 0) user.badge = "👑";
-          else if (idx === 1) user.badge = "🥈";
-          else if (idx === 2) user.badge = "🥉";
-          else delete user.badge;
-        });
-        
-        return {
-          ...prev,
-          level: updatedLevel
-        };
-      });
-    }, 5000); // Update every 5 seconds
-
-    return () => clearInterval(interval);
   }, []);
 
   const getCurrentData = () => {
@@ -157,11 +127,17 @@ const Leaderboard = () => {
     }
   };
 
-  const getLevelInfo = (item) => {
-    if (activeTab === "level") {
-      return <span className="level-badge">Lvl {item.level}</span>;
+  const getInfoText = () => {
+    switch(activeTab) {
+      case "recipes":
+        return "🏆 Top Recipe Contributors for this month • Refreshes monthly";
+      case "posts":
+        return "💬 Top Community Post Contributors for this month • Refreshes monthly";
+      case "level":
+        return null;
+      default:
+        return null;
     }
-    return null;
   };
 
   if (loading) {
@@ -173,6 +149,8 @@ const Leaderboard = () => {
   }
 
   return (
+    <>
+    <Header />
     <div className="leaderboard-container">
       <div className="leaderboard-header">
         <h1>Community Leaderboard</h1>
@@ -200,60 +178,62 @@ const Leaderboard = () => {
         </button>
       </div>
 
+      {/* Info text for recipe and post tabs */}
+      {getInfoText() && (
+        <div className="info-banner">
+          <span className="info-icon">ℹ️</span>
+          <span className="info-text">{getInfoText()}</span>
+        </div>
+      )}
+
       <div className="leaderboard-content">
-        <div className="leaderboard-table">
-          <div className="table-header">
-            <div className="rank-col">Rank</div>
-            <div className="user-col">User</div>
-            <div className="metric-col">{getMetricLabel()}</div>
-            {activeTab === "level" && <div className="level-col">Level</div>}
-          </div>
-          
-          <div className="table-body">
-            {getCurrentData().map((user, index) => (
-              <div key={user.id} className={`table-row ${index < 3 ? "top-three" : ""}`}>
-                <div className="rank-col">
-                  {index === 0 && user.badge === "👑" && <span className="rank-badge gold">🥇</span>}
-                  {index === 1 && user.badge === "🥈" && <span className="rank-badge silver">🥈</span>}
-                  {index === 2 && user.badge === "🥉" && <span className="rank-badge bronze">🥉</span>}
-                  {index > 2 && <span className="rank-number">{index + 1}</span>}
-                </div>
-                <div className="user-col">
-                  <div className="user-avatar">
-                    {user.avatar}
+        <div className="leaderboard-table-wrapper">
+          <div className="leaderboard-table">
+            <div className="table-header">
+              <div className="rank-col">RANK</div>
+              <div className="user-col">USER</div>
+              <div className="metric-col">{getMetricLabel()}</div>
+              {activeTab === "level" && <div className="level-col">LEVEL</div>}
+            </div>
+            
+            <div className="table-body">
+              {getCurrentData().map((user, index) => (
+                <div key={user.id} className={`table-row ${index < 3 ? "top-three" : ""}`}>
+                  <div className="rank-col">
+                    {index === 0 && <span className="rank-badge gold">🥇</span>}
+                    {index === 1 && <span className="rank-badge silver">🥈</span>}
+                    {index === 2 && <span className="rank-badge bronze">🥉</span>}
+                    {index > 2 && <span className="rank-number">{index + 1}</span>}
                   </div>
-                  <span className="user-name">{user.name}</span>
-                </div>
-                <div className="metric-col">
-                  <span className="metric-value">{getMetricValue(user).toLocaleString()}</span>
-                  {activeTab === "level" && <span className="xp-label"> XP</span>}
-                </div>
-                {activeTab === "level" && (
-                  <div className="level-col">
-                    <div className="level-progress">
-                      <div className="level-badge-small">Lv.{user.level}</div>
-                      <div className="xp-progress-bar">
+                  <div className="user-col">
+                    <div className="user-avatar">
+                      {user.avatar}
+                    </div>
+                    <span className="user-name">{user.name}</span>
+                  </div>
+                  <div className="metric-col">
+                    <span className="metric-value">{getMetricValue(user).toLocaleString()}</span>
+                  </div>
+                  {activeTab === "level" && (
+                    <div className="level-col">
+                      <span className="level-number">Lv.{user.level}</span>
+                      <div className="xp-progress">
                         <div 
                           className="xp-progress-fill" 
                           style={{ width: `${(user.xp % 500) / 5}%` }}
                         ></div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-      
-      {activeTab === "level" && (
-        <div className="live-indicator">
-          <span className="live-dot"></span>
-          Live XP Updates • Refreshes every 5 seconds
-        </div>
-      )}
     </div>
+    <Footer />
+    </>
   );
 };
 

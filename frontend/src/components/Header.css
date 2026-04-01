@@ -421,28 +421,19 @@
 
 /*leaderboard*/
 .leaderboard-btn {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: white;
+  background: none;
   border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  margin: 0 8px;
+  color: #5a4636;
+  padding: 4px;
+  transition: color 0.2s ease;
 }
 
 .leaderboard-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-  background: linear-gradient(135deg, #f59e0b, #b45309);
-}
-
-.leaderboard-btn .icon {
-  font-size: 16px;
+  color: #8b5e3c;
 }
 
 @media (min-width: 1251px) and (max-width: 1570px) {
