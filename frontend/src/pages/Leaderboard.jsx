@@ -107,7 +107,7 @@ const Leaderboard = () => {
       case "posts":
         return "Posts";
       case "level":
-        return "XP";
+        return "XP Awarded";
       default:
         return "";
     }

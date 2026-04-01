@@ -28,8 +28,9 @@
 }
 
 .leaderboard-header p {
-  color: #9b7b5c;
+  color: #6b4c2c;
   font-size: 0.95rem;
+  font-weight: 500;
 }
 
 /* Tabs */
@@ -47,7 +48,7 @@
   font-weight: 500;
   border: 1px solid #e6dbcf;
   background: white;
-  color: #8b5a2b;
+  color: #b8925c;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -60,9 +61,10 @@
 }
 
 .tab-btn.active {
-  background: #8b5a2b;
+  background: #c9ad7a;
   color: white;
-  border-color: #8b5a2b;
+  border-color: #c9ad7a;
+  box-shadow: none;
 }
 
 /* Info Banner */
@@ -174,10 +176,11 @@
   display: inline-block;
 }
 
+/* Deeper color for rank numbers 4-20 */
 .rank-number {
   font-size: 0.9rem;
-  color: #b8a28c;
-  font-weight: 500;
+  color: #8b5a2b;
+  font-weight: 600;
 }
 
 /* User Column */
@@ -222,7 +225,7 @@
 /* Metric Column */
 .metric-col {
   font-weight: 600;
-  color: #c9ad7a;
+  color: #6b4c2c;
   font-size: 1rem;
 }
 
@@ -316,8 +319,8 @@
 .reward-intro {
   font-size: 0.85rem;
   margin-bottom: 1rem;
-  color: #9b7b5c;
-  font-weight: 500;
+  color: #8b5a2b;
+  font-weight: 600;
 }
 
 .rewards-list {
@@ -342,24 +345,26 @@
   transform: translateX(4px);
 }
 
+/* Deeper colors for sticky note rewards */
 .reward-rank {
   font-weight: 700;
-  color: #c9ad7a;
+  color: #8b5a2b;
   min-width: 70px;
   font-size: 0.85rem;
 }
 
 .reward-points {
   font-weight: 700;
-  color: #8b5a2b;
+  color: #6b4c2c;
   min-width: 65px;
   font-size: 0.9rem;
 }
 
 .reward-desc {
   font-size: 0.8rem;
-  color: #9b7b5c;
+  color: #8b5a2b;
   flex: 1;
+  font-weight: 500;
 }
 
 .reward-footer {
@@ -368,8 +373,9 @@
   border-top: 1px dashed #e8dccf;
   font-size: 0.75rem;
   text-align: center;
-  color: #b8a28c;
+  color: #9b7b5c;
   font-style: italic;
+  font-weight: 500;
 }
 
 /* Loading Spinner */
