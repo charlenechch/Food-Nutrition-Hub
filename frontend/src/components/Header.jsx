@@ -274,6 +274,9 @@ export default function Header() {
           <button className="lang-btn" onClick={toggleLanguage}>
             <FaGlobe className="icon" /> {currentLang}
           </button>
+          <button className="lang-btn" onClick={toggleLanguage}>
+            <FaGlobe className="icon" /> {currentLang}
+          </button>
 
           {user && user.role !== "guest" && (
             <div className="notification-wrapper" ref={notificationRef}>
