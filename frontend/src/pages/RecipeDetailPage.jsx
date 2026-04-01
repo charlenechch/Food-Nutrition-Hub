@@ -511,6 +511,13 @@ export default function RecipeDetailPage() {
                     initialCount={recipe.totalRatings || 0} 
                     csrfToken={csrfToken}
                     initialUserRating={recipe.userRating || 0}
+                    onRateSuccess={(newAvg, newCount) => {
+                      setRecipe(prev => ({
+                        ...prev,
+                        avgRating: newAvg,
+                        totalRatings: newCount
+                      }));
+                    }}
                   />
                   
                   {/* Clean, pill-shaped badge that only shows when there are actual reviews */}
