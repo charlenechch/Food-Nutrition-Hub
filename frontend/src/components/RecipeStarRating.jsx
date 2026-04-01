@@ -9,7 +9,8 @@ const RecipeStarRating = ({
   initialAvg = 0, 
   initialCount = 0, 
   initialUserRating = 0, 
-  csrfToken 
+  csrfToken,
+  onRateSuccess // 👈 Added this prop to communicate with the parent page
 }) => {
   // ✅ GET USER STATUS
   const { user } = useAuth();
@@ -70,6 +71,11 @@ const RecipeStarRating = ({
       if (data.avgRating !== undefined) {
         setAvg(data.avgRating);
         setCount(data.totalRatings);
+        
+        // 👇 Tell the parent page (RecipeDetailPage) about the new average!
+        if (onRateSuccess) {
+            onRateSuccess(data.avgRating, data.totalRatings);
+        }
       }
 
     } catch (error) {
@@ -85,7 +91,7 @@ const RecipeStarRating = ({
     <div className="recipe-rating-container" style={{ margin: "20px 0", display: "flex", flexDirection: "column", gap: "5px" }}>
       
       {/* 1. The 5 Clickable Stars */}
-      <div style={{ display: "flex", gap: "5px" }}>
+      <div style={{ display: "flex", gap: "5px", justifyContent: "flex-end" }}>
         {[1, 2, 3, 4, 5].map((starValue) => (
           <FaStar
             key={starValue}
@@ -103,13 +109,13 @@ const RecipeStarRating = ({
         ))}
       </div>
 
-      {/* 2. The Text Display */}
-      <div style={{ fontSize: "0.95rem", color: "#666" }}>
-        {count === 0 ? (
-          <span>Be the first to rate this recipe!</span>
+      {/* 2. The Text Display (Now reflects USER rating) */}
+      <div style={{ fontSize: "0.95rem", color: "#666", marginTop: "4px", textAlign: "right" }}>
+        {rating === 0 ? (
+          <span>Click a star to rate this recipe!</span>
         ) : (
           <span>
-            <strong>{Number(avg).toFixed(1)}</strong> out of 5 ({count} {count === 1 ? "review" : "reviews"})
+            You rated this <strong>{rating}</strong> out of 5
           </span>
         )}
       </div>
