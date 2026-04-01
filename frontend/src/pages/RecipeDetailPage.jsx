@@ -228,7 +228,9 @@ export default function RecipeDetailPage() {
     const fetchRecipe = async () => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-        const res = await fetch(`${API_BASE_URL}/api/recipe/recipes/${id}`);
+        // ADD userID to the URL so the backend knows who is asking
+        const currentUserID = user?.userID || user?.id || '';
+        const res = await fetch(`${API_BASE_URL}/api/recipe/recipes/${id}?userID=${currentUserID}`);
         if (!res.ok) {
           const errorText = await res.text();
           throw new Error(`Failed to fetch recipe: ${res.status} ${errorText}`);
