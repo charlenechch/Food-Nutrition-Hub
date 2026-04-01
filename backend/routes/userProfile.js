@@ -1010,9 +1010,6 @@ router.get("/:identifier", async (req, res) => {
     const userID = profile.userID;
     console.log(`✅ User found: ${profile.firstName} ${profile.lastName} (ID: ${userID})`);
     
-    // Check if the profile is set to public
-    const isPublic = profile.profileVisibility === 1 || profile.profileVisibility === true;
-    
     // Get the current user from the session
     const requesterID = req.session?.user?.userID;
     const requesterRole = req.session?.user?.role;
@@ -1021,12 +1018,10 @@ router.get("/:identifier", async (req, res) => {
     const isOwner = requesterID === userID;
     const isAdmin = requesterRole === 'admin' || requesterRole === 'Admin';
 
-    // If it's private, and you aren't the owner or an admin, return limited info
-    const isPrivateView = !isPublic && !isOwner && !isAdmin;
-    
-    if (isPrivateView) {
-      console.log(`🔒 Private profile accessed: Limiting data for ${identifier}`);
-    }
+    // Private profile feature disabled
+    // const isPublic = profile.profileVisibility === 1 || profile.profileVisibility === true;
+    // const isPrivateView = !isPublic && !isOwner && !isAdmin;
+    const isPrivateView = false;
 
     // Ensure userProfile exists for the requested user
     if (!profile.userProfileID) {
@@ -1085,27 +1080,28 @@ router.get("/:identifier", async (req, res) => {
     console.log(`📝 Fetching contributions for user: ${userID}`);
     const contributions = await getUserContributions(userID);
 
-    if (isPrivateView) {
-      console.log("🔒 Sending limited private profile response");
-      return res.json({
-        isPrivateView: true,             // Let the frontend know it's limited
-        userID: profile.userID,
-        firstName: profile.firstName,    // Acts as their "Username"
-        lastName: "",                    // Hide their real last name
-        role: profile.role,
-        bio: profile.bio,                // Keep Bio visible
-        total_xp: profile.total_xp,
-        avatar: profile.avatar,          // Keep Avatar visible
-        status: contributions,           // Keep Contributions visible
-        stats: {
-          recipes: freshStats.recipes || profile.recipes || 0,
-          posts: freshStats.posts || profile.posts || 0,
-          likes: freshStats.likes || profile.likes || 0,
-        },
-        savedFoods: [],                  // Hide saved foods completely
-        prefs: { dietary: [], allergies: [], language: "en" } // Blank prefs
-      });
-    }
+    // Private profile feature disabled
+    // if (isPrivateView) {
+    //   console.log("🔒 Sending limited private profile response");
+    //   return res.json({
+    //     isPrivateView: true,
+    //     userID: profile.userID,
+    //     firstName: profile.firstName,
+    //     lastName: "",
+    //     role: profile.role,
+    //     bio: profile.bio,
+    //     total_xp: profile.total_xp,
+    //     avatar: profile.avatar,
+    //     status: contributions,
+    //     stats: {
+    //       recipes: freshStats.recipes || profile.recipes || 0,
+    //       posts: freshStats.posts || profile.posts || 0,
+    //       likes: freshStats.likes || profile.likes || 0,
+    //     },
+    //     savedFoods: [],
+    //     prefs: { dietary: [], allergies: [], language: "en" }
+    //   });
+    // }
     
     console.log("📤 Sending user profile response");
     const isSensitiveViewer = isOwner || isAdmin;

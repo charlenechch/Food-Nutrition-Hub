@@ -1364,15 +1364,7 @@ const handleDeleteAccount = async () => {
           />
           </div>
 
-          {user?.isPrivateView ? (
-          <div className="upp-center upp-private-view">
-            <Lock size={80} color="#d8c6b4" className="upp-private-icon" />
-            <h2 className="upp-private-title">{t("profile.privateProfile")}</h2>
-            <p className="upp-muted upp-private-text">
-              {t("profile.accountIsPrivate")}
-            </p>
-          </div>
-        ) : (
+          {/* Private profile feature disabled */}
           <>
           <div className="xp-bar-container upp-xp-bar-container">
             <div className="xp-bar-header upp-xp-header">
@@ -1912,6 +1904,7 @@ const handleDeleteAccount = async () => {
 
                 <div className="upp-card">
                   <h3 className="upp-card-title"><Eye className="rdp-sec-icon" color={"#6a4a2f"}/> Privacy</h3>
+                  {/* Profile visibility toggle disabled
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">{t("profile.profileVisibility")}</div>
@@ -1926,7 +1919,7 @@ const handleDeleteAccount = async () => {
                       <span />
                     </label>
                   </div>
-                  <hr className="upp-sep" />
+                  <hr className="upp-sep" /> */}
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">{t("profile.dataExport")}</div>
@@ -1978,7 +1971,6 @@ const handleDeleteAccount = async () => {
             )}
           </div>
             </>
-          )}
         </div>
       )}
 
