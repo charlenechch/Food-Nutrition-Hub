@@ -1,10 +1,10 @@
 export const mockFoods = [
   {
-    id: "f_001",
+    id: 1,
     name: "Linut",
     origin: "Melanau",
     category: "Rice Dish, Fermented", 
-    difficulty: "medium",
+    difficulty: "Medium",
     dietaryTags: "gluten-free, dairy-free, paleo, high-protein, low-fat",
     description: "Linut is a traditional cuisine that is especially popular among the Indigenous Dayak communities. This staple dish is an important part of Dayak cuisine and is frequently served at traditional events and community feasts.",
     image: "https://img-global.cpcdn.com/steps/1fe46f4ff8152bed/640x640sq80/photo.webp",
@@ -25,11 +25,11 @@ export const mockFoods = [
     liked_by: []
   },
   {
-    id: "f_002",
+    id: 2,
     name: "Kolo Mee",
     origin: "Chinese",
     category: "Noodles, Meat",
-    difficulty: "medium",
+    difficulty: "Medium",
     dietaryTags: "dairy-free, high-protein",
     description: "The origin of Kolo Mee is still unclear, but it likely originated from Kuching, the capital of Sarawak. “Kolo Mee” may also have derived from the Hokkien and Cantonese words for “dry mixed” noodles.",
     image: "https://tasteasianfood.com/wp-content/uploads/2023/03/Kolo-Mee-recipe-5-square.jpeg",
@@ -50,11 +50,11 @@ export const mockFoods = [
     liked_by: []
   },
   {
-    id: "f_003",
+    id: 3,
     name: "Umai",
     origin: "Melanau",
     category: "Seafood",
-    difficulty: "easy",
+    difficulty: "Easy",
     dietaryTags: "gluten-free, dairy-free, paleo, high-protein, low-fat, low-fiber",
     description: "Umai is a traditional Sarawakian raw fish salad popular with the Dayak and Melanau communities. It highlights local methods of food preparation and preservation using fresh ingredients.",
     image: "https://munchmalaysia.com/wp-content/uploads/2023/10/umai-1024x512.jpg",
@@ -75,11 +75,11 @@ export const mockFoods = [
     liked_by: []
   },
   {
-    id: "f_004",
+    id: 4,
     name: "Nasi Aruk",
     origin: "Malay",
     category: "Rice Dish",
-    difficulty: "easy",
+    difficulty: "Easy",
     dietaryTags: "gluten-free, dairy-free, low-fat",
     description: "Unlike typical fried rice, Nasi Aruk is prepared without any oil or fat and is tossed in a hot pan until the grains are well-toasted, creating a deep smoky, slightly charred scent.",
     image: "https://i.ytimg.com/vi/W6Co9dMpw7o/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAfGfmofQBBYx02WeMUcjjPJxH7aw",
@@ -100,11 +100,11 @@ export const mockFoods = [
     liked_by: []
   },
   {
-    id: "f_005",
+    id: 5,
     name: "Ayam Pansuh",
     origin: "Dayak",
     category: "Meat",
-    difficulty: "medium",
+    difficulty: "Medium",
     dietaryTags: "gluten-free, dairy-free, high-protein",
     description: "Deep within the cultural tapestry of Sarawak, an iconic dish known as Manok Pansoh (also called manuk pansuh/ayam pansuh) holds a special place among the Dayak community.",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkbjK4YZPkQhHoK4G3g8vvDVPOTbxnPc8u_g&s",
