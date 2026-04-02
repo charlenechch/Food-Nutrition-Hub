@@ -107,6 +107,7 @@
 .rdp-sub { 
     margin: 6px 0 0; 
     opacity: .95; 
+    text-align: justify;
 }
 
 /* Meta strip */
