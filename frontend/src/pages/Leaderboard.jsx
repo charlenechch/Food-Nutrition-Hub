@@ -229,7 +229,7 @@ const Leaderboard = () => {
         <div className="leaderboard-main">
           <div className="leaderboard-content">
             <div className="leaderboard-table-wrapper">
-              <div className="leaderboard-table">
+              <div className={`leaderboard-table ${activeTab === "level" ? "level-mode" : "normal-mode"}`}>
                 <div className="table-header">
                   <div className="rank-col">{t("leaderboard.rank")}</div>
                   <div className="user-col">{t("leaderboard.user")}</div>
