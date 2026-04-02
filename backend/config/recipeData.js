@@ -208,7 +208,7 @@ const recipeData = [
     status: "Approved",
     description: "Daun Ubi Tumbuk is a traditional vegetable dish widely enjoyed among Borneo’s native communities. It was pounded using a wooden mortar and pestle and typically stir-fried with garlic, shallots, and ikan bilis (anchovies). This daily Sarawakian dish is prized for its simplicity and clean taste. ",
     ingredients: `200 grams Daun Ubi (Cassava Leaves)
-                  30 grams Anchovies
+                  15 grams Anchovies
                   750 ml Water
                   1 Tbsp of Salt
                   1 stalk Lemongrass
