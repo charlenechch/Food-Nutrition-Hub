@@ -5,7 +5,7 @@ const ALL_PUBLIC_PATHS = [
   '/loginregister', '/auth/action', '/verifyemail',
   '/forgotpassword', '/resetpassword', '/otpverification',
   '/', '/home', '/foods', '/analyzer', '/recipes', '/community', 
-  '/privacypolicy', '/terms', '/profile', '/map'
+  '/privacypolicy', '/terms', '/profile', '/map', '/leaderboard'
 ];
 
 const AuthContext = createContext();
