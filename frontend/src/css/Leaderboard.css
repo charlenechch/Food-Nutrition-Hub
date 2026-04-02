@@ -99,7 +99,7 @@
 }
 
 .leaderboard-table {
-  width: fit-content;
+  width: 100%;
   min-width: 100%;
   margin: 0 auto;
 }
@@ -114,7 +114,7 @@
 
 .leaderboard-table.level-mode .table-header,
 .leaderboard-table.level-mode .table-row {
-  grid-template-columns: 90px 260px 180px 220px;
+  grid-template-columns: 90px 260px 180px 300px;
 }
 
 .leaderboard-table.normal-mode .table-header,
@@ -258,9 +258,11 @@
 .level-col {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.35rem;
   text-align: center;
   justify-self: start;
+  width: 100%;
+  max-width: 280px;
 }
 
 .level-number {
@@ -271,7 +273,7 @@
 
 .xp-progress {
   width: 100%;
-  height: 4px;
+  height: 5px;
   background: #f0ede8;
   border-radius: 2px;
   overflow: hidden;
