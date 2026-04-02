@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
 const archiver = require('archiver');
@@ -10,16 +9,6 @@ const execPromise = util.promisify(exec);
 const { pool } = require("../config/db");
 const extract = require('extract-zip');
 
-// MySQL connection pool
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'sarawakeats_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
 
 const BACKUP_DIR = path.join(__dirname, '../../backups');
 const TEMP_DIR = path.join(__dirname, '../../temp_backups');
