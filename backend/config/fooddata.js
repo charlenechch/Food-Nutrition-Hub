@@ -3,7 +3,7 @@ const db = require("./db");
 const foods = [
   {
     name: "Linut",
-    origin: "Melanau",
+    origin: "Dayak",
     category: ["Rice Dish", "Fermented"],
     difficulty: "medium",
     dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat"],
