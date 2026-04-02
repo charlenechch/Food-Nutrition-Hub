@@ -52,16 +52,6 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-@media (max-width: 480px) {
-  .tab-btn {
-    white-space: normal;
-    text-align: center;
-    padding: 0.5rem 0.8rem;
-    font-size: 0.75rem;
-  }
 }
 
 .tab-btn:hover {
@@ -93,7 +83,6 @@
 
 .info-icon {
   font-size: 1rem;
-  flex-shrink: 0;
 }
 
 .info-text {
@@ -146,15 +135,6 @@
   position: sticky;
   top: 0;
   z-index: 10;
-}
-
-.table-header .rank-col,
-.table-header .user-col,
-.table-header .metric-col,
-.table-header .level-col {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .table-row {
@@ -222,7 +202,6 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  min-width: 0;
 }
 
 .user-avatar {
@@ -254,8 +233,6 @@
   color: #5e3a1a;
   font-size: 0.9rem;
   word-break: break-word;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Metric Column */
@@ -501,16 +478,16 @@
     max-height: 450px;
   }
   
-  /* Level mode on mobile - adjusted for Malay text */
+  /* Level mode on mobile */
   .leaderboard-table.level-mode .table-header,
   .leaderboard-table.level-mode .table-row {
-    grid-template-columns: 70px 1fr 90px 110px;
+    grid-template-columns: 55px 1fr 80px 100px;
   }
   
   /* Normal mode on mobile */
   .leaderboard-table.normal-mode .table-header,
   .leaderboard-table.normal-mode .table-row {
-    grid-template-columns: 70px 1fr 90px;
+    grid-template-columns: 55px 1fr 80px;
   }
   
   .table-header,
@@ -521,16 +498,6 @@
   
   .table-header {
     font-size: 0.7rem;
-  }
-  
-  /* Allow header text to wrap on mobile instead of truncating */
-  .table-header .rank-col,
-  .table-header .user-col,
-  .table-header .metric-col,
-  .table-header .level-col {
-    white-space: normal;
-    word-break: keep-all;
-    line-height: 1.3;
   }
 
   .user-avatar {
@@ -609,15 +576,14 @@
 
 /* Mobile Portrait (600px and below) */
 @media (max-width: 600px) {
-  /* Level mode - further adjusted for longer Malay text */
   .leaderboard-table.level-mode .table-header,
   .leaderboard-table.level-mode .table-row {
-    grid-template-columns: 55px 1fr 75px 95px;
+    grid-template-columns: 45px 1fr 70px 85px;
   }
   
   .leaderboard-table.normal-mode .table-header,
   .leaderboard-table.normal-mode .table-row {
-    grid-template-columns: 55px 1fr 75px;
+    grid-template-columns: 45px 1fr 70px;
   }
   
   .table-header,
@@ -626,18 +592,14 @@
     column-gap: 8px;
   }
   
-  .table-header {
-    font-size: 0.65rem;
-  }
-  
   .user-col {
     gap: 0.5rem;
   }
   
   .user-avatar {
-    width: 28px;
-    height: 28px;
-    font-size: 0.65rem;
+    width: 26px;
+    height: 26px;
+    font-size: 0.6rem;
   }
   
   .user-name {
@@ -665,6 +627,7 @@
   }
 }
 
+/* Small Mobile (480px and below) */
 @media (max-width: 480px) {
   .leaderboard-container {
     padding: 60px 0.75rem 0.75rem 0.75rem;
@@ -681,32 +644,21 @@
   .tab-btn {
     padding: 0.4rem 0.75rem;
     font-size: 0.7rem;
-    white-space: normal;
-    text-align: center;
   }
   
-  /* Level mode - compact for small screens */
   .leaderboard-table.level-mode .table-header,
   .leaderboard-table.level-mode .table-row {
-    grid-template-columns: 45px 1fr 65px 80px;
+    grid-template-columns: 40px 1fr 60px 75px;
   }
   
   .leaderboard-table.normal-mode .table-header,
   .leaderboard-table.normal-mode .table-row {
-    grid-template-columns: 45px 1fr 65px;
+    grid-template-columns: 40px 1fr 60px;
   }
   
   .table-header {
-    font-size: 0.55rem;
+    font-size: 0.6rem;
     padding: 0.5rem 0.6rem;
-  }
-  
-  .table-header .rank-col,
-  .table-header .user-col,
-  .table-header .metric-col,
-  .table-header .level-col {
-    font-size: 0.55rem;
-    letter-spacing: 0.3px;
   }
   
   .table-row {
@@ -767,19 +719,16 @@
   }
 }
 
+/* iPhone SE and very small devices (375px and below) */
 @media (max-width: 375px) {
   .leaderboard-table.level-mode .table-header,
   .leaderboard-table.level-mode .table-row {
-    grid-template-columns: 40px 1fr 55px 70px;
+    grid-template-columns: 35px 1fr 55px 65px;
   }
   
   .leaderboard-table.normal-mode .table-header,
   .leaderboard-table.normal-mode .table-row {
-    grid-template-columns: 40px 1fr 55px;
-  }
-  
-  .table-header {
-    font-size: 0.5rem;
+    grid-template-columns: 35px 1fr 55px;
   }
   
   .user-name {
