@@ -101,26 +101,25 @@ const foods = [
   },
 
   {
-    name: "Asam Siok",
-    origin: "Bidayuh",
-    category: "Poultry",
+    name: "Terung Asam",
+    origin: "Dayak",
+    category: "Vegetables",
     difficulty: "medium",
-    dietaryTags: ["gluten-free", "dairy-free", "high-protein"],
-    description: "Asam siok, also known as chicken with rice in bamboo, is a traditional Bidayuh dish that is served during special events like Gawai, get-togethers, or the welcome of VIPs or special visitors. \
-    Using bamboo is a natural cooking method that retains tastes and creates incredibly tender chicken that is scented with bamboo and lemongrass.",
-    image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgzvn3mAtq5B52L9bQtt6ZQDZcQGCXMl7rTQ0wtElx5y8NyUO8QVyCABx45sLrIPUy0qvL3J5QRZViwwJn_9t4opFUsQjJ4UGC1FZjgV_giHlOCmejb9AiRRE3otlN5qeIKZ1jmVP5MKt4/s320/ayam+pansuh+1.jpg",
-    prepTime: 90,
-    Energy_kcal: 389.75,
-    Protein_g: 51.08,
-    Fat_g: 14.33,
-    Carbohydrates_g: 14.00,
-    Fiber_g: 0.50,
-    VitaminC_mg: 20.34,
+    dietaryTags: ["gluten-free", "dairy-free", "nut-free", "halal", "spicy"],
+    description: "This dish uses salted fish and terung asam (sour eggplant) as its main ingredients. This soup is truly delicious, with a balance of sour, salty, sweet, and spicy flavours.",
+    image: "https://img-global.cpcdn.com/recipes/74dc8e14dccfda8f/600x852cq80/ikan-masin-terong-asam-dayak-resipi-foto-utama.webp",
+    prepTime: 30,
+    Energy_kcal: 96.03,
+    Protein_g: 6.04,
+    Fat_g: 2.00,
+    Carbohydrates_g: 13.42,
+    Fiber_g: 1.60,
+    VitaminC_mg: 26.60,
     culturalSignificance: "A specialty of the Sarawakian Chinese community, particularly in Sibu, known for its bold and tangy profile. It reflects the local adaptation of Chinese noodle dishes using indigenous ingredients like asam (sour) fruits.",
     traditionalPreparation: "A rich, sour, and spicy broth is made from tamarind (asam jawa) or other souring agents, then poured over noodles and topped with shredded chicken, prawns, and mint leaves.",
     commonIngredients: ["Chicken, Ginger, Shallot, Garlic, Tapioca leaves, Rice"],
     healthTips: "The tamarind-based broth is low in fat. Using skinless chicken and adding more vegetables can make this a very balanced and healthy meal.",
-    gram_per_serving: 0.0
+    gram_per_serving: 171.38
   },
 
   {
@@ -132,17 +131,17 @@ const foods = [
     description: "Belacan bihun is a unique, flavorful rice vermicelli dish from Kuching, Sarawak, featuring rice noodles served with a spicy, umami-rich gravy made from belacan",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5ICw3THB2c69u4iOIFVFM0X79tAR6_GDfVQ&s",
     prepTime: 45,
-    Energy_kcal: 605.00,
-    Protein_g: 63.38,
-    Fat_g: 3.07,
-    Carbohydrates_g: 80.76,
-    Fiber_g: 2.38,
-    VitaminC_mg: 17.63,
+    Energy_kcal: 641.75,
+    Protein_g: 66.05,
+    Fat_g: 3.33,
+    Carbohydrates_g: 86.91,
+    Fiber_g: 2.48,
+    VitaminC_mg: 17.40,
     culturalSignificance: "A simple yet powerful noodle dish that highlights the central role of belacan in Sarawakian cuisine. It's a common and comforting meal found in many local eateries.",
     traditionalPreparation: "Rice vermicelli (bihun) is blanched and then tossed or stir-fried with a robust sauce made primarily from pounded chillies and belacan, creating a spicy, salty, and umami-rich flavour.",
     commonIngredients: ["Soya bean sprout, Shrimp, Shallot, Rice vermicelli, Chili, Tamarind paste, Brown sugar, Cucumber, Cuttlefish"],
     healthTips: "The sodium content is high due to belacan. Balance the meal by adding side vegetables and a lean protein.",
-    gram_per_serving: 0.0
+    gram_per_serving: 399.96
   },
 
   {
