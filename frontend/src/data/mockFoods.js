@@ -1,6 +1,6 @@
 export const mockFoods = [
   {
-    id: 1,
+    foodID: 1,
     name: "Linut",
     origin: "Melanau",
     category: "Rice Dish, Fermented", 
@@ -25,7 +25,7 @@ export const mockFoods = [
     liked_by: []
   },
   {
-    id: 2,
+    foodID: 2,
     name: "Kolo Mee",
     origin: "Chinese",
     category: "Noodles, Meat",
@@ -50,7 +50,7 @@ export const mockFoods = [
     liked_by: []
   },
   {
-    id: 3,
+    foodID: 3,
     name: "Umai",
     origin: "Melanau",
     category: "Seafood",
@@ -75,7 +75,7 @@ export const mockFoods = [
     liked_by: []
   },
   {
-    id: 4,
+    foodID: 4,
     name: "Nasi Aruk",
     origin: "Malay",
     category: "Rice Dish",
@@ -100,7 +100,7 @@ export const mockFoods = [
     liked_by: []
   },
   {
-    id: 5,
+    foodID: 5,
     name: "Ayam Pansuh",
     origin: "Dayak",
     category: "Meat",
