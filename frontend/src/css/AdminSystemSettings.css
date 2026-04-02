@@ -1,4 +1,6 @@
-/* Modal Backup*/
+/* Backup Modal Styles - Natural Brown Theme - Simplified */
+
+/* Modal Backdrop */
 .umg-modal-backup {
   position: fixed;
   top: 0;
@@ -42,14 +44,14 @@
   }
 }
 
-/* Modal Header */
+/* Modal Header - NO GRADIENT, solid color */
 .umg-modal-backup .umg-modal-header {
   padding: 1.5rem 1.75rem;
   border-bottom: 1px solid #E8DCC8;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #8B6914 0%, #6B4E2E 100%);
+  background: #6B4E2E; /* Solid brown, no gradient */
 }
 
 .umg-modal-backup .umg-modal-header h3 {
@@ -67,7 +69,7 @@
   height: 22px;
 }
 
-/* Close Button */
+/* Close Button - NO ROTATE animation */
 .umg-modal-backup .umg-modal-close {
   background: rgba(255, 249, 240, 0.2);
   border: none;
@@ -81,12 +83,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: background 0.2s; /* Only fade, no rotate */
 }
 
 .umg-modal-backup .umg-modal-close:hover {
   background: rgba(255, 249, 240, 0.3);
-  transform: rotate(90deg);
+  /* No transform, no rotation */
 }
 
 /* Modal Body */
@@ -182,7 +184,7 @@
 }
 
 .btn-restore {
-  background: #A0522D;
+  background: #98664e;
   color: #FFF9F0;
   border: none;
   padding: 0.5rem 1rem;
@@ -251,101 +253,4 @@
 .btn-close:hover {
   background: #D4C4A8;
   transform: translateY(-1px);
-}
-
-/* Recent Backups Section (in main card) */
-.recent-backups-section {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #E8DCC8;
-}
-
-.recent-backups-title {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #8B7355;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.75rem;
-}
-
-.recent-backup-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #F5EDE0;
-}
-
-.recent-backup-date {
-  font-size: 0.85rem;
-  color: #4A3728;
-}
-
-.recent-backup-size {
-  font-size: 0.8rem;
-  color: #8B7355;
-  background: #F5EDE0;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-}
-
-.btn-recent-download {
-  background: none;
-  border: none;
-  color: #6B4E2E;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.btn-recent-download:hover {
-  background: #F5EDE0;
-  transform: scale(1.1);
-  color: #8B6914;
-}
-
-/* Scrollbar Styling - Brown Theme */
-.umg-modal-body::-webkit-scrollbar {
-  width: 8px;
-}
-
-.umg-modal-body::-webkit-scrollbar-track {
-  background: #F5EDE0;
-  border-radius: 4px;
-}
-
-.umg-modal-body::-webkit-scrollbar-thumb {
-  background: #C4A86B;
-  border-radius: 4px;
-}
-
-.umg-modal-body::-webkit-scrollbar-thumb:hover {
-  background: #8B6914;
-}
-
-/* Primary Button in Main Card */
-.admset-btn-primary {
-  background: #6B4E2E !important;
-  border: none !important;
-  color: #FFF9F0 !important;
-}
-
-.admset-btn-primary:hover {
-  background: #8B6914 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(107, 78, 46, 0.3);
-}
-
-.admset-btn-outline.primary-outline {
-  border: 1px solid #6B4E2E !important;
-  color: #6B4E2E !important;
-  background: transparent !important;
-}
-
-.admset-btn-outline.primary-outline:hover {
-  background: #F5EDE0 !important;
-  border-color: #8B6914 !important;
-  color: #8B6914 !important;
 }
