@@ -135,6 +135,7 @@ html, body {
   color: #555;
   font-size: 0.9rem;
   margin-bottom: 0.75rem;
+  margin-top: 4px;
 }
 
 .upload-box {
