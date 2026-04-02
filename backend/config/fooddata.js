@@ -46,8 +46,6 @@ const foods = [
     culturalSignificance: "The quintessential everyday food of Sarawak, Kolo Mee is a symbol of Kuching's food culture. Its Chinese origins are deeply woven into the state's identity, commonly eaten for breakfast and a must-try for visitors.",
     traditionalPreparation: "Springy egg noodles are blanched and tossed in a simple seasoning of lard (or oil), light soy sauce, and vinegar, then topped with seasoned minced pork, sliced char siu, and spring onions.",
     commonIngredients: ["Egg noodles (curly), Char siu, Minced Pork"],
-    alternative: "Vegetable oil, Chicken or shrimp, Dried mushrooms (vegetarian)",
-    altDescription: "For a healthier version, use vegetable oil instead of lard and chicken or mushrooms instead of pork.",
     healthTips: "Opt for a version with less lard and more vegetables to reduce saturated fat and increase fiber.",
     gram_per_serving: 248.6704
   },
@@ -74,8 +72,6 @@ const foods = [
     culturalSignificance: "Known as the 'Sarawakian ceviche', Umai is a traditional Melanau fisherman's dish, prepared fresh on boats as a quick and nutritious meal. It showcases the reliance on the state's abundant fresh seafood.",
     traditionalPreparation: "Thinly sliced raw fish (like mackerel or bawal) is 'cooked' by marinating it in a mixture of lime juice, onions, chillies, and salt. It is often mixed with grated dried sago powder for texture.",
     commonIngredients: ["Prawns, Chilies, Ginger, Sugar, Salt, Shallots, Cucumber"],
-    alternative: "Fresh salmon or tuna, Lemon juice",
-    altDescription: "Any very fresh, sashimi-grade fish can be used. Lemon juice can replace lime for a different citrus note.",
     healthTips: "Ensure the fish is extremely fresh and handled hygienically to avoid foodborne illness. Rich in protein and omega-3 fatty acids.",
     gram_per_serving: 0.0
   },
@@ -100,8 +96,6 @@ const foods = [
     culturalSignificance: "Sarawak's version of fried rice, Nasi Aruk is distinct for being a Malay community specialty. It is a beloved dish for supper and gatherings, known for its intense, smoky flavour without using any oil or liquid in the frying process.",
     traditionalPreparation: "Day-old rice is fried in a dry wok with garlic, shallots, and belacan (shrimp paste), constantly stirred over high heat until it becomes fragrant, dry, and slightly toasted.",
     commonIngredients: ["Anchovies, Garlic, Chilies, Salt, White pepper, Day-old rice"],
-    alternative: "Fresh rice (dried out in the fridge), Dried shrimp powder (if belacan is unavailable)",
-    altDescription: "If cannot achieve the dry texture without oil, a minimal amount of oil can be used. Dried shrimp can add a similar umami if belacan is unavailable.",
     healthTips: "A relatively low-fat fried rice option due to the no-oil cooking method, but high in sodium from belacan and salt.",
     gram_per_serving: 0.0
   },
@@ -125,8 +119,6 @@ const foods = [
     culturalSignificance: "A specialty of the Sarawakian Chinese community, particularly in Sibu, known for its bold and tangy profile. It reflects the local adaptation of Chinese noodle dishes using indigenous ingredients like asam (sour) fruits.",
     traditionalPreparation: "A rich, sour, and spicy broth is made from tamarind (asam jawa) or other souring agents, then poured over noodles and topped with shredded chicken, prawns, and mint leaves.",
     commonIngredients: ["Chicken, Ginger, Shallot, Garlic, Tapioca leaves, Rice"],
-    alternative: "Lime or calamansi juice, Fish or tofu, Vermicelli or egg noodles",
-    altDescription: "Other souring agents like lime can be used if tamarind is unavailable. The protein can be easily swapped to preference or dietary needs.",
     healthTips: "The tamarind-based broth is low in fat. Using skinless chicken and adding more vegetables can make this a very balanced and healthy meal.",
     gram_per_serving: 0.0
   },
@@ -149,8 +141,6 @@ const foods = [
     culturalSignificance: "A simple yet powerful noodle dish that highlights the central role of belacan in Sarawakian cuisine. It's a common and comforting meal found in many local eateries.",
     traditionalPreparation: "Rice vermicelli (bihun) is blanched and then tossed or stir-fried with a robust sauce made primarily from pounded chillies and belacan, creating a spicy, salty, and umami-rich flavour.",
     commonIngredients: ["Soya bean sprout, Shrimp, Shallot, Rice vermicelli, Chili, Tamarind paste, Brown sugar, Cucumber, Cuttlefish"],
-    alternative: "Rice noodles or angel hair pasta, Sambal oelek or chili-garlic paste",
-    altDescription: "Other thin noodles can be used. A prepared chili paste can be a quick substitute for the belacan mixture.",
     healthTips: "The sodium content is high due to belacan. Balance the meal by adding side vegetables and a lean protein.",
     gram_per_serving: 0.0
   },
@@ -173,8 +163,6 @@ const foods = [
     culturalSignificance: "A staple in Dayak communities, especially among the Iban and Bidayuh, daun ubi tumbuk reflects Sarawak’s “forest-to-table” way of life. It is a simple, everyday dish, often made from cassava leaves grown just outside the home, which are easily harvested for a quick, nutritious meal. The preparation method that uses a wooden mortar and pestle is deeply rooted in tradition. The rhythmic pounding of the leaves is a familiar sound in many households, which symbolises a strong connection to ancestral cooking practices that prioritise simplicity, self-sufficiency, and heritage over modern convenience.",
     traditionalPreparation: "Cassava leaves are pounded using a wooden mortar and pestle to soften the tough fibres and release their natural, earthy aroma. They are then typically stir-fried with garlic, shallots, and ikan bilis (anchovies). This daily Sarawakian dish is prized for its simplicity and clean taste, as it is prepared without coconut milk or curry spices.",
     commonIngredients: ["Cassava leaves, Galangal, Shallots, Chili, Garlic, Salt, Water"],
-    alternative: "Spinach or kale (no need pounding), Chicken or turkey",
-    altDescription: "Less fibrous greens can be used but will result in a different texture. Various proteins can be used based on preference.",
     healthTips: "Cassava leaves must be cooked thoroughly to remove naturally occurring cyanide compounds. They are an excellent source of protein and iron.",
     gram_per_serving: 0.0
   },
@@ -197,8 +185,6 @@ const foods = [
     culturalSignificance: "Manicai is a beloved staple in Sarawak, enjoyed by both Dayak and Chinese communities. It is often described as an “everyday vegetable,” as it can be found everywhere, from home kitchens and kopitiam to upscale restaurants. For many Sarawakians, it carries a sense of nostalgia as a hardy backyard crop, which symbolises resourcefulness and self-sufficiency. Simple yet nutritious, manicai is a comforting daily dish that pairs perfectly with white rice and is rarely absent from the family table.",
     traditionalPreparation: "The hallmark of Sarawakian manicai lies in its distinctive “scrunching” technique. Before cooking, the leaves are vigorously rubbed and squeezed by hand until bruised, releasing their dark green juices. This process softens the leaves and removes bitterness. After rinsing, they are stir-fried in a hot wok with garlic and shallots for aroma, dried shrimp (udang kering) for umami, and eggs that are scrambled directly into the leaves. The result is a “dry” stir-fry where the egg clings to the softened leaves, creating a smoky, slightly sweet, and deeply savoury dish that is both simple and highly addictive.",
     commonIngredients: ["Eggs, Soy sauce, Salt, Manicai"],
-    alternative: "Spinach or water spinach, Fresh shrimp or anchovies",
-    altDescription: "Almost any tender leafy green can be prepared using this method. Fresh seafood can be used instead of dried.",
     healthTips: "Sweet potato leaves (Manicai) are rich in vitamins A, C, and K. A very nutritious and low-calorie dish, especially when prepared with little oil.",
     gram_per_serving: 0.0
   },
@@ -222,8 +208,6 @@ const foods = [
     culturalSignificance: "This is the most iconic jungle fern dish of Sarawak. Midin is foraged from the wild, representing the close relationship between Sarawakians and their rich rainforest ecosystem.",
     traditionalPreparation: "The crisp midin ferns are quickly stir-fried in a hot wok with a pungent and savoury paste made from chillies, garlic, and belacan (shrimp paste).",
     commonIngredients: ["Midin, Garlic, Chilies, Shrimp paste, Salt, Shallot"],
-    alternative: "Water spinach (kangkung) or other sturdy greens, Dried shrimp paste in oil (as a belacan substitute)",
-    altDescription: "If midin is unavailable, kangkung makes a good alternative, though the texture will be softer.",
     healthTips: "Midin is a good source of fiber. Using less belacan can help control sodium intake.",
     gram_per_serving: 0.0
   },
@@ -247,8 +231,6 @@ const foods = [
     culturalSignificance: "The most famous Iban ceremonial dish, traditionally prepared during Gawai. Cooking in a bamboo tube over an open fire imparts a unique aroma and symbolizes unity, skill, and connection to nature.",
     traditionalPreparation: "Chicken is marinated with lemongrass, ginger, tapioca leaves, and minimal water, then stuffed into a bamboo tube sealed with tapioca leaves. The tube is then slanted over an open fire to cook.",
     commonIngredients: ["Chicken, Kantan flower, Lemongrass, Umbut tepus, White onion, Ginger, Bamboo stick, Aji No Moto, Salt, Red onion, Daun ubi"],
-    alternative: "Fish or prawns, Banana leaves (if bamboo is unavailable), Spring onions",
-    altDescription: "The cooking method can be simulated in a steamer or oven-safe dish wrapped in banana leaves if bamboo is not available.",
     healthTips: "A very healthy cooking method as it uses no oil, steaming the chicken in its own juices, resulting in a lean and flavorful dish.",
     gram_per_serving: 0.0
   }
@@ -260,8 +242,8 @@ const foods = [
     for (const food of foods) {
       const sql = `
         INSERT INTO food 
-        (name, origin, category, difficulty, dietaryTags, description, image, prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, culturalSignificance, traditionalPreparation, commonIngredients, alternative, altDescription, healthTips, gram_per_serving)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (name, origin, category, difficulty, dietaryTags, description, image, prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, culturalSignificance, traditionalPreparation, commonIngredients, healthTips, gram_per_serving)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const values = [
         food.name,
@@ -281,8 +263,6 @@ const foods = [
         food.culturalSignificance,
         food.traditionalPreparation,
         food.commonIngredients,
-        food.alternative,
-        food.altDescription,
         food.healthTips,
         food.gram_per_serving,
       ];

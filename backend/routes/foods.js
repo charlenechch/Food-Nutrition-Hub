@@ -254,8 +254,6 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     dietaryTags,
     prepTime,
     commonIngredients,
-    alternative,
-    altDescription,
     healthTips,
     
     // Recipe Table Fields
@@ -288,10 +286,9 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       (
         name, origin, category, description, culturalSignificance, traditionalPreparation,
         Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, 
-        image, difficulty, dietaryTags, prepTime, commonIngredients, 
-        alternative, altDescription, healthTips
+        image, difficulty, dietaryTags, prepTime, commonIngredients,  healthTips
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const foodValues = [
@@ -312,8 +309,6 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       dietaryTags || "",
       prepTime || "0",          
       commonIngredients || "",
-      alternative || "",
-      altDescription || "",
       healthTips || ""
     ];
 
@@ -629,8 +624,6 @@ router.post('/add-food-details', async (req, res) => {
     const {
       recipeId,
       name,
-      alternative,
-      altDescription,
       category,
       origin,
       description,
@@ -711,8 +704,6 @@ router.post('/add-food-details', async (req, res) => {
     const updateQuery = `
       UPDATE food SET
         name = COALESCE(?, name),
-        alternative = ?,
-        altDescription = ?,
         category = COALESCE(?, category),
         origin = ?,
         description = ?,
@@ -734,8 +725,6 @@ router.post('/add-food-details', async (req, res) => {
 
     const updateValues = [
       name || null,
-      alternative || null,
-      altDescription || null,
       categoryString || null,
       origin,
       description !== undefined ? description : null,
@@ -941,11 +930,10 @@ router.post("/bulk-import", async (req, res) => {
             (
               name, origin, category, difficulty, dietaryTags, 
               description, image, prepTime, culturalSignificance, 
-              traditionalPreparation, commonIngredients, alternative, 
-              altDescription, healthTips, Energy_kcal, Protein_g, Fat_g, 
+              traditionalPreparation, commonIngredients, healthTips, Energy_kcal, Protein_g, Fat_g, 
               Carbohydrates_g, Fiber_g, VitaminC_mg
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
 
           const foodValues = [
@@ -960,8 +948,6 @@ router.post("/bulk-import", async (req, res) => {
             foodItem.culturalSignificance || "",
             foodItem.traditionalPreparation || "",
             foodItem.commonIngredients || "",
-            foodItem.alternative || "",
-            foodItem.altDescription || "",
             foodItem.healthTips || "",
             foodItem.Energy_kcal || 0,
             foodItem.Protein_g || 0,
