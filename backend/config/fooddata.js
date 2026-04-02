@@ -19,10 +19,10 @@ const foods = [
     VitaminC_mg: 11.6,
     culturalSignificance: "A traditional staple of the Melanau people, Linut is a direct link to Sarawak's sago-producing heritage, representing a time when sago was a primary carbohydrate source in the coastal regions.",
     traditionalPreparation: "It is made by gradually mixing hot water into sago starch and vigorously stirring it with a special fork until it achieves a unique, sticky, and translucent gel-like consistency, often eaten with your hands.",
-    commonIngredients: ["Sago flour, Water, Anchovies, Chilies, Belacan, Sugar, Salt, Mango"],
+    commonIngredients: ["Sago flour, Anchovies, Chilies, Belacan, Mango"],
     alternative: "Tapioca starch",
     altDescription: "Tapioca starch can be used as a substitute, producing a slightly clearer and chewier gel.",
-    healthTips: "High in carbohydrates but gluten-free. Low in protein and vitamins, so it should be paired with other nutritious foods.",
+    healthTips: "Gluten-free. Low in vitamins, so it should be paired with other nutritious foods.",
     gram_per_serving: 328.07
   },
 
@@ -34,8 +34,7 @@ const foods = [
     dietaryTags: ["dairy-free", "high-protein"],
     description: "The origin of Kolo Mee is still unclear, but it likely originated from Kuching, the capital of Sarawak. \
     “Kolo Mee” may also have derived from the Hokkien and Cantonese words for “dry mixed” noodles. \
-    In Hokkien, “kolo” (干捞) means “dry mix,” while in Cantonese, “gorn lo” has a similar meaning. \
-    This theory suggests that the name “Kolo Mee” come from how the dish is prepared, which involves tossing the noodles with the sauce and toppings in a dry manner.",
+    In Hokkien, “kolo” (干捞) means “dry mix,” while in Cantonese, “gorn lo” has a similar meaning",
     image: "https://tasteasianfood.com/wp-content/uploads/2023/03/Kolo-Mee-recipe-5-square.jpeg",
     prepTime: 30,
     Energy_kcal: 786.94,
@@ -46,7 +45,7 @@ const foods = [
     VitaminC_mg: 12.54,
     culturalSignificance: "The quintessential everyday food of Sarawak, Kolo Mee is a symbol of Kuching's food culture. Its Chinese origins are deeply woven into the state's identity, commonly eaten for breakfast and a must-try for visitors.",
     traditionalPreparation: "Springy egg noodles are blanched and tossed in a simple seasoning of lard (or oil), light soy sauce, and vinegar, then topped with seasoned minced pork, sliced char siu, and spring onions.",
-    commonIngredients: ["Soy sauce, Egg noodles, Char siu, Spring onions, Shallot oil"],
+    commonIngredients: ["Egg noodles (curly), Char siu, Minced Pork"],
     alternative: "Vegetable oil, Chicken or shrimp, Dried mushrooms (vegetarian)",
     altDescription: "For a healthier version, use vegetable oil instead of lard and chicken or mushrooms instead of pork.",
     healthTips: "Opt for a version with less lard and more vegetables to reduce saturated fat and increase fiber.",
