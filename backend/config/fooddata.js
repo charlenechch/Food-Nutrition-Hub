@@ -106,7 +106,7 @@ const foods = [
     category: "Vegetables",
     difficulty: "medium",
     dietaryTags: ["gluten-free", "dairy-free", "nut-free", "halal", "spicy"],
-    description: "This dish uses salted fish and terung asam (sour eggplant) as its main ingredients. This soup is truly delicious, with a balance of sour, salty, sweet, and spicy flavours.",
+    description: "Terung asam uses salted fish and terung sour eggplant as its main ingredients. This soup is truly delicious, with a balance of sour, salty, sweet, and spicy flavours.",
     image: "https://img-global.cpcdn.com/recipes/74dc8e14dccfda8f/600x852cq80/ikan-masin-terong-asam-dayak-resipi-foto-utama.webp",
     prepTime: 30,
     Energy_kcal: 96.03,
@@ -115,10 +115,10 @@ const foods = [
     Carbohydrates_g: 13.42,
     Fiber_g: 1.60,
     VitaminC_mg: 26.60,
-    culturalSignificance: "A specialty of the Sarawakian Chinese community, particularly in Sibu, known for its bold and tangy profile. It reflects the local adaptation of Chinese noodle dishes using indigenous ingredients like asam (sour) fruits.",
-    traditionalPreparation: "A rich, sour, and spicy broth is made from tamarind (asam jawa) or other souring agents, then poured over noodles and topped with shredded chicken, prawns, and mint leaves.",
-    commonIngredients: ["Chicken, Ginger, Shallot, Garlic, Tapioca leaves, Rice"],
-    healthTips: "The tamarind-based broth is low in fat. Using skinless chicken and adding more vegetables can make this a very balanced and healthy meal.",
+    culturalSignificance: "Terung asam is a traditional ingredient widely used in Sarawak, especially among Dayak communities. It is valued for its distinctive sour taste and is commonly used in local soups and dishes, reflecting the use of indigenous ingredients in Sarawak cuisine.",
+    traditionalPreparation: "The dish is typically prepared by slicing terung asam and cooking it in a light broth with aromatics such as chilli, lemongrass, and onion. It is often combined with fish or seafood, allowing the natural sourness of the fruit to flavour the soup.",
+    commonIngredients: ["Terung asam (sour eggplant)", "Salted fish or fresh fish", "Chilli", "Onion", "Lemongrass", "Belacan"],
+    healthTips: "Terung asam is naturally rich in vitamin C and fibre. However, dishes using belacan and salted fish may be high in sodium, so it is recommended to consume in moderation and pair with vegetables for a more balanced meal.",
     gram_per_serving: 171.38
   },
 
@@ -138,7 +138,7 @@ const foods = [
     Fiber_g: 2.48,
     VitaminC_mg: 17.40,
     culturalSignificance: "A simple yet powerful noodle dish that highlights the central role of belacan in Sarawakian cuisine. It's a common and comforting meal found in many local eateries.",
-    traditionalPreparation: "Rice vermicelli (bihun) is blanched and then tossed or stir-fried with a robust sauce made primarily from pounded chillies and belacan, creating a spicy, salty, and umami-rich flavour.",
+    traditionalPreparation: "Rice vermicelli (bihun) is typically blanched and served with a rich, tangy belacan-based gravy made from chillies, dried shrimp, and souring agents, creating a spicy, salty, and umami-rich flavour.",
     commonIngredients: ["Soya bean sprout, Shrimp, Shallot, Rice vermicelli, Chili, Tamarind paste, Brown sugar, Cucumber, Cuttlefish"],
     healthTips: "The sodium content is high due to belacan. Balance the meal by adding side vegetables and a lean protein.",
     gram_per_serving: 399.96
