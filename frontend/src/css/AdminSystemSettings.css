@@ -1,0 +1,351 @@
+/* Modal Backup*/
+.umg-modal-backup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Container */
+.umg-modal-backup .umg-modal {
+  background: #FFF9F0;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(62, 39, 13, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Modal Header */
+.umg-modal-backup .umg-modal-header {
+  padding: 1.5rem 1.75rem;
+  border-bottom: 1px solid #E8DCC8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #8B6914 0%, #6B4E2E 100%);
+}
+
+.umg-modal-backup .umg-modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #FFF9F0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.umg-modal-backup .umg-modal-header h3 svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Close Button */
+.umg-modal-backup .umg-modal-close {
+  background: rgba(255, 249, 240, 0.2);
+  border: none;
+  color: #FFF9F0;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.umg-modal-backup .umg-modal-close:hover {
+  background: rgba(255, 249, 240, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Modal Body */
+.umg-modal-backup .umg-modal-body {
+  padding: 1.75rem;
+  max-height: calc(85vh - 130px);
+  overflow-y: auto;
+  background: #FFF9F0;
+}
+
+/* Backup List Items */
+.backup-list-item {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #E8DCC8;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(62, 39, 13, 0.05);
+}
+
+.backup-list-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(62, 39, 13, 0.1);
+  border-color: #C4A86B;
+}
+
+.backup-item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.backup-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.backup-filename {
+  font-weight: 600;
+  color: #4A3728;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  word-break: break-all;
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.backup-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: #8B7355;
+  flex-wrap: wrap;
+}
+
+.backup-date {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.backup-size {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #F5EDE0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+}
+
+/* Buttons - Natural Brown Theme */
+.btn-download {
+  background: #6B4E2E;
+  color: #FFF9F0;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-download:hover {
+  background: #8B6914;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(107, 78, 46, 0.3);
+}
+
+.btn-restore {
+  background: #A0522D;
+  color: #FFF9F0;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-restore:hover {
+  background: #8B4513;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(160, 82, 45, 0.3);
+}
+
+.btn-restore:disabled,
+.btn-download:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Empty State */
+.backup-empty {
+  text-align: center;
+  padding: 3rem;
+  color: #A89880;
+}
+
+.backup-empty svg {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.backup-empty p {
+  font-size: 0.95rem;
+}
+
+/* Modal Footer */
+.umg-modal-backup .umg-modal-footer {
+  padding: 1rem 1.75rem;
+  border-top: 1px solid #E8DCC8;
+  display: flex;
+  justify-content: flex-end;
+  background: #FFF9F0;
+}
+
+.btn-close {
+  background: #E8DCC8;
+  color: #4A3728;
+  border: none;
+  padding: 0.6rem 1.5rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background: #D4C4A8;
+  transform: translateY(-1px);
+}
+
+/* Recent Backups Section (in main card) */
+.recent-backups-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E8DCC8;
+}
+
+.recent-backups-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #8B7355;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.75rem;
+}
+
+.recent-backup-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #F5EDE0;
+}
+
+.recent-backup-date {
+  font-size: 0.85rem;
+  color: #4A3728;
+}
+
+.recent-backup-size {
+  font-size: 0.8rem;
+  color: #8B7355;
+  background: #F5EDE0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.btn-recent-download {
+  background: none;
+  border: none;
+  color: #6B4E2E;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-recent-download:hover {
+  background: #F5EDE0;
+  transform: scale(1.1);
+  color: #8B6914;
+}
+
+/* Scrollbar Styling - Brown Theme */
+.umg-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.umg-modal-body::-webkit-scrollbar-track {
+  background: #F5EDE0;
+  border-radius: 4px;
+}
+
+.umg-modal-body::-webkit-scrollbar-thumb {
+  background: #C4A86B;
+  border-radius: 4px;
+}
+
+.umg-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #8B6914;
+}
+
+/* Primary Button in Main Card */
+.admset-btn-primary {
+  background: #6B4E2E !important;
+  border: none !important;
+  color: #FFF9F0 !important;
+}
+
+.admset-btn-primary:hover {
+  background: #8B6914 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(107, 78, 46, 0.3);
+}
+
+.admset-btn-outline.primary-outline {
+  border: 1px solid #6B4E2E !important;
+  color: #6B4E2E !important;
+  background: transparent !important;
+}
+
+.admset-btn-outline.primary-outline:hover {
+  background: #F5EDE0 !important;
+  border-color: #8B6914 !important;
+  color: #8B6914 !important;
+}
