@@ -178,11 +178,11 @@
     "alertGoodProtein": "Kandungan protein yang baik.",
     "alertHighFat": "Lemak jumlah tinggi setiap hidangan.",
     "alertLowFat": "Hidangan rendah lemak.",
-    "alertHighCarbs": "Tinggi karbohidrat.",
     "alertHighFiber": "Tinggi serat pemakanan.",
-    "alertVitC": "Kaya dengan Vitamin C.",
     "alertSpicy": "Hidangan pedas.",
-    "alertVegetarian": "Sesuai untuk vegetarian."
+    "alertVegetarian": "Sesuai untuk vegetarian.",
+    "alertHighVitC": "Kaya dengan Vitamin C.",
+    "alertSourceVitC": "Sumber Vitamin C yang baik."
   },
 
   "recipes": {

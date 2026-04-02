@@ -179,11 +179,11 @@
     "alertGoodProtein": "Good protein content.",
     "alertHighFat": "High total fat per serving.",
     "alertLowFat": "Low-fat dish.",
-    "alertHighCarbs": "High in carbohydrates.",
     "alertHighFiber": "High in dietary fiber.",
-    "alertVitC": "Rich in Vitamin C.",
     "alertSpicy": "Spicy dish.",
-    "alertVegetarian": "Vegetarian-friendly."
+    "alertVegetarian": "Vegetarian-friendly.",
+    "alertHighVitC": "Rich in Vitamin C.",
+    "alertSourceVitC": "Good source of Vitamin C."
   },
 
   "recipes": {
