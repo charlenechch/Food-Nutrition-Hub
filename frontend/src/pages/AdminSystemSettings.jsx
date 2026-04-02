@@ -483,7 +483,7 @@ export default function AdminSystemSettings({
         });
         const { csrfToken } = await csrfRes.json();
         
-        const response = await fetch(`${API_URL}/api/backup/create`, {
+        const response = await fetch(`${API_URL}/api/admin/backup/create`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -539,7 +539,7 @@ export default function AdminSystemSettings({
         });
         const { csrfToken } = await csrfRes.json();
         
-        const response = await fetch(`${API_URL}/api/backup/restore`, {
+        const response = await fetch(`${API_URL}/api/admin/backup/restore`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -585,7 +585,7 @@ export default function AdminSystemSettings({
     // Function to download backup
     const handleDownloadBackup = async (filename) => {
     try {
-        const response = await fetch(`${API_URL}/api/backup/download/${filename}`, {
+        const response = await fetch(`${API_URL}/api/admin/backup/download/${filename}`, {
         credentials: 'include'
         });
         
@@ -611,7 +611,7 @@ export default function AdminSystemSettings({
     // Function to fetch backup list
     const fetchBackupList = async () => {
     try {
-        const response = await fetch(`${API_URL}/api/backup/list`, {
+        const response = await fetch(`${API_URL}/api/admin/backup/list`, {
         credentials: 'include'
         });
         
@@ -628,7 +628,7 @@ export default function AdminSystemSettings({
     // Function to get last backup info
     const fetchLastBackupInfo = async () => {
     try {
-        const response = await fetch(`${API_URL}/api/backup/last-backup`, {
+        const response = await fetch(`${API_URL}/api/admin/backup/last-backup`, {
         credentials: 'include'
         });
         
