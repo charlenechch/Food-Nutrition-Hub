@@ -95,6 +95,7 @@ const EditCommunityPostPage = () => {
           image: p.image || null,
           images: p.photos ? p.photos.split(",").map((url) => url.trim()) : [],
           adminFeedback: p.adminFeedback || "",
+          approvedBy: p.approvedBy || null,
         });
         setFeedbackText(p.adminFeedback || "");
       } catch (err) {
@@ -268,6 +269,12 @@ const EditCommunityPostPage = () => {
               <p>{t("editPost.status")}</p>
               <span className="status-tag">{post.status}</span>
             </div>
+            {post.approvedBy && (
+              <div className="review-info">
+                <p>Approved By</p>
+                <strong>{post.approvedBy}</strong>
+              </div>
+            )}
           </div>
 
           <div className="review-main">
