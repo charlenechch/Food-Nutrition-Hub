@@ -71,9 +71,9 @@ const foods = [
     VitaminC_mg: 109,
     culturalSignificance: "Known as the 'Sarawakian ceviche', Umai is a traditional Melanau fisherman's dish, prepared fresh on boats as a quick and nutritious meal. It showcases the reliance on the state's abundant fresh seafood.",
     traditionalPreparation: "Thinly sliced raw fish (like mackerel or bawal) is 'cooked' by marinating it in a mixture of lime juice, onions, chillies, and salt. It is often mixed with grated dried sago powder for texture.",
-    commonIngredients: ["Prawns, Chilies, Ginger, Sugar, Salt, Shallots, Cucumber"],
+    commonIngredients: ["Prawns, Chilies, Ginger, Shallots, Cucumber"],
     healthTips: "Ensure the fish is extremely fresh and handled hygienically to avoid foodborne illness. Rich in protein and omega-3 fatty acids.",
-    gram_per_serving: 0.0
+    gram_per_serving: 815.0
   },
 
   {
@@ -87,17 +87,17 @@ const foods = [
     The dish is composed simply of rice combined with anchovies, fragrant torch ginger, turmeric leaves, and the heat of bird’s-eye chilli.",
     image: "https://i.ytimg.com/vi/W6Co9dMpw7o/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAfGfmofQBBYx02WeMUcjjPJxH7aw",
     prepTime: 30,
-    Energy_kcal: 81,
+    Energy_kcal: 286,
     Protein_g: 6.88,
-    Fat_g: 2.02,
-    Carbohydrates_g: 9.24,
-    Fiber_g: 0.2,
+    Fat_g: 2.42,
+    Carbohydrates_g: 54.24,
+    Fiber_g: 0.8,
     VitaminC_mg: 13.8,
     culturalSignificance: "Sarawak's version of fried rice, Nasi Aruk is distinct for being a Malay community specialty. It is a beloved dish for supper and gatherings, known for its intense, smoky flavour without using any oil or liquid in the frying process.",
     traditionalPreparation: "Day-old rice is fried in a dry wok with garlic, shallots, and belacan (shrimp paste), constantly stirred over high heat until it becomes fragrant, dry, and slightly toasted.",
-    commonIngredients: ["Anchovies, Garlic, Chilies, Salt, White pepper, Day-old rice"],
+    commonIngredients: ["Anchovies, Garlic, Chilies, White pepper, Day-old rice"],
     healthTips: "A relatively low-fat fried rice option due to the no-oil cooking method, but high in sodium from belacan and salt.",
-    gram_per_serving: 0.0
+    gram_per_serving: 241.0
   },
 
   {
