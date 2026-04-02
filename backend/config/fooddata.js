@@ -34,8 +34,7 @@ const foods = [
     dietaryTags: ["dairy-free", "high-protein"],
     description: "The origin of Kolo Mee is still unclear, but it likely originated from Kuching, the capital of Sarawak. \
     “Kolo Mee” may also have derived from the Hokkien and Cantonese words for “dry mixed” noodles. \
-    In Hokkien, “kolo” (干捞) means “dry mix,” while in Cantonese, “gorn lo” has a similar meaning. \
-    This theory suggests that the name “Kolo Mee” come from how the dish is prepared, which involves tossing the noodles with the sauce and toppings in a dry manner.",
+    In Hokkien, “kolo” (干捞) means “dry mix,” while in Cantonese, “gorn lo” has a similar meaning",
     image: "https://tasteasianfood.com/wp-content/uploads/2023/03/Kolo-Mee-recipe-5-square.jpeg",
     prepTime: 30,
     Energy_kcal: 786.94,
