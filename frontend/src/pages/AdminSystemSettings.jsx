@@ -38,6 +38,12 @@ export default function AdminSystemSettings({
     const [availableMonths, setAvailableMonths] = useState([]);
     const [loadingMonths, setLoadingMonths] = useState(false);
 
+    const [isBackingUp, setIsBackingUp] = useState(false);
+    const [isRestoring, setIsRestoring] = useState(false);
+    const [backupList, setBackupList] = useState([]);
+    const [lastBackup, setLastBackup] = useState(null);
+    const [showBackupList, setShowBackupList] = useState(false);
+
     function formatNowKuching() {
         return new Intl.DateTimeFormat("en-MY", {
             timeZone: "Asia/Kuching",
@@ -467,6 +473,181 @@ export default function AdminSystemSettings({
         }
     })();
 
+    // Function to handle backup creation
+    const handleCreateBackup = async () => {
+    try {
+        setIsBackingUp(true);
+        
+        const csrfRes = await fetch(`${API_URL}/api/csrf-token`, { 
+        credentials: "include" 
+        });
+        const { csrfToken } = await csrfRes.json();
+        
+        const response = await fetch(`${API_URL}/api/admin/backup/create`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+        },
+        credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+        setSysDialog({
+            open: true,
+            title: t("adminSettings.backupSuccessful"),
+            message: t("adminSettings.backupSuccessfulMsg", { 
+            filename: data.filename,
+            size: (data.size / 1024 / 1024).toFixed(2)
+            }),
+            icon: <CheckIcon />,
+            primaryText: t("adminSettings.ok"),
+            onPrimary: closeSysDialog,
+        });
+        
+        // Refresh backup list
+        fetchBackupList();
+        } else {
+        throw new Error(data.error);
+        }
+    } catch (error) {
+        console.error('Backup error:', error);
+        setSysDialog({
+        open: true,
+        title: t("adminSettings.backupFailed"),
+        message: error.message,
+        icon: <AlertTriangle />,
+        primaryText: t("adminSettings.ok"),
+        onPrimary: closeSysDialog,
+        });
+    } finally {
+        setIsBackingUp(false);
+    }
+    };
+
+    // Function to handle restore
+    const handleRestore = async (filename) => {
+    if (!window.confirm(t("adminSettings.restoreConfirm"))) return;
+    
+    try {
+        setIsRestoring(true);
+        
+        const csrfRes = await fetch(`${API_URL}/api/csrf-token`, { 
+        credentials: "include" 
+        });
+        const { csrfToken } = await csrfRes.json();
+        
+        const response = await fetch(`${API_URL}/api/admin/backup/restore`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+        },
+        credentials: 'include',
+        body: JSON.stringify({ filename })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+        setSysDialog({
+            open: true,
+            title: t("adminSettings.restoreSuccessful"),
+            message: t("adminSettings.restoreSuccessfulMsg"),
+            icon: <CheckIcon />,
+            primaryText: t("adminSettings.ok"),
+            onPrimary: () => {
+            closeSysDialog();
+            // Optionally reload page to reflect restored data
+            window.location.reload();
+            },
+        });
+        } else {
+        throw new Error(data.error);
+        }
+    } catch (error) {
+        console.error('Restore error:', error);
+        setSysDialog({
+        open: true,
+        title: t("adminSettings.restoreFailed"),
+        message: error.message,
+        icon: <AlertTriangle />,
+        primaryText: t("adminSettings.ok"),
+        onPrimary: closeSysDialog,
+        });
+    } finally {
+        setIsRestoring(false);
+    }
+    };
+
+    // Function to download backup
+    const handleDownloadBackup = async (filename) => {
+    try {
+        const response = await fetch(`${API_URL}/api/admin/backup/download/${filename}`, {
+        credentials: 'include'
+        });
+        
+        if (!response.ok) throw new Error('Download failed');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        toast.success(t("adminSettings.downloadStarted"));
+    } catch (error) {
+        console.error('Download error:', error);
+        toast.error(t("adminSettings.downloadFailed"));
+    }
+    };
+
+    // Function to fetch backup list
+    const fetchBackupList = async () => {
+    try {
+        const response = await fetch(`${API_URL}/api/admin/backup/list`, {
+        credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+        setBackupList(data.backups);
+        }
+    } catch (error) {
+        console.error('Fetch backups error:', error);
+    }
+    };
+
+    // Function to get last backup info
+    const fetchLastBackupInfo = async () => {
+    try {
+        const response = await fetch(`${API_URL}/api/admin/backup/last-backup`, {
+        credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.hasBackup) {
+        setLastBackup(data.lastBackup);
+        }
+    } catch (error) {
+        console.error('Fetch last backup error:', error);
+    }
+    };
+
+    // Load backup info on component mount
+    useEffect(() => {
+    fetchBackupList();
+    fetchLastBackupInfo();
+    }, []);
+
     return (
         <div className="admset-wrap">
             <div className="admset-single-card-container">
@@ -528,25 +709,65 @@ export default function AdminSystemSettings({
 
                         {/* Section 3: Backup & Maintenance */}
                         <div className="admset-block">
-                            <div className="admset-label mb-6">{t("adminSettings.backupMaintenance")}</div>
-                            <div className="admset-callout">
-                                <div>
-                                    <p>{t("adminSettings.lastBackup")}</p>
-                                    <p className="muted">{t("adminSettings.lastBackupDate")}</p>
-                                </div>
-                                <span className="admset-badge good">{t("adminSettings.backupSuccess")}</span>
+                        <div className="admset-label mb-6">{t("adminSettings.backupMaintenance")}</div>
+                        <div className="admset-callout">
+                            <div>
+                            <p>{t("adminSettings.lastBackup")}</p>
+                            <p className="muted">
+                                {lastBackup ? (
+                                <>
+                                    {new Date(lastBackup.created_at).toLocaleString()}
+                                    <br />
+                                    <small>({(lastBackup.size / 1024 / 1024).toFixed(2)} MB)</small>
+                                </>
+                                ) : (
+                                t("adminSettings.noBackupYet")
+                                )}
+                            </p>
                             </div>
+                            <span className={`admset-badge ${lastBackup ? 'good' : 'warning'}`}>
+                            {lastBackup ? t("adminSettings.backupSuccess") : t("adminSettings.noBackup")}
+                            </span>
+                        </div>
 
-                            <div className="admset-grid-2 mt-12">
-                                <button className="admset-btn admset-btn-primary">
-                                    <Archive className="admset-ic-sm" />
-                                    {t("adminSettings.backup")}
-                                </button>
-                                <button className="admset-btn admset-btn-outline primary-outline">
-                                    <Download className="admset-ic-sm" />
-                                    {t("adminSettings.restore")}
-                                </button>
+                        <div className="admset-grid-2 mt-12">
+                            <button 
+                            className="admset-btn admset-btn-primary"
+                            onClick={handleCreateBackup}
+                            disabled={isBackingUp}
+                            >
+                            <Archive className="admset-ic-sm" />
+                            {isBackingUp ? t("adminSettings.creatingBackup") : t("adminSettings.backup")}
+                            </button>
+                            <button 
+                            className="admset-btn admset-btn-outline primary-outline"
+                            onClick={() => setShowBackupList(true)}
+                            >
+                            <Download className="admset-ic-sm" />
+                            {t("adminSettings.restore")}
+                            </button>
+                        </div>
+                        
+                        {/* Show recent backups */}
+                        {backupList.length > 0 && (
+                            <div className="mt-4">
+                            <p className="text-sm text-gray-600 mb-2">{t("adminSettings.recentBackups")}</p>
+                            <div className="space-y-2">
+                                {backupList.slice(0, 3).map(backup => (
+                                <div key={backup.filename} className="flex justify-between items-center text-sm">
+                                    <span>{new Date(backup.created_at).toLocaleDateString()}</span>
+                                    <span>{backup.size_mb} MB</span>
+                                    <button
+                                    onClick={() => handleDownloadBackup(backup.filename)}
+                                    className="text-blue-600 hover:text-blue-800"
+                                    >
+                                    <Download size={14} />
+                                    </button>
+                                </div>
+                                ))}
                             </div>
+                            </div>
+                        )}
                         </div>
 
                         <hr className="admset-sep" />
@@ -1052,6 +1273,69 @@ export default function AdminSystemSettings({
                                         {t("adminSettings.exportReport")}
                                     </>
                                 )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Backup List Modal */}
+            {showBackupList && (
+                <div
+                    className="umg-modal-backdrop"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={() => setShowBackupList(false)}
+                >
+                    <div className="umg-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+                        <div className="umg-modal-header">
+                            <h3><Archive size={18} /> {t("adminSettings.backupList")}</h3>
+                            <button className="umg-modal-close" onClick={() => setShowBackupList(false)}>×</button>
+                        </div>
+                        <div className="umg-modal-body">
+                            {backupList.length === 0 ? (
+                                <div className="text-center py-8 text-gray-500">
+                                    {t("adminSettings.noBackupsAvailable")}
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {backupList.map((backup) => (
+                                        <div key={backup.filename} className="border rounded-lg p-3">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <div className="font-medium break-all">{backup.filename}</div>
+                                                    <div className="text-sm text-gray-500">
+                                                        {new Date(backup.created_at).toLocaleString()}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500">
+                                                        {backup.size_mb} MB
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2 ml-4">
+                                                    <button
+                                                        onClick={() => handleDownloadBackup(backup.filename)}
+                                                        className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                                                    >
+                                                        <Download size={14} className="inline mr-1" />
+                                                        {t("adminSettings.download")}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleRestore(backup.filename)}
+                                                        className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+                                                        disabled={isRestoring}
+                                                    >
+                                                        {isRestoring ? t("adminSettings.restoring") : t("adminSettings.restore")}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="umg-modal-footer">
+                            <button className="umg-btn-secondary" onClick={() => setShowBackupList(false)}>
+                                {t("adminSettings.close")}
                             </button>
                         </div>
                     </div>

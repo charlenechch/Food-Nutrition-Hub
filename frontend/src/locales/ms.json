@@ -1360,7 +1360,20 @@
     "exportSuccessful": "Eksport Berjaya",
     "exportSuccessfulMsg": "Laporan analitik berjaya dieksport sebagai {{format}}.",
     "ok": "OK",
-    "viewActivityLog": "Lihat Log Aktiviti"
+    "viewActivityLog": "Lihat Log Aktiviti",
+    "backupSuccessful": "Sandaran Berjaya",
+    "backupSuccessfulMsg": "Sandaran berjaya dibuat: {{filename}} ({{size}} MB)",
+    "backupFailed": "Sandaran Gagal",
+    "restoreSuccessful": "Pemulihan Berjaya",
+    "restoreSuccessfulMsg": "Pangkalan data telah dipulihkan dari sandaran",
+    "restoreFailed": "Pemulihan Gagal",
+    "restoreConfirm": "AMARAN: Ini akan menggantikan semua data semasa. Anda pasti?",
+    "creatingBackup": "Membuat Sandaran...",
+    "noBackupYet": "Tiada sandaran telah dibuat",
+    "noBackup": "Tiada Sandaran",
+    "recentBackups": "Sandaran Terkini",
+    "downloadStarted": "Muat turun bermula",
+    "downloadFailed": "Muat turun gagal"
   },
 
   "adminActivityLog": {
@@ -1543,4 +1556,5 @@
     "reward_alert": "🎉 Makluman Ganjaran! 3 penyumbang teratas akan menerima:",
     "xp_awarded_automatically": "✨ XP akan diberikan secara automatik pada akhir setiap bulan ✨"
   }
+
 }

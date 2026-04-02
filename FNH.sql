@@ -81,7 +81,8 @@ CREATE TABLE food (
     Fiber_g DECIMAL(6,2),
     VitaminC_mg DECIMAL(6,2),
 	likes_count INT DEFAULT 0,
-    liked_by JSON NULL
+    liked_by JSON NULL,
+    gram_per_serving DECIMAL(10,2),
 );
 
 CREATE TABLE recipe (
@@ -100,6 +101,7 @@ CREATE TABLE recipe (
     admin_feedback TEXT NULL,
     status ENUM('Approved', 'Pending', 'Rejected') DEFAULT 'Pending',
     publish ENUM('waiting', 'publish') DEFAULT 'waiting';
+    approved_by VARCHAR(255);
     FOREIGN KEY (foodID) REFERENCES food(foodID) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON UPDATE CASCADE ON DELETE CASCADE
 );
@@ -116,6 +118,7 @@ CREATE TABLE posts (
     photos TEXT NOT NULL,
     recipe TEXT NULL,
     admin_feedback TEXT NULL,
+    approved_by VARCHAR(255);
 	FOREIGN KEY (userProfileID) REFERENCES userProfile (userProfileID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -227,8 +230,6 @@ CREATE TABLE xp_logs (
     CONSTRAINT fk_xp_userProfile FOREIGN KEY (userProfileID) 
         REFERENCES userProfile(userProfileID) ON DELETE CASCADE ON UPDATE CASCADE
 );
-
-ALTER TABLE userProfile ADD COLUMN total_xp INT DEFAULT 0;
 
 CREATE TABLE recipe_ratings (
     id INT AUTO_INCREMENT PRIMARY KEY,

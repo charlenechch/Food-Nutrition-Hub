@@ -1361,7 +1361,20 @@
     "exportSuccessful": "Export Successful",
     "exportSuccessfulMsg": "Analytics report exported successfully as {{format}}.",
     "ok": "OK",
-    "viewActivityLog": "View Activity Log"
+    "viewActivityLog": "View Activity Log",
+    "backupSuccessful": "Backup Created",
+    "backupSuccessfulMsg": "Backup created successfully: {{filename}} ({{size}} MB)",
+    "backupFailed": "Backup Failed",
+    "restoreSuccessful": "Restore Successful",
+    "restoreSuccessfulMsg": "Database has been restored from backup",
+    "restoreFailed": "Restore Failed",
+    "restoreConfirm": "WARNING: This will overwrite all current data. Are you sure?",
+    "creatingBackup": "Creating Backup...",
+    "noBackupYet": "No backup has been created yet",
+    "noBackup": "No Backup",
+    "recentBackups": "Recent Backups",
+    "downloadStarted": "Download started",
+    "downloadFailed": "Download failed"
   },
 
   "adminActivityLog": {

@@ -44,6 +44,7 @@ const xpRoutes = require("./routes/xp");
 const adminRoutes = require("./routes/admin");
 const analyticsRoutes = require("./routes/analytics");
 const { router: activityLogRoutes } = require("./routes/adminActivityLog");
+const backupRoutes = require("./routes/backup");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -313,6 +314,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/map", mapRoutes);
 app.use("/api/xp", xpRoutes);
+app.use("/api/backup", backupRoutes);
 
 // ---------- Static Files ----------
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
