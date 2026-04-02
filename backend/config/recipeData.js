@@ -93,7 +93,7 @@ const recipeData = [
 
   {
     foodID: 3, //umai
-    userProfileID: 1,
+    userProfileID: 3,
     status: "Approved",
     description: "Raw tenggiri (mackerel) is sliced or cubed and marinated in lime juice, allowing the acidity to “cook” the fish. \
     Chopped onions, chillies, and tomatoes are added and seasoned with salt, sugar, and soy or fish sauce. \
@@ -123,7 +123,7 @@ const recipeData = [
 
   {
     foodID: 4, //nasi aruk
-    userProfileID: 1,
+    userProfileID: 4,
     status: "Approved",
     description: "The dish is composed simply of rice combined with anchovies, fragrant torch ginger, turmeric leaves, and the heat of bird’s-eye chilli.",
     ingredients: `A handful of anchovies (ikan bilis)
@@ -146,7 +146,7 @@ const recipeData = [
 
   {
     foodID: 5, //asam siok
-    userProfileID: 3,
+    userProfileID: 5,
     status: "Approved",
     description: "Using bamboo is a natural cooking method that retains tastes and creates incredibly tender chicken that is scented with bamboo and lemongrass.",
     ingredients: `1kg whole chicken
@@ -175,7 +175,7 @@ const recipeData = [
 
   {
     foodID: 6, //belacan bihun
-    userProfileID: 4,
+    userProfileID: 6,
     status: "Approved",
     description: "Featuring rice noodles served with a spicy, umami-rich gravy made from belacan.",
     ingredients: `200g rice vermicelli
@@ -204,7 +204,7 @@ const recipeData = [
 
   {
     foodID: 7, //daun ubi tumbuk
-    userProfileID: 5,
+    userProfileID: 7,
     status: "Approved",
     description: "Daun Ubi Tumbuk is a traditional vegetable dish widely enjoyed among Borneo’s native communities. It was pounded using a wooden mortar and pestle and typically stir-fried with garlic, shallots, and ikan bilis (anchovies). This daily Sarawakian dish is prized for its simplicity and clean taste. ",
     ingredients: `200 grams Daun Ubi (Cassava Leaves)
@@ -229,7 +229,7 @@ const recipeData = [
 
   {
     foodID: 8, //manicai
-    userProfileID: 6,
+    userProfileID: 8,
     status: "Approved",
     description: "Manicai is a sweet, nutty leafy vegetable prepared using a distinctive “scrunching” technique and stir-fried with garlic, dried shrimp, and eggs into a dry, smoky, and flavourful dish enjoyed daily across communities.",
     ingredients: `200g Manicai (plucked from stalks)
@@ -251,7 +251,7 @@ const recipeData = [
 
   {
     foodID: 9, //midin belacan
-    userProfileID: 7,
+    userProfileID: 9,
     status: "Approved",
     description: "Prepared by blanching the crisp midin fern before stir-frying it with fragrant garlic, shallots, and belacan,\
     then finishing with seasonings like salt, sugar, and calamansi juice, with optional variations such as rice wine or red bell pepper adding depth while keeping true to its humble roots.",
@@ -279,7 +279,7 @@ const recipeData = [
 
   {
     foodID: 10, //ayam pansuh
-    userProfileID: 4,
+    userProfileID: 10,
     status: "Approved",
     description: "Offering a glimpse into the essence of this traditional delicacy.",
     ingredients: `1 Chicken

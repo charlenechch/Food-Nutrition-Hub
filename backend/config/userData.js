@@ -10,17 +10,7 @@ const userData = [
   { firstname: "Bogey", lastname: "Chin", email: "blaurencot6@ucsd.edu", password: "fO1!Y<#u*bcoOf", role: "member" },
   { firstname: "Violette", lastname: "Wong", email: "vguisby7@bigcartel.com", password: "rB1@/Q/kykW", role: "member" },
   { firstname: "Vanessa", lastname: "Lai", email: "vfeilden8@businessinsider.com", password: "lS9,c\"+V", role: "member" },
-  { firstname: "Laughton", lastname: "Smift", email: "ldebischop9@blog.com", password: "nW3=F+mAts", role: "member" },
-  { firstname: "Eunice", lastname: "Bong", email: "ecarmonta@ihg.com", password: "oS0)MWoF9|W", role: "member" },
-  { firstname: "Beauregard", lastname: "Brown", email: "bheazelb@cam.ac.uk", password: "sQ8_|MIB_B|y", role: "member" },
-  { firstname: "Kale", lastname: "Jones", email: "ktootellc@networksolutions.com", password: "nM1~B&wJc7", role: "member" },
-  { firstname: "Lurette", lastname: "Johnson", email: "lcossonsd@sakura.ne.jp", password: "nV5+M/E.TBfnzN(", role: "member" },
-  { firstname: "Farris", lastname: "Hill", email: "fdebankee@dmoz.org", password: "mK4.0J7KxLBA{G", role: "member" },
-  { firstname: "Mei", lastname: "Ling", email: "mkemstonf@lulu.com", password: "kN0=N#S+tXb", role: "member" },
-  { firstname: "Cassondra", lastname: "Miller", email: "ckittredgeg@chronoengine.com", password: "gR4~D'qpx(i_S", role: "member" },
-  { firstname: "Marcus", lastname: "Lewis", email: "mcordeyh@geocities.jp", password: "kH1+/38$gk/cL*.k", role: "member" },
-  { firstname: "Alexi", lastname: "Corr", email: "alayei@google.ca", password: "dW7%Yawe,/{cf", role: "member" },
-  { firstname: "Domenic", lastname: "Watson", email: "dpauluschj@fotki.com", password: "pV0(Y8t=~3N/qT7Q", role: "member" }
+  { firstname: "Laughton", lastname: "Smift", email: "ldebischop9@blog.com", password: "nW3=F+mAts", role: "member" }
 ];
 
 (async () => {
