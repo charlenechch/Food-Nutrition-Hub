@@ -21,46 +21,34 @@ if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
 
-// Middleware to check if user is admin
-const isAdmin = async (req, res, next) => {
-  try {
-    // Get user from session or Firebase token
-    const userId = req.session?.userId || req.user?.uid;
-    
-    if (!userId) {
-      return res.status(401).json({ success: false, error: 'Unauthorized' });
-    }
-    
-    // Check if user has admin role in MySQL
-    const [rows] = await pool.query(
-      'SELECT role FROM users WHERE firebase_uid = ? OR id = ?',
-      [userId, userId]
-    );
-    
-    if (rows.length === 0 || rows[0].role !== 'Admin') {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
-    }
-    
-    next();
-  } catch (error) {
-    console.error('Admin check error:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
-  }
-};
-
 // ==================== BACKUP ENDPOINTS ====================
 
 // 1. Create database backup (MySQL dump)
-router.post('/create', isAdmin, async (req, res) => {
+router.post('/create', async (req, res) => {
   try {
     const timestamp = Date.now();
-    const backupFileName = `mysql_backup_${timestamp}.sql`;
+    
+    // Get all tables from database
+    const [tables] = await pool.query('SHOW TABLES');
+    const backupData = {};
+    
+    // Get the table name key (usually 'Tables_in_databasename')
+    const tableKey = Object.keys(tables[0])[0];
+    
+    // Backup each table
+    for (const tableRow of tables) {
+      const tableName = tableRow[tableKey];
+      console.log(`Backing up table: ${tableName}`);
+      
+      // Get all data from the table
+      const [rows] = await pool.query(`SELECT * FROM ${tableName}`);
+      backupData[tableName] = rows;
+    }
+    
+    // Create JSON backup file
+    const backupFileName = `backup_${timestamp}.json`;
     const backupFilePath = path.join(TEMP_DIR, backupFileName);
-    
-    // Create MySQL dump using mysqldump
-    const dumpCommand = `mysqldump -h ${process.env.DB_HOST || 'localhost'} -u ${process.env.DB_USER || 'root'} -p${process.env.DB_PASSWORD || ''} ${process.env.DB_NAME || 'sarawakeats_db'} --single-transaction --routines --triggers > "${backupFilePath}"`;
-    
-    await execPromise(dumpCommand);
+    fs.writeFileSync(backupFilePath, JSON.stringify(backupData, null, 2));
     
     // Compress the backup
     const zipFileName = `sarawakeats_backup_${timestamp}.zip`;
@@ -79,8 +67,8 @@ router.post('/create', isAdmin, async (req, res) => {
       const metadata = {
         backup_date: new Date().toISOString(),
         database: process.env.DB_NAME,
-        tables_count: 0,
-        file_size: 0
+        tables_count: tables.length,
+        backup_type: 'json'
       };
       
       archive.append(JSON.stringify(metadata, null, 2), { name: 'metadata.json' });
@@ -93,18 +81,22 @@ router.post('/create', isAdmin, async (req, res) => {
     // Get file size
     const stats = fs.statSync(zipFilePath);
     
-    // Log backup activity
-    await pool.query(
-      'INSERT INTO activity_logs (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())',
-      [req.session?.userId || req.user?.uid, 'database_backup', `Created backup: ${zipFileName} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`]
-    );
+    // Log backup activity (if activity_logs table exists)
+    try {
+      await pool.query(
+        'INSERT INTO activity_logs (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())',
+        [req.session?.userId || req.user?.uid, 'database_backup', `Created backup: ${zipFileName} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`]
+      );
+    } catch (logError) {
+      console.log('Could not log to activity_logs:', logError.message);
+    }
     
     res.json({
       success: true,
       message: 'Backup created successfully',
       filename: zipFileName,
       size: stats.size,
-      path: zipFilePath
+      tables_backed_up: tables.length
     });
     
   } catch (error) {
@@ -114,7 +106,7 @@ router.post('/create', isAdmin, async (req, res) => {
 });
 
 // 2. Download backup file
-router.get('/download/:filename', isAdmin, async (req, res) => {
+router.get('/download/:filename', async (req, res) => {
   try {
     const filename = req.params.filename;
     const filePath = path.join(BACKUP_DIR, filename);
@@ -137,7 +129,7 @@ router.get('/download/:filename', isAdmin, async (req, res) => {
 });
 
 // 3. List all available backups
-router.get('/list', isAdmin, async (req, res) => {
+router.get('/list', async (req, res) => {
   try {
     const files = fs.readdirSync(BACKUP_DIR);
     const backups = files
@@ -169,7 +161,7 @@ router.get('/list', isAdmin, async (req, res) => {
 });
 
 // 4. Restore from backup
-router.post('/restore', isAdmin, async (req, res) => {
+router.post('/restore', async (req, res) => {
   const { filename } = req.body;
   
   if (!filename) {
@@ -183,36 +175,76 @@ router.post('/restore', isAdmin, async (req, res) => {
       return res.status(404).json({ success: false, error: 'Backup file not found' });
     }
     
-    // Extract the SQL file from zip
+    // Extract the JSON file from zip
     const extractDir = path.join(TEMP_DIR, `restore_${Date.now()}`);
     fs.mkdirSync(extractDir, { recursive: true });
     
-    const extract = require('extract-zip');
     await extract(filePath, { dir: extractDir });
     
-    // Find the SQL file
+    // Find the JSON file
     const extractedFiles = fs.readdirSync(extractDir);
-    const sqlFile = extractedFiles.find(file => file.endsWith('.sql'));
+    const jsonFile = extractedFiles.find(file => file.endsWith('.json') && file !== 'metadata.json');
     
-    if (!sqlFile) {
-      throw new Error('No SQL file found in backup');
+    if (!jsonFile) {
+      throw new Error('No backup JSON file found in archive');
     }
     
-    const sqlFilePath = path.join(extractDir, sqlFile);
+    const jsonFilePath = path.join(extractDir, jsonFile);
+    const backupData = JSON.parse(fs.readFileSync(jsonFilePath, 'utf8'));
     
-    // Restore database
-    const restoreCommand = `mysql -h ${process.env.DB_HOST || 'localhost'} -u ${process.env.DB_USER || 'root'} -p${process.env.DB_PASSWORD || ''} ${process.env.DB_NAME || 'sarawakeats_db'} < "${sqlFilePath}"`;
+    // Get a connection for transaction
+    const connection = await pool.getConnection();
     
-    await execPromise(restoreCommand);
+    try {
+      await connection.beginTransaction();
+      
+      // Disable foreign key checks
+      await connection.query('SET FOREIGN_KEY_CHECKS = 0');
+      
+      // Restore each table
+      for (const [tableName, rows] of Object.entries(backupData)) {
+        if (rows && rows.length > 0) {
+          console.log(`Restoring table: ${tableName} (${rows.length} rows)`);
+          
+          // Clear existing data
+          await connection.query(`TRUNCATE TABLE ${tableName}`);
+          
+          // Insert backup data in batches
+          const batchSize = 100;
+          for (let i = 0; i < rows.length; i += batchSize) {
+            const batch = rows.slice(i, i + batchSize);
+            for (const row of batch) {
+              await connection.query(`INSERT INTO ${tableName} SET ?`, row);
+            }
+          }
+        }
+      }
+      
+      // Re-enable foreign key checks
+      await connection.query('SET FOREIGN_KEY_CHECKS = 1');
+      await connection.commit();
+      
+      console.log('Restore completed successfully');
+      
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
     
     // Clean up
     fs.rmSync(extractDir, { recursive: true, force: true });
     
     // Log restore activity
-    await pool.query(
-      'INSERT INTO activity_logs (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())',
-      [req.session?.userId || req.user?.uid, 'database_restore', `Restored from backup: ${filename}`]
-    );
+    try {
+      await pool.query(
+        'INSERT INTO activity_logs (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())',
+        [req.session?.userId || req.user?.uid, 'database_restore', `Restored from backup: ${filename}`]
+      );
+    } catch (logError) {
+      console.log('Could not log to activity_logs:', logError.message);
+    }
     
     res.json({
       success: true,
@@ -226,7 +258,7 @@ router.post('/restore', isAdmin, async (req, res) => {
 });
 
 // 5. Delete old backups (cleanup)
-router.delete('/cleanup', isAdmin, async (req, res) => {
+router.delete('/cleanup', async (req, res) => {
   const { daysToKeep = 30 } = req.body;
   
   try {
@@ -260,7 +292,7 @@ router.delete('/cleanup', isAdmin, async (req, res) => {
 });
 
 // 6. Get last backup info
-router.get('/last-backup', isAdmin, async (req, res) => {
+router.get('/last-backup', async (req, res) => {
   try {
     const files = fs.readdirSync(BACKUP_DIR);
     const backups = files
@@ -290,7 +322,7 @@ router.get('/last-backup', isAdmin, async (req, res) => {
 });
 
 // 7. Export specific tables as JSON (alternative to full SQL backup)
-router.post('/export-json', isAdmin, async (req, res) => {
+router.post('/export-json', async (req, res) => {
   const { tables = ['users', 'recipes', 'foods', 'posts', 'comments'] } = req.body;
   
   try {

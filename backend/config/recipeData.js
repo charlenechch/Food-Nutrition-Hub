@@ -42,7 +42,7 @@ const recipeData = [
     status: "Approved",
     description: "The name “Kolo Mee” come from how the dish is prepared, which involves tossing the noodles with the sauce and toppings in a dry manner.",
     ingredients: `Ingredients A (The minced meat)
-                  75g minced meat
+                  15g minced meat
                   1 tsp light soy sauce
                   1/2 tsp dark soy sauce
                   1/2 tbsp oyster sauce

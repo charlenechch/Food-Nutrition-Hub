@@ -23,7 +23,7 @@ const foods = [
     alternative: "Tapioca starch",
     altDescription: "Tapioca starch can be used as a substitute, producing a slightly clearer and chewier gel.",
     healthTips: "Gluten-free. Low in vitamins, so it should be paired with other nutritious foods.",
-    gram_per_serving: 328.07
+    gram_per_serving: 367.57
   },
 
   {
@@ -47,7 +47,7 @@ const foods = [
     traditionalPreparation: "Springy egg noodles are blanched and tossed in a simple seasoning of lard (or oil), light soy sauce, and vinegar, then topped with seasoned minced pork, sliced char siu, and spring onions.",
     commonIngredients: ["Egg noodles (curly), Char siu, Minced Pork"],
     healthTips: "Opt for a version with less lard and more vegetables to reduce saturated fat and increase fiber.",
-    gram_per_serving: 248.6704
+    gram_per_serving: 262.0534
   },
 
   {
