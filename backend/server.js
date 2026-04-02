@@ -314,7 +314,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/map", mapRoutes);
 app.use("/api/xp", xpRoutes);
-app.use('/api/admin/backup', backupRoutes);
+app.use("/api/backup", backupRoutes);
 
 // ---------- Static Files ----------
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

@@ -21,37 +21,10 @@ if (!fs.existsSync(TEMP_DIR)) {
   fs.mkdirSync(TEMP_DIR, { recursive: true });
 }
 
-// Middleware to check if user is admin
-const isAdmin = async (req, res, next) => {
-  try {
-    // Get user from session or Firebase token
-    const userId = req.session?.userId || req.user?.uid;
-    
-    if (!userId) {
-      return res.status(401).json({ success: false, error: 'Unauthorized' });
-    }
-    
-    // Check if user has admin role in MySQL
-    const [rows] = await pool.query(
-      'SELECT role FROM users WHERE firebase_uid = ? OR id = ?',
-      [userId, userId]
-    );
-    
-    if (rows.length === 0 || rows[0].role !== 'Admin') {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
-    }
-    
-    next();
-  } catch (error) {
-    console.error('Admin check error:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
-  }
-};
-
 // ==================== BACKUP ENDPOINTS ====================
 
 // 1. Create database backup (MySQL dump)
-router.post('/api/admin/backup/create', isAdmin, async (req, res) => {
+router.post('/create', async (req, res) => {
   try {
     const timestamp = Date.now();
     const backupFileName = `mysql_backup_${timestamp}.sql`;
@@ -114,7 +87,7 @@ router.post('/api/admin/backup/create', isAdmin, async (req, res) => {
 });
 
 // 2. Download backup file
-router.get('/api/admin/backup/download/:filename', isAdmin, async (req, res) => {
+router.get('/download/:filename', async (req, res) => {
   try {
     const filename = req.params.filename;
     const filePath = path.join(BACKUP_DIR, filename);
@@ -137,7 +110,7 @@ router.get('/api/admin/backup/download/:filename', isAdmin, async (req, res) => 
 });
 
 // 3. List all available backups
-router.get('/api/admin/backup/list', isAdmin, async (req, res) => {
+router.get('/list', async (req, res) => {
   try {
     const files = fs.readdirSync(BACKUP_DIR);
     const backups = files
@@ -169,7 +142,7 @@ router.get('/api/admin/backup/list', isAdmin, async (req, res) => {
 });
 
 // 4. Restore from backup
-router.post('/api/admin/backup/restore', isAdmin, async (req, res) => {
+router.post('/restore', async (req, res) => {
   const { filename } = req.body;
   
   if (!filename) {
@@ -226,7 +199,7 @@ router.post('/api/admin/backup/restore', isAdmin, async (req, res) => {
 });
 
 // 5. Delete old backups (cleanup)
-router.delete('/api/admin/backup/cleanup', isAdmin, async (req, res) => {
+router.delete('/cleanup', async (req, res) => {
   const { daysToKeep = 30 } = req.body;
   
   try {
@@ -260,7 +233,7 @@ router.delete('/api/admin/backup/cleanup', isAdmin, async (req, res) => {
 });
 
 // 6. Get last backup info
-router.get('/api/admin/backup/last-backup', isAdmin, async (req, res) => {
+router.get('/last-backup', async (req, res) => {
   try {
     const files = fs.readdirSync(BACKUP_DIR);
     const backups = files
@@ -290,7 +263,7 @@ router.get('/api/admin/backup/last-backup', isAdmin, async (req, res) => {
 });
 
 // 7. Export specific tables as JSON (alternative to full SQL backup)
-router.post('/api/admin/backup/export-json', isAdmin, async (req, res) => {
+router.post('/export-json', async (req, res) => {
   const { tables = ['users', 'recipes', 'foods', 'posts', 'comments'] } = req.body;
   
   try {
