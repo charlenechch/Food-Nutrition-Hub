@@ -1480,8 +1480,6 @@ router.get('/pending-food-details', async (req, res) => {
         f.image,
         f.commonIngredients,
         f.dietaryTags,
-        f.alternative,
-        f.altDescription,
         CONCAT(u.firstname, ' ', u.lastname) AS author
       FROM recipe r
       INNER JOIN food f ON r.foodID = f.foodID

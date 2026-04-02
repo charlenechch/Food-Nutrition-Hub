@@ -273,6 +273,15 @@
   border: none;
   border-radius: 10px;
   cursor: pointer;
+  gap: 8px; 
+}
+
+.admin-dropdown-arrow {
+  transition: transform 0.2s ease;
+}
+
+.admin-dropdown-arrow.rotate {
+  transform: rotate(180deg); /* rotates when open */
 }
 
 /* ✅ FIXED: Ensure the filter icon stays inside its button */
@@ -298,6 +307,11 @@
   color: #3d2b1f;
   display: flex;
   align-items: center;
+}
+
+.admin-beige-trigger:focus, .admin-beige-trigger:focus-visible, .admin-beige-trigger:active {
+  outline: none;
+  box-shadow: 0 0 0 2px #d5c2ac;
 }
 
 /* ==========================================================================
@@ -2469,7 +2483,20 @@
   font-size: 14px;
   color: #5f5040;
   transition: all 0.2s ease;
-  display: block;
+  display: flex;              /* change from block to flex */
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.option-text {
+  flex: 1;
+}
+
+.tick {
+  font-size: 14px;
+  color: #916848;
+  flex-shrink: 0;
 }
 
 .admin-beige-dropdown ul li:hover,
