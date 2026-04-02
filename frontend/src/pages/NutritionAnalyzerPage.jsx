@@ -51,11 +51,40 @@ export default function NutritionAnalyzerPage() {
 
   const handleRemoveFile = () => setSelectedFile(null);
 
-  const handleSuggestionClick = (name) => {
+  // FIXED - sets the name then immediately fetches nutrition from DB
+  const handleSuggestionClick = async (name) => {
     setFoodName(name);
     setSuggestions([]);
-  };
+    setError("");
+    setWarning("");
+    setLoading(true);
 
+    try {
+      const lookupRes = await fetch(
+        `${API_URL}/api/ai/lookup?name=${encodeURIComponent(name)}`,
+        { credentials: "include" }
+      );
+      const lookupData = await lookupRes.json();
+
+      if (lookupData.found && lookupData.item) {
+        const item = lookupData.item;
+        setResult({
+          food_name: item.name,
+          nutrition: item,
+          alternatives: item.alternative
+            ? [{ title: item.alternative, description: item.altDescription }]
+            : [],
+          tips: item.healthTips ? [item.healthTips] : [],
+        });
+      } else {
+        setError("Could not load nutrition for this food.");
+      }
+    } catch {
+      setError(t("analyzer.errorGeneral"));
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleAnalyze = async (e) => {
     e.preventDefault();
     if (requireLogin()) return;
