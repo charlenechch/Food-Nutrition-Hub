@@ -6,6 +6,7 @@ import { CiSearch, CiFilter } from "react-icons/ci";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { FiFilter } from "react-icons/fi";
+import { FiChevronDown } from "react-icons/fi";
 import Modal from "../components/Modal"; 
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -213,13 +214,15 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
           </div>
           <div className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`} ref={dropdownRef}>
             <button className="admin-beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
-              {category}
+              <span>{category}</span>
+              <FiChevronDown className={`admin-dropdown-arrow ${dropdownOpen ? "rotate" : ""}`} />
             </button>
             {dropdownOpen && (
               <ul className="admin-beige-list">
                 {["All Categories", ...postCategories].map((opt, i) => (
                   <li key={i} onClick={() => { setCategory(opt); setDropdownOpen(false); }}>
-                    {opt}
+                    <span className="option-text">{opt}</span>
+                    {opt === category && <span className="tick">✓</span>}
                   </li>
                 ))}
               </ul>
