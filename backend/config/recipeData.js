@@ -206,7 +206,7 @@ const recipeData = [
     foodID: 7, //daun ubi tumbuk
     userProfileID: 5,
     status: "Approved",
-    description: "Cassava leaves are pounded using wooden mortar and pestle and cooked in a variety of ways, often with coconut milk or in a curry.",
+    description: "Daun Ubi Tumbuk is a traditional vegetable dish widely enjoyed among Borneo’s native communities. It was pounded using a wooden mortar and pestle and typically stir-fried with garlic, shallots, and ikan bilis (anchovies). This daily Sarawakian dish is prized for its simplicity and clean taste. ",
     ingredients: `200 grams Daun Ubi (Cassava Leaves)
                   30 grams Anchovies
                   750 ml Water
@@ -231,7 +231,7 @@ const recipeData = [
     foodID: 8, //manicai
     userProfileID: 6,
     status: "Approved",
-    description: "Stir-fried or boiled, often with eggs in dishes like Mani Cai with Eggs.",
+    description: "Manicai is a sweet, nutty leafy vegetable prepared using a distinctive “scrunching” technique and stir-fried with garlic, dried shrimp, and eggs into a dry, smoky, and flavourful dish enjoyed daily across communities.",
     ingredients: `200g Manicai (plucked from stalks)
                   1 tablespoon salt
                   2 cloves garlic, minced
