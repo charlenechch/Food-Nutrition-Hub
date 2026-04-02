@@ -167,7 +167,7 @@ const recipeData = [
            6. After 30 minutes, when the chicken have been cooked, the burnt outer layer of the bamboo is skinned off.
            7. Split the bamboo to extract the chicken and  serve it with a soup.`,
     cookTime: 120,
-    servings: 4,
+    servings: 1,
     DidYouKnow: "Asam Siok is a traditional Bidayuh method of cooking where the bamboo not only serves as a cooking vessel but also imparts a unique smoky, earthy flavor to the dish.",
     chefTips: "Choose young, green bamboo for cooking as it contains natural moisture that creates steam. Older, drier bamboo may burn too quickly.",
     publish: "publish",
@@ -196,7 +196,7 @@ const recipeData = [
            6. For assembly, have a bowl or plate, put some rice vermicelli, pour some gravy on top until it covers the rice vermicelli. 
            7. Drizzle with special sauces (as explained in ingredients, if desired). Garnish with some century eggs, shredded cucumber, cuttlefish and beansprouts.`,
     cookTime: 25,
-    servings: 3,
+    servings: 1,
     DidYouKnow: "Belacan Bihun is a Kuching specialty that combines Chinese rice vermicelli with Malay-style belacan gravy, showcasing Sarawak's cultural fusion.",
     chefTips: "Toast the belacan properly until fragrant but not burnt. The gravy should be thick enough to coat the noodles but still pourable.",
     publish: "publish",
@@ -302,7 +302,7 @@ const recipeData = [
           5.Seal the top of the bamboo with yam leaves (traditional method) or aluminum foil as an alternative.
           `,
     cookTime: 90,
-    servings: 4,
+    servings: 1,
     DidYouKnow: "Ayam Pansuh (or Manok Pansoh) is the ultimate Iban hospitality dish. It's traditionally served to honored guests during Gawai festivals and special occasions.",
     chefTips: "Use fresh bamboo for authentic flavor. The bamboo should be green and moist inside. Listen for the bubbling sound - it means the dish is cooking properly inside the sealed bamboo.",
     publish: "publish",
