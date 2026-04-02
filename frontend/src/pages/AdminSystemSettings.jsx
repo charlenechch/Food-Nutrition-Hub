@@ -1294,7 +1294,7 @@ export default function AdminSystemSettings({
                         <div className="umg-modal-header">
                             <h3>
                                 <Archive size={20} />
-                                Backup Files  {/* Changed from t("adminSettings.backupList") */}
+                                {t("adminSettings.backupList")}
                             </h3>
                             <button className="umg-modal-close" onClick={() => setShowBackupList(false)}>×</button>
                         </div>
@@ -1302,7 +1302,7 @@ export default function AdminSystemSettings({
                             {backupList.length === 0 ? (
                                 <div className="backup-empty">
                                     <Archive size={64} />
-                                    <p>No backups available</p>  {/* Changed from t() */}
+                                    <p>{t("adminSettings.noBackupsAvailable")}</p>
                                 </div>
                             ) : (
                                 <div>
@@ -1328,7 +1328,7 @@ export default function AdminSystemSettings({
                                                         className="btn-download"
                                                     >
                                                         <Download size={14} />
-                                                        Download  {/* Just text, no t() */}
+                                                        {t("adminSettings.download")}
                                                     </button>
                                                     <button
                                                         onClick={() => handleRestore(backup.filename)}
@@ -1336,7 +1336,7 @@ export default function AdminSystemSettings({
                                                         disabled={isRestoring}
                                                     >
                                                         <Archive size={14} />
-                                                        {isRestoring ? "Restoring..." : "Restore"}  {/* Plain text */}
+                                                        {isRestoring ? t("adminSettings.restoring") : t("adminSettings.restore")}
                                                     </button>
                                                 </div>
                                             </div>
@@ -1347,7 +1347,7 @@ export default function AdminSystemSettings({
                         </div>
                         <div className="umg-modal-footer">
                             <button className="btn-close" onClick={() => setShowBackupList(false)}>
-                                Close  {/* Plain text */}
+                                {t("adminSettings.close")}
                             </button>
                         </div>
                     </div>

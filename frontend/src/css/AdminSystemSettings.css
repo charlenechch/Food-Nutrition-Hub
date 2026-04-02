@@ -254,3 +254,56 @@
   background: #D4C4A8;
   transform: translateY(-1px);
 }
+
+/* Recent Backups Section (in main card) */
+.recent-backups-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E8DCC8;
+}
+
+.recent-backups-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #8B7355;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.75rem;
+}
+
+.recent-backup-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #F5EDE0;
+}
+
+.recent-backup-date {
+  font-size: 0.85rem;
+  color: #4A3728;
+}
+
+.recent-backup-size {
+  font-size: 0.8rem;
+  color: #8B7355;
+  background: #F5EDE0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.btn-recent-download {
+  background: none;
+  border: none;
+  color: #6B4E2E;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-recent-download:hover {
+  background: #F5EDE0;
+  transform: scale(1.1);
+  color: #8B6914;
+}
