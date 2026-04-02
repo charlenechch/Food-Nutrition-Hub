@@ -22,7 +22,7 @@ const foods = [
     commonIngredients: ["Sago flour, Anchovies, Chilies, Belacan, Mango"],
     alternative: "Tapioca starch",
     altDescription: "Tapioca starch can be used as a substitute, producing a slightly clearer and chewier gel.",
-    healthTips: "High in carbohydrates but gluten-free. Low in protein and vitamins, so it should be paired with other nutritious foods.",
+    healthTips: "Gluten-free. Low in vitamins, so it should be paired with other nutritious foods.",
     gram_per_serving: 328.07
   },
 
