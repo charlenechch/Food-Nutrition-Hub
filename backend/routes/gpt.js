@@ -8,9 +8,18 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const ACCEPTED_FORMATS = ["png", "jpeg", "jpg", "gif", "webp"];
 
-// Thresholds
-const EMB_HIGH_CONFIDENCE = 0.75;  // Auto-match
-const EMB_LOW_CONFIDENCE  = 0.55;  // Show "Did you mean?"
+// ============================================
+// CHANGED: Added EMB_MID_CONFIDENCE tier
+// ============================================
+// REMOVED:
+// const EMB_HIGH_CONFIDENCE = 0.75;  // Auto-match
+// const EMB_LOW_CONFIDENCE  = 0.55;  // Show "Did you mean?"
+
+// ADDED:
+const EMB_HIGH_CONFIDENCE = 0.80;  // Very confident auto-match
+const EMB_MID_CONFIDENCE  = 0.65;  // Auto-match but warn user
+const EMB_LOW_CONFIDENCE  = 0.50;  // Show "Did you mean?"
+// ============================================
 
 function normalizeImageBase64(imageBase64) {
   if (!imageBase64) return null;
@@ -137,25 +146,46 @@ Prefer Sarawak/Malaysian interpretation.
     // ============================================
     // STEP 2: EMBEDDING SEARCH on GPT output
     // ============================================
-    const queryText = [
-      gpt.food_name,
-      ...(gpt.alternative_names || []),
-      gpt.assumptions || "",
-    ].filter(Boolean).join(" ");
 
-    console.log(`🔍 Embedding search for: "${queryText}"`);
-    const match = await findClosestFood(queryText);
-    console.log(`📊 Best match: "${match?.name}" (score: ${match?.score?.toFixed(3)})`);
+    // REMOVED: (assumptions adds noise and lowers accuracy)
+    // const queryText = [
+    //   gpt.food_name,
+    //   ...(gpt.alternative_names || []),
+    //   gpt.assumptions || "",
+    // ].filter(Boolean).join(" ");
+    // console.log(`🔍 Embedding search for: "${queryText}"`);
+    // const match = await findClosestFood(queryText);
+    // console.log(`📊 Best match: "${match?.name}" (score: ${match?.score?.toFixed(3)})`);
 
-    if (match && match.score >= EMB_HIGH_CONFIDENCE) {
+    // ADDED: Search each candidate separately, pick the best score
+    const candidates = [gpt.food_name, ...(gpt.alternative_names || [])].filter(Boolean);
+    let bestMatch = null;
+    for (const candidate of candidates) {
+      console.log(`🔍 Embedding search for: "${candidate}"`);
+      const result = await findClosestFood(candidate);
+      if (!bestMatch || (result && result.score > bestMatch.score)) {
+        bestMatch = result;
+      }
+    }
+    console.log(`📊 Best match: "${bestMatch?.name}" (score: ${bestMatch?.score?.toFixed(3)})`);
+    // ============================================
+
+    // REMOVED: old 2-tier threshold checks
+    // if (match && match.score >= EMB_HIGH_CONFIDENCE) { ... }
+    // if (match && match.score >= EMB_LOW_CONFIDENCE) { ... }
+
+    // ADDED: new 3-tier threshold checks
+    if (bestMatch && bestMatch.score >= EMB_HIGH_CONFIDENCE) {
+      // ✅ Very confident match
       const conf = typeof gpt.confidence === "number" ? Math.max(0, Math.min(1, gpt.confidence)) : 0.5;
       return res.json({
         ok: true,
         data: {
-          food_name: match.name,
-          foodID: match.foodID,
+          food_name: bestMatch.name,
+          foodID: bestMatch.foodID,
           confidence: conf,
-          similarity_score: match.score,
+          confidence_level: "high",
+          similarity_score: bestMatch.score,
           category: gpt.category || "",
           is_sarawak_local_dish: !!gpt.is_sarawak_local_dish,
           alternative_names: Array.isArray(gpt.alternative_names) ? gpt.alternative_names : [],
@@ -165,18 +195,41 @@ Prefer Sarawak/Malaysian interpretation.
       });
     }
 
-    if (match && match.score >= EMB_LOW_CONFIDENCE) {
+    if (bestMatch && bestMatch.score >= EMB_MID_CONFIDENCE) {
+      // ⚠️ Decent match — return result but warn frontend
+      const conf = typeof gpt.confidence === "number" ? Math.max(0, Math.min(1, gpt.confidence)) : 0.5;
       return res.json({
-        ok: false,
-        suggest: true,
-        suggested_name: match.name,
-        suggested_id: match.foodID,
-        similarity_score: match.score,
-        gpt_returned: gpt.food_name,
-        message: `We think this might be "${match.name}". Is that correct?`,
+        ok: true,
+        data: {
+          food_name: bestMatch.name,
+          foodID: bestMatch.foodID,
+          confidence: conf,
+          confidence_level: "low",
+          similarity_score: bestMatch.score,
+          category: gpt.category || "",
+          is_sarawak_local_dish: !!gpt.is_sarawak_local_dish,
+          alternative_names: Array.isArray(gpt.alternative_names) ? gpt.alternative_names : [],
+          assumptions: gpt.assumptions || "",
+          meta: { imageUsed: true, matchMethod: "gpt+embedding" },
+        },
+        warning: "Match confidence is moderate. Please verify the food name.",
       });
     }
 
+    if (bestMatch && bestMatch.score >= EMB_LOW_CONFIDENCE) {
+      // ❓ Weak match — ask user to confirm
+      return res.json({
+        ok: false,
+        suggest: true,
+        suggested_name: bestMatch.name,
+        suggested_id: bestMatch.foodID,
+        similarity_score: bestMatch.score,
+        gpt_returned: gpt.food_name,
+        message: `We think this might be "${bestMatch.name}". Is that correct?`,
+      });
+    }
+
+    // ❌ Nothing matched
     return res.json({
       ok: false,
       error: "Food not recognized from the available database.",

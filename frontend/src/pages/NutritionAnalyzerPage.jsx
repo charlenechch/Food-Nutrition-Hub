@@ -26,6 +26,7 @@ export default function NutritionAnalyzerPage() {
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
+  const [warning, setWarning] = useState("");
 
   const requireLogin = () => {
     if (isGuest) { setShowModal(true); return true; }
@@ -62,6 +63,7 @@ export default function NutritionAnalyzerPage() {
     setError("");
     setResult(null);
     setSuggestions([]);
+    setWarning(""); // ADDED: clear warning on each new analyze
 
     try {
       // Image path
@@ -82,7 +84,13 @@ export default function NutritionAnalyzerPage() {
         const data = await res.json();
 
         if (data.ok && data.data) {
-          // ✅ Step 2: use the matched food_name to fetch full nutrition from DB
+          // ADDED: capture warning for low confidence matches
+          if (data.data.confidence_level === "low") {
+            setWarning(data.warning || "Match confidence is moderate. Please verify the food name.");
+          } else {
+            setWarning("");
+          }
+
           const lookupRes = await fetch(
             `${API_URL}/api/ai/lookup?name=${encodeURIComponent(data.data.food_name)}`,
             { credentials: "include" }
@@ -113,7 +121,7 @@ export default function NutritionAnalyzerPage() {
       }
 
       // Text path — try DB first
-      const dbRes = await fetch(`${API_URL}/api/ai/lookup?name=${encodeURIComponent(foodName)}`, { // ✅ fixed (GET)
+      const dbRes = await fetch(`${API_URL}/api/ai/lookup?name=${encodeURIComponent(foodName)}`, {
         credentials: "include",
       });
       const dbData = await dbRes.json();
@@ -129,32 +137,32 @@ export default function NutritionAnalyzerPage() {
       }
       if (dbData.suggestions?.length) { setSuggestions(dbData.suggestions); return; }
 
-    // Fallback to AI analyze
-    const aiRes = await fetch(`${API_URL}/api/ai/analyze`, {  // ✅ fixed
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
-      credentials: "include",
-      body: JSON.stringify({ food_name: foodName, ingredients }),
-    });
-    const aiData = await aiRes.json();
-    if (aiData.found && aiData.item) {
-      setResult({
-        food_name: aiData.item.name,
-        nutrition: aiData.item,
-        alternatives: aiData.item.alternative ? [{ title: aiData.item.alternative, description: aiData.item.altDescription }] : [],
-        tips: aiData.item.healthTips ? [aiData.item.healthTips] : [],
+      // Fallback to AI analyze
+      const aiRes = await fetch(`${API_URL}/api/ai/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        credentials: "include",
+        body: JSON.stringify({ food_name: foodName, ingredients }),
       });
-      return;
-    }
-    if (aiData.suggestions?.length) { setSuggestions(aiData.suggestions); return; }
-    setError(aiData.message || t("analyzer.errorAI"));
+      const aiData = await aiRes.json();
+      if (aiData.found && aiData.item) {
+        setResult({
+          food_name: aiData.item.name,
+          nutrition: aiData.item,
+          alternatives: aiData.item.alternative ? [{ title: aiData.item.alternative, description: aiData.item.altDescription }] : [],
+          tips: aiData.item.healthTips ? [aiData.item.healthTips] : [],
+        });
+        return;
+      }
+      if (aiData.suggestions?.length) { setSuggestions(aiData.suggestions); return; }
+      setError(aiData.message || t("analyzer.errorAI"));
 
-  } catch {
-    setError(t("analyzer.errorGeneral"));
-  } finally {
-    setLoading(false);
-  }
-};
+    } catch {
+      setError(t("analyzer.errorGeneral"));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const nutritionRows = result?.nutrition ? [
     [t("analyzer.calories"),  result.nutrition.Energy_kcal,       "kcal"],
@@ -236,6 +244,13 @@ export default function NutritionAnalyzerPage() {
                 ))}
               </div>
             </>
+          )}
+
+          {/* ADDED: warning banner for moderate confidence matches */}
+          {warning && (
+            <div className="confidence-warning">
+              ⚠️ {warning}
+            </div>
           )}
 
           {error && <div className="error-text">{error}</div>}
