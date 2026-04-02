@@ -7,6 +7,7 @@ import { FaPlus } from "react-icons/fa6";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { HiOutlinePencilAlt } from "react-icons/hi";
+import { FiChevronDown } from "react-icons/fi";
 import * as XLSX from "xlsx";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -681,6 +682,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
           <div className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`} ref={dropdownRef}>
             <button className="admin-beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
               <span>{category}</span>
+              <FiChevronDown className={`admin-dropdown-arrow ${dropdownOpen ? "rotate" : ""}`} />
             </button>
             {dropdownOpen && (
               <ul className="admin-dropdown-menu">

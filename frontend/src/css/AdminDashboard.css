@@ -273,6 +273,15 @@
   border: none;
   border-radius: 10px;
   cursor: pointer;
+  gap: 8px; 
+}
+
+.admin-dropdown-arrow {
+  transition: transform 0.2s ease;
+}
+
+.admin-dropdown-arrow.rotate {
+  transform: rotate(180deg); /* rotates when open */
 }
 
 /* ✅ FIXED: Ensure the filter icon stays inside its button */
