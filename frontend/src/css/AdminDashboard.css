@@ -309,7 +309,7 @@
   align-items: center;
 }
 
-.admin-beige-dropdown:focus, .admin-beige-dropdown:focus-visible, .admin-beige-dropdown:active {
+.admin-beige-trigger:focus, .admin-beige-trigger:focus-visible, .admin-beige-trigger:active {
   outline: none;
   box-shadow: 0 0 0 2px #d5c2ac;
 }
@@ -2483,8 +2483,10 @@
   font-size: 14px;
   color: #5f5040;
   transition: all 0.2s ease;
-  display: block;
+  display: flex;              /* change from block to flex */
   justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 .option-text {
@@ -2492,9 +2494,9 @@
 }
 
 .tick {
-  margin-left: auto;   /* ensures it stays right */
   font-size: 14px;
   color: #916848;
+  flex-shrink: 0;
 }
 
 .admin-beige-dropdown ul li:hover,
