@@ -27,7 +27,8 @@ router.get('/:id', async (req, res) => {
         f.Fat_g,
         f.Carbohydrates_g,
         f.Fiber_g,
-        f.VitaminC_mg
+        f.VitaminC_mg,
+        f.gram_per_serving
       FROM food f
       WHERE f.foodID = ?
     `;
@@ -118,6 +119,7 @@ router.get('/:id', async (req, res) => {
       recipeId: recipeId, // This will be null if no recipe exists for THIS food
       Fiber_g,
       VitaminC_mg,
+      gram_per_serving: num(food.gram_per_serving),
       servings: servings,
       Energy_kcal_ps,
       Protein_g_ps,

@@ -71,30 +71,40 @@ export default function FoodDetailPage() {
   const num = (v) => (v == null ? 0 : Number(v));
   const getPerServing = (food, keyPs, keyTotal) => num(food?.[keyPs]) || num(food?.[keyTotal]);
 
-  const buildHealthAlerts = (food) => {
+const buildHealthAlerts = (food) => {
     const alerts = [];
-    const kcal = getPerServing(food, "Energy_kcal_ps", "Energy_kcal");
-    const protein = getPerServing(food, "Protein_g_ps", "Protein_g");
-    const fat = getPerServing(food, "Fat_g_ps", "Fat_g");
-    const carbs = getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g");
-    const fiber = getPerServing(food, "Fiber_g_ps", "Fiber_g");
-    const vitC = getPerServing(food, "VitaminC_mg_ps", "VitaminC_mg");
+    
+    const gramPerServing = num(food?.gram_per_serving) || 100;
+    const multiplier = 100 / gramPerServing;
 
-    if (kcal >= 600) alerts.push({ type: "warning", key: "foodDetail.alertHighCal" });
-    else if (kcal > 0 && kcal <= 300) alerts.push({ type: "info", key: "foodDetail.alertLowCal" });
-    if (protein >= 25) alerts.push({ type: "info", key: "foodDetail.alertExcellentProtein" });
-    else if (protein >= 12) alerts.push({ type: "info", key: "foodDetail.alertGoodProtein" });
-    if (fat >= 20) alerts.push({ type: "warning", key: "foodDetail.alertHighFat" });
-    else if (fat > 0 && fat <= 10) alerts.push({ type: "info", key: "foodDetail.alertLowFat" });
+    const kcal = getPerServing(food, "Energy_kcal_ps", "Energy_kcal") * multiplier;
+    const protein = getPerServing(food, "Protein_g_ps", "Protein_g") * multiplier;
+    const fat = getPerServing(food, "Fat_g_ps", "Fat_g") * multiplier;
+    const carbs = getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g") * multiplier;
+    const fiber = getPerServing(food, "Fiber_g_ps", "Fiber_g") * multiplier;
+    const vitC = getPerServing(food, "VitaminC_mg_ps", "VitaminC_mg") * multiplier;
+    
+    if (kcal <= 40 && kcal > 0) alerts.push({ type: "info", key: "foodDetail.alertLowCal" });
+    else if (kcal >= 250) alerts.push({ type: "warning", key: "foodDetail.alertHighCal" });
+
+    if (fat <= 3 && fat > 0) alerts.push({ type: "info", key: "foodDetail.alertLowFat" });
+    else if (fat >= 20) alerts.push({ type: "warning", key: "foodDetail.alertHighFat" });
+    
+    if (protein >= 7.5) alerts.push({ type: "info", key: "foodDetail.alertExcellentProtein" });
+    else if (protein >= 5) alerts.push({ type: "info", key: "foodDetail.alertGoodProtein" });
+
+    if (fiber >= 6) alerts.push({ type: "info", key: "foodDetail.alertHighFiber" });
+
+    if (vitC >= 15) alerts.push({ type: "info", key: "foodDetail.alertVitC" });
+    
     if (carbs >= 60) alerts.push({ type: "warning", key: "foodDetail.alertHighCarbs" });
-    if (fiber >= 5) alerts.push({ type: "info", key: "foodDetail.alertHighFiber" });
-    if (vitC >= 30) alerts.push({ type: "info", key: "foodDetail.alertVitC" });
+    
     const tags = Array.isArray(food?.dietaryTags) ? food.dietaryTags : [];
     if (tags.includes("spicy")) alerts.push({ type: "info", key: "foodDetail.alertSpicy" });
     if (tags.includes("vegetarian")) alerts.push({ type: "info", key: "foodDetail.alertVegetarian" });
+
     return alerts;
   };
-
   useEffect(() => {
     const fetchFood = async () => {
       try {
