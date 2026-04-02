@@ -2,8 +2,13 @@ import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/Leaderboard.css";
+import { useTranslation } from "react-i18next";
+import { translateTexts } from "../hooks/useAITranslation";
 
 const Leaderboard = () => {
+  const { t, i18n } = useTranslation();
+  const [translatedFoods, setTranslatedFoods] = useState({});
+  const [isTranslating, setIsTranslating] = useState(false);
   const [activeTab, setActiveTab] = useState("recipes");
   const [leaderboardData, setLeaderboardData] = useState({
     recipes: [],
@@ -103,11 +108,11 @@ const Leaderboard = () => {
   const getMetricLabel = () => {
     switch(activeTab) {
       case "recipes":
-        return "Recipes";
+        return t("recipes");
       case "posts":
-        return "Posts";
+        return t("posts");
       case "level":
-        return "XP";
+        return t("xp");
       default:
         return "";
     }
@@ -129,9 +134,9 @@ const Leaderboard = () => {
   const getInfoText = () => {
     switch(activeTab) {
       case "recipes":
-        return "Top Recipe Contributors for this month • Refreshes monthly";
+        return t("top_recipe_contributors_info");
       case "posts":
-        return "Top Community Post Contributors for this month • Refreshes monthly";
+        return t("top_posts_contributors_info");
       case "level":
         return null;
       default:
@@ -143,20 +148,20 @@ const Leaderboard = () => {
     switch(activeTab) {
       case "recipes":
         return {
-          title: "🏆 Recipe Contributor Rewards",
+          title: t("recipe_contributor_rewards_title"),
           rewards: [
-            { rank: "1st Place", points: "200 XP", description: "Top Recipe Contributor" },
-            { rank: "2nd Place", points: "150 XP", description: "Second Best Recipe Contributor" },
-            { rank: "3rd Place", points: "100 XP", description: "Third Best Recipe Contributor" }
+            { rank: t("1st_place"), points: "200 XP", description: t("top_recipe_contributor") },
+            { rank: t("2nd_place"), points: "150 XP", description: t("second_best_recipe_contributor") },
+            { rank: t("3rd_place"), points: "100 XP", description: t("third_best_recipe_contributor") }
           ]
         };
       case "posts":
         return {
-          title: "💬 Community Post Rewards",
+          title: t("community_post_rewards_title"),
           rewards: [
-            { rank: "1st Place", points: "100 XP", description: "Top Community Poster" },
-            { rank: "2nd Place", points: "50 XP", description: "Second Best Community Poster" },
-            { rank: "3rd Place", points: "25 XP", description: "Third Best Community Poster" }
+            { rank: t("1st_place"), points: "100 XP", description: t("top_community_poster") },
+            { rank: t("2nd_place"), points: "50 XP", description: t("second_best_community_poster") },
+            { rank: t("3rd_place"), points: "25 XP", description: t("third_best_community_poster") }
           ]
         };
       case "level":
@@ -171,7 +176,7 @@ const Leaderboard = () => {
       <>
         <Header />
         <div className="leaderboard-container">
-          <div className="loading-spinner">Loading leaderboard...</div>
+          <div className="loading-spinner">{t("loading_leaderboard")}</div>
         </div>
         <Footer />
       </>
@@ -185,8 +190,8 @@ const Leaderboard = () => {
       <Header />
       <div className="leaderboard-container">
         <div className="leaderboard-header">
-          <h1>Community Leaderboard</h1>
-          <p>Celebrating our top contributors!</p>
+          <h1>{t("community_leaderboard")}</h1>
+          <p>{t("celebrating_top_contributors")}</p>
         </div>
 
         <div className="tabs">
@@ -194,19 +199,19 @@ const Leaderboard = () => {
             className={`tab-btn ${activeTab === "recipes" ? "active" : ""}`}
             onClick={() => setActiveTab("recipes")}
           >
-            🍳 Top Recipe Contributors
+            🍳 {t("top_recipe_contributors")}
           </button>
           <button
             className={`tab-btn ${activeTab === "posts" ? "active" : ""}`}
             onClick={() => setActiveTab("posts")}
           >
-            💬 Top Community Posters
+            💬 {t("top_community_posters")}
           </button>
           <button
             className={`tab-btn ${activeTab === "level" ? "active" : ""}`}
             onClick={() => setActiveTab("level")}
           >
-            ⭐ Level Leaders
+            ⭐ {t("level_leaders")}
           </button>
         </div>
 
@@ -223,10 +228,10 @@ const Leaderboard = () => {
             <div className="leaderboard-table-wrapper">
               <div className="leaderboard-table">
                 <div className="table-header">
-                  <div className="rank-col">RANK</div>
-                  <div className="user-col">USER</div>
+                  <div className="rank-col">{t("rank")}</div>
+                  <div className="user-col">{t("user")}</div>
                   <div className="metric-col">{getMetricLabel()}</div>
-                  {activeTab === "level" && <div className="level-col">LEVEL</div>}
+                  {activeTab === "level" && <div className="level-col">{t("level")}</div>}
                 </div>
                 
                 <div className="table-body">
@@ -277,7 +282,7 @@ const Leaderboard = () => {
                 <h3>{rewards.title}</h3>
               </div>
               <div className="sticky-note-content">
-                <p className="reward-intro">🎉 Reward Alert! Top 3 contributors will receive:</p>
+                <p className="reward-intro">{t("reward_alert")}</p>
                 <div className="rewards-list">
                   {rewards.rewards.map((reward, idx) => (
                     <div key={idx} className="reward-item">
@@ -288,7 +293,7 @@ const Leaderboard = () => {
                   ))}
                 </div>
                 <div className="reward-footer">
-                  <span>✨ XP will be awarded automatically at the end of each month ✨</span>
+                  <span>{t("xp_awarded_automatically")}</span>
                 </div>
               </div>
             </div>

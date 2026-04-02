@@ -1511,5 +1511,35 @@
     "unlocksAtLevel": "Unlocks at Level {{level}}",
     "equipped": "Equipped",
     "equipTitle": "Equip Title"
+  },
+
+  "leaderboard": {
+    "community_leaderboard": "Community Leaderboard",
+    "celebrating_top_contributors": "Celebrating our top contributors!",
+    "top_recipe_contributors": "Top Recipe Contributors",
+    "top_community_posters": "Top Community Posters",
+    "level_leaders": "Level Leaders",
+    "recipes": "Recipes",
+    "posts": "Posts",
+    "xp": "XP",
+    "rank": "RANK",
+    "user": "USER",
+    "level": "LEVEL",
+    "loading_leaderboard": "Loading leaderboard...",
+    "top_recipe_contributors_info": "Top Recipe Contributors for this month • Refreshes monthly",
+    "top_posts_contributors_info": "Top Community Post Contributors for this month • Refreshes monthly",
+    "recipe_contributor_rewards_title": "🏆 Recipe Contributor Rewards",
+    "community_post_rewards_title": "💬 Community Post Rewards",
+    "1st_place": "1st Place",
+    "2nd_place": "2nd Place",
+    "3rd_place": "3rd Place",
+    "top_recipe_contributor": "Top Recipe Contributor",
+    "second_best_recipe_contributor": "Second Best Recipe Contributor",
+    "third_best_recipe_contributor": "Third Best Recipe Contributor",
+    "top_community_poster": "Top Community Poster",
+    "second_best_community_poster": "Second Best Community Poster",
+    "third_best_community_poster": "Third Best Community Poster",
+    "reward_alert": "🎉 Reward Alert! Top 3 contributors will receive:",
+    "xp_awarded_automatically": "✨ XP will be awarded automatically at the end of each month ✨"
   }
 }   

@@ -1511,5 +1511,35 @@
     "unlocksAtLevel": "Terbuka pada Tahap {{level}}",
     "equipped": "Telah Dipakai",
     "equipTitle": "Pakai Gelaran"
+  },
+
+  "leaderboard": {
+    "community_leaderboard": "Papan Kedudukan Komuniti",
+    "celebrating_top_contributors": "Meraikan penyumbang teratas kami!",
+    "top_recipe_contributors": "Penyumbang Resipi Teratas",
+    "top_community_posters": "Penyumbang Komuniti Teratas",
+    "level_leaders": "Peneraju Tahap",
+    "recipes": "Resipi",
+    "posts": "Kiriman",
+    "xp": "XP",
+    "rank": "KEDUDUKAN",
+    "user": "PENGGUNA",
+    "level": "TAHAP",
+    "loading_leaderboard": "Memuatkan papan kedudukan...",
+    "top_recipe_contributors_info": "Penyumbang Resipi Teratas bulan ini • Dikemas kini setiap bulan",
+    "top_posts_contributors_info": "Penyumbang Kiriman Komuniti Teratas bulan ini • Dikemas kini setiap bulan",
+    "recipe_contributor_rewards_title": "🏆 Ganjaran Penyumbang Resipi",
+    "community_post_rewards_title": "💬 Ganjaran Penyumbang Komuniti",
+    "1st_place": "Tempat Pertama",
+    "2nd_place": "Tempat Kedua",
+    "3rd_place": "Tempat Ketiga",
+    "top_recipe_contributor": "Penyumbang Resipi Terbaik",
+    "second_best_recipe_contributor": "Penyumbang Resipi Kedua Terbaik",
+    "third_best_recipe_contributor": "Penyumbang Resipi Ketiga Terbaik",
+    "top_community_poster": "Penyumbang Komuniti Terbaik",
+    "second_best_community_poster": "Penyumbang Komuniti Kedua Terbaik",
+    "third_best_community_poster": "Penyumbang Komuniti Ketiga Terbaik",
+    "reward_alert": "🎉 Makluman Ganjaran! 3 penyumbang teratas akan menerima:",
+    "xp_awarded_automatically": "✨ XP akan diberikan secara automatik pada akhir setiap bulan ✨"
   }
 }

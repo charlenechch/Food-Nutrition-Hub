@@ -23,6 +23,7 @@ const foods = [
     alternative: "Tapioca starch",
     altDescription: "Tapioca starch can be used as a substitute, producing a slightly clearer and chewier gel.",
     healthTips: "High in carbohydrates but gluten-free. Low in protein and vitamins, so it should be paired with other nutritious foods.",
+    gram_per_serving: 0.0
   },
 
   {
@@ -49,6 +50,7 @@ const foods = [
     alternative: "Vegetable oil, Chicken or shrimp, Dried mushrooms (vegetarian)",
     altDescription: "For a healthier version, use vegetable oil instead of lard and chicken or mushrooms instead of pork.",
     healthTips: "Opt for a version with less lard and more vegetables to reduce saturated fat and increase fiber.",
+    gram_per_serving: 0.0
   },
 
   {
@@ -76,6 +78,7 @@ const foods = [
     alternative: "Fresh salmon or tuna, Lemon juice",
     altDescription: "Any very fresh, sashimi-grade fish can be used. Lemon juice can replace lime for a different citrus note.",
     healthTips: "Ensure the fish is extremely fresh and handled hygienically to avoid foodborne illness. Rich in protein and omega-3 fatty acids.",
+    gram_per_serving: 0.0
   },
 
   {
@@ -101,6 +104,7 @@ const foods = [
     alternative: "Fresh rice (dried out in the fridge), Dried shrimp powder (if belacan is unavailable)",
     altDescription: "If cannot achieve the dry texture without oil, a minimal amount of oil can be used. Dried shrimp can add a similar umami if belacan is unavailable.",
     healthTips: "A relatively low-fat fried rice option due to the no-oil cooking method, but high in sodium from belacan and salt.",
+    gram_per_serving: 0.0
   },
 
   {
@@ -125,6 +129,7 @@ const foods = [
     alternative: "Lime or calamansi juice, Fish or tofu, Vermicelli or egg noodles",
     altDescription: "Other souring agents like lime can be used if tamarind is unavailable. The protein can be easily swapped to preference or dietary needs.",
     healthTips: "The tamarind-based broth is low in fat. Using skinless chicken and adding more vegetables can make this a very balanced and healthy meal.",
+    gram_per_serving: 0.0
   },
 
   {
@@ -148,6 +153,7 @@ const foods = [
     alternative: "Rice noodles or angel hair pasta, Sambal oelek or chili-garlic paste",
     altDescription: "Other thin noodles can be used. A prepared chili paste can be a quick substitute for the belacan mixture.",
     healthTips: "The sodium content is high due to belacan. Balance the meal by adding side vegetables and a lean protein.",
+    gram_per_serving: 0.0
   },
 
   {
@@ -171,6 +177,7 @@ const foods = [
     alternative: "Spinach or kale (no need pounding), Chicken or turkey",
     altDescription: "Less fibrous greens can be used but will result in a different texture. Various proteins can be used based on preference.",
     healthTips: "Cassava leaves must be cooked thoroughly to remove naturally occurring cyanide compounds. They are an excellent source of protein and iron.",
+    gram_per_serving: 0.0
   },
 
   {
@@ -194,6 +201,7 @@ const foods = [
     alternative: "Spinach or water spinach, Fresh shrimp or anchovies",
     altDescription: "Almost any tender leafy green can be prepared using this method. Fresh seafood can be used instead of dried.",
     healthTips: "Sweet potato leaves (Manicai) are rich in vitamins A, C, and K. A very nutritious and low-calorie dish, especially when prepared with little oil.",
+    gram_per_serving: 0.0
   },
 
   {
@@ -218,6 +226,7 @@ const foods = [
     alternative: "Water spinach (kangkung) or other sturdy greens, Dried shrimp paste in oil (as a belacan substitute)",
     altDescription: "If midin is unavailable, kangkung makes a good alternative, though the texture will be softer.",
     healthTips: "Midin is a good source of fiber. Using less belacan can help control sodium intake.",
+    gram_per_serving: 0.0
   },
 
   {
@@ -242,6 +251,7 @@ const foods = [
     alternative: "Fish or prawns, Banana leaves (if bamboo is unavailable), Spring onions",
     altDescription: "The cooking method can be simulated in a steamer or oven-safe dish wrapped in banana leaves if bamboo is not available.",
     healthTips: "A very healthy cooking method as it uses no oil, steaming the chicken in its own juices, resulting in a lean and flavorful dish.",
+    gram_per_serving: 0.0
   }
 
 ];
@@ -251,8 +261,8 @@ const foods = [
     for (const food of foods) {
       const sql = `
         INSERT INTO food 
-        (name, origin, category, difficulty, dietaryTags, description, image, prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, culturalSignificance, traditionalPreparation, commonIngredients, alternative, altDescription, healthTips)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (name, origin, category, difficulty, dietaryTags, description, image, prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, culturalSignificance, traditionalPreparation, commonIngredients, alternative, altDescription, healthTips, gram_per_serving)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const values = [
         food.name,
@@ -275,6 +285,7 @@ const foods = [
         food.alternative,
         food.altDescription,
         food.healthTips,
+        food.gram_per_serving,
       ];
 
       await db.pool.query(sql, values);
