@@ -90,15 +90,14 @@ const buildHealthAlerts = (food) => {
     if (fat <= 3 && fat > 0) alerts.push({ type: "info", key: "foodDetail.alertLowFat" });
     else if (fat >= 20) alerts.push({ type: "warning", key: "foodDetail.alertHighFat" });
     
-    if (protein >= 7.5) alerts.push({ type: "info", key: "foodDetail.alertExcellentProtein" });
+    if (protein >= 10) alerts.push({ type: "info", key: "foodDetail.alertExcellentProtein" });
     else if (protein >= 5) alerts.push({ type: "info", key: "foodDetail.alertGoodProtein" });
 
     if (fiber >= 6) alerts.push({ type: "info", key: "foodDetail.alertHighFiber" });
 
-    if (vitC >= 15) alerts.push({ type: "info", key: "foodDetail.alertVitC" });
-    
-    if (carbs >= 60) alerts.push({ type: "warning", key: "foodDetail.alertHighCarbs" });
-    
+    if (vitC >= 30) alerts.push({ type: "info", key: "foodDetail.alertHighVitC" });
+    else if (vitC >= 15) alerts.push({ type: "info", key: "foodDetail.alertSourceVitC" });
+        
     const tags = Array.isArray(food?.dietaryTags) ? food.dietaryTags : [];
     if (tags.includes("spicy")) alerts.push({ type: "info", key: "foodDetail.alertSpicy" });
     if (tags.includes("vegetarian")) alerts.push({ type: "info", key: "foodDetail.alertVegetarian" });
