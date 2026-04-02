@@ -23,7 +23,7 @@ const foods = [
     alternative: "Tapioca starch",
     altDescription: "Tapioca starch can be used as a substitute, producing a slightly clearer and chewier gel.",
     healthTips: "High in carbohydrates but gluten-free. Low in protein and vitamins, so it should be paired with other nutritious foods.",
-    gram_per_serving: 0.0
+    gram_per_serving: 328.07
   },
 
   {
@@ -38,9 +38,9 @@ const foods = [
     This theory suggests that the name “Kolo Mee” come from how the dish is prepared, which involves tossing the noodles with the sauce and toppings in a dry manner.",
     image: "https://tasteasianfood.com/wp-content/uploads/2023/03/Kolo-Mee-recipe-5-square.jpeg",
     prepTime: 30,
-    Energy_kcal: 1103.14,
-    Protein_g: 30.764,
-    Fat_g: 60.483,
+    Energy_kcal: 786.94,
+    Protein_g: 24.344,
+    Fat_g: 28.563,
     Carbohydrates_g: 27.094,
     Fiber_g: 2.786,
     VitaminC_mg: 12.54,
@@ -50,7 +50,7 @@ const foods = [
     alternative: "Vegetable oil, Chicken or shrimp, Dried mushrooms (vegetarian)",
     altDescription: "For a healthier version, use vegetable oil instead of lard and chicken or mushrooms instead of pork.",
     healthTips: "Opt for a version with less lard and more vegetables to reduce saturated fat and increase fiber.",
-    gram_per_serving: 0.0
+    gram_per_serving: 248.6704
   },
 
   {
