@@ -11,7 +11,8 @@
     "login": "Login / Register",
     "notifications": "Notifications",
     "markAllRead": "Mark all as read",
-    "noNotifications": "No notifications yet."
+    "noNotifications": "No notifications yet.",
+     "leaderboard": "Leaderboard"
   },
 
   "footer": {
