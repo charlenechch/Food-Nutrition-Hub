@@ -149,6 +149,11 @@ html, body {
   cursor: pointer;
   background-color: #fdfbf9;
   transition: background 0.3s ease;
+  gap: 10px;
+}
+
+.upload-box svg {
+  margin-bottom: 4px;
 }
 
 .upload-box:hover {
