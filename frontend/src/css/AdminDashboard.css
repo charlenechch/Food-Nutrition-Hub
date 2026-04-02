@@ -309,6 +309,11 @@
   align-items: center;
 }
 
+.admin-beige-dropdown:focus, .admin-beige-dropdown:focus-visible, .admin-beige-dropdown:active {
+  outline: none;
+  box-shadow: 0 0 0 2px #d5c2ac;
+}
+
 /* ==========================================================================
    Table & Data Layouts
    ========================================================================== */
@@ -2479,6 +2484,17 @@
   color: #5f5040;
   transition: all 0.2s ease;
   display: block;
+  justify-content: space-between;
+}
+
+.option-text {
+  flex: 1;
+}
+
+.tick {
+  margin-left: auto;   /* ensures it stays right */
+  font-size: 14px;
+  color: #916848;
 }
 
 .admin-beige-dropdown ul li:hover,

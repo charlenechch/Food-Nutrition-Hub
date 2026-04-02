@@ -696,7 +696,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
                       setDropdownOpen(false);
                     }}
                   >
-                    {opt}
+                    <span className="option-text">{opt}</span>
                     {opt === category && <span className="tick">✓</span>}
                   </li>
                 ))}
