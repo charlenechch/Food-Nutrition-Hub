@@ -17,6 +17,8 @@ const EditRecipePage = () => {
   const [modalType, setModalType] = useState(""); 
   const [recipe, setRecipe] = useState(null);
   const [adminFeedback, setAdminFeedback] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
+  
   const [infoDlg, setInfoDlg] = useState({
     open: false,
     title: "",
@@ -190,7 +192,11 @@ const EditRecipePage = () => {
           {recipe.status === "Pending" && (
             <button
               className="rcp-edit-reject-btn"
-              onClick={() => { setModalType("reject"); setShowModal(true); }}
+              onClick={() => { 
+                setModalType("reject"); 
+                setRejectReason(""); // <-- NEW: Clear old text when opening the modal
+                setShowModal(true); 
+              }}
             >
               <span className="recipe-edit-btn"><FaTimes /></span> {t("editRecipe.reject")}
             </button>
@@ -304,24 +310,43 @@ const EditRecipePage = () => {
         </div>
       </div>
 
+      {/* Confirmation Modal */}
       {showModal && (
         <div className="confirm-overlay">
           <div className="confirm-modal">
             <h3>{t("editRecipe.warningTitle")}</h3>
-            <p>
-              {modalType === "approve"
-                ? t("editRecipe.warningApprove")
-                : t("editRecipe.warningReject")}
-            </p>
+            
+            {modalType === "approve" ? (
+              <p>{t("editRecipe.warningApprove")}</p>
+            ) : (
+              <>
+                <p>{t("editRecipe.warningReject", "Please provide a reason for rejecting this recipe. This is mandatory.")}</p>
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder={t("editRecipe.feedbackPlaceholder", "e.g., Recipe is missing steps, unclear measurements...")}
+                  rows="4"
+                  style={{ width: "100%", padding: "10px", marginTop: "10px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #ccc", fontFamily: "inherit" }}
+                />
+              </>
+            )}
+
             <div className="confirm-buttons">
               <button className="cancel-btn" onClick={() => setShowModal(false)}>
                 {t("editRecipe.cancel")}
               </button>
+              
               <button
                 className={modalType === "approve" ? "approve-btn" : "delete-btn"}
+                disabled={modalType === "reject" && rejectReason.trim().length === 0}
+                style={{ 
+                  opacity: (modalType === "reject" && rejectReason.trim().length === 0) ? 0.5 : 1, 
+                  cursor: (modalType === "reject" && rejectReason.trim().length === 0) ? "not-allowed" : "pointer" 
+                }}
                 onClick={async () => {
                   const newStatus = modalType === "approve" ? "Approved" : "Rejected";
-                  const feedbackToSend = adminFeedback ? adminFeedback.trim() : ""; 
+                  // Use the reason from the popup if rejecting, otherwise use the bottom box
+                  const feedbackToSend = modalType === "reject" ? rejectReason.trim() : (adminFeedback ? adminFeedback.trim() : ""); 
 
                   try {
                     const updateUrl = `${API_URL}/api/recipe/updateStatus/${id}`;
