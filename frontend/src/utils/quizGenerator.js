@@ -12,66 +12,82 @@ const getDistractors = (correctValue, field) => {
 export const generateDailyQuiz = () => {
   const quiz = [];
   
-  const adminQ = shuffle(mockAdminQuestions)[0];
-  const linkedFood = mockFoods.find(f => f.foodID === adminQ.foodID);
-  
-  quiz.push({
-    ...adminQ,
-    image: linkedFood.image 
+  const selectedFoods = shuffle(mockFoods).slice(0, 5);
+
+  selectedFoods.forEach((food, index) => {
+    
+    const adminQ = mockAdminQuestions.find(q => q.foodID === food.foodID);
+
+    const availableFormats = ['visual', 'culture', 'nutrition', 'ingredients'];
+    
+    if (adminQ) {
+      availableFormats.push('admin');
+    }
+
+    const chosenFormat = shuffle(availableFormats)[0];
+
+    if (chosenFormat === 'admin') {
+      quiz.push({
+        ...adminQ,
+        id: `q_${index}_${food.foodID}`,
+        image: food.image
+      });
+      
+    } else if (chosenFormat === 'visual') {
+      quiz.push({
+        id: `q_${index}_${food.foodID}`,
+        foodID: food.foodID,
+        image: food.image,
+        question: "What dish is shown in this picture?",
+        correctAnswer: food.name,
+        options: shuffle([food.name, ...getDistractors(food.name, 'name')]),
+        explanation: food.description
+      });
+      
+    } else if (chosenFormat === 'culture') {
+      quiz.push({
+        id: `q_${index}_${food.foodID}`,
+        foodID: food.foodID,
+        image: food.image,
+        question: `What is the cultural origin of ${food.name}?`,
+        correctAnswer: food.origin,
+        options: shuffle([food.origin, ...getDistractors(food.origin, 'origin')]),
+        explanation: `${food.name} originates from the ${food.origin} community.`
+      });
+      
+    } else if (chosenFormat === 'nutrition') {
+      quiz.push({
+        id: `q_${index}_${food.foodID}`,
+        foodID: food.foodID,
+        image: food.image,
+        question: `Roughly how many calories are in a standard serving of ${food.name}?`,
+        correctAnswer: `${food.Energy_kcal} kcal`,
+        options: shuffle([
+          `${food.Energy_kcal} kcal`, 
+          `${Math.round(food.Energy_kcal * 0.5)} kcal`, 
+          `${Math.round(food.Energy_kcal * 1.5)} kcal`, 
+          `${Math.round(food.Energy_kcal * 2)} kcal`
+        ]),
+        explanation: `A standard serving contains approximately ${food.Energy_kcal} calories.`
+      });
+      
+    } else if (chosenFormat === 'ingredients') {
+      const correctIngredient = food.commonIngredients.split(',')[0].trim();
+      const fakeIngredients = shuffle(mockFoods.filter(f => f.foodID !== food.foodID))
+        .slice(0, 3)
+        .map(f => f.commonIngredients.split(',')[0].trim());
+
+      quiz.push({
+        id: `q_${index}_${food.foodID}`,
+        foodID: food.foodID,
+        image: food.image,
+        question: `Which of these is a primary ingredient in ${food.name}?`,
+        correctAnswer: correctIngredient,
+        options: shuffle([correctIngredient, ...fakeIngredients]),
+        explanation: `The key ingredient that makes this dish special is ${correctIngredient}!`
+      });
+    }
   });
 
-  const dynamicFoods = shuffle(mockFoods.filter(f => f.foodID !== linkedFood.foodID)).slice(0, 4);
-
-  quiz.push({
-    id: `dyn_1_${dynamicFoods[0].foodID}`,
-    foodID: dynamicFoods[0].foodID,
-    image: dynamicFoods[0].image,
-    question: "What dish is shown in this picture?",
-    correctAnswer: dynamicFoods[0].name,
-    options: shuffle([dynamicFoods[0].name, ...getDistractors(dynamicFoods[0].name, 'name')]),
-    explanation: dynamicFoods[0].description
-  });
-
-  quiz.push({
-    id: `dyn_2_${dynamicFoods[1].foodID}`,
-    foodID: dynamicFoods[1].foodID,
-    image: dynamicFoods[1].image,
-    question: `What is the cultural origin of ${dynamicFoods[1].name}?`,
-    correctAnswer: dynamicFoods[1].origin,
-    options: shuffle([dynamicFoods[1].origin, ...getDistractors(dynamicFoods[1].origin, 'origin')]),
-    explanation: `${dynamicFoods[1].name} originates from the ${dynamicFoods[1].origin} community.`
-  });
-
-  quiz.push({
-    id: `dyn_3_${dynamicFoods[2].foodID}`,
-    foodID: dynamicFoods[2].foodID,
-    image: dynamicFoods[2].image,
-    question: `Roughly how many calories are in a standard serving of ${dynamicFoods[2].name}?`,
-    correctAnswer: `${dynamicFoods[2].Energy_kcal} kcal`,
-    options: shuffle([
-      `${dynamicFoods[2].Energy_kcal} kcal`, 
-      `${Math.round(dynamicFoods[2].Energy_kcal * 0.5)} kcal`, 
-      `${Math.round(dynamicFoods[2].Energy_kcal * 1.5)} kcal`, 
-      `${Math.round(dynamicFoods[2].Energy_kcal * 2)} kcal`
-    ]), 
-    explanation: `A standard serving contains approximately ${dynamicFoods[2].Energy_kcal} calories.`
-  });
-
-  const correctIngredient = dynamicFoods[3].commonIngredients.split(',')[0].trim();
-  
-  const fakeIngredients = shuffle(mockFoods.filter(f => f.foodID !== dynamicFoods[3].foodID))
-    .slice(0, 3)
-    .map(f => f.commonIngredients.split(',')[0].trim());
-
-  quiz.push({
-    id: `dyn_4_${dynamicFoods[3].foodID}`,
-    foodID: dynamicFoods[3].foodID,
-    image: dynamicFoods[3].image,
-    question: `Which of these is a primary ingredient in ${dynamicFoods[3].name}?`,
-    correctAnswer: correctIngredient,
-    options: shuffle([correctIngredient, ...fakeIngredients]),
-    explanation: `The key ingredient that makes this dish special is ${correctIngredient}!`
-  });
-
-  return shuffle(quiz);
+  return quiz;
 };
