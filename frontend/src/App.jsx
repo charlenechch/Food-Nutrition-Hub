@@ -30,7 +30,6 @@ import LevelUpModal from './components/LevelUpModal';
 import FoodMap from "./pages/FoodMap";
 import XpLogs from "./pages/XpLogsPage";
 import Leaderboard from "./pages/Leaderboard";
-import DailyQuizPage from './pages/DailyQuizPage';
 
 // // === Admin Pages ===
 import AdminHomepage from "./pages/AdminHomepage";
@@ -279,7 +278,6 @@ function AppRoutes() {
           <Route path="/terms" element={<TermsAndConditionsPage />} />
           <Route path="/map" element={<FoodMap />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/daily-quiz" element={<DailyQuizPage />} />
 
         {/* === Gated Tools (Protected) === */}
         <Route
