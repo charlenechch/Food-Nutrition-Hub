@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import QuizCard from '../components/QuizCard'; 
 import { generateDailyQuiz } from '../utils/quizGenerator'; 
+import '../styles/Quiz.css'; 
 
 export default function DailyQuizPage() {
+  const { t } = useTranslation(); 
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -26,7 +29,7 @@ export default function DailyQuizPage() {
   };
 
   if (questions.length === 0) {
-    return <div style={{ textAlign: "center", padding: "50px" }}>Loading today's quiz...</div>;
+    return <div style={{ textAlign: "center", padding: "50px" }}>{t('quiz.loading')}</div>;
   }
 
   if (isFinished) {
@@ -35,38 +38,44 @@ export default function DailyQuizPage() {
     const totalXP = baseXP + perfectBonus;
 
     return (
-      <div className="quiz-results-container" style={{ maxWidth: "600px", margin: "40px auto", textAlign: "center", padding: "30px", border: "1px solid #ddd", borderRadius: "8px" }}>
-        <h2>Quiz Complete!</h2>
-        <h1 style={{ fontSize: "3rem", margin: "10px 0" }}>{score} / 5</h1>
+      <div className="quiz-results-card">
+        <h2>{t('quiz.completed')}</h2>
+        
+        <h1 className = "dqp-h1">{score} / 5</h1>
         
         {score === 5 ? (
           <p style={{ color: "#28a745", fontWeight: "bold", fontSize: "1.2rem" }}>
-            Perfect Score! You earned +{baseXP} XP and a +{perfectBonus} XP Perfect Bonus! (Total: {totalXP} XP)
+            {t('quiz.perfectScore', { baseXP, bonusXP: perfectBonus, totalXP })}
           </p>
         ) : (
           <p style={{ fontSize: "1.1rem" }}>
-            You got {score}/5 correct! You earned +{totalXP} XP.
+            {t('quiz.normalScore', { score, totalXP })}
           </p>
         )}
 
         <button 
           onClick={() => window.location.href = '/'}
-          style={{ marginTop: "20px", padding: "10px 20px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}
+          className="quiz-btn-primary"
+          style={{ marginTop: "20px" }}
         >
-          Return to Community
+          {t('quiz.returnBtn')}
         </button>
       </div>
     );
   }
 
   return (
-    <div className="daily-quiz-page" style={{ maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
+    <div className="quiz-page-container">
       
-      <div style={{ textAlign: "center", marginBottom: "30px" }}>
-        <h2>Daily Foodie Quiz</h2>
-        <h4 style={{ color: "#555" }}>Question {currentIndex + 1} of 5</h4>
-        <p style={{ fontSize: "0.85rem", color: "#d97706", fontStyle: "italic", backgroundColor: "#fef3c7", padding: "10px", borderRadius: "6px", display: "inline-block" }}>
-          ⚠️ Complete all 5 questions to lock in your daily XP! Links to recipes will safely open in a new tab.
+      <div className="quiz-header-section">
+        <h2>{t('quiz.header')}</h2>
+        
+        <h4 className="quiz-progress-text">
+          {t('quiz.progress', { current: currentIndex + 1, total: 5 })}
+        </h4>
+        
+        <p className="quiz-disclaimer">
+          {t('quiz.disclaimer')}
         </p>
       </div>
 

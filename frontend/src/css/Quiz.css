@@ -1,4 +1,8 @@
 /* --- DailyQuizPage Styles --- */
+.dqp-h1 {
+    font-size: 3rem;
+    margin: 10px 0;
+}
 .quiz-page-container {
   max-width: 800px;
   margin: 0 auto;
