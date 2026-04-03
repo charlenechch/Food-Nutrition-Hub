@@ -4,9 +4,10 @@ import { mockAdminQuestions } from '../data/mockAdminQuestions';
 const shuffle = (array) => [...array].sort(() => 0.5 - Math.random());
 
 const getDistractors = (correctValue, field) => {
-  return shuffle(mockFoods.filter(f => f[field] !== correctValue))
-    .slice(0, 3)
-    .map(f => f[field]);
+
+  const uniqueValues = [...new Set(mockFoods.map(f => f[field]))];
+  
+  return shuffle(uniqueValues.filter(val => val !== correctValue)).slice(0, 3);
 };
 
 export const generateDailyQuiz = () => {
@@ -73,9 +74,10 @@ export const generateDailyQuiz = () => {
       
     } else if (chosenFormat === 'ingredients') {
       const correctIngredient = food.commonIngredients.split(',')[0].trim();
-      const fakeIngredients = shuffle(mockFoods.filter(f => f.foodID !== food.foodID))
-        .slice(0, 3)
-        .map(f => f.commonIngredients.split(',')[0].trim());
+      
+      const allUniqueIngredients = [...new Set(mockFoods.map(f => f.commonIngredients.split(',')[0].trim()))];
+      
+      const fakeIngredients = shuffle(allUniqueIngredients.filter(ing => ing !== correctIngredient)).slice(0, 3);
 
       quiz.push({
         id: `q_${index}_${food.foodID}`,
