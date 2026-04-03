@@ -264,8 +264,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
             </div>
             
             <div className="advanced-filters-body" style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-              
-              {/* NEW: Cultural Origin Dropdown added to match Community Post filter */}
+
               <div className="filter-item">
                 <label>{t("explore.culturalOrigin", "Cultural Origin")}</label>
                 <select 
