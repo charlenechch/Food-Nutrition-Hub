@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import './Quiz.css'; 
+import '../css/Quiz.css'; 
 
 export default function QuizCard({ quizData, onNext }) {
   const { t } = useTranslation();

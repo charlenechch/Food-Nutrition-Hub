@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import QuizCard from '../components/QuizCard'; 
 import { generateDailyQuiz } from '../utils/quizGenerator'; 
-import '../styles/Quiz.css'; 
+import '../css/Quiz.css'; 
 
 export default function DailyQuizPage() {
   const { t } = useTranslation(); 
