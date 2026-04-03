@@ -18,10 +18,11 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   // --- States ---
   const [localPosts, setLocalPosts] = useState(postsProp);
   const [searchTerm, setSearchTerm] = useState("");
+  const [category, setCategory] = useState("All Categories");
   const [statusFilter, setStatusFilter] = useState("All");
   const [originFilter, setOriginFilter] = useState("All Origins");
+  const [difficulty, setDifficulty] = useState("All"); // Added to match Recipe Database
 
-  const [sortOrder, setSortOrder] = useState("Most Recent");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
   const [showFilters, setShowFilters] = useState(false);
@@ -29,33 +30,44 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   const perPage = 5;
 
   const originOptions = ["All Origins", "Malay", "Chinese", "Iban", "Melanau", "Bidayuh", "Dayak"];
+  const postCategories = ["Food", "Culture", "Events"];
 
   // --- Sync Props ---
   useEffect(() => {
     setLocalPosts(postsProp);
   }, [postsProp]);
 
+  // Reset page when any filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, originFilter, sortOrder]);
+  }, [searchTerm, category, statusFilter, originFilter, difficulty]);
 
-  // --- Filtering Logic ---
+  // --- Filtering & Sorting Logic ---
   const filteredPosts = localPosts
     .filter((post) => {
       const term = searchTerm.toLowerCase();
       const title = (post.foodName || post.title || "").toLowerCase();
       const author = (post.author || "").toLowerCase();
+      
       const matchesSearch = title.includes(term) || author.includes(term);
+      const matchesCategory = category === "All Categories" || post.category === category;
+      
       const postOrigin = post.origin || post.culturalOrigin || "";
       const matchesOrigin = originFilter === "All Origins" || postOrigin === originFilter;
+      
+      // Matches difficulty (if applicable to posts, otherwise ignores if post doesn't have it)
+      const matchesDifficulty = difficulty === "All" || post.difficulty === difficulty;
+
       const requiredStatus = sectionType === "approved" ? "Approved" : statusFilter;
       const matchesStatus = requiredStatus === "All" || post.status === requiredStatus;
-      return matchesSearch && matchesStatus && matchesOrigin;
+      
+      return matchesSearch && matchesCategory && matchesStatus && matchesOrigin && matchesDifficulty;
     })
     .sort((a, b) => {
-      const dateA = new Date(a.createdAt || 0);
-      const dateB = new Date(b.createdAt || 0);
-      return sortOrder === "Most Recent" ? dateB - dateA : dateA - dateB;
+      // Always sort by Most Recent by default
+      const dateA = new Date(a.createdAt || a.updatedAt || 0);
+      const dateB = new Date(b.createdAt || b.updatedAt || 0);
+      return dateB - dateA; 
     });
 
   // --- Pagination ---
@@ -104,8 +116,8 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   }, []);
 
   const sectionTitle = sectionType === "approved"
-    ? t("adminPostDB.titleApproved")
-    : t("adminPostDB.titlePending");
+    ? t("adminPostDB.titleApproved", "Approved Community Posts")
+    : t("adminPostDB.titlePending", "Pending / Rejected Community Posts");
 
   const renderPageNumbers = () => {
     let pages = [];
@@ -135,10 +147,10 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   const handleDeleteClick = (postId) => {
     setModal({
       open: true,
-      title: t("adminPostDB.confirmDeletion"),
-      message: t("adminPostDB.confirmDeletionMsg"),
+      title: t("adminPostDB.confirmDeletion", "Confirm Deletion"),
+      message: t("adminPostDB.confirmDeletionMsg", "Are you sure you want to delete this post?"),
       icon: <RiDeleteBin5Line size={30} color="#dc3545" />, 
-      primaryText: t("adminPostDB.yesDelete"),
+      primaryText: t("adminPostDB.yesDelete", "Yes, Delete"),
       onPrimary: () => performDelete(postId), 
     });
   };
@@ -156,18 +168,18 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
         setLocalPosts((prev) => prev.filter((post) => post.id !== postId));
         setModal({
           open: true,
-          title: t("adminPostDB.deletedTitle"),
-          message: t("adminPostDB.deletedMsg"),
+          title: t("adminPostDB.deletedTitle", "Deleted"),
+          message: t("adminPostDB.deletedMsg", "Post has been deleted successfully."),
           icon: <FaRegFlag size={30} color="green" />,
-          primaryText: t("adminPostDB.ok"),
+          primaryText: t("adminPostDB.ok", "OK"),
           onPrimary: closeModal,
         });
       } else {
         setModal({
           open: true,
-          title: t("adminPostDB.errorTitle"),
-          message: result.message || t("adminPostDB.deleteFailed"),
-          primaryText: t("adminPostDB.close"),
+          title: t("adminPostDB.errorTitle", "Error"),
+          message: result.message || t("adminPostDB.deleteFailed", "Failed to delete post."),
+          primaryText: t("adminPostDB.close", "Close"),
           onPrimary: closeModal,
         });
       }
@@ -181,7 +193,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
       <div className="recipe-database-section" style={{ backgroundColor: "white", minHeight: showFilters ? "850px" : "600px", transition: "min-height 0.3s ease" }}>
         <h2><FaRegFlag style={{ marginRight: 8 }} /> {sectionTitle}</h2>
         <p style={{ textAlign: "center", marginTop: 20, color: "#999" }}>
-          {t("adminPostDB.noPosts")}
+          {t("adminPostDB.noPosts", "No community posts found.")}
         </p>
       </div>
     );
@@ -210,45 +222,52 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             <CiSearch className="search-icon" />
             <input 
               type="text" 
-              placeholder={t("adminPostDB.searchPlaceholder")}
+              placeholder={t("adminPostDB.searchPlaceholder", "Search community posts...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          
+          {/* Beige Dropdown updated to "Categories" to match Recipe Database */}
           <div className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`} ref={dropdownRef}>
             <button className="admin-beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
-              <span>{sortOrder}</span>
+              <span>{category}</span>
               <FiChevronDown className={`admin-dropdown-arrow ${dropdownOpen ? "rotate" : ""}`} />
             </button>
             {dropdownOpen && (
               <ul className="admin-beige-list">
-                {["Most Recent", "Oldest"].map((opt, i) => (
-                  <li key={i} onClick={() => { setSortOrder(opt); setDropdownOpen(false); }}>
+                {["All Categories", ...postCategories].map((opt, i) => (
+                  <li key={i} onClick={() => { setCategory(opt); setDropdownOpen(false); }}>
                     <span className="option-text">{opt}</span>
-                    {opt === sortOrder && <span className="tick">✓</span>}
+                    {opt === category && <span className="tick">✓</span>}
                   </li>
                 ))}
               </ul>
             )}
           </div>
+          
           <button className="admin-food-btn-filter" onClick={() => setShowFilters(!showFilters)}>
             <div style={{ display: "grid", gridTemplateColumns: "auto auto", gap: "8px", alignItems: "center" }}>
               <FiFilter size={18} style={{ margin: 0, position: "static" }} />
-              <span style={{ margin: 0, position: "static" }}>{t("explore.filters")}</span>
+              <span style={{ margin: 0, position: "static" }}>{t("explore.filters", "Filters")}</span>
             </div>
           </button>
         </div>
 
         {showFilters && (
           <div className="advanced-filters">
-            <h4><CiFilter /> {t("adminFoodDB.advancedFilters")}</h4>
-            <div className="filter-grid">
+            <div className="advanced-filters-header">
+              <CiFilter /> {t("adminFoodDB.advancedFilters", "Advanced Filters")}
+            </div>
+            
+            <div className="advanced-filters-body" style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
               
               <div className="filter-item">
-                <label>{t("explore.culturalOrigin")}</label>
+                <label>{t("explore.culturalOrigin", "Cultural Origin")}</label>
                 <select 
                   value={originFilter} 
                   onChange={(e) => setOriginFilter(e.target.value)}
+                  style={{ width: "100%", padding: "8px", borderRadius: "5px", border: "1px solid #ccc" }}
                 >
                   {originOptions.map((opt) => (
                     <option key={opt} value={opt}>{opt}</option>
@@ -256,13 +275,32 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
                 </select>
               </div>
 
+              {/* Added Difficulty to match Recipe Database */}
+              <div className="filter-item">
+                <label>{t("explore.difficulty", "Difficulty")}</label>
+                <select 
+                  value={difficulty} 
+                  onChange={(e) => setDifficulty(e.target.value)}
+                  style={{ width: "100%", padding: "8px", borderRadius: "5px", border: "1px solid #ccc" }}
+                >
+                  <option value="All">{t("adminFoodDB.all", "All")}</option>
+                  <option value="Easy">{t("explore.easy", "Easy")}</option>
+                  <option value="Medium">{t("explore.medium", "Medium")}</option>
+                  <option value="Hard">{t("explore.hard", "Hard")}</option>
+                </select>
+              </div>
+
               {sectionType !== "approved" && (
                 <div className="filter-item">
-                  <label>{t("adminRcpDB.colStatus")}</label>
-                  <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                    <option value="All">{t("adminFoodDB.all")}</option>
-                    <option value="Pending">{t("adminRcpDB.statusPending")}</option>
-                    <option value="Rejected">{t("adminRcpDB.statusRejected")}</option>
+                  <label>{t("adminRcpDB.colStatus", "Status")}</label>
+                  <select 
+                    value={statusFilter} 
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    style={{ width: "100%", padding: "8px", borderRadius: "5px", border: "1px solid #ccc" }}
+                  >
+                    <option value="All">{t("adminFoodDB.all", "All")}</option>
+                    <option value="Pending">{t("adminRcpDB.statusPending", "Pending")}</option>
+                    <option value="Rejected">{t("adminRcpDB.statusRejected", "Rejected")}</option>
                   </select>
                 </div>
               )}
@@ -273,18 +311,18 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
         <table className="content-table" style={{ width: "100%" }}>
           <thead>
             <tr>
-              <th>{t("adminPostDB.colTitle")}</th>
-              <th>{t("adminPostDB.colAuthor")}</th>
-              <th>{sectionType === "approved" ? t("adminPostDB.colDateApproved") : t("adminPostDB.colDatePosted")}</th>
-              <th>{t("adminRcpDB.colStatus")}</th>
-              <th>{t("adminRcpDB.colActions")}</th>
+              <th>{t("adminPostDB.colTitle", "Title")}</th>
+              <th>{t("adminPostDB.colAuthor", "Author")}</th>
+              <th>{sectionType === "approved" ? t("adminPostDB.colDateApproved", "Date Approved") : t("adminPostDB.colDatePosted", "Date Posted")}</th>
+              <th>{t("adminRcpDB.colStatus", "Status")}</th>
+              <th>{t("adminRcpDB.colActions", "Actions")}</th>
             </tr>
           </thead>
           <tbody>
             {currentPosts.map((p, i) => (
               <tr key={p.id || i}>
-                <td data-label={t("adminPostDB.colTitle")}>{p.foodName || p.title || t("adminPostDB.untitled")}</td>
-                <td data-label={t("adminPostDB.colAuthor")}>{p.author || t("adminPostDB.anonymous")}</td>
+                <td data-label={t("adminPostDB.colTitle")}>{p.foodName || p.title || t("adminPostDB.untitled", "Untitled")}</td>
+                <td data-label={t("adminPostDB.colAuthor")}>{p.author || t("adminPostDB.anonymous", "Anonymous")}</td>
                 
                 <td data-label={sectionType === "approved" ? t("adminPostDB.colDateApproved") : t("adminPostDB.colDatePosted")}>
                   {sectionType === "approved" && p.updatedAt
@@ -312,7 +350,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
                     </>
                   ) : (
                     <button className="review-btn" onClick={() => navigate(`/admin/edit/community/${p.id}`)}>
-                      {t("adminRcpDB.review")}
+                      {t("adminRcpDB.review", "Review")}
                     </button>
                   )}
                 </td>
@@ -329,7 +367,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
-            ‹ {t("explore.prev")}
+            ‹ {t("explore.prev", "Prev")}
           </button>
 
           {renderPageNumbers()}
@@ -339,7 +377,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
-            {t("explore.next")} ›
+            {t("explore.next", "Next")} ›
           </button>
         </div>
       )}
