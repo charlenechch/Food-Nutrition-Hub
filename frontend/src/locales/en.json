@@ -12,7 +12,8 @@
     "notifications": "Notifications",
     "markAllRead": "Mark all as read",
     "noNotifications": "No notifications yet.",
-     "leaderboard": "Leaderboard"
+    "leaderboard": "Leaderboard",
+    "dailyQuiz": "Daily Quiz"
   },
 
   "footer": {

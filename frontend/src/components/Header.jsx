@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { FaGlobe, FaSignOutAlt, FaUser, FaTrophy } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
-import { User, Bell } from "lucide-react";
+import { User, Bell, BrainCircuit, Flame } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { useTranslation } from "react-i18next";
 import "./Header.css";
@@ -35,6 +35,30 @@ export default function Header() {
 
   // Current language label derived from i18n state (no separate useState needed)
   const currentLang = i18n.language === "en" ? "EN" : "BM";
+
+  const mockDailyQuiz = { 
+    lastCompletedDate: "2026-04-02", 
+    currentStreak: 4 
+  };
+
+  const getQuizState = () => {
+    if (!user || user.role === "guest") return null;
+
+    const todayObj = new Date();
+    const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+    
+    const yesterdayObj = new Date(todayObj);
+    yesterdayObj.setDate(yesterdayObj.getDate() - 1);
+    const yesterdayStr = `${yesterdayObj.getFullYear()}-${String(yesterdayObj.getMonth() + 1).padStart(2, '0')}-${String(yesterdayObj.getDate()).padStart(2, '0')}`;
+
+    const lastDate = mockDailyQuiz.lastCompletedDate;
+
+    if (lastDate === todayStr) return "done";
+    if (lastDate === yesterdayStr) return "ready";
+    return "lost";
+  };
+
+  const quizState = getQuizState();
 
   const fetchNotifications = async () => {
     if (!user || user.role === "guest") return;
@@ -249,6 +273,22 @@ export default function Header() {
               <FaGlobe className="mobile-icon" /> {currentLang}
             </button>
 
+            {user && user.role !== "guest" && quizState && (
+              <button onClick={() => { navigate("/daily-quiz"); closeMenu(); }} className="mobile-btn">
+                <div className="quiz-icon-wrapper">
+                  <BrainCircuit size={18} />
+                  {quizState !== "done" && <span className="quiz-red-dot"></span>}
+                </div>
+                {t('nav.dailyQuiz')}
+                {quizState !== "lost" && (
+                  <span className={`quiz-flame ${quizState === "done" ? "active" : "faded"}`}>
+                    <Flame size={16} fill={quizState === "done" ? "#f97316" : "none"} color={quizState === "done" ? "#f97316" : "currentColor"} />
+                    {mockDailyQuiz.currentStreak}
+                  </span>
+                )}
+              </button>
+            )}
+
             <button onClick={handleLeaderboardClick} className="mobile-btn">
               <FaTrophy className="mobile-icon" /> {t("nav.leaderboard")}
             </button>
@@ -281,6 +321,21 @@ export default function Header() {
           <button className="lang-btn" onClick={toggleLanguage}>
             <FaGlobe className="icon" /> {currentLang}
           </button>
+
+          {user && user.role !== "guest" && quizState && (
+            <button className="quiz-nav-btn" onClick={() => navigate("/daily-quiz")}>
+              <div className="quiz-icon-wrapper">
+                <BrainCircuit size={18} />
+                {quizState !== "done" && <span className="quiz-red-dot"></span>}
+              </div>
+              {quizState !== "lost" && (
+                <span className={`quiz-flame ${quizState === "done" ? "active" : "faded"}`}>
+                  <Flame size={16} fill={quizState === "done" ? "#f97316" : "none"} color={quizState === "done" ? "#f97316" : "currentColor"} />
+                  <span style={{ fontWeight: 600 }}>{mockDailyQuiz.currentStreak}</span>
+                </span>
+              )}
+            </button>
+          )}
 
           <button className="leaderboard-btn" onClick={handleLeaderboardClick}>
             <FaTrophy className="icon" /> 
