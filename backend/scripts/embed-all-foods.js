@@ -2,28 +2,59 @@
 require("dotenv").config({ path: require("path").resolve(__dirname, "../.env") });
 
 const { pool: db } = require("../config/db");
-const { embedFood } = require("../utils/embeddings");
+const { embedFood, embedFoodS1, embedFoodS3 } = require("../utils/embeddings");
 
 async function run() {
-  console.log("🚀 Starting embedding generation for all foods...");
+  console.log("🚀 Starting embedding generation for all 3 strategies...");
+  console.log("📌 Strategy 1 (S1): name + description             → embedding_s1");
+  console.log("📌 Strategy 2 (S2): name + description + ingredients → embedding (existing)");
+  console.log("📌 Strategy 3 (S3): name + description + ingredients + culturalSignificance → embedding_s3");
+  console.log("");
 
+  // Fetch all foods with all needed columns
   const [rows] = await db.execute(
-    `SELECT foodID, name, description FROM food WHERE embedding IS NULL`
+    `SELECT foodID, name, description, commonIngredients, culturalSignificance FROM food`
   );
 
-  console.log(`📋 Found ${rows.length} foods without embeddings`);
+  console.log(`📋 Found ${rows.length} foods to embed\n`);
 
   for (const row of rows) {
     try {
-      await embedFood(row.foodID, row.name, row.description || "");
-      // Small delay to avoid hitting OpenAI rate limits
+      console.log(`\n🍽️  Processing: "${row.name}" (ID: ${row.foodID})`);
+
+      // Strategy 1: name + description → embedding_s1
+      await embedFoodS1(
+        row.foodID,
+        row.name,
+        row.description || ""
+      );
+      await new Promise(r => setTimeout(r, 200)); // avoid rate limit
+
+      // Strategy 2: name + description + ingredients → embedding (existing column)
+      await embedFood(
+        row.foodID,
+        row.name,
+        row.description || "",
+        row.commonIngredients || ""
+      );
       await new Promise(r => setTimeout(r, 200));
+
+      // Strategy 3: name + description + ingredients + culturalSignificance → embedding_s3
+      await embedFoodS3(
+        row.foodID,
+        row.name,
+        row.description || "",
+        row.commonIngredients || "",
+        row.culturalSignificance || ""
+      );
+      await new Promise(r => setTimeout(r, 200));
+
     } catch (err) {
       console.error(`❌ Failed to embed "${row.name}":`, err.message);
     }
   }
 
-  console.log("✅ Done! All foods embedded.");
+  console.log("\n✅ Done! All 3 strategies embedded for all foods.");
   process.exit(0);
 }
 

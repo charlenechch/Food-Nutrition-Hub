@@ -2,24 +2,16 @@ const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");
 const { many } = require("../config/db");
-const { findClosestFood } = require("../utils/embeddings");
+const { findClosestFood, findClosestFoodS1, findClosestFoodS3 } = require("../utils/embeddings");
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const ACCEPTED_FORMATS = ["png", "jpeg", "jpg", "gif", "webp"];
 
-// ============================================
-// CHANGED: Added EMB_MID_CONFIDENCE tier
-// ============================================
-// REMOVED:
-// const EMB_HIGH_CONFIDENCE = 0.75;  // Auto-match
-// const EMB_LOW_CONFIDENCE  = 0.55;  // Show "Did you mean?"
-
-// ADDED:
+// Thresholds
 const EMB_HIGH_CONFIDENCE = 0.80;  // Very confident auto-match
 const EMB_MID_CONFIDENCE  = 0.65;  // Auto-match but warn user
 const EMB_LOW_CONFIDENCE  = 0.50;  // Show "Did you mean?"
-// ============================================
 
 function normalizeImageBase64(imageBase64) {
   if (!imageBase64) return null;
@@ -144,37 +136,59 @@ Prefer Sarawak/Malaysian interpretation.
       return res.json({ ok: false, error: "No food detected in the image." });
 
     // ============================================
-    // STEP 2: EMBEDDING SEARCH on GPT output
+    // STEP 2: ENSEMBLE EMBEDDING SEARCH
+    //
+    // We search against 3 different DB embeddings
+    // and average their scores for better accuracy:
+    //
+    // S1 (embedding_s1): name + desc
+    // S2 (embedding):    name + desc + ingredients
+    // S3 (embedding_s3): name + desc + ingredients + culturalSignificance
+    //
+    // Query used for all 3: food name only (clean, no noise)
     // ============================================
 
-    // REMOVED: (assumptions adds noise and lowers accuracy)
-    // const queryText = [
-    //   gpt.food_name,
-    //   ...(gpt.alternative_names || []),
-    //   gpt.assumptions || "",
-    // ].filter(Boolean).join(" ");
-    // console.log(`🔍 Embedding search for: "${queryText}"`);
-    // const match = await findClosestFood(queryText);
-    // console.log(`📊 Best match: "${match?.name}" (score: ${match?.score?.toFixed(3)})`);
+    const queryText = gpt.food_name;
+    console.log(`\n🔍 Searching all 3 embedding strategies for: "${queryText}"`);
 
-    // ADDED: Search each candidate separately, pick the best score
-    const candidates = [gpt.food_name, ...(gpt.alternative_names || [])].filter(Boolean);
+    // Run all 3 searches in parallel
+    const [resultS1, resultS2, resultS3] = await Promise.all([
+      findClosestFoodS1(queryText),  // searches embedding_s1
+      findClosestFood(queryText),    // searches embedding (S2)
+      findClosestFoodS3(queryText),  // searches embedding_s3
+    ]);
+
+    console.log(`📊 S1 (name+desc):              "${resultS1?.name}" → ${resultS1?.score?.toFixed(3)}`);
+    console.log(`📊 S2 (name+desc+ingr):         "${resultS2?.name}" → ${resultS2?.score?.toFixed(3)}`);
+    console.log(`📊 S3 (name+desc+ingr+culture): "${resultS3?.name}" → ${resultS3?.score?.toFixed(3)}`);
+
+    // Group results by foodID and average their scores
+    // e.g. all 3 return "Manicai" → avg = (0.82 + 0.79 + 0.78) / 3 = 0.796
+    const scoreMap = {};
+    for (const m of [resultS1, resultS2, resultS3]) {
+      if (!m) continue;
+      if (!scoreMap[m.foodID]) {
+        scoreMap[m.foodID] = { ...m, totalScore: 0, count: 0 };
+      }
+      scoreMap[m.foodID].totalScore += m.score;
+      scoreMap[m.foodID].count += 1;
+    }
+
+    // Pick food with highest average score
     let bestMatch = null;
-    for (const candidate of candidates) {
-      console.log(`🔍 Embedding search for: "${candidate}"`);
-      const result = await findClosestFood(candidate);
-      if (!bestMatch || (result && result.score > bestMatch.score)) {
-        bestMatch = result;
+    for (const entry of Object.values(scoreMap)) {
+      const avgScore = entry.totalScore / entry.count;
+      if (!bestMatch || avgScore > bestMatch.score) {
+        bestMatch = { ...entry, score: avgScore };
       }
     }
-    console.log(`📊 Best match: "${bestMatch?.name}" (score: ${bestMatch?.score?.toFixed(3)})`);
+
+    console.log(`✅ Best match: "${bestMatch?.name}" (avg score: ${bestMatch?.score?.toFixed(3)})\n`);
+
+    // ============================================
+    // STEP 3: 3-TIER CONFIDENCE CHECK
     // ============================================
 
-    // REMOVED: old 2-tier threshold checks
-    // if (match && match.score >= EMB_HIGH_CONFIDENCE) { ... }
-    // if (match && match.score >= EMB_LOW_CONFIDENCE) { ... }
-
-    // ADDED: new 3-tier threshold checks
     if (bestMatch && bestMatch.score >= EMB_HIGH_CONFIDENCE) {
       // ✅ Very confident match
       const conf = typeof gpt.confidence === "number" ? Math.max(0, Math.min(1, gpt.confidence)) : 0.5;
@@ -190,7 +204,7 @@ Prefer Sarawak/Malaysian interpretation.
           is_sarawak_local_dish: !!gpt.is_sarawak_local_dish,
           alternative_names: Array.isArray(gpt.alternative_names) ? gpt.alternative_names : [],
           assumptions: gpt.assumptions || "",
-          meta: { imageUsed: true, matchMethod: "gpt+embedding" },
+          meta: { imageUsed: true, matchMethod: "gpt+embedding_ensemble" },
         },
       });
     }
@@ -210,7 +224,7 @@ Prefer Sarawak/Malaysian interpretation.
           is_sarawak_local_dish: !!gpt.is_sarawak_local_dish,
           alternative_names: Array.isArray(gpt.alternative_names) ? gpt.alternative_names : [],
           assumptions: gpt.assumptions || "",
-          meta: { imageUsed: true, matchMethod: "gpt+embedding" },
+          meta: { imageUsed: true, matchMethod: "gpt+embedding_ensemble" },
         },
         warning: "Match confidence is moderate. Please verify the food name.",
       });
