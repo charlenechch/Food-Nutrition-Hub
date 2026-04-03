@@ -18,10 +18,10 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   // --- States ---
   const [localPosts, setLocalPosts] = useState(postsProp);
   const [searchTerm, setSearchTerm] = useState("");
-  const [category, setCategory] = useState("All Categories");
   const [statusFilter, setStatusFilter] = useState("All");
   const [originFilter, setOriginFilter] = useState("All Origins");
 
+  const [sortOrder, setSortOrder] = useState("Most Recent");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
   const [showFilters, setShowFilters] = useState(false);
@@ -37,21 +37,26 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, category, statusFilter, originFilter]);
+  }, [searchTerm, statusFilter, originFilter, sortOrder]);
 
   // --- Filtering Logic ---
-  const filteredPosts = localPosts.filter((post) => {
-    const term = searchTerm.toLowerCase();
-    const title = (post.foodName || post.title || "").toLowerCase();
-    const author = (post.author || "").toLowerCase();
-    const matchesSearch = title.includes(term) || author.includes(term);
-    const matchesCategory = category === "All Categories" || post.category === category;
-    const postOrigin = post.origin || post.culturalOrigin || "";
-    const matchesOrigin = originFilter === "All Origins" || postOrigin === originFilter;
-    const requiredStatus = sectionType === "approved" ? "Approved" : statusFilter;
-    const matchesStatus = requiredStatus === "All" || post.status === requiredStatus;
-    return matchesSearch && matchesCategory && matchesStatus && matchesOrigin;
-  });
+  const filteredPosts = localPosts
+    .filter((post) => {
+      const term = searchTerm.toLowerCase();
+      const title = (post.foodName || post.title || "").toLowerCase();
+      const author = (post.author || "").toLowerCase();
+      const matchesSearch = title.includes(term) || author.includes(term);
+      const postOrigin = post.origin || post.culturalOrigin || "";
+      const matchesOrigin = originFilter === "All Origins" || postOrigin === originFilter;
+      const requiredStatus = sectionType === "approved" ? "Approved" : statusFilter;
+      const matchesStatus = requiredStatus === "All" || post.status === requiredStatus;
+      return matchesSearch && matchesStatus && matchesOrigin;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0);
+      const dateB = new Date(b.createdAt || 0);
+      return sortOrder === "Most Recent" ? dateB - dateA : dateA - dateB;
+    });
 
   // --- Pagination ---
   const currentPosts = filteredPosts.slice(
@@ -182,8 +187,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
     );
   }
 
-  const postCategories = ["Food", "Culture", "Events"];
-
   return (
     <div 
       className="recipe-database-section" 
@@ -214,15 +217,15 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
           </div>
           <div className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`} ref={dropdownRef}>
             <button className="admin-beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
-              <span>{category}</span>
+              <span>{sortOrder}</span>
               <FiChevronDown className={`admin-dropdown-arrow ${dropdownOpen ? "rotate" : ""}`} />
             </button>
             {dropdownOpen && (
               <ul className="admin-beige-list">
-                {["All Categories", ...postCategories].map((opt, i) => (
-                  <li key={i} onClick={() => { setCategory(opt); setDropdownOpen(false); }}>
+                {["Most Recent", "Oldest"].map((opt, i) => (
+                  <li key={i} onClick={() => { setSortOrder(opt); setDropdownOpen(false); }}>
                     <span className="option-text">{opt}</span>
-                    {opt === category && <span className="tick">✓</span>}
+                    {opt === sortOrder && <span className="tick">✓</span>}
                   </li>
                 ))}
               </ul>
