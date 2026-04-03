@@ -41,7 +41,7 @@ export const generateDailyQuiz = () => {
         question: "What dish is shown in this picture?",
         correctAnswer: food.name,
         options: shuffle([food.name, ...getDistractors(food.name, 'name')]),
-        explanation: food.description
+        explanation: food.description 
       });
       
     } else if (chosenFormat === 'culture') {
@@ -52,7 +52,7 @@ export const generateDailyQuiz = () => {
         question: `What is the cultural origin of ${food.name}?`,
         correctAnswer: food.origin,
         options: shuffle([food.origin, ...getDistractors(food.origin, 'origin')]),
-        explanation: `${food.name} originates from the ${food.origin} community.`
+        explanation: food.description 
       });
       
     } else if (chosenFormat === 'nutrition') {
@@ -68,7 +68,7 @@ export const generateDailyQuiz = () => {
           `${Math.round(food.Energy_kcal * 1.5)} kcal`, 
           `${Math.round(food.Energy_kcal * 2)} kcal`
         ]),
-        explanation: `A standard serving contains approximately ${food.Energy_kcal} calories.`
+        explanation: food.description 
       });
       
     } else if (chosenFormat === 'ingredients') {
@@ -84,7 +84,7 @@ export const generateDailyQuiz = () => {
         question: `Which of these is a primary ingredient in ${food.name}?`,
         correctAnswer: correctIngredient,
         options: shuffle([correctIngredient, ...fakeIngredients]),
-        explanation: `The key ingredient that makes this dish special is ${correctIngredient}!`
+        explanation: food.description 
       });
     }
   });
