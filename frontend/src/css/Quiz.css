@@ -34,6 +34,11 @@
 }
 
 /* --- QuizCard Styles --- */
+.qc-h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
 .quiz-card {
   border: 1px solid #ccc;
   border-radius: 8px;
