@@ -81,6 +81,7 @@ SELECT
       r.status,
       r.createdAt AS date,
       r.updatedAt,
+      r.approved_by, 
       CONCAT(u.firstname, ' ', u.lastname) AS author,
       up.avatar AS authorImage,
       up.userProfileID AS authorId
@@ -165,6 +166,7 @@ SELECT
       dietaryTags,
       ingredients,
       instructions,
+      approvedBy: getSafe(data, 'approved_by') || null,
       funFact: getSafe(data, 'funFact') || '',
       chefTips: getSafe(data, 'chefTips') || '',
       status: getSafe(data, 'status') || 'Pending' // This is now safe
@@ -294,6 +296,7 @@ router.get('/recipes/:id', async (req, res) => {
         r.chefTips,
         r.status,
         r.admin_feedback,
+        r.approved_by,
         CONCAT(u.firstname, ' ', u.lastname) AS authorName,
         u.email AS authorEmail,
         up.userProfileID AS authorProfileID,
@@ -342,6 +345,7 @@ router.get('/recipes/:id', async (req, res) => {
       chefTips: row.chefTips || '',
       status: row.status || 'Unknown',
       adminFeedback: row.admin_feedback || '',
+      approvedBy: row.approved_by || null,
       authorName: row.authorName || 'Unknown Author',
       authorEmail: row.authorEmail || 'N/A',
       authorProfileID: row.authorProfileID || null,
@@ -1080,6 +1084,10 @@ router.patch('/updateStatus/:id', async (req, res) => {
   // Define the variable for the database (NULL if empty)
   const dbFeedbackValue = inputFeedback.length > 0 ? inputFeedback : null;
 
+  //
+  const adminID = req.session.user.userID;
+  const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+
   // Define the variable for email display (includes the default fallback)
   const rejectionContent = inputFeedback.length > 0 
                            ? inputFeedback 
@@ -1088,16 +1096,15 @@ router.patch('/updateStatus/:id', async (req, res) => {
   try {
     // Update recipe status
     const [result] = await db.query(
-      "UPDATE recipe SET status = ?, admin_feedback = ? WHERE foodID = ?",
-      [status, dbFeedbackValue, recipeId]
+      "UPDATE recipe SET status = ?, admin_feedback = ?, approved_by = ? WHERE foodID = ?",
+      [status, dbFeedbackValue, status === "Approved" ? adminName : null, recipeId]
     );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Recipe not found." });
     }
 
-    const adminID = req.session.user.userID;
-    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+
     const actionType = status === "Approved" ? "recipe_approved" : "recipe_rejected";
     await logActivity(db, adminID, adminName, actionType, `${status} recipe for food ID ${recipeId}.`);
 

@@ -7,6 +7,11 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  // === Modal & Feedback State ===
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [feedback, setFeedback] = useState("");
+
   // Normalize incoming data
   const formattedContent = pendingContent.map((item) => ({
     id: item.id || item.recipeID || item.ID || Math.random(),
@@ -48,20 +53,47 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
     end = Math.min(totalPages, end);
 
     let pages = [];
-    if (start > 1) pages.push('...');
+    if (start > 1) pages.push("...");
     for (let i = start; i <= end; i++) pages.push(i);
-    if (end < totalPages) pages.push('...');
+    if (end < totalPages) pages.push("...");
 
     return pages.map((p, index) => (
       <button
         key={index}
-        onClick={() => p !== '...' && handlePageChange(p)}
-        className={`${currentPage === p ? "active" : ""} ${p === '...' ? "umg-dots" : ""}`}
-        disabled={p === '...'}
+        onClick={() => p !== "..." && handlePageChange(p)}
+        className={`${currentPage === p ? "active" : ""} ${
+          p === "..." ? "umg-dots" : ""
+        }`}
+        disabled={p === "..."}
       >
         {p}
       </button>
     ));
+  };
+
+  // === Rejection Handlers ===
+  const handleOpenReject = (item) => {
+    setSelectedItem(item);
+    setShowRejectModal(true);
+  };
+
+  const handleConfirmReject = async () => {
+    if (feedback.trim().length === 0) return;
+
+    // TODO: Replace with your actual API call for the Food Heritage Management System
+    // Example: await api.rejectContent(selectedItem.id, feedback);
+    console.log(`Rejected ID ${selectedItem.id} with feedback: ${feedback}`);
+
+    // Reset state and close modal after successful API call
+    setShowRejectModal(false);
+    setFeedback("");
+    setSelectedItem(null);
+  };
+
+  const handleCancelReject = () => {
+    setShowRejectModal(false);
+    setFeedback("");
+    setSelectedItem(null);
   };
 
   // === Defensive check for empty content ===
@@ -81,7 +113,7 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
 
   // === Render Section ===
   return (
-    <div className="content-moderation-section">
+    <div className="content-moderation-section" style={{ position: "relative" }}>
       <div className="content-header">
         <h2>
           <BsFileEarmarkCheck /> {title}
@@ -124,7 +156,14 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
                     className="review-btn"
                     onClick={() => navigate(`/admin/reviewcontent/${item.id}`)}
                   >
-                    {t("adminRcpDB.review")}
+                    {t("adminRcpDB.review", "Review")}
+                  </button>
+                  <button
+                    className="reject-btn"
+                    onClick={() => handleOpenReject(item)}
+                    style={{ marginLeft: "8px", backgroundColor: "#ff4d4f", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
+                  >
+                    {t("adminRcpDB.reject", "Reject")}
                   </button>
                 </td>
               )}
@@ -152,6 +191,93 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
           >
             {t("explore.next")} ›
           </button>
+        </div>
+      )}
+
+      {/* === Rejection Modal === */}
+      {showRejectModal && (
+        <div
+          className="modal-overlay"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            className="modal-content"
+            style={{
+              backgroundColor: "#fff",
+              padding: "24px",
+              borderRadius: "8px",
+              width: "400px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            }}
+          >
+            <h3 style={{ marginTop: 0 }}>
+              {t("adminContentMode.rejectReasonTitle", "Reason for Rejection")}
+            </h3>
+            <p style={{ fontSize: "14px", color: "#666", marginBottom: "16px" }}>
+              Please provide a reason for rejecting{" "}
+              <strong>{selectedItem?.name}</strong>. This feedback is required.
+            </p>
+
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="e.g., Image quality too low, recipe missing measurements..."
+              required
+              style={{
+                width: "100%",
+                minHeight: "100px",
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid #ccc",
+                marginBottom: "16px",
+                fontFamily: "inherit",
+              }}
+            />
+
+            <div
+              className="modal-actions"
+              style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}
+            >
+              <button
+                onClick={handleCancelReject}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "4px",
+                  border: "1px solid #ccc",
+                  backgroundColor: "#f5f5f5",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="confirm-reject-btn"
+                disabled={feedback.trim().length < 5}
+                onClick={handleConfirmReject}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "4px",
+                  border: "none",
+                  backgroundColor: feedback.trim().length < 5 ? "#ccc" : "#ff4d4f",
+                  color: "white",
+                  cursor: feedback.trim().length < 5 ? "not-allowed" : "pointer",
+                }}
+              >
+                Confirm Rejection
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

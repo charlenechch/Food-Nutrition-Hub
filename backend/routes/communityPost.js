@@ -1149,15 +1149,19 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
   console.log(`📥 [ADMIN] Approving post ID: ${id} with feedback: "${feedbackText}"`);
 
   // 2. Update SQL to save the feedback into admin_feedback column
+  const adminName = req.session?.user
+    ? `${req.session.user.firstname} ${req.session.user.lastname}`.trim()
+    : null;
+
   const updateQuery = `
     UPDATE posts 
-    SET status = 'Approved', admin_feedback = ? 
+    SET status = 'Approved', admin_feedback = ?, approved_by = ?
     WHERE postID = ?;
   `;
 
   try {
-    // Pass feedbackText into the query
-    const [result] = await db.execute(updateQuery, [feedbackText, id]);
+    // Pass feedbackText and adminName into the query
+    const [result] = await db.execute(updateQuery, [feedbackText, adminName, id]);
 
     if (result.affectedRows === 0) {
       console.warn(`⚠️ [ADMIN] Post ${id} not found or not pending.`);
@@ -1408,6 +1412,7 @@ router.get("/admin/:id", checkIsAdmin, async (req, res) => {
       p.status,
       p.created_at,
       p.admin_feedback,
+      p.approved_by,
       CONCAT(u.firstname, ' ', u.lastname) AS author,
       u.email AS authorEmail
     FROM posts p
@@ -1442,6 +1447,7 @@ router.get("/admin/:id", checkIsAdmin, async (req, res) => {
         author: post.author,
         status: post.status,
         adminFeedback: post.admin_feedback,
+        approvedBy: post.approved_by || null, 
         created_at: post.created_at,
       },
     });

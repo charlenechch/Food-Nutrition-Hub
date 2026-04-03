@@ -90,6 +90,7 @@ const EditRecipePage = () => {
               ? data.dietaryTags.join(", ")
               : data.dietaryTags || "-",
           image: data.image || "https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg",
+          approvedBy: data.approvedBy || null,
         };
 
         setRecipe(normalized);
@@ -214,6 +215,12 @@ const EditRecipePage = () => {
               <p>{t("editRecipe.status")}</p>
               <span className="status-tag">{recipe.status}</span>
             </div>
+            {recipe.approvedBy && (
+              <div className="review-info">
+                <p>Approved By</p>
+                <strong>{recipe.approvedBy}</strong>
+              </div>
+            )}
           </div>
 
           <div className="review-main">

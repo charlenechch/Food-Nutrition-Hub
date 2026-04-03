@@ -18,6 +18,7 @@ import Modal from "../components/Modal";
 import { useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import "../css/AdminSystemSettings.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -750,22 +751,29 @@ export default function AdminSystemSettings({
                         
                         {/* Show recent backups */}
                         {backupList.length > 0 && (
-                            <div className="mt-4">
-                            <p className="text-sm text-gray-600 mb-2">{t("adminSettings.recentBackups")}</p>
-                            <div className="space-y-2">
-                                {backupList.slice(0, 3).map(backup => (
-                                <div key={backup.filename} className="flex justify-between items-center text-sm">
-                                    <span>{new Date(backup.created_at).toLocaleDateString()}</span>
-                                    <span>{backup.size_mb} MB</span>
-                                    <button
-                                    onClick={() => handleDownloadBackup(backup.filename)}
-                                    className="text-blue-600 hover:text-blue-800"
-                                    >
-                                    <Download size={14} />
-                                    </button>
+                            <div className="recent-backups-section">
+                                <div className="recent-backups-title">
+                                    📁 {t("adminSettings.recentBackups")}
                                 </div>
-                                ))}
-                            </div>
+                                <div>
+                                    {backupList.slice(0, 3).map(backup => (
+                                        <div key={backup.filename} className="recent-backup-item">
+                                            <span className="recent-backup-date">
+                                                {new Date(backup.created_at).toLocaleDateString()}
+                                            </span>
+                                            <span className="recent-backup-size">
+                                                {backup.size_mb} MB
+                                            </span>
+                                            <button
+                                                onClick={() => handleDownloadBackup(backup.filename)}
+                                                className="btn-recent-download"
+                                                title="Download"
+                                            >
+                                                <Download size={14} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                         </div>
@@ -1281,49 +1289,53 @@ export default function AdminSystemSettings({
 
             {/* Backup List Modal */}
             {showBackupList && (
-                <div
-                    className="umg-modal-backdrop"
-                    role="dialog"
-                    aria-modal="true"
-                    onClick={() => setShowBackupList(false)}
-                >
-                    <div className="umg-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+                <div className="umg-modal-backup" onClick={() => setShowBackupList(false)}>
+                    <div className="umg-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="umg-modal-header">
-                            <h3><Archive size={18} /> {t("adminSettings.backupList")}</h3>
+                            <h3>
+                                <Archive size={20} />
+                                {t("adminSettings.backupList")}
+                            </h3>
                             <button className="umg-modal-close" onClick={() => setShowBackupList(false)}>×</button>
                         </div>
                         <div className="umg-modal-body">
                             {backupList.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500">
-                                    {t("adminSettings.noBackupsAvailable")}
+                                <div className="backup-empty">
+                                    <Archive size={64} />
+                                    <p>{t("adminSettings.noBackupsAvailable")}</p>
                                 </div>
                             ) : (
-                                <div className="space-y-3">
+                                <div>
                                     {backupList.map((backup) => (
-                                        <div key={backup.filename} className="border rounded-lg p-3">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex-1">
-                                                    <div className="font-medium break-all">{backup.filename}</div>
-                                                    <div className="text-sm text-gray-500">
-                                                        {new Date(backup.created_at).toLocaleString()}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        {backup.size_mb} MB
+                                        <div key={backup.filename} className="backup-list-item">
+                                            <div className="backup-item-content">
+                                                <div className="backup-info">
+                                                    <div className="backup-filename">{backup.filename}</div>
+                                                    <div className="backup-meta">
+                                                        <span className="backup-date">
+                                                            <Calendar size={12} />
+                                                            {new Date(backup.created_at).toLocaleString()}
+                                                        </span>
+                                                        <span className="backup-size">
+                                                            <Download size={12} />
+                                                            {backup.size_mb} MB
+                                                        </span>
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-2 ml-4">
+                                                <div className="backup-actions">
                                                     <button
                                                         onClick={() => handleDownloadBackup(backup.filename)}
-                                                        className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                                                        className="btn-download"
                                                     >
-                                                        <Download size={14} className="inline mr-1" />
+                                                        <Download size={14} />
                                                         {t("adminSettings.download")}
                                                     </button>
                                                     <button
                                                         onClick={() => handleRestore(backup.filename)}
-                                                        className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+                                                        className="btn-restore"
                                                         disabled={isRestoring}
                                                     >
+                                                        <Archive size={14} />
                                                         {isRestoring ? t("adminSettings.restoring") : t("adminSettings.restore")}
                                                     </button>
                                                 </div>
@@ -1334,7 +1346,7 @@ export default function AdminSystemSettings({
                             )}
                         </div>
                         <div className="umg-modal-footer">
-                            <button className="umg-btn-secondary" onClick={() => setShowBackupList(false)}>
+                            <button className="btn-close" onClick={() => setShowBackupList(false)}>
                                 {t("adminSettings.close")}
                             </button>
                         </div>

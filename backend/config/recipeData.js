@@ -145,31 +145,29 @@ const recipeData = [
   },
 
   {
-    foodID: 5, //asam siok
+    foodID: 5, //terung asam
     userProfileID: 5,
     status: "Approved",
-    description: "Using bamboo is a natural cooking method that retains tastes and creates incredibly tender chicken that is scented with bamboo and lemongrass.",
-    ingredients: `1kg whole chicken
-                  20g ginger
-                  2 lemon grass
-                  20g sliced shallot
-                  20g sliced garlic
-                  1 cup of rice
-                  2 teaspoon salt
-                  2 cups of water
-                  1 cup of tapioca leaves
-                  1 bamboo log`,
-    steps:`1. Cook the rice.
-           2. Clean the chicken and cut it into a small sizes.
-           3. Marinate the chicken with the other ingredients ( Sliced ginger + bruised lemon grass + sliced shallot + sliced garlic + salt + rice that have been cooked + a small amount of water  ) for a few minutes.
-           4. Then stuff it into the bamboo log that have been cleaned about three-quarter full and seal with the tapioca leaves.
-           5. Cook the chicken by standing the bamboo log sealed side up over burning wood or charcoal for 30 minutes. ( Remember to turn the bamboo to keep the content evenly cooked )
-           6. After 30 minutes, when the chicken have been cooked, the burnt outer layer of the bamboo is skinned off.
-           7. Split the bamboo to extract the chicken and  serve it with a soup.`,
-    cookTime: 120,
+    description: "Terung asam uses salted fish and sour eggplant as its main ingredients. This soup is truly delicious, with a balance of sour, salty, sweet, and spicy flavours.",
+    ingredients: `1/2 large onion (sliced)
+                  1 cloves garlic (sliced)
+                  2 ½ small chillies (sliced)
+                  1/2 inch belacan
+                  ¼ salted fish
+                  1 sour eggplant (thinly sliced)
+                  ¼ tsp turmeric powder
+                  ¼ tsp seasoning powder
+                  ⅛ tsp salt
+                  ¼ tsp sugar
+                  ⅛ tbsp cooking oil
+                  150 ml water`,
+    steps:`1. Prepare all ingredients as listed. Wash them thoroughly and cut as needed.
+            2. Heat cooking oil, then fry the salted terubuk fish first. Remove and set aside. In the same pan, cook the sliced ingredients together with belacan and turmeric powder until fragrant.
+            3. Add sour eggplant, salted fish, water, salt and seasoning powder. Bring to a boil, then turn off the heat. Ready to serve.`,
+    cookTime: 30,
     servings: 1,
-    DidYouKnow: "Asam Siok is a traditional Bidayuh method of cooking where the bamboo not only serves as a cooking vessel but also imparts a unique smoky, earthy flavor to the dish.",
-    chefTips: "Choose young, green bamboo for cooking as it contains natural moisture that creates steam. Older, drier bamboo may burn too quickly.",
+    DidYouKnow: "Terung asam (also known as terung Dayak) is a native ingredient of Sarawak, commonly used in traditional soups and dishes for its natural sour taste",
+    chefTips: "Cut the terung asam into wedges and adjust the amount based on your preferred sourness. You may keep the seeds for a stronger tangy flavour or remove them for a milder taste.",
     publish: "publish",
   },
 
@@ -178,16 +176,16 @@ const recipeData = [
     userProfileID: 6,
     status: "Approved",
     description: "Featuring rice noodles served with a spicy, umami-rich gravy made from belacan.",
-    ingredients: `200g rice vermicelli
-                  8 small chilli
-                  150g shrimp paste
-                  3 tablespoon tamarind paste
-                  50g soya bean sprout
-                  200g dried shrimp
-                  10 shallot
-                  2 tablespoon brown sugar
-                  1 fresh cuttlefish
-                  1 cucumber`,
+    ingredients: `70g rice vermicelli
+                  3 small chilli
+                  50g shrimp paste
+                  1 tablespoon tamarind paste
+                  25g soya bean sprout
+                  70g dried shrimp
+                  3 shallot
+                  1 tablespoon brown sugar
+                  1/3 fresh cuttlefish
+                  1/3 cucumber`,
     steps:`1. In a frying pan, pan fry the belachan or shrimp paste until fragrant and aromatic.
            2. Properly grilled shrimp paste will give you a nice aroma. In this process, the shrimp paste may disintegrate but that is ok for the next step.
            3. Pound the chilli, soaked dry prawns and shallots until as fine as possible. Set aside. You can also use a blender if you wished.
