@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { FaGlobe, FaSignOutAlt, FaUser, FaTrophy } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
-import { User, Bell, BrainCircuit, Flame } from "lucide-react";
+import { User, Bell, Brain, Flame } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { useTranslation } from "react-i18next";
 import "./Header.css";
@@ -276,7 +276,7 @@ export default function Header() {
             {user && user.role !== "guest" && quizState && (
               <button onClick={() => { navigate("/daily-quiz"); closeMenu(); }} className="mobile-btn">
                 <div className="quiz-icon-wrapper">
-                  <BrainCircuit size={18} />
+                  <Brain size={18} />
                   {quizState !== "done" && <span className="quiz-red-dot"></span>}
                 </div>
                 {t('nav.dailyQuiz')}
@@ -325,7 +325,7 @@ export default function Header() {
           {user && user.role !== "guest" && quizState && (
             <button className="quiz-nav-btn" onClick={() => navigate("/daily-quiz")}>
               <div className="quiz-icon-wrapper">
-                <BrainCircuit size={18} />
+                <Brain size={18} />
                 {quizState !== "done" && <span className="quiz-red-dot"></span>}
               </div>
               {quizState !== "lost" && (
