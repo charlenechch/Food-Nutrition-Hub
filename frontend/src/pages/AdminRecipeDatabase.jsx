@@ -18,7 +18,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
   // --- States ---
   const [localRecipes, setLocalRecipes] = useState(recipesProp);
   const [searchTerm, setSearchTerm] = useState("");
-  const [category, setCategory] = useState("All Categories");
+  const [sortOrder, setSortOrder] = useState("Most Recent");
   const [difficulty, setDifficulty] = useState("All"); 
   const [statusFilter, setStatusFilter] = useState("All");
   
@@ -42,7 +42,7 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
   // Reset page when any filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, category, difficulty, statusFilter, originFilter]);
+  }, [searchTerm, sortOrder, difficulty, statusFilter, originFilter]);
 
   // --- Helper: Format Date ---
   const formatDate = (dateString) => {
@@ -52,24 +52,24 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
   };
 
   // --- Filtering Logic ---
-  const filteredRecipes = localRecipes.filter((r) => {
-    const term = searchTerm.toLowerCase();
-    const name = (r.name || "").toLowerCase();
-    const author = (r.author || "").toLowerCase();
-    
-    const matchesSearch = name.includes(term) || author.includes(term);
-    const matchesCategory = category === "All Categories" || (r.category === category);
-    const matchesDifficulty = difficulty === "All" || (r.difficulty || "Medium") === difficulty;
-    
-    // NEW: Cultural Origin matching logic
-    const recipeOrigin = r.origin || r.culturalOrigin || "";
-    const matchesOrigin = originFilter === "All Origins" || recipeOrigin === originFilter;
-    
-    const statusToCheck = sectionType === "approved" ? "Approved" : statusFilter;
-    const matchesStatus = statusToCheck === "All" || r.status === statusToCheck;
-    
-    return matchesSearch && matchesCategory && matchesDifficulty && matchesOrigin && matchesStatus;
-  });
+  const filteredRecipes = localRecipes
+    .filter((r) => {
+      const term = searchTerm.toLowerCase();
+      const name = (r.name || "").toLowerCase();
+      const author = (r.author || "").toLowerCase();
+      const matchesSearch = name.includes(term) || author.includes(term);
+      const matchesDifficulty = difficulty === "All" || (r.difficulty || "Medium") === difficulty;
+      const recipeOrigin = r.origin || r.culturalOrigin || "";
+      const matchesOrigin = originFilter === "All Origins" || recipeOrigin === originFilter;
+      const statusToCheck = sectionType === "approved" ? "Approved" : statusFilter;
+      const matchesStatus = statusToCheck === "All" || r.status === statusToCheck;
+      return matchesSearch && matchesDifficulty && matchesOrigin && matchesStatus;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.date || 0);
+      const dateB = new Date(b.createdAt || b.date || 0);
+      return sortOrder === "Most Recent" ? dateB - dateA : dateA - dateB;
+    });
 
   // --- Pagination ---
   const currentRecipes = filteredRecipes.slice(
@@ -235,15 +235,15 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
           </div>
           <div className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`} ref={dropdownRef}>
             <button className="admin-beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
-              <span>{category}</span>
+              <span>{sortOrder}</span>
               <FiChevronDown className={`admin-dropdown-arrow ${dropdownOpen ? "rotate" : ""}`} />
             </button>
             {dropdownOpen && (
               <ul className="admin-dropdown-menu">
-                {["All Categories", ...categories.filter(c => c !== "All Categories")].map((opt, i) => (
-                  <li key={i} onClick={() => { setCategory(opt); setDropdownOpen(false); }}>
+                {["Most Recent", "Oldest"].map((opt, i) => (
+                  <li key={i} onClick={() => { setSortOrder(opt); setDropdownOpen(false); }}>
                     <span className="option-text">{opt}</span>
-                    {opt === category && <span className="tick">✓</span>}
+                    {opt === sortOrder && <span className="tick">✓</span>}
                   </li>
                 ))}
               </ul>
