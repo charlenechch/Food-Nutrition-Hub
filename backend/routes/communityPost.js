@@ -1584,6 +1584,10 @@ router.delete("/admin/delete/:id", checkIsAdmin, async (req, res) => {
   console.log(`🗑️ [ADMIN] Deleting post ID: ${id}`);
 
   try {
+    // Fetch post name before deletion for logging
+    const [postRows] = await db.execute("SELECT foodName FROM posts WHERE postID = ?", [id]);
+    const postName = postRows.length > 0 ? postRows[0].foodName : `ID ${id}`;
+
     // Execute delete query
     const query = "DELETE FROM posts WHERE postID = ?";
     const [result] = await db.execute(query, [id]);
@@ -1591,6 +1595,10 @@ router.delete("/admin/delete/:id", checkIsAdmin, async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Post not found." });
     }
+
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "post_deleted", `Deleted community post "${postName}" (Post ID: ${id}).`);
 
     console.log(`✅ [ADMIN] Post ${id} deleted successfully.`);
     res.json({ success: true, message: "Post deleted successfully." });

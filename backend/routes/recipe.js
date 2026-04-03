@@ -1393,15 +1393,23 @@ router.delete("/admin/delete/:id", async (req, res) => {
   }
 
   try {
-    // 2. Delete from 'recipe' table first (Child table)
+    // 2. Fetch food name before deletion for logging
+    const [foodRows] = await db.query("SELECT name FROM food WHERE foodID = ?", [id]);
+    const foodName = foodRows.length > 0 ? foodRows[0].name : `ID ${id}`;
+
+    // 3. Delete from 'recipe' table first (Child table)
     await db.query("DELETE FROM recipe WHERE foodID = ?", [id]);
 
-    // 3. Delete from 'food' table next (Parent table)
+    // 4. Delete from 'food' table next (Parent table)
     const [result] = await db.query("DELETE FROM food WHERE foodID = ?", [id]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: "Recipe not found." });
     }
+
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "recipe_deleted", `Deleted recipe "${foodName}" (Food ID: ${id}).`);
 
     console.log(`✅ [ADMIN] Recipe ${id} deleted successfully.`);
     res.json({ success: true, message: "Recipe deleted successfully." });

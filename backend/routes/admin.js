@@ -9,6 +9,9 @@ const { sendEmail } = require("../config/mailer");
 const { createNotification, isEmailNotificationsEnabled } = require("./notifications");
 const { logActivity } = require("./adminActivityLog");
 
+// embed 
+const { embedFood, embedFoodS1, embedFoodS3 } = require("../utils/embeddings");
+
 // ✅ Example Admin API – only admins can access
 router.get("/dashboard", requireAdmin, (req, res) => {
   return res.json({
@@ -709,6 +712,93 @@ router.post("/announcement", requireAdmin, async (req, res) => {
         console.error("❌ Announcement error:", error);
         return res.status(500).json({ success: false, message: "Failed to send announcement." });
     }
+});
+
+router.get("/embed-all", async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      `SELECT foodID, name, description, commonIngredients, culturalSignificance FROM food`
+    );
+
+    // Run in background so request doesn't timeout
+    res.json({ ok: true, message: `Started embedding ${rows.length} foods. Check Railway logs.` });
+
+    for (const row of rows) {
+      try {
+        await embedFoodS1(row.foodID, row.name, row.description || "");
+        await new Promise(r => setTimeout(r, 200));
+        await embedFood(row.foodID, row.name, row.description || "", row.commonIngredients || "");
+        await new Promise(r => setTimeout(r, 200));
+        await embedFoodS3(row.foodID, row.name, row.description || "", row.commonIngredients || "", row.culturalSignificance || "");
+        await new Promise(r => setTimeout(r, 200));
+        console.log(`✅ Done: ${row.name}`);
+      } catch (err) {
+        console.error(`❌ Failed: ${row.name}`, err.message);
+      }
+    }
+    console.log("✅ All embeddings done!");
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// embed
+router.get("/embed-all", async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      `SELECT foodID, name, description, commonIngredients, culturalSignificance FROM food`
+    );
+
+    // Respond immediately so request doesn't timeout
+    res.json({ ok: true, message: `Started embedding ${rows.length} foods. Check Railway logs.` });
+
+    // Run in background
+    for (const row of rows) {
+      try {
+        await embedFoodS1(row.foodID, row.name, row.description || "");
+        await new Promise(r => setTimeout(r, 200));
+        await embedFood(row.foodID, row.name, row.description || "", row.commonIngredients || "");
+        await new Promise(r => setTimeout(r, 200));
+        await embedFoodS3(row.foodID, row.name, row.description || "", row.commonIngredients || "", row.culturalSignificance || "");
+        await new Promise(r => setTimeout(r, 200));
+        console.log(`✅ Done: ${row.name}`);
+      } catch (err) {
+        console.error(`❌ Failed: ${row.name}`, err.message);
+      }
+    }
+    console.log("✅ All embeddings done!");
+  } catch (err) {
+    // Only send error if response hasn't been sent yet
+    if (!res.headersSent) res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/embed-all", async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      `SELECT foodID, name, description, commonIngredients, culturalSignificance FROM food`
+    );
+
+    // Run in background so request doesn't timeout
+    res.json({ ok: true, message: `Started embedding ${rows.length} foods. Check Railway logs.` });
+
+    for (const row of rows) {
+      try {
+        await embedFoodS1(row.foodID, row.name, row.description || "");
+        await new Promise(r => setTimeout(r, 200));
+        await embedFood(row.foodID, row.name, row.description || "", row.commonIngredients || "");
+        await new Promise(r => setTimeout(r, 200));
+        await embedFoodS3(row.foodID, row.name, row.description || "", row.commonIngredients || "", row.culturalSignificance || "");
+        await new Promise(r => setTimeout(r, 200));
+        console.log(`✅ Done: ${row.name}`);
+      } catch (err) {
+        console.error(`❌ Failed: ${row.name}`, err.message);
+      }
+    }
+    console.log("✅ All embeddings done!");
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;
