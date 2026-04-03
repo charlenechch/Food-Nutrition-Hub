@@ -20,8 +20,10 @@ const ACTION_TYPE_KEYS = [
     { value: "food_deleted", key: "foodDeleted" },
     { value: "post_approved", key: "postApproved" },
     { value: "post_rejected", key: "postRejected" },
+    { value: "post_deleted", key: "postDeleted" },
     { value: "recipe_approved", key: "recipeApproved" },
     { value: "recipe_rejected", key: "recipeRejected" },
+    { value: "recipe_deleted", key: "recipeDeleted" },
     { value: "announcement_sent", key: "announcementSent" },
     { value: "logs_cleared", key: "logsCleared" },
 ];
@@ -37,8 +39,10 @@ const ACTION_BADGE = {
     food_deleted:       { key: "foodDeleted",       color: "#b71c1c", bg: "#ffebee" },
     post_approved:      { key: "postApproved",      color: "#2e7d32", bg: "#e8f5e9" },
     post_rejected:      { key: "postRejected",      color: "#b71c1c", bg: "#ffebee" },
+    post_deleted:       { key: "postDeleted",       color: "#b71c1c", bg: "#ffebee" },
     recipe_approved:    { key: "recipeApproved",    color: "#2e7d32", bg: "#e8f5e9" },
     recipe_rejected:    { key: "recipeRejected",    color: "#b71c1c", bg: "#ffebee" },
+    recipe_deleted:     { key: "recipeDeleted",     color: "#b71c1c", bg: "#ffebee" },
     announcement_sent:  { key: "announcementSent",  color: "#6a1b9a", bg: "#f3e5f5" },
     logs_cleared:       { key: "logsCleared",       color: "#5f5040", bg: "#f1e6d8" },
 };

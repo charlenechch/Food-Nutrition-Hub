@@ -210,8 +210,8 @@ CREATE TABLE adminActivityLog (
     actionType ENUM(
         'user_created', 'user_updated', 'user_suspended', 'user_unsuspended', 'user_deleted',
         'food_created', 'food_updated', 'food_deleted',
-        'post_approved', 'post_rejected',
-        'recipe_approved', 'recipe_rejected',
+        'post_approved', 'post_rejected', 'post_deleted',
+        'recipe_approved', 'recipe_rejected', 'recipe_deleted',
         'announcement_sent', 'logs_cleared'
     ) NOT NULL,
     description TEXT NOT NULL,
