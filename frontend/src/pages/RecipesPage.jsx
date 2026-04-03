@@ -753,11 +753,16 @@ export default function RecipesPage() {
                     style={{ cursor: "pointer" }}
                     title={`View ${r.author}'s profile`}
                   >
+                    {/* ✅ UPDATED: Added UI Avatars and onError Fallback */}
                     <img 
-                      src={r.authorImage || 'https://via.placeholder.com/40/8b5e3c/FFFFFF?text=U'} 
+                      src={r.authorImage || `https://ui-avatars.com/api/?name=${r.author || "User"}&background=8b5e3c&color=fff&rounded=true`} 
                       alt={r.author} 
                       className="rp-author-img" 
                       loading="lazy"
+                      onError={(e) => {
+                        e.target.onerror = null; // prevents infinite loop if fallback also fails
+                        e.target.src = `https://ui-avatars.com/api/?name=${r.author || "User"}&background=8b5e3c&color=fff&rounded=true`;
+                      }}
                     />
                     <span className="rp-author-name">
                       {r.author}
