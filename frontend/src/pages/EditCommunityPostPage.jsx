@@ -28,6 +28,7 @@ const EditCommunityPostPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [feedbackText, setFeedbackText] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
   const [infoDlg, setInfoDlg] = useState({
     open: false,
     title: "",
@@ -124,19 +125,24 @@ const EditCommunityPostPage = () => {
   };
 
   // Approve / Reject
-  const handleConfirmAction = async () => {
+  // Add 'reasonFromModal' as a parameter
+  const handleConfirmAction = async (reasonFromModal = "") => {
     const endpoint =
       modalType === "approve"
         ? `${API_URL}/api/communityPost/admin/approve/${id}`
         : `${API_URL}/api/communityPost/admin/reject/${id}`;
 
+    // If rejecting, use the text from the popup. Otherwise, use the bottom box.
+    const finalFeedback = modalType === "reject" ? reasonFromModal : feedbackText;
+
     const requestOptions = {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
-      body: JSON.stringify({ feedback: feedbackText }),
+      body: JSON.stringify({ feedback: finalFeedback }),
     };
-
+    
+    // ... the rest of the try/catch block stays exactly the same!
     try {
       const res = await fetch(endpoint, requestOptions);
       const data = await res.json();
@@ -220,15 +226,19 @@ const EditCommunityPostPage = () => {
           className="rcp-edit-approve-btn"
           onClick={() => { setModalType("approve"); setShowModal(true); }}
         >
-          <FaCheck /> {t("editPost.approve")}
+          <FaCheck /> {t("editPost.approve", "Approve")}
         </button>
         
         {post.status === "Pending" && (
           <button
             className="rcp-edit-reject-btn"
-            onClick={() => { setModalType("reject"); setShowModal(true); }}
+            onClick={() => { 
+              setModalType("reject"); 
+              setRejectReason(""); // Clear any old text when opening
+              setShowModal(true); 
+            }}
           >
-            <FaTimes /> {t("editPost.reject")}
+            <FaTimes /> {t("editPost.reject", "Reject")}
           </button>
         )}
       </div>
@@ -331,19 +341,41 @@ const EditCommunityPostPage = () => {
       {showModal && (
         <div className="confirm-overlay">
           <div className="confirm-modal">
-            <h3>{t("editPost.warningTitle")}</h3>
-            <p>
-              {t("editPost.warningConfirm", { action: modalType })}
-            </p>
+            <h3>{t("editPost.warningTitle", "Warning")}</h3>
+            
+            {modalType === "approve" ? (
+              <p>{t("editPost.warningApprove", "Are you sure you want to approve this post?")}</p>
+            ) : (
+              <>
+                <p>{t("editPost.warningReject", "Please provide a reason for rejecting this post. This is mandatory.")}</p>
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="e.g., Image is unclear, lacks cultural context..."
+                  rows="4"
+                  style={{ width: "100%", padding: "10px", marginTop: "10px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #ccc", fontFamily: "inherit" }}
+                />
+              </>
+            )}
+
             <div className="confirm-buttons">
               <button className="cancel-btn" onClick={() => setShowModal(false)}>
-                {t("editPost.cancel")}
+                {t("editPost.cancel", "Cancel")}
               </button>
+              
               <button
                 className={modalType === "approve" ? "approve-btn" : "delete-btn"}
-                onClick={handleConfirmAction}
+                disabled={modalType === "reject" && rejectReason.trim().length === 0}
+                style={{ 
+                  opacity: (modalType === "reject" && rejectReason.trim().length === 0) ? 0.5 : 1, 
+                  cursor: (modalType === "reject" && rejectReason.trim().length === 0) ? "not-allowed" : "pointer" 
+                }}
+                onClick={() => {
+                  // Pass the popup reason into your API call
+                  handleConfirmAction(modalType === "reject" ? rejectReason : "");
+                }}
               >
-                {modalType === "approve" ? t("editPost.approve") : t("editPost.reject")}
+                {modalType === "approve" ? t("editPost.approve", "Approve") : t("editPost.reject", "Reject")}
               </button>
             </div>
           </div>
