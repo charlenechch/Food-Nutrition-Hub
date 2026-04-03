@@ -103,7 +103,6 @@ const EditRecipePage = () => {
     fetchRecipe();
   }, [id]);
 
-  // SMART NAVIGATION LOGIC
   const handleBack = () => {
     if (!recipe) {
       navigate("/admin");
@@ -124,10 +123,8 @@ const EditRecipePage = () => {
     : t("editRecipe.backToModeration", "Back to Moderation");
 
   // === CLEANED UP API FUNCTION ===
-  const handleConfirmAction = async (reasonFromModal = "") => {
+  const handleConfirmAction = async (feedbackToSend = "") => {
     const newStatus = modalType === "approve" ? "Approved" : "Rejected";
-    // Use the reason from the popup if rejecting, otherwise use the bottom box
-    const feedbackToSend = modalType === "reject" ? reasonFromModal.trim() : (adminFeedback ? adminFeedback.trim() : ""); 
 
     try {
       const updateUrl = `${API_URL}/api/recipe/updateStatus/${id}`;
@@ -172,7 +169,7 @@ const EditRecipePage = () => {
     }
   };
 
-  // Send feedback (for bottom box)
+  // Send feedback manually
   const handleSendFeedback = async () => {
     const feedback = adminFeedback.trim();
 
@@ -241,8 +238,7 @@ const EditRecipePage = () => {
               className="rcp-edit-reject-btn"
               onClick={() => { 
                 setModalType("reject"); 
-                // UX Fix: If they typed in the bottom box, auto-fill the popup so they don't lose work!
-                setRejectReason(adminFeedback || ""); 
+                setRejectReason(""); 
                 setShowModal(true); 
               }}
             >
@@ -332,7 +328,7 @@ const EditRecipePage = () => {
             </div>
 
             <div className="rcp-review-section rcp-basic-info-grid">
-              <h3>{t("editRecipe.adminFeedback", "Admin Feedback (Required for Rejection)")}</h3>
+              <h3>{t("editRecipe.adminFeedback", "Admin Feedback")}</h3>
               <div className="rcp-edit-info-grid">
                 <div className="rcp-edit-info-item full-width">
                   <textarea
@@ -366,15 +362,29 @@ const EditRecipePage = () => {
             
             {modalType === "approve" ? (
               <p>{t("editRecipe.warningApprove", "Are you sure you want to approve this recipe?")}</p>
-            ) : (
+            ) : adminFeedback.trim().length > 0 ? (
+              // SMART UX: Admin already provided feedback
               <>
-                <p>{t("editRecipe.warningReject", "Please provide a reason for rejecting this recipe. This is mandatory.")}</p>
+                <p>{t("editRecipe.warningRejectConfirm", "Are you sure you want to reject this recipe?")}</p>
+                <div style={{ marginTop: "15px", padding: "12px", backgroundColor: "#ffebe9", color: "#d73a49", borderRadius: "6px", border: "1px solid #ffc1c0", fontSize: "14px" }}>
+                  <strong style={{ display: "block", marginBottom: "5px" }}>{t("editRecipe.feedbackToSend", "Feedback to be sent:")}</strong>
+                  <span style={{ whiteSpace: "pre-wrap" }}>{adminFeedback}</span>
+                </div>
+              </>
+            ) : (
+              // SMART UX: Admin forgot feedback
+              <>
+                <p style={{ color: "#d73a49", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
+                   <FaExclamationTriangle /> 
+                   {t("editRecipe.forgotFeedback", "Reminder: Feedback is required!")}
+                </p>
+                <p>{t("editRecipe.warningReject", "Please provide a reason for rejecting this recipe.")}</p>
                 <textarea
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
                   placeholder={t("editRecipe.feedbackPlaceholder", "e.g., Recipe is missing steps, unclear measurements...")}
                   rows="4"
-                  style={{ width: "100%", padding: "10px", marginTop: "10px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #ccc", fontFamily: "inherit" }}
+                  style={{ width: "100%", padding: "10px", marginTop: "10px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #ccc", fontFamily: "inherit", resize: "vertical" }}
                 />
               </>
             )}
@@ -386,12 +396,15 @@ const EditRecipePage = () => {
               
               <button
                 className={modalType === "approve" ? "approve-btn" : "delete-btn"}
-                disabled={modalType === "reject" && rejectReason.trim().length === 0}
+                disabled={modalType === "reject" && adminFeedback.trim().length === 0 && rejectReason.trim().length === 0}
                 style={{ 
-                  opacity: (modalType === "reject" && rejectReason.trim().length === 0) ? 0.5 : 1, 
-                  cursor: (modalType === "reject" && rejectReason.trim().length === 0) ? "not-allowed" : "pointer" 
+                  opacity: (modalType === "reject" && adminFeedback.trim().length === 0 && rejectReason.trim().length === 0) ? 0.5 : 1, 
+                  cursor: (modalType === "reject" && adminFeedback.trim().length === 0 && rejectReason.trim().length === 0) ? "not-allowed" : "pointer" 
                 }}
-                onClick={() => handleConfirmAction(modalType === "reject" ? rejectReason : "")}
+                onClick={() => {
+                  const finalFeedback = modalType === "reject" ? (adminFeedback.trim() || rejectReason.trim()) : "";
+                  handleConfirmAction(finalFeedback);
+                }}
               >
                 {modalType === "approve" ? t("editRecipe.approve", "Approve") : t("editRecipe.reject", "Reject")}
               </button>

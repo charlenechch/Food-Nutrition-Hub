@@ -125,24 +125,19 @@ const EditCommunityPostPage = () => {
   };
 
   // Approve / Reject
-  // Add 'reasonFromModal' as a parameter
-  const handleConfirmAction = async (reasonFromModal = "") => {
+  const handleConfirmAction = async (feedbackToSend = "") => {
     const endpoint =
       modalType === "approve"
         ? `${API_URL}/api/communityPost/admin/approve/${id}`
         : `${API_URL}/api/communityPost/admin/reject/${id}`;
 
-    // If rejecting, use the text from the popup. Otherwise, use the bottom box.
-    const finalFeedback = modalType === "reject" ? reasonFromModal : feedbackText;
-
     const requestOptions = {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
-      body: JSON.stringify({ feedback: finalFeedback }),
+      body: JSON.stringify({ feedback: feedbackToSend }),
     };
     
-    // ... the rest of the try/catch block stays exactly the same!
     try {
       const res = await fetch(endpoint, requestOptions);
       const data = await res.json();
@@ -150,8 +145,8 @@ const EditCommunityPostPage = () => {
       if (!res.ok) throw new Error(data.message || "Action failed");
       
       openInfo({
-        title: t("editPost.success"),
-        message: modalType === "approve" ? t("editPost.postApproved") : t("editPost.postRejected"),
+        title: t("editPost.success", "Success"),
+        message: modalType === "approve" ? t("editPost.postApproved", "Post Approved") : t("editPost.postRejected", "Post Rejected"),
         icon: <FaCheckCircle />,
       });
       
@@ -160,24 +155,24 @@ const EditCommunityPostPage = () => {
       setPost((prev) => ({ 
         ...prev, 
         status: modalType === "approve" ? "Approved" : "Rejected",
-        adminFeedback: modalType === "reject" ? feedbackText : prev.adminFeedback
+        adminFeedback: modalType === "reject" ? feedbackToSend : prev.adminFeedback
       }));
       
     } catch (err) {
       openInfo({
-        title: t("editPost.actionFailed"),
+        title: t("editPost.actionFailed", "Action Failed"),
         message: err.message || "Something went wrong.",
         icon: <FaExclamationTriangle />,
       });
     }
   };
 
-  // Send feedback
+  // Send feedback manually
   const handleSendFeedback = async () => {
     if (!feedbackText.trim()) {
       openInfo({
-        title: t("editPost.missingFeedback"),
-        message: t("editPost.enterFeedbackFirst"),
+        title: t("editPost.missingFeedback", "Missing Feedback"),
+        message: t("editPost.enterFeedbackFirst", "Please enter feedback first."),
         icon: <FaExclamationTriangle />,
       });
       return;
@@ -193,28 +188,27 @@ const EditCommunityPostPage = () => {
         throw new Error("Failed to send feedback");
       }
       openInfo({
-        title: t("editPost.feedbackSent"),
-        message: t("editPost.feedbackSentSuccess"),
+        title: t("editPost.feedbackSent", "Feedback Sent"),
+        message: t("editPost.feedbackSentSuccess", "Feedback was sent successfully."),
         icon: <FaCheckCircle />,
       });
       setPost((prev) => ({ ...prev, adminFeedback: feedbackText.trim() }));
     } catch (err) {
       openInfo({
-        title: t("editPost.failedToSendFeedback"),
-        message: err.message || t("editPost.couldNotSendFeedback"),
+        title: t("editPost.failedToSendFeedback", "Failed to Send"),
+        message: err.message || t("editPost.couldNotSendFeedback", "Could not send feedback."),
         icon: <FaExclamationTriangle />,
       });
     }
   };
 
-  if (loading) return <p className="text-center mt-20">{t("editPost.loading")}</p>;
+  if (loading) return <p className="text-center mt-20">{t("editPost.loading", "Loading...")}</p>;
   if (error) return <p className="text-center mt-20">{error}</p>;
-  if (!post) return <p className="text-center mt-20">{t("editPost.postNotFound")}</p>;
+  if (!post) return <p className="text-center mt-20">{t("editPost.postNotFound", "Post Not Found")}</p>;
 
-  // Button text logic
   const backButtonText = post.status === "Approved"
-    ? t("editPost.backToDashboard")
-    : t("editPost.backToModeration");
+    ? t("editPost.backToDashboard", "Back to Dashboard")
+    : t("editPost.backToModeration", "Back to Moderation");
 
   // === Action Buttons Helper ===
   const renderActionButtons = (isMobile = false) => {
@@ -234,7 +228,7 @@ const EditCommunityPostPage = () => {
             className="rcp-edit-reject-btn"
             onClick={() => { 
               setModalType("reject"); 
-              setRejectReason(""); // Clear any old text when opening
+              setRejectReason(""); 
               setShowModal(true); 
             }}
           >
@@ -255,7 +249,7 @@ const EditCommunityPostPage = () => {
         </button>
 
         <div className="review-title">
-          <h2>{t("editPost.reviewCommunityPost")}</h2>
+          <h2>{t("editPost.reviewCommunityPost", "Review Community Post")}</h2>
           <p>{post.title}</p>
         </div>
 
@@ -265,7 +259,7 @@ const EditCommunityPostPage = () => {
       <div className="review-container">
         <div className="review-layout">
           <div className="review-left-sidebar">
-            <h3><FaFileAlt /> {t("editPost.submissionDetails")}</h3>
+            <h3><FaFileAlt /> {t("editPost.submissionDetails", "Submission Details")}</h3>
             <div className="review-info">
               <FaUser />
               <strong>{post.author}</strong>
@@ -276,7 +270,7 @@ const EditCommunityPostPage = () => {
               <strong>{post.submissionDate}</strong>
             </div>
             <div className="review-info">
-              <p>{t("editPost.status")}</p>
+              <p>{t("editPost.status", "Status")}</p>
               <span className="status-tag">{post.status}</span>
             </div>
             {post.approvedBy && (
@@ -289,7 +283,7 @@ const EditCommunityPostPage = () => {
 
           <div className="review-main">
             <div className="review-section uploaded-image-card">
-              <h3><FaFileAlt /> {t("editPost.uploadedImage")}</h3>
+              <h3><FaFileAlt /> {t("editPost.uploadedImage", "Uploaded Image")}</h3>
               <div className="uploaded-img-box">
                 <img
                   src={post.image || "/no-image.png"}
@@ -302,21 +296,21 @@ const EditCommunityPostPage = () => {
             </div>
 
             <div className="rcp-review-section rcp-basic-info-grid">
-              <h3>{t("editPost.culturalInformation")}</h3>
-              <p><strong>{t("editPost.origin")}</strong> {post.culturalOrigin}</p>
+              <h3>{t("editPost.culturalInformation", "Cultural Information")}</h3>
+              <p><strong>{t("editPost.origin", "Origin:")}</strong> {post.culturalOrigin}</p>
               <p style={{ whiteSpace: "pre-wrap" }}>{post.culturalStory}</p>
             </div>
 
             <div className="rcp-review-section">
-              <h3>{t("editPost.recipe")}</h3>
+              <h3>{t("editPost.recipe", "Recipe")}</h3>
               <p style={{ whiteSpace: "pre-wrap" }}>{post.recipe}</p>
             </div>
 
             <div className="rcp-review-section">
-              <h3>{t("editPost.adminFeedback")}</h3>
+              <h3>{t("editPost.adminFeedback", "Admin Feedback")}</h3>
               <textarea
                 className="admin-feedback-input"
-                placeholder={t("editPost.feedbackPlaceholder")}
+                placeholder={t("editPost.feedbackPlaceholder", "Write your feedback or reason for rejection here...")}
                 rows="4"
                 style={{ width: "100%", padding: "10px" }}
                 value={feedbackText}
@@ -328,7 +322,7 @@ const EditCommunityPostPage = () => {
                   style={{ marginTop: "10px" }}
                   onClick={handleSendFeedback}
                 >
-                  {t("editPost.sendFeedback")}
+                  {t("editPost.sendFeedback", "Send Feedback")}
                 </button>
               )}
             </div>
@@ -345,15 +339,29 @@ const EditCommunityPostPage = () => {
             
             {modalType === "approve" ? (
               <p>{t("editPost.warningApprove", "Are you sure you want to approve this post?")}</p>
-            ) : (
+            ) : feedbackText.trim().length > 0 ? (
+              // SMART UX: Admin already provided feedback
               <>
-                <p>{t("editPost.warningReject", "Please provide a reason for rejecting this post. This is mandatory.")}</p>
+                <p>{t("editPost.warningRejectConfirm", "Are you sure you want to reject this post?")}</p>
+                <div style={{ marginTop: "15px", padding: "12px", backgroundColor: "#ffebe9", color: "#d73a49", borderRadius: "6px", border: "1px solid #ffc1c0", fontSize: "14px" }}>
+                  <strong style={{ display: "block", marginBottom: "5px" }}>{t("editPost.feedbackToSend", "Feedback to be sent:")}</strong>
+                  <span style={{ whiteSpace: "pre-wrap" }}>{feedbackText}</span>
+                </div>
+              </>
+            ) : (
+              // SMART UX: Admin forgot feedback
+              <>
+                <p style={{ color: "#d73a49", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
+                   <FaExclamationTriangle /> 
+                   {t("editPost.forgotFeedback", "Reminder: Feedback is required!")}
+                </p>
+                <p>{t("editPost.warningReject", "Please provide a reason for rejecting this post.")}</p>
                 <textarea
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
-                  placeholder="e.g., Image is unclear, lacks cultural context..."
+                  placeholder={t("editPost.feedbackPlaceholder", "e.g., Image is unclear, lacks cultural context...")}
                   rows="4"
-                  style={{ width: "100%", padding: "10px", marginTop: "10px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #ccc", fontFamily: "inherit" }}
+                  style={{ width: "100%", padding: "10px", marginTop: "10px", marginBottom: "10px", borderRadius: "5px", border: "1px solid #ccc", fontFamily: "inherit", resize: "vertical" }}
                 />
               </>
             )}
@@ -365,14 +373,14 @@ const EditCommunityPostPage = () => {
               
               <button
                 className={modalType === "approve" ? "approve-btn" : "delete-btn"}
-                disabled={modalType === "reject" && rejectReason.trim().length === 0}
+                disabled={modalType === "reject" && feedbackText.trim().length === 0 && rejectReason.trim().length === 0}
                 style={{ 
-                  opacity: (modalType === "reject" && rejectReason.trim().length === 0) ? 0.5 : 1, 
-                  cursor: (modalType === "reject" && rejectReason.trim().length === 0) ? "not-allowed" : "pointer" 
+                  opacity: (modalType === "reject" && feedbackText.trim().length === 0 && rejectReason.trim().length === 0) ? 0.5 : 1, 
+                  cursor: (modalType === "reject" && feedbackText.trim().length === 0 && rejectReason.trim().length === 0) ? "not-allowed" : "pointer" 
                 }}
                 onClick={() => {
-                  // Pass the popup reason into your API call
-                  handleConfirmAction(modalType === "reject" ? rejectReason : "");
+                  const finalFeedback = modalType === "reject" ? (feedbackText.trim() || rejectReason.trim()) : "";
+                  handleConfirmAction(finalFeedback);
                 }}
               >
                 {modalType === "approve" ? t("editPost.approve", "Approve") : t("editPost.reject", "Reject")}
