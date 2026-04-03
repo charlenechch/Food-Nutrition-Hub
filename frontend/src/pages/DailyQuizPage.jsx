@@ -29,7 +29,7 @@ export default function DailyQuizPage() {
   };
 
   if (questions.length === 0) {
-    return <div style={{ textAlign: "center", padding: "50px" }}>{t('quiz.loading')}</div>;
+    return <div className = "dqp-no-ques">{t('quiz.loading')}</div>;
   }
 
   if (isFinished) {
@@ -41,14 +41,14 @@ export default function DailyQuizPage() {
       <div className="quiz-results-card">
         <h2>{t('quiz.completed')}</h2>
         
-        <h1 className = "dqp-h1">{score} / 5</h1>
+        <h1 className="dqp-h1">{score} / 5</h1>
         
         {score === 5 ? (
-          <p style={{ color: "#28a745", fontWeight: "bold", fontSize: "1.2rem" }}>
+          <p className="quiz-perfect-score">
             {t('quiz.perfectScore', { baseXP, bonusXP: perfectBonus, totalXP })}
           </p>
         ) : (
-          <p style={{ fontSize: "1.1rem" }}>
+          <p className="quiz-normal-score">
             {t('quiz.normalScore', { score, totalXP })}
           </p>
         )}
@@ -56,7 +56,7 @@ export default function DailyQuizPage() {
         <button 
           onClick={() => window.location.href = '/'}
           className="quiz-btn-primary"
-          style={{ marginTop: "20px" }}
+          style={{ marginTop: "10px", width: "100%", maxWidth: "300px" }}
         >
           {t('quiz.returnBtn')}
         </button>
