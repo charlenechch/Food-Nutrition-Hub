@@ -13,6 +13,7 @@ const EditRecipePage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
+  
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(""); 
   const [recipe, setRecipe] = useState(null);
@@ -26,6 +27,7 @@ const EditRecipePage = () => {
     icon: null,
     primaryText: "OK",
   });
+
   const openInfo = (opts) =>
     setInfoDlg({
       open: true,
@@ -55,12 +57,9 @@ const EditRecipePage = () => {
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        console.log(`Fetching recipe ID ${id} from backend...`);
         const response = await fetch(`${API_URL}/api/recipe/recipes/${id}`);
         if (!response.ok) throw new Error("Failed to fetch recipe");
         const data = await response.json();
-
-        console.log("✅ Loaded recipe:", data);
 
         const normalized = {
           name: data.name || "Untitled Recipe",
@@ -104,7 +103,7 @@ const EditRecipePage = () => {
     fetchRecipe();
   }, [id]);
 
-  // ✅ SMART NAVIGATION LOGIC
+  // SMART NAVIGATION LOGIC
   const handleBack = () => {
     if (!recipe) {
       navigate("/admin");
@@ -118,21 +117,69 @@ const EditRecipePage = () => {
     }
   };
 
-  if (!recipe) return <p>{t("editRecipe.loading")}</p>;
+  if (!recipe) return <p className="text-center mt-20">{t("editRecipe.loading", "Loading...")}</p>;
 
-  // Button text logic
   const backButtonText = recipe.status === "Approved"
-    ? t("editRecipe.backToDashboard")
-    : t("editRecipe.backToModeration");
+    ? t("editRecipe.backToDashboard", "Back to Dashboard")
+    : t("editRecipe.backToModeration", "Back to Moderation");
 
-  // Send feedback function
+  // === CLEANED UP API FUNCTION ===
+  const handleConfirmAction = async (reasonFromModal = "") => {
+    const newStatus = modalType === "approve" ? "Approved" : "Rejected";
+    // Use the reason from the popup if rejecting, otherwise use the bottom box
+    const feedbackToSend = modalType === "reject" ? reasonFromModal.trim() : (adminFeedback ? adminFeedback.trim() : ""); 
+
+    try {
+      const updateUrl = `${API_URL}/api/recipe/updateStatus/${id}`;
+      const payload = { 
+        status: newStatus,
+        feedback: feedbackToSend
+      };
+
+      const res = await fetch(updateUrl, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Failed to update status");
+      }
+
+      setShowModal(false);
+      openInfo({
+        title: newStatus === "Approved" ? t("editRecipe.approvedTitle", "Approved") : t("editRecipe.rejectedTitle", "Rejected"),
+        message: `${t("editRecipe.adminFeedbackLabel", "Feedback Attached:")}\n${feedbackToSend}`,
+        icon: newStatus === "Approved" ? <FaCheckCircle /> : <FaExclamationTriangle />,
+        primaryText: "OK",
+      });
+      
+      if (newStatus === "Approved") {
+        navigate("/admin");
+      } else {
+        navigate("/admin?tab=moderation");
+      }
+      
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      openInfo({
+        title: t("editRecipe.failedToUpdateStatus", "Failed to Update"),
+        message: err.message || t("editRecipe.couldNotUpdateStatus", "Could not update status."),
+        icon: <FaExclamationTriangle />,
+      });
+    }
+  };
+
+  // Send feedback (for bottom box)
   const handleSendFeedback = async () => {
     const feedback = adminFeedback.trim();
 
     if (!feedback) {
       openInfo({
-        title: t("editRecipe.missingFeedback"),
-        message: t("editRecipe.enterFeedbackFirst"),
+        title: t("editRecipe.missingFeedback", "Missing Feedback"),
+        message: t("editRecipe.enterFeedbackFirst", "Please enter feedback first."),
         icon: <FaExclamationTriangle />,
       });
       return;
@@ -152,16 +199,16 @@ const EditRecipePage = () => {
       }
 
       openInfo({
-        title: t("editRecipe.feedbackSent"),
-        message: t("editRecipe.feedbackSentSuccess"),
+        title: t("editRecipe.feedbackSent", "Feedback Sent"),
+        message: t("editRecipe.feedbackSentSuccess", "Feedback was sent successfully."),
         icon: <FaCheckCircle />,
       });
       
       setAdminFeedback(""); 
     } catch (err) {
       openInfo({
-        title: t("editRecipe.failedToSend"),
-        message: err.message || t("editRecipe.couldNotSendFeedback"),
+        title: t("editRecipe.failedToSend", "Failed to Send"),
+        message: err.message || t("editRecipe.couldNotSendFeedback", "Could not send feedback."),
         icon: <FaExclamationTriangle />,
       });
     }
@@ -176,7 +223,7 @@ const EditRecipePage = () => {
           <span className="recipe-edit-btn"><FaArrowLeft /></span> {backButtonText}
         </button>
         <div className="review-title">
-          <h2>{t("editRecipe.reviewSubmission")}</h2>
+          <h2>{t("editRecipe.reviewSubmission", "Review Submission")}</h2>
           <p>{recipe.name}</p>
         </div>
 
@@ -186,7 +233,7 @@ const EditRecipePage = () => {
               className="rcp-edit-approve-btn"
               onClick={() => { setModalType("approve"); setShowModal(true); }}
             >
-              <span className="recipe-edit-btn"><FaCheck /></span> {t("editRecipe.approve")}
+              <span className="recipe-edit-btn"><FaCheck /></span> {t("editRecipe.approve", "Approve")}
             </button>
           )}
           {recipe.status === "Pending" && (
@@ -194,11 +241,12 @@ const EditRecipePage = () => {
               className="rcp-edit-reject-btn"
               onClick={() => { 
                 setModalType("reject"); 
-                setRejectReason(""); // <-- NEW: Clear old text when opening the modal
+                // UX Fix: If they typed in the bottom box, auto-fill the popup so they don't lose work!
+                setRejectReason(adminFeedback || ""); 
                 setShowModal(true); 
               }}
             >
-              <span className="recipe-edit-btn"><FaTimes /></span> {t("editRecipe.reject")}
+              <span className="recipe-edit-btn"><FaTimes /></span> {t("editRecipe.reject", "Reject")}
             </button>
           )}
         </div>
@@ -207,18 +255,18 @@ const EditRecipePage = () => {
       <div className="review-container">
         <div className="review-layout">
           <div className="review-left-sidebar">
-            <h3><FaFileAlt /> {t("editRecipe.submissionDetails")}</h3>
+            <h3><FaFileAlt /> {t("editRecipe.submissionDetails", "Submission Details")}</h3>
             <div className="review-info">
-              <div className="info-label"><FaUser className="left-sidebar-icon" /> <span> {t("editRecipe.submittedBy")}</span></div>
+              <div className="info-label"><FaUser className="left-sidebar-icon" /> <span> {t("editRecipe.submittedBy", "Submitted By")}</span></div>
               <strong>{recipe.author}</strong>
               <p className="email">{recipe.email}</p>
             </div>
             <div className="review-info">
-              <p><FaCalendarAlt /> {t("editRecipe.submissionDate")}</p>
+              <p><FaCalendarAlt /> {t("editRecipe.submissionDate", "Submission Date")}</p>
               <strong>{recipe.submissionDate}</strong>
             </div>
             <div className="review-info">
-              <p>{t("editRecipe.status")}</p>
+              <p>{t("editRecipe.status", "Status")}</p>
               <span className="status-tag">{recipe.status}</span>
             </div>
             {recipe.approvedBy && (
@@ -231,40 +279,40 @@ const EditRecipePage = () => {
 
           <div className="review-main">
             <div className="review-section uploaded-image-card">
-              <h3><FaFileAlt /> {t("editRecipe.uploadedImage")}</h3>
+              <h3><FaFileAlt /> {t("editRecipe.uploadedImage", "Uploaded Image")}</h3>
               <div className="uploaded-img-box">
                 <img src={recipe.image} alt="Uploaded recipe" className="uploaded-img" />
               </div>
             </div>
 
             <div className="rcp-review-section rcp-basic-info-grid">
-              <h3>{t("editRecipe.basicInformation")}</h3>
+              <h3>{t("editRecipe.basicInformation", "Basic Information")}</h3>
               <div className="rcp-edit-info-grid">
-                <div className="rcp-edit-info-item"><h4>{t("editRecipe.origin")}</h4><p>{recipe.origin}</p></div>
-                <div className="rcp-edit-info-item"><h4>{t("editRecipe.difficulty")}</h4><p>{recipe.difficulty}</p></div>
-                <div className="rcp-edit-info-item"><h4>{t("editRecipe.prepTime")}</h4><p>{recipe.preptime}</p></div>
-                <div className="rcp-edit-info-item"><h4>{t("editRecipe.cookTime")}</h4><p>{recipe.cooktime}</p></div>
-                <div className="rcp-edit-info-item"><h4>{t("editRecipe.category")}</h4><p>{recipe.category}</p></div>
+                <div className="rcp-edit-info-item"><h4>{t("editRecipe.origin", "Origin")}</h4><p>{recipe.origin}</p></div>
+                <div className="rcp-edit-info-item"><h4>{t("editRecipe.difficulty", "Difficulty")}</h4><p>{recipe.difficulty}</p></div>
+                <div className="rcp-edit-info-item"><h4>{t("editRecipe.prepTime", "Prep Time")}</h4><p>{recipe.preptime}</p></div>
+                <div className="rcp-edit-info-item"><h4>{t("editRecipe.cookTime", "Cook Time")}</h4><p>{recipe.cooktime}</p></div>
+                <div className="rcp-edit-info-item"><h4>{t("editRecipe.category", "Category")}</h4><p>{recipe.category}</p></div>
               </div>
             </div>
 
             <div className="rcp-review-section rcp-basic-info-grid">
-              <h3>{t("editRecipe.culturalContext")}</h3>
+              <h3>{t("editRecipe.culturalContext", "Cultural Context")}</h3>
               <div className="rcp-edit-info-grid">
-                <div className="rcp-edit-info-item"><h4>{t("editRecipe.description")}</h4><p>{recipe.englishDesc}</p></div>
+                <div className="rcp-edit-info-item"><h4>{t("editRecipe.description", "Description")}</h4><p>{recipe.englishDesc}</p></div>
               </div>
             </div>
 
             <div className="rcp-review-section rcp-info-grid">
-              <h3>{t("editRecipe.ingredients")}</h3>
+              <h3>{t("editRecipe.ingredients", "Ingredients")}</h3>
               <div className="rcp-info-grid">
-                <div className="rcp-info-item"><h4>{t("editRecipe.serving")}</h4><p>{recipe.serving}</p></div>
-                <div className="rcp-info-item"><h4>{t("editRecipe.ingredients")}</h4><p>{recipe.ingredientsEN}</p></div>
+                <div className="rcp-info-item"><h4>{t("editRecipe.serving", "Serving")}</h4><p>{recipe.serving}</p></div>
+                <div className="rcp-info-item"><h4>{t("editRecipe.ingredients", "Ingredients")}</h4><p>{recipe.ingredientsEN}</p></div>
               </div>
             </div>
 
             <div className="rcp-review-section rcp-info-grid">
-              <h3>{t("editRecipe.preparationSteps")}</h3>
+              <h3>{t("editRecipe.preparationSteps", "Preparation Steps")}</h3>
               <div className="rcp-info-grid">
                 <div className="rcp-info-item">
                   <ol>
@@ -275,21 +323,21 @@ const EditRecipePage = () => {
             </div>
 
             <div className="rcp-review-section rcp-info-grid">
-              <h3>{t("editRecipe.additionalNotes")}</h3>
+              <h3>{t("editRecipe.additionalNotes", "Additional Notes")}</h3>
               <div className="rcp-info-grid">
-                <div className="rcp-info-item"><h4>{t("editRecipe.funFact")}</h4><p>{recipe.fact}</p></div>
-                <div className="rcp-info-item"><h4>{t("editRecipe.tips")}</h4><p>{recipe.tips}</p></div>
-                <div className="rcp-info-item"><h4>{t("editRecipe.dietaryPreference")}</h4><p>{recipe.dietary}</p></div>
+                <div className="rcp-info-item"><h4>{t("editRecipe.funFact", "Fun Fact")}</h4><p>{recipe.fact}</p></div>
+                <div className="rcp-info-item"><h4>{t("editRecipe.tips", "Tips")}</h4><p>{recipe.tips}</p></div>
+                <div className="rcp-info-item"><h4>{t("editRecipe.dietaryPreference", "Dietary Preference")}</h4><p>{recipe.dietary}</p></div>
               </div>
             </div>
 
             <div className="rcp-review-section rcp-basic-info-grid">
-              <h3>{t("editRecipe.adminFeedback")}</h3>
+              <h3>{t("editRecipe.adminFeedback", "Admin Feedback (Required for Rejection)")}</h3>
               <div className="rcp-edit-info-grid">
                 <div className="rcp-edit-info-item full-width">
                   <textarea
                     className="admin-feedback-input"
-                    placeholder={t("editRecipe.feedbackPlaceholder")}
+                    placeholder={t("editRecipe.feedbackPlaceholder", "Write your feedback or reason for rejection here...")}
                     rows="4"
                     value={adminFeedback}
                     onChange={(e) => setAdminFeedback(e.target.value)}
@@ -300,7 +348,7 @@ const EditRecipePage = () => {
                       style={{ marginTop: "10px" }}
                       onClick={handleSendFeedback}
                     >
-                      {t("editRecipe.sendFeedback")}
+                      {t("editRecipe.sendFeedback", "Send Feedback")}
                     </button>
                   )}
                 </div>
@@ -314,10 +362,10 @@ const EditRecipePage = () => {
       {showModal && (
         <div className="confirm-overlay">
           <div className="confirm-modal">
-            <h3>{t("editRecipe.warningTitle")}</h3>
+            <h3>{t("editRecipe.warningTitle", "Warning")}</h3>
             
             {modalType === "approve" ? (
-              <p>{t("editRecipe.warningApprove")}</p>
+              <p>{t("editRecipe.warningApprove", "Are you sure you want to approve this recipe?")}</p>
             ) : (
               <>
                 <p>{t("editRecipe.warningReject", "Please provide a reason for rejecting this recipe. This is mandatory.")}</p>
@@ -333,7 +381,7 @@ const EditRecipePage = () => {
 
             <div className="confirm-buttons">
               <button className="cancel-btn" onClick={() => setShowModal(false)}>
-                {t("editRecipe.cancel")}
+                {t("editRecipe.cancel", "Cancel")}
               </button>
               
               <button
@@ -343,55 +391,9 @@ const EditRecipePage = () => {
                   opacity: (modalType === "reject" && rejectReason.trim().length === 0) ? 0.5 : 1, 
                   cursor: (modalType === "reject" && rejectReason.trim().length === 0) ? "not-allowed" : "pointer" 
                 }}
-                onClick={async () => {
-                  const newStatus = modalType === "approve" ? "Approved" : "Rejected";
-                  // Use the reason from the popup if rejecting, otherwise use the bottom box
-                  const feedbackToSend = modalType === "reject" ? rejectReason.trim() : (adminFeedback ? adminFeedback.trim() : ""); 
-
-                  try {
-                    const updateUrl = `${API_URL}/api/recipe/updateStatus/${id}`;
-                    const payload = { 
-                      status: newStatus,
-                      feedback: feedbackToSend
-                    };
-
-                    const res = await fetch(updateUrl, {
-                      method: "PATCH",
-                      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
-                      credentials: "include",
-                      body: JSON.stringify(payload),
-                    });
-
-                    if (!res.ok) {
-                      const errData = await res.json();
-                      throw new Error(errData.message || "Failed to update status");
-                    }
-
-                    setShowModal(false);
-                    openInfo({
-                      title: newStatus === "Approved" ? t("editRecipe.approvedTitle") : t("editRecipe.rejectedTitle"),
-                      message: `${t("editRecipe.adminFeedbackLabel")}\n${feedbackToSend}`,
-                      icon: newStatus === "Approved" ? <FaCheckCircle /> : <FaExclamationTriangle />,
-                      primaryText: "OK",
-                    });
-                    
-                    if (newStatus === "Approved") {
-                      navigate("/admin");
-                    } else {
-                      navigate("/admin?tab=moderation");
-                    }
-                    
-                  } catch (err) {
-                    console.error("Failed to update status:", err);
-                    openInfo({
-                      title: t("editRecipe.failedToUpdateStatus"),
-                      message: err.message || t("editRecipe.couldNotUpdateStatus"),
-                      icon: <FaExclamationTriangle />,
-                    });
-                  }
-                }}
+                onClick={() => handleConfirmAction(modalType === "reject" ? rejectReason : "")}
               >
-                {modalType === "approve" ? t("editRecipe.approve") : t("editRecipe.reject")}
+                {modalType === "approve" ? t("editRecipe.approve", "Approve") : t("editRecipe.reject", "Reject")}
               </button>
             </div>
           </div>
