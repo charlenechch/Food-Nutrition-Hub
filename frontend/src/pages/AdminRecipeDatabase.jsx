@@ -21,6 +21,9 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
   const [category, setCategory] = useState("All Categories");
   const [difficulty, setDifficulty] = useState("All"); 
   const [statusFilter, setStatusFilter] = useState("All");
+  
+  // NEW: Added state for Cultural Origin to match Community Posts
+  const [originFilter, setOriginFilter] = useState("All Origins");
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
@@ -28,15 +31,18 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 5;
 
+  // NEW: Origin options matching the Community Post database
+  const originOptions = ["All Origins", "Malay", "Chinese", "Iban", "Melanau", "Bidayuh", "Dayak"];
+
   // --- Sync Props ---
   useEffect(() => {
     setLocalRecipes(recipesProp);
   }, [recipesProp]);
 
-  // Reset page
+  // Reset page when any filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, category, difficulty, statusFilter]);
+  }, [searchTerm, category, difficulty, statusFilter, originFilter]);
 
   // --- Helper: Format Date ---
   const formatDate = (dateString) => {
@@ -50,12 +56,19 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
     const term = searchTerm.toLowerCase();
     const name = (r.name || "").toLowerCase();
     const author = (r.author || "").toLowerCase();
+    
     const matchesSearch = name.includes(term) || author.includes(term);
     const matchesCategory = category === "All Categories" || (r.category === category);
     const matchesDifficulty = difficulty === "All" || (r.difficulty || "Medium") === difficulty;
+    
+    // NEW: Cultural Origin matching logic
+    const recipeOrigin = r.origin || r.culturalOrigin || "";
+    const matchesOrigin = originFilter === "All Origins" || recipeOrigin === originFilter;
+    
     const statusToCheck = sectionType === "approved" ? "Approved" : statusFilter;
     const matchesStatus = statusToCheck === "All" || r.status === statusToCheck;
-    return matchesSearch && matchesCategory && matchesDifficulty && matchesStatus;
+    
+    return matchesSearch && matchesCategory && matchesDifficulty && matchesOrigin && matchesStatus;
   });
 
   // --- Pagination ---
@@ -250,10 +263,29 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
               <CiFilter /> {t("adminFoodDB.advancedFilters", "Advanced Filters")}
             </div>
             
-            <div className="advanced-filters-body">
+            <div className="advanced-filters-body" style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+              
+              {/* NEW: Cultural Origin Dropdown added to match Community Post filter */}
+              <div className="filter-item">
+                <label>{t("explore.culturalOrigin", "Cultural Origin")}</label>
+                <select 
+                  value={originFilter} 
+                  onChange={(e) => setOriginFilter(e.target.value)}
+                  style={{ width: "100%", padding: "8px", borderRadius: "5px", border: "1px solid #ccc" }}
+                >
+                  {originOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              </div>
+
               <div className="filter-item">
                 <label>{t("explore.difficulty", "Difficulty")}</label>
-                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                <select 
+                  value={difficulty} 
+                  onChange={(e) => setDifficulty(e.target.value)}
+                  style={{ width: "100%", padding: "8px", borderRadius: "5px", border: "1px solid #ccc" }}
+                >
                   <option value="All">{t("adminFoodDB.all", "All")}</option>
                   <option value="Easy">{t("explore.easy", "Easy")}</option>
                   <option value="Medium">{t("explore.medium", "Medium")}</option>
@@ -261,12 +293,14 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
                 </select>
               </div>
 
-              {/* The secondary category dropdown has been removed from here! */}
-              
               {sectionType !== "approved" && (
                 <div className="filter-item">
                   <label>{t("adminRcpDB.colStatus", "Status")}</label>
-                  <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <select 
+                    value={statusFilter} 
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    style={{ width: "100%", padding: "8px", borderRadius: "5px", border: "1px solid #ccc" }}
+                  >
                     <option value="All">{t("adminFoodDB.all", "All")}</option>
                     <option value="Pending">{t("adminRcpDB.statusPending", "Pending")}</option>
                     <option value="Rejected">{t("adminRcpDB.statusRejected", "Rejected")}</option>
