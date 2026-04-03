@@ -1560,6 +1560,20 @@
     "third_best_community_poster": "Penyumbang Komuniti Ketiga Terbaik",
     "reward_alert": "🎉 Makluman Ganjaran! 3 penyumbang teratas akan menerima:",
     "xp_awarded_automatically": "✨ XP akan diberikan secara automatik pada akhir setiap bulan ✨"
-  }
+  },
 
+  "quiz": {
+    "header": "Kuiz Makanan Harian",
+    "progress": "Soalan {{current}} daripada {{total}}",
+    "disclaimer": "⚠️ Selesaikan kesemua 5 soalan untuk mengunci XP harian anda! Pautan ke resipi akan dibuka dengan selamat di tab baharu.",
+    "loading": "Memuatkan kuiz hari ini...",
+    "completed": "Kuiz Selesai!",
+    "perfectScore": "Markah Penuh! Anda memperoleh +{{baseXP}} XP dan Bonus Sempurna +{{bonusXP}} XP! (Jumlah: {{totalXP}} XP)",
+    "normalScore": "Anda betul {{score}}/5! Anda memperoleh +{{totalXP}} XP.",
+    "returnBtn": "Kembali ke Komuniti",
+    "correct": "🎉 Betul!",
+    "incorrect": "❌ Salah! Jawapan yang betul adalah: {{answer}}",
+    "viewDetailsBtn": "Lihat Butiran Makanan",
+    "nextBtn": "Soalan Seterusnya ➔"
+  }
 }

@@ -1560,5 +1560,20 @@
     "third_best_community_poster": "Third Best Community Poster",
     "reward_alert": "🎉 Reward Alert! Top 3 contributors will receive:",
     "xp_awarded_automatically": "✨ XP will be awarded automatically at the end of each month ✨"
+  },
+  
+  "quiz": {
+    "header": "Daily Foodie Quiz",
+    "progress": "Question {{current}} of {{total}}",
+    "disclaimer": "⚠️ Complete all 5 questions to lock in your daily XP! Links to recipes will safely open in a new tab.",
+    "loading": "Loading today's quiz...",
+    "completed": "Quiz Complete!",
+    "perfectScore": "Perfect Score! You earned +{{baseXP}} XP and a +{{bonusXP}} XP Perfect Bonus! (Total: {{totalXP}} XP)",
+    "normalScore": "You got {{score}}/5 correct! You earned +{{totalXP}} XP.",
+    "returnBtn": "Return to Community",
+    "correct": "🎉 Correct!",
+    "incorrect": "❌ Incorrect! The correct answer was: {{answer}}",
+    "viewDetailsBtn": "View Food Details",
+    "nextBtn": "Next Question ➔"
   }
 }   
