@@ -1577,6 +1577,7 @@
     "correct": "🎉 Betul!",
     "incorrect": "❌ Salah! Jawapan yang betul adalah: {{answer}}",
     "viewDetailsBtn": "Lihat Butiran Makanan",
-    "nextBtn": "Soalan Seterusnya ➔"
+    "nextBtn": "Soalan Seterusnya ➔",
+    "back": "Kembali"
   }
 }

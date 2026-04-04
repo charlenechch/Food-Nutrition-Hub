@@ -1577,6 +1577,7 @@
     "correct": "🎉 Correct!",
     "incorrect": "❌ Incorrect! The correct answer was: {{answer}}",
     "viewDetailsBtn": "View Food Details",
-    "nextBtn": "Next Question ➔"
+    "nextBtn": "Next Question ➔",
+    "back": "Back"
   }
 }   
