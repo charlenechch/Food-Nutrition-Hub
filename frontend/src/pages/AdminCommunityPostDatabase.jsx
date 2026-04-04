@@ -21,7 +21,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   const [category, setCategory] = useState("All Categories");
   const [statusFilter, setStatusFilter] = useState("All");
   const [originFilter, setOriginFilter] = useState("All Origins");
-  const [difficulty, setDifficulty] = useState("All"); // Added to match Recipe Database
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
@@ -40,7 +39,7 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
   // Reset page when any filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, category, statusFilter, originFilter, difficulty]);
+  }, [searchTerm, category, statusFilter, originFilter]);
 
   // --- Filtering & Sorting Logic ---
   const filteredPosts = localPosts
@@ -54,14 +53,11 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
       
       const postOrigin = post.origin || post.culturalOrigin || "";
       const matchesOrigin = originFilter === "All Origins" || postOrigin === originFilter;
-      
-      // Matches difficulty (if applicable to posts, otherwise ignores if post doesn't have it)
-      const matchesDifficulty = difficulty === "All" || post.difficulty === difficulty;
 
       const requiredStatus = sectionType === "approved" ? "Approved" : statusFilter;
       const matchesStatus = requiredStatus === "All" || post.status === requiredStatus;
       
-      return matchesSearch && matchesCategory && matchesStatus && matchesOrigin && matchesDifficulty;
+      return matchesSearch && matchesCategory && matchesStatus && matchesOrigin;
     })
     .sort((a, b) => {
       // Always sort by Most Recent by default
@@ -228,7 +224,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             />
           </div>
           
-          {/* Beige Dropdown updated to "Categories" to match Recipe Database */}
           <div className={`admin-beige-dropdown ${dropdownOpen ? "open" : ""}`} ref={dropdownRef}>
             <button className="admin-beige-trigger" onClick={() => setDropdownOpen(!dropdownOpen)}>
               <span>{category}</span>
@@ -272,21 +267,6 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
                   {originOptions.map((opt) => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
-                </select>
-              </div>
-
-              {/* Added Difficulty to match Recipe Database */}
-              <div className="filter-item">
-                <label>{t("explore.difficulty", "Difficulty")}</label>
-                <select 
-                  value={difficulty} 
-                  onChange={(e) => setDifficulty(e.target.value)}
-                  style={{ width: "100%", padding: "8px", borderRadius: "5px", border: "1px solid #ccc" }}
-                >
-                  <option value="All">{t("adminFoodDB.all", "All")}</option>
-                  <option value="Easy">{t("explore.easy", "Easy")}</option>
-                  <option value="Medium">{t("explore.medium", "Medium")}</option>
-                  <option value="Hard">{t("explore.hard", "Hard")}</option>
                 </select>
               </div>
 
