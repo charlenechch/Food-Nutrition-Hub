@@ -44,7 +44,7 @@ export default function QuizCard({ quizData, onNext }) {
           </>
         ) : (
           
-          <div className="quiz-reveal-state" style={{ animation: "fadeIn 0.3s ease-in" }}>
+          <div className="quiz-reveal-state qc-reveal">
             
             <div className={`quiz-banner ${isCorrect ? 'correct' : 'incorrect'}`}>
               {isCorrect 
@@ -53,16 +53,16 @@ export default function QuizCard({ quizData, onNext }) {
               }
             </div>
 
-            <div style={{ textAlign: "center", marginBottom: "15px" }}>
-              <h2 style={{ color: "#6b3e26", margin: "0 0 8px 0", fontSize: "1.5rem" }}>
+            <div className="qc-div">
+              <h2 className = "qc-div-h2">
                 {quizData.foodName}
               </h2>
-              <span style={{ backgroundColor: "#f1e5d0", color: "#6b3e26", padding: "4px 12px", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "600" }}>
+              <span className = "qc-div-span">
                 {quizData.foodOrigin}
               </span>
             </div>
 
-            <p style={{ fontSize: "0.95rem", lineHeight: "1.5", marginBottom: "20px", textAlign: "center" }}>
+            <p className = "qc-reveal-p">
               {quizData.explanation}
             </p>
 

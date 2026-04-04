@@ -31,7 +31,7 @@ export default function DailyQuizPage() {
   };
 
   if (questions.length === 0) {
-    return <div className="dqp-no-ques" style={{ paddingTop: "120px" }}>{t('quiz.loading', 'Loading...')}</div>;
+    return <div className="dqp-no-ques">{t('quiz.loading', 'Loading...')}</div>;
   }
 
   if (isFinished) {
@@ -40,7 +40,7 @@ export default function DailyQuizPage() {
     const totalXP = baseXP + perfectBonus;
 
     return (
-      <div className="quiz-results-card" style={{ marginTop: "120px" }}>
+      <div className="quiz-results-card dqp-div">
         <h2>{t('quiz.completed', 'Quiz Complete!')}</h2>
         <h1 className="dqp-h1">{score} / 5</h1>
         
@@ -56,8 +56,7 @@ export default function DailyQuizPage() {
 
         <button 
           onClick={() => navigate('/')}
-          className="quiz-btn-primary"
-          style={{ marginTop: "10px", width: "100%", maxWidth: "300px" }}
+          className="quiz-btn-primary dqp-div-btn"
         >
           {t('quiz.returnBtn', 'Return Home')}
         </button>
@@ -66,10 +65,11 @@ export default function DailyQuizPage() {
   }
 
   return (
-    <div className="quiz-page-container" style={{ paddingTop: "100px", position: "relative" }}>
+    <div className="quiz-page-container dqp-div2">
       
       <button 
         onClick={() => navigate(-1)} 
+        className = "dqp-div2-btn"
         style={{
           position: "absolute",
           top: "90px", 

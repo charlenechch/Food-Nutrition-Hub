@@ -18,7 +18,7 @@
 }
 
 .quiz-progress-text {
-  color: #8b5e3c; /* Accent brown */
+  color: #8b5e3c;
   font-weight: 600;
   margin-top: 0;
 }
@@ -27,7 +27,7 @@
   font-size: 0.85rem;
   color: #8b5e3c;
   font-style: italic;
-  background-color: #fdf8f3; /* Soft panel cream from header */
+  background-color: #fdf8f3;
   border: 1px solid #f0e8df;
   padding: 10px 15px;
   border-radius: 8px;
@@ -211,6 +211,7 @@
 }
 .dqp-no-ques {
     text-align: center;
+    padding: 120px;
     padding: 50px;
     font-family: "Poppins, sans-serif";
     color: #8b5e3c;
@@ -231,4 +232,65 @@
   font-size: 1.1rem;
   color: #5a4636;
   margin-bottom: 25px;
+}
+
+.qc-reveal {
+  animation: fadeIn 0.3s ease-in forwards;
+}
+
+.qc-div {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.qc-div-h2 {
+  color: #6b3e26;
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+}
+
+.qc-div-span {
+  background-color: #f1e5d0;
+  color: #6b3e26;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.qc-reveal-p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.dqp-div {
+  margin-top: 120px;
+}
+
+.dqp-div-btn {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.dqp-div2 {
+  padding-top: 100px;
+  position: relative;
+}
+
+.dqp-div2-btn {
+  position: absolute;
+  top: 90px;
+  left: 20px;
+  background: none;
+  border: none;
+  color: #8b5e3c;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "Poppins, sans-serif";
 }
