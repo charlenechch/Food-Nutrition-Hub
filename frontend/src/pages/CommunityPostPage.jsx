@@ -107,9 +107,6 @@ const LikeButton = ({ postId, initialLikes, user, onAlert }) => {
   );
 };
 
-// ==========================================
-// UPDATED COMMENT SECTION COMPONENT
-// ==========================================
 const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDeleted, onAlert }) => {
   const { t } = useTranslation();
   const navigate = useNavigate(); 
@@ -227,7 +224,6 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
         ) : (
           comments.map((c) => (
             <div key={c.id} className="comment-item">
-              {/* ✅ UPDATED: Avatar for Comments */}
               <div 
                 className="comment-avatar-small"
                 onClick={() => handleCommenterProfileClick(c.userProfileID)}
@@ -281,8 +277,6 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
     </div>
   );
 };
-// ==========================================
-
 
 export default function CommunityPost() {
   const { id } = useParams();
@@ -363,12 +357,12 @@ export default function CommunityPost() {
                 < LikeButton postId={post.id} initialLikes={post.likeCount || 0} user={user} onAlert={openAlert} />
               </div>
 
-              {/* ✅ UPDATED AVATAR IMPLEMENTATION */}
+              {/* translation key and used a standard string for the title/tooltip */}
               <div 
                 className="post-author-lockup" 
                 onClick={handleProfileClick} 
                 style={{ cursor: "pointer" }}
-                title={t("community.viewProfile", { name: post.author })}
+                title={`View ${post.author || "User"}'s profile`}
               >
                 <div className="author-avatar-large" style={{ overflow: "hidden" }}>
                   <img 
