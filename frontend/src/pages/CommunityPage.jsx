@@ -148,8 +148,6 @@ export default function Community() {
     }
   };
 
-  const getInitials = (name) => name ? name.charAt(0).toUpperCase() : "U";
-
   const sortLabel = sortOption === "newest" ? t("community.newestFirst")
     : sortOption === "mostLiked" ? t("community.mostLiked")
     : t("community.mostDiscussed");
@@ -301,6 +299,7 @@ export default function Community() {
                     <div className="card-body">
                       <h3>{post.foodName}</h3>
                       <div className="card-meta">
+                        {/* ✅ UPDATED AVATAR IMPLEMENTATION */}
                         <div className="user-avatar"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -311,7 +310,16 @@ export default function Community() {
                           }}
                           style={{ cursor: "pointer" }}
                           title={`View ${post.author}'s profile`}>
-                          {post.authorProfilePic ? <img src={post.authorProfilePic} alt={post.author} /> : getInitials(post.author)}
+                          <img 
+                            src={post.authorProfilePic || `https://ui-avatars.com/api/?name=${post.author || "User"}&background=8b5e3c&color=fff&rounded=true`} 
+                            alt={post.author || "User"} 
+                            loading="lazy"
+                            onError={(e) => {
+                              e.target.onerror = null; 
+                              e.target.src = `https://ui-avatars.com/api/?name=${post.author || "User"}&background=8b5e3c&color=fff&rounded=true`;
+                            }}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+                          />
                         </div>
                         <div className="meta-text">
                           <span className="author-name"

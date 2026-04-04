@@ -112,7 +112,7 @@ const LikeButton = ({ postId, initialLikes, user, onAlert }) => {
 // ==========================================
 const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDeleted, onAlert }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate(); // ✅ Added navigate hook
+  const navigate = useNavigate(); 
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -181,7 +181,6 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
     finally { setLoading(false); }
   };
 
-  // ✅ ADDED: Logic to handle clicking on a commenter's profile
   const handleCommenterProfileClick = (commentUserProfileID) => {
     if (currentUserProfileID && String(currentUserProfileID) === String(commentUserProfileID)) {
       navigate("/profile"); 
@@ -228,19 +227,27 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
         ) : (
           comments.map((c) => (
             <div key={c.id} className="comment-item">
-              {/* ✅ MODIFIED: Clickable Avatar */}
+              {/* ✅ UPDATED: Avatar for Comments */}
               <div 
                 className="comment-avatar-small"
                 onClick={() => handleCommenterProfileClick(c.userProfileID)}
-                style={{ cursor: "pointer" }}
+                style={{ cursor: "pointer", overflow: "hidden" }}
                 title={`View ${c.username || c.author}'s profile`}
               >
-                {(c.username || c.author || "U").charAt(0).toUpperCase()}
+                <img 
+                  src={c.userProfilePic || `https://ui-avatars.com/api/?name=${c.username || c.author || "User"}&background=8b5e3c&color=fff&rounded=true`} 
+                  alt={c.username || c.author || "User"} 
+                  loading="lazy"
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = `https://ui-avatars.com/api/?name=${c.username || c.author || "User"}&background=8b5e3c&color=fff&rounded=true`;
+                  }}
+                  style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                />
               </div>
               
               <div className="comment-body">
                 <div className="comment-header-row">
-                  {/* ✅ MODIFIED: Clickable Name */}
                   <span 
                     className="comment-author-name"
                     onClick={() => handleCommenterProfileClick(c.userProfileID)}
@@ -310,13 +317,10 @@ export default function CommunityPost() {
   const handleNewComment = (newComment) => setComments(prev => [...prev, newComment]);
   const handleCommentDeleted = (deletedId) => setComments(prev => prev.filter(c => c.id !== deletedId));
 
-  
-  // Logic to handle clicking on the author's profile
   const handleProfileClick = () => {
     const currentUID = getStableProfileId(user);
     const postUID = post.userProfile?.id;
 
-    // If viewing own post, go to own profile; otherwise go to the visitor view of that user
     if (currentUID && String(currentUID) === String(postUID)) {
       navigate("/profile");
     } else if (postUID) {
@@ -359,16 +363,24 @@ export default function CommunityPost() {
                 < LikeButton postId={post.id} initialLikes={post.likeCount || 0} user={user} onAlert={openAlert} />
               </div>
 
-              {/* Modified author lockup to be clickable */}
+              {/* ✅ UPDATED AVATAR IMPLEMENTATION */}
               <div 
                 className="post-author-lockup" 
                 onClick={handleProfileClick} 
                 style={{ cursor: "pointer" }}
                 title={t("community.viewProfile", { name: post.author })}
               >
-                <div className="author-avatar-large">
-                  {post.authorProfilePic ? <img src={post.authorProfilePic} alt={post.author} />
-                    : (post.author || "U").charAt(0).toUpperCase()}
+                <div className="author-avatar-large" style={{ overflow: "hidden" }}>
+                  <img 
+                    src={post.authorProfilePic || `https://ui-avatars.com/api/?name=${post.author || "User"}&background=8b5e3c&color=fff&rounded=true`} 
+                    alt={post.author || "User"} 
+                    loading="lazy"
+                    onError={(e) => {
+                      e.target.onerror = null; 
+                      e.target.src = `https://ui-avatars.com/api/?name=${post.author || "User"}&background=8b5e3c&color=fff&rounded=true`;
+                    }}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+                  />
                 </div>
                 <div className="author-text-info">
                   <span className="author-name-large">
