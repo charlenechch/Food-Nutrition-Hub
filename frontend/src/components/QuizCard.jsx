@@ -91,10 +91,10 @@ export default function QuizCard({ quizData, onNext }) {
                 let icon = null;
 
                 if (revealPhase === 1) {
-                  if (option === quizData.correctAnswer) {
+                  if (originalOption === quizData.correctAnswer) {
                     btnClass += " correct-feedback";
                     icon = <span className="feedback-icon">✓</span>;
-                  } else if (option === selectedAnswer) {
+                  } else if (originalOption === selectedAnswer) {
                     btnClass += " incorrect-feedback";
                     icon = <span className="feedback-icon">✗</span>;
                   } else {
