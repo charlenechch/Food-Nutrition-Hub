@@ -4,7 +4,7 @@ import '../css/Quiz.css';
 import { translateTexts } from '../hooks/useAITranslation';
 
 export default function QuizCard({ quizData, onNext }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedAnswer, setSelectedAnswer] = useState(null);
 
   const [revealPhase, setRevealPhase] = useState(0); 
