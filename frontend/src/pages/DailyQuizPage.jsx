@@ -73,7 +73,7 @@ export default function DailyQuizPage() {
         
         <button 
           onClick={() => navigate(-1)} 
-          className="quiz-back-btn"
+          className="lrp-btn lrp-btn-outline"
         >
           <span>&larr;</span> {t('quiz.back', 'Back')}
         </button>
