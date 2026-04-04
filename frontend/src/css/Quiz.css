@@ -87,6 +87,9 @@
   .quiz-options-grid {
     grid-template-columns: 1fr; 
   }
+  .quiz-header-section-h2 {
+    margin-top: 15px;
+  }
 }
 
 .quiz-option-btn {

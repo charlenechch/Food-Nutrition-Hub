@@ -79,7 +79,7 @@ export default function DailyQuizPage() {
         </button>
 
         <div className="quiz-header-section">
-          <h2>{t('quiz.header', 'Daily Quiz')}</h2>
+          <h2 className = "quiz-header-section-h2" >{t('quiz.header')}</h2>
           
           <h4 className="quiz-progress-text">
             {t('quiz.progress', { current: currentIndex + 1, total: 5 })}
