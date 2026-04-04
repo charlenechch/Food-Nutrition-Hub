@@ -11,7 +11,7 @@ export default function QuizCard({ quizData, onNext }) {
   useEffect(() => {
     let timer;
     if (revealPhase === 1) {
-      timer = setTimeout(() => setRevealPhase(2), 5000);
+      timer = setTimeout(() => setRevealPhase(2), 2000);
     }
     return () => clearTimeout(timer);
   }, [revealPhase]);
