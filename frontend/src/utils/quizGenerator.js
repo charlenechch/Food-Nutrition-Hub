@@ -57,6 +57,9 @@ export const generateDailyQuiz = () => {
         image: food.image,
         questionKey: 'quiz.q_culture',
         questionVar: { food: food.name },
+        foodName: food.name,
+        foodOrigin: food.origin,
+        question: `What is the cultural origin of ${food.name}?`,
         correctAnswer: food.origin,
         options: shuffle([food.origin, ...getDistractors(food.origin, 'origin')]),
         explanation: food.description 
@@ -69,6 +72,9 @@ export const generateDailyQuiz = () => {
         image: food.image,
         questionKey: 'quiz.q_nutrition',
         questionVar: { food: food.name },
+        foodName: food.name,
+        foodOrigin: food.origin,
+        question: `Roughly how many calories are in a standard serving of ${food.name}?`,
         correctAnswer: `${food.Energy_kcal} kcal`,
         options: shuffle([
           `${food.Energy_kcal} kcal`, 
@@ -92,6 +98,9 @@ export const generateDailyQuiz = () => {
         image: food.image,
         questionKey: 'quiz.q_ingredients',
         questionVar: { food: food.name },
+        foodName: food.name,
+        foodOrigin: food.origin,
+        question: `Which of these is a primary ingredient in ${food.name}?`,
         correctAnswer: correctIngredient,
         options: shuffle([correctIngredient, ...fakeIngredients]),
         explanation: food.description 
