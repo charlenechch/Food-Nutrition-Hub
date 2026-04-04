@@ -31,7 +31,9 @@ export const generateDailyQuiz = () => {
       quiz.push({
         ...adminQ,
         id: `q_${index}_${food.foodID}`,
-        image: food.image
+        image: food.image,
+        foodName: food.name,
+        foodOrigin: food.origin
       });
       
     } else if (chosenFormat === 'visual') {
@@ -39,6 +41,8 @@ export const generateDailyQuiz = () => {
         id: `q_${index}_${food.foodID}`,
         foodID: food.foodID,
         image: food.image,
+        foodName: food.name,
+        foodOrigin: food.origin,
         question: "What dish is shown in this picture?",
         correctAnswer: food.name,
         options: shuffle([food.name, ...getDistractors(food.name, 'name')]),
@@ -50,6 +54,8 @@ export const generateDailyQuiz = () => {
         id: `q_${index}_${food.foodID}`,
         foodID: food.foodID,
         image: food.image,
+        foodName: food.name,
+        foodOrigin: food.origin,
         question: `What is the cultural origin of ${food.name}?`,
         correctAnswer: food.origin,
         options: shuffle([food.origin, ...getDistractors(food.origin, 'origin')]),
@@ -61,6 +67,8 @@ export const generateDailyQuiz = () => {
         id: `q_${index}_${food.foodID}`,
         foodID: food.foodID,
         image: food.image,
+        foodName: food.name,
+        foodOrigin: food.origin,
         question: `Roughly how many calories are in a standard serving of ${food.name}?`,
         correctAnswer: `${food.Energy_kcal} kcal`,
         options: shuffle([
@@ -83,6 +91,8 @@ export const generateDailyQuiz = () => {
         id: `q_${index}_${food.foodID}`,
         foodID: food.foodID,
         image: food.image,
+        foodName: food.name,
+        foodOrigin: food.origin,
         question: `Which of these is a primary ingredient in ${food.name}?`,
         correctAnswer: correctIngredient,
         options: shuffle([correctIngredient, ...fakeIngredients]),

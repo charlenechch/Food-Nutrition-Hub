@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom'; 
 import QuizCard from '../components/QuizCard'; 
 import { generateDailyQuiz } from '../utils/quizGenerator'; 
 import '../css/Quiz.css'; 
 
 export default function DailyQuizPage() {
   const { t } = useTranslation(); 
+  const navigate = useNavigate(); 
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -29,7 +31,7 @@ export default function DailyQuizPage() {
   };
 
   if (questions.length === 0) {
-    return <div className = "dqp-no-ques">{t('quiz.loading')}</div>;
+    return <div className="dqp-no-ques" style={{ paddingTop: "120px" }}>{t('quiz.loading', 'Loading...')}</div>;
   }
 
   if (isFinished) {
@@ -38,9 +40,8 @@ export default function DailyQuizPage() {
     const totalXP = baseXP + perfectBonus;
 
     return (
-      <div className="quiz-results-card">
-        <h2>{t('quiz.completed')}</h2>
-        
+      <div className="quiz-results-card" style={{ marginTop: "120px" }}>
+        <h2>{t('quiz.completed', 'Quiz Complete!')}</h2>
         <h1 className="dqp-h1">{score} / 5</h1>
         
         {score === 5 ? (
@@ -54,21 +55,42 @@ export default function DailyQuizPage() {
         )}
 
         <button 
-          onClick={() => window.location.href = '/'}
+          onClick={() => navigate('/')}
           className="quiz-btn-primary"
           style={{ marginTop: "10px", width: "100%", maxWidth: "300px" }}
         >
-          {t('quiz.returnBtn')}
+          {t('quiz.returnBtn', 'Return Home')}
         </button>
       </div>
     );
   }
 
   return (
-    <div className="quiz-page-container">
+    <div className="quiz-page-container" style={{ paddingTop: "100px", position: "relative" }}>
       
+      <button 
+        onClick={() => navigate(-1)} 
+        style={{
+          position: "absolute",
+          top: "90px", 
+          left: "20px",
+          background: "none",
+          border: "none",
+          color: "#8b5e3c",
+          fontWeight: "600",
+          fontSize: "1rem",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: "5px",
+          fontFamily: "Poppins, sans-serif"
+        }}
+      >
+        <span>&larr;</span> {t('quiz.back', 'Back')}
+      </button>
+
       <div className="quiz-header-section">
-        <h2>{t('quiz.header')}</h2>
+        <h2>{t('quiz.header', 'Daily Quiz')}</h2>
         
         <h4 className="quiz-progress-text">
           {t('quiz.progress', { current: currentIndex + 1, total: 5 })}
