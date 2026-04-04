@@ -73,7 +73,7 @@ export default function DailyQuizPage() {
         
         <button 
           onClick={() => navigate(-1)} 
-          className = "dqp-div2-btn"
+          className="quiz-back-btn"
         >
           <span>&larr;</span> {t('quiz.back', 'Back')}
         </button>

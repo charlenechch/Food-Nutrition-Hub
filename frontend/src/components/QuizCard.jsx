@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import '../css/Quiz.css'; 
 
@@ -6,12 +6,28 @@ export default function QuizCard({ quizData, onNext }) {
   const { t } = useTranslation();
   const [selectedAnswer, setSelectedAnswer] = useState(null);
 
+  const [revealPhase, setRevealPhase] = useState(0); 
+
+  useEffect(() => {
+    let timer;
+    if (revealPhase === 1) {
+      timer = setTimeout(() => setRevealPhase(2), 5000);
+    }
+    return () => clearTimeout(timer);
+  }, [revealPhase]);
+
+  useEffect(() => {
+    setSelectedAnswer(null);
+    setRevealPhase(0);
+  }, [quizData]);
+
   if (!quizData) return <div>{t('quiz.loading', 'Loading question...')}</div>;
 
   const isCorrect = selectedAnswer === quizData.correctAnswer;
 
   const handleOptionClick = (option) => {
     setSelectedAnswer(option);
+    setRevealPhase(1);
   };
 
   const handleNextClick = () => {
@@ -27,44 +43,53 @@ export default function QuizCard({ quizData, onNext }) {
 
       <div className="quiz-content-wrapper">
         
-        {!selectedAnswer ? (
-          <>
+        {revealPhase < 2 ? (
+          <div className="qc-reveal">
             <h3 className="qc-h3">{quizData.question}</h3>
             <div className="quiz-options-grid">
-              {quizData.options.map((option, index) => (
-                <button 
-                  key={index}
-                  onClick={() => handleOptionClick(option)}
-                  className="quiz-option-btn"
-                >
-                  {option}
-                </button>
-              ))}
+              {quizData.options.map((option, index) => {
+                
+                let btnClass = "quiz-option-btn";
+                let icon = null;
+
+                if (revealPhase === 1) {
+                  if (option === quizData.correctAnswer) {
+                    btnClass += " correct-feedback";
+                    icon = <span className="feedback-icon">✓</span>;
+                  } else if (option === selectedAnswer) {
+                    btnClass += " incorrect-feedback";
+                    icon = <span className="feedback-icon">✗</span>;
+                  } else {
+                    btnClass += " faded"; 
+                  }
+                }
+
+                return (
+                  <button 
+                    key={index}
+                    onClick={() => revealPhase === 0 && handleOptionClick(option)}
+                    className={btnClass}
+                    disabled={revealPhase === 1}
+                  >
+                    {icon} {option}
+                  </button>
+                );
+              })}
             </div>
-          </>
+          </div>
         ) : (
           
           <div className="quiz-reveal-state qc-reveal">
-            
             <div className={`quiz-banner ${isCorrect ? 'correct' : 'incorrect'}`}>
-              {isCorrect 
-                ? t('quiz.correct', '🎉 Correct!') 
-                : t('quiz.incorrect', { answer: quizData.correctAnswer })
-              }
+              {isCorrect ? t('quiz.correct', '🎉 Correct!') : t('quiz.incorrect', { answer: quizData.correctAnswer })}
             </div>
 
             <div className="qc-div">
-              <h2 className = "qc-div-h2">
-                {quizData.foodName}
-              </h2>
-              <span className = "qc-div-span">
-                {quizData.foodOrigin}
-              </span>
+              <h2 className="qc-div-h2">{quizData.foodName}</h2>
+              <span className="qc-div-span">{quizData.foodOrigin}</span>
             </div>
 
-            <p className = "qc-reveal-p">
-              {quizData.explanation}
-            </p>
+            <p className="qc-reveal-p">{quizData.explanation}</p>
 
             <div className="quiz-action-group">
               <button 
@@ -77,7 +102,6 @@ export default function QuizCard({ quizData, onNext }) {
                 {t('quiz.nextBtn', 'Next Question ➔')}
               </button>
             </div>
-
           </div>
         )}
       </div>
