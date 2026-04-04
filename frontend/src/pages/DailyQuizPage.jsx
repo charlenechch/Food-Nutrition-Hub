@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom'; 
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 import QuizCard from '../components/QuizCard'; 
 import { generateDailyQuiz } from '../utils/quizGenerator'; 
 import '../css/Quiz.css'; 
@@ -65,47 +67,36 @@ export default function DailyQuizPage() {
   }
 
   return (
-    <div className="quiz-page-container dqp-div2">
-      
-      <button 
-        onClick={() => navigate(-1)} 
-        className = "dqp-div2-btn"
-        style={{
-          position: "absolute",
-          top: "90px", 
-          left: "20px",
-          background: "none",
-          border: "none",
-          color: "#8b5e3c",
-          fontWeight: "600",
-          fontSize: "1rem",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: "5px",
-          fontFamily: "Poppins, sans-serif"
-        }}
-      >
-        <span>&larr;</span> {t('quiz.back', 'Back')}
-      </button>
+    <>
+    <Header />
+      <div className="quiz-page-container dqp-div2">
+        
+        <button 
+          onClick={() => navigate(-1)} 
+          className = "dqp-div2-btn"
+        >
+          <span>&larr;</span> {t('quiz.back', 'Back')}
+        </button>
 
-      <div className="quiz-header-section">
-        <h2>{t('quiz.header', 'Daily Quiz')}</h2>
-        
-        <h4 className="quiz-progress-text">
-          {t('quiz.progress', { current: currentIndex + 1, total: 5 })}
-        </h4>
-        
-        <p className="quiz-disclaimer">
-          {t('quiz.disclaimer')}
-        </p>
+        <div className="quiz-header-section">
+          <h2>{t('quiz.header', 'Daily Quiz')}</h2>
+          
+          <h4 className="quiz-progress-text">
+            {t('quiz.progress', { current: currentIndex + 1, total: 5 })}
+          </h4>
+          
+          <p className="quiz-disclaimer">
+            {t('quiz.disclaimer')}
+          </p>
+        </div>
+
+        <QuizCard 
+          quizData={questions[currentIndex]} 
+          onNext={handleNextQuestion} 
+        />
+
       </div>
-
-      <QuizCard 
-        quizData={questions[currentIndex]} 
-        onNext={handleNextQuestion} 
-      />
-
-    </div>
+      <Footer/>
+    </>
   );
 }
