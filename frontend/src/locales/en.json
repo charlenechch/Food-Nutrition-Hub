@@ -1578,6 +1578,10 @@
     "incorrect": "❌ Incorrect! The correct answer was: {{answer}}",
     "viewDetailsBtn": "View Food Details",
     "nextBtn": "Next Question ➔",
-    "back": "Back"
+    "back": "Back",
+    "q_visual": "What dish is shown in this picture?",
+    "q_culture": "What is the cultural origin of {{food}}?",
+    "q_nutrition": "Roughly how many calories are in a standard serving of {{food}}?",
+    "q_ingredients": "Which of these is a primary ingredient in {{food}}?"
   }
 }   

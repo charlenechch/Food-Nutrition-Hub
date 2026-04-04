@@ -45,7 +45,12 @@ export default function QuizCard({ quizData, onNext }) {
         
         {revealPhase < 2 ? (
           <div className="qc-reveal">
-            <h3 className="qc-h3">{quizData.question}</h3>
+            <h3 className="qc-h3">
+              {quizData.questionKey 
+                ? t(quizData.questionKey, quizData.questionVar) 
+                : quizData.question
+              }
+            </h3>
             <div className="quiz-options-grid">
               {quizData.options.map((option, index) => {
                 

@@ -1578,6 +1578,10 @@
     "incorrect": "❌ Salah! Jawapan yang betul adalah: {{answer}}",
     "viewDetailsBtn": "Lihat Butiran Makanan",
     "nextBtn": "Soalan Seterusnya ➔",
-    "back": "Kembali"
+    "back": "Kembali",
+    "q_visual": "Apakah hidangan yang ditunjukkan dalam gambar ini?",
+    "q_culture": "Apakah asal usul budaya bagi hidangan {{food}}?",
+    "q_nutrition": "Kira-kira berapakah jumlah kalori dalam satu hidangan standard {{food}}?",
+    "q_ingredients": "Yang manakah antara berikut merupakan bahan utama dalam {{food}}?"
   }
 }
