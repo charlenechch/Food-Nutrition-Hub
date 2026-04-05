@@ -251,6 +251,13 @@ const formatContributionDate = (dateString) => {
   const [prefs, setPrefs] = useState(DEFAULT_PREFS);
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", location: "" });
   const [bio, setBio] = useState("");
+  const quizStats = user?.quizStats || {
+    lastCompletedDate: "2026-04-01",
+    currentStreak: 5,
+    longestStreak: 14,
+    scoreToday: 5,
+    totalPerfectDays: 12
+  };
 
   const [tab, setTab] = useState(() => {
   // ✅ Read URL param immediately on first load
@@ -1376,7 +1383,16 @@ const handleDeleteAccount = async () => {
             <div className = "xp-tiers-container">
               {TIERS.map((tier) => {
                 const currentLevel = Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3) + 0.0001));
-                const isUnlocked = currentLevel >= tier.minLevel;
+                
+                let isUnlocked = currentLevel >= tier.minLevel;
+
+                if (tier.id === "streak_master") {
+                  isUnlocked = quizStats.longestStreak >= 7;
+                }
+                if (tier.id === "food_encyclopedia") {
+                  isUnlocked = quizStats.totalPerfectDays >= 10;
+                }
+                
                 const isEquipped = equippedBadge === tier.id;
                 const camelCaseId = tier.id.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
 
@@ -1582,6 +1598,17 @@ const handleDeleteAccount = async () => {
                       <div className="upp-stat-val">{user?.stats?.likes || 0}</div>
                       <div className="upp-muted">{t("profile.likesReceived")}</div>
                     </div>
+                    <div className="upp-card" style={{ marginTop: "20px" }}>
+                    <h3 className="upp-card-title">{t("profile.quizStats", "Quiz Stats")}</h3>
+                    <div className="upp-stat">
+                      <div className="upp-stat-val">{quizStats.longestStreak} 🔥</div>
+                      <div className="upp-muted">{t("profile.longestStreak", "Longest Streak")}</div>
+                    </div>
+                    <div className="upp-stat">
+                      <div className="upp-stat-val">{quizStats.totalPerfectDays} 🌟</div>
+                      <div className="upp-muted">{t("profile.perfectDays", "Perfect Days (5/5)")}</div>
+                    </div>
+                  </div>
                   </div>
                 </aside>
               </div>

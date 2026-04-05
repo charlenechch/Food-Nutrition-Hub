@@ -7,6 +7,8 @@ import silverCleaver from '../assets/badges/knife_silver.png';
 import goldCleaver from '../assets/badges/knife_gold.png';
 import normalHat from '../assets/badges/chef_hat_normal.png';
 import goldHat from '../assets/badges/chef_hat_gold.png';
+import streakMaster from '../assets/streak_master.png';
+import foodEncyclopedia from '../assets/food_encyclopedia.png';
 
 const BadgeImg = ({ src, alt }) => (
   <img src={src} alt={alt} style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
@@ -68,6 +70,22 @@ export const TIERS = [
     color: "#F59E0B",
     icon: <BadgeImg src={goldHat} alt="Culinary Legend" />,
     desc: "The pinnacle of SarawakEats. An absolute legend." 
+  },
+  {
+    id: "streak_master",
+    minLevel: 999,
+    title: "Streak Master",
+    color: "#f97316",
+    icon: <BadgeImg src={streakMaster} alt="Streak Master" />,
+    desc: "Maintained a perfect daily quiz streak for 7 consecutive days."
+  },
+  {
+    id: "food_encyclopedia",
+    minLevel: 999, 
+    title: "Food Encyclopedia",
+    color: "#eab308",
+    icon: <BadgeImg src={foodEncyclopedia} alt="Food Encyclopedia" />,
+    desc: "Achieved a perfect 5/5 score on the daily quiz 10 times."
   }
 ];
 
