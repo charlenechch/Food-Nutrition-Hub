@@ -430,7 +430,7 @@
   text-shadow: 0 0 5px rgba(249, 115, 22, 0.3);
 }
 
-@media (min-width: 1376px) and (max-width: 1740px) {
+@media (min-width: 1381px) and (max-width: 1740px) {
   .navbar { 
     padding: 0.7rem 1rem; 
   }
@@ -453,7 +453,7 @@
   }
 }
 
-@media (min-width: 1145px) and (max-width: 1375px) {
+@media (min-width: 1145px) and (max-width: 1380px) {
   .navbar-actions > button,
   .navbar-actions .quiz-nav-btn {
     display: none !important;
