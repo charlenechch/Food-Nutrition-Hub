@@ -436,61 +436,6 @@
   color: #8b5e3c;
 }
 
-@media (min-width: 1351px) and (max-width: 1570px) {
-  .navbar {
-    padding: 0.7rem 1rem; 
-  }
-
-  .navbar-links {
-    gap: 0.5rem; 
-  }
-
-  .navbar-links a {
-    padding: 6px 8px; 
-    font-size: 0.85rem; 
-  }
-
-  .navbar-actions {
-    gap: 0.8rem; 
-  }
-
-  .navbar-actions button {
-    font-size: 0.85rem;
-    gap: 4px; 
-  }
-
-  .logo-text {
-    font-size: 1.1rem; 
-  }
-}
-
-@media (max-width: 1350px) {
-  .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .hamburger {
-    order: 3;
-    display: flex;
-  }
-
-  .navbar-logo {
-    order: 1;
-  }
-
-  .notification-panel {
-    position: fixed; 
-    top: 60px;
-    right: 10px;
-    left: 10px;
-    width: auto;
-    max-width: 400px;
-    margin: 0 auto;
-  }
-}
-
 .quiz-nav-btn {
   display: flex;
   align-items: center;
@@ -538,4 +483,56 @@
   color: #f97316;
   opacity: 1;
   text-shadow: 0 0 5px rgba(249, 115, 22, 0.3);
+}
+
+@media (min-width: 1351px) and (max-width: 1570px) {
+  .navbar { padding: 0.7rem 1rem; }
+  .navbar-links { gap: 0.5rem; }
+  .navbar-links a { padding: 6px 8px; font-size: 0.85rem; }
+  .navbar-actions { gap: 0.8rem; }
+  .navbar-actions button { font-size: 0.85rem; gap: 4px; }
+  .logo-text { font-size: 1.1rem; }
+}
+
+@media (min-width: 1025px) and (max-width: 1350px) {
+  .navbar-actions > button,
+  .navbar-actions .quiz-nav-btn,
+  .navbar-actions .notification-wrapper > button {
+    display: none;
+  }
+  
+  .hamburger {
+    display: flex;
+    margin-left: 15px;
+  }
+  
+  .mobile-menu a {
+    display: none;
+  }
+
+  .notification-panel {
+    position: fixed; 
+    top: 60px; right: 10px; left: 10px; width: auto; max-width: 400px; margin: 0 auto;
+  }
+}
+
+@media (max-width: 1024px) {
+  .navbar-links {
+    display: none;
+  }
+  
+  .navbar-actions > button,
+  .navbar-actions .quiz-nav-btn,
+  .navbar-actions .notification-wrapper > button {
+    display: none;
+  }
+  
+  .hamburger {
+    display: flex;
+  }
+
+  .notification-panel {
+    position: fixed; 
+    top: 60px; right: 10px; left: 10px; width: auto; max-width: 400px; margin: 0 auto;
+  }
 }
