@@ -319,7 +319,7 @@ export default function Header() {
         {/* Desktop Actions */}
         <div className="navbar-actions">
           <button className="lang-btn" onClick={toggleLanguage}>
-            <FaGlobe className="icon" /> <span className="hide-on-laptop">{currentLang}</span>
+            <FaGlobe className="icon" /> {currentLang}
           </button>
 
           {user && user.role !== "guest" && quizState && (
@@ -392,16 +392,16 @@ export default function Header() {
           )}
 
           <button onClick={handleProfileClick}>
-            <User size={18} /> <span className="hide-on-laptop">{t("nav.profile")}</span>
+            <User size={18} /> {t("nav.profile")}
           </button>
 
           {user && user.role !== "guest" ? (
             <button className="logout-btn" onClick={handleLogout}>
-              <FaSignOutAlt /> <span className="hide-on-laptop">{t("nav.logout")}</span>
+              <FaSignOutAlt /> {t("nav.logout")}
             </button>
           ) : (
             <button onClick={() => navigate("/loginregister")}>
-              <FaUser size={16} /> <span className="hide-on-laptop">{t("nav.login")}</span>
+              <FaUser size={16} /> {t("nav.login")}
             </button>
           )}
         </div>
