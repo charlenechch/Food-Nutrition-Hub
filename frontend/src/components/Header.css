@@ -512,7 +512,7 @@
   .navbar-actions > button,
   .navbar-actions .quiz-nav-btn,
   .navbar-actions .notification-wrapper > button {
-    display: none;
+    display: none !important;
   }
   
   .hamburger {
@@ -521,7 +521,7 @@
   }
   
   .mobile-menu a {
-    display: none;
+    display: none !important;
   }
 
   .notification-panel {
@@ -543,7 +543,7 @@
   .navbar-actions > button,
   .navbar-actions .quiz-nav-btn,
   .navbar-actions .notification-wrapper > button {
-    display: none;
+    display: none !important;
   }
   
   .hamburger {
