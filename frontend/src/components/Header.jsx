@@ -331,7 +331,7 @@ export default function Header() {
               {quizState !== "lost" && (
                 <span className={`quiz-flame ${quizState === "done" ? "active" : "faded"}`}>
                   <Flame size={16} fill={quizState === "done" ? "#f97316" : "none"} color={quizState === "done" ? "#f97316" : "currentColor"} />
-                  <span style={{ fontWeight: 600 }}>{mockDailyQuiz.currentStreak}</span>
+                  <span className = "h-quiz-state-span">{mockDailyQuiz.currentStreak}</span>
                 </span>
               )}
             </button>

@@ -560,3 +560,7 @@
     margin: 0 auto;
   }
 }
+
+.h-quiz-state-span {
+  font-weight: 600;
+}
