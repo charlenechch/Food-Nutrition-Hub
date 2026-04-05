@@ -37,7 +37,7 @@ export default function Header() {
   const currentLang = i18n.language === "en" ? "EN" : "BM";
 
   const mockDailyQuiz = { 
-    lastCompletedDate: "2026-04-02", 
+    lastCompletedDate: "2026-04-04", 
     currentStreak: 4 
   };
 
