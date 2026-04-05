@@ -293,13 +293,6 @@ export default function Header() {
               <FaTrophy className="mobile-icon" /> {t("nav.leaderboard")}
             </button>
 
-            {user && user.role !== "guest" && (
-              <button className="mobile-btn" onClick={handleBellClick}>
-                <Bell className="mobile-icon" size={18} />
-                {t("nav.notifications")} {unreadCount > 0 && `(${unreadCount})`}
-              </button>
-            )}
-
             <button onClick={handleProfileClick} className="mobile-btn">
               <User className="mobile-icon" size={18} /> {t("nav.profile")}
             </button>

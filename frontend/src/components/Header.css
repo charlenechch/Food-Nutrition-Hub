@@ -455,8 +455,7 @@
 
 @media (min-width: 1025px) and (max-width: 1350px) {
   .navbar-actions > button,
-  .navbar-actions .quiz-nav-btn,
-  .navbar-actions .notification-wrapper > button {
+  .navbar-actions .quiz-nav-btn {
     display: none !important;
   }
   
