@@ -436,35 +436,33 @@
   color: #8b5e3c;
 }
 
-@media (min-width: 1351px) and (max-width: 1570px) {
+@media (min-width: 1025px) and (max-width: 1350px) {
   .navbar {
-    padding: 0.7rem 1rem; 
+    padding: 0 1rem; 
   }
-
   .navbar-links {
-    gap: 0.5rem; 
+    gap: 0.4rem; 
   }
-
   .navbar-links a {
     padding: 6px 8px; 
     font-size: 0.85rem; 
   }
-
   .navbar-actions {
-    gap: 0.8rem; 
+    gap: 0.6rem; 
   }
-
   .navbar-actions button {
     font-size: 0.85rem;
     gap: 4px; 
   }
-
   .logo-text {
     font-size: 1.1rem; 
   }
+  .hide-on-laptop {
+    display: none;
+  }
 }
 
-@media (max-width: 1350px) {
+@media (max-width: 1024px) {
   .navbar {
     display: flex;
     justify-content: space-between;
@@ -478,6 +476,20 @@
 
   .navbar-logo {
     order: 1;
+  }
+
+  .navbar-links {
+    display: none;
+  }
+
+  .navbar-actions {
+    display: flex;
+    order: 2;
+    margin-left: auto;
+  }
+
+  .navbar-actions > button {
+    display: none;
   }
 
   .notification-panel {
