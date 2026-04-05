@@ -507,7 +507,7 @@
     "action_RECIPE_RATING_UPDATED": "Recipe Rating Changed",
     "quizStats": "Quiz Stats",
     "longestStreak": "Longest Streak",
-    "perfectDays": "Perfect Days (5/5)"
+    "perfectDays": "Perfect Days"
   },
  
   "auth": {
