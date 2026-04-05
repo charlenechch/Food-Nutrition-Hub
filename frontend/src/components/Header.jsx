@@ -242,13 +242,6 @@ export default function Header() {
           <span className="logo-text">SarawakEats</span>
         </div>
 
-        {/* Hamburger (Mobile) */}
-        <div className={`hamburger ${menuOpen ? "open" : ""}`} onClick={toggleMenu}>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-
         {/* Desktop Nav Links */}
         <ul className="navbar-links">
           <li><NavLink to={user?.role === "admin" ? "/admin" : "/home"}>{t("nav.home")}</NavLink></li>
@@ -397,6 +390,13 @@ export default function Header() {
               <FaUser size={16} /> {t("nav.login")}
             </button>
           )}
+
+          {/* Hamburger (Mobile) */}
+          <div className={`hamburger ${menuOpen ? "open" : ""}`} onClick={toggleMenu}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </div>
       </nav>
 
