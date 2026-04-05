@@ -206,61 +206,6 @@
   transform: translateY(-8px) rotate(-45deg);
 }
 
-/* RESPONSIVE (TABLET & MOBILE) */
-@media (max-width: 1350px) {
-  .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .navbar-links {
-    display: none;
-  }
-
-  .navbar-actions {
-    display: flex;
-    order: 2;
-    margin-left: auto;
-  }
-
-  .navbar-actions > button {
-    display: none;
-  }
-
-  .hamburger {
-    display: flex;
-    order: 3;
-    margin-left: 15px; 
-  }
-
-  .navbar-logo {
-    order: 1;
-  }
-
-  .navbar-links .mobile-action,
-  .navbar-links .menu-divider {
-    display: block;
-  }
-
-  .notification-panel {
-    position: fixed; 
-    top: 60px;
-    right: 10px;
-    left: 10px;
-    width: auto;
-    max-width: 400px;
-    margin: 0 auto;
-  }
-}
-
-/* Desktop  */
-@media (min-width: 1351px) {
-  .mobile-menu {
-    display: none;
-  }
-}
-
 /* Notification Bell */
 .notification-wrapper {
   position: relative;
