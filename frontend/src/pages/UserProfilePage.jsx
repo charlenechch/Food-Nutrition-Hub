@@ -519,6 +519,39 @@ const toggleSelectAll = () => {
     }
   };
 
+  // ✅ Save: Equip Badge Instantly
+  const handleEquipBadge = async (badgeId) => {
+    // 1. Update UI instantly
+    setEquippedBadge(badgeId);
+
+    // Prepare data for backend
+    const updateData = {
+      location: user?.location || "",
+      bio: user?.bio || "",
+      dietary: prefs.dietary,
+      allergies: prefs.allergies,
+      emailNotifications: prefs.emailNotifications,
+      pushNotifications: prefs.pushNotifications,
+      profileVisibility: prefs.profileVisibility,
+      language: prefs.language,
+      equippedBadge: badgeId // ✅ Send the new badge ID
+    };
+
+    try {
+      await fetch(`${API_BASE_URL}/api/userProfile/update`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken
+        },
+        credentials: "include",
+        body: JSON.stringify(updateData),
+      });
+    } catch (e) {
+      console.error("Failed to save equipped badge", e);
+    }
+  };
+
 // Save: Personal Info
 const savePersonal = async () => {
   try {
@@ -848,6 +881,9 @@ const ContributionRow = ({ c }) => {
           throw new Error(data?.error || "Profile not found or server error");
         }
         setUser(data);
+        if (data.equippedBadge) {
+          setEquippedBadge(data.equippedBadge);
+        }
         setForm({
           firstName: data.firstName || "",
           lastName: data.lastName || "",
@@ -1427,7 +1463,7 @@ const handleDeleteAccount = async () => {
                         <button 
                           className={`lrp-btn ${isEquipped ? "lrp-btn-outline" : "lrp-btn-primary"} upp-equip-btn`}
                           disabled={isEquipped}
-                          onClick={() => setEquippedBadge(tier.id)}
+                          onClick={() => handleEquipBadge(tier.id)}
                         >
                           {isEquipped ? t("gamification.equipped") : t("gamification.equipTitle")}
                         </button>

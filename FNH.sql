@@ -241,3 +241,5 @@ CREATE TABLE recipe_ratings (
     FOREIGN KEY (recipeID) REFERENCES recipe(recipeID) ON DELETE CASCADE,
     FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON DELETE CASCADE
 );
+
+ALTER TABLE userProfile ADD COLUMN equippedBadge VARCHAR(50) DEFAULT 'novice';
