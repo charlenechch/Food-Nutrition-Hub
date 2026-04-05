@@ -62,13 +62,13 @@
   display: flex;
   gap: clamp(0.8rem, 2vw, 1.5rem);
   list-style: none;
-  font-family: "Poppins", sans-serif !important;
+  font-family: "Poppins", sans-serif;
   align-items: center;
   transition: all 0.3s ease;
 }
 
 .navbar-links a {
-  font-family: "Poppins", sans-serif !important;
+  font-family: "Poppins", sans-serif;
   font-weight: 600;
   font-size: clamp(0.85rem, 1vw, 1rem);
   text-decoration: none;
@@ -76,7 +76,6 @@
   padding: 6px 12px;
   border-radius: 6px;
   transition: all 0.2s ease;
-  white-space: nowrap;
 }
 
 .navbar-links a:hover {
@@ -163,7 +162,6 @@
   font-weight: 500;
   color: #5a4636;
   transition: color 0.3s ease;
-  white-space: nowrap;
 }
 
 .navbar-actions button:hover {
@@ -259,7 +257,7 @@
 /* Desktop  */
 @media (min-width: 1251px) {
   .mobile-menu {
-    display: none !important;
+    display: none;
   }
 }
 
@@ -438,7 +436,7 @@
   color: #8b5e3c;
 }
 
-@media (min-width: 1351px) and (max-width: 1600px) {
+@media (min-width: 1251px) and (max-width: 1570px) {
   .navbar {
     padding: 0.7rem 1rem; 
   }
@@ -466,7 +464,7 @@
   }
 }
 
-@media (max-width: 1350px) {
+@media (max-width: 1250px) {
   .navbar {
     display: flex;
     justify-content: space-between;
@@ -501,7 +499,6 @@
   background-color: #fcf8f2;
   border-radius: 20px;
   border: 1px solid #e0d5c8;
-  white-space: nowrap;
 }
 
 .quiz-nav-btn:hover {
