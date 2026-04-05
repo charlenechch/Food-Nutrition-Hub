@@ -497,8 +497,8 @@
   gap: 8px;
   padding: 4px 8px;
   background-color: #fcf8f2;
-  border-radius: 20px;
-  border: 1px solid #e0d5c8;
+  border-radius: 20px !important; 
+  border: 1px solid #e0d5c8 !important;
 }
 
 .quiz-nav-btn:hover {
