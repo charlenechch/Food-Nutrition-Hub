@@ -38,7 +38,7 @@ export default function Header() {
 
   const mockDailyQuiz = { 
     lastCompletedDate: "2026-04-05", 
-    currentStreak: 4 
+    currentStreak: 40 
   };
 
   const getQuizState = () => {
