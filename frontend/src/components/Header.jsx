@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { FaGlobe, FaSignOutAlt, FaUser, FaTrophy } from "react-icons/fa";
+import { FaGlobe, FaSignOutAlt, FaUser, FaTrophy, FaCaretDown } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { User, Bell, Brain, Flame } from "lucide-react";
 import LoginPromptModal from "../components/LoginPromptModal";
@@ -33,7 +33,6 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Current language label derived from i18n state (no separate useState needed)
   const currentLang = i18n.language === "en" ? "EN" : "BM";
 
   const mockDailyQuiz = { 
@@ -90,7 +89,6 @@ export default function Header() {
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
 
-  // Toggle between EN and BM, persist to localStorage
   const toggleLanguage = () => {
     const newLang = i18n.language === "en" ? "ms" : "en";
     i18n.changeLanguage(newLang);
@@ -233,79 +231,41 @@ export default function Header() {
       )}
 
       <nav className="navbar">
-        {/* Logo */}
-        <div
-          className="navbar-logo"
-          onClick={() => navigate(user?.role === "admin" ? "/admin" : "/home")}
-        >
-          <span className="logo-icon">S</span>
-          <span className="logo-text">SarawakEats</span>
+        {/* LOGO SECTION - Left Aligned */}
+        <div className="navbar-logo-container">
+          <div
+            className="navbar-logo"
+            onClick={() => navigate(user?.role === "admin" ? "/admin" : "/home")}
+          >
+            <span className="logo-icon">S</span>
+            <span className="logo-text">SarawakEats</span>
+          </div>
         </div>
 
-        {/* Desktop Nav Links */}
+        {/* DESKTOP NAV LINKS - Centered */}
         <ul className="navbar-links">
           <li><NavLink to={user?.role === "admin" ? "/admin" : "/home"}>{t("nav.home")}</NavLink></li>
-          <li><NavLink to="/foods">{t("nav.explore")}</NavLink></li>
+          
+          {/* NEW: Dropdown for Discovery Features */}
+          <li className="nav-dropdown">
+            <button className="dropdown-trigger">
+              {t("nav.discover", "Discover")} <FaCaretDown className="caret-icon" />
+            </button>
+            <ul className="dropdown-menu">
+              <li><NavLink to="/foods">{t("nav.explore")}</NavLink></li>
+              <li><NavLink to="/recipes">{t("nav.recipes")}</NavLink></li>
+              <li><NavLink to="/map">{t("nav.map")}</NavLink></li>
+            </ul>
+          </li>
+
           <li><NavLink to="/analyzer">{t("nav.analyzer")}</NavLink></li>
-          <li><NavLink to="/recipes">{t("nav.recipes")}</NavLink></li>
           <li><NavLink to="/community">{t("nav.community")}</NavLink></li>
-          <li><NavLink to="/map">{t("nav.map")}</NavLink></li>
         </ul>
 
-        {/* Mobile Menu Drawer */}
-        {menuOpen && (
-          <div className="mobile-menu">
-            <NavLink to={user?.role === "admin" ? "/admin" : "/home"} onClick={closeMenu}>{t("nav.home")}</NavLink>
-            <NavLink to="/foods" onClick={closeMenu}>{t("nav.explore")}</NavLink>
-            <NavLink to="/analyzer" onClick={closeMenu}>{t("nav.analyzer")}</NavLink>
-            <NavLink to="/recipes" onClick={closeMenu}>{t("nav.recipes")}</NavLink>
-            <NavLink to="/community" onClick={closeMenu}>{t("nav.community")}</NavLink>
-            <NavLink to="/map" onClick={closeMenu}>{t("nav.map")}</NavLink>
-
-            <button onClick={toggleLanguage} className="mobile-btn">
-              <FaGlobe className="mobile-icon" /> {currentLang}
-            </button>
-
-            {user && user.role !== "guest" && quizState && (
-              <button onClick={() => { navigate("/daily-quiz"); closeMenu(); }} className="mobile-btn">
-                <div className="quiz-icon-wrapper">
-                  <Brain size={18} />
-                  {quizState !== "done" && <span className="quiz-red-dot"></span>}
-                </div>
-                {t('nav.dailyQuiz')}
-                {quizState !== "lost" && (
-                  <span className={`quiz-flame ${quizState === "done" ? "active" : "faded"}`}>
-                    <Flame size={16} fill={quizState === "done" ? "#f97316" : "none"} color={quizState === "done" ? "#f97316" : "currentColor"} />
-                    {mockDailyQuiz.currentStreak}
-                  </span>
-                )}
-              </button>
-            )}
-
-            <button onClick={handleLeaderboardClick} className="mobile-btn">
-              <FaTrophy className="mobile-icon" /> {t("nav.leaderboard")}
-            </button>
-
-            <button onClick={handleProfileClick} className="mobile-btn">
-              <User className="mobile-icon" size={18} /> {t("nav.profile")}
-            </button>
-
-            {user && user.role !== "guest" ? (
-              <button onClick={handleLogout} className="mobile-btn logout">
-                <FaSignOutAlt className="mobile-icon" /> {t("nav.logout")}
-              </button>
-            ) : (
-              <button onClick={() => navigate("/loginregister")} className="mobile-btn">
-                <User size={16} /> {t("nav.login")}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Desktop Actions */}
+        {/* ACTIONS SECTION - Right Aligned */}
         <div className="navbar-actions">
           <button className="lang-btn" onClick={toggleLanguage}>
-            <FaGlobe className="icon" /> {currentLang}
+            <FaGlobe className="icon" /> <span className="hide-mobile">{currentLang}</span>
           </button>
 
           {user && user.role !== "guest" && quizState && (
@@ -317,13 +277,13 @@ export default function Header() {
               {quizState !== "lost" && (
                 <span className={`quiz-flame ${quizState === "done" ? "active" : "faded"}`}>
                   <Flame size={16} fill={quizState === "done" ? "#f97316" : "none"} color={quizState === "done" ? "#f97316" : "currentColor"} />
-                  <span className = "h-quiz-state-span">{mockDailyQuiz.currentStreak}</span>
+                  <span className="h-quiz-state-span">{mockDailyQuiz.currentStreak}</span>
                 </span>
               )}
             </button>
           )}
 
-          <button className="leaderboard-btn" onClick={handleLeaderboardClick}>
+          <button className="leaderboard-btn" onClick={handleLeaderboardClick} title={t("nav.leaderboard")}>
             <FaTrophy className="icon" /> 
           </button>
 
@@ -344,7 +304,6 @@ export default function Header() {
                       {t("nav.markAllRead")}
                     </button>
                   </div>
-
                   <div className="notification-list">
                     {notifications.length === 0 ? (
                       <p className="notification-empty">{t("nav.noNotifications")}</p>
@@ -377,17 +336,28 @@ export default function Header() {
             </div>
           )}
 
-          <button onClick={handleProfileClick}>
-            <User size={18} /> {t("nav.profile")}
-          </button>
-
+          {/* NEW: Nested User Account Menu */}
           {user && user.role !== "guest" ? (
-            <button className="logout-btn" onClick={handleLogout}>
-              <FaSignOutAlt /> {t("nav.logout")}
-            </button>
+            <div className="nav-dropdown user-menu-wrapper">
+              <button className="dropdown-trigger user-btn">
+                <User size={18} /> <span className="hide-mobile">{user.firstname || "Account"}</span> <FaCaretDown className="caret-icon" />
+              </button>
+              <ul className="dropdown-menu user-dropdown">
+                <li>
+                  <button onClick={handleProfileClick} className="dropdown-item">
+                     {t("nav.profile")}
+                  </button>
+                </li>
+                <li>
+                  <button onClick={handleLogout} className="dropdown-item logout-item">
+                     {t("nav.logout")}
+                  </button>
+                </li>
+              </ul>
+            </div>
           ) : (
-            <button onClick={() => navigate("/loginregister")}>
-              <FaUser size={16} /> {t("nav.login")}
+            <button className="login-btn" onClick={() => navigate("/loginregister")}>
+              <User size={16} /> <span className="hide-mobile">{t("nav.login")}</span>
             </button>
           )}
 
@@ -399,6 +369,56 @@ export default function Header() {
           </div>
         </div>
       </nav>
+
+      {/* Mobile Menu Drawer (Keeps all links expanded for mobile ease) */}
+      {menuOpen && (
+        <div className="mobile-menu">
+          <NavLink to={user?.role === "admin" ? "/admin" : "/home"} onClick={closeMenu}>{t("nav.home")}</NavLink>
+          <NavLink to="/foods" onClick={closeMenu}>{t("nav.explore")}</NavLink>
+          <NavLink to="/analyzer" onClick={closeMenu}>{t("nav.analyzer")}</NavLink>
+          <NavLink to="/recipes" onClick={closeMenu}>{t("nav.recipes")}</NavLink>
+          <NavLink to="/community" onClick={closeMenu}>{t("nav.community")}</NavLink>
+          <NavLink to="/map" onClick={closeMenu}>{t("nav.map")}</NavLink>
+
+          <button onClick={toggleLanguage} className="mobile-btn">
+            <FaGlobe className="mobile-icon" /> {currentLang}
+          </button>
+
+          {user && user.role !== "guest" && quizState && (
+            <button onClick={() => { navigate("/daily-quiz"); closeMenu(); }} className="mobile-btn">
+              <div className="quiz-icon-wrapper">
+                <Brain size={18} />
+                {quizState !== "done" && <span className="quiz-red-dot"></span>}
+              </div>
+              {t('nav.dailyQuiz')}
+              {quizState !== "lost" && (
+                <span className={`quiz-flame ${quizState === "done" ? "active" : "faded"}`}>
+                  <Flame size={16} fill={quizState === "done" ? "#f97316" : "none"} color={quizState === "done" ? "#f97316" : "currentColor"} />
+                  {mockDailyQuiz.currentStreak}
+                </span>
+              )}
+            </button>
+          )}
+
+          <button onClick={handleLeaderboardClick} className="mobile-btn">
+            <FaTrophy className="mobile-icon" /> {t("nav.leaderboard")}
+          </button>
+
+          <button onClick={handleProfileClick} className="mobile-btn">
+            <User className="mobile-icon" size={18} /> {t("nav.profile")}
+          </button>
+
+          {user && user.role !== "guest" ? (
+            <button onClick={handleLogout} className="mobile-btn logout">
+              <FaSignOutAlt className="mobile-icon" /> {t("nav.logout")}
+            </button>
+          ) : (
+            <button onClick={() => navigate("/loginregister")} className="mobile-btn">
+              <User size={16} /> {t("nav.login")}
+            </button>
+          )}
+        </div>
+      )}
 
       {showLoginPrompt && (
         <LoginPromptModal
