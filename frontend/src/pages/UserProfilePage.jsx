@@ -1599,14 +1599,14 @@ const handleDeleteAccount = async () => {
                       <div className="upp-muted">{t("profile.likesReceived")}</div>
                     </div>
                     <div className="upp-card upp-quiz-stats">
-                      <h3 className="upp-card-title">{t("profile.quizStats", "Quiz Stats")}</h3>
+                      <h3 className="upp-card-title">{t("profile.quizStats")}</h3>
                       <div className="upp-stat">
                         <div className="upp-stat-val">{quizStats.longestStreak} 🔥</div>
-                        <div className="upp-muted">{t("profile.longestStreak", "Longest Streak")}</div>
+                        <div className="upp-muted">{t("profile.longestStreak")}</div>
                       </div>
                       <div className="upp-stat">
                         <div className="upp-stat-val">{quizStats.totalPerfectDays} 🌟</div>
-                        <div className="upp-muted">{t("profile.perfectDays", "Perfect Days (5/5)")}</div>
+                        <div className="upp-muted">{t("profile.perfectDays")}</div>
                       </div>
                     </div>
                   </div>

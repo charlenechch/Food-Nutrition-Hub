@@ -503,7 +503,10 @@
     "verifying": "Mengesahkan...",
     "invalidOrExpiredCode": "Kod tidak sah atau telah tamat tempoh. Sila cuba lagi.",
     "action_RECIPE_RATED": "Resipi Menerima Penilaian",
-    "action_RECIPE_RATING_UPDATED": "Penilaian Resipi Dikemas Kini"
+    "action_RECIPE_RATING_UPDATED": "Penilaian Resipi Dikemas Kini",
+    "quizStats": "Statistik Kuiz",
+    "longestStreak": "Rentetan Terpanjang",
+    "perfectDays": "Hari Sempurna (5/5)"
   },
 
   "auth": {
@@ -1532,7 +1535,11 @@
     "badgesAndTitles": "Lencana & Gelaran",
     "unlocksAtLevel": "Terbuka pada Tahap {{level}}",
     "equipped": "Telah Dipakai",
-    "equipTitle": "Pakai Gelaran"
+    "equipTitle": "Pakai Gelaran",
+    "streakMasterTitle": "Pakar Rentetan",
+    "streakMasterDesc": "Mengekalkan rentetan kuiz harian tanpa henti selama 7 hari berturut-turut.",
+    "foodEncyclopediaTitle": "Ensiklopedia Makanan",
+    "foodEncyclopediaDesc": "Mencapai markah penuh 5/5 dalam kuiz harian sebanyak 10 kali."
   },
 
   "leaderboard": {

@@ -504,7 +504,10 @@
     "verifying": "Verifying...",
     "invalidOrExpiredCode": "Invalid or expired code. Please try again.",
     "action_RECIPE_RATED": "Recipe Received a Rating",
-    "action_RECIPE_RATING_UPDATED": "Recipe Rating Changed"
+    "action_RECIPE_RATING_UPDATED": "Recipe Rating Changed",
+    "quizStats": "Quiz Stats",
+    "longestStreak": "Longest Streak",
+    "perfectDays": "Perfect Days (5/5)"
   },
  
   "auth": {
@@ -1532,7 +1535,11 @@
     "badgesAndTitles": "Badges & Titles",
     "unlocksAtLevel": "Unlocks at Level {{level}}",
     "equipped": "Equipped",
-    "equipTitle": "Equip Title"
+    "equipTitle": "Equip Title",
+    "streakMasterTitle": "Streak Master",
+    "streakMasterDesc": "Maintained a perfect daily quiz streak for 7 consecutive days.",
+    "foodEncyclopediaTitle": "Food Encyclopedia",
+    "foodEncyclopediaDesc": "Achieved a perfect 5/5 score on the daily quiz 10 times."
   },
 
   "leaderboard": {
