@@ -486,12 +486,26 @@
 }
 
 @media (min-width: 1351px) and (max-width: 1570px) {
-  .navbar { padding: 0.7rem 1rem; }
-  .navbar-links { gap: 0.5rem; }
-  .navbar-links a { padding: 6px 8px; font-size: 0.85rem; }
-  .navbar-actions { gap: 0.8rem; }
-  .navbar-actions button { font-size: 0.85rem; gap: 4px; }
-  .logo-text { font-size: 1.1rem; }
+  .navbar { 
+    padding: 0.7rem 1rem; 
+  }
+  .navbar-links { 
+    gap: 0.5rem; 
+  }
+  .navbar-links a { 
+    padding: 6px 8px; 
+    font-size: 0.85rem; 
+  }
+  .navbar-actions { 
+    gap: 0.8rem; 
+  }
+  .navbar-actions button { 
+    font-size: 0.85rem; 
+    gap: 4px; 
+  }
+  .logo-text { 
+    font-size: 1.1rem; 
+  }
 }
 
 @media (min-width: 1025px) and (max-width: 1350px) {
@@ -512,7 +526,12 @@
 
   .notification-panel {
     position: fixed; 
-    top: 60px; right: 10px; left: 10px; width: auto; max-width: 400px; margin: 0 auto;
+    top: 60px; 
+    right: 10px; 
+    left: 10px; 
+    width: auto; 
+    max-width: 400px; 
+    margin: 0 auto;
   }
 }
 
@@ -533,6 +552,11 @@
 
   .notification-panel {
     position: fixed; 
-    top: 60px; right: 10px; left: 10px; width: auto; max-width: 400px; margin: 0 auto;
+    top: 60px; 
+    right: 10px; 
+    left: 10px; 
+    width: auto; 
+    max-width: 400px; 
+    margin: 0 auto;
   }
 }
