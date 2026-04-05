@@ -76,6 +76,7 @@
   padding: 6px 12px;
   border-radius: 6px;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .navbar-links a:hover {
@@ -162,6 +163,7 @@
   font-weight: 500;
   color: #5a4636;
   transition: color 0.3s ease;
+  white-space: nowrap;
 }
 
 .navbar-actions button:hover {
@@ -436,7 +438,7 @@
   color: #8b5e3c;
 }
 
-@media (min-width: 1251px) and (max-width: 1570px) {
+@media (min-width: 1351px) and (max-width: 1600px) {
   .navbar {
     padding: 0.7rem 1rem; 
   }
@@ -464,7 +466,7 @@
   }
 }
 
-@media (max-width: 1250px) {
+@media (max-width: 1350px) {
   .navbar {
     display: flex;
     justify-content: space-between;
@@ -494,11 +496,12 @@
 .quiz-nav-btn {
   display: flex;
   align-items: center;
-  gap: 8px !important;
+  gap: 8px;
   padding: 4px 8px;
   background-color: #fcf8f2;
-  border-radius: 20px !important;
-  border: 1px solid #e0d5c8 !important;
+  border-radius: 20px;
+  border: 1px solid #e0d5c8;
+  white-space: nowrap;
 }
 
 .quiz-nav-btn:hover {
