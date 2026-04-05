@@ -207,7 +207,7 @@
 }
 
 /* RESPONSIVE (TABLET & MOBILE) */
-@media (max-width: 1250px) {
+@media (max-width: 1350px) {
   .navbar {
     display: flex;
     justify-content: space-between;
@@ -255,7 +255,7 @@
 }
 
 /* Desktop  */
-@media (min-width: 1251px) {
+@media (min-width: 1351px) {
   .mobile-menu {
     display: none;
   }
@@ -436,7 +436,7 @@
   color: #8b5e3c;
 }
 
-@media (min-width: 1251px) and (max-width: 1570px) {
+@media (min-width: 1351px) and (max-width: 1570px) {
   .navbar {
     padding: 0.7rem 1rem; 
   }
@@ -464,7 +464,7 @@
   }
 }
 
-@media (max-width: 1250px) {
+@media (max-width: 1350px) {
   .navbar {
     display: flex;
     justify-content: space-between;
