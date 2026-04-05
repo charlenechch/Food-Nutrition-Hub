@@ -7,8 +7,8 @@ import silverCleaver from '../assets/badges/knife_silver.png';
 import goldCleaver from '../assets/badges/knife_gold.png';
 import normalHat from '../assets/badges/chef_hat_normal.png';
 import goldHat from '../assets/badges/chef_hat_gold.png';
-import streakMaster from '../assets/streak_master.png';
-import foodEncyclopedia from '../assets/food_encyclopedia.png';
+import streakMaster from '../assets/badges/streak_master.png';
+import foodEncyclopedia from '../assets/badges/food_encyclopedia.png';
 
 const BadgeImg = ({ src, alt }) => (
   <img src={src} alt={alt} style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
