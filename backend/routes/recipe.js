@@ -45,7 +45,7 @@ chefTips: Joi.string().allow("", null)
 // Configure Cloudinary
 cloudinary.config({
 cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-api_key: process.env.CLOUDINARY_API_KEY,
+api_key: process.env.CloudINARY_API_KEY,
 api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
