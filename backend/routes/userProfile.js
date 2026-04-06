@@ -860,7 +860,7 @@ router.get("/", async (req, res) => {
       bio: profile.bio,
       avatar: profile.avatar,
       total_xp: profile.total_xp,
-      equippedBadge: profile.equippedBadge || 'novice',
+      equippedBadge: profile.equippedBadge || null,
 
       savedFoods: savedFoodsData,
       status: contributions,
@@ -961,7 +961,7 @@ router.put("/update", async (req, res) => {
         pushNotifications !== undefined ? pushNotifications : true,
         profileVisibility !== undefined ? profileVisibility : true,
         language || 'en',
-        equippedBadge || 'novice',
+        equippedBadge || null,
         userID
       ]
     );
@@ -1118,7 +1118,7 @@ router.get("/:identifier", async (req, res) => {
       bio: profile.bio,
       avatar: profile.avatar,
       total_xp: profile.total_xp,
-      equippedBadge: profile.equippedBadge || 'novice',
+      equippedBadge: profile.equippedBadge || null,
       // Only expose email and sensitive prefs to owner or admin
       ...(isSensitiveViewer && { email: profile.email }),
       savedFoods: isSensitiveViewer ? savedFoodsData : [],
