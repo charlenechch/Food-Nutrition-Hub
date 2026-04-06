@@ -1096,8 +1096,8 @@ router.patch('/updateStatus/:id', async (req, res) => {
   try {
     // Update recipe status
     const [result] = await db.query(
-      "UPDATE recipe SET status = ?, admin_feedback = ?, approved_by = ? WHERE foodID = ?",
-      [status, dbFeedbackValue, status === "Approved" ? adminName : null, recipeId]
+      "UPDATE recipe SET status = ?, admin_feedback = ?, approved_by = ?, approved_at = IF(? = 'Approved', NOW(), approved_at) WHERE foodID = ?",
+      [status, dbFeedbackValue, status === "Approved" ? adminName : null, status, recipeId]
     );
 
     if (result.affectedRows === 0) {
