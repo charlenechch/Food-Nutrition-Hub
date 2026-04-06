@@ -146,7 +146,6 @@ const AdminQuizDatabase = () => {
               <tr key={q.id}>
                 <td data-label="Linked Food">
                   <strong>{getFoodName(q.foodID)}</strong> <br/>
-                  <span className="quiz-food-id">ID: {q.foodID}</span>
                 </td>
                 <td data-label="Question">{q.question}</td>
                 <td data-label="Correct Answer">
@@ -233,9 +232,6 @@ const AdminQuizDatabase = () => {
                           <h4 className="aqd-filtered-modal-h4" style={{ color: formData.foodID === food.foodID ? "#916848" : "#3d2b1f" }}>
                             {food.name}
                           </h4>
-                          <p className="aqd-filtered-modal-p">
-                            ID: {food.foodID} • {food.origin || "Unknown Origin"}
-                          </p>
                         </div>
                         {formData.foodID === food.foodID && (
                           <div className = "aqd-form-data-div">
