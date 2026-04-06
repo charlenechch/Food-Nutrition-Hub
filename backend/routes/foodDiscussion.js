@@ -69,6 +69,7 @@ router.get('/food/:foodId', async (req, res) => {
         d.userProfileID,
         COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username,
         up.avatar as avatar,
+        up.equippedBadge,
         u.role as userRole, 
         d.content,
         d.created_At as timestamp,
@@ -137,6 +138,7 @@ router.get('/food/:foodId', async (req, res) => {
             r.userProfileID,
             COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username,
             up.avatar as avatar,
+            up.equippedBadge,
             u.role as userRole,
             r.reply as content,
             r.createdAt as timestamp
@@ -243,6 +245,7 @@ router.post('/', async (req, res) => {
         d.userProfileID,
         COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username,
         up.avatar as avatar,
+        up.equippedBadge,
         u.role as userRole,
         d.content,
         d.created_At as timestamp,
@@ -363,6 +366,7 @@ router.post('/:discussionId/replies', async (req, res) => {
         r.userProfileID,
         COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username,
         up.avatar as avatar,
+        up.equippedBadge,
         u.role as userRole,
         r.reply as content,
         r.createdAt as timestamp

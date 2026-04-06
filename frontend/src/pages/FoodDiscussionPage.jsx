@@ -191,12 +191,14 @@ const Comment = React.memo(function Comment({
           >
             {username}
 
+            {c.equippedBadge && c.equippedBadge !== 'null' && c.equippedBadge !== 'novice' && (
             <span className="user-badge-inline">
               {getTierById(item.equippedBadge || "novice").icon}
               <span className="badge-tooltip-mini" style={{ color: getTierById(item.equippedBadge || "novice").color }}>
                 {getTierById(item.equippedBadge || "novice").title}
               </span>
             </span>
+            )}
           </span>
           <span className="fd-disc-time">• {getTimeAgo(timestamp)}</span>
           
