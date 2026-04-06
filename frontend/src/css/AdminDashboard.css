@@ -3073,7 +3073,7 @@
 
 .aqd-section {
   background-color: white;
-  min-height: 900px;
+  min-height: 70vh;
 }
 
 .aqd-field {
@@ -3149,4 +3149,43 @@
   color: #916848;
   font-size: 18px;
   stroke-width: 3;
+}
+
+.quiz-form-modal .umg-textarea {
+  min-height: 100px;
+  padding: 12px 14px;
+  background-color: #fdfbf9;
+  border: 1px solid #e8dccf;
+  border-radius: 10px;
+  color: #3d2b1f;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical; 
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quiz-form-modal .umg-textarea:focus {
+  outline: none;
+  border-color: #916848;
+  box-shadow: 0 0 0 3px rgba(145, 104, 72, 0.15);
+}
+
+.quiz-form-modal .umg-input {
+  background-color: #fdfbf9;
+  border: 1px solid #e8dccf;
+  padding: 10px 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quiz-form-modal .umg-input:focus {
+  outline: none;
+  border-color: #916848;
+  box-shadow: 0 0 0 3px rgba(145, 104, 72, 0.15);
+}
+
+.aqd-pagination {
+  margin-top: auto; 
+  padding-top: 30px;
+  padding-bottom: 10px;
 }

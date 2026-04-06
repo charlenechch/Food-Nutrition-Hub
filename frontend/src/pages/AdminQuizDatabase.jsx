@@ -223,7 +223,7 @@ const AdminQuizDatabase = () => {
       </table>
 
       {totalPages > 1 && (
-        <div className="admin-pagination fdt-pagination">
+        <div className="admin-pagination fdt-pagination aqd-pagination">
           <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
             ‹ Prev
           </button>
