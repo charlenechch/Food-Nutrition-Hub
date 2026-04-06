@@ -11,18 +11,18 @@
 /* --- HERO SECTION --- */
 .hero-section {
   height: 100vh;
-  min-height: 800px; /* Increased to prevent elements from squishing together */
+  min-height: 800px;
   background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  background-position: center 0px; /* JS will update the Y value for parallax */
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
   color: #ffffff;
-  padding: 80px 20px; /* Added vertical padding */
+  padding: 80px 20px;
   position: relative;
-  transition: background-image 0.8s ease-in-out; 
+  transition: background-image 0.8s ease-in-out;
+  will-change: background-position; /* hint browser for GPU compositing */
 }
 
 /* Invisible Hitboxes for Left/Right Navigation */
