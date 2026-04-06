@@ -545,7 +545,7 @@
   transition: all 0.2s ease;
 }
 
-.admin-pagination button:hover:not(:disabled) {
+.admin-pagination button:hover:not(:disabled):not(.active) {
   background: #f3e8dc;
 }
 
@@ -554,7 +554,9 @@
   cursor: not-allowed;
 }
 
-.admin-pagination button.active {
+.admin-pagination button.active,
+.admin-pagination button.active:hover,
+.admin-pagination button.active:focus-visible {
   background: #8b5e3c;
   color: #fff;
   border-color: #8b5e3c;
@@ -563,9 +565,9 @@
 
 .admin-pagination button.focus, .admin-pagination button:focus-visible, 
 .admin-pagination button:focus-within {
-  outline: none !important;
-  box-shadow: none !important;
-  border-color: #d5c2ac !important;
+  outline: none;
+  box-shadow: none;
+  border-color: #d5c2ac;
 }
 
 .add-options-modal {
