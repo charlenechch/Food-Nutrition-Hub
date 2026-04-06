@@ -18,9 +18,6 @@ const Leaderboard = () => {
   });
   const [loading, setLoading] = useState(true);
   
-  // Time filter state - default to "all" or current month
-  const [selectedMonth, setSelectedMonth] = useState("all"); // "all" or index of month
-
   // Generate last 6 months for the dropdown
   const getLast6Months = () => {
     const months = [];
@@ -43,18 +40,22 @@ const Leaderboard = () => {
   };
 
   const recentMonths = getLast6Months();
+  
+  // Time filter state - default to current month
+  const [selectedMonth, setSelectedMonth] = useState(recentMonths[0].value);
 
-  // Original fetch function - keep as is
+  // Fetch current month data on mount
   useEffect(() => {
-    const fetchLeaderboard = async () => {
+    const fetchCurrentMonthLeaderboard = async () => {
       setLoading(true);
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
+        const currentMonthData = recentMonths[0];
+        
         const [recipesRes, postsRes, levelRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=recipe`, { credentials: "include" }),
-          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=post`, { credentials: "include" }),
-          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=level`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=recipe&year=${currentMonthData.year}&month=${currentMonthData.month}`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=post&year=${currentMonthData.year}&month=${currentMonthData.month}`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=level&year=${currentMonthData.year}&month=${currentMonthData.month}`, { credentials: "include" }),
         ]);
 
         const [recipesData, postsData, levelData] = await Promise.all([
@@ -75,12 +76,12 @@ const Leaderboard = () => {
       }
     };
 
-    fetchLeaderboard();
+    fetchCurrentMonthLeaderboard();
   }, []);
 
   // Fetch filtered data when month selection changes
   useEffect(() => {
-    if (selectedMonth !== "all") {
+    if (selectedMonth) {
       const fetchFilteredLeaderboard = async () => {
         setLoading(true);
         try {
@@ -110,27 +111,6 @@ const Leaderboard = () => {
       };
       
       fetchFilteredLeaderboard();
-    } else {
-      // Reset to original data when "All Time" is selected
-      const resetToOriginalData = async () => {
-        setLoading(true);
-        try {
-          const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-          const response = await fetch(`${API_BASE_URL}/api/xp/leaderboard?type=${activeTab}`, { 
-            credentials: "include" 
-          });
-          const data = await response.json();
-          setLeaderboardData(prev => ({
-            ...prev,
-            [activeTab]: data.success ? data.leaderboard : []
-          }));
-        } catch (error) {
-          console.error("❌ Error resetting leaderboard data:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      resetToOriginalData();
     }
   }, [selectedMonth, activeTab]);
 
@@ -221,9 +201,8 @@ const Leaderboard = () => {
   };
 
   const getSelectedMonthLabel = () => {
-    if (selectedMonth === "all") return t("leaderboard.all_time");
     const monthData = recentMonths.find(m => m.value === selectedMonth);
-    return monthData ? monthData.label : t("leaderboard.all_time");
+    return monthData ? monthData.label : "";
   };
 
   if (loading && getCurrentData().length === 0) {
@@ -249,52 +228,51 @@ const Leaderboard = () => {
           <p>{t("leaderboard.celebrating_top_contributors")}</p>
         </div>
 
-        <div className="tabs">
-          <button
-            className={`tab-btn ${activeTab === "recipes" ? "active" : ""}`}
-            onClick={() => setActiveTab("recipes")}
-          >
-            🍳 {t("leaderboard.top_recipe_contributors")}
-          </button>
-          <button
-            className={`tab-btn ${activeTab === "posts" ? "active" : ""}`}
-            onClick={() => setActiveTab("posts")}
-          >
-            💬 {t("leaderboard.top_community_posters")}
-          </button>
-          <button
-            className={`tab-btn ${activeTab === "level" ? "active" : ""}`}
-            onClick={() => setActiveTab("level")}
-          >
-            ⭐ {t("leaderboard.level_leaders")}
-          </button>
-        </div>
-
-        {/* Simple Time Filter - Last 6 Months */}
-        <div className="time-filter-section">
-          <div className="filter-label">
-            <span className="filter-icon">📅</span>
-            <span>{t("leaderboard.time_period")}:</span>
+        <div className="tabs-wrapper">
+          <div className="tabs">
+            <button
+              className={`tab-btn ${activeTab === "recipes" ? "active" : ""}`}
+              onClick={() => setActiveTab("recipes")}
+            >
+              🍳 {t("leaderboard.top_recipe_contributors")}
+            </button>
+            <button
+              className={`tab-btn ${activeTab === "posts" ? "active" : ""}`}
+              onClick={() => setActiveTab("posts")}
+            >
+              💬 {t("leaderboard.top_community_posters")}
+            </button>
+            <button
+              className={`tab-btn ${activeTab === "level" ? "active" : ""}`}
+              onClick={() => setActiveTab("level")}
+            >
+              ⭐ {t("leaderboard.level_leaders")}
+            </button>
           </div>
-          <select 
-            className="month-filter-select"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-          >
-            <option value="all">{t("leaderboard.all_time")}</option>
-            {recentMonths.map((month) => (
-              <option key={month.value} value={month.value}>
-                {month.label}
-              </option>
-            ))}
-          </select>
-          {selectedMonth !== "all" && (
+
+          {/* Time Filter - Last 6 Months */}
+          <div className="time-filter-section">
+            <div className="filter-label">
+              <span className="filter-icon">📅</span>
+              <span>{t("leaderboard.time_period")}:</span>
+            </div>
+            <select 
+              className="month-filter-select"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+            >
+              {recentMonths.map((month) => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
+            </select>
             <div className="filter-badge">
               <span className="badge-text">
                 {t("leaderboard.showing")}: {getSelectedMonthLabel()}
               </span>
             </div>
-          )}
+          </div>
         </div>
 
         {getInfoText() && (
