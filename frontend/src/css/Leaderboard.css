@@ -33,22 +33,12 @@
   font-weight: 500;
 }
 
-/* Tabs wrapper - flex container for tabs and filter */
-.tabs-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #e6dbcf;
-  padding-bottom: 0;
-}
-
+/* Tabs - Row 1 */
 .tabs {
   display: flex;
-  align-items: center;
+  justify-content: center;
   gap: 1rem;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 
@@ -78,12 +68,23 @@
   box-shadow: none;
 }
 
-/* Time Filter Section - Brown/Natural Colors */
+/* Time Filter Row - Row 2 */
+.time-filter-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e6dbcf;
+}
+
 .time-filter-section {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0;
+  background: #fef7e8;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #e6dbcf;
 }
 
 .filter-label {
@@ -123,7 +124,7 @@
 }
 
 .filter-badge {
-  background: #fef7e8;
+  background: white;
   color: #8b5a2b;
   padding: 0.35rem 0.85rem;
   border-radius: 6px;
@@ -554,12 +555,6 @@
     font-size: 0.85rem;
   }
   
-  .tabs-wrapper {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-  
   .tabs {
     justify-content: center;
   }
@@ -569,9 +564,13 @@
     font-size: 0.8rem;
   }
   
-  .time-filter-section {
+  .time-filter-row {
     justify-content: center;
+  }
+  
+  .time-filter-section {
     flex-wrap: wrap;
+    justify-content: center;
   }
   
   .month-filter-select {
@@ -741,6 +740,20 @@
   
   .rank-badge {
     font-size: 0.85rem;
+  }
+  
+  .time-filter-section {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .month-filter-select {
+    width: 100%;
+  }
+  
+  .filter-badge {
+    text-align: center;
   }
   
   .reward-item {
