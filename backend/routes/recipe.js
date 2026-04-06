@@ -467,8 +467,8 @@ try {
   // Insert into food table
   const foodQuery = `
     INSERT INTO food (
-      origin, difficulty, prepTime, image, description, 
-      category, dietaryTags, commonIngredients, name
+      name, origin, difficulty, prepTime, image, description, 
+      category, dietaryTags, commonIngredients
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
