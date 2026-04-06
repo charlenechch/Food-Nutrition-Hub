@@ -200,6 +200,7 @@ router.get("/:id", async (req, res) => {
           p.recipe,
           up.userProfileID,
           up.avatar,
+          up.equippedBadge,
           CONCAT(u.firstname, ' ', u.lastname) AS author,
           COUNT(DISTINCT l.likeID) as likeCount,
           COUNT(DISTINCT c.commentID) as commentCount
@@ -250,6 +251,7 @@ router.get("/:id", async (req, res) => {
       author: post.author,
       // ✅ FIXED: Map avatar here too
       authorProfilePic: post.avatar,
+      authorBadge: post.equippedBadge || null,
       daysAgo: getTimeAgo(post.created_at),
       culturalOrigin: post.culturalOrigin,
       images: post.photos ? post.photos.split(',').map(photo => photo.trim()) : [],
