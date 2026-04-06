@@ -532,9 +532,19 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.snap-container::-webkit-scrollbar { display: none; }
-.snap-section { height: 100vh; min-height: 100vh; }
-.snap-main { height: auto; min-height: 100vh; overflow-y: auto; }
+
+.snap-container::-webkit-scrollbar { 
+  display: none; 
+}
+
+.snap-section { 
+  height: 100vh; min-height: 100vh; 
+}
+
+.snap-main { 
+  height: auto; min-height: 100vh; overflow-y: auto; 
+}
+
 .hero-section {
   background-attachment: scroll !important;
   background-position: center 0px;
@@ -567,6 +577,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 20px; 
 }
 .stats-snap-inner {
   width: 100%;
