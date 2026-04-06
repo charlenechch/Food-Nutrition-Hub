@@ -3075,7 +3075,7 @@
 
 .aqd-section {
   background-color: white;
-  min-height: 110vh;
+  min-height: 120vh;
   display: flex;
   flex-direction: column;
 }
