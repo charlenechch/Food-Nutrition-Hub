@@ -17,20 +17,11 @@ import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
-const HERO_IMAGES = [LoginFood, LaksaImg, KoloImg];
+const HERO_IMAGES = [LoginFood, KoloImg];
 
 
 // ── Dish Spotlight Component (Option B) ──
 const DISH_DATA = [
-  {
-    nameKey: "Sarawak Laksa",
-    originKey: "Kuching, Sarawak · Malay-Chinese fusion",
-    tagKey: "home.tagMustTry",
-    tagDefault: "Must try",
-    quoteKey: "home.dish1Quote",
-    quoteDefault: "A rich coconut broth with sambal, lemongrass, and galangal — finished with prawns, shredded chicken, and rice vermicelli.",
-    path: "/foods?search=Sarawak%20Laksa",
-  },
   {
     nameKey: "Kolo Mee",
     originKey: "Kuching, Sarawak · Chinese-Sarawakian",
@@ -136,7 +127,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   ];
 
   const PRESET_SIGNATURES = [
-    { name: "Sarawak Laksa", image: LaksaImg, tagKey: "home.tagMustTry" },
     { name: "Kolo Mee",      image: KoloImg,  tagKey: "home.tagLocalFav" },
     { name: "Kek Lapis",     image: KekImg,   tagKey: "home.tagSweet" },
   ];
@@ -351,9 +341,13 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         <button className="hero-arrow arrow-left" onClick={prevSlide} aria-label="Previous image"></button>
 
         <div className="hero-content-wrapper">
+          <div className="hero-sdg-badges">
+            <span className="sdg-badge">🌿 SDG 3 · Good Health</span>
+            <span className="sdg-badge">🏙️ SDG 11 · Sustainable Communities</span>
+          </div>
           <span className="hero-greeting">{getHeroTitle()}</span>
-          <h1 className="hero-title">{t("home.mainHeadline", "Discover Sarawak's Culinary Heritage.")}</h1>
-          <p className="hero-subtitle">{t("home.heroSubtitle")}</p>
+          <h1 className="hero-title">{t("home.mainHeadline", "Sarawak's Food. Documented. Preserved. For Everyone.")}</h1>
+          <p className="hero-subtitle">{t("home.heroSubtitle", "A community-driven hub preserving the nutritional heritage of Sarawak's traditional foods — for healthier communities and richer cultural identity.")}</p>
 
           <div className="hero-search-container" ref={searchRef}>
             <form className="hero-search-form" onSubmit={handleSearchSubmit}>
@@ -417,10 +411,14 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         </div>
       </header>
 
-      <main className="features-layout-wrapper snap-section snap-main">
-        {/* Stats Strip */}
-        <section className="stats-strip-section">
-          <p className="stats-eyebrow">{t("home.statsEyebrow", "Sarawak in numbers")}</p>
+      {/* ── SECTION 2: Stats ── */}
+      <section className="snap-section stats-snap-section">
+        <div className="stats-snap-inner">
+          <div className="stats-intro">
+            <p className="stats-eyebrow">{t("home.statsEyebrow", "What is SarawakEats?")}</p>
+            <h2 className="stats-headline">{t("home.statsHeadline", "Where food becomes a story worth preserving.")}</h2>
+            <p className="stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods — supporting healthier communities and the cultural identity of Borneo's people.")}</p>
+          </div>
           <div className="stats-grid">
             <div className="stat-item">
               <span className="stat-num">27+</span>
@@ -441,10 +439,17 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               <span className="stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Dish Spotlight */}
+      {/* ── SECTION 3: Dish Spotlight ── */}
+      <section className="snap-section dish-snap-section">
         <DishSpotlight dishes={signatureDishes} navigate={navigate} t={t} />
+      </section>
+
+      {/* ── SECTION 4: Rest of content ── */}
+      <main className="features-layout-wrapper snap-section snap-main">
+        <div style={{height: '1px'}} />
 
         <section className="showcase-section">
           <div className="section-header center-header">
