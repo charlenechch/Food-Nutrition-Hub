@@ -3037,3 +3037,36 @@
 .quiz-save-btn:hover {
   background: #7a5234;
 }
+
+.aqd-select {
+  width: auto;
+  min-width: 160px;
+  margin: 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e0d5c8;
+  outline: none;
+  color: #5a4636;
+  font-family: inherit;
+  background-color: #fff;
+}
+
+.aqd-actions-div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.aqd-no-ques-found {
+  text-align: center;
+  padding: 20px;
+  color: #aaa;
+}
+
+.aqd-modal-actions {
+  padding: 20px;
+  border-top: 1px solid #f0e6da;
+  background: #fdfaf7;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+}

@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { BsPatchQuestion } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa6";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
+import { CiSearch } from "react-icons/ci";
 import { mockAdminQuestions } from "../data/mockAdminQuestions"; 
 import { mockFoods } from "../data/mockFoods"; 
 
@@ -11,7 +12,9 @@ const AdminQuizDatabase = () => {
   const { t } = useTranslation();
   const [questions, setQuestions] = useState(mockAdminQuestions);
   
-  // Modal States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState("default");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [formData, setFormData] = useState({
@@ -22,18 +25,33 @@ const AdminQuizDatabase = () => {
     explanation: ""
   });
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentItems = questions.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(questions.length / itemsPerPage);
 
   const getFoodName = (id) => {
     const food = mockFoods.find(f => f.foodID === Number(id));
     return food ? food.name : "Unknown Food";
   };
+
+  const filteredQuestions = questions.filter(q => {
+    const foodName = getFoodName(q.foodID).toLowerCase();
+    const prompt = q.question.toLowerCase();
+    const search = searchTerm.toLowerCase();
+    return foodName.includes(search) || prompt.includes(search);
+  }).sort((a, b) => {
+    if (sortOrder === "foodAsc") return getFoodName(a.foodID).localeCompare(getFoodName(b.foodID));
+    if (sortOrder === "foodDesc") return getFoodName(b.foodID).localeCompare(getFoodName(a.foodID));
+    return 0;
+  });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortOrder]);
+
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = filteredQuestions.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
 
   const handleOpenModal = (q = null) => {
     if (q) {
@@ -70,32 +88,55 @@ const AdminQuizDatabase = () => {
 
   return (
     <div className="food-database-section">
-      <div>
-        <div className="food-header">
-          <h2>
-            <span className="food-icon"><BsPatchQuestion /></span> Quiz Database
-          </h2>
-          <div className="food-actions">
-            <button 
-              className="admin-food-btn-add"
-              onClick={() => handleOpenModal()}
-            >
-              <FaPlus /> Add New Question
-            </button>
-          </div>
-        </div>
+      <div className="food-header">
+        <h2>
+          <span className="food-icon"><BsPatchQuestion /></span> Quiz Database
+        </h2>
+      </div>
 
-        <table className="food-table">
-          <thead>
-            <tr>
-              <th>Linked Food</th>
-              <th>Question</th>
-              <th>Correct Answer</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.map((q) => (
+      <div className="food-controls">
+        <div className="search-bar">
+          <CiSearch className="search-icon" />
+          <input 
+            type="text" 
+            placeholder="Search questions or foods..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <select 
+          className="umg-input aqd-select" 
+          value={sortOrder} 
+          onChange={(e) => setSortOrder(e.target.value)}
+        >
+          <option value="default">Sort: Default</option>
+          <option value="foodAsc">Food Name (A-Z)</option>
+          <option value="foodDesc">Food Name (Z-A)</option>
+        </select>
+
+        <div className="add-export-group">
+          <button 
+            className="admin-food-btn-add"
+            onClick={() => handleOpenModal()}
+          >
+            <FaPlus /> Add Question
+          </button>
+        </div>
+      </div>
+
+      <table className="food-table">
+        <thead>
+          <tr>
+            <th>Linked Food</th>
+            <th>Question</th>
+            <th>Correct Answer</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {currentItems.length > 0 ? (
+            currentItems.map((q) => (
               <tr key={q.id}>
                 <td data-label="Linked Food">
                   <strong>{getFoodName(q.foodID)}</strong> <br/>
@@ -106,18 +147,26 @@ const AdminQuizDatabase = () => {
                   <span className="recipe-status-tag approved">{q.correctAnswer}</span>
                 </td>
                 <td data-label="Actions">
-                  <button className="food-database-btn-edit" onClick={() => handleOpenModal(q)}>
-                    <HiOutlinePencilAlt />
-                  </button>
-                  <button className="food-database-btn-delete" onClick={() => handleDelete(q.id)}>
-                    <RiDeleteBin5Line />
-                  </button>
+                  <div className = "aqd-actions-div">
+                    <button className="food-database-btn-edit" onClick={() => handleOpenModal(q)}>
+                      <HiOutlinePencilAlt />
+                    </button>
+                    <button className="food-database-btn-delete" onClick={() => handleDelete(q.id)}>
+                      <RiDeleteBin5Line />
+                    </button>
+                  </div>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="4" className = "aqd-no-ques-found">
+                No questions found matching your search.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
 
       {totalPages > 1 && (
         <div className="admin-pagination fdt-pagination">
@@ -206,7 +255,7 @@ const AdminQuizDatabase = () => {
 
             </div>
 
-            <div className="modal-actions" style={{ padding: "20px", borderTop: "1px solid #f0e6da", background: "#fdfaf7", borderBottomLeftRadius: "14px", borderBottomRightRadius: "14px" }}>
+            <div className="modal-actions aqd-modal-actions">
               <button className="cancel-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
               <button className="quiz-save-btn" onClick={handleSave}>Save Question</button>
             </div>
