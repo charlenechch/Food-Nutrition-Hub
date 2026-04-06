@@ -35,7 +35,8 @@ CREATE TABLE user (
 	UNIQUE KEY firebase_uid (firebase_uid),
     pdpa_consent TINYINT(1) DEFAULT 0,
     tnc_consent TINYINT(1) DEFAULT 0,
-    agreed_version INT DEFAULT 0
+    agreed_version INT DEFAULT 0,
+    deletion_warning_sent TINYINT(1) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE userProfile (
@@ -100,6 +101,7 @@ CREATE TABLE recipe (
     status ENUM('Approved', 'Pending', 'Rejected') DEFAULT 'Pending',
     publish ENUM('waiting', 'publish') DEFAULT 'waiting';
     approved_by VARCHAR(255);
+    approved_at DATETIME DEFAULT NULL,
     recipeName VARCHAR(100);
     FOREIGN KEY (foodID) REFERENCES food(foodID) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON UPDATE CASCADE ON DELETE CASCADE
@@ -118,6 +120,7 @@ CREATE TABLE posts (
     recipe TEXT NULL,
     admin_feedback TEXT NULL,
     approved_by VARCHAR(255);
+    approved_at DATETIME DEFAULT NULL,
 	FOREIGN KEY (userProfileID) REFERENCES userProfile (userProfileID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -242,3 +245,14 @@ CREATE TABLE recipe_ratings (
 );
 
 ALTER TABLE userProfile ADD COLUMN equippedBadge VARCHAR(50) DEFAULT 'novice';
+
+CREATE TABLE badge (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  userProfileID INT NOT NULL,
+  badge_type VARCHAR(50) NOT NULL,
+  awarded_month VARCHAR(7) DEFAULT NULL,
+  seen TINYINT(1) DEFAULT 0,
+  awarded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID)
+    ON DELETE CASCADE ON UPDATE CASCADE
+);
