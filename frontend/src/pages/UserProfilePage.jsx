@@ -187,7 +187,7 @@ export default function UserProfilePage() {
   const { setBypassSessionCheck, user: authUser } = useAuth();
   //Controls view and edit mode
   const [isEditing, setIsEditing] = useState(false);
-  const [equippedBadge, setEquippedBadge] = useState("novice");
+  const [equippedBadge, setEquippedBadge] = useState(null);
 
   //CSRF Token State
   const [csrfToken, setCsrfToken] = useState("");
@@ -881,9 +881,7 @@ const ContributionRow = ({ c }) => {
           throw new Error(data?.error || "Profile not found or server error");
         }
         setUser(data);
-        if (data.equippedBadge) {
-          setEquippedBadge(data.equippedBadge);
-        }
+        setEquippedBadge(data.equippedBadge || null);
         setForm({
           firstName: data.firstName || "",
           lastName: data.lastName || "",

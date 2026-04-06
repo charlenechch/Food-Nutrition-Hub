@@ -20,81 +20,55 @@ function sanitizeInput(value) {
   return value;
 }
 
-// Update Joi schemas to handle stringified arrays
+// Update Joi schemas to handle partial updates and true NULLs
 const profileUpdateSchema = Joi.object({
-  location: Joi.string().max(120).allow(null, ''),
-  bio: Joi.string().max(2000).allow(null, ''),
-  equippedBadge: Joi.string().max(50).allow(null, ''),
+  location: Joi.string().max(120).allow(null, '').optional(),
+  bio: Joi.string().max(2000).allow(null, '').optional(),
+  
+  // ✅ Allows a string (the badge ID) or a real database NULL
+  equippedBadge: Joi.string().max(50).allow(null, '').optional(),
+  
   dietary: Joi.alternatives().try(
     Joi.array().items(Joi.string().max(60)),
     Joi.string().max(1000)
-  ).custom((value, helpers) => {
-    console.log('🔄 Processing dietary input:', value, 'type:', typeof value);
-    
+  ).custom((value) => {
     let processedArray = [];
-    
     if (typeof value === 'string') {
       try {
         const parsed = JSON.parse(value);
         processedArray = Array.isArray(parsed) ? parsed : [parsed];
       } catch (e) {
-        if (value.includes(',')) {
-          processedArray = value.split(',').map(item => item.trim()).filter(Boolean);
-        } else if (value.trim()) {
-          processedArray = [value.trim()];
-        }
+        processedArray = value.includes(',') ? value.split(',').map(i => i.trim()) : [value.trim()];
       }
     } else if (Array.isArray(value)) {
       processedArray = value;
-    } else if (value && typeof value === 'object') {
-      processedArray = Object.values(value).filter(item => typeof item === 'string');
     }
-    
-    const cleanedArray = processedArray
-      .map(item => typeof item === 'string' ? item.trim().substring(0, 60) : null)
-      .filter(item => item !== null && item !== '');
-    
-    console.log('✅ Processed dietary array:', cleanedArray);
-    return cleanedArray;
-  }, 'Array processing').default([]),
+    return processedArray.filter(Boolean).map(item => String(item).substring(0, 60));
+  }).default([]),
   
   allergies: Joi.alternatives().try(
     Joi.array().items(Joi.string().max(60)),
     Joi.string().max(1000)
-  ).custom((value, helpers) => {
-    console.log('🔄 Processing allergies input:', value, 'type:', typeof value);
-    
+  ).custom((value) => {
     let processedArray = [];
-    
     if (typeof value === 'string') {
       try {
         const parsed = JSON.parse(value);
         processedArray = Array.isArray(parsed) ? parsed : [parsed];
       } catch (e) {
-        if (value.includes(',')) {
-          processedArray = value.split(',').map(item => item.trim()).filter(Boolean);
-        } else if (value.trim()) {
-          processedArray = [value.trim()];
-        }
+        processedArray = value.includes(',') ? value.split(',').map(i => i.trim()) : [value.trim()];
       }
     } else if (Array.isArray(value)) {
       processedArray = value;
-    } else if (value && typeof value === 'object') {
-      processedArray = Object.values(value).filter(item => typeof item === 'string');
     }
-    
-    const cleanedArray = processedArray
-      .map(item => typeof item === 'string' ? item.trim().substring(0, 60) : null)
-      .filter(item => item !== null && item !== '');
-    
-    console.log('✅ Processed allergies array:', cleanedArray);
-    return cleanedArray;
-  }, 'Array processing').default([]),
+    return processedArray.filter(Boolean).map(item => String(item).substring(0, 60));
+  }).default([]),
   
-  emailNotifications: Joi.boolean().required(),
-  pushNotifications: Joi.boolean().required(),
-  profileVisibility: Joi.boolean().required(),
-  language: Joi.string().max(10).valid('en', 'ms', 'zh', 'id', 'ta', 'hi', 'ar', 'es', 'fr', 'de').default('en')
+  // ✅ CHANGED TO OPTIONAL: This stops the 400 Bad Request error
+  emailNotifications: Joi.boolean().optional(),
+  pushNotifications: Joi.boolean().optional(),
+  profileVisibility: Joi.boolean().optional(),
+  language: Joi.string().max(10).valid('en', 'ms', 'zh', 'id', 'ta', 'hi', 'ar', 'es', 'fr', 'de').optional()
 })
 .required()
 .unknown(true);
@@ -896,19 +870,16 @@ router.get("/", async (req, res) => {
   }
 });
 
+
 // Update user profile
 router.put("/update", async (req, res) => {
   console.log("✏️ Profile update request received");
   try {
-    console.log("🔐 Checking session...");
-    console.log("Session user:", req.session?.user);
-    
     if (!req.session || !req.session.user) {
-      console.log("❌ No session or user found");
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    // ✅ Added Joi validation + sanitization (STRICT schema)
+    // Validate the incoming data
     const { error, value } = profileUpdateSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
     if (error) {
       return res.status(400).json({ 
@@ -916,65 +887,50 @@ router.put("/update", async (req, res) => {
         details: error.details.map(d => d.message)
       });
     }
-    // sanitize strings inside value; arrays handled item-wise
-    const sanitized = {};
-    for (const [k, v] of Object.entries(value)) {
-      if (Array.isArray(v)) {
-        sanitized[k] = v.map(sanitizeInput);
-      } else {
-        sanitized[k] = sanitizeInput(v);
-      }
-    }
-    Object.assign(req.body, sanitized);
-
-    // validate session userID
-    try {
-      const { error: sessionErr } = sessionUserSchema.validate({ userID: req.session.user.userID });
-      if (sessionErr) return res.status(401).json({ error: "Invalid session" });
-    } catch (e) {
-      return res.status(401).json({ error: "Invalid session" });
-    }
 
     const userID = req.session.user.userID;
-    const updateData = req.body;
-    console.log(`👤 Updating profile for user: ${userID}`);
-    console.log(`📝 Update data:`, updateData);
-
-    // Ensure userProfile exists first
     await ensureUserProfileExists(userID);
 
-    const { location, bio, dietary, allergies, emailNotifications, pushNotifications, profileVisibility, language, equippedBadge } = req.body;
+    const { 
+      location, bio, dietary, allergies, 
+      emailNotifications, pushNotifications, 
+      profileVisibility, language, equippedBadge 
+    } = value;
 
-    // Update the profile
-    console.log(`💾 Executing profile update query`);
+    console.log(`💾 Executing profile update query for user: ${userID}`);
+    
     const [result] = await db.execute(
       `UPDATE userProfile 
-       SET location = ?, bio = ?, dietaryPreference = ?, allergies = ?,
-           emailNotifications = ?, pushNotifications = ?, profileVisibility = ?, language = ?, equippedBadge = ? /* ✅ ADDED HERE */
+       SET location = COALESCE(?, location), 
+           bio = COALESCE(?, bio), 
+           dietaryPreference = COALESCE(?, dietaryPreference), 
+           allergies = COALESCE(?, allergies),
+           emailNotifications = COALESCE(?, emailNotifications), 
+           pushNotifications = COALESCE(?, pushNotifications), 
+           profileVisibility = COALESCE(?, profileVisibility), 
+           language = COALESCE(?, language), 
+           equippedBadge = ? 
        WHERE userID = ?`,
       [
-        location || null,
-        bio || null,
-        dietary ? JSON.stringify(dietary) : '[]',
-        allergies ? JSON.stringify(allergies) : '[]',
-        emailNotifications !== undefined ? emailNotifications : true,
-        pushNotifications !== undefined ? pushNotifications : true,
-        profileVisibility !== undefined ? profileVisibility : true,
-        language || 'en',
-        equippedBadge || null,
+        location !== undefined ? location : null,
+        bio !== undefined ? bio : null,
+        dietary ? JSON.stringify(dietary) : null,
+        allergies ? JSON.stringify(allergies) : null,
+        emailNotifications !== undefined ? emailNotifications : null,
+        pushNotifications !== undefined ? pushNotifications : null,
+        profileVisibility !== undefined ? profileVisibility : null,
+        language !== undefined ? language : null,
+        // ✅ This logic forces the literal database NULL if the badge is 'null' or empty
+        (equippedBadge === 'null' || !equippedBadge) ? null : equippedBadge,
         userID
       ]
     );
 
-    console.log(`✅ Profile update completed, rows affected: ${result.affectedRows}`);
-
-    // Update user stats
     await updateUserStats(userID);
-
     res.json({ success: true, message: "Profile updated successfully" });
+
   } catch (err) {
     console.error("❌ Error updating profile:", err);
-    console.error("❌ Error stack:", err.stack);
     res.status(500).json({ error: "Server error: " + err.message });
   }
 });
