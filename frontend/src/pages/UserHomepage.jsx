@@ -17,7 +17,7 @@ import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
-const HERO_IMAGES = [LoginFood, LaksaImg, KoloImg];
+const HERO_IMAGES = [LoginFood, KoloImg];
 
 
 // ── Dish Spotlight Component (Option B) ──
