@@ -139,7 +139,7 @@
   border-radius: 14px;
   padding: 20px 25px;
   margin-bottom: 50px;
-  position: relative; /* Container boundary */
+  position: relative; 
 }
 
 .food-header, .recipe-header {
@@ -3048,7 +3048,6 @@
   outline: none;
   color: #5a4636;
   font-family: inherit;
-  background-color: #fff;
   cursor: pointer;
 }
 
@@ -3070,4 +3069,8 @@
   background: #fdfaf7;
   border-bottom-left-radius: 14px;
   border-bottom-right-radius: 14px;
+}
+
+.aqd-section {
+  background-color: white;
 }
