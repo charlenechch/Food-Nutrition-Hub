@@ -8,7 +8,6 @@ import axios from "axios";
 import { useTranslation } from "react-i18next";
 
 import LoginFood from "../assets/LoginFood.png";
-import LaksaImg from "../assets/laksa.jpg";
 import KoloImg from "../assets/kolomee.jpg";
 import KekImg from "../assets/keklapis.jpg";
 
