@@ -18,6 +18,7 @@ const AdminQuizDatabase = () => {
   const [translatedQuestions, setTranslatedQuestions] = useState({});
   const [translatedFoods, setTranslatedFoods] = useState({});
   const [isTranslating, setIsTranslating] = useState(false);
+  const [translatedAnswers, setTranslatedAnswers] = useState({});
 
   useEffect(() => {
     const translateDynamicData = async () => {
@@ -31,15 +32,18 @@ const AdminQuizDatabase = () => {
       try {
         const questionPrompts = questions.map(q => q.question);
         const foodNames = mockFoods.map(f => f.name);
+        const correctAnswers = questions.map(q => q.correctAnswer);
 
-        const [translatedQsArray, translatedFoodsArray] = await Promise.all([
+        const [translatedQsArray, translatedFoodsArray, translatedAsArray] = await Promise.all([
           translateTexts(questionPrompts, i18n.language),
-          translateTexts(foodNames, i18n.language)
+          translateTexts(foodNames, i18n.language),
+          translateTexts(correctAnswers, i18n.language)
         ]);
 
         const qMap = {};
         questions.forEach((q, index) => {
           qMap[q.id] = translatedQsArray[index];
+          aMap[q.id] = translatedAsArray[index];
         });
         
         const fMap = {};
@@ -48,6 +52,7 @@ const AdminQuizDatabase = () => {
         });
 
         setTranslatedQuestions(qMap);
+        setTranslatedAnswers(aMap);
         setTranslatedFoods(fMap);
       } catch (error) {
         console.error("Translation failed:", error);
@@ -197,8 +202,10 @@ const AdminQuizDatabase = () => {
                 <td data-label={t("adminQuizDB.tableQuestion")}>
                   {isTranslating ? "Translating..." : (translatedQuestions[q.id] || q.question)}
                 </td>
-                <td data-label="Correct Answer">
-                  <span className="recipe-status-tag approved">{q.correctAnswer}</span>
+                <td data-label={t("adminQuizDB.tableCorrectAnswer")}>
+                  <span className="recipe-status-tag approved">
+                    {isTranslating ? "..." : (translatedAnswers[q.id] || q.correctAnswer)} 
+                  </span>
                 </td>
                 <td data-label="Actions">
                   <div className = "aqd-actions-div">
