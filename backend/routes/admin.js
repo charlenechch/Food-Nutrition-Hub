@@ -745,7 +745,7 @@ router.get("/embed-all", async (req, res) => {
 // embed
 router.get("/embed-all", async (req, res) => {
   try {
-    // UPDATED - only embed foods that have real nutrition data
+    // only embed foods that have real nutrition data
     const [rows] = await db.execute(
       `SELECT foodID, name, description, commonIngredients, culturalSignificance 
       FROM food 
