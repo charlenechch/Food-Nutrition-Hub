@@ -92,10 +92,18 @@ const AdminQuizDatabase = () => {
         <h2>
           <span className="food-icon"><BsPatchQuestion /></span> Quiz Database
         </h2>
+        <div className="food-actions">
+          <button 
+            className="admin-food-btn-add"
+            onClick={() => handleOpenModal()}
+          >
+            <FaPlus /> Add Question
+          </button>
+        </div>
       </div>
 
-      <div className="food-controls">
-        <div className="search-bar">
+      <div className="food-filters">
+        <div className="search-box">
           <CiSearch className="search-icon" />
           <input 
             type="text" 
@@ -106,7 +114,7 @@ const AdminQuizDatabase = () => {
         </div>
         
         <select 
-          className="umg-input aqd-select" 
+          className="admin-beige-trigger aqd-select" 
           value={sortOrder} 
           onChange={(e) => setSortOrder(e.target.value)}
         >
