@@ -266,6 +266,174 @@ async function updateStaleAndExpiredUsers() {
             `DELETE FROM adminActivityLog WHERE createdAt < NOW() - INTERVAL 60 DAY`
         );
         console.log(`✅ Cleaned up ${logResult.affectedRows} old activity log entries.`);
+
+        // Monthly Leaderbaord XP Rewards (only on last day of month, Malaysia time)
+        const malaysiaOffset = 8 * 60;
+        const currentTime = new Date();
+        const malaysiaTime = new Date(currentTime.getTime() + malaysiaOffset * 60 * 1000);
+        const isLastDayOfMonth = true; // TESTING ONLY
+
+        if (isLastDayOfMonth) {
+            console.log("🏆 Last day of month detected. Running leaderboard XP rewards...");
+
+            // XP amounts per rank
+            const RECIPE_XP = { 1: 200, 2: 150, 3: 100 };
+            const POST_XP   = { 1: 100, 2: 50,  3: 25  };
+
+            // Tiers ordered highest first (mirrors getTierByLevel() in gamificationTiers.jsx)
+            const TIERS = [
+                { id: "culinary_legend",      minLevel: 50 },
+                { id: "culinary_master",      minLevel: 40 },
+                { id: "nutrition_expert",     minLevel: 30 },
+                { id: "nutrition_scholar",    minLevel: 20 },
+                { id: "nutrition_enthusiast", minLevel: 10 },
+                { id: "foodie",               minLevel: 5  },
+                { id: "novice",               minLevel: 1  },
+            ];
+            const getTier = (level) => TIERS.find(t => level >= t.minLevel) || TIERS[TIERS.length - 1];
+
+            // Helper to award XP to a user
+            const awardXP = async (userProfileID, actionType, referenceId, xpAmount) => {
+                // Guard: check if XP already awarded this month for this action
+                const [existing] = await db.query(
+                    `SELECT id FROM xp_logs 
+                     WHERE userProfileID = ? AND action_type = ? AND reference_id = ?
+                     AND MONTH(created_at) = MONTH(CURRENT_DATE)
+                     AND YEAR(created_at) = YEAR(CURRENT_DATE)`,
+                    [userProfileID, actionType, referenceId]
+                );
+
+                if (existing.length > 0) {
+                    console.log(`⚠️ XP already awarded for ${actionType} to userProfileID ${userProfileID}, skipping...`);
+                    return;
+                }
+
+                await db.query(
+                    `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded)
+                     VALUES (?, ?, ?, ?)`,
+                    [userProfileID, actionType, referenceId, xpAmount]
+                );
+                await db.query(
+                    `UPDATE userProfile SET total_xp = COALESCE(total_xp, 0) + ? WHERE userProfileID = ?`,
+                    [xpAmount, userProfileID]
+                );
+                console.log(`✅ Awarded ${xpAmount} XP to userProfileID ${userProfileID} for ${actionType}`);
+            };
+
+            // Recipe Leaderboard Rewards
+            const [recipeTop3] = await db.query(`
+                WITH monthly_recipes AS (
+                    SELECT
+                        r.recipeID,
+                        r.userProfileID,
+                        r.approved_at,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY r.userProfileID
+                            ORDER BY r.approved_at ASC
+                        ) AS row_num,
+                        COUNT(*) OVER (PARTITION BY r.userProfileID) AS contributions
+                    FROM recipe r
+                    JOIN userProfile up ON r.userProfileID = up.userProfileID
+                    JOIN user u ON up.userID = u.userID
+                    WHERE r.status = 'Approved'
+                        AND MONTH(r.approved_at) = MONTH(CURRENT_DATE)
+                        AND YEAR(r.approved_at) = YEAR(CURRENT_DATE)
+                        AND u.role = 'member'
+                        AND u.status != 'Suspended'
+                ),
+                user_tiebreaker AS (
+                    SELECT userProfileID, contributions, approved_at AS reached_at
+                    FROM monthly_recipes
+                    WHERE row_num = contributions
+                )
+                SELECT
+                    ut.userProfileID,
+                    u.userID,
+                    u.firstname,
+                    ut.contributions,
+                    ut.reached_at
+                FROM user_tiebreaker ut
+                JOIN userProfile up ON ut.userProfileID = up.userProfileID
+                JOIN user u ON up.userID = u.userID
+                ORDER BY ut.contributions DESC, ut.reached_at ASC, ut.userProfileID ASC
+                LIMIT 3
+            `);
+
+            for (let i = 0; i < recipeTop3.length; i++) {
+                const user = recipeTop3[i];
+                const rank = i + 1;
+                const xp = RECIPE_XP[rank];
+                const actionType = `LEADERBOARD_RECIPE_RANK_${rank}`;
+
+                await awardXP(user.userProfileID, actionType, rank, xp);
+                await createNotification(
+                    user.userID,
+                    "leaderboard_reward",
+                    `Congratulations! You ranked #${rank} on the Recipe Leaderboard this month and earned ${xp} XP!`,
+                    db
+                );
+                console.log(`🔔 Notification sent to userID ${user.userID} for recipe rank ${rank}`);
+            }
+
+            // Post Leaderboard Rewards
+            const [postTop3] = await db.query(`
+                WITH monthly_posts AS (
+                    SELECT
+                        p.postID,
+                        p.userProfileID,
+                        p.approved_at,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY p.userProfileID
+                            ORDER BY p.approved_at ASC
+                        ) AS row_num,
+                        COUNT(*) OVER (PARTITION BY p.userProfileID) AS contributions
+                    FROM posts p
+                    JOIN userProfile up ON p.userProfileID = up.userProfileID
+                    JOIN user u ON up.userID = u.userID
+                    WHERE p.status = 'Approved'
+                        AND MONTH(p.approved_at) = MONTH(CURRENT_DATE)
+                        AND YEAR(p.approved_at) = YEAR(CURRENT_DATE)
+                        AND u.role = 'member'
+                        AND u.status != 'Suspended'
+                ),
+                user_tiebreaker AS (
+                    SELECT userProfileID, contributions, approved_at AS reached_at
+                    FROM monthly_posts
+                    WHERE row_num = contributions
+                )
+                SELECT
+                    ut.userProfileID,
+                    u.userID,
+                    u.firstname,
+                    ut.contributions,
+                    ut.reached_at
+                FROM user_tiebreaker ut
+                JOIN userProfile up ON ut.userProfileID = up.userProfileID
+                JOIN user u ON up.userID = u.userID
+                ORDER BY ut.contributions DESC, ut.reached_at ASC, ut.userProfileID ASC
+                LIMIT 3
+            `);
+
+            for (let i = 0; i < postTop3.length; i++) {
+                const user = postTop3[i];
+                const rank = i + 1;
+                const xp = POST_XP[rank];
+                const actionType = `LEADERBOARD_POST_RANK_${rank}`;
+
+                await awardXP(user.userProfileID, actionType, rank, xp);
+                await createNotification(
+                    user.userID,
+                    "leaderboard_reward",
+                    `Congratulations! You ranked #${rank} on the Community Post Leaderboard this month and earned ${xp} XP!`,
+                    db
+                );
+                console.log(`🔔 Notification sent to userID ${user.userID} for post rank ${rank}`);
+            }
+
+            console.log("✅ Monthly leaderboard XP rewards complete.");
+        } else {
+            console.log("ℹ️ Not the last day of the month. Skipping leaderboard rewards.");
+        }
         
         console.log("✅ Status Cleanup Complete.");
 
