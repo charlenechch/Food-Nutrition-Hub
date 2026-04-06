@@ -154,7 +154,7 @@ SELECT
       name: getSafe(data, 'recipeName') || 'Unknown Recipe',  // ✅ CHANGED: Use recipeName
       author: getSafe(data, 'author') || 'Unknown Author', 
       authorImage: getSafe(data, 'authorImage') || null,
-      authorBadge: getSafe(data, 'equippedBadge') || null,
+      authorBadge: getSafe(data, 'equippedBadge') || 'novice',
       authorId: getSafe(data, 'authorId') || null,
       date: getSafe(data, 'date') ? new Date(data.date).toLocaleDateString() : '—',
       updatedAt: getSafe(data, 'updatedAt') ? new Date(data.updatedAt).toISOString() : null,
