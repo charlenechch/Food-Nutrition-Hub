@@ -743,6 +743,10 @@
     justify-content: center;
     min-width: 0;
   }
+  .aqd-actions-div {
+    width: 100%;
+    gap: 12px;
+  }
 }
 
 /* user management tab */
