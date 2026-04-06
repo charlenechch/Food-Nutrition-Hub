@@ -20,63 +20,58 @@ import LoginPromptModal from "../components/LoginPromptModal";
 const HERO_IMAGES = [LoginFood, KoloImg];
 
 
-// ── Dish Spotlight Component (Option B) ──
-const DISH_DATA = [
-  {
-    nameKey: "Kolo Mee",
-    originKey: "Kuching, Sarawak · Chinese-Sarawakian",
-    tagKey: "home.tagLocalFav",
-    tagDefault: "Local favourite",
-    quoteKey: "home.dish2Quote",
-    quoteDefault: "Dry-tossed egg noodles with a fragrant shallot oil, char siu pork, and crispy lard — a Kuching morning staple.",
-    path: "/foods?search=Kolo%20Mee",
-  },
-  {
-    nameKey: "Kek Lapis",
-    originKey: "Sarawak · Malay heritage",
-    tagKey: "home.tagSweet",
-    tagDefault: "Sweet heritage",
-    quoteKey: "home.dish3Quote",
-    quoteDefault: "Sarawak\'s iconic layered cake — each paper-thin layer baked one at a time, a labour of love for every celebration.",
-    path: "/foods?search=Kek%20Lapis",
-  },
-];
-
-function DishSpotlight({ dishes, navigate, t }) {
+// ── Dish Spotlight Component — DB driven ──
+function DishSpotlight({ allFoods, navigate, t }) {
   const [active, setActive] = React.useState(0);
   const timerRef = React.useRef(null);
 
+  const spotlightDishes = React.useMemo(() => {
+    if (!allFoods || allFoods.length === 0) return [];
+    return allFoods.filter(f => f.imageUrl || f.image).slice(0, 4);
+  }, [allFoods]);
+
   const startTimer = React.useCallback(() => {
     clearInterval(timerRef.current);
+    if (spotlightDishes.length < 2) return;
     timerRef.current = setInterval(() => {
-      setActive(prev => (prev + 1) % DISH_DATA.length);
+      setActive(prev => (prev + 1) % spotlightDishes.length);
     }, 5000);
-  }, []);
+  }, [spotlightDishes.length]);
 
   React.useEffect(() => {
+    setActive(0);
     startTimer();
     return () => clearInterval(timerRef.current);
   }, [startTimer]);
 
   const goTo = (idx) => { setActive(idx); startTimer(); };
 
-  const dish = DISH_DATA[active];
-  const dishImg = dishes[active]?.image;
+  if (spotlightDishes.length === 0) return null;
+
+  const dish = spotlightDishes[active];
+  const dishImg = dish.imageUrl || dish.image;
+  const dishId = dish.foodID || dish.id;
+  const dishCategory = dish.category || "Traditional";
+  const dishOrigin = dish.ethnicity || dish.origin || "Sarawak";
 
   return (
     <section className="dish-spotlight-section">
-      <p className="stats-eyebrow">{t("home.spotlightEyebrow", "Dish of the day")}</p>
       <div className="dish-spotlight-card">
-        <div className="dish-spotlight-img" style={dishImg ? { backgroundImage: `url(${dishImg})` } : {}}>
+        <div className="dish-spotlight-img" style={{ backgroundImage: `url(${dishImg})` }}>
           <div className="dish-img-overlay" />
-          <span className="dish-origin-badge">{dish.originKey}</span>
+          <span className="dish-origin-badge">{dishOrigin}</span>
         </div>
         <div className="dish-spotlight-content">
-          <span className="dish-tag-pill">{t(dish.tagKey, dish.tagDefault)}</span>
-          <h2 className="dish-spotlight-title">{dish.nameKey}</h2>
-          <p className="dish-spotlight-quote">{t(dish.quoteKey, dish.quoteDefault)}</p>
+          <span className="dish-tag-pill">{dishCategory}</span>
+          <h2 className="dish-spotlight-title">{dish.name}</h2>
+          <p className="dish-spotlight-quote">
+            {dish.description || t("home.dishDefaultDesc", "A beloved traditional dish from the rich culinary heritage of Sarawak.")}
+          </p>
           <div className="dish-spotlight-actions">
-            <button className="dish-btn-primary" onClick={() => navigate(dish.path)}>
+            <button
+              className="dish-btn-primary"
+              onClick={() => navigate(dishId ? `/fooddetail/${dishId}` : `/foods?search=${encodeURIComponent(dish.name)}`)}
+            >
               {t("home.exploreDish", "Explore this dish")}
             </button>
             <button className="dish-btn-link" onClick={() => navigate("/analyzer")}>
@@ -84,7 +79,7 @@ function DishSpotlight({ dishes, navigate, t }) {
             </button>
           </div>
           <div className="dish-dots">
-            {DISH_DATA.map((_, i) => (
+            {spotlightDishes.map((_, i) => (
               <span key={i} className={`dish-dot${i === active ? " active" : ""}`} onClick={() => goTo(i)} />
             ))}
           </div>
@@ -93,6 +88,7 @@ function DishSpotlight({ dishes, navigate, t }) {
     </section>
   );
 }
+
 
 export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const navigate = useNavigate();
@@ -393,7 +389,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </div>
 
-        <div className="scroll-hint-container" onClick={() => window.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}>
+        <div className="scroll-hint-container" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
           <span className="scroll-text">{t("home.scrollExplore")}</span>
           <FaAnglesDown className="bounce-icon" />
         </div>
@@ -444,7 +440,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
       {/* ── SECTION 3: Dish Spotlight ── */}
       <section className="snap-section dish-snap-section">
-        <DishSpotlight dishes={signatureDishes} navigate={navigate} t={t} />
+        <DishSpotlight allFoods={allFoods} navigate={navigate} t={t} />
       </section>
 
       {/* ── SECTION 4: Rest of content ── */}
