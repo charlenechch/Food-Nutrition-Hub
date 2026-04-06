@@ -452,31 +452,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       <main className="features-layout-wrapper snap-section snap-main">
         <div style={{height: '1px'}} />
 
-        <section className="showcase-section">
-          <div className="section-header center-header">
-            <h2>{t("home.showcaseTitle")}</h2>
-            <p className="section-subtext">{t("home.showcaseSubtext")}</p>
-          </div>
 
-          <div className="cinema-grid-wrapper">
-            <div className="cinema-grid">
-              {signatureDishes.map((dish) => (
-                <div key={dish.name} className="cinema-item" onClick={() => handleDishClick(dish)}>
-                  <div className="plate-container">
-                    <img src={dish.image} alt={dish.name} className="real-plate-img" />
-                    <div className="plate-glare"></div>
-                  </div>
-                  <div className="floating-label">
-                    <span className="dish-tag">
-                      <FaStar className="star-icon" /> {t(dish.tagKey)}
-                    </span>
-                    <h3>{dish.name}</h3>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {recentFoods && recentFoods.length > 0 && (
           <section className="recent-section">
