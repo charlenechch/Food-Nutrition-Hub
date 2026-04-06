@@ -1396,6 +1396,7 @@ const handleDeleteAccount = async () => {
             </div>
             <h1 className="upp-title">
               {!userProfileID ? t("profile.myProfile") : t("profile.othersProfile", { name: user?.firstName })}
+              {equippedBadge && equippedBadge !== 'null' && equippedBadge !== 'novice' && (
               <span 
                 className="upp-equipped-badge" 
                 style={{ 
@@ -1409,6 +1410,7 @@ const handleDeleteAccount = async () => {
                   {getTierById(equippedBadge).title}
                 </span>
               </span>
+              )}
             </h1>
             {user?.bio && (
               <p className="upp-sub">
