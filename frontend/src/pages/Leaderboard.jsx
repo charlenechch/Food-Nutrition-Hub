@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/Leaderboard.css";
@@ -6,6 +8,8 @@ import { useTranslation } from "react-i18next";
 
 const Leaderboard = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { user: authUser } = useAuth();
   const [activeTab, setActiveTab] = useState("recipes");
   const [leaderboardData, setLeaderboardData] = useState({
     recipes: [],
@@ -204,16 +208,32 @@ const Leaderboard = () => {
                         {index === 2 && <span className="rank-badge bronze">🥉</span>}
                         {index > 2 && <span className="rank-number">{index + 1}</span>}
                       </div>
-                      <div className="user-col">
-                        <div className="user-avatar">
-                          {user.avatar ? (
-                            <img src={user.avatar} alt={getFullName(user)} />
-                          ) : (
-                            <span>{user.firstName ? user.firstName.charAt(0) : "?"}</span>
-                          )}
+                        <div className="user-col">
+                          <div
+                            className="user-avatar"
+                            onClick={() => {
+                              if (authUser && String(authUser.userProfileID) === String(user.id)) navigate("/profile");
+                              else navigate(`/profile/${user.id}`);
+                            }}
+                            style={{ cursor: "pointer" }}
+                          >
+                            {user.avatar ? (
+                              <img src={user.avatar} alt={getFullName(user)} />
+                            ) : (
+                              <span>{user.firstName ? user.firstName.charAt(0) : "?"}</span>
+                            )}
+                          </div>
+                          <span
+                            className="user-name"
+                            onClick={() => {
+                              if (authUser && String(authUser.userProfileID) === String(user.id)) navigate("/profile");
+                              else navigate(`/profile/${user.id}`);
+                            }}
+                            style={{ cursor: "pointer" }}
+                          >
+                            {getFullName(user)}
+                          </span>
                         </div>
-                        <span className="user-name">{getFullName(user)}</span>
-                      </div>
                       <div className="metric-col">
                         <span className="metric-value">{getMetricValue(user).toLocaleString()}</span>
                       </div>
