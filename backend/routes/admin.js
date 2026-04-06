@@ -750,10 +750,15 @@ router.get("/embed-all", async (req, res) => {
       `SELECT foodID, name, description, commonIngredients, culturalSignificance 
       FROM food 
       WHERE Energy_kcal > 0 
-      AND Protein_g > 0 
-      AND Fat_g > 0 
-      AND Carbohydrates_g > 0`
-    );
+      AND Protein_g > 0
+      AND Fat_g > 0
+      AND Carbohydrates_g > 0
+      AND description IS NOT NULL
+      AND description != ''
+      AND LENGTH(description) > 20
+      AND name NOT LIKE '%test%'
+      AND name NOT LIKE '%ddd%'`
+);
     // Respond immediately so request doesn't timeout
     res.json({ ok: true, message: `Started embedding ${rows.length} foods. Check Railway logs.` });
 
