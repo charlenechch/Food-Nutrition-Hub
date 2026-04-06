@@ -114,7 +114,6 @@ router.get("/counts", async (req, res) => {
             p.recipe,
             up.userProfileID,
             up.avatar, 
-            up.equippedBadge,
             CONCAT(u.firstname, ' ', u.lastname) AS author,
             COUNT(DISTINCT l.likeID) as likeCount,
             COUNT(DISTINCT c.commentID) as commentCount
@@ -138,7 +137,6 @@ router.get("/counts", async (req, res) => {
       author: post.author,
       // ✅ FIXED: Map the avatar from DB to the frontend field
       authorProfilePic: post.avatar, 
-      authorBadge: post.equippedBadge,
       daysAgo: getTimeAgo(post.created_at),
       createdAt: post.created_at,
       updatedAt: post.updated_at,
@@ -249,7 +247,7 @@ router.get("/:id", async (req, res) => {
       foodName: post.foodName,
       author: post.author,
       // ✅ FIXED: Map avatar here too
-      authorProfilePic: post.avatar,
+      authorProfilePic: post.avatar, 
       daysAgo: getTimeAgo(post.created_at),
       culturalOrigin: post.culturalOrigin,
       images: post.photos ? post.photos.split(',').map(photo => photo.trim()) : [],
