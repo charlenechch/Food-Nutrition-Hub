@@ -33,6 +33,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef(null);
   
+  const heroRef = useRef(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentFact, setCurrentFact] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -61,6 +62,18 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       return { ...preset, dbId: match ? (match.foodID || match.id) : null };
     });
   }, [allFoods]);
+
+  // Parallax scroll effect for hero background
+  useEffect(() => {
+    const handleParallax = () => {
+      if (!heroRef.current) return;
+      const scrollY = window.scrollY;
+      // Move background at 40% of scroll speed for a subtle parallax
+      heroRef.current.style.backgroundPosition = `center ${scrollY * 0.4}px`;
+    };
+    window.addEventListener("scroll", handleParallax, { passive: true });
+    return () => window.removeEventListener("scroll", handleParallax);
+  }, []);
 
   useEffect(() => {
     const fetchFoods = async () => {
@@ -199,6 +212,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       <Header transparent={true} />
 
       <header
+        ref={heroRef}
         className="hero-section"
         style={{
           backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${HERO_IMAGES[currentSlide]})`
