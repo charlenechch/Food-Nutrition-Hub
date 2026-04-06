@@ -97,7 +97,7 @@ const profileUpdateSchema = Joi.object({
   language: Joi.string().max(10).valid('en', 'ms', 'zh', 'id', 'ta', 'hi', 'ar', 'es', 'fr', 'de').default('en')
 })
 .required()
-.unknown(false);
+.unknown(true);
 
 const identifierSchema = Joi.alternatives().try(
   Joi.number().integer().min(1),
@@ -860,7 +860,7 @@ router.get("/", async (req, res) => {
       bio: profile.bio,
       avatar: profile.avatar,
       total_xp: profile.total_xp,
-      equippedBadge: profile.equippedBadge || 'null',
+      equippedBadge: profile.equippedBadge || null,
 
       savedFoods: savedFoodsData,
       status: contributions,
@@ -961,7 +961,7 @@ router.put("/update", async (req, res) => {
         pushNotifications !== undefined ? pushNotifications : true,
         profileVisibility !== undefined ? profileVisibility : true,
         language || 'en',
-        equippedBadge || 'null',
+        equippedBadge || null,
         userID
       ]
     );
@@ -1118,7 +1118,7 @@ router.get("/:identifier", async (req, res) => {
       bio: profile.bio,
       avatar: profile.avatar,
       total_xp: profile.total_xp,
-      equippedBadge: profile.equippedBadge || 'null',
+      equippedBadge: profile.equippedBadge || null,
       // Only expose email and sensitive prefs to owner or admin
       ...(isSensitiveViewer && { email: profile.email }),
       savedFoods: isSensitiveViewer ? savedFoodsData : [],
