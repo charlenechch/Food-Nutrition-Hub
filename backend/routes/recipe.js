@@ -304,7 +304,6 @@ router.get('/recipes/:id', async (req, res) => {
         u.email AS authorEmail,
         up.userProfileID AS authorProfileID,
         up.avatar AS authorAvatar,
-        up.equippedBadge,
         (SELECT COALESCE(ROUND(AVG(rating), 1), 0) FROM recipe_ratings WHERE recipeID = r.recipeID) AS avgRating,
         (SELECT COUNT(id) FROM recipe_ratings WHERE recipeID = r.recipeID) AS totalRatings,
         (SELECT rating FROM recipe_ratings WHERE recipeID = r.recipeID AND userProfileID = ?) AS userRating
@@ -354,7 +353,6 @@ router.get('/recipes/:id', async (req, res) => {
       authorEmail: row.authorEmail || 'N/A',
       authorProfileID: row.authorProfileID || null,
       authorAvatar: row.authorAvatar || null,
-      authorBadge: row.equippedBadge || null,
       createdAt: row.createdAt,
       avgRating: row.avgRating || 0,
       totalRatings: row.totalRatings || 0,
