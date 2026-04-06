@@ -94,7 +94,6 @@ function DishSpotlight({ allFoods, navigate, t }) {
   );
 }
 
-
 export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const navigate = useNavigate();
   const { user } = useAuth();
