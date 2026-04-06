@@ -935,6 +935,44 @@ router.put("/update", async (req, res) => {
   }
 });
 
+// GET /api/userProfile/:id/badges
+router.get("/:id/badges", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate id
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId) || parsedId <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid user profile ID" });
+    }
+
+    // Check if userProfile exists
+    const [profileRows] = await db.execute(
+      "SELECT userProfileID FROM userProfile WHERE userProfileID = ?",
+      [parsedId]
+    );
+
+    if (profileRows.length === 0) {
+      return res.status(404).json({ success: false, message: "User profile not found" });
+    }
+
+    // Fetch all earned badges for this user
+    const [badges] = await db.execute(
+      `SELECT id, badge_type, awarded_month, seen, awarded_at
+       FROM badge
+       WHERE userProfileID = ?
+       ORDER BY awarded_at DESC`,
+      [parsedId]
+    );
+
+    return res.json({ success: true, badges });
+
+  } catch (error) {
+    console.error("❌ Error fetching user badges:", error);
+    return res.status(500).json({ success: false, message: "Failed to fetch badges", error: error.message });
+  }
+});
+
 // View other user's profile (/api/userProfile/:id) 
 router.get("/:identifier", async (req, res) => {
   console.log("👥 Other user profile request received");

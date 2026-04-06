@@ -86,6 +86,22 @@ export const TIERS = [
     color: "#eab308",
     icon: <BadgeImg src={foodEncyclopedia} alt="Food Encyclopedia" />,
     desc: "Achieved a perfect 5/5 score on the daily quiz 10 times."
+  },
+  {
+    id: "top_recipe",
+    minLevel: 999,
+    title: "Top Recipe Contributor",
+    color: "#e67e22",
+    icon: <span style={{ fontSize: "70%", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>🍳</span>, // Placeholder
+    desc: "Awarded to the #1 Recipe Contributor of the month."
+  },
+  {
+    id: "top_post",
+    minLevel: 999,
+    title: "Top Community Poster",
+    color: "#2980b9",
+    icon: <span style={{ fontSize: "70%", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>💬</span>, // Placeholder
+    desc: "Awarded to the #1 Community Post Contributor of the month."
   }
 ];
 

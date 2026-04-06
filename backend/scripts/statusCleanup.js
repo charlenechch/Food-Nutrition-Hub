@@ -430,6 +430,55 @@ async function updateStaleAndExpiredUsers() {
                 console.log(`🔔 Notification sent to userID ${user.userID} for post rank ${rank}`);
             }
 
+            // Badge awarding for rank 1 winners
+            // Recipe rank 1
+            if (recipeTop3.length > 0) {
+                const rank1Recipe = recipeTop3[0];
+                const currentMonth = malaysiaTime.toISOString().slice(0, 7); // e.g. '2026-04'
+
+                // Guard: check if badge already awarded this month
+                const [existingRecipeBadge] = await db.query(
+                    `SELECT id FROM badge 
+                     WHERE userProfileID = ? AND badge_type = 'top_recipe' AND awarded_month = ?`,
+                    [rank1Recipe.userProfileID, currentMonth]
+                );
+
+                if (existingRecipeBadge.length === 0) {
+                    await db.query(
+                        `INSERT INTO badge (userProfileID, badge_type, awarded_month)
+                         VALUES (?, 'top_recipe', ?)`,
+                        [rank1Recipe.userProfileID, currentMonth]
+                    );
+                    console.log(`✅ Awarded top_recipe badge to userProfileID ${rank1Recipe.userProfileID} for ${currentMonth}`);
+                } else {
+                    console.log(`⚠️ top_recipe badge already awarded to userProfileID ${rank1Recipe.userProfileID} for ${currentMonth}, skipping...`);
+                }
+            }
+
+            // Post rank 1
+            if (postTop3.length > 0) {
+                const rank1Post = postTop3[0];
+                const currentMonth = malaysiaTime.toISOString().slice(0, 7);
+
+                // Guard: check if badge already awarded this month
+                const [existingPostBadge] = await db.query(
+                    `SELECT id FROM badge 
+                     WHERE userProfileID = ? AND badge_type = 'top_post' AND awarded_month = ?`,
+                    [rank1Post.userProfileID, currentMonth]
+                );
+
+                if (existingPostBadge.length === 0) {
+                    await db.query(
+                        `INSERT INTO badge (userProfileID, badge_type, awarded_month)
+                         VALUES (?, 'top_post', ?)`,
+                        [rank1Post.userProfileID, currentMonth]
+                    );
+                    console.log(`✅ Awarded top_post badge to userProfileID ${rank1Post.userProfileID} for ${currentMonth}`);
+                } else {
+                    console.log(`⚠️ top_post badge already awarded to userProfileID ${rank1Post.userProfileID} for ${currentMonth}, skipping...`);
+                }
+            }
+
             console.log("✅ Monthly leaderboard XP rewards complete.");
         } else {
             console.log("ℹ️ Not the last day of the month. Skipping leaderboard rewards.");
