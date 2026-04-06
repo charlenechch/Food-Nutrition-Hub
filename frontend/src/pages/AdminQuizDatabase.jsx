@@ -8,9 +8,54 @@ import { FiCheck } from "react-icons/fi";
 import { CiSearch } from "react-icons/ci";
 import { mockAdminQuestions } from "../data/mockAdminQuestions"; 
 import { mockFoods } from "../data/mockFoods"; 
+import { translateTexts } from "../hooks/useAITranslation";
 
 const AdminQuizDatabase = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  
+  const [translatedQuestions, setTranslatedQuestions] = useState({});
+  const [translatedFoods, setTranslatedFoods] = useState({});
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  useEffect(() => {
+    const translateDynamicData = async () => {
+      if (i18n.language === 'en') {
+        setTranslatedQuestions({});
+        setTranslatedFoods({});
+        return;
+      }
+
+      setIsTranslating(true);
+      try {
+        const questionPrompts = questions.map(q => q.question);
+        const foodNames = mockFoods.map(f => f.name);
+
+        const [translatedQsArray, translatedFoodsArray] = await Promise.all([
+          translateTexts(questionPrompts, i18n.language),
+          translateTexts(foodNames, i18n.language)
+        ]);
+
+        const qMap = {};
+        questions.forEach((q, index) => {
+          qMap[q.id] = translatedQsArray[index];
+        });
+        
+        const fMap = {};
+        mockFoods.forEach((f, index) => {
+          fMap[f.foodID] = translatedFoodsArray[index];
+        });
+
+        setTranslatedQuestions(qMap);
+        setTranslatedFoods(fMap);
+      } catch (error) {
+        console.error("Translation failed:", error);
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+
+    translateDynamicData();
+  }, [i18n.language, questions]); 
   const [questions, setQuestions] = useState(mockAdminQuestions);
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -31,8 +76,9 @@ const AdminQuizDatabase = () => {
   const itemsPerPage = 8;
 
   const getFoodName = (id) => {
+    if (translatedFoods[id]) return translatedFoods[id];
     const food = mockFoods.find(f => f.foodID === Number(id));
-    return food ? food.name : "Unknown Food";
+    return food ? food.name : t("adminQuizDB.unknownFood");
   };
 
   const filteredQuestions = questions.filter(q => {
@@ -84,7 +130,7 @@ const AdminQuizDatabase = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this quiz question?")) {
+    if (window.confirm(t("adminQuizDB.deleteConfirm"))) {
       setQuestions(questions.filter(q => q.id !== id));
     }
   };
@@ -97,14 +143,14 @@ const AdminQuizDatabase = () => {
     <div className="food-database-section aqd-section">
       <div className="food-header">
         <h2>
-          <span className="food-icon"><BsPatchQuestion /></span> Quiz Database
+          <span className="food-icon"><BsPatchQuestion /></span> {t("adminQuizDB.title")}
         </h2>
         <div className="food-actions">
           <button 
             className="admin-food-btn-add lrp-no-outline"
             onClick={() => handleOpenModal()}
           >
-            <FaPlus /> Add Question
+            <FaPlus /> {t("adminQuizDB.addQuestion")}
           </button>
         </div>
       </div>
@@ -114,7 +160,7 @@ const AdminQuizDatabase = () => {
           <CiSearch className="search-icon" />
           <input 
             type="text" 
-            placeholder="Search questions or foods..." 
+            placeholder= {t("adminQuizDB.searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -125,19 +171,19 @@ const AdminQuizDatabase = () => {
           value={sortOrder} 
           onChange={(e) => setSortOrder(e.target.value)}
         >
-          <option value="default">Sort: Default</option>
-          <option value="foodAsc">Food Name (A-Z)</option>
-          <option value="foodDesc">Food Name (Z-A)</option>
+          <option value="default">{t("adminQuizDB.sortDefault")}</option>
+          <option value="foodAsc">{t("adminQuizDB.sortFoodAsc")}</option>
+          <option value="foodDesc">{t("adminQuizDB.sortFoodDesc")}</option>
         </select>
       </div>
 
       <table className="food-table">
         <thead>
           <tr>
-            <th>Linked Food</th>
-            <th>Question</th>
-            <th>Correct Answer</th>
-            <th>Actions</th>
+            <th>{t("adminQuizDB.tableLinkedFood")}</th>
+            <th>{t("adminQuizDB.tableQuestion")}</th>
+            <th>{t("adminQuizDB.tableCorrectAnswer")}</th>
+            <th>{t("adminQuizDB.tableActions")}</th>
           </tr>
         </thead>
         <tbody>
@@ -146,9 +192,10 @@ const AdminQuizDatabase = () => {
               <tr key={q.id}>
                 <td data-label="Linked Food">
                   <strong>{getFoodName(q.foodID)}</strong> <br/>
-                  <span className="quiz-food-id">ID: {q.foodID}</span>
                 </td>
-                <td data-label="Question">{q.question}</td>
+                <td data-label={t("adminQuizDB.tableQuestion")}>
+                  {isTranslating ? "Translating..." : (translatedQuestions[q.id] || q.question)}
+                </td>
                 <td data-label="Correct Answer">
                   <span className="recipe-status-tag approved">{q.correctAnswer}</span>
                 </td>
@@ -167,7 +214,7 @@ const AdminQuizDatabase = () => {
           ) : (
             <tr>
               <td colSpan="4" className = "aqd-no-ques-found">
-                No questions found matching your search.
+                {t("adminQuizDB.noQuestionsFound")}
               </td>
             </tr>
           )}
@@ -194,20 +241,20 @@ const AdminQuizDatabase = () => {
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
           <div className="add-options-modal quiz-form-modal" onClick={(e) => e.stopPropagation()}>
             <div className="add-options-header">
-              <h3>{editingQuestion ? "Edit Question" : "Add New Question"}</h3>
+              <h3>{editingQuestion ? t("adminQuizDB.editQuestion") : t("adminQuizDB.addNewQuestion")}</h3>
               <button className="add-options-close" onClick={() => setIsModalOpen(false)}>×</button>
             </div>
             
             <div className="add-options-body quiz-modal-scrollable">
               
               <div className="umg-field aqd-field">
-                <label className="umg-label aqd-label">Linked Food Entity:</label>
+                <label className="umg-label aqd-label">{t("adminQuizDB.linkedFoodEntity")}</label>
                 
                 <div className="search-box aqd-search-box">
                   <CiSearch className="search-icon aqd-search-icon"/>
                   <input 
                     type="text" 
-                    placeholder="Search for a food..." 
+                    placeholder={t("adminQuizDB.searchFoodPlaceholder")} 
                     value={modalFoodSearchTerm}
                     onChange={(e) => setModalFoodSearchTerm(e.target.value)}
                     className = "aqd-search-box-input"
@@ -233,9 +280,6 @@ const AdminQuizDatabase = () => {
                           <h4 className="aqd-filtered-modal-h4" style={{ color: formData.foodID === food.foodID ? "#916848" : "#3d2b1f" }}>
                             {food.name}
                           </h4>
-                          <p className="aqd-filtered-modal-p">
-                            ID: {food.foodID} • {food.origin || "Unknown Origin"}
-                          </p>
                         </div>
                         {formData.foodID === food.foodID && (
                           <div className = "aqd-form-data-div">
@@ -246,14 +290,14 @@ const AdminQuizDatabase = () => {
                     ))
                   ) : (
                     <div className = "aqd-form-data-div2">
-                      No foods found matching "{modalFoodSearchTerm}"
+                      {t("adminQuizDB.noFoodsFound")} "{modalFoodSearchTerm}"
                     </div>
                   )}
                 </div>
               </div>
 
               <div className="umg-field">
-                <label className="umg-label">Question Prompt:</label>
+                <label className="umg-label">{t("adminQuizDB.questionPrompt")}</label>
                 <textarea 
                   className="umg-textarea"
                   value={formData.question} 
@@ -262,7 +306,7 @@ const AdminQuizDatabase = () => {
               </div>
 
               <div className="umg-field">
-                <label className="umg-label">Multiple Choice Options:</label>
+                <label className="umg-label">{t("adminQuizDB.multipleChoice")}</label>
                 <div className="quiz-options-grid">
                   {formData.options.map((opt, idx) => (
                     <input 
@@ -282,7 +326,7 @@ const AdminQuizDatabase = () => {
               </div>
 
               <div className="umg-field">
-                <label className="umg-label">Correct Answer (Must exactly match one option above):</label>
+                <label className="umg-label">{t("adminQuizDB.correctAnswerPrompt")}</label>
                 <input 
                   type="text"
                   className={`umg-input ${formData.correctAnswer && formData.options.includes(formData.correctAnswer) ? 'valid-answer' : formData.correctAnswer ? 'invalid-answer' : ''}`}
@@ -292,7 +336,7 @@ const AdminQuizDatabase = () => {
               </div>
 
               <div className="umg-field">
-                <label className="umg-label">Post-Answer Explanation:</label>
+                <label className="umg-label">{t("adminQuizDB.postAnswerExplanation")}</label>
                 <textarea 
                   className="umg-textarea"
                   value={formData.explanation} 
@@ -303,8 +347,8 @@ const AdminQuizDatabase = () => {
             </div>
 
             <div className="modal-actions aqd-modal-actions">
-              <button className="cancel-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
-              <button className="quiz-save-btn" onClick={handleSave}>Save Question</button>
+              <button className="cancel-btn" onClick={() => setIsModalOpen(false)}>{t("adminQuizDB.cancel")}</button>
+              <button className="quiz-save-btn" onClick={handleSave}>{t("adminQuizDB.saveQuestion")}</button>
             </div>
 
           </div>

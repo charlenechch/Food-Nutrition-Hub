@@ -1590,5 +1590,32 @@
     "q_culture": "Apakah asal usul budaya bagi hidangan {{food}}?",
     "q_nutrition": "Kira-kira berapakah jumlah kalori dalam satu hidangan standard {{food}}?",
     "q_ingredients": "Yang manakah antara berikut merupakan bahan utama dalam {{food}}?"
+  },
+  "adminQuizDB": {
+    "title": "Pangkalan Data Kuiz",
+    "addQuestion": "Tambah Soalan",
+    "searchPlaceholder": "Cari soalan atau makanan...",
+    "sortDefault": "Susunan: Lalai",
+    "sortFoodAsc": "Nama Makanan (A-Z)",
+    "sortFoodDesc": "Nama Makanan (Z-A)",
+    "tableLinkedFood": "Makanan Berkaitan",
+    "tableQuestion": "Soalan",
+    "tableCorrectAnswer": "Jawapan Betul",
+    "tableActions": "Tindakan",
+    "noQuestionsFound": "Tiada soalan dijumpai yang sepadan dengan carian anda.",
+    "editQuestion": "Edit Soalan",
+    "addNewQuestion": "Tambah Soalan Baru",
+    "linkedFoodEntity": "Entiti Makanan Berkaitan:",
+    "searchFoodPlaceholder": "Cari makanan...",
+    "unknownOrigin": "Asal Tidak Diketahui",
+    "noFoodsFound": "Tiada makanan dijumpai yang sepadan",
+    "questionPrompt": "Peringkat Soalan:",
+    "multipleChoice": "Pilihan Pelbagai Jawapan:",
+    "correctAnswerPrompt": "Jawapan Betul (Mesti sama tepat dengan salah satu pilihan di atas):",
+    "postAnswerExplanation": "Penerangan Selepas Jawapan:",
+    "cancel": "Batal",
+    "saveQuestion": "Simpan Soalan",
+    "deleteConfirm": "Adakah anda pasti ingin memadamkan soalan kuiz ini?",
+    "unknownFood": "Makanan Tidak Diketahui"
   }
 }

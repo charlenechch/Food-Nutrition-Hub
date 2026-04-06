@@ -1590,5 +1590,33 @@
     "q_culture": "What is the cultural origin of {{food}}?",
     "q_nutrition": "Roughly how many calories are in a standard serving of {{food}}?",
     "q_ingredients": "Which of these is a primary ingredient in {{food}}?"
+  },
+  "adminQuizDB": {
+    "title": "Quiz Database",
+    "addQuestion": "Add Question",
+    "searchPlaceholder": "Search questions or foods...",
+    "sortDefault": "Sort: Default",
+    "sortFoodAsc": "Food Name (A-Z)",
+    "sortFoodDesc": "Food Name (Z-A)",
+    "tableLinkedFood": "Linked Food",
+    "tableQuestion": "Question",
+    "tableCorrectAnswer": "Correct Answer",
+    "tableActions": "Actions",
+    "noQuestionsFound": "No questions found matching your search.",
+    "editQuestion": "Edit Question",
+    "addNewQuestion": "Add New Question",
+    "linkedFoodEntity": "Linked Food Entity:",
+    "searchFoodPlaceholder": "Search for a food...",
+    "unknownOrigin": "Unknown Origin",
+    "noFoodsFound": "No foods found matching",
+    "questionPrompt": "Question Prompt:",
+    "multipleChoice": "Multiple Choice Options:",
+    "correctAnswerPrompt": "Correct Answer (Must exactly match one option above):",
+    "postAnswerExplanation": "Post-Answer Explanation:",
+    "cancel": "Cancel",
+    "saveQuestion": "Save Question",
+    "deleteConfirm": "Are you sure you want to delete this quiz question?",
+    "unknownFood": "Unknown Food"
   }
 }   
+
