@@ -417,7 +417,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           <div className="stats-intro">
             <p className="stats-eyebrow">{t("home.statsEyebrow", "What is SarawakEats?")}</p>
             <h2 className="stats-headline">{t("home.statsHeadline", "Where food becomes a story worth preserving.")}</h2>
-            <p className="stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods — supporting healthier communities and the cultural identity of Borneo's people.")}</p>
+            <p className="stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
           </div>
           <div className="stats-grid">
             <div className="stat-item">
