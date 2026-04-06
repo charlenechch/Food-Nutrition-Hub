@@ -20,6 +20,90 @@ import LoginPromptModal from "../components/LoginPromptModal";
 
 const HERO_IMAGES = [LoginFood, LaksaImg, KoloImg];
 
+
+// ── Dish Spotlight Component (Option B) ──
+const DISH_DATA = [
+  {
+    nameKey: "Sarawak Laksa",
+    originKey: "Kuching, Sarawak · Malay-Chinese fusion",
+    tagKey: "home.tagMustTry",
+    tagDefault: "Must try",
+    quoteKey: "home.dish1Quote",
+    quoteDefault: "A rich coconut broth with sambal, lemongrass, and galangal — finished with prawns, shredded chicken, and rice vermicelli.",
+    path: "/foods?search=Sarawak%20Laksa",
+  },
+  {
+    nameKey: "Kolo Mee",
+    originKey: "Kuching, Sarawak · Chinese-Sarawakian",
+    tagKey: "home.tagLocalFav",
+    tagDefault: "Local favourite",
+    quoteKey: "home.dish2Quote",
+    quoteDefault: "Dry-tossed egg noodles with a fragrant shallot oil, char siu pork, and crispy lard — a Kuching morning staple.",
+    path: "/foods?search=Kolo%20Mee",
+  },
+  {
+    nameKey: "Kek Lapis",
+    originKey: "Sarawak · Malay heritage",
+    tagKey: "home.tagSweet",
+    tagDefault: "Sweet heritage",
+    quoteKey: "home.dish3Quote",
+    quoteDefault: "Sarawak\'s iconic layered cake — each paper-thin layer baked one at a time, a labour of love for every celebration.",
+    path: "/foods?search=Kek%20Lapis",
+  },
+];
+
+function DishSpotlight({ dishes, navigate, t }) {
+  const [active, setActive] = React.useState(0);
+  const timerRef = React.useRef(null);
+
+  const startTimer = React.useCallback(() => {
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setActive(prev => (prev + 1) % DISH_DATA.length);
+    }, 5000);
+  }, []);
+
+  React.useEffect(() => {
+    startTimer();
+    return () => clearInterval(timerRef.current);
+  }, [startTimer]);
+
+  const goTo = (idx) => { setActive(idx); startTimer(); };
+
+  const dish = DISH_DATA[active];
+  const dishImg = dishes[active]?.image;
+
+  return (
+    <section className="dish-spotlight-section">
+      <p className="stats-eyebrow">{t("home.spotlightEyebrow", "Dish of the day")}</p>
+      <div className="dish-spotlight-card">
+        <div className="dish-spotlight-img" style={dishImg ? { backgroundImage: `url(${dishImg})` } : {}}>
+          <div className="dish-img-overlay" />
+          <span className="dish-origin-badge">{dish.originKey}</span>
+        </div>
+        <div className="dish-spotlight-content">
+          <span className="dish-tag-pill">{t(dish.tagKey, dish.tagDefault)}</span>
+          <h2 className="dish-spotlight-title">{dish.nameKey}</h2>
+          <p className="dish-spotlight-quote">{t(dish.quoteKey, dish.quoteDefault)}</p>
+          <div className="dish-spotlight-actions">
+            <button className="dish-btn-primary" onClick={() => navigate(dish.path)}>
+              {t("home.exploreDish", "Explore this dish")}
+            </button>
+            <button className="dish-btn-link" onClick={() => navigate("/analyzer")}>
+              {t("home.viewNutrition", "View nutrition →")}
+            </button>
+          </div>
+          <div className="dish-dots">
+            {DISH_DATA.map((_, i) => (
+              <span key={i} className={`dish-dot${i === active ? " active" : ""}`} onClick={() => goTo(i)} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -173,6 +257,63 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
+  // Snap scroll
+  useEffect(() => {
+    const container = snapContainerRef.current;
+    if (!container) return;
+    const handleWheel = (e) => {
+      e.preventDefault();
+      if (isSnappingRef.current) return;
+      const sections = container.querySelectorAll('.snap-section');
+      const currentIndex = Math.round(container.scrollTop / window.innerHeight);
+      let nextIndex = currentIndex;
+      if (e.deltaY > 0 && currentIndex < sections.length - 1) nextIndex = currentIndex + 1;
+      else if (e.deltaY < 0 && currentIndex > 0) nextIndex = currentIndex - 1;
+      if (nextIndex !== currentIndex) {
+        isSnappingRef.current = true;
+        container.scrollTo({ top: nextIndex * window.innerHeight, behavior: "smooth" });
+        setTimeout(() => { isSnappingRef.current = false; }, 800);
+      }
+    };
+    let touchStartY = 0;
+    const handleTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
+    const handleTouchEnd = (e) => {
+      if (isSnappingRef.current) return;
+      const delta = touchStartY - e.changedTouches[0].clientY;
+      if (Math.abs(delta) < 30) return;
+      const sections = container.querySelectorAll('.snap-section');
+      const currentIndex = Math.round(container.scrollTop / window.innerHeight);
+      let nextIndex = currentIndex;
+      if (delta > 0 && currentIndex < sections.length - 1) nextIndex = currentIndex + 1;
+      else if (delta < 0 && currentIndex > 0) nextIndex = currentIndex - 1;
+      if (nextIndex !== currentIndex) {
+        isSnappingRef.current = true;
+        container.scrollTo({ top: nextIndex * window.innerHeight, behavior: "smooth" });
+        setTimeout(() => { isSnappingRef.current = false; }, 800);
+      }
+    };
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    container.addEventListener("touchstart", handleTouchStart, { passive: true });
+    container.addEventListener("touchend", handleTouchEnd, { passive: true });
+    return () => {
+      container.removeEventListener("wheel", handleWheel);
+      container.removeEventListener("touchstart", handleTouchStart);
+      container.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, []);
+
+  // Parallax on snap container scroll
+  useEffect(() => {
+    const container = snapContainerRef.current;
+    if (!container) return;
+    const handleParallax = () => {
+      if (!heroRef.current) return;
+      heroRef.current.style.backgroundPosition = `center ${container.scrollTop * 0.4}px`;
+    };
+    container.addEventListener("scroll", handleParallax, { passive: true });
+    return () => container.removeEventListener("scroll", handleParallax);
+  }, []);
+
   const handleRandomize = () => {
     if (!allFoods || allFoods.length === 0) return;
     
@@ -196,54 +337,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       }
     }, 100); 
   };
-
-  // Snap scroll: one wheel/touch gesture = jump to next section
-  useEffect(() => {
-    const container = snapContainerRef.current;
-    if (!container) return;
-
-    const handleWheel = (e) => {
-      e.preventDefault();
-      if (isSnappingRef.current) return;
-      const sections = container.querySelectorAll('.snap-section');
-      const currentIndex = Math.round(container.scrollTop / window.innerHeight);
-      let nextIndex = currentIndex;
-      if (e.deltaY > 0 && currentIndex < sections.length - 1) nextIndex = currentIndex + 1;
-      else if (e.deltaY < 0 && currentIndex > 0) nextIndex = currentIndex - 1;
-      if (nextIndex !== currentIndex) {
-        isSnappingRef.current = true;
-        container.scrollTo({ top: nextIndex * window.innerHeight, behavior: 'smooth' });
-        setTimeout(() => { isSnappingRef.current = false; }, 800);
-      }
-    };
-
-    let touchStartY = 0;
-    const handleTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
-    const handleTouchEnd = (e) => {
-      if (isSnappingRef.current) return;
-      const delta = touchStartY - e.changedTouches[0].clientY;
-      if (Math.abs(delta) < 30) return;
-      const sections = container.querySelectorAll('.snap-section');
-      const currentIndex = Math.round(container.scrollTop / window.innerHeight);
-      let nextIndex = currentIndex;
-      if (delta > 0 && currentIndex < sections.length - 1) nextIndex = currentIndex + 1;
-      else if (delta < 0 && currentIndex > 0) nextIndex = currentIndex - 1;
-      if (nextIndex !== currentIndex) {
-        isSnappingRef.current = true;
-        container.scrollTo({ top: nextIndex * window.innerHeight, behavior: 'smooth' });
-        setTimeout(() => { isSnappingRef.current = false; }, 800);
-      }
-    };
-
-    container.addEventListener('wheel', handleWheel, { passive: false });
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
-    return () => {
-      container.removeEventListener('wheel', handleWheel);
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, []);
 
   return (
     <div className="homepage snap-container" ref={snapContainerRef}>
@@ -326,58 +419,33 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       </header>
 
       <main className="features-layout-wrapper snap-section snap-main">
-        <section className="features-grid">
-          <div className="feature-card public-card">
-            <div className="card-content-top">
-              <div className="feature-icon-wrapper">
-                <FaSearch className="feature-icon-svg" />
-              </div>
-              <h3>{t("home.exploreTitle")}</h3>
-              <p>{t("home.exploreDesc")}</p>
+        {/* Stats Strip */}
+        <section className="stats-strip-section">
+          <p className="stats-eyebrow">{t("home.statsEyebrow", "Sarawak in numbers")}</p>
+          <div className="stats-grid">
+            <div className="stat-item">
+              <span className="stat-num">27+</span>
+              <div className="stat-divider" />
+              <span className="stat-title">{t("home.stat1Title", "Ethnic groups")}</span>
+              <span className="stat-desc">{t("home.stat1Desc", "Each with their own culinary traditions passed down through generations.")}</span>
             </div>
-            <button className="feature-btn" onClick={() => navigate("/foods")}>
-              {t("home.exploreBtn")}
-            </button>
-          </div>
-
-          <div className="feature-card restricted-card">
-            <div className="card-content-top">
-              {(!user || user.role === "guest") && (
-                <div className="premium-badge">✨ {t("home.unlockPremium")}</div>
-              )}
-              <div className="feature-icon-wrapper premium-icon-wrapper">
-                <FaWandMagicSparkles className="feature-icon-svg" />
-              </div>
-              <h3>{t("nav.analyzer")}</h3>
-              <p>{t("home.analyzerDesc")}</p>
+            <div className="stat-item">
+              <span className="stat-num">100+</span>
+              <div className="stat-divider" />
+              <span className="stat-title">{t("home.stat2Title", "Traditional dishes")}</span>
+              <span className="stat-desc">{t("home.stat2Desc", "From Laksa to Umai, flavours unique to the Land of the Hornbills.")}</span>
             </div>
-            <button
-              className="feature-btn btn-accent"
-              onClick={() => handleProtectedAction("/analyzer", "nav.analyzer")}
-            >
-              {(!user || user.role === "guest") ? t("home.signUpToUnlock") : t("home.analyzerBtn")}
-            </button>
-          </div>
-
-          <div className="feature-card restricted-card">
-            <div className="card-content-top">
-              {(!user || user.role === "guest") && (
-                <div className="premium-badge">✨ {t("home.unlockPremium")}</div>
-              )}
-              <div className="feature-icon-wrapper premium-icon-wrapper">
-                <FaUserEdit className="feature-icon-svg" />
-              </div>
-              <h3>{t("home.profileTitle")}</h3>
-              <p>{t("home.profileDesc")}</p>
+            <div className="stat-item">
+              <span className="stat-num">400+</span>
+              <div className="stat-divider" />
+              <span className="stat-title">{t("home.stat3Title", "Years of heritage")}</span>
+              <span className="stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
             </div>
-            <button
-              className="feature-btn"
-              onClick={() => handleProtectedAction("/profile", "home.profileTitle")}
-            >
-              {(!user || user.role === "guest") ? t("home.signUpToUnlock") : t("home.profileBtn")}
-            </button>
           </div>
         </section>
+
+        {/* Dish Spotlight */}
+        <DishSpotlight dishes={signatureDishes} navigate={navigate} t={t} />
 
         <section className="showcase-section">
           <div className="section-header center-header">
