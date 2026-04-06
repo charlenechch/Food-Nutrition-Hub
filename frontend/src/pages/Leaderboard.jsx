@@ -17,7 +17,34 @@ const Leaderboard = () => {
     level: []
   });
   const [loading, setLoading] = useState(true);
+  
+  // Time filter state - default to "all" or current month
+  const [selectedMonth, setSelectedMonth] = useState("all"); // "all" or index of month
 
+  // Generate last 6 months for the dropdown
+  const getLast6Months = () => {
+    const months = [];
+    const currentDate = new Date();
+    
+    for (let i = 0; i < 6; i++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const monthValue = `${date.getFullYear()}-${date.getMonth() + 1}`;
+      const monthName = date.toLocaleString('default', { month: 'long' });
+      const year = date.getFullYear();
+      
+      months.push({
+        value: monthValue,
+        label: `${monthName} ${year}`,
+        year: date.getFullYear(),
+        month: date.getMonth() + 1
+      });
+    }
+    return months;
+  };
+
+  const recentMonths = getLast6Months();
+
+  // Original fetch function - keep as is
   useEffect(() => {
     const fetchLeaderboard = async () => {
       setLoading(true);
@@ -50,6 +77,62 @@ const Leaderboard = () => {
 
     fetchLeaderboard();
   }, []);
+
+  // Fetch filtered data when month selection changes
+  useEffect(() => {
+    if (selectedMonth !== "all") {
+      const fetchFilteredLeaderboard = async () => {
+        setLoading(true);
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+          
+          // Find the selected month data
+          const monthData = recentMonths.find(m => m.value === selectedMonth);
+          
+          if (monthData) {
+            const response = await fetch(
+              `${API_BASE_URL}/api/xp/leaderboard?type=${activeTab}&year=${monthData.year}&month=${monthData.month}`, 
+              { credentials: "include" }
+            );
+            
+            const data = await response.json();
+            
+            setLeaderboardData(prev => ({
+              ...prev,
+              [activeTab]: data.success ? data.leaderboard : []
+            }));
+          }
+        } catch (error) {
+          console.error("❌ Error fetching filtered leaderboard:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchFilteredLeaderboard();
+    } else {
+      // Reset to original data when "All Time" is selected
+      const resetToOriginalData = async () => {
+        setLoading(true);
+        try {
+          const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+          const response = await fetch(`${API_BASE_URL}/api/xp/leaderboard?type=${activeTab}`, { 
+            credentials: "include" 
+          });
+          const data = await response.json();
+          setLeaderboardData(prev => ({
+            ...prev,
+            [activeTab]: data.success ? data.leaderboard : []
+          }));
+        } catch (error) {
+          console.error("❌ Error resetting leaderboard data:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      resetToOriginalData();
+    }
+  }, [selectedMonth, activeTab]);
 
   const getCurrentData = () => {
     switch(activeTab) {
@@ -137,7 +220,13 @@ const Leaderboard = () => {
     }
   };
 
-  if (loading) {
+  const getSelectedMonthLabel = () => {
+    if (selectedMonth === "all") return t("leaderboard.all_time");
+    const monthData = recentMonths.find(m => m.value === selectedMonth);
+    return monthData ? monthData.label : t("leaderboard.all_time");
+  };
+
+  if (loading && getCurrentData().length === 0) {
     return (
       <>
         <Header />
@@ -181,6 +270,33 @@ const Leaderboard = () => {
           </button>
         </div>
 
+        {/* Simple Time Filter - Last 6 Months */}
+        <div className="time-filter-section">
+          <div className="filter-label">
+            <span className="filter-icon">📅</span>
+            <span>{t("leaderboard.time_period")}:</span>
+          </div>
+          <select 
+            className="month-filter-select"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            <option value="all">{t("leaderboard.all_time")}</option>
+            {recentMonths.map((month) => (
+              <option key={month.value} value={month.value}>
+                {month.label}
+              </option>
+            ))}
+          </select>
+          {selectedMonth !== "all" && (
+            <div className="filter-badge">
+              <span className="badge-text">
+                {t("leaderboard.showing")}: {getSelectedMonthLabel()}
+              </span>
+            </div>
+          )}
+        </div>
+
         {getInfoText() && (
           <div className="info-banner">
             <span className="info-icon">ℹ️</span>
@@ -200,14 +316,19 @@ const Leaderboard = () => {
                 </div>
                 
                 <div className="table-body">
-                  {getCurrentData().map((user, index) => (
-                    <div key={user.id} className={`table-row ${index < 3 ? "top-three" : ""}`}>
-                      <div className="rank-col">
-                        {index === 0 && <span className="rank-badge gold">🥇</span>}
-                        {index === 1 && <span className="rank-badge silver">🥈</span>}
-                        {index === 2 && <span className="rank-badge bronze">🥉</span>}
-                        {index > 2 && <span className="rank-number">{index + 1}</span>}
-                      </div>
+                  {getCurrentData().length === 0 ? (
+                    <div className="empty-state">
+                      <p>{t("leaderboard.no_data_for_period")}</p>
+                    </div>
+                  ) : (
+                    getCurrentData().map((user, index) => (
+                      <div key={user.id} className={`table-row ${index < 3 ? "top-three" : ""}`}>
+                        <div className="rank-col">
+                          {index === 0 && <span className="rank-badge gold">🥇</span>}
+                          {index === 1 && <span className="rank-badge silver">🥈</span>}
+                          {index === 2 && <span className="rank-badge bronze">🥉</span>}
+                          {index > 2 && <span className="rank-number">{index + 1}</span>}
+                        </div>
                         <div className="user-col">
                           <div
                             className="user-avatar"
@@ -234,22 +355,23 @@ const Leaderboard = () => {
                             {getFullName(user)}
                           </span>
                         </div>
-                      <div className="metric-col">
-                        <span className="metric-value">{getMetricValue(user).toLocaleString()}</span>
-                      </div>
-                      {activeTab === "level" && (
-                        <div className="level-col">
-                          <span className="level-number">Lv.{user.level}</span>
-                          <div className="xp-progress">
-                            <div 
-                              className="xp-progress-fill" 
-                              style={{ width: `${(user.xp % 500) / 5}%` }}
-                            ></div>
-                          </div>
+                        <div className="metric-col">
+                          <span className="metric-value">{getMetricValue(user).toLocaleString()}</span>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        {activeTab === "level" && (
+                          <div className="level-col">
+                            <span className="level-number">Lv.{user.level}</span>
+                            <div className="xp-progress">
+                              <div 
+                                className="xp-progress-fill" 
+                                style={{ width: `${(user.xp % 500) / 5}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

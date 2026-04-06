@@ -1570,7 +1570,11 @@
     "third_best_community_poster": "Penyumbang Komuniti Ketiga Terbaik",
     "reward_alert": "🎉 Makluman Ganjaran! 3 penyumbang teratas akan menerima:",
     "xp_awarded_automatically": "✨ XP akan diberikan secara automatik pada akhir setiap bulan ✨",
-    "approval_disclaimer": "Sumbangan dikira berdasarkan tarikh diluluskan, bukan tarikh dihantar."
+    "approval_disclaimer": "Sumbangan dikira berdasarkan tarikh diluluskan, bukan tarikh dihantar.",
+    "time_period": "Tempoh Masa",
+    "all_time": "Sepanjang Masa",
+    "showing": "Menunjukkan",
+    "no_data_for_period": "Tiada data untuk bulan ini"
   },
 
   "quiz": {
