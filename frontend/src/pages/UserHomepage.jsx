@@ -25,9 +25,14 @@ function DishSpotlight({ allFoods, navigate, t }) {
   const [active, setActive] = React.useState(0);
   const timerRef = React.useRef(null);
 
+  // ← Change these IDs to whichever foods you want featured in the spotlight
+  const SPOTLIGHT_IDS = [1, 2, 3, 4];
+
   const spotlightDishes = React.useMemo(() => {
     if (!allFoods || allFoods.length === 0) return [];
-    return allFoods.filter(f => f.imageUrl || f.image).slice(0, 4);
+    return SPOTLIGHT_IDS
+      .map(id => allFoods.find(f => (f.foodID || f.id) === id))
+      .filter(f => f && (f.imageUrl || f.image));
   }, [allFoods]);
 
   const startTimer = React.useCallback(() => {
