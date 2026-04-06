@@ -26,7 +26,7 @@ function DishSpotlight({ allFoods, navigate, t }) {
   const timerRef = React.useRef(null);
 
   // ← Change these IDs to whichever foods you want featured in the spotlight
-  const SPOTLIGHT_IDS = [1, 2, 3, 4];
+  const SPOTLIGHT_IDS = [2, 3, 8, 10];
 
   const spotlightDishes = React.useMemo(() => {
     if (!allFoods || allFoods.length === 0) return [];
