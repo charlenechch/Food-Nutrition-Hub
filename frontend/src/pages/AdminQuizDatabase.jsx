@@ -101,7 +101,7 @@ const AdminQuizDatabase = () => {
         </h2>
         <div className="food-actions">
           <button 
-            className="admin-food-btn-add"
+            className="admin-food-btn-add lrp-no-outline"
             onClick={() => handleOpenModal()}
           >
             <FaPlus /> Add Question
