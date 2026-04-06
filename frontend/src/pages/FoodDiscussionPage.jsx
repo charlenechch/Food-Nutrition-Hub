@@ -191,14 +191,14 @@ const Comment = React.memo(function Comment({
           >
             {username}
 
-            {c.equippedBadge && c.equippedBadge !== 'null' && c.equippedBadge !== 'novice' && (
-            <span className="user-badge-inline">
-              {getTierById(item.equippedBadge || "novice").icon}
-              <span className="badge-tooltip-mini" style={{ color: getTierById(item.equippedBadge || "novice").color }}>
-                {getTierById(item.equippedBadge || "novice").title}
+            {item.equippedBadge && item.equippedBadge !== 'null' && item.equippedBadge !== 'novice' && (
+              <span className="user-badge-inline">
+                {getTierById(item.equippedBadge).icon}
+                <span className="badge-tooltip-mini" style={{ color: getTierById(item.equippedBadge).color }}>
+                  {getTierById(item.equippedBadge).title}
+                </span>
               </span>
-            </span>
-            )}
+              )}
           </span>
           <span className="fd-disc-time">• {getTimeAgo(timestamp)}</span>
           
