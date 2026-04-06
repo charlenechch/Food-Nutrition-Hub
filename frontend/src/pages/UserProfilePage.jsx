@@ -1506,7 +1506,7 @@ const handleDeleteAccount = async () => {
             ]
             .filter(([val]) => {
               if (!userProfileID) return true; // Owner sees everything
-              return val === "status";         // All visitors ONLY see Contributions
+              return val === "status";         // All visitors ONLY see Contributions tab
             })
             .map(([val, label]) => (
               <button
