@@ -35,31 +35,22 @@ const AdminQuizDatabase = () => {
         const foodNames = mockFoods.map(f => f.name);
         const correctAnswers = questions.map(q => q.correctAnswer);
 
-        const allStringsToTranslate = [
-          ...questionPrompts, 
-          ...foodNames, 
-          ...correctAnswers
-        ];
-
-        const translatedAll = await translateTexts(allStringsToTranslate, i18n.language);
-
-        const qCount = questions.length;
-        const fCount = mockFoods.length;
-
-        const translatedQsArray = translatedAll.slice(0, qCount);
-        const translatedFoodsArray = translatedAll.slice(qCount, qCount + fCount);
-        const translatedAsArray = translatedAll.slice(qCount + fCount);
+        const [translatedQsArray, translatedFoodsArray, translatedAsArray] = await Promise.all([
+          translateTexts(questionPrompts, i18n.language),
+          translateTexts(foodNames, i18n.language),
+          translateTexts(correctAnswers, i18n.language)
+        ]);
 
         const qMap = {};
         const aMap = {};
         questions.forEach((q, index) => {
-          qMap[q.id] = translatedQsArray[index];
-          aMap[q.id] = translatedAsArray[index];
+          qMap[q.id] = translatedQsArray[index] || q.question; 
+          aMap[q.id] = translatedAsArray[index] || q.correctAnswer;
         });
         
         const fMap = {};
         mockFoods.forEach((f, index) => {
-          fMap[f.foodID] = translatedFoodsArray[index];
+          fMap[f.foodID] = translatedFoodsArray[index] || f.name;
         });
 
         setTranslatedQuestions(qMap);
@@ -75,7 +66,6 @@ const AdminQuizDatabase = () => {
 
     translateDynamicData();
   }, [i18n.language, questions]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("default");
 
