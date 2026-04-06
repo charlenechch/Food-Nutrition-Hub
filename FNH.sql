@@ -100,6 +100,7 @@ CREATE TABLE recipe (
     status ENUM('Approved', 'Pending', 'Rejected') DEFAULT 'Pending',
     publish ENUM('waiting', 'publish') DEFAULT 'waiting';
     approved_by VARCHAR(255);
+    recipeName VARCHAR(100);
     FOREIGN KEY (foodID) REFERENCES food(foodID) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON UPDATE CASCADE ON DELETE CASCADE
 );
