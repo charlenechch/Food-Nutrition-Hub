@@ -245,21 +245,23 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
               <div className="comment-body">
                 <div className="comment-header-row">
                   <span 
-                    className="comment-author-name"
-                    onClick={() => handleCommenterProfileClick(c.userProfileID)}
-                    style={{ cursor: "pointer", textDecoration: "underline transparent", transition: "text-decoration 0.2s" }}
-                    title={`View ${c.username || c.author}'s profile`}
-                    onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
-                    onMouseLeave={(e) => e.target.style.textDecoration = "underline transparent"}
-                  >
-                    {c.username || c.author || "User"}
-                    <span className="user-badge-inline">
-                      {getTierById(c.equippedBadge || "novice").icon}
-                      <span className="badge-tooltip-mini" style={{ color: getTierById(c.equippedBadge || "novice").color }}>
-                        {getTierById(c.equippedBadge || "novice").title}
-                      </span>
+                      className="comment-author-name"
+                      onClick={() => handleCommenterProfileClick(c.userProfileID)}
+                      style={{ cursor: "pointer", textDecoration: "underline transparent", transition: "text-decoration 0.2s" }}
+                      title={`View ${c.username || c.author}'s profile`}
+                      onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                      onMouseLeave={(e) => e.target.style.textDecoration = "underline transparent"}
+                    >
+                      {c.username || c.author || "User"}
+                      {c.equippedBadge && c.equippedBadge !== 'null' && c.equippedBadge !== 'novice' && (
+                        <span className="user-badge-inline">
+                          {getTierById(c.equippedBadge).icon}
+                          <span className="badge-tooltip-mini" style={{ color: getTierById(c.equippedBadge).color }}>
+                            {getTierById(c.equippedBadge).title}
+                          </span>
+                        </span>
+                      )}
                     </span>
-                  </span>
                   <span className="comment-meta-dot">•</span>
                   <span className="comment-time">{c.daysAgo}</span>
                 </div>
@@ -378,14 +380,18 @@ export default function CommunityPost() {
                 </div>
                 <div className="author-text-info">
                   <span className="author-name-large">
-                    {post.author || t("communityPost.unknownChef")}
-                    <span className="user-badge-inline">
-                      {getTierById(post.equippedBadge || "novice").icon}
-                      <span className="badge-tooltip-mini" style={{ color: getTierById(post.equippedBadge || "novice").color }}>
-                        {getTierById(post.equippedBadge || "novice").title}
-                      </span>
+                      {post.author || t("communityPost.unknownChef")}
+                      
+                      {/* 👇 EXACT FIX: Added check to ignore 'novice' 👇 */}
+                      {post.equippedBadge && post.equippedBadge !== 'null' && post.equippedBadge !== 'novice' && (
+                        <span className="user-badge-inline">
+                          {getTierById(post.equippedBadge).icon}
+                          <span className="badge-tooltip-mini" style={{ color: getTierById(post.equippedBadge).color }}>
+                            {getTierById(post.equippedBadge).title}
+                          </span>
+                        </span>
+                      )}
                     </span>
-                  </span>
                   <div className="post-metadata-row">
                     <span className="post-date">{post.daysAgo}</span>
                     <span className="meta-dot">•</span>

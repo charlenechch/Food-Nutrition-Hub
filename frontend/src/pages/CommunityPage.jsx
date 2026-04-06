@@ -322,7 +322,7 @@ export default function Community() {
                           />
                         </div>
                         <div className="meta-text">
-                          <span className="author-name"
+                         <span className="author-name"
                             onClick={(e) => {
                               e.stopPropagation();
                               const currentUID = user?.userProfileID;
@@ -332,12 +332,14 @@ export default function Community() {
                             }}
                             style={{ cursor: "pointer" }}>
                             {post.author}
-                            <span className="user-badge-inline">
-                              {getTierById(post.equippedBadge || "novice").icon}
-                              <span className="badge-tooltip-mini" style={{ color: getTierById(post.equippedBadge || "novice").color }}>
-                                {getTierById(post.equippedBadge || "novice").title}
+                            {post.equippedBadge && post.equippedBadge !== 'null' && post.equippedBadge !== 'novice' && (
+                              <span className="user-badge-inline">
+                                {getTierById(post.equippedBadge).icon}
+                                <span className="badge-tooltip-mini" style={{ color: getTierById(post.equippedBadge).color }}>
+                                  {getTierById(post.equippedBadge).title}
+                                </span>
                               </span>
-                            </span>
+                            )}
                           </span>
                           <span className="post-date">{post.daysAgo}</span>
                         </div>
