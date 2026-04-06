@@ -733,6 +733,7 @@
 
   .food-table tbody tr td[data-label="Actions"]::before {
     content: "";
+    display: none;
   }
 
   .food-table tbody tr td[data-label="Actions"] button {
