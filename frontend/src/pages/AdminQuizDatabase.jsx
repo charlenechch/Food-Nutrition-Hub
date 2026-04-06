@@ -4,6 +4,7 @@ import { BsPatchQuestion } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa6";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
+import { FiCheck } from "react-icons/fi";
 import { CiSearch } from "react-icons/ci";
 import { mockAdminQuestions } from "../data/mockAdminQuestions"; 
 import { mockFoods } from "../data/mockFoods"; 
@@ -17,6 +18,7 @@ const AdminQuizDatabase = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
+  const [modalFoodSearchTerm, setModalFoodSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     foodID: "",
     question: "",
@@ -54,6 +56,7 @@ const AdminQuizDatabase = () => {
   const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
 
   const handleOpenModal = (q = null) => {
+    setModalFoodSearchTerm("");
     if (q) {
       setEditingQuestion(q);
       setFormData({ ...q });
@@ -85,6 +88,10 @@ const AdminQuizDatabase = () => {
       setQuestions(questions.filter(q => q.id !== id));
     }
   };
+
+  const filteredModalFoods = mockFoods.filter(f => 
+    f.name.toLowerCase().includes(modalFoodSearchTerm.toLowerCase())
+  );
 
   return (
     <div className="food-database-section aqd-section">
@@ -193,15 +200,56 @@ const AdminQuizDatabase = () => {
             
             <div className="add-options-body quiz-modal-scrollable">
               
-              <div className="umg-field">
-                <label className="umg-label">Linked Food Entity:</label>
-                <select 
-                  className="umg-input"
-                  value={formData.foodID} 
-                  onChange={(e) => setFormData({...formData, foodID: Number(e.target.value)})}
+              <div className="umg-field aqd-field">
+                <label className="umg-label aqd-label">Linked Food Entity:</label>
+                
+                <div className="search-box aqd-search-box">
+                  <CiSearch className="search-icon aqd-search-icon"/>
+                  <input 
+                    type="text" 
+                    placeholder="Search for a food..." 
+                    value={modalFoodSearchTerm}
+                    onChange={(e) => setModalFoodSearchTerm(e.target.value)}
+                    className = "aqd-search-box-input"
+                  />
+                </div>
+
+                <div 
+                  className="lfp-recipe-list aqd-list" 
                 >
-                  {mockFoods.map(f => <option key={f.foodID} value={f.foodID}>{f.name} (ID: {f.foodID})</option>)}
-                </select>
+                  {filteredModalFoods.length > 0 ? (
+                    filteredModalFoods.map(food => (
+                      <div 
+                        key={food.foodID}
+                        onClick={() => setFormData({...formData, foodID: food.foodID})}
+                        className = "aqd-filtered-modals-div"
+                        style={{ 
+                          background: formData.foodID === food.foodID ? "#ffffff" : "transparent", 
+                          border: formData.foodID === food.foodID ? "1px solid #916848" : "1px solid transparent",
+                          boxShadow: formData.foodID === food.foodID ? "0 2px 4px rgba(0,0,0,0.05)" : "none",
+                        }}
+                      >
+                        <div>
+                          <h4 className="aqd-filtered-modal-h4" style={{ color: formData.foodID === food.foodID ? "#916848" : "#3d2b1f" }}>
+                            {food.name}
+                          </h4>
+                          <p className="aqd-filtered-modal-p">
+                            ID: {food.foodID} • {food.origin || "Unknown Origin"}
+                          </p>
+                        </div>
+                        {formData.foodID === food.foodID && (
+                          <div className = "aqd-form-data-div">
+                            <FiCheck className = "aqd-form-data-ficheck"/>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className = "aqd-form-data-div2">
+                      No foods found matching "{modalFoodSearchTerm}"
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="umg-field">
