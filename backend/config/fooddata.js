@@ -184,7 +184,7 @@ const foods = [
     culturalSignificance: "Manicai is a beloved staple in Sarawak, enjoyed by both Dayak and Chinese communities. It is often described as an “everyday vegetable,” as it can be found everywhere, from home kitchens and kopitiam to upscale restaurants. For many Sarawakians, it carries a sense of nostalgia as a hardy backyard crop, which symbolises resourcefulness and self-sufficiency. Simple yet nutritious, manicai is a comforting daily dish that pairs perfectly with white rice and is rarely absent from the family table.",
     traditionalPreparation: "The hallmark of Sarawakian manicai lies in its distinctive “scrunching” technique. Before cooking, the leaves are vigorously rubbed and squeezed by hand until bruised, releasing their dark green juices. This process softens the leaves and removes bitterness. After rinsing, they are stir-fried in a hot wok with garlic and shallots for aroma, dried shrimp (udang kering) for umami, and eggs that are scrambled directly into the leaves. The result is a “dry” stir-fry where the egg clings to the softened leaves, creating a smoky, slightly sweet, and deeply savoury dish that is both simple and highly addictive.",
     commonIngredients: ["Eggs, Soy sauce, Salt, Manicai"],
-    healthTips: "Sweet potato leaves (Manicai) are rich in vitamins A, C, and K. A very nutritious and low-calorie dish, especially when prepared with little oil.",
+    healthTips: "Sweet potato leaves (Manicai) are rich in vitamins C, and contains high protein. ",
     gram_per_serving: 0.0
   },
 
