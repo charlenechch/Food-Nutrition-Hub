@@ -719,29 +719,21 @@
     margin-right: 0;
   }
 
-  .food-table tbody tr td:last-child {
-    display: block;          
-    text-align: center;
+  .food-table tbody tr td:last-child,
+  .content-table tbody tr td:last-child {
+    display: flex;          
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
     border-bottom: none;
     padding-top: 20px;       
     margin-top: 5px;         
   }
 
-  .food-table tbody tr td:last-child::before {
+  .food-table tbody tr td:last-child::before,
+  .content-table tbody tr td:last-child::before {
     content: "";
     display: none;
-  }
-
-  .food-table tbody tr td[data-label="Actions"] button {
-    width: 42%;
-    display: inline-block;
-    font-size: 0.9rem;
-    padding: 8px 0;
-    border-radius: 10px;
-  }
-
-  .food-table tbody tr td[data-label="Actions"] button + button {
-    margin-left: 4%;
   }
 }
 
