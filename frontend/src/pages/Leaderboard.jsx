@@ -252,7 +252,6 @@ const Leaderboard = () => {
       <div className="time-filter-row">
         <div className="time-filter-section">
           <div className="filter-label">
-            <span className="filter-icon">📅</span>
             <span>{t("leaderboard.time_period")}:</span>
           </div>
           <select 

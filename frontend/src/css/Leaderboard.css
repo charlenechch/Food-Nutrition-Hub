@@ -70,21 +70,18 @@
 
 /* Time Filter Row - Row 2 */
 .time-filter-row {
-  display: flex;
-  justify-content: flex-end;
   margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e6dbcf;
 }
 
 .time-filter-section {
+  background: #fef7e8;
+  border-left: 4px solid #c9ad7a;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: #fef7e8;
-  padding: 0.5rem 1rem;
-  border-radius: 10px;
-  border: 1px solid #e6dbcf;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .filter-label {
@@ -93,17 +90,13 @@
   gap: 6px;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #856b47;
-}
-
-.filter-icon {
-  font-size: 1rem;
+  color: #6b4c2c;
 }
 
 .month-filter-select {
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.8rem;
   border: 1px solid #e6dbcf;
-  border-radius: 8px;
+  border-radius: 6px;
   background: white;
   cursor: pointer;
   font-size: 0.85rem;
@@ -126,8 +119,8 @@
 .filter-badge {
   background: white;
   color: #8b5a2b;
-  padding: 0.35rem 0.85rem;
-  border-radius: 6px;
+  padding: 0.25rem 0.7rem;
+  border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 500;
   border: 1px solid #e6dbcf;
@@ -563,7 +556,7 @@
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
-  
+    
   .time-filter-row {
     justify-content: center;
   }
