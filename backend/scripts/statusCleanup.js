@@ -271,7 +271,7 @@ async function updateStaleAndExpiredUsers() {
         const malaysiaOffset = 8 * 60;
         const currentTime = new Date();
         const malaysiaTime = new Date(currentTime.getTime() + malaysiaOffset * 60 * 1000);
-        const isLastDayOfMonth = true; // TESTING ONLY
+        const isLastDayOfMonth = malaysiaTime.getDate() === 1;
 
         if (isLastDayOfMonth) {
             console.log("🏆 Last day of month detected. Running leaderboard XP rewards...");
