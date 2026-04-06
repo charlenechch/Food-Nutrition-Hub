@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 
 import LoginFood from "../assets/LoginFood.png";
 import KoloImg from "../assets/kolomee.jpg";
+import LaksaImg from "../assets/laksa.jpg";
 import KekImg from "../assets/keklapis.jpg";
 
 import { FaSearch, FaStar, FaLightbulb, FaSyncAlt, FaUserEdit, FaDice } from "react-icons/fa";
@@ -17,7 +18,7 @@ import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
-const HERO_IMAGES = [LoginFood, KoloImg];
+const HERO_IMAGES = [LoginFood, LaksaImg, KoloImg];
 
 
 // ── Dish Spotlight Component (Option B) ──
