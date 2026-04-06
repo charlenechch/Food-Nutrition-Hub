@@ -61,7 +61,7 @@ CREATE TABLE userProfile (
 CREATE TABLE food (
     foodID INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(20) NOT NULL,
-    origin ENUM('Malay','Chinese','Iban','Melanau','Kadazan', 'Bidayuh', 'Dayak') NOT NULL,
+    origin VARCHAR(100) NOT NULL,
     category VARCHAR(100) NOT NULL,
     difficulty ENUM('Easy', 'Medium', 'Hard') NOT NULL,
     dietaryTags VARCHAR(100) NOT NULL,
@@ -71,8 +71,6 @@ CREATE TABLE food (
     culturalSignificance TEXT NULL,
     traditionalPreparation TEXT NULL,
     commonIngredients VARCHAR(255) NULL,
-    alternative VARCHAR(255) NULL,
-    altDescription TEXT NULL,
     healthTips TEXT,
     Energy_kcal DECIMAL(6,2),
     Protein_g DECIMAL(6,2),
