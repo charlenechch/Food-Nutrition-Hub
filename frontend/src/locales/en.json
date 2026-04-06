@@ -1539,7 +1539,12 @@
     "streakMasterTitle": "Streak Master",
     "streakMasterDesc": "Maintained a perfect daily quiz streak for 7 consecutive days.",
     "foodEncyclopediaTitle": "Food Encyclopedia",
-    "foodEncyclopediaDesc": "Achieved a perfect 5/5 score on the daily quiz 10 times."
+    "foodEncyclopediaDesc": "Achieved a perfect 5/5 score on the daily quiz 10 times.",
+    "topRecipeTitle": "Top Recipe Contributor",
+    "topRecipeDesc": "Awarded to the #1 Recipe Contributor of the month.",
+    "topPostTitle": "Top Community Poster",
+    "topPostDesc": "Awarded to the #1 Community Post Contributor of the month.",
+    "contributorBadgeLocked": "Earn by ranking #1 on the monthly leaderboard."
   },
 
   "leaderboard": {

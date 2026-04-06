@@ -188,6 +188,7 @@ export default function UserProfilePage() {
   //Controls view and edit mode
   const [isEditing, setIsEditing] = useState(false);
   const [equippedBadge, setEquippedBadge] = useState(null);
+  const [earnedBadges, setEarnedBadges] = useState([]);
 
   //CSRF Token State
   const [csrfToken, setCsrfToken] = useState("");
@@ -882,6 +883,23 @@ const ContributionRow = ({ c }) => {
         }
         setUser(data);
         setEquippedBadge(data.equippedBadge || null);
+
+        // Fetch earned contributor badges
+        const profileIdToFetch = userProfileID || data.userProfileID;
+        if (profileIdToFetch) {
+          try {
+            const badgesRes = await fetch(`${API_BASE_URL}/api/userProfile/${profileIdToFetch}/badges`, {
+              credentials: "include"
+            });
+            const badgesData = await badgesRes.json();
+            if (badgesData.success) {
+              setEarnedBadges(badgesData.badges.map(b => b.badge_type));
+            }
+          } catch (err) {
+            console.error("Failed to fetch earned badges", err);
+          }
+        }
+
         setForm({
           firstName: data.firstName || "",
           lastName: data.lastName || "",
@@ -1426,6 +1444,9 @@ const handleDeleteAccount = async () => {
                 if (tier.id === "food_encyclopedia") {
                   isUnlocked = quizStats.totalPerfectDays >= 10;
                 }
+                if (tier.id === "top_recipe" || tier.id === "top_post") {
+                  isUnlocked = earnedBadges.includes(tier.id);
+                }
                 
                 const isEquipped = equippedBadge === tier.id;
                 const camelCaseId = tier.id.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
@@ -1453,7 +1474,9 @@ const handleDeleteAccount = async () => {
                       </p>
                       {!isUnlocked && (
                         <span className="upp-locked-text">
-                          {t("gamification.unlocksAtLevel", { level: tier.minLevel })}
+                          {tier.id === "top_recipe" || tier.id === "top_post"
+                            ? t("gamification.contributorBadgeLocked")
+                            : t("gamification.unlocksAtLevel", { level: tier.minLevel })}
                         </span>
                       )}
 

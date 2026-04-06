@@ -1539,7 +1539,12 @@
     "streakMasterTitle": "Pakar Rentetan",
     "streakMasterDesc": "Mengekalkan rentetan kuiz harian tanpa henti selama 7 hari berturut-turut.",
     "foodEncyclopediaTitle": "Ensiklopedia Makanan",
-    "foodEncyclopediaDesc": "Mencapai markah penuh 5/5 dalam kuiz harian sebanyak 10 kali."
+    "foodEncyclopediaDesc": "Mencapai markah penuh 5/5 dalam kuiz harian sebanyak 10 kali.",
+    "topRecipeTitle": "Penyumbang Resipi Teratas",
+    "topRecipeDesc": "Diberikan kepada Penyumbang Resipi #1 bulan ini.",
+    "topPostTitle": "Penyumbang Komuniti Teratas",
+    "topPostDesc": "Diberikan kepada Penyumbang Kiriman Komuniti #1 bulan ini.",
+    "contributorBadgeLocked": "Raih dengan menduduki tempat #1 dalam papan kedudukan bulanan."
   },
 
   "leaderboard": {
