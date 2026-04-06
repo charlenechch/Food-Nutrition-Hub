@@ -22,7 +22,8 @@ return value;
 
 // ✅ NEW: Joi schema for recipe create/update inputs
 const recipeSchema = Joi.object({
-name: Joi.string().max(100).required(),
+recipeName: Joi.string().max(100).required(),
+name: Joi.string().max(100), // Keep for backward compatibility, but prefer recipeName
 origin: Joi.string().max(100).required(),
 difficulty: Joi.string().max(50).allow("", null),
 prepTime: Joi.number().integer().min(0).allow(null),
@@ -44,7 +45,7 @@ chefTips: Joi.string().allow("", null)
 // Configure Cloudinary
 cloudinary.config({
 cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-api_key: process.env.CloudINARY_API_KEY,
+api_key: process.env.CLOUDINARY_API_KEY,
 api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
@@ -63,8 +64,7 @@ console.log(`Fetching ${includeAll ? 'ALL' : 'APPROVED'} recipes...`);
 
 const query = `
 SELECT 
-      f.foodID AS id,
-      f.name, 
+      f.foodID AS id, 
       f.origin, 
       f.difficulty, 
       f.prepTime, 
@@ -72,6 +72,7 @@ SELECT
       r.description, 
       f.category,
       f.dietaryTags,
+      r.recipeName,  -- ✅ CHANGED: Use recipeName from recipe table
       r.cookTime, 
       r.servings, 
       r.ingredients, 
@@ -97,7 +98,7 @@ SELECT
      const allRecipes = rows.map(data => {
       // Safe value getter
      const getSafe = (obj, prop) => {
-      return obj && obj[prop] !== null && obj[prop] !== undefined ? obj[prop] : null;
+      return obj && obj[prop] !== null && obj[obj] !== undefined ? obj[prop] : null;
      };
 
       // Handle dietaryTags
@@ -149,7 +150,7 @@ SELECT
 
       return {
       id: getSafe(data, 'id') || 0,
-      name: getSafe(data, 'name') || 'Unknown Recipe',
+      name: getSafe(data, 'recipeName') || 'Unknown Recipe',  // ✅ CHANGED: Use recipeName
       author: getSafe(data, 'author') || 'Unknown Author', 
       authorImage: getSafe(data, 'authorImage') || null,
       authorId: getSafe(data, 'authorId') || null,
@@ -244,7 +245,7 @@ if (!imageUrl) {
 
 return {
   id: getSafe(data, 'id') || 0,
-  name: getSafe(data, 'name') || 'Unknown Recipe',
+  name: getSafe(data, 'recipeName') || getSafe(data, 'name') || 'Unknown Recipe', // ✅ CHANGED: Try recipeName first, then name
   origin: getSafe(data, 'origin') || 'Unknown',
   difficulty: getSafe(data, 'difficulty') || 'Easy',
   prepTime: Number(getSafe(data, 'prepTime')) || 0,
@@ -280,7 +281,7 @@ router.get('/recipes/:id', async (req, res) => {
       SELECT 
         f.foodID AS foodId,  
         r.recipeID AS recipeID,   
-        f.name, 
+        r.recipeName,  -- ✅ CHANGED: Use recipeName from recipe table
         f.origin, 
         f.difficulty, 
         f.prepTime, 
@@ -325,7 +326,7 @@ router.get('/recipes/:id', async (req, res) => {
     const recipe = {
       id: row.recipeID,  
       foodId: row.foodID,
-      name: row.name || '',
+      name: row.recipeName || '',  // ✅ CHANGED: Use recipeName instead of row.name
       origin: row.origin || '',
       difficulty: row.difficulty || 'Easy',
       prepTime: row.prepTime || 0,
@@ -371,14 +372,17 @@ console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
 
 try {
   const {
-    name, origin, difficulty, prepTime, image, description, 
+    recipeName, name, origin, difficulty, prepTime, image, description, 
     category, dietaryTags, cookTime, servings, ingredients, 
     instructions, funFact, chefTips
   } = req.body;
 
+  // Use recipeName if provided, fallback to name for backward compatibility
+  const finalRecipeName = recipeName || name;
+
   // ✅ NEW: Validate and sanitize (added, no removals)
   {
-    const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    const { error, value } = recipeSchema.validate({...req.body, recipeName: finalRecipeName}, { abortEarly: false, stripUnknown: true });
     if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
     const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
     Object.assign(req.body, cleanData);
@@ -399,7 +403,7 @@ try {
   }
 
   console.log('📊 Request data analysis:', {
-    name, 
+    finalRecipeName, 
     origin, 
     category,
     ingredientsType: typeof ingredients,
@@ -412,9 +416,9 @@ try {
   });
 
   // Validate required fields
-  if (!name || !origin) {
-    console.log('❌ Validation failed: missing name or origin');
-    return res.status(400).json({ error: 'Name and origin are required' });
+  if (!finalRecipeName || !origin) {
+    console.log('❌ Validation failed: missing recipeName or origin');
+    return res.status(400).json({ error: 'Recipe name and origin are required' });
   }
 
   // Check authentication
@@ -467,13 +471,12 @@ try {
   // Insert into food table
   const foodQuery = `
     INSERT INTO food (
-      name, origin, difficulty, prepTime, image, description, 
-      category, dietaryTags, commonIngredients
+      origin, difficulty, prepTime, image, description, 
+      category, dietaryTags, commonIngredients, name
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
   const foodParams = [
-    name, 
     origin, 
     difficulty || 'Easy', 
     prepTime || 0, 
@@ -481,7 +484,8 @@ try {
     description || '', 
     category || 'Other',
     Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
-    null
+    null,
+    finalRecipeName  // ✅ Store recipeName in food.name for backward compatibility
   ];
   
   console.log('📝 Executing food insert with params:', foodParams);
@@ -501,8 +505,8 @@ try {
   // Insert into recipe table
   const recipeQuery = `
     INSERT INTO recipe (
-      foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description, recipeName
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
   const recipeParams = [
@@ -515,7 +519,8 @@ try {
     funFact || '', 
     chefTips || '',
     'Pending',
-    description || ''
+    description || '',
+    finalRecipeName  // ✅ Store recipeName in recipe table
   ];
   
   console.log('📝 Executing recipe insert with foodID:', foodId);
@@ -657,7 +662,7 @@ try {
       SELECT 
         f.foodID AS id,
         r.recipeID,
-        f.name AS foodName,
+        r.recipeName AS foodName,  -- ✅ Already using recipeName
         f.origin AS culturalOrigin,
         r.status,
         r.admin_feedback,
@@ -738,7 +743,7 @@ try {
     return {
       id: recipe.id, 
       recipeID: recipe.recipeID,
-      foodName: recipe.foodName || 'Untitled Recipe',
+      foodName: recipe.foodName || 'Untitled Recipe',  // ✅ Using recipeName via foodName alias
       culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
       status: (recipe.status || 'pending').toLowerCase(),
       adminFeedback: recipe.admin_feedback || null,
@@ -830,10 +835,13 @@ router.put('/revise/recipes/:id', async (req, res) => {
     }
 
     const {
-      name, origin, difficulty, prepTime, image, description,
+      recipeName, name, origin, difficulty, prepTime, image, description,
       category, dietaryTags, cookTime, servings, ingredients,
       instructions, funFact, chefTips, status
     } = req.body;
+
+    // Use recipeName if provided, fallback to name for backward compatibility
+    const finalRecipeName = recipeName || name;
 
     console.log('🆔 Updating recipe with ID:', id);
 
@@ -874,7 +882,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
     console.log('✅ Found recipe - recipeID:', id, 'foodID:', foodID);
 
     // Validate and sanitize input
-    const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    const { error, value } = recipeSchema.validate({...req.body, recipeName: finalRecipeName}, { abortEarly: false, stripUnknown: true });
     if (error) {
       return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
     }
@@ -913,23 +921,23 @@ router.put('/revise/recipes/:id', async (req, res) => {
     const updateFoodQuery = `
       UPDATE food 
       SET 
-        name = ?, 
         origin = ?, 
         difficulty = ?, 
         prepTime = ?, 
         image = ?, 
         category = ?,  
-        dietaryTags = ?
+        dietaryTags = ?,
+        name = ?
       WHERE foodID = ?
     `;
     const foodParams = [
-      name,
       origin,
       difficulty || 'Easy',
       prepTime || 0,
       finalImage,
       Array.isArray(category) ? category.join(', ') : (category || 'Other'),
       Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
+      finalRecipeName,  // ✅ Update food.name as well for backward compatibility
       foodID  
     ];
 
@@ -948,6 +956,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
         chefTips = ?, 
         status = ?,
         description = ?,
+        recipeName = ?,
         updatedAt = CURRENT_TIMESTAMP
       WHERE recipeID = ? AND userProfileID = ?
     `;
@@ -960,6 +969,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
       chefTips || '',
       status || 'Pending',
       description || '',
+      finalRecipeName,  // ✅ Update recipeName in recipe table
       id,
       userProfileID
     ];
@@ -971,8 +981,8 @@ router.put('/revise/recipes/:id', async (req, res) => {
       console.log('⚠️ Recipe not found during update, inserting new recipe entry instead');
       const insertRecipeQuery = `
         INSERT INTO recipe (
-          foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description, recipeName
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       await db.query(insertRecipeQuery, [
         foodID, 
@@ -984,7 +994,8 @@ router.put('/revise/recipes/:id', async (req, res) => {
         funFact || '',
         chefTips || '',
         status || 'Pending',
-        description || ''
+        description || '',
+        finalRecipeName  // ✅ Include recipeName in insert
       ]);
       console.log('✅ Inserted new recipe entry for foodID:', foodID, 'by userProfileID:', userProfileID);
     }
@@ -1108,13 +1119,12 @@ router.patch('/updateStatus/:id', async (req, res) => {
     const actionType = status === "Approved" ? "recipe_approved" : "recipe_rejected";
     await logActivity(db, adminID, adminName, actionType, `${status} recipe for food ID ${recipeId}.`);
 
-    // Fetch User Info & Recipe Details
+    // Fetch User Info & Recipe Details - ✅ Updated to use recipeName
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, f.name AS recipeName
+      SELECT u.email, u.firstname, r.recipeName  -- ✅ Changed from f.name to r.recipeName
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
-      JOIN food f ON r.foodID = f.foodID
       WHERE r.foodID = ?
     `, [recipeId]);
 
@@ -1283,13 +1293,12 @@ router.patch('/sendFeedback/:id', async (req, res) => {
       return res.status(404).json({ error: "Recipe not found." });
     }
 
-    // 2. Fetch Info AND Status
+    // 2. Fetch Info AND Status - ✅ Updated to use recipeName
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, f.name AS recipeName, r.status, u.userID
+      SELECT u.email, u.firstname, r.recipeName, r.status, u.userID  -- ✅ Changed from f.name to r.recipeName
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
-      JOIN food f ON r.foodID = f.foodID
       WHERE r.foodID = ?
     `, [id]);
 
@@ -1393,9 +1402,11 @@ router.delete("/admin/delete/:id", async (req, res) => {
   }
 
   try {
-    // 2. Fetch food name before deletion for logging
-    const [foodRows] = await db.query("SELECT name FROM food WHERE foodID = ?", [id]);
-    const foodName = foodRows.length > 0 ? foodRows[0].name : `ID ${id}`;
+    // 2. Fetch recipe name before deletion for logging - ✅ Updated to use recipeName
+    const [recipeRows] = await db.query(`
+      SELECT r.recipeName FROM recipe r WHERE r.foodID = ?
+    `, [id]);
+    const recipeName = recipeRows.length > 0 ? recipeRows[0].recipeName : `ID ${id}`;
 
     // 3. Delete from 'recipe' table first (Child table)
     await db.query("DELETE FROM recipe WHERE foodID = ?", [id]);
@@ -1409,7 +1420,7 @@ router.delete("/admin/delete/:id", async (req, res) => {
 
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-    await logActivity(db, adminID, adminName, "recipe_deleted", `Deleted recipe "${foodName}" (Food ID: ${id}).`);
+    await logActivity(db, adminID, adminName, "recipe_deleted", `Deleted recipe "${recipeName}" (Food ID: ${id}).`);
 
     console.log(`✅ [ADMIN] Recipe ${id} deleted successfully.`);
     res.json({ success: true, message: "Recipe deleted successfully." });
@@ -1435,7 +1446,7 @@ router.get('/byFood/:foodId', async (req, res) => {
       SELECT 
         r.recipeID AS id,  
         f.foodID,  
-        f.name AS foodName,
+        r.recipeName AS foodName,  -- ✅ Already using recipeName
         r.status
       FROM recipe r
       JOIN food f ON r.foodID = f.foodID
@@ -1479,7 +1490,7 @@ router.get('/pending-food-details', async (req, res) => {
         r.status,
         r.createdAt,
         f.foodID,
-        f.name as foodName,
+        r.recipeName as foodName,  -- ✅ Changed from f.name to r.recipeName
         f.origin,
         f.category,
         f.description,
@@ -1516,7 +1527,7 @@ router.get('/pending-food-details', async (req, res) => {
     
     const recipes = rows.map(recipe => ({
       id: recipe.id,
-      name: recipe.foodName,
+      name: recipe.foodName,  // ✅ Using recipeName via foodName alias
       author: recipe.author || 'Unknown Author',
       status: recipe.status,
       hasFoodDetails: recipe.origin ? true : false,
@@ -1543,7 +1554,7 @@ router.get('/waiting-recipes', async (req, res) => {
     const query = `
       SELECT 
         r.recipeID as id,
-        f.name as foodName,
+        r.recipeName as foodName,  -- ✅ Changed from f.name to r.recipeName
         CONCAT(u.firstname, ' ', u.lastname) AS author
       FROM recipe r
       INNER JOIN food f ON r.foodID = f.foodID
@@ -1557,7 +1568,7 @@ router.get('/waiting-recipes', async (req, res) => {
     
     const formattedRecipes = rows.map(recipe => ({
       id: recipe.id,
-      name: recipe.foodName,
+      name: recipe.foodName,  // ✅ Using recipeName
       author: recipe.author || 'Unknown Author'
     }));
     
@@ -1591,7 +1602,8 @@ router.get('/recipes/food/:foodId', async (req, res) => {
         r.chefTips,
         r.status,
         r.createdAt,
-        r.updatedAt
+        r.updatedAt,
+        r.recipeName  -- ✅ Added recipeName to the query
       FROM recipe r  
       WHERE r.foodID = ? AND r.status = 'Approved'
       ORDER BY r.createdAt DESC
@@ -1615,7 +1627,8 @@ router.get('/recipes/food/:foodId', async (req, res) => {
           servings: 1,  // <-- This stops the React crash!
           DidYouKnow: "",
           chefTips: "",
-          status: "Approved"
+          status: "Approved",
+          recipeName: "Recipe Coming Soon"  // ✅ Added fallback recipeName
         } 
       });
     }
@@ -1634,7 +1647,8 @@ router.get('/recipes/food/:foodId', async (req, res) => {
       chefTips: row.chefTips || '',
       status: row.status,
       createdAt: row.createdAt,
-      updatedAt: row.updatedAt
+      updatedAt: row.updatedAt,
+      recipeName: row.recipeName || ''  // ✅ Added recipeName to response
     };
     
     res.json({ success: true, data: recipe });
@@ -1656,7 +1670,8 @@ router.put('/recipes/:id', async (req, res) => {
       cookTime,
       servings,
       DidYouKnow,
-      chefTips
+      chefTips,
+      recipeName  // ✅ Added recipeName to update
     } = req.body;
     
     const query = `
@@ -1669,6 +1684,7 @@ router.put('/recipes/:id', async (req, res) => {
         servings = ?,
         DidYouKnow = ?,
         chefTips = ?,
+        recipeName = ?,
         updatedAt = CURRENT_TIMESTAMP,
         status = 'Approved' 
       WHERE recipeID = ?
@@ -1682,6 +1698,7 @@ router.put('/recipes/:id', async (req, res) => {
       servings || 1,
       DidYouKnow || null,
       chefTips || null,
+      recipeName || null,  // ✅ Added recipeName parameter
       id
     ]);
     
@@ -1729,13 +1746,12 @@ router.post('/publishRecipe/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: "Recipe not found." });
     }
     
-    // Fetch user info for notification
+    // Fetch user info for notification - ✅ Updated to use recipeName
     const [rows] = await db.query(`
-      SELECT u.userID, u.email, u.firstname, f.name AS recipeName
+      SELECT u.userID, u.email, u.firstname, r.recipeName  -- ✅ Changed from f.name to r.recipeName
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
-      JOIN food f ON r.foodID = f.foodID
       WHERE r.foodID = ?
     `, [recipeId]);
     
