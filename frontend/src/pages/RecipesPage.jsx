@@ -766,13 +766,15 @@ export default function RecipesPage() {
                     />
                     <span className="rp-author-name">
                       {r.author}
+                      {r.equippedBadge && r.equippedBadge !== 'null' && r.equippedBadge !== 'novice' && (
                       <span className="user-badge-inline">
-                        {getTierById(r.equippedBadge || "novice").icon}
-                        <span className="badge-tooltip-mini" style={{ color: getTierById(r.equippedBadge || "novice").color }}>
-                          {getTierById(r.equippedBadge || "novice").title}
+                        {getTierById(r.equippedBadge).icon}
+                        <span className="badge-tooltip-mini" style={{ color: getTierById(r.equippedBadge).color }}>
+                          {getTierById(r.equippedBadge).title}
                         </span>
                       </span>
-                    </span>
+                    )}
+                  </span>
                   </div>
                   <h3 className="efp-food-title">{translatedRecipes[`name_${r.id}`] || r.name || t("recipes.unknownRecipe")}</h3>
                   <p className="efp-desc">{translatedRecipes[`desc_${r.id}`] || r.description || t("recipes.noDescription")}</p>

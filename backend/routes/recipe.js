@@ -84,7 +84,8 @@ SELECT
       r.approved_by, 
       CONCAT(u.firstname, ' ', u.lastname) AS author,
       up.avatar AS authorImage,
-      up.userProfileID AS authorId
+      up.userProfileID AS authorId,
+      up.equippedBadge
       FROM recipe r
       INNER JOIN food f ON r.foodID = f.foodID
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
@@ -153,6 +154,7 @@ SELECT
       author: getSafe(data, 'author') || 'Unknown Author', 
       authorImage: getSafe(data, 'authorImage') || null,
       authorId: getSafe(data, 'authorId') || null,
+      equippedBadge: getSafe(data, 'equippedBadge'),
       date: getSafe(data, 'date') ? new Date(data.date).toLocaleDateString() : '—',
       updatedAt: getSafe(data, 'updatedAt') ? new Date(data.updatedAt).toISOString() : null,
       origin: getSafe(data, 'origin') || 'Unknown',
@@ -301,6 +303,7 @@ router.get('/recipes/:id', async (req, res) => {
         u.email AS authorEmail,
         up.userProfileID AS authorProfileID,
         up.avatar AS authorAvatar,
+        up.equippedBadge,
         (SELECT COALESCE(ROUND(AVG(rating), 1), 0) FROM recipe_ratings WHERE recipeID = r.recipeID) AS avgRating,
         (SELECT COUNT(id) FROM recipe_ratings WHERE recipeID = r.recipeID) AS totalRatings,
         (SELECT rating FROM recipe_ratings WHERE recipeID = r.recipeID AND userProfileID = ?) AS userRating
@@ -350,6 +353,7 @@ router.get('/recipes/:id', async (req, res) => {
       authorEmail: row.authorEmail || 'N/A',
       authorProfileID: row.authorProfileID || null,
       authorAvatar: row.authorAvatar || null,
+      createdAt: row.createdAt,
       createdAt: row.createdAt,
       avgRating: row.avgRating || 0,
       totalRatings: row.totalRatings || 0,
@@ -667,6 +671,7 @@ try {
         r.steps AS instructions,
         r.createdAt AS created_at,
         up.userProfileID,
+        up.equippedBadge,
         CONCAT(u.firstname, ' ', u.lastname) AS author,
         u.userID,
         r.cookTime,
