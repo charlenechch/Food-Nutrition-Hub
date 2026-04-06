@@ -32,8 +32,10 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef(null);
-  
   const heroRef = useRef(null);
+  const snapContainerRef = useRef(null);
+  const isSnappingRef = useRef(false);
+  
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentFact, setCurrentFact] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -62,18 +64,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       return { ...preset, dbId: match ? (match.foodID || match.id) : null };
     });
   }, [allFoods]);
-
-  // Parallax scroll effect for hero background
-  useEffect(() => {
-    const handleParallax = () => {
-      if (!heroRef.current) return;
-      const scrollY = window.scrollY;
-      // Move background at 40% of scroll speed for a subtle parallax
-      heroRef.current.style.backgroundPosition = `center ${scrollY * 0.4}px`;
-    };
-    window.addEventListener("scroll", handleParallax, { passive: true });
-    return () => window.removeEventListener("scroll", handleParallax);
-  }, []);
 
   useEffect(() => {
     const fetchFoods = async () => {
@@ -207,13 +197,61 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }, 100); 
   };
 
+  // Snap scroll: one wheel/touch gesture = jump to next section
+  useEffect(() => {
+    const container = snapContainerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e) => {
+      e.preventDefault();
+      if (isSnappingRef.current) return;
+      const sections = container.querySelectorAll('.snap-section');
+      const currentIndex = Math.round(container.scrollTop / window.innerHeight);
+      let nextIndex = currentIndex;
+      if (e.deltaY > 0 && currentIndex < sections.length - 1) nextIndex = currentIndex + 1;
+      else if (e.deltaY < 0 && currentIndex > 0) nextIndex = currentIndex - 1;
+      if (nextIndex !== currentIndex) {
+        isSnappingRef.current = true;
+        container.scrollTo({ top: nextIndex * window.innerHeight, behavior: 'smooth' });
+        setTimeout(() => { isSnappingRef.current = false; }, 800);
+      }
+    };
+
+    let touchStartY = 0;
+    const handleTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
+    const handleTouchEnd = (e) => {
+      if (isSnappingRef.current) return;
+      const delta = touchStartY - e.changedTouches[0].clientY;
+      if (Math.abs(delta) < 30) return;
+      const sections = container.querySelectorAll('.snap-section');
+      const currentIndex = Math.round(container.scrollTop / window.innerHeight);
+      let nextIndex = currentIndex;
+      if (delta > 0 && currentIndex < sections.length - 1) nextIndex = currentIndex + 1;
+      else if (delta < 0 && currentIndex > 0) nextIndex = currentIndex - 1;
+      if (nextIndex !== currentIndex) {
+        isSnappingRef.current = true;
+        container.scrollTo({ top: nextIndex * window.innerHeight, behavior: 'smooth' });
+        setTimeout(() => { isSnappingRef.current = false; }, 800);
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
   return (
-    <div className="homepage">
+    <div className="homepage snap-container" ref={snapContainerRef}>
       <Header transparent={true} />
 
       <header
         ref={heroRef}
-        className="hero-section"
+        className="hero-section snap-section"
         style={{
           backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${HERO_IMAGES[currentSlide]})`
         }}
@@ -287,7 +325,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         </div>
       </header>
 
-      <main className="features-layout-wrapper">
+      <main className="features-layout-wrapper snap-section snap-main">
         <section className="features-grid">
           <div className="feature-card public-card">
             <div className="card-content-top">

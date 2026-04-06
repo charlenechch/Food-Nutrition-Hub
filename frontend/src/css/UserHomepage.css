@@ -1,8 +1,31 @@
 /* src/css/UserHomepage.css */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap');
 
-.homepage {
+/* --- SNAP SCROLL CONTAINER --- */
+.snap-container {
+  height: 100vh;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.snap-container::-webkit-scrollbar { display: none; }
+
+.snap-section {
+  height: 100vh;
   min-height: 100vh;
+}
+
+/* Main content section scrolls freely inside itself */
+.snap-main {
+  height: auto;
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
+.homepage {
   background-color: #fcf9f6;
   font-family: 'Poppins', sans-serif;
   overflow-x: hidden;
@@ -11,9 +34,9 @@
 /* --- HERO SECTION --- */
 .hero-section {
   height: 100vh;
-  min-height: 800px;
+  min-height: 100vh;
   background-size: cover;
-  background-position: center 0px; /* JS will update the Y value for parallax */
+  background-position: center 0px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -22,7 +45,7 @@
   padding: 80px 20px;
   position: relative;
   transition: background-image 0.8s ease-in-out;
-  will-change: background-position; /* hint browser for GPU compositing */
+  will-change: background-position;
 }
 
 /* Invisible Hitboxes for Left/Right Navigation */
@@ -332,7 +355,7 @@
 
 
 /* --- FEATURES --- */
-.features-layout-wrapper { background-color: #fcf9f6; padding: 80px 40px; max-width: 1400px; margin: 0 auto; }
+.features-layout-wrapper { background-color: #fcf9f6; padding: 80px 40px; max-width: 1400px; margin: 0 auto; min-height: 100vh; box-sizing: border-box; }
 .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 100px; }
 
 .feature-card {
