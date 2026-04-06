@@ -8,7 +8,6 @@ import { LuSparkles } from "react-icons/lu";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { useTranslation } from "react-i18next";
-import NutritionPieChart from "./NutritionPiechart";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -305,11 +304,6 @@ export default function NutritionAnalyzerPage() {
                         </div>
                       ))}
                     </div>
-
-                      {/* Pie Chart */}
-                      <div className="pie-chart-wrapper">
-                        <NutritionPieChart nutrition={result.nutrition} />
-                      </div>
                     </div>
                   </div>
                 )}

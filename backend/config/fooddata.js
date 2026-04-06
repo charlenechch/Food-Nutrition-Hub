@@ -55,7 +55,7 @@ const foods = [
     origin: "Melanau",
     category: "Seafood",
     difficulty: "easy",
-    dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat", "low-fiber"],
+    dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat"],
     description: "Umai is a traditional Sarawakian raw fish salad popular with the Dayak and Melanau communities. \
     It highlights local methods of food preparation and preservation using fresh ingredients. \
     Raw tenggiri (mackerel) is sliced or cubed and marinated in lime juice, allowing the acidity to “cook” the fish. \

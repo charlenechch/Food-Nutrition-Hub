@@ -1569,7 +1569,8 @@
     "second_best_community_poster": "Second Best Community Poster",
     "third_best_community_poster": "Third Best Community Poster",
     "reward_alert": "🎉 Reward Alert! Top 3 contributors will receive:",
-    "xp_awarded_automatically": "✨ XP will be awarded automatically at the end of each month ✨"
+    "xp_awarded_automatically": "✨ XP will be awarded automatically at the end of each month ✨",
+    "approval_disclaimer": "Contributions are counted based on the date they are approved, not the date they are submitted."
   },
   
   "quiz": {

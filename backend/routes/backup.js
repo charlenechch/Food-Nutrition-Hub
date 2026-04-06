@@ -13,6 +13,9 @@ const extract = require('extract-zip');
 const BACKUP_DIR = path.join(__dirname, '../../backups');
 const TEMP_DIR = path.join(__dirname, '../../temp_backups');
 
+// Tables to exclude from backup
+const EXCLUDED_TABLES = ['otp', 'sessions'];
+
 // Ensure directories exist
 if (!fs.existsSync(BACKUP_DIR)) {
   fs.mkdirSync(BACKUP_DIR, { recursive: true });
@@ -35,9 +38,16 @@ router.post('/create', async (req, res) => {
     // Get the table name key (usually 'Tables_in_databasename')
     const tableKey = Object.keys(tables[0])[0];
     
-    // Backup each table
+    // Backup each table (excluding specified tables)
     for (const tableRow of tables) {
       const tableName = tableRow[tableKey];
+      
+      // Skip excluded tables
+      if (EXCLUDED_TABLES.includes(tableName.toLowerCase())) {
+        console.log(`Skipping excluded table: ${tableName}`);
+        continue;
+      }
+      
       console.log(`Backing up table: ${tableName}`);
       
       // Get all data from the table
@@ -67,7 +77,8 @@ router.post('/create', async (req, res) => {
       const metadata = {
         backup_date: new Date().toISOString(),
         database: process.env.DB_NAME,
-        tables_count: tables.length,
+        tables_count: Object.keys(backupData).length,
+        excluded_tables: EXCLUDED_TABLES,
         backup_type: 'json'
       };
       
@@ -85,7 +96,7 @@ router.post('/create', async (req, res) => {
     try {
       await pool.query(
         'INSERT INTO activity_logs (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())',
-        [req.session?.userId || req.user?.uid, 'database_backup', `Created backup: ${zipFileName} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`]
+        [req.session?.userId || req.user?.uid, 'database_backup', `Created backup: ${zipFileName} (${(stats.size / 1024 / 1024).toFixed(2)} MB) - Excluded tables: ${EXCLUDED_TABLES.join(', ')}`]
       );
     } catch (logError) {
       console.log('Could not log to activity_logs:', logError.message);
@@ -96,7 +107,8 @@ router.post('/create', async (req, res) => {
       message: 'Backup created successfully',
       filename: zipFileName,
       size: stats.size,
-      tables_backed_up: tables.length
+      tables_backed_up: Object.keys(backupData).length,
+      excluded_tables: EXCLUDED_TABLES
     });
     
   } catch (error) {
@@ -201,8 +213,14 @@ router.post('/restore', async (req, res) => {
       // Disable foreign key checks
       await connection.query('SET FOREIGN_KEY_CHECKS = 0');
       
-      // Restore each table
+      // Restore each table (skip excluded tables)
       for (const [tableName, rows] of Object.entries(backupData)) {
+        // Skip if this is an excluded table (shouldn't be in backup anyway)
+        if (EXCLUDED_TABLES.includes(tableName.toLowerCase())) {
+          console.log(`Skipping restore of excluded table: ${tableName}`);
+          continue;
+        }
+        
         if (rows && rows.length > 0) {
           console.log(`Restoring table: ${tableName} (${rows.length} rows)`);
           

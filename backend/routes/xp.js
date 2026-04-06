@@ -76,4 +76,108 @@ router.get('/logs', async (req, res) => {
   }
 });
 
+// GET /api/xp/leaderboard
+router.get('/leaderboard', async (req, res) => {
+  try {
+    const type = req.query.type;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 20);
+
+    if (!['recipe', 'post', 'level'].includes(type)) {
+      return res.status(400).json({ success: false, message: "Invalid leaderboard type. Use: recipe, post, or level" });
+    }
+
+    let rows = [];
+
+    if (type === 'recipe') {
+      [rows] = await db.query(`
+        SELECT
+          up.userProfileID AS id,
+          u.firstname AS firstName,
+          u.lastname AS lastName,
+          up.avatar,
+          COUNT(r.recipeID) AS contributions
+        FROM recipe r
+        JOIN userProfile up ON r.userProfileID = up.userProfileID
+        JOIN user u ON up.userID = u.userID
+        WHERE r.status = 'Approved'
+          AND MONTH(r.approved_at) = MONTH(CURRENT_DATE)
+          AND YEAR(r.approved_at) = YEAR(CURRENT_DATE)
+          AND u.role = 'member'
+          AND u.status != 'Suspended'
+        GROUP BY up.userProfileID, u.firstname, u.lastname, up.avatar
+        ORDER BY contributions DESC
+        LIMIT ?
+      `, [limit]);
+
+    } else if (type === 'post') {
+      [rows] = await db.query(`
+        SELECT
+          up.userProfileID AS id,
+          u.firstname AS firstName,
+          u.lastname AS lastName,
+          up.avatar,
+          COUNT(p.postID) AS contributions
+        FROM posts p
+        JOIN userProfile up ON p.userProfileID = up.userProfileID
+        JOIN user u ON up.userID = u.userID
+        WHERE p.status = 'Approved'
+          AND MONTH(p.approved_at) = MONTH(CURRENT_DATE)
+          AND YEAR(p.approved_at) = YEAR(CURRENT_DATE)
+          AND u.role = 'member'
+          AND u.status != 'Suspended'
+        GROUP BY up.userProfileID, u.firstname, u.lastname, up.avatar
+        ORDER BY contributions DESC
+        LIMIT ?
+      `, [limit]);
+
+    } else if (type === 'level') {
+      // Tiers ordered highest first
+      const TIERS = [
+        { id: "culinary_legend",      minLevel: 50, title: "Culinary Legend" },
+        { id: "culinary_master",      minLevel: 40, title: "Culinary Master" },
+        { id: "nutrition_expert",     minLevel: 30, title: "Nutrition Expert" },
+        { id: "nutrition_scholar",    minLevel: 20, title: "Nutrition Scholar" },
+        { id: "nutrition_enthusiast", minLevel: 10, title: "Nutrition Enthusiast" },
+        { id: "foodie",               minLevel: 5,  title: "Foodie" },
+        { id: "novice",               minLevel: 1,  title: "Novice" },
+      ];
+
+      const getTier = (level) => {
+        return TIERS.find(t => level >= t.minLevel) || TIERS[TIERS.length - 1];
+      };
+
+      const [levelRows] = await db.query(`
+        SELECT
+          up.userProfileID AS id,
+          u.firstname AS firstName,
+          u.lastname AS lastName,
+          up.avatar,
+          up.total_xp AS xp,
+          FLOOR(1 + POW(GREATEST(up.total_xp, 0) / 100, 2/3) + 0.0001) AS level
+        FROM userProfile up
+        JOIN user u ON up.userID = u.userID
+        WHERE u.role = 'member'
+          AND u.status != 'Suspended'
+        ORDER BY up.total_xp DESC
+        LIMIT ?
+      `, [limit]);
+
+      rows = levelRows.map(row => {
+        const tier = getTier(row.level);
+        return {
+          ...row,
+          tier_id: tier.id,
+          tier_title: tier.title
+        };
+      });
+    }
+
+    return res.json({ success: true, leaderboard: rows });
+
+  } catch (error) {
+    console.error("❌ Error fetching leaderboard:", error);
+    return res.status(500).json({ success: false, message: "Failed to fetch leaderboard", error: error.message });
+  }
+});
+
 module.exports = router;

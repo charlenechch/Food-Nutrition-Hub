@@ -54,8 +54,6 @@ const LinkFoodPage = () => {
 
   const [food, setFood] = useState({
     name: "",
-    alternative: "",
-    altDescription: "",
     origin: "",
     category: [],
     description: "",
@@ -255,8 +253,6 @@ const LinkFoodPage = () => {
       const newFoodData = {
         recipeId: selectedRecipeId, 
         name: food.name,
-        alternative: food.alternative,
-        altDescription: food.altDescription,
         category: Array.isArray(food.category) ? food.category.join(", ") : food.category,
         origin: food.origin,
         description: food.description,
@@ -432,31 +428,6 @@ const LinkFoodPage = () => {
               onChange={handleChange}
               placeholder={t("addFood.foodNamePlaceholder")}
             />
-
-            <div className="edit-food-basic-info-two-col efpage-basic-info">
-            <div>
-                <label className="basic-info-label">{t("addFood.alternativeName")}</label>
-                <textarea
-                  className="edit-food-textarea resizable-field"
-                  name="alternative"
-                  value={food.alternative}
-                  onChange={handleChange}
-                  rows={1}
-                  placeholder={t("addFood.altNamePlace")}
-                />
-              </div>
-              <div>
-                <label className="basic-info-label">{t("addFood.altDescription")}</label>
-                <textarea
-                  className="edit-food-textarea resizable-field"
-                  name="altDescription"
-                  value={food.altDescription}
-                  onChange={handleChange}
-                  rows={1}
-                  placeholder={t("addFood.altDescPlace")}
-                />
-              </div>
-            </div>
 
             <div className="food-origin-field">
               <label className="basic-info-label">{t("addFood.regionOfOrigin")}</label>
