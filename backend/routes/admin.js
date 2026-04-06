@@ -745,10 +745,15 @@ router.get("/embed-all", async (req, res) => {
 // embed
 router.get("/embed-all", async (req, res) => {
   try {
+    // UPDATED - only embed foods that have real nutrition data
     const [rows] = await db.execute(
-      `SELECT foodID, name, description, commonIngredients, culturalSignificance FROM food`
+      `SELECT foodID, name, description, commonIngredients, culturalSignificance 
+      FROM food 
+      WHERE Energy_kcal > 0 
+      AND Protein_g > 0 
+      AND Fat_g > 0 
+      AND Carbohydrates_g > 0`
     );
-
     // Respond immediately so request doesn't timeout
     res.json({ ok: true, message: `Started embedding ${rows.length} foods. Check Railway logs.` });
 
