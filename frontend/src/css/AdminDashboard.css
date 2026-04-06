@@ -699,11 +699,14 @@
     box-shadow: 0 6px 18px rgba(0,0,0,0.05);
   }
 
-  .food-table tbody tr td {
+.food-table tbody tr td {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 0;
+    align-items: flex-start;
+    text-align: left;
+    height: auto;
+    min-height: 40px;
+    padding: 12px 0; 
+    gap: 15px; 
     border-bottom: 1px solid #f0f0f0;
     font-size: 14px;
   }
@@ -714,21 +717,23 @@
 
   .food-table tbody tr td::before {
     content: attr(data-label);
+    flex: 0 0 35%;
     font-weight: 600;
     color: #6f4e37;
-    margin-right: 12px;
+    margin-right: 0;
   }
 
   .food-table tbody tr td[data-label="Actions"] {
     display: block;          
     text-align: center;
     border-bottom: none;
-    margin-top: 10px;
-    padding-top: 10px;
+    padding-top: 20px;
+    margin-top: 5px;
   }
 
   .food-table tbody tr td[data-label="Actions"]::before {
     content: "";
+    display: none;
   }
 
   .food-table tbody tr td[data-label="Actions"] button {

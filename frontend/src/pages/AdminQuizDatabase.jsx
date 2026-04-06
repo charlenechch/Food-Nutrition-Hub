@@ -184,7 +184,7 @@ const AdminQuizDatabase = () => {
         </select>
       </div>
 
-      <table className="food-table">
+      <table className="food-table aqd-table">
         <thead>
           <tr>
             <th>{t("adminQuizDB.tableLinkedFood")}</th>
