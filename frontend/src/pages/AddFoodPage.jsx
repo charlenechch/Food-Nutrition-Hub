@@ -65,8 +65,6 @@ const AddFoodPage = () => {
     difficulty: "Medium", 
     prepTime: "",
     healthTips: "",
-    alternative: "",
-    altDescription: "",
     ingredients: "",
     steps: "",
     recipeDescription: "",
@@ -198,8 +196,6 @@ const AddFoodPage = () => {
         commonIngredients: ingredientsString,
         dietaryTags: dietaryString,
         healthTips: food.healthTips,
-        alternative: food.alternative,
-        altDescription: food.altDescription,
         ingredients: food.ingredients,
         steps: food.steps,
         recipeDescription: food.recipeDescription,
@@ -351,17 +347,6 @@ const AddFoodPage = () => {
               onChange={handleChange}
               placeholder={t("addFood.foodNamePlaceholder")}
             />
-
-            <div className="edit-food-basic-info-two-col">
-            <div>
-              <label className="basic-info-label">{t("addFood.alternativeName")}</label>
-              <textarea className="edit-food-textarea resizable-field" name="alternative" value={food.alternative} onChange={handleChange} rows={1} />
-            </div>
-            <div>
-              <label className="basic-info-label">{t("addFood.altDescription")}</label>
-              <textarea className="edit-food-textarea resizable-field" name="altDescription" value={food.altDescription} onChange={handleChange} rows={1} />
-            </div>
-            </div>
 
             <div className="food-origin-field">
               <label className="basic-info-label">{t("addFood.regionOfOrigin")}</label>
