@@ -25,6 +25,7 @@ const AdminQuizDatabase = () => {
       if (i18n.language === 'en') {
         setTranslatedQuestions({});
         setTranslatedFoods({});
+        setTranslatedAnswers({});
         return;
       }
 
@@ -34,11 +35,20 @@ const AdminQuizDatabase = () => {
         const foodNames = mockFoods.map(f => f.name);
         const correctAnswers = questions.map(q => q.correctAnswer);
 
-        const [translatedQsArray, translatedFoodsArray, translatedAsArray] = await Promise.all([
-          translateTexts(questionPrompts, i18n.language),
-          translateTexts(foodNames, i18n.language),
-          translateTexts(correctAnswers, i18n.language)
-        ]);
+        const allStringsToTranslate = [
+          ...questionPrompts, 
+          ...foodNames, 
+          ...correctAnswers
+        ];
+
+        const translatedAll = await translateTexts(allStringsToTranslate, i18n.language);
+
+        const qCount = questions.length;
+        const fCount = mockFoods.length;
+
+        const translatedQsArray = translatedAll.slice(0, qCount);
+        const translatedFoodsArray = translatedAll.slice(qCount, qCount + fCount);
+        const translatedAsArray = translatedAll.slice(qCount + fCount);
 
         const qMap = {};
         const aMap = {};
@@ -55,6 +65,7 @@ const AdminQuizDatabase = () => {
         setTranslatedQuestions(qMap);
         setTranslatedAnswers(aMap);
         setTranslatedFoods(fMap);
+
       } catch (error) {
         console.error("Translation failed:", error);
       } finally {
@@ -63,7 +74,7 @@ const AdminQuizDatabase = () => {
     };
 
     translateDynamicData();
-  }, [i18n.language, questions]); 
+  }, [i18n.language, questions]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("default");
