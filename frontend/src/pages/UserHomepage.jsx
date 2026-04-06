@@ -23,15 +23,6 @@ const HERO_IMAGES = [LoginFood, KoloImg];
 // ── Dish Spotlight Component (Option B) ──
 const DISH_DATA = [
   {
-    nameKey: "Sarawak Laksa",
-    originKey: "Kuching, Sarawak · Malay-Chinese fusion",
-    tagKey: "home.tagMustTry",
-    tagDefault: "Must try",
-    quoteKey: "home.dish1Quote",
-    quoteDefault: "A rich coconut broth with sambal, lemongrass, and galangal — finished with prawns, shredded chicken, and rice vermicelli.",
-    path: "/foods?search=Sarawak%20Laksa",
-  },
-  {
     nameKey: "Kolo Mee",
     originKey: "Kuching, Sarawak · Chinese-Sarawakian",
     tagKey: "home.tagLocalFav",
@@ -136,7 +127,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   ];
 
   const PRESET_SIGNATURES = [
-    { name: "Sarawak Laksa", image: LaksaImg, tagKey: "home.tagMustTry" },
     { name: "Kolo Mee",      image: KoloImg,  tagKey: "home.tagLocalFav" },
     { name: "Kek Lapis",     image: KekImg,   tagKey: "home.tagSweet" },
   ];
