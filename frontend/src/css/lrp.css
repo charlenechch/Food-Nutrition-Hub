@@ -119,3 +119,7 @@
   display: block;
   animation: fadeIn 0.2s ease-in-out;
 }
+
+.lrp-no-outline:focus {
+  outline: none;
+}
