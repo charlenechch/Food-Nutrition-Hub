@@ -41,6 +41,7 @@ const AdminQuizDatabase = () => {
         ]);
 
         const qMap = {};
+        const aMap = {};
         questions.forEach((q, index) => {
           qMap[q.id] = translatedQsArray[index];
           aMap[q.id] = translatedAsArray[index];
