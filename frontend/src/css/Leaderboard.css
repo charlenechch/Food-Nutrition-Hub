@@ -33,22 +33,12 @@
   font-weight: 500;
 }
 
-/* Tabs wrapper - flex container for tabs and filter */
-.tabs-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 15px;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #e6dbcf;
-  padding-bottom: 0;
-}
-
+/* Tabs - Row 1 */
 .tabs {
   display: flex;
-  align-items: center;
+  justify-content: center;
   gap: 1rem;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 
@@ -78,12 +68,20 @@
   box-shadow: none;
 }
 
-/* Time Filter Section - Brown/Natural Colors */
+/* Time Filter Row - Row 2 */
+.time-filter-row {
+  margin-bottom: 1.5rem;
+}
+
 .time-filter-section {
+  background: #fef7e8;
+  border-left: 4px solid #c9ad7a;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .filter-label {
@@ -92,17 +90,13 @@
   gap: 6px;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #856b47;
-}
-
-.filter-icon {
-  font-size: 1rem;
+  color: #6b4c2c;
 }
 
 .month-filter-select {
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.8rem;
   border: 1px solid #e6dbcf;
-  border-radius: 8px;
+  border-radius: 6px;
   background: white;
   cursor: pointer;
   font-size: 0.85rem;
@@ -123,10 +117,10 @@
 }
 
 .filter-badge {
-  background: #fef7e8;
+  background: white;
   color: #8b5a2b;
-  padding: 0.35rem 0.85rem;
-  border-radius: 6px;
+  padding: 0.25rem 0.7rem;
+  border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 500;
   border: 1px solid #e6dbcf;
@@ -554,12 +548,6 @@
     font-size: 0.85rem;
   }
   
-  .tabs-wrapper {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-  
   .tabs {
     justify-content: center;
   }
@@ -568,10 +556,14 @@
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
+    
+  .time-filter-row {
+    justify-content: center;
+  }
   
   .time-filter-section {
-    justify-content: center;
     flex-wrap: wrap;
+    justify-content: center;
   }
   
   .month-filter-select {
@@ -741,6 +733,20 @@
   
   .rank-badge {
     font-size: 0.85rem;
+  }
+  
+  .time-filter-section {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .month-filter-select {
+    width: 100%;
+  }
+  
+  .filter-badge {
+    text-align: center;
   }
   
   .reward-item {

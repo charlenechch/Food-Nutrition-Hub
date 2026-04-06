@@ -220,170 +220,168 @@ const Leaderboard = () => {
   const rewards = getRewardsData();
 
   return (
-    <>
-      <Header />
-      <div className="leaderboard-container">
-        <div className="leaderboard-header">
-          <h1>{t("leaderboard.community_leaderboard")}</h1>
-          <p>{t("leaderboard.celebrating_top_contributors")}</p>
-        </div>
+  <>
+    <Header />
+    <div className="leaderboard-container">
+      <div className="leaderboard-header">
+        <h1>{t("leaderboard.community_leaderboard")}</h1>
+        <p>{t("leaderboard.celebrating_top_contributors")}</p>
+      </div>
 
-        <div className="tabs-wrapper">
-          <div className="tabs">
-            <button
-              className={`tab-btn ${activeTab === "recipes" ? "active" : ""}`}
-              onClick={() => setActiveTab("recipes")}
-            >
-              🍳 {t("leaderboard.top_recipe_contributors")}
-            </button>
-            <button
-              className={`tab-btn ${activeTab === "posts" ? "active" : ""}`}
-              onClick={() => setActiveTab("posts")}
-            >
-              💬 {t("leaderboard.top_community_posters")}
-            </button>
-            <button
-              className={`tab-btn ${activeTab === "level" ? "active" : ""}`}
-              onClick={() => setActiveTab("level")}
-            >
-              ⭐ {t("leaderboard.level_leaders")}
-            </button>
+      <div className="tabs">
+        <button
+          className={`tab-btn ${activeTab === "recipes" ? "active" : ""}`}
+          onClick={() => setActiveTab("recipes")}
+        >
+          🍳 {t("leaderboard.top_recipe_contributors")}
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "posts" ? "active" : ""}`}
+          onClick={() => setActiveTab("posts")}
+        >
+          💬 {t("leaderboard.top_community_posters")}
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "level" ? "active" : ""}`}
+          onClick={() => setActiveTab("level")}
+        >
+          ⭐ {t("leaderboard.level_leaders")}
+        </button>
+      </div>
+
+      <div className="time-filter-row">
+        <div className="time-filter-section">
+          <div className="filter-label">
+            <span>{t("leaderboard.time_period")}:</span>
           </div>
-
-          {/* Time Filter - Last 6 Months */}
-          <div className="time-filter-section">
-            <div className="filter-label">
-              <span className="filter-icon">📅</span>
-              <span>{t("leaderboard.time_period")}:</span>
-            </div>
-            <select 
-              className="month-filter-select"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-            >
-              {recentMonths.map((month) => (
-                <option key={month.value} value={month.value}>
-                  {month.label}
-                </option>
-              ))}
-            </select>
-            <div className="filter-badge">
-              <span className="badge-text">
-                {t("leaderboard.showing")}: {getSelectedMonthLabel()}
-              </span>
-            </div>
+          <select 
+            className="month-filter-select"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            {recentMonths.map((month) => (
+              <option key={month.value} value={month.value}>
+                {month.label}
+              </option>
+            ))}
+          </select>
+          <div className="filter-badge">
+            <span className="badge-text">
+              {t("leaderboard.showing")}: {getSelectedMonthLabel()}
+            </span>
           </div>
-        </div>
-
-        {getInfoText() && (
-          <div className="info-banner">
-            <span className="info-icon">ℹ️</span>
-            <span className="info-text">{getInfoText()}</span>
-          </div>
-        )}
-
-        <div className="leaderboard-main">
-          <div className="leaderboard-content">
-            <div className="leaderboard-table-wrapper">
-              <div className={`leaderboard-table ${activeTab === "level" ? "level-mode" : "normal-mode"}`}>
-                <div className="table-header">
-                  <div className="rank-col">{t("leaderboard.rank")}</div>
-                  <div className="user-col">{t("leaderboard.user")}</div>
-                  <div className="metric-col">{getMetricLabel()}</div>
-                  {activeTab === "level" && <div className="level-col">{t("leaderboard.level")}</div>}
-                </div>
-                
-                <div className="table-body">
-                  {getCurrentData().length === 0 ? (
-                    <div className="empty-state">
-                      <p>{t("leaderboard.no_data_for_period")}</p>
-                    </div>
-                  ) : (
-                    getCurrentData().map((user, index) => (
-                      <div key={user.id} className={`table-row ${index < 3 ? "top-three" : ""}`}>
-                        <div className="rank-col">
-                          {index === 0 && <span className="rank-badge gold">🥇</span>}
-                          {index === 1 && <span className="rank-badge silver">🥈</span>}
-                          {index === 2 && <span className="rank-badge bronze">🥉</span>}
-                          {index > 2 && <span className="rank-number">{index + 1}</span>}
-                        </div>
-                        <div className="user-col">
-                          <div
-                            className="user-avatar"
-                            onClick={() => {
-                              if (authUser && String(authUser.userProfileID) === String(user.id)) navigate("/profile");
-                              else navigate(`/profile/${user.id}`);
-                            }}
-                            style={{ cursor: "pointer" }}
-                          >
-                            {user.avatar ? (
-                              <img src={user.avatar} alt={getFullName(user)} />
-                            ) : (
-                              <span>{user.firstName ? user.firstName.charAt(0) : "?"}</span>
-                            )}
-                          </div>
-                          <span
-                            className="user-name"
-                            onClick={() => {
-                              if (authUser && String(authUser.userProfileID) === String(user.id)) navigate("/profile");
-                              else navigate(`/profile/${user.id}`);
-                            }}
-                            style={{ cursor: "pointer" }}
-                          >
-                            {getFullName(user)}
-                          </span>
-                        </div>
-                        <div className="metric-col">
-                          <span className="metric-value">{getMetricValue(user).toLocaleString()}</span>
-                        </div>
-                        {activeTab === "level" && (
-                          <div className="level-col">
-                            <span className="level-number">Lv.{user.level}</span>
-                            <div className="xp-progress">
-                              <div 
-                                className="xp-progress-fill" 
-                                style={{ width: `${(user.xp % 500) / 5}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {rewards && (
-            <div className="rewards-sticky-note">
-              <div className="sticky-note-header">
-                <span className="sticky-note-icon">📝</span>
-                <h3>{rewards.title}</h3>
-              </div>
-              <div className="sticky-note-content">
-                <p className="reward-intro">{t("leaderboard.reward_alert")}</p>
-                <div className="rewards-list">
-                  {rewards.rewards.map((reward, idx) => (
-                    <div key={idx} className="reward-item">
-                      <div className="reward-rank">{reward.rank}</div>
-                      <div className="reward-points">{reward.points}</div>
-                      <div className="reward-desc">{reward.description}</div>
-                    </div>
-                  ))}
-                </div>
-                <div className="reward-footer">
-                  <span>{t("leaderboard.xp_awarded_automatically")}</span>
-                  <p className="reward-disclaimer">{t("leaderboard.approval_disclaimer")}</p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
-      <Footer />
-    </>
-  );
-};
+
+      {getInfoText() && (
+        <div className="info-banner">
+          <span className="info-icon">ℹ️</span>
+          <span className="info-text">{getInfoText()}</span>
+        </div>
+      )}
+
+      <div className="leaderboard-main">
+        <div className="leaderboard-content">
+          <div className="leaderboard-table-wrapper">
+            <div className={`leaderboard-table ${activeTab === "level" ? "level-mode" : "normal-mode"}`}>
+              <div className="table-header">
+                <div className="rank-col">{t("leaderboard.rank")}</div>
+                <div className="user-col">{t("leaderboard.user")}</div>
+                <div className="metric-col">{getMetricLabel()}</div>
+                {activeTab === "level" && <div className="level-col">{t("leaderboard.level")}</div>}
+              </div>
+              
+              <div className="table-body">
+                {getCurrentData().length === 0 ? (
+                  <div className="empty-state">
+                    <p>{t("leaderboard.no_data_for_period")}</p>
+                  </div>
+                ) : (
+                  getCurrentData().map((user, index) => (
+                    <div key={user.id} className={`table-row ${index < 3 ? "top-three" : ""}`}>
+                      <div className="rank-col">
+                        {index === 0 && <span className="rank-badge gold">🥇</span>}
+                        {index === 1 && <span className="rank-badge silver">🥈</span>}
+                        {index === 2 && <span className="rank-badge bronze">🥉</span>}
+                        {index > 2 && <span className="rank-number">{index + 1}</span>}
+                      </div>
+                      <div className="user-col">
+                        <div
+                          className="user-avatar"
+                          onClick={() => {
+                            if (authUser && String(authUser.userProfileID) === String(user.id)) navigate("/profile");
+                            else navigate(`/profile/${user.id}`);
+                          }}
+                          style={{ cursor: "pointer" }}
+                        >
+                          {user.avatar ? (
+                            <img src={user.avatar} alt={getFullName(user)} />
+                          ) : (
+                            <span>{user.firstName ? user.firstName.charAt(0) : "?"}</span>
+                          )}
+                        </div>
+                        <span
+                          className="user-name"
+                          onClick={() => {
+                            if (authUser && String(authUser.userProfileID) === String(user.id)) navigate("/profile");
+                            else navigate(`/profile/${user.id}`);
+                          }}
+                          style={{ cursor: "pointer" }}
+                        >
+                          {getFullName(user)}
+                        </span>
+                      </div>
+                      <div className="metric-col">
+                        <span className="metric-value">{getMetricValue(user).toLocaleString()}</span>
+                      </div>
+                      {activeTab === "level" && (
+                        <div className="level-col">
+                          <span className="level-number">Lv.{user.level}</span>
+                          <div className="xp-progress">
+                            <div 
+                              className="xp-progress-fill" 
+                              style={{ width: `${(user.xp % 500) / 5}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {rewards && (
+          <div className="rewards-sticky-note">
+            <div className="sticky-note-header">
+              <span className="sticky-note-icon">📝</span>
+              <h3>{rewards.title}</h3>
+            </div>
+            <div className="sticky-note-content">
+              <p className="reward-intro">{t("leaderboard.reward_alert")}</p>
+              <div className="rewards-list">
+                {rewards.rewards.map((reward, idx) => (
+                  <div key={idx} className="reward-item">
+                    <div className="reward-rank">{reward.rank}</div>
+                    <div className="reward-points">{reward.points}</div>
+                    <div className="reward-desc">{reward.description}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="reward-footer">
+                <span>{t("leaderboard.xp_awarded_automatically")}</span>
+                <p className="reward-disclaimer">{t("leaderboard.approval_disclaimer")}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+    <Footer />
+  </>
+);
+}
 
 export default Leaderboard;
