@@ -63,7 +63,8 @@ console.log(`Fetching ${includeAll ? 'ALL' : 'APPROVED'} recipes...`);
 
 const query = `
 SELECT 
-      f.foodID AS id, 
+      f.foodID AS id,
+      f.name, 
       f.origin, 
       f.difficulty, 
       f.prepTime, 
@@ -71,7 +72,6 @@ SELECT
       r.description, 
       f.category,
       f.dietaryTags,
-      r.recipeName, 
       r.cookTime, 
       r.servings, 
       r.ingredients, 
@@ -280,7 +280,7 @@ router.get('/recipes/:id', async (req, res) => {
       SELECT 
         f.foodID AS foodId,  
         r.recipeID AS recipeID,   
-        r.recipeName, 
+        r.recipeName,  -- ✅ CHANGED: Use recipeName from recipe table
         f.origin, 
         f.difficulty, 
         f.prepTime, 
@@ -468,8 +468,8 @@ try {
   const foodQuery = `
     INSERT INTO food (
       origin, difficulty, prepTime, image, description, 
-      category, dietaryTags, commonIngredients
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      category, dietaryTags, commonIngredients, name
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
   const foodParams = [
@@ -501,8 +501,8 @@ try {
   // Insert into recipe table
   const recipeQuery = `
     INSERT INTO recipe (
-      foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description, recipeName
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
   const recipeParams = [
@@ -516,7 +516,6 @@ try {
     chefTips || '',
     'Pending',
     description || '',
-    recipeName || ''
   ];
   
   console.log('📝 Executing recipe insert with foodID:', foodId);
@@ -658,7 +657,7 @@ try {
       SELECT 
         f.foodID AS id,
         r.recipeID,
-        r.recipeName AS foodName,
+        f.name AS foodName,  -- ✅ Already using recipeName
         f.origin AS culturalOrigin,
         r.status,
         r.admin_feedback,
@@ -831,7 +830,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
     }
 
     const {
-      origin, difficulty, prepTime, image, description,
+      name, origin, difficulty, prepTime, image, description,
       category, dietaryTags, cookTime, servings, ingredients,
       instructions, funFact, chefTips, status
     } = req.body;
@@ -914,6 +913,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
     const updateFoodQuery = `
       UPDATE food 
       SET 
+        name = ?, 
         origin = ?, 
         difficulty = ?, 
         prepTime = ?, 
@@ -923,6 +923,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
       WHERE foodID = ?
     `;
     const foodParams = [
+      name,
       origin,
       difficulty || 'Easy',
       prepTime || 0,
@@ -947,7 +948,6 @@ router.put('/revise/recipes/:id', async (req, res) => {
         chefTips = ?, 
         status = ?,
         description = ?,
-        recipeName = ?,
         updatedAt = CURRENT_TIMESTAMP
       WHERE recipeID = ? AND userProfileID = ?
     `;
@@ -959,8 +959,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
       funFact || '',
       chefTips || '',
       status || 'Pending',
-      description || '',
-      recipeName |'',
+      description || '',  
       id,
       userProfileID
     ];
@@ -972,8 +971,8 @@ router.put('/revise/recipes/:id', async (req, res) => {
       console.log('⚠️ Recipe not found during update, inserting new recipe entry instead');
       const insertRecipeQuery = `
         INSERT INTO recipe (
-          foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description, recipeName
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       await db.query(insertRecipeQuery, [
         foodID, 
@@ -985,8 +984,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
         funFact || '',
         chefTips || '',
         status || 'Pending',
-        description || '',
-        recipeName ||''
+        description || '' 
       ]);
       console.log('✅ Inserted new recipe entry for foodID:', foodID, 'by userProfileID:', userProfileID);
     }
@@ -1437,7 +1435,7 @@ router.get('/byFood/:foodId', async (req, res) => {
       SELECT 
         r.recipeID AS id,  
         f.foodID,  
-        r.recipeName AS foodName,
+        f.name AS foodName, 
         r.status
       FROM recipe r
       JOIN food f ON r.foodID = f.foodID
@@ -1481,7 +1479,7 @@ router.get('/pending-food-details', async (req, res) => {
         r.status,
         r.createdAt,
         f.foodID,
-        r.recipeName as foodName,
+        f.name as foodName,  
         f.origin,
         f.category,
         f.description,
