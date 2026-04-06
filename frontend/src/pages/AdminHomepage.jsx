@@ -12,6 +12,7 @@ import UserManagement from "./AdminUserManagementTab";
 import Analytics from "./Analytics";
 import AdminSystemSettings from "./AdminSystemSettings.jsx";
 import CommunityPostDatabaseSection from "./AdminCommunityPostDatabase.jsx";
+import AdminQuizDatabase from "./AdminQuizDatabase.jsx";
 
 // === Icons ===
 import { FiDatabase, FiTrendingUp } from "react-icons/fi";
@@ -163,6 +164,7 @@ const AdminDashboard = () => {
             <FoodDatabaseSection foodData={foodData} categories={categories} />
             <RecipeDatabaseSection recipes={approvedRecipes} categories={categories} sectionType="approved" />
             <CommunityPostDatabaseSection categories={categories} posts={approvedCommunityPosts} sectionType="approved" />
+            <AdminQuizDatabase />
           </div>
         );
 
