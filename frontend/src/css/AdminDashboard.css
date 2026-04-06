@@ -735,6 +735,14 @@
     content: "";
     display: none;
   }
+
+  .food-table tbody tr td:last-child button,
+  .content-table tbody tr td:last-child button {
+    flex: 1;
+    padding: 10px 0;
+    justify-content: center;
+    min-width: 0;
+  }
 }
 
 /* user management tab */
