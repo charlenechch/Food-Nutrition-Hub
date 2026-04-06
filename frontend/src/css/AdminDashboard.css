@@ -3192,3 +3192,14 @@
   margin-top: auto; 
   padding-top: 30px;
 }
+
+.aqd-table tbody tr td {
+  height: auto;
+  min-height: 40px;
+  padding: 12px 0;
+}
+
+.aqd-table tbody tr td[data-label="Actions"] {
+  margin-top: 0;
+  padding-top: 15px;
+}
