@@ -1615,7 +1615,8 @@
     "postAnswerExplanation": "Post-Answer Explanation:",
     "cancel": "Cancel",
     "saveQuestion": "Save Question",
-    "deleteConfirm": "Are you sure you want to delete this quiz question?"
+    "deleteConfirm": "Are you sure you want to delete this quiz question?",
+    "unknownFood": "Unknown Food"
   }
 }   
 

@@ -1615,6 +1615,7 @@
     "postAnswerExplanation": "Penerangan Selepas Jawapan:",
     "cancel": "Batal",
     "saveQuestion": "Simpan Soalan",
-    "deleteConfirm": "Adakah anda pasti ingin memadamkan soalan kuiz ini?"
+    "deleteConfirm": "Adakah anda pasti ingin memadamkan soalan kuiz ini?",
+    "unknownFood": "Makanan Tidak Diketahui"
   }
 }
