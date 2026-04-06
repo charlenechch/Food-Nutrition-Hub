@@ -2986,3 +2986,54 @@
         margin-bottom: 15px;
     }
 }
+
+.quiz-food-id {
+  font-size: 0.8rem;
+  color: #a4886e;
+}
+
+.quiz-form-modal {
+  width: 95%;
+  max-width: 600px;
+}
+
+.quiz-modal-scrollable {
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.quiz-options-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.umg-input.valid-answer {
+  border-color: #48BB78;
+}
+
+.umg-input.valid-answer:focus {
+  box-shadow: 0 0 0 2px rgba(72, 187, 120, 0.4);
+}
+
+.umg-input.invalid-answer {
+  border-color: #E53E3E;
+}
+
+.umg-input.invalid-answer:focus {
+  box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.4);
+}
+
+.quiz-save-btn {
+  background: #8b5e3c;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.quiz-save-btn:hover {
+  background: #7a5234;
+}

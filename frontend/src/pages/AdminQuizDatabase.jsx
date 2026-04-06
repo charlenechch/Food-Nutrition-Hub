@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BsPatchQuestion } from "react-icons/bs";
+import { FaPlus } from "react-icons/fa6";
+import { HiOutlinePencilAlt } from "react-icons/hi";
+import { RiDeleteBin5Line } from "react-icons/ri";
 import { mockAdminQuestions } from "../data/mockAdminQuestions"; 
 import { mockFoods } from "../data/mockFoods"; 
 
@@ -66,125 +69,148 @@ const AdminQuizDatabase = () => {
   };
 
   return (
-    <div className="content-moderation-section" style={{ position: "relative" }}>
-      <div className="content-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2><BsPatchQuestion style={{ marginRight: 8 }} /> Quiz Database</h2>
-        <button 
-          onClick={() => handleOpenModal()}
-          style={{ backgroundColor: "#8b5e3c", color: "white", padding: "8px 16px", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
-        >
-          + Add New Question
-        </button>
+    <div className="food-database-section">
+      <div>
+        <div className="food-header">
+          <h2>
+            <span className="food-icon"><BsPatchQuestion /></span> Quiz Database
+          </h2>
+          <div className="food-actions">
+            <button 
+              className="admin-food-btn-add"
+              onClick={() => handleOpenModal()}
+            >
+              <FaPlus /> Add New Question
+            </button>
+          </div>
+        </div>
+
+        <table className="food-table">
+          <thead>
+            <tr>
+              <th>Linked Food</th>
+              <th>Question</th>
+              <th>Correct Answer</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentItems.map((q) => (
+              <tr key={q.id}>
+                <td data-label="Linked Food">
+                  <strong>{getFoodName(q.foodID)}</strong> <br/>
+                  <span className="quiz-food-id">ID: {q.foodID}</span>
+                </td>
+                <td data-label="Question">{q.question}</td>
+                <td data-label="Correct Answer">
+                  <span className="recipe-status-tag approved">{q.correctAnswer}</span>
+                </td>
+                <td data-label="Actions">
+                  <button className="food-database-btn-edit" onClick={() => handleOpenModal(q)}>
+                    <HiOutlinePencilAlt />
+                  </button>
+                  <button className="food-database-btn-delete" onClick={() => handleDelete(q.id)}>
+                    <RiDeleteBin5Line />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      <table className="content-table" style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
-        <thead>
-          <tr>
-            <th style={{ width: "15%" }}>Linked Food</th>
-            <th style={{ width: "45%" }}>Question</th>
-            <th style={{ width: "20%" }}>Correct Answer</th>
-            <th style={{ width: "20%" }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentItems.map((q) => (
-            <tr key={q.id}>
-              <td><strong>{getFoodName(q.foodID)}</strong> <br/><span style={{fontSize: "0.8rem", color: "#666"}}>ID: {q.foodID}</span></td>
-              <td>{q.question}</td>
-              <td><span className="recipe-status-tag approved">{q.correctAnswer}</span></td>
-              <td className="admin-recipe-action-buttons">
-                <button className="review-btn" onClick={() => handleOpenModal(q)}>Edit</button>
-                <button 
-                  className="reject-btn" 
-                  onClick={() => handleDelete(q.id)}
-                  style={{ marginLeft: "8px", backgroundColor: "#ff4d4f", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
       {totalPages > 1 && (
-        <div className="admin-pagination">
-          <button className="umg-prev-next" onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
+        <div className="admin-pagination fdt-pagination">
+          <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
             ‹ Prev
           </button>
-          <span style={{ margin: "0 15px", color: "#5a4636", fontWeight: "bold" }}>Page {currentPage} of {totalPages}</span>
-          <button className="umg-prev-next" onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages}>
+          {[...Array(totalPages)].map((_, i) => (
+            <button key={i} onClick={() => setCurrentPage(i + 1)} className={currentPage === i + 1 ? "active" : ""}>
+              {i + 1}
+            </button>
+          ))}
+          <button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages}>
             Next ›
           </button>
         </div>
       )}
 
       {isModalOpen && (
-        <div className="modal-overlay" style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 }}>
-          <div className="modal-content" style={{ backgroundColor: "#fff", padding: "24px", borderRadius: "8px", width: "500px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
-            <h3 style={{ marginTop: 0, color: "#6b3e26" }}>{editingQuestion ? "Edit Question" : "Add New Question"}</h3>
+        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="add-options-modal quiz-form-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="add-options-header">
+              <h3>{editingQuestion ? "Edit Question" : "Add New Question"}</h3>
+              <button className="add-options-close" onClick={() => setIsModalOpen(false)}>×</button>
+            </div>
             
-            <label style={{ display: "block", marginBottom: "15px" }}>
-              <span style={{ fontWeight: "bold", fontSize: "0.9rem", color: "#5a4636" }}>Linked Food Entity:</span>
-              <select 
-                value={formData.foodID} 
-                onChange={(e) => setFormData({...formData, foodID: Number(e.target.value)})}
-                style={{ width: "100%", padding: "8px", marginTop: "5px", borderRadius: "4px", border: "1px solid #ccc" }}
-              >
-                {mockFoods.map(f => <option key={f.foodID} value={f.foodID}>{f.name} (ID: {f.foodID})</option>)}
-              </select>
-            </label>
+            <div className="add-options-body quiz-modal-scrollable">
+              
+              <div className="umg-field">
+                <label className="umg-label">Linked Food Entity:</label>
+                <select 
+                  className="umg-input"
+                  value={formData.foodID} 
+                  onChange={(e) => setFormData({...formData, foodID: Number(e.target.value)})}
+                >
+                  {mockFoods.map(f => <option key={f.foodID} value={f.foodID}>{f.name} (ID: {f.foodID})</option>)}
+                </select>
+              </div>
 
-            <label style={{ display: "block", marginBottom: "15px" }}>
-              <span style={{ fontWeight: "bold", fontSize: "0.9rem", color: "#5a4636" }}>Question Prompt:</span>
-              <textarea 
-                value={formData.question} 
-                onChange={(e) => setFormData({...formData, question: e.target.value})}
-                style={{ width: "100%", padding: "8px", marginTop: "5px", borderRadius: "4px", border: "1px solid #ccc", minHeight: "60px" }}
-              />
-            </label>
-
-            <div style={{ marginBottom: "15px" }}>
-              <span style={{ fontWeight: "bold", fontSize: "0.9rem", color: "#5a4636" }}>Multiple Choice Options:</span>
-              {formData.options.map((opt, idx) => (
-                <input 
-                  key={idx}
-                  type="text"
-                  value={opt}
-                  placeholder={`Option ${idx + 1}`}
-                  onChange={(e) => {
-                    const newOpts = [...formData.options];
-                    newOpts[idx] = e.target.value;
-                    setFormData({...formData, options: newOpts});
-                  }}
-                  style={{ width: "100%", padding: "8px", marginTop: "5px", borderRadius: "4px", border: "1px solid #ccc" }}
+              <div className="umg-field">
+                <label className="umg-label">Question Prompt:</label>
+                <textarea 
+                  className="umg-textarea"
+                  value={formData.question} 
+                  onChange={(e) => setFormData({...formData, question: e.target.value})}
                 />
-              ))}
+              </div>
+
+              <div className="umg-field">
+                <label className="umg-label">Multiple Choice Options:</label>
+                <div className="quiz-options-grid">
+                  {formData.options.map((opt, idx) => (
+                    <input 
+                      key={idx}
+                      type="text"
+                      className="umg-input"
+                      value={opt}
+                      placeholder={`Option ${idx + 1}`}
+                      onChange={(e) => {
+                        const newOpts = [...formData.options];
+                        newOpts[idx] = e.target.value;
+                        setFormData({...formData, options: newOpts});
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="umg-field">
+                <label className="umg-label">Correct Answer (Must exactly match one option above):</label>
+                <input 
+                  type="text"
+                  className={`umg-input ${formData.correctAnswer && formData.options.includes(formData.correctAnswer) ? 'valid-answer' : formData.correctAnswer ? 'invalid-answer' : ''}`}
+                  value={formData.correctAnswer} 
+                  onChange={(e) => setFormData({...formData, correctAnswer: e.target.value})}
+                />
+              </div>
+
+              <div className="umg-field">
+                <label className="umg-label">Post-Answer Explanation:</label>
+                <textarea 
+                  className="umg-textarea"
+                  value={formData.explanation} 
+                  onChange={(e) => setFormData({...formData, explanation: e.target.value})}
+                />
+              </div>
+
             </div>
 
-            <label style={{ display: "block", marginBottom: "15px" }}>
-              <span style={{ fontWeight: "bold", fontSize: "0.9rem", color: "#5a4636" }}>Correct Answer (Must exactly match one option above):</span>
-              <input 
-                type="text"
-                value={formData.correctAnswer} 
-                onChange={(e) => setFormData({...formData, correctAnswer: e.target.value})}
-                style={{ width: "100%", padding: "8px", marginTop: "5px", borderRadius: "4px", border: "1px solid #ccc", borderColor: formData.options.includes(formData.correctAnswer) ? "#48BB78" : "#E53E3E" }}
-              />
-            </label>
-
-            <label style={{ display: "block", marginBottom: "20px" }}>
-              <span style={{ fontWeight: "bold", fontSize: "0.9rem", color: "#5a4636" }}>Post-Answer Explanation:</span>
-              <textarea 
-                value={formData.explanation} 
-                onChange={(e) => setFormData({...formData, explanation: e.target.value})}
-                style={{ width: "100%", padding: "8px", marginTop: "5px", borderRadius: "4px", border: "1px solid #ccc", minHeight: "80px" }}
-              />
-            </label>
-
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-              <button onClick={() => setIsModalOpen(false)} style={{ padding: "8px 16px", borderRadius: "4px", border: "1px solid #ccc", backgroundColor: "#f5f5f5", cursor: "pointer" }}>Cancel</button>
-              <button onClick={handleSave} style={{ padding: "8px 16px", borderRadius: "4px", border: "none", backgroundColor: "#8b5e3c", color: "white", cursor: "pointer", fontWeight: "bold" }}>Save Question</button>
+            <div className="modal-actions" style={{ padding: "20px", borderTop: "1px solid #f0e6da", background: "#fdfaf7", borderBottomLeftRadius: "14px", borderBottomRightRadius: "14px" }}>
+              <button className="cancel-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
+              <button className="quiz-save-btn" onClick={handleSave}>Save Question</button>
             </div>
+
           </div>
         </div>
       )}
