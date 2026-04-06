@@ -1155,7 +1155,7 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
 
   const updateQuery = `
     UPDATE posts 
-    SET status = 'Approved', admin_feedback = ?, approved_by = ?
+    SET status = 'Approved', admin_feedback = ?, approved_by = ?, approved_at = NOW()
     WHERE postID = ?;
   `;
 
