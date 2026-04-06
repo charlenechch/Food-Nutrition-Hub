@@ -12,6 +12,8 @@ import { translateTexts } from "../hooks/useAITranslation";
 
 const AdminQuizDatabase = () => {
   const { t, i18n } = useTranslation();
+  const [questions, setQuestions] = useState(mockAdminQuestions);
+
   
   const [translatedQuestions, setTranslatedQuestions] = useState({});
   const [translatedFoods, setTranslatedFoods] = useState({});
@@ -56,8 +58,7 @@ const AdminQuizDatabase = () => {
 
     translateDynamicData();
   }, [i18n.language, questions]); 
-  const [questions, setQuestions] = useState(mockAdminQuestions);
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("default");
 
