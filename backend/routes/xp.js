@@ -90,43 +90,93 @@ router.get('/leaderboard', async (req, res) => {
 
     if (type === 'recipe') {
       [rows] = await db.query(`
+        WITH monthly_recipes AS (
+          -- Step 1: Get all approved recipes this month with row number per user
+          SELECT
+            r.recipeID,
+            r.userProfileID,
+            r.approved_at,
+            ROW_NUMBER() OVER (
+              PARTITION BY r.userProfileID 
+              ORDER BY r.approved_at ASC
+            ) AS row_num,
+            COUNT(*) OVER (PARTITION BY r.userProfileID) AS contributions
+          FROM recipe r
+          JOIN userProfile up ON r.userProfileID = up.userProfileID
+          JOIN user u ON up.userID = u.userID
+          WHERE r.status = 'Approved'
+            AND MONTH(r.approved_at) = MONTH(CURRENT_DATE)
+            AND YEAR(r.approved_at) = YEAR(CURRENT_DATE)
+            AND u.role = 'member'
+            AND u.status != 'Suspended'
+        ),
+        user_tiebreaker AS (
+          -- Step 2: Get the timestamp when each user reached their final count
+          SELECT
+            userProfileID,
+            contributions,
+            approved_at AS reached_at
+          FROM monthly_recipes
+          WHERE row_num = contributions
+        )
+        -- Step 3: Join back to get user details and sort
         SELECT
           up.userProfileID AS id,
           u.firstname AS firstName,
           u.lastname AS lastName,
           up.avatar,
-          COUNT(r.recipeID) AS contributions
-        FROM recipe r
-        JOIN userProfile up ON r.userProfileID = up.userProfileID
+          ut.contributions,
+          ut.reached_at
+        FROM user_tiebreaker ut
+        JOIN userProfile up ON ut.userProfileID = up.userProfileID
         JOIN user u ON up.userID = u.userID
-        WHERE r.status = 'Approved'
-          AND MONTH(r.approved_at) = MONTH(CURRENT_DATE)
-          AND YEAR(r.approved_at) = YEAR(CURRENT_DATE)
-          AND u.role = 'member'
-          AND u.status != 'Suspended'
-        GROUP BY up.userProfileID, u.firstname, u.lastname, up.avatar
-        ORDER BY contributions DESC
+        ORDER BY ut.contributions DESC, ut.reached_at ASC
         LIMIT ?
       `, [limit]);
 
     } else if (type === 'post') {
       [rows] = await db.query(`
+        WITH monthly_posts AS (
+          -- Step 1: Get all approved posts this month with row number per user
+          SELECT
+            p.postID,
+            p.userProfileID,
+            p.approved_at,
+            ROW_NUMBER() OVER (
+              PARTITION BY p.userProfileID 
+              ORDER BY p.approved_at ASC
+            ) AS row_num,
+            COUNT(*) OVER (PARTITION BY p.userProfileID) AS contributions
+          FROM posts p
+          JOIN userProfile up ON p.userProfileID = up.userProfileID
+          JOIN user u ON up.userID = u.userID
+          WHERE p.status = 'Approved'
+            AND MONTH(p.approved_at) = MONTH(CURRENT_DATE)
+            AND YEAR(p.approved_at) = YEAR(CURRENT_DATE)
+            AND u.role = 'member'
+            AND u.status != 'Suspended'
+        ),
+        user_tiebreaker AS (
+          -- Step 2: Get the timestamp when each user reached their final count
+          SELECT
+            userProfileID,
+            contributions,
+            approved_at AS reached_at
+          FROM monthly_posts
+          WHERE row_num = contributions
+        )
+        -- Step 3: Join back to get user details and sort
         SELECT
           up.userProfileID AS id,
           u.firstname AS firstName,
           u.lastname AS lastName,
           up.avatar,
-          COUNT(p.postID) AS contributions
-        FROM posts p
-        JOIN userProfile up ON p.userProfileID = up.userProfileID
+          ut.contributions,
+          ut.reached_at
+        FROM user_tiebreaker ut
+        JOIN userProfile up ON ut.userProfileID = up.userProfileID
         JOIN user u ON up.userID = u.userID
-        WHERE p.status = 'Approved'
-          AND MONTH(p.approved_at) = MONTH(CURRENT_DATE)
-          AND YEAR(p.approved_at) = YEAR(CURRENT_DATE)
-          AND u.role = 'member'
-          AND u.status != 'Suspended'
-        GROUP BY up.userProfileID, u.firstname, u.lastname, up.avatar
-        ORDER BY contributions DESC
+        ORDER BY ut.contributions DESC, ut.reached_at ASC
         LIMIT ?
       `, [limit]);
 
@@ -158,7 +208,7 @@ router.get('/leaderboard', async (req, res) => {
         JOIN user u ON up.userID = u.userID
         WHERE u.role = 'member'
           AND u.status != 'Suspended'
-        ORDER BY up.total_xp DESC
+        ORDER BY up.total_xp DESC, up.userProfileID ASC
         LIMIT ?
       `, [limit]);
 
