@@ -22,8 +22,7 @@ function saveUsers(obj) {
 }
 
 const ORIGIN_OPTIONS = [
-  "Malay", "Chinese", "Iban", "Melanau", 
-  "Kadazan", "Bidayuh", "Dayak"
+  "Malay", "Chinese", "Iban", "Melanau", "Kenyah", "Bidayuh", "Kayan", "Lunbawang", "Punan", "Bisayah", "Kelabit", "Berawan", "Kejaman", "Ukit", "Sekapan", "Penan"
 ];
 
 const DIET_OPTIONS = [

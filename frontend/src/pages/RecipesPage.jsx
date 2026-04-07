@@ -493,8 +493,18 @@ export default function RecipesPage() {
                     <option value="Chinese">Chinese</option>
                     <option value="Iban">Iban</option>
                     <option value="Melanau">Melanau</option>
+                    <option value="Kenyah">Kenyah</option>
                     <option value="Bidayuh">Bidayuh</option>
-                    <option value="Dayak">Dayak</option>
+                    <option value="Kayan">Kayan</option>
+                    <option value="Lunbawang">Lunbawang</option>
+                    <option value="Punan">Punan</option>
+                    <option value="Bisayah">Bisayah</option>
+                    <option value="Kelabit">Kelabit</option>
+                    <option value="Berawan">Berawan</option>
+                    <option value="Kejaman">Kejaman</option>
+                    <option value="Ukit">Ukit</option>
+                    <option value="Sekapan">Sekapan</option>
+                    <option value="Penan">Penan</option>
                   </select>
                 </div>
               </div>
