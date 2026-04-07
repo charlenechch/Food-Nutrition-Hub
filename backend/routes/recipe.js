@@ -85,7 +85,7 @@ SELECT
       CONCAT(u.firstname, ' ', u.lastname) AS author,
       up.avatar AS authorImage,
       up.userProfileID AS authorId,
-      up.equippedBadge
+      up.equippedBadge,
       up.equippedContributorBadge,
       b.badge_type AS contributorBadgeType,
       b.awarded_month AS contributorBadgeMonth
