@@ -44,18 +44,20 @@ const Leaderboard = () => {
   // Time filter state - default to current month
   const [selectedMonth, setSelectedMonth] = useState(recentMonths[0].value);
 
-  // Fetch current month data on mount
+  // Fetch all 3 tabs whenever selected month changes (also runs on mount)
   useEffect(() => {
-    const fetchCurrentMonthLeaderboard = async () => {
+    const fetchLeaderboard = async () => {
       setLoading(true);
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-        const currentMonthData = recentMonths[0];
-        
+        const monthData = recentMonths.find(m => m.value === selectedMonth);
+
+        if (!monthData) return;
+
         const [recipesRes, postsRes, levelRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=recipe&year=${currentMonthData.year}&month=${currentMonthData.month}`, { credentials: "include" }),
-          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=post&year=${currentMonthData.year}&month=${currentMonthData.month}`, { credentials: "include" }),
-          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=level&year=${currentMonthData.year}&month=${currentMonthData.month}`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=recipe&year=${monthData.year}&month=${monthData.month}`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=post&year=${monthData.year}&month=${monthData.month}`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=level&year=${monthData.year}&month=${monthData.month}`, { credentials: "include" }),
         ]);
 
         const [recipesData, postsData, levelData] = await Promise.all([
@@ -76,43 +78,8 @@ const Leaderboard = () => {
       }
     };
 
-    fetchCurrentMonthLeaderboard();
-  }, []);
-
-  // Fetch filtered data when month selection changes
-  useEffect(() => {
-    if (selectedMonth) {
-      const fetchFilteredLeaderboard = async () => {
-        setLoading(true);
-        try {
-          const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-          
-          // Find the selected month data
-          const monthData = recentMonths.find(m => m.value === selectedMonth);
-          
-          if (monthData) {
-            const response = await fetch(
-              `${API_BASE_URL}/api/xp/leaderboard?type=${activeTab}&year=${monthData.year}&month=${monthData.month}`, 
-              { credentials: "include" }
-            );
-            
-            const data = await response.json();
-            
-            setLeaderboardData(prev => ({
-              ...prev,
-              [activeTab]: data.success ? data.leaderboard : []
-            }));
-          }
-        } catch (error) {
-          console.error("❌ Error fetching filtered leaderboard:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      
-      fetchFilteredLeaderboard();
-    }
-  }, [selectedMonth, activeTab]);
+    fetchLeaderboard();
+  }, [selectedMonth]);
 
   const getCurrentData = () => {
     switch(activeTab) {
