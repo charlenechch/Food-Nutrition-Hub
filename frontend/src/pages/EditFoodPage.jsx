@@ -13,13 +13,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Define the options for the Region of Origin dropdown
 const ORIGIN_OPTIONS = [
-  "Malay",
-  "Chinese",
-  "Iban",
-  "Melanau",
-  "Kadazan",
-  "Bidayuh",
-  "Dayak",
+  "Malay", "Chinese", "Iban", "Melanau", "Kenyah", "Bidayuh", "Kayan", "Lunbawang", "Punan", "Bisayah", "Kelabit", "Berawan", "Kejaman", "Ukit", "Sekapan", "Penan"
 ];
 
 const FOOD_TYPE_OPTIONS = [

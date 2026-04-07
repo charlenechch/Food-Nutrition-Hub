@@ -256,13 +256,22 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   <label className="efp-label">{t("explore.culturalOrigin")}</label>
                   <select value={selectedOrigin} onChange={(e) => setSelectedOrigin(e.target.value)} className="efp-select">
                     <option value="all">{t("explore.allOrigins")}</option>
+                    <option value="Malay">Malay</option>
+                    <option value="Chinese">Chinese</option>
                     <option value="Iban">Iban</option>
                     <option value="Melanau">Melanau</option>
-                    <option value="Dayak">Dayak</option>
-                    <option value="Native">Native</option>
-                    <option value="Chinese">Chinese</option>
-                    <option value="Malay">Malay</option>
+                    <option value="Kenyah">Kenyah</option>
                     <option value="Bidayuh">Bidayuh</option>
+                    <option value="Kayan">Kayan</option>
+                    <option value="Lunbawang">Lunbawang</option>
+                    <option value="Punan">Punan</option>
+                    <option value="Bisayah">Bisayah</option>
+                    <option value="Kelabit">Kelabit</option>
+                    <option value="Berawan">Berawan</option>
+                    <option value="Kejaman">Kejaman</option>
+                    <option value="Ukit">Ukit</option>
+                    <option value="Sekapan">Sekapan</option>
+                    <option value="Penan">Penan</option>
                   </select>
                 </div>
 

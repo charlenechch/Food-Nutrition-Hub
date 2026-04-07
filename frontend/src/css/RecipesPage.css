@@ -489,3 +489,66 @@
 .rp-author-name:hover {
   text-decoration: underline;
 }
+
+.rp-select {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  height: 42px; 
+  box-sizing: border-box;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2360482e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 30px; 
+}
+
+
+.rp-filter-card.efp-filters-card {
+  overflow: visible !important; 
+}
+
+.rp-filter-item {
+  position: relative; 
+}
+
+.rp-dropdown-menu-list {
+  position: absolute;
+  top: calc(100% + 6px); 
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  background: #ffffff;
+  border: 1px solid #e8dccf;
+  border-radius: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  text-align: left; 
+  -webkit-overflow-scrolling: touch;
+}
+
+.rp-dropdown-menu-list .dropdown-item {
+  padding: 12px 14px !important;
+  font-size: 0.95rem;
+  color: #3d2b1f;
+  transition: background 0.2s ease;
+}
+
+.rp-dropdown-menu-list .dropdown-item:last-child {
+  border-bottom: none !important;
+}
+
+.rp-dropdown-menu-list .dropdown-item:hover {
+  background: #fdfaf7;
+  color: #916848;
+}
+
+.rp-dropdown-menu-list .dropdown-item.selected {
+  background: #fbf5ef;
+  color: #916848;
+  font-weight: 600;
+}
+
+.rp-food-card {
+  cursor: pointer;
+}

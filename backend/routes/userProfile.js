@@ -751,7 +751,8 @@ router.get("/", async (req, res) => {
         up.userProfileID, up.location, up.bio, up.avatar, up.total_xp, up.equippedBadge, up.equippedContributorBadge,
         up.dietaryPreference AS dietary, up.allergies,
         up.emailNotifications, up.pushNotifications, up.profileVisibility, up.language,
-        up.recipes, up.posts, up.likes
+        up.recipes, up.posts, up.likes,
+        up.quiz_last_completed_date, up.quiz_current_streak, up.quiz_longest_streak, up.quiz_perfect_days
       FROM user u
       LEFT JOIN userProfile up ON up.userID = u.userID
       WHERE u.userID = ?`,
@@ -840,6 +841,12 @@ router.get("/", async (req, res) => {
 
       savedFoods: savedFoodsData,
       status: contributions,
+      quizStats: {
+        lastCompletedDate: profile.quiz_last_completed_date,
+        currentStreak: profile.quiz_current_streak || 0,
+        longestStreak: profile.quiz_longest_streak || 0,
+        totalPerfectDays: profile.quiz_perfect_days || 0
+      },
       stats: {
         recipes: freshStats.recipes || 0,
         posts: freshStats.posts || 0,
@@ -990,7 +997,8 @@ router.get("/:identifier", async (req, res) => {
         up.userProfileID, up.location, up.bio, up.avatar, up.total_xp, up.equippedBadge, up.equippedContributorBadge,
         up.dietaryPreference AS dietary, up.allergies,
         up.emailNotifications, up.pushNotifications, up.profileVisibility, up.language,
-        up.recipes, up.posts, up.likes
+        up.recipes, up.posts, up.likes,
+        up.quiz_last_completed_date, up.quiz_current_streak, up.quiz_longest_streak, up.quiz_perfect_days
       FROM user u
       LEFT JOIN userProfile up ON up.userID = u.userID
       WHERE u.userID = ? 
@@ -1423,6 +1431,131 @@ router.put("/acknowledge-level", async (req, res) => {
   } catch (err) {
     console.error("Error updating acknowledged level:", err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ==========================================
+// DAILY QUIZ ROUTES
+// ==========================================
+
+// Helper functions for dates
+const getTodayString = () => {
+  const date = new Date();
+  return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+};
+
+const getYesterdayString = () => {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+};
+
+// 1. GET: Check if user has done the quiz today
+router.get("/quiz/status", async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
+    
+    const userID = req.session.user.userID;
+    
+    const [rows] = await db.execute(
+      `SELECT quiz_last_completed_date FROM userProfile WHERE userID = ?`,
+      [userID]
+    );
+
+    if (rows.length === 0) return res.status(404).json({ error: "Profile not found" });
+
+    const today = getTodayString();
+    // Compare DB date string to today's date string
+    const dbDate = rows[0].quiz_last_completed_date;
+    
+    // Handle date formatting depending on how MySQL returns it
+    let formattedDbDate = null;
+    if (dbDate) {
+      formattedDbDate = new Date(dbDate).toISOString().split('T')[0];
+    }
+
+    res.json({ hasCompletedToday: formattedDbDate === today });
+  } catch (error) {
+    console.error("Quiz status error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// 2. POST: Submit quiz results and calculate streaks
+router.post("/quiz/submit", async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
+    
+    // Basic CSRF check based on your existing architecture
+    const csrfToken = req.headers['x-csrf-token'];
+    if (!csrfToken || csrfToken !== req.session.csrfToken) {
+      return res.status(403).json({ error: "Invalid CSRF token" });
+    }
+
+    const userID = req.session.user.userID;
+    const { score, xpEarned, isPerfect } = req.body;
+
+    // Fetch current stats
+    const [rows] = await db.execute(
+      `SELECT total_xp, quiz_last_completed_date, quiz_current_streak, quiz_longest_streak, quiz_perfect_days 
+       FROM userProfile WHERE userID = ?`,
+      [userID]
+    );
+
+    if (rows.length === 0) return res.status(404).json({ error: "Profile not found" });
+
+    const profile = rows[0];
+    const today = getTodayString();
+    const yesterday = getYesterdayString();
+    
+    let dbDateStr = null;
+    if (profile.quiz_last_completed_date) {
+      dbDateStr = new Date(profile.quiz_last_completed_date).toISOString().split('T')[0];
+    }
+
+    // Prevent double submission
+    if (dbDateStr === today) {
+      return res.status(400).json({ error: "Quiz already completed today" });
+    }
+
+    // Calculate Streaks
+    let currentStreak = profile.quiz_current_streak || 0;
+    let longestStreak = profile.quiz_longest_streak || 0;
+    let perfectDays = profile.quiz_perfect_days || 0;
+
+    if (dbDateStr === yesterday) {
+      currentStreak += 1; // Streak kept alive
+    } else {
+      currentStreak = 1;  // Streak broken, reset
+    }
+
+    if (currentStreak > longestStreak) {
+      longestStreak = currentStreak;
+    }
+
+    if (isPerfect) {
+      perfectDays += 1;
+    }
+
+    const newTotalXp = (profile.total_xp || 0) + xpEarned;
+
+    // Save to Database
+    await db.execute(
+      `UPDATE userProfile 
+       SET total_xp = ?, 
+           quiz_last_completed_date = ?, 
+           quiz_current_streak = ?, 
+           quiz_longest_streak = ?, 
+           quiz_perfect_days = ?
+       WHERE userID = ?`,
+      [newTotalXp, today, currentStreak, longestStreak, perfectDays, userID]
+    );
+
+    res.json({ success: true, message: "Results saved", newTotalXp });
+
+  } catch (error) {
+    console.error("Quiz submit error:", error);
+    res.status(500).json({ error: "Failed to save results" });
   }
 });
 
