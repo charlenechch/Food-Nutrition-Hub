@@ -147,12 +147,14 @@ export default function RecipesPage() {
   const [selectedPrepTime, setSelectedPrepTime] = useState("all");
   const [selectedCookTime, setSelectedCookTime] = useState("all");
   const [dietFilters, setDietFilters] = useState([]);
+  const [originDropdownOpen, setOriginDropdownOpen] = useState(false);
 
   // Filter Logic
-  const origins = useMemo(() => {
-    const set = new Set(recipes.map(r => r.origin).filter(Boolean));
-    return ["all", ...Array.from(set)];
-  }, [recipes]);
+  const origins = [
+    "all", "Malay", "Chinese", "Iban", "Melanau", "Kenyah", 
+    "Bidayuh", "Kayan", "Lunbawang", "Punan", "Bisayah", 
+    "Kelabit", "Berawan", "Kejaman", "Ukit", "Sekapan", "Penan"
+  ];
 
   const filtered = useMemo(() => {
     const terms = tokenize(searchQuery);
@@ -642,11 +644,33 @@ export default function RecipesPage() {
             <div className="efp-filters">
               <div className="efp-filters-header"><Filter className="efp-filter-icon" size={18} /><h2 className="efp-filters-title">{t("explore.filter")}</h2></div>
               <div className="efp-grid-2">
-                <div className="efp-filter-item">
+                <div className="efp-filter-item rp-filter-item">
                   <label className="efp-label">{t("explore.culturalOrigin")}</label>
-                  <select value={selectedOrigin} onChange={(e) => setSelectedOrigin(e.target.value)} className="efp-select">
-                    {origins.map(o => <option key={o} value={o}>{o === "all" ? t("explore.allOrigins") : o}</option>)}
-                  </select>
+                  
+                  <div 
+                    className="efp-select rp-select" 
+                    onClick={() => setOriginDropdownOpen(!originDropdownOpen)}
+                  >
+                    {selectedOrigin === "all" ? t("explore.allOrigins") : selectedOrigin}
+                  </div>
+
+                  {originDropdownOpen && (
+                    <div className="dropdown-menu-list rp-dropdown-menu-list">
+                      {["All", "Malay", "Chinese", "Iban", "Melanau", "Kenyah", "Bidayuh", "Kayan", "Lunbawang", "Punan", "Bisayah", "Kelabit", "Berawan", "Kejaman", "Ukit", "Sekapan", "Penan"].map((origin) => (
+                        <div 
+                          key={origin}
+                          className={`dropdown-item ${selectedOrigin === (origin === "All" ? "all" : origin) ? "selected" : ""}`}
+                          style={{ padding: "10px", cursor: "pointer", borderBottom: "1px solid #f0f0f0" }}
+                          onClick={() => { 
+                            setSelectedOrigin(origin === "All" ? "all" : origin); 
+                            setOriginDropdownOpen(false); 
+                          }}
+                        >
+                          {origin === "All" ? t("explore.allOrigins") : origin}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="efp-filter-item">
                   <label className="efp-label">{t("explore.difficulty")}</label>
@@ -747,9 +771,8 @@ export default function RecipesPage() {
             return (
               <div 
                 key={`recipe-${recipeId}-${index}`} 
-                className="efp-food-card"
+                className="efp-food-card rp-food-card"
                 onClick={() => navigate(`/recipes/${recipeId}`)}
-                style={{ cursor: "pointer" }}
               >
                 <div className="efp-food-media">
                   <img src={r.image || 'https://via.placeholder.com/300x200?text=No+Image'} alt={r.name} className="efp-image" loading="lazy" />
@@ -758,9 +781,8 @@ export default function RecipesPage() {
                 </div>
                 <div className="efp-food-body">
                   <div 
-                    className="rp-author-info"
+                    className="rp-author-info rp-food-card"
                     onClick={(e) => handleProfileClick(e, r.authorId || r.userProfileID)}
-                    style={{ cursor: "pointer" }}
                     title={`View ${r.author}'s profile`}
                   >
                     {/* ✅ UPDATED: Added UI Avatars and onError Fallback */}
