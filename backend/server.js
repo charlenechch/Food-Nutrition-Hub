@@ -278,7 +278,7 @@ app.use("/api/ai", cors({ origin: allowedOrigins, credentials: true }), aiRoutes
 
 app.use("/api/userProfile", hppProtect({ 
   policy: "none", 
-  allowlist: ["dietary", "allergies", "emailNotifications", "pushNotifications", "profileVisibility", "language", "location", "bio", "pdpaConsent", "tncConsent", "newLevel", "equippedBadge"], 
+  allowlist: ["dietary", "allergies", "emailNotifications", "pushNotifications", "profileVisibility", "language", "location", "bio", "pdpaConsent", "tncConsent", "newLevel", "equippedBadge", "equippedContributorBadge"], 
   logger: (tag, meta) => logger.warn(`HPP UserProfile Parameter: ${tag}`, meta) 
 }), userProfileRoutes);
 app.use("/api/recipe", hppProtect({ policy: "first", allowlist: ["includeAll", "status", "foodID", "name", "origin", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "category", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory", "recipe", "content", "image", "userProfileID", "status", "comment", "feedback", "steps", "DidYouKnow", "rating"], logger: (tag, meta) => logger.warn(`HPP Recipe Parameter: ${tag}`, meta) }), recipeRoutes);

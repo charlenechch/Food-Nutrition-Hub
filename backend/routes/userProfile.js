@@ -27,6 +27,7 @@ const profileUpdateSchema = Joi.object({
   
   // ✅ Allows a string (the badge ID) or a real database NULL
   equippedBadge: Joi.string().max(50).allow(null, '').optional(),
+  equippedContributorBadge: Joi.number().integer().min(1).allow(null).optional(),
   
   dietary: Joi.alternatives().try(
     Joi.array().items(Joi.string().max(60)),
@@ -747,7 +748,7 @@ router.get("/", async (req, res) => {
     const [rows] = await db.execute(
       `SELECT
         u.userID, u.firstname AS firstName, u.lastname AS lastName, u.email, u.role,
-        up.userProfileID, up.location, up.bio, up.avatar, up.total_xp, up.equippedBadge, /* ✅ ADDED THIS */
+        up.userProfileID, up.location, up.bio, up.avatar, up.total_xp, up.equippedBadge, up.equippedContributorBadge,
         up.dietaryPreference AS dietary, up.allergies,
         up.emailNotifications, up.pushNotifications, up.profileVisibility, up.language,
         up.recipes, up.posts, up.likes
@@ -835,6 +836,7 @@ router.get("/", async (req, res) => {
       avatar: profile.avatar,
       total_xp: profile.total_xp,
       equippedBadge: profile.equippedBadge || null,
+      equippedContributorBadge: profile.equippedContributorBadge || null,
 
       savedFoods: savedFoodsData,
       status: contributions,
@@ -894,7 +896,7 @@ router.put("/update", async (req, res) => {
     const { 
       location, bio, dietary, allergies, 
       emailNotifications, pushNotifications, 
-      profileVisibility, language, equippedBadge 
+      profileVisibility, language, equippedBadge, equippedContributorBadge
     } = value;
 
     console.log(`💾 Executing profile update query for user: ${userID}`);
@@ -909,7 +911,8 @@ router.put("/update", async (req, res) => {
            pushNotifications = COALESCE(?, pushNotifications), 
            profileVisibility = COALESCE(?, profileVisibility), 
            language = COALESCE(?, language), 
-           equippedBadge = ? 
+           equippedBadge = ?,
+           equippedContributorBadge = ?
        WHERE userID = ?`,
       [
         location !== undefined ? location : null,
@@ -920,8 +923,8 @@ router.put("/update", async (req, res) => {
         pushNotifications !== undefined ? pushNotifications : null,
         profileVisibility !== undefined ? profileVisibility : null,
         language !== undefined ? language : null,
-        // ✅ This logic forces the literal database NULL if the badge is 'null' or empty
         (equippedBadge === 'null' || !equippedBadge) ? null : equippedBadge,
+        equippedContributorBadge !== undefined ? equippedContributorBadge : null,
         userID
       ]
     );
@@ -984,7 +987,7 @@ router.get("/:identifier", async (req, res) => {
     const [rows] = await db.execute(
       `SELECT 
         u.userID, u.firstname AS firstName, u.lastname AS lastName, u.email, u.role,
-        up.userProfileID, up.location, up.bio, up.avatar, up.total_xp, up.equippedBadge, /* ✅ ADDED THIS */
+        up.userProfileID, up.location, up.bio, up.avatar, up.total_xp, up.equippedBadge, up.equippedContributorBadge,
         up.dietaryPreference AS dietary, up.allergies,
         up.emailNotifications, up.pushNotifications, up.profileVisibility, up.language,
         up.recipes, up.posts, up.likes
@@ -1113,6 +1116,7 @@ router.get("/:identifier", async (req, res) => {
       avatar: profile.avatar,
       total_xp: profile.total_xp,
       equippedBadge: profile.equippedBadge || null,
+      equippedContributorBadge: profile.equippedContributorBadge || null,
       // Only expose email and sensitive prefs to owner or admin
       ...(isSensitiveViewer && { email: profile.email }),
       savedFoods: isSensitiveViewer ? savedFoodsData : [],
