@@ -64,7 +64,7 @@ console.log(`Fetching ${includeAll ? 'ALL' : 'APPROVED'} recipes...`);
 const query = `
 SELECT 
       f.foodID AS id,
-      f.name, 
+      r.recipeName, 
       f.origin, 
       f.difficulty, 
       f.prepTime, 
@@ -289,7 +289,7 @@ router.get('/recipes/:id', async (req, res) => {
       SELECT 
         f.foodID AS foodId,  
         r.recipeID AS recipeID,   
-        r.recipeName,  -- ✅ CHANGED: Use recipeName from recipe table
+        r.recipeName,  
         f.origin, 
         f.difficulty, 
         f.prepTime, 
@@ -339,7 +339,7 @@ router.get('/recipes/:id', async (req, res) => {
     const recipe = {
       id: row.recipeID,  
       foodId: row.foodID,
-      name: row.name || '',
+      name: row.recipeName || '',
       origin: row.origin || '',
       difficulty: row.difficulty || 'Easy',
       prepTime: row.prepTime || 0,
@@ -367,7 +367,6 @@ router.get('/recipes/:id', async (req, res) => {
       equippedBadge: row.equippedBadge || null,
       contributorBadgeType: row.contributorBadgeType || null,
       contributorBadgeMonth: row.contributorBadgeMonth || null,
-      createdAt: row.createdAt,
       createdAt: row.createdAt,
       avgRating: row.avgRating || 0,
       totalRatings: row.totalRatings || 0,
@@ -485,13 +484,12 @@ try {
   // Insert into food table
   const foodQuery = `
     INSERT INTO food (
-      name, origin, difficulty, prepTime, image, description, 
+      origin, difficulty, prepTime, image, description, 
       category, dietaryTags, commonIngredients
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
   const foodParams = [
-    name, 
     origin, 
     difficulty || 'Easy', 
     prepTime || 0, 
@@ -519,8 +517,8 @@ try {
   // Insert into recipe table
   const recipeQuery = `
     INSERT INTO recipe (
-      foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description, recipeName
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
   
   const recipeParams = [
@@ -534,6 +532,7 @@ try {
     chefTips || '',
     'Pending',
     description || '',
+    name || ''
   ];
   
   console.log('📝 Executing recipe insert with foodID:', foodId);
@@ -675,7 +674,7 @@ try {
       SELECT 
         f.foodID AS id,
         r.recipeID,
-        f.name AS foodName,  -- ✅ Already using recipeName
+        f.recipeName AS foodName, 
         f.origin AS culturalOrigin,
         r.status,
         r.admin_feedback,
@@ -757,14 +756,14 @@ try {
     return {
       id: recipe.id, 
       recipeID: recipe.recipeID,
-      foodName: recipe.foodName || 'Untitled Recipe',
+      name: recipe.name || 'Untitled Recipe',
       culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
       status: (recipe.status || 'pending').toLowerCase(),
       adminFeedback: recipe.admin_feedback || null,
       description: recipe.description || '',
       images: images,
-      ingredients: ingredients, // ✅ Include ingredients array
-      instructions: instructions, // ✅ Include instructions array
+      ingredients: ingredients, 
+      instructions: instructions, 
       author: recipe.author || 'Unknown Author',
       userId: recipe.userID,
       userProfileID: recipe.userProfileID,
