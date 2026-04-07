@@ -86,10 +86,14 @@ SELECT
       up.avatar AS authorImage,
       up.userProfileID AS authorId,
       up.equippedBadge
+      up.equippedContributorBadge,
+      b.badge_type AS contributorBadgeType,
+      b.awarded_month AS contributorBadgeMonth
       FROM recipe r
       INNER JOIN food f ON r.foodID = f.foodID
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
     LEFT JOIN user u ON up.userID = u.userID
+    LEFT JOIN badge b ON b.id = up.equippedContributorBadge
       ${includeAll ? "" : "WHERE r.status = 'Approved'"}
      `;
 
@@ -155,6 +159,9 @@ SELECT
       authorImage: getSafe(data, 'authorImage') || null,
       authorId: getSafe(data, 'authorId') || null,
       equippedBadge: getSafe(data, 'equippedBadge'),
+      equippedContributorBadge: getSafe(data, 'equippedContributorBadge'),
+      contributorBadgeType: getSafe(data, 'contributorBadgeType'),
+      contributorBadgeMonth: getSafe(data, 'contributorBadgeMonth'),
       date: getSafe(data, 'date') ? new Date(data.date).toLocaleDateString() : '—',
       updatedAt: getSafe(data, 'updatedAt') ? new Date(data.updatedAt).toISOString() : null,
       origin: getSafe(data, 'origin') || 'Unknown',
@@ -304,6 +311,9 @@ router.get('/recipes/:id', async (req, res) => {
         up.userProfileID AS authorProfileID,
         up.avatar AS authorAvatar,
         up.equippedBadge,
+        up.equippedContributorBadge,
+        b.badge_type AS contributorBadgeType,
+        b.awarded_month AS contributorBadgeMonth,
         (SELECT COALESCE(ROUND(AVG(rating), 1), 0) FROM recipe_ratings WHERE recipeID = r.recipeID) AS avgRating,
         (SELECT COUNT(id) FROM recipe_ratings WHERE recipeID = r.recipeID) AS totalRatings,
         (SELECT rating FROM recipe_ratings WHERE recipeID = r.recipeID AND userProfileID = ?) AS userRating
@@ -311,6 +321,7 @@ router.get('/recipes/:id', async (req, res) => {
       LEFT JOIN food f ON r.foodID = f.foodID  
       LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
       LEFT JOIN user u ON up.userID = u.userID
+      LEFT JOIN badge b ON b.id = up.equippedContributorBadge
       WHERE r.recipeID = ? OR f.foodID = ?
       ORDER BY r.createdAt DESC
       LIMIT 1
@@ -353,6 +364,9 @@ router.get('/recipes/:id', async (req, res) => {
       authorEmail: row.authorEmail || 'N/A',
       authorProfileID: row.authorProfileID || null,
       authorAvatar: row.authorAvatar || null,
+      equippedBadge: row.equippedBadge || null,
+      contributorBadgeType: row.contributorBadgeType || null,
+      contributorBadgeMonth: row.contributorBadgeMonth || null,
       createdAt: row.createdAt,
       createdAt: row.createdAt,
       avgRating: row.avgRating || 0,

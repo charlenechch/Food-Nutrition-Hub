@@ -70,6 +70,9 @@ router.get('/food/:foodId', async (req, res) => {
         COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username,
         up.avatar as avatar,
         up.equippedBadge,
+        up.equippedContributorBadge,
+        b.badge_type AS contributorBadgeType,
+        b.awarded_month AS contributorBadgeMonth,
         u.role as userRole, 
         d.content,
         d.created_At as timestamp,
@@ -79,6 +82,7 @@ router.get('/food/:foodId', async (req, res) => {
       FROM discussion d 
       LEFT JOIN userProfile up ON d.userProfileID = up.userProfileID 
       LEFT JOIN user u ON up.userID = u.userID
+      LEFT JOIN badge b ON b.id = up.equippedContributorBadge
       WHERE d.foodID = ? 
       ORDER BY d.created_At DESC
     `;
@@ -139,12 +143,16 @@ router.get('/food/:foodId', async (req, res) => {
             COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS username,
             up.avatar as avatar,
             up.equippedBadge,
+            up.equippedContributorBadge,
+            b.badge_type AS contributorBadgeType,
+            b.awarded_month AS contributorBadgeMonth,
             u.role as userRole,
             r.reply as content,
             r.createdAt as timestamp
           FROM reply r
           LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID 
           LEFT JOIN user u ON up.userID = u.userID
+          LEFT JOIN badge b ON b.id = up.equippedContributorBadge
           WHERE r.discussionID = ?
           ORDER BY r.createdAt ASC
         `;
