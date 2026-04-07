@@ -267,222 +267,283 @@ async function updateStaleAndExpiredUsers() {
         );
         console.log(`✅ Cleaned up ${logResult.affectedRows} old activity log entries.`);
 
-        // Monthly Leaderbaord XP Rewards (only on last day of month, Malaysia time)
+        // Monthly Leaderboard Snapshot + XP/Badge Rewards
+        // Runs every day but only processes last month if not done yet
         const malaysiaOffset = 8 * 60;
         const currentTime = new Date();
         const malaysiaTime = new Date(currentTime.getTime() + malaysiaOffset * 60 * 1000);
-        const isLastDayOfMonth = malaysiaTime.getDate() === 1;
 
-        if (isLastDayOfMonth) {
-            console.log("🏆 Last day of month detected. Running leaderboard XP rewards...");
+        // Calculate last month in Malaysia time
+        const lastMonthDate = new Date(malaysiaTime);
+        lastMonthDate.setDate(1); // go to 1st of current month
+        lastMonthDate.setMonth(lastMonthDate.getMonth() - 1); // go back one month
+        const lastMonth = lastMonthDate.getMonth() + 1; // 1-12
+        const lastMonthYear = lastMonthDate.getFullYear();
+        const lastMonthStr = `${lastMonthYear}-${String(lastMonth).padStart(2, '0')}`; // e.g. '2026-04'
 
-            // XP amounts per rank
-            const RECIPE_XP = { 1: 200, 2: 150, 3: 100 };
-            const POST_XP   = { 1: 100, 2: 50,  3: 25  };
+        console.log(`📅 Processing leaderboard rewards for: ${lastMonthStr}`);
 
-            // Tiers ordered highest first (mirrors getTierByLevel() in gamificationTiers.jsx)
-            const TIERS = [
-                { id: "culinary_legend",      minLevel: 50 },
-                { id: "culinary_master",      minLevel: 40 },
-                { id: "nutrition_expert",     minLevel: 30 },
-                { id: "nutrition_scholar",    minLevel: 20 },
-                { id: "nutrition_enthusiast", minLevel: 10 },
-                { id: "foodie",               minLevel: 5  },
-                { id: "novice",               minLevel: 1  },
-            ];
-            const getTier = (level) => TIERS.find(t => level >= t.minLevel) || TIERS[TIERS.length - 1];
+        // XP amounts per rank
+        const RECIPE_XP = { 1: 200, 2: 150, 3: 100 };
+        const POST_XP   = { 1: 100, 2: 50,  3: 25  };
 
-            // Helper to award XP to a user
-            const awardXP = async (userProfileID, actionType, referenceId, xpAmount) => {
-                // Guard: check if XP already awarded this month for this action
-                const [existing] = await db.query(
-                    `SELECT id FROM xp_logs 
-                     WHERE userProfileID = ? AND action_type = ? AND reference_id = ?
-                     AND MONTH(created_at) = MONTH(CURRENT_DATE)
-                     AND YEAR(created_at) = YEAR(CURRENT_DATE)`,
-                    [userProfileID, actionType, referenceId]
-                );
+        // Tiers ordered highest first (mirrors getTierByLevel() in gamificationTiers.jsx)
+        const TIERS = [
+            { id: "culinary_legend",      minLevel: 50 },
+            { id: "culinary_master",      minLevel: 40 },
+            { id: "nutrition_expert",     minLevel: 30 },
+            { id: "nutrition_scholar",    minLevel: 20 },
+            { id: "nutrition_enthusiast", minLevel: 10 },
+            { id: "foodie",               minLevel: 5  },
+            { id: "novice",               minLevel: 1  },
+        ];
+        const getTier = (level) => TIERS.find(t => level >= t.minLevel) || TIERS[TIERS.length - 1];
 
-                if (existing.length > 0) {
-                    console.log(`⚠️ XP already awarded for ${actionType} to userProfileID ${userProfileID}, skipping...`);
-                    return;
-                }
+        // Helper to award XP to a user
+        const awardXP = async (userProfileID, actionType, referenceId, xpAmount) => {
+            // Guard: check if XP already awarded for last month
+            const [existing] = await db.query(
+                `SELECT id FROM xp_logs 
+                 WHERE userProfileID = ? AND action_type = ? AND reference_id = ?
+                 AND MONTH(created_at) = ? AND YEAR(created_at) = ?`,
+                [userProfileID, actionType, referenceId, lastMonth, lastMonthYear]
+            );
 
-                await db.query(
-                    `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded)
-                     VALUES (?, ?, ?, ?)`,
-                    [userProfileID, actionType, referenceId, xpAmount]
-                );
-                await db.query(
-                    `UPDATE userProfile SET total_xp = COALESCE(total_xp, 0) + ? WHERE userProfileID = ?`,
-                    [xpAmount, userProfileID]
-                );
-                console.log(`✅ Awarded ${xpAmount} XP to userProfileID ${userProfileID} for ${actionType}`);
-            };
+            if (existing.length > 0) {
+                console.log(`⚠️ XP already awarded for ${actionType} to userProfileID ${userProfileID}, skipping...`);
+                return;
+            }
 
-            // Recipe Leaderboard Rewards
-            const [recipeTop3] = await db.query(`
-                WITH monthly_recipes AS (
-                    SELECT
-                        r.recipeID,
-                        r.userProfileID,
-                        r.approved_at,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY r.userProfileID
-                            ORDER BY r.approved_at ASC
-                        ) AS row_num,
-                        COUNT(*) OVER (PARTITION BY r.userProfileID) AS contributions
-                    FROM recipe r
-                    JOIN userProfile up ON r.userProfileID = up.userProfileID
-                    JOIN user u ON up.userID = u.userID
-                    WHERE r.status = 'Approved'
-                        AND MONTH(r.approved_at) = MONTH(CURRENT_DATE)
-                        AND YEAR(r.approved_at) = YEAR(CURRENT_DATE)
-                        AND u.role = 'member'
-                        AND u.status != 'Suspended'
-                ),
-                user_tiebreaker AS (
-                    SELECT userProfileID, contributions, approved_at AS reached_at
-                    FROM monthly_recipes
-                    WHERE row_num = contributions
-                )
+            await db.query(
+                `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded)
+                 VALUES (?, ?, ?, ?)`,
+                [userProfileID, actionType, referenceId, xpAmount]
+            );
+            await db.query(
+                `UPDATE userProfile SET total_xp = COALESCE(total_xp, 0) + ? WHERE userProfileID = ?`,
+                [xpAmount, userProfileID]
+            );
+            console.log(`✅ Awarded ${xpAmount} XP to userProfileID ${userProfileID} for ${actionType}`);
+        };
+
+        // Snapshot + Recipe Leaderboard Rewards
+        // Check if snapshot already exists for last month
+        const [existingRecipeSnapshot] = await db.query(
+            `SELECT id FROM leaderboardSnapshot WHERE snapshot_month = ? AND type = 'recipe' LIMIT 1`,
+            [lastMonthStr]
+        );
+
+        const [recipeTop20] = await db.query(`
+            WITH monthly_recipes AS (
                 SELECT
-                    ut.userProfileID,
-                    u.userID,
-                    u.firstname,
-                    ut.contributions,
-                    ut.reached_at
-                FROM user_tiebreaker ut
-                JOIN userProfile up ON ut.userProfileID = up.userProfileID
+                    r.recipeID,
+                    r.userProfileID,
+                    r.approved_at,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY r.userProfileID
+                        ORDER BY r.approved_at ASC
+                    ) AS row_num,
+                    COUNT(*) OVER (PARTITION BY r.userProfileID) AS contributions
+                FROM recipe r
+                JOIN userProfile up ON r.userProfileID = up.userProfileID
                 JOIN user u ON up.userID = u.userID
-                ORDER BY ut.contributions DESC, ut.reached_at ASC, ut.userProfileID ASC
-                LIMIT 3
-            `);
+                WHERE r.status = 'Approved'
+                    AND MONTH(r.approved_at) = ?
+                    AND YEAR(r.approved_at) = ?
+                    AND u.role = 'member'
+                    AND u.status != 'Suspended'
+            ),
+            user_tiebreaker AS (
+                SELECT userProfileID, contributions, approved_at AS reached_at
+                FROM monthly_recipes
+                WHERE row_num = contributions
+            )
+            SELECT
+                ut.userProfileID,
+                u.userID,
+                u.firstname,
+                ut.contributions,
+                ut.reached_at
+            FROM user_tiebreaker ut
+            JOIN userProfile up ON ut.userProfileID = up.userProfileID
+            JOIN user u ON up.userID = u.userID
+            ORDER BY ut.contributions DESC, ut.reached_at ASC, ut.userProfileID ASC
+            LIMIT 20
+        `, [lastMonth, lastMonthYear]);
 
-            for (let i = 0; i < recipeTop3.length; i++) {
-                const user = recipeTop3[i];
-                const rank = i + 1;
-                const xp = RECIPE_XP[rank];
-                const actionType = `LEADERBOARD_RECIPE_RANK_${rank}`;
-
-                await awardXP(user.userProfileID, actionType, rank, xp);
-                await createNotification(
-                    user.userID,
-                    "leaderboard_reward",
-                    `Congratulations! You ranked #${rank} on the Recipe Leaderboard this month and earned ${xp} XP!`,
-                    db
-                );
-                console.log(`🔔 Notification sent to userID ${user.userID} for recipe rank ${rank}`);
-            }
-
-            // Post Leaderboard Rewards
-            const [postTop3] = await db.query(`
-                WITH monthly_posts AS (
-                    SELECT
-                        p.postID,
-                        p.userProfileID,
-                        p.approved_at,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY p.userProfileID
-                            ORDER BY p.approved_at ASC
-                        ) AS row_num,
-                        COUNT(*) OVER (PARTITION BY p.userProfileID) AS contributions
-                    FROM posts p
-                    JOIN userProfile up ON p.userProfileID = up.userProfileID
-                    JOIN user u ON up.userID = u.userID
-                    WHERE p.status = 'Approved'
-                        AND MONTH(p.approved_at) = MONTH(CURRENT_DATE)
-                        AND YEAR(p.approved_at) = YEAR(CURRENT_DATE)
-                        AND u.role = 'member'
-                        AND u.status != 'Suspended'
-                ),
-                user_tiebreaker AS (
-                    SELECT userProfileID, contributions, approved_at AS reached_at
-                    FROM monthly_posts
-                    WHERE row_num = contributions
-                )
-                SELECT
-                    ut.userProfileID,
-                    u.userID,
-                    u.firstname,
-                    ut.contributions,
-                    ut.reached_at
-                FROM user_tiebreaker ut
-                JOIN userProfile up ON ut.userProfileID = up.userProfileID
-                JOIN user u ON up.userID = u.userID
-                ORDER BY ut.contributions DESC, ut.reached_at ASC, ut.userProfileID ASC
-                LIMIT 3
-            `);
-
-            for (let i = 0; i < postTop3.length; i++) {
-                const user = postTop3[i];
-                const rank = i + 1;
-                const xp = POST_XP[rank];
-                const actionType = `LEADERBOARD_POST_RANK_${rank}`;
-
-                await awardXP(user.userProfileID, actionType, rank, xp);
-                await createNotification(
-                    user.userID,
-                    "leaderboard_reward",
-                    `Congratulations! You ranked #${rank} on the Community Post Leaderboard this month and earned ${xp} XP!`,
-                    db
-                );
-                console.log(`🔔 Notification sent to userID ${user.userID} for post rank ${rank}`);
-            }
-
-            // Badge awarding for rank 1 winners
-            // Recipe rank 1
-            if (recipeTop3.length > 0) {
-                const rank1Recipe = recipeTop3[0];
-                const currentMonth = malaysiaTime.toISOString().slice(0, 7); // e.g. '2026-04'
-
-                // Guard: check if badge already awarded this month
-                const [existingRecipeBadge] = await db.query(
-                    `SELECT id FROM badge 
-                     WHERE userProfileID = ? AND badge_type = 'top_recipe' AND awarded_month = ?`,
-                    [rank1Recipe.userProfileID, currentMonth]
-                );
-
-                if (existingRecipeBadge.length === 0) {
-                    await db.query(
-                        `INSERT INTO badge (userProfileID, badge_type, awarded_month)
-                         VALUES (?, 'top_recipe', ?)`,
-                        [rank1Recipe.userProfileID, currentMonth]
+        // Save recipe snapshot if not already saved
+        if (existingRecipeSnapshot.length === 0 && recipeTop20.length > 0) {
+            const connection = await db.getConnection();
+            try {
+                await connection.beginTransaction();
+                for (let i = 0; i < recipeTop20.length; i++) {
+                    const user = recipeTop20[i];
+                    await connection.query(
+                        `INSERT INTO leaderboardSnapshot (snapshot_month, type, rank_position, userProfileID, contributions)
+                         VALUES (?, 'recipe', ?, ?, ?)`,
+                        [lastMonthStr, i + 1, user.userProfileID, user.contributions]
                     );
-                    console.log(`✅ Awarded top_recipe badge to userProfileID ${rank1Recipe.userProfileID} for ${currentMonth}`);
-                } else {
-                    console.log(`⚠️ top_recipe badge already awarded to userProfileID ${rank1Recipe.userProfileID} for ${currentMonth}, skipping...`);
                 }
+                await connection.commit();
+                console.log(`✅ Saved recipe leaderboard snapshot for ${lastMonthStr}`);
+            } catch (snapshotError) {
+                await connection.rollback();
+                console.error(`❌ Failed to save recipe snapshot for ${lastMonthStr}:`, snapshotError.message);
+            } finally {
+                connection.release();
             }
-
-            // Post rank 1
-            if (postTop3.length > 0) {
-                const rank1Post = postTop3[0];
-                const currentMonth = malaysiaTime.toISOString().slice(0, 7);
-
-                // Guard: check if badge already awarded this month
-                const [existingPostBadge] = await db.query(
-                    `SELECT id FROM badge 
-                     WHERE userProfileID = ? AND badge_type = 'top_post' AND awarded_month = ?`,
-                    [rank1Post.userProfileID, currentMonth]
-                );
-
-                if (existingPostBadge.length === 0) {
-                    await db.query(
-                        `INSERT INTO badge (userProfileID, badge_type, awarded_month)
-                         VALUES (?, 'top_post', ?)`,
-                        [rank1Post.userProfileID, currentMonth]
-                    );
-                    console.log(`✅ Awarded top_post badge to userProfileID ${rank1Post.userProfileID} for ${currentMonth}`);
-                } else {
-                    console.log(`⚠️ top_post badge already awarded to userProfileID ${rank1Post.userProfileID} for ${currentMonth}, skipping...`);
-                }
-            }
-
-            console.log("✅ Monthly leaderboard XP rewards complete.");
-        } else {
-            console.log("ℹ️ Not the last day of the month. Skipping leaderboard rewards.");
+        } else if (existingRecipeSnapshot.length > 0) {
+            console.log(`⚠️ Recipe snapshot for ${lastMonthStr} already exists, skipping...`);
         }
+
+        // Award XP to top 3, badge only to rank 1 recipe contributors
+        const recipeTop3 = recipeTop20.slice(0, 3);
+        for (let i = 0; i < recipeTop3.length; i++) {
+            const user = recipeTop3[i];
+            const rank = i + 1;
+            const xp = RECIPE_XP[rank];
+            const actionType = `LEADERBOARD_RECIPE_RANK_${rank}`;
+
+            await awardXP(user.userProfileID, actionType, rank, xp);
+            await createNotification(
+                user.userID,
+                "leaderboard_reward",
+                `Congratulations! You ranked #${rank} on the Recipe Leaderboard for ${lastMonthStr} and earned ${xp} XP!`,
+                db
+            );
+            console.log(`🔔 Notification sent to userID ${user.userID} for recipe rank ${rank}`);
+        }
+
+        // Badge for recipe rank 1
+        if (recipeTop3.length > 0) {
+            const rank1Recipe = recipeTop3[0];
+            const [existingRecipeBadge] = await db.query(
+                `SELECT id FROM badge 
+                 WHERE userProfileID = ? AND badge_type = 'top_recipe' AND awarded_month = ?`,
+                [rank1Recipe.userProfileID, lastMonthStr]
+            );
+
+            if (existingRecipeBadge.length === 0) {
+                await db.query(
+                    `INSERT INTO badge (userProfileID, badge_type, awarded_month)
+                     VALUES (?, 'top_recipe', ?)`,
+                    [rank1Recipe.userProfileID, lastMonthStr]
+                );
+                console.log(`✅ Awarded top_recipe badge to userProfileID ${rank1Recipe.userProfileID} for ${lastMonthStr}`);
+            } else {
+                console.log(`⚠️ top_recipe badge already awarded to userProfileID ${rank1Recipe.userProfileID} for ${lastMonthStr}, skipping...`);
+            }
+        }
+
+        // Snapshot + Post Leaderboard Rewards
+        const [existingPostSnapshot] = await db.query(
+            `SELECT id FROM leaderboardSnapshot WHERE snapshot_month = ? AND type = 'post' LIMIT 1`,
+            [lastMonthStr]
+        );
+
+        const [postTop20] = await db.query(`
+            WITH monthly_posts AS (
+                SELECT
+                    p.postID,
+                    p.userProfileID,
+                    p.approved_at,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY p.userProfileID
+                        ORDER BY p.approved_at ASC
+                    ) AS row_num,
+                    COUNT(*) OVER (PARTITION BY p.userProfileID) AS contributions
+                FROM posts p
+                JOIN userProfile up ON p.userProfileID = up.userProfileID
+                JOIN user u ON up.userID = u.userID
+                WHERE p.status = 'Approved'
+                    AND MONTH(p.approved_at) = ?
+                    AND YEAR(p.approved_at) = ?
+                    AND u.role = 'member'
+                    AND u.status != 'Suspended'
+            ),
+            user_tiebreaker AS (
+                SELECT userProfileID, contributions, approved_at AS reached_at
+                FROM monthly_posts
+                WHERE row_num = contributions
+            )
+            SELECT
+                ut.userProfileID,
+                u.userID,
+                u.firstname,
+                ut.contributions,
+                ut.reached_at
+            FROM user_tiebreaker ut
+            JOIN userProfile up ON ut.userProfileID = up.userProfileID
+            JOIN user u ON up.userID = u.userID
+            ORDER BY ut.contributions DESC, ut.reached_at ASC, ut.userProfileID ASC
+            LIMIT 20
+        `, [lastMonth, lastMonthYear]);
+
+        // Save post snapshot if not already saved
+        if (existingPostSnapshot.length === 0 && postTop20.length > 0) {
+            const connection = await db.getConnection();
+            try {
+                await connection.beginTransaction();
+                for (let i = 0; i < postTop20.length; i++) {
+                    const user = postTop20[i];
+                    await connection.query(
+                        `INSERT INTO leaderboardSnapshot (snapshot_month, type, rank_position, userProfileID, contributions)
+                         VALUES (?, 'post', ?, ?, ?)`,
+                        [lastMonthStr, i + 1, user.userProfileID, user.contributions]
+                    );
+                }
+                await connection.commit();
+                console.log(`✅ Saved post leaderboard snapshot for ${lastMonthStr}`);
+            } catch (snapshotError) {
+                await connection.rollback();
+                console.error(`❌ Failed to save post snapshot for ${lastMonthStr}:`, snapshotError.message);
+            } finally {
+                connection.release();
+            }
+        } else if (existingPostSnapshot.length > 0) {
+            console.log(`⚠️ Post snapshot for ${lastMonthStr} already exists, skipping...`);
+        }
+
+        // Award XP to top 3, badge only to rank 1 post contributors
+        const postTop3 = postTop20.slice(0, 3);
+        for (let i = 0; i < postTop3.length; i++) {
+            const user = postTop3[i];
+            const rank = i + 1;
+            const xp = POST_XP[rank];
+            const actionType = `LEADERBOARD_POST_RANK_${rank}`;
+
+            await awardXP(user.userProfileID, actionType, rank, xp);
+            await createNotification(
+                user.userID,
+                "leaderboard_reward",
+                `Congratulations! You ranked #${rank} on the Community Post Leaderboard for ${lastMonthStr} and earned ${xp} XP!`,
+                db
+            );
+            console.log(`🔔 Notification sent to userID ${user.userID} for post rank ${rank}`);
+        }
+
+        // Badge for post rank 1
+        if (postTop3.length > 0) {
+            const rank1Post = postTop3[0];
+            const [existingPostBadge] = await db.query(
+                `SELECT id FROM badge 
+                 WHERE userProfileID = ? AND badge_type = 'top_post' AND awarded_month = ?`,
+                [rank1Post.userProfileID, lastMonthStr]
+            );
+
+            if (existingPostBadge.length === 0) {
+                await db.query(
+                    `INSERT INTO badge (userProfileID, badge_type, awarded_month)
+                     VALUES (?, 'top_post', ?)`,
+                    [rank1Post.userProfileID, lastMonthStr]
+                );
+                console.log(`✅ Awarded top_post badge to userProfileID ${rank1Post.userProfileID} for ${lastMonthStr}`);
+            } else {
+                console.log(`⚠️ top_post badge already awarded to userProfileID ${rank1Post.userProfileID} for ${lastMonthStr}, skipping...`);
+            }
+        }
+
+        console.log("✅ Monthly leaderboard XP rewards complete.");
         
         console.log("✅ Status Cleanup Complete.");
 

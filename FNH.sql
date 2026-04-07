@@ -273,3 +273,15 @@ CREATE TABLE quiz_questions (
   explanation TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE leaderboardSnapshot (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  snapshot_month VARCHAR(7) NOT NULL,
+  type VARCHAR(20) NOT NULL,
+  rank_position INT NOT NULL,
+  userProfileID INT NOT NULL,
+  contributions INT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID)
+    ON DELETE CASCADE ON UPDATE CASCADE
+);
