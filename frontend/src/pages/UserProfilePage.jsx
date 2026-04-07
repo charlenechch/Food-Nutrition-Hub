@@ -1414,10 +1414,7 @@ const handleDeleteAccount = async () => {
               {equippedBadge && equippedBadge !== 'null' && (
               <span 
                 className="upp-equipped-badge" 
-                style={{ 
-                  background: "transparent",
-                  boxShadow: `0 4px 12px ${getTierById(equippedBadge).color}40`,
-                }}
+                style={{ boxShadow: `0 4px 12px ${getTierById(equippedBadge).color}40` }}
               >
                 {getTierById(equippedBadge).icon}
                 
@@ -1426,6 +1423,24 @@ const handleDeleteAccount = async () => {
                 </span>
               </span>
               )}
+
+              {equippedContributorBadge && (() => {
+                const earnedBadge = earnedBadges.find(b => b.id === equippedContributorBadge);
+                if (!earnedBadge) return null;
+                const tier = getTierById(earnedBadge.badge_type);
+                return (
+                  <span
+                    className="upp-equipped-badge"
+                    style={{ boxShadow: `0 4px 12px ${tier.color}40` }}
+                  >
+                    {tier.icon}
+                    <span className="upp-mini-tooltip" style={{ color: tier.color }}>
+                      {tier.title} — {earnedBadge.awarded_month}
+                    </span>
+                  </span>
+                );
+              })()}
+
             </h1>
             {user?.bio && (
               <p className="upp-sub">
