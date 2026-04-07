@@ -1644,7 +1644,7 @@ router.get('/waiting-recipes', async (req, res) => {
     const query = `
       SELECT 
         r.recipeID as id,
-        f.name as foodName,
+        r.recipeName as name,
         CONCAT(u.firstname, ' ', u.lastname) AS author
       FROM recipe r
       INNER JOIN food f ON r.foodID = f.foodID
