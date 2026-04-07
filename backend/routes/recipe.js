@@ -1401,18 +1401,20 @@ router.patch('/sendFeedback/:id', async (req, res) => {
   }
 });
 
-// ✅ DELETE RECIPE (Admin Only) - Simplified for 1-to-1 relationship
+// ✅ DELETE RECIPE (Admin Only)
 router.delete("/admin/delete/:id", async (req, res) => {
   const { id } = req.params;
-  
+  console.log(`🗑️ [ADMIN] Deleting recipe ID: ${id}`);
+
+  // 1. Security Check: Ensure user is Admin
   if (req.session?.user?.role !== "admin") {
     return res.status(403).json({ success: false, message: "Unauthorized: Admin access required." });
   }
 
   try {
-    // Get recipe name and foodID
+    // 2. Get recipe details before deletion
     const [recipeRows] = await db.query(
-      "SELECT r.recipeName, r.foodID FROM recipe r WHERE r.recipeID = ?", 
+      "SELECT recipeName, foodID FROM recipe WHERE recipeID = ?", 
       [id]
     );
     
@@ -1423,19 +1425,37 @@ router.delete("/admin/delete/:id", async (req, res) => {
     const recipeName = recipeRows[0].recipeName;
     const foodID = recipeRows[0].foodID;
 
-    // Delete recipe
+    // 3. Delete from 'recipe' table (using recipeID)
     await db.query("DELETE FROM recipe WHERE recipeID = ?", [id]);
-    
-    // Delete associated food
-    await db.query("DELETE FROM food WHERE foodID = ?", [foodID]);
 
-    await logActivity(db, req.session.user.userID, `${req.session.user.firstname} ${req.session.user.lastname}`, "recipe_deleted", `Deleted recipe "${recipeName}"`);
+    // 4. Check if any other recipes use this foodID
+    const [otherRecipes] = await db.query(
+      "SELECT COUNT(*) as count FROM recipe WHERE foodID = ?", 
+      [foodID]
+    );
     
+    // 5. Only delete from 'food' table if no other recipes reference it
+    if (otherRecipes[0].count === 0) {
+      await db.query("DELETE FROM food WHERE foodID = ?", [foodID]);
+      console.log(`✅ [ADMIN] Food ID ${foodID} deleted (no other recipes reference it)`);
+    } else {
+      console.log(`ℹ️ [ADMIN] Food ID ${foodID} kept (${otherRecipes[0].count} other recipes still reference it)`);
+    }
+
+    const adminID = req.session.user.userID;
+    const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    await logActivity(db, adminID, adminName, "recipe_deleted", `Deleted recipe "${recipeName}" (Recipe ID: ${id}).`);
+
+    console.log(`✅ [ADMIN] Recipe ${id} deleted successfully.`);
     res.json({ success: true, message: "Recipe deleted successfully." });
 
   } catch (error) {
-    console.error(`Error deleting recipe ${id}:`, error);
-    res.status(500).json({ success: false, message: "Server error during deletion." });
+    console.error(`❌ [ADMIN] Error deleting recipe ${id}:`, error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error during deletion.",
+      error: error.message 
+    });
   }
 });
 
