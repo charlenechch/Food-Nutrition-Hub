@@ -1683,6 +1683,7 @@ router.get('/recipes/food/:foodId', async (req, res) => {
       SELECT 
         r.recipeID,
         r.foodID,
+        r.recipeName,
         r.description,
         r.ingredients,
         r.steps,
@@ -1709,6 +1710,7 @@ router.get('/recipes/food/:foodId', async (req, res) => {
         data: {
           recipeID: 0,
           foodID: parseInt(foodId),
+          recipeName: "",
           description: "Official Food Item",
           ingredients: "Recipe coming soon...",
           steps: "",
@@ -1726,6 +1728,7 @@ router.get('/recipes/food/:foodId', async (req, res) => {
     const recipe = {
       recipeID: row.recipeID,
       foodID: row.foodID,
+      recipeName: row.recipeName || '',
       description: row.description || '',
       ingredients: row.ingredients || '',
       steps: row.steps || '',

@@ -490,7 +490,6 @@ const AdminFoodDatabase = ({ categories = [] }) => {
        "* REQUIRED: Brief food description", "* REQUIRED: Image URL", 
        "* REQUIRED: Minutes (number only)", "Optional cultural info", 
        "Optional traditional methods", "Separate with commas: e.g., first, second", 
-       "Optional alternative name", "Optional alternative description", 
        "Optional health advice", "* REQUIRED: Calories (number)", 
        "* REQUIRED: Protein in grams", "* REQUIRED: Fat in grams", 
        "* REQUIRED: Carbs in grams", "* REQUIRED: Fiber in grams", 
