@@ -438,7 +438,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       Carbohydrates_g: Number(row.Carbohydrates_g || row.Carbs || 0) || 0,
       Fiber_g: Number(row.Fiber_g || row.Fiber || 0) || 0,
       VitaminC_mg: Number(row.VitaminC_mg || row.VitaminC || 0) || 0,
-      recipeName: recipeName,
+      recipeName: String(row.RecipeName || row.recipeName || row.Recipe || "").trim(),
       ingredients: String(row.Ingredients || row.ingredients || "").trim(),
       steps: String(row.Steps || row.steps || row.Instructions || row.instructions || "").trim(),
       cookTime: Number(row.CookTime || row.cookTime || row.CookingTime || 0) || 0,

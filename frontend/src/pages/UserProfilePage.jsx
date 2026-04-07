@@ -98,7 +98,7 @@ const isCommunity = (c) => {
 };
 
 const isRecipe = (c) => {
-    return c && c.foodName !== undefined;
+    return c && (c.recipeID !== undefined || c.name !== undefined);
   };
 
 const byDateDesc = (a, b) => {

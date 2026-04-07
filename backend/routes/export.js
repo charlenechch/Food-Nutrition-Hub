@@ -1076,7 +1076,7 @@ router.post('/export/saved-foods', async (req, res) => {
           r.createdAt as recipeCreatedAt,
           r.admin_feedback,
           r.status,
-          r.description,
+          r.description as recipeDescription,
           r.recipeName,
           up.userProfileID,
           u.firstname,
@@ -1283,6 +1283,7 @@ router.post('/export/saved-foods', async (req, res) => {
         doc.fontSize(10)
           .font('Helvetica-Bold')
           .text(`Recipe: ${recipe.recipeName}`);
+          doc.moveDown(0.2);
           
           doc.font('Helvetica');
           doc.text(`Contributor: ${recipe.firstname} ${recipe.lastname}`);
@@ -1436,7 +1437,7 @@ router.post('/export/saved-foods', async (req, res) => {
         if (recipe.recipeDescription) {
           doc.moveDown(0.3);
           doc.font('Helvetica-Bold').text('Description:');
-          doc.font('Helvetica').text(recipe.description, { width: 500 });
+          doc.font('Helvetica').text(recipe.recipeDescription, { width: 500 });
         }
 
         if (recipe.ingredients) {
