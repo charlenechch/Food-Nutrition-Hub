@@ -254,11 +254,11 @@ const formatContributionDate = (dateString) => {
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", location: "" });
   const [bio, setBio] = useState("");
   const quizStats = user?.quizStats || {
-    lastCompletedDate: "2026-04-01",
-    currentStreak: 5,
-    longestStreak: 14,
-    scoreToday: 5,
-    totalPerfectDays: 12
+    lastCompletedDate: null,
+    currentStreak: 0,
+    longestStreak: 0,
+    scoreToday: 0,
+    totalPerfectDays: 0
   };
 
   const [tab, setTab] = useState(() => {
