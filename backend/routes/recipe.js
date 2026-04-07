@@ -1304,7 +1304,7 @@ router.patch('/sendFeedback/:id', async (req, res) => {
 
     // 2. Fetch Info AND Status
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, f.name AS recipeName, r.status, u.userID
+      SELECT u.email, u.firstname, r.name AS recipeName, r.status, u.userID
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
@@ -1412,23 +1412,39 @@ router.delete("/admin/delete/:id", async (req, res) => {
   }
 
   try {
-    // 2. Fetch food name before deletion for logging
-    const [foodRows] = await db.query("SELECT name FROM food WHERE foodID = ?", [id]);
-    const foodName = foodRows.length > 0 ? foodRows[0].name : `ID ${id}`;
-
-    // 3. Delete from 'recipe' table first (Child table)
-    await db.query("DELETE FROM recipe WHERE foodID = ?", [id]);
-
-    // 4. Delete from 'food' table next (Parent table)
-    const [result] = await db.query("DELETE FROM food WHERE foodID = ?", [id]);
-
-    if (result.affectedRows === 0) {
+    // 2. Get recipe details before deletion
+    const [recipeRows] = await db.query(
+      "SELECT recipeName, foodID FROM recipe WHERE recipeID = ?", 
+      [id]
+    );
+    
+    if (recipeRows.length === 0) {
       return res.status(404).json({ success: false, message: "Recipe not found." });
+    }
+    
+    const recipeName = recipeRows[0].recipeName;
+    const foodID = recipeRows[0].foodID;
+
+    // 3. Delete from 'recipe' table (using recipeID)
+    await db.query("DELETE FROM recipe WHERE recipeID = ?", [id]);
+
+    // 4. Check if any other recipes use this foodID
+    const [otherRecipes] = await db.query(
+      "SELECT COUNT(*) as count FROM recipe WHERE foodID = ?", 
+      [foodID]
+    );
+    
+    // 5. Only delete from 'food' table if no other recipes reference it
+    if (otherRecipes[0].count === 0) {
+      await db.query("DELETE FROM food WHERE foodID = ?", [foodID]);
+      console.log(`✅ [ADMIN] Food ID ${foodID} deleted (no other recipes reference it)`);
+    } else {
+      console.log(`ℹ️ [ADMIN] Food ID ${foodID} kept (${otherRecipes[0].count} other recipes still reference it)`);
     }
 
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-    await logActivity(db, adminID, adminName, "recipe_deleted", `Deleted recipe "${foodName}" (Food ID: ${id}).`);
+    await logActivity(db, adminID, adminName, "recipe_deleted", `Deleted recipe "${recipeName}" (Recipe ID: ${id}).`);
 
     console.log(`✅ [ADMIN] Recipe ${id} deleted successfully.`);
     res.json({ success: true, message: "Recipe deleted successfully." });

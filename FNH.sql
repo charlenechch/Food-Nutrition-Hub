@@ -62,7 +62,7 @@ CREATE TABLE userProfile (
 
 CREATE TABLE food (
     foodID INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(20) NOT NULL,
+    name VARCHAR(100) NULL,
     origin VARCHAR(100) NOT NULL,
     category VARCHAR(100) NOT NULL,
     difficulty ENUM('Easy', 'Medium', 'Hard') NOT NULL,
