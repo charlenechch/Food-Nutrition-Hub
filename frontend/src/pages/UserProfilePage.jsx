@@ -738,7 +738,7 @@ const ContributionRow = ({ c }) => {
   const navigate = useNavigate();
 
     // 1. Logic to determine if item is Recipe or Community Post
-    const isRecipeItem = c?.foodName !== undefined;
+    const isRecipeItem = c?.name !== undefined;
     const isCommunityItem = ["community", "post", "story", "community_post"].includes((c?.type || "").toLowerCase());
 
     const handleRevise = () => {

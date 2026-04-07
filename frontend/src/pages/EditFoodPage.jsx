@@ -143,7 +143,7 @@ const EditFoodPage = () => {
           setHasExistingRecipe(true);
           setRecipe({
             recipeID: recipeData.data.recipeID,
-            name: recipeData.data.name || "",
+            name: recipeData.data.recipeName || "",
             description: recipeData.data.description || "",
             ingredients: recipeData.data.ingredients || "",
             steps: recipeData.data.steps || "",
@@ -323,7 +323,7 @@ const EditFoodPage = () => {
 
     // Prepare recipe data
     const recipeDataToSave = {
-      name: recipe.name,
+      recipeName: recipe.name,
       description: recipe.description,
       ingredients: recipe.ingredients,
       steps: recipe.steps,

@@ -916,6 +916,10 @@ router.post("/bulk-import", async (req, res) => {
           throw new Error("Missing name or origin");
         }
 
+        if (!foodItem.recipeName) {
+          throw new Error("Missing recipeName");
+        }
+
         // Validate required fields for RECIPE table
         if (!foodItem.ingredients || !foodItem.steps) {
           throw new Error("Missing ingredients or steps for recipe");
@@ -984,7 +988,7 @@ router.post("/bulk-import", async (req, res) => {
             foodItem.DidYouKnow || "",
             foodItem.chefTips || "",
             "Approved", // Directly approved
-            foodItem.recipeName || ""
+            foodItem.recipeName
           ];
 
           await connection.query(recipeSql, recipeValues);

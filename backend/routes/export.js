@@ -934,14 +934,14 @@ router.post('/export/saved-foods', async (req, res) => {
       const recipePlaceholders = recipeIds.length > 0 ? recipeIds.map(() => '?').join(',') : null;
       const recipeQuery = recipePlaceholders
         ? `SELECT r.recipeID, r.ingredients, r.steps, r.cookTime, r.servings,
-                  r.DidYouKnow, r.chefTips, r.status, r.createdAt, r.description, r.recipeName,
+                  r.DidYouKnow, r.chefTips, r.status, r.createdAt, r.description as recipeDescription, r.recipeName,
                   f.name as foodName, f.origin, f.category
            FROM recipe r
            JOIN food f ON r.foodID = f.foodID
            WHERE r.userProfileID = ? AND r.recipeID IN (${recipePlaceholders})
            ORDER BY r.createdAt DESC`
         : `SELECT r.recipeID, r.ingredients, r.steps, r.cookTime, r.servings,
-                  r.DidYouKnow, r.chefTips, r.status, r.createdAt, r.description, r.recipeName,
+                  r.DidYouKnow, r.chefTips, r.status, r.createdAt, r.description as recipeDescription, r.recipeName,
                   f.name as foodName, f.origin, f.category
            FROM recipe r
            JOIN food f ON r.foodID = f.foodID
@@ -1279,14 +1279,25 @@ router.post('/export/saved-foods', async (req, res) => {
         doc.moveDown(0.3);
         
         // Recipe (if exists)
-        if (recipe) {
-          doc.moveDown(0.5);
-          doc.font('Helvetica-Bold')
-             .text('Recipe:');
+        if (recipe && recipe.recipeName) {
+        doc.fontSize(10)
+          .font('Helvetica-Bold')
+          .text(`Recipe: ${recipe.recipeName}`);
           
           doc.font('Helvetica');
           doc.text(`Contributor: ${recipe.firstname} ${recipe.lastname}`);
+          doc.text(`Recipe Name: ${recipe.recipeName}`);
           doc.text(`Cook Time: ${recipe.cookTime || 'N/A'} min | Servings: ${recipe.servings || 'N/A'}`);
+
+          // Recipe Description
+          if (recipe && recipe.recipeDescription) {
+            doc.moveDown(0.3);
+            doc.font('Helvetica-Bold')
+              .text('Recipe Description:');
+            doc.moveDown(0.1);
+            doc.font('Helvetica')
+              .text(recipe.recipeDescription, { width: 500, align: 'justify' });
+          }
           
           if (recipe.ingredients) {
             doc.moveDown(0.3);
@@ -1416,11 +1427,18 @@ router.post('/export/saved-foods', async (req, res) => {
       doc.moveDown(1);
 
       myRecipes.forEach((recipe, index) => {
-        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${recipe.foodName}`);
+        doc.fontSize(12).font('Helvetica-Bold').text(`${index + 1}. ${recipe.recipeName}`);
         doc.fontSize(10).font('Helvetica');
         doc.text(`Origin: ${recipe.origin || 'N/A'} | Category: ${recipe.category || 'N/A'}`);
         doc.text(`Cook Time: ${recipe.cookTime || 'N/A'} min | Servings: ${recipe.servings || 'N/A'}`);
         doc.text(`Status: ${recipe.status || 'N/A'}`);
+
+        if (recipe.recipeDescription) {
+          doc.moveDown(0.3);
+          doc.font('Helvetica-Bold').text('Description:');
+          doc.font('Helvetica').text(recipe.description, { width: 500 });
+        }
+
         if (recipe.ingredients) {
           doc.moveDown(0.3);
           doc.font('Helvetica-Bold').text('Ingredients:');
