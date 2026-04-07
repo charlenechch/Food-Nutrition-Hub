@@ -332,7 +332,7 @@ export default function Community() {
                             }}
                             style={{ cursor: "pointer" }}>
                             {post.author}
-                            {post.equippedBadge && post.equippedBadge !== 'null' && post.equippedBadge !== 'novice' && (
+                            {post.equippedBadge && post.equippedBadge !== 'null' && (
                               <span className="user-badge-inline">
                                 {getTierById(post.equippedBadge).icon}
                                 <span className="badge-tooltip-mini" style={{ color: getTierById(post.equippedBadge).color }}>

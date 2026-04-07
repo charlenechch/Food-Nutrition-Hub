@@ -253,7 +253,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                       onMouseLeave={(e) => e.target.style.textDecoration = "underline transparent"}
                     >
                       {c.username || c.author || "User"}
-                      {c.equippedBadge && c.equippedBadge !== 'null' && c.equippedBadge !== 'novice' && (
+                      {c.equippedBadge && c.equippedBadge !== 'null' && (
                         <span className="user-badge-inline">
                           {getTierById(c.equippedBadge).icon}
                           <span className="badge-tooltip-mini" style={{ color: getTierById(c.equippedBadge).color }}>
@@ -381,9 +381,7 @@ export default function CommunityPost() {
                 <div className="author-text-info">
                   <span className="author-name-large">
                       {post.author || t("communityPost.unknownChef")}
-                      
-                      {/* 👇 EXACT FIX: Added check to ignore 'novice' 👇 */}
-                      {post.equippedBadge && post.equippedBadge !== 'null' && post.equippedBadge !== 'novice' && (
+                      {post.equippedBadge && post.equippedBadge !== 'null' && (
                         <span className="user-badge-inline">
                           {getTierById(post.equippedBadge).icon}
                           <span className="badge-tooltip-mini" style={{ color: getTierById(post.equippedBadge).color }}>

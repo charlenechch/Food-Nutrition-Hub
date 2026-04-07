@@ -191,7 +191,7 @@ const Comment = React.memo(function Comment({
           >
             {username}
 
-            {item.equippedBadge && item.equippedBadge !== 'null' && item.equippedBadge !== 'novice' && (
+            {item.equippedBadge && item.equippedBadge !== 'null' && (
               <span className="user-badge-inline">
                 {getTierById(item.equippedBadge).icon}
                 <span className="badge-tooltip-mini" style={{ color: getTierById(item.equippedBadge).color }}>

@@ -410,7 +410,7 @@ const buildHealthAlerts = (food) => {
                             title={`View ${c.username || c.user}'s profile`}
                           >
                             {c.username || c.user}
-                            {c.equippedBadge && c.equippedBadge !== 'null' && c.equippedBadge !== 'novice' && (
+                            {c.equippedBadge && c.equippedBadge !== 'null' && (
                             <span className="user-badge-inline">
                               {getTierById(c.equippedBadge).icon}
                               <span className="badge-tooltip-mini" style={{ color: getTierById(c.equippedBadge).color }}>
