@@ -9,6 +9,8 @@ import normalHat from '../assets/badges/chef_hat_normal.png';
 import goldHat from '../assets/badges/chef_hat_gold.png';
 import streakMaster from '../assets/badges/streak_master.png';
 import foodEncyclopedia from '../assets/badges/food_encyclopedia.png';
+import topRecipe from '../assets/badges/top_recipe.png';
+import topPost from '../assets/badges/top_post.png';
 
 const BadgeImg = ({ src, alt }) => (
   <img src={src} alt={alt} style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
@@ -92,7 +94,7 @@ export const TIERS = [
     minLevel: 999,
     title: "Top Recipe Contributor",
     color: "#e67e22",
-    icon: <span style={{ fontSize: "70%", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>🍳</span>, // Placeholder
+    icon: <BadgeImg src={topRecipe} alt="Top Recipe Contributor" />,
     desc: "Awarded to the #1 Recipe Contributor of the month."
   },
   {
@@ -100,7 +102,7 @@ export const TIERS = [
     minLevel: 999,
     title: "Top Community Poster",
     color: "#2980b9",
-    icon: <span style={{ fontSize: "70%", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>💬</span>, // Placeholder
+    icon: <BadgeImg src={topPost} alt="Top Community Poster" />,
     desc: "Awarded to the #1 Community Post Contributor of the month."
   }
 ];
