@@ -869,7 +869,9 @@
     "fibPlace": "e.g. 4",
     "vitCPlace": "e.g. 2.5",
     "recipeDescription": "Recipe Description",
-    "recipeDescriptionPlace": "e.g., A rich, aromatic bowl of traditional Sarawak Laksa with a spicy sambal kick, passed down from my grandmother..."
+    "recipeDescriptionPlace": "e.g., A rich, aromatic bowl of traditional Sarawak Laksa with a spicy sambal kick, passed down from my grandmother...",
+    "recipeName": "Recipe Name",
+    "recipeNamePlaceholder": "e.g., Grandma's Traditional Ayam Pansuh"
   },
 
   "addRecipe": {

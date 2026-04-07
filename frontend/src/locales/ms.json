@@ -868,7 +868,9 @@
     "fibPlace": "cth. 4",
     "vitCPlace": "cth. 2.5",
     "recipeDescription": "Penerangan Resipi",
-    "recipeDescriptionPlace": "cth., Semangkuk Laksa Sarawak tradisional yang kaya dengan aroma dan kepedasan sambal, resipi turun-temurun..."
+    "recipeDescriptionPlace": "cth., Semangkuk Laksa Sarawak tradisional yang kaya dengan aroma dan kepedasan sambal, resipi turun-temurun...",
+    "recipeName": "Nama Resipi",
+    "recipeNamePlaceholder": "cth., Ayam Pansuh Tradisional Nenek"
   },
 
   "addRecipe": {

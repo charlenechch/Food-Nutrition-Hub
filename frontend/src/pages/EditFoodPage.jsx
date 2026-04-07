@@ -57,7 +57,16 @@ const EditFoodPage = () => {
   
   // Separate food and recipe data
   const [food, setFood] = useState(null);
-  const [recipe, setRecipe] = useState(null);
+  const [recipe, setRecipe] = useState({
+    name: "",
+    description: "",
+    ingredients: "",
+    steps: "",
+    cookTime: "",
+    servings: "1",
+    DidYouKnow: "",
+    chefTips: "",
+  });
   const [hasExistingRecipe, setHasExistingRecipe] = useState(false);
 
   const [selectedDietary, setSelectedDietary] = useState([]);
@@ -140,6 +149,7 @@ const EditFoodPage = () => {
           setHasExistingRecipe(true);
           setRecipe({
             recipeID: recipeData.data.recipeID,
+            name: recipeData.data.name || "",
             description: recipeData.data.description || "",
             ingredients: recipeData.data.ingredients || "",
             steps: recipeData.data.steps || "",
@@ -319,6 +329,7 @@ const EditFoodPage = () => {
 
     // Prepare recipe data
     const recipeDataToSave = {
+      name: recipe.name,
       description: recipe.description,
       ingredients: recipe.ingredients,
       steps: recipe.steps,
@@ -574,6 +585,15 @@ const EditFoodPage = () => {
           {/* Recipe Details Section */}
           <div className="edit-cultural-context-card">
             <h3>{t("addFood.recipeDetails")}</h3>
+
+            <label className="basic-info-label">{t("addFood.recipeName")}</label>
+            <input 
+              className="edit-food-input" 
+              name="name" 
+              value={recipe.name} 
+              onChange={handleRecipeChange} 
+              placeholder={t("addFood.recipeNamePlaceholder")} 
+            />
             
             <div className="edit-food-basic-info-two-col">
               <div>
