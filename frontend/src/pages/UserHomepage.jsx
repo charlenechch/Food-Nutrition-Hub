@@ -346,7 +346,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             <span className="sdg-badge">🏙️ SDG 11 · Sustainable Communities</span>
           </div>
           <span className="hero-greeting">{getHeroTitle()}</span>
-          <h1 className="hero-title">{t("home.mainHeadline", "Sarawak's Food. Documented. Preserved. For Everyone.")}</h1>
+          <h1 className="hero-title">{t("home.mainHeadline", "Discover Sarawak's Heritage and Food")}</h1>
           <p className="hero-subtitle">{t("home.heroSubtitle", "A community-driven hub preserving the nutritional heritage of Sarawak's traditional foods — for healthier communities and richer cultural identity.")}</p>
 
           <div className="hero-search-container" ref={searchRef}>
