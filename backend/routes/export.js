@@ -934,14 +934,14 @@ router.post('/export/saved-foods', async (req, res) => {
       const recipePlaceholders = recipeIds.length > 0 ? recipeIds.map(() => '?').join(',') : null;
       const recipeQuery = recipePlaceholders
         ? `SELECT r.recipeID, r.ingredients, r.steps, r.cookTime, r.servings,
-                  r.DidYouKnow, r.chefTips, r.status, r.createdAt,
+                  r.DidYouKnow, r.chefTips, r.status, r.createdAt, r.description, r.recipeName,
                   f.name as foodName, f.origin, f.category
            FROM recipe r
            JOIN food f ON r.foodID = f.foodID
            WHERE r.userProfileID = ? AND r.recipeID IN (${recipePlaceholders})
            ORDER BY r.createdAt DESC`
         : `SELECT r.recipeID, r.ingredients, r.steps, r.cookTime, r.servings,
-                  r.DidYouKnow, r.chefTips, r.status, r.createdAt,
+                  r.DidYouKnow, r.chefTips, r.status, r.createdAt, r.description, r.recipeName,
                   f.name as foodName, f.origin, f.category
            FROM recipe r
            JOIN food f ON r.foodID = f.foodID
@@ -1078,6 +1078,8 @@ router.post('/export/saved-foods', async (req, res) => {
           r.createdAt as recipeCreatedAt,
           r.admin_feedback,
           r.status,
+          r.description,
+          r.recipeName,
           up.userProfileID,
           u.firstname,
           u.lastname,

@@ -968,9 +968,9 @@ router.post("/bulk-import", async (req, res) => {
             INSERT INTO recipe 
             (
               foodID, userProfileID, description, ingredients, steps, cookTime, 
-              servings, DidYouKnow, chefTips, status
+              servings, DidYouKnow, chefTips, status, recipeName
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
           
           const recipeValues = [
@@ -983,7 +983,8 @@ router.post("/bulk-import", async (req, res) => {
             foodItem.servings || 1,
             foodItem.DidYouKnow || "",
             foodItem.chefTips || "",
-            "Approved" // Directly approved
+            "Approved", // Directly approved
+            foodItem.recipeName || ""
           ];
 
           await connection.query(recipeSql, recipeValues);
