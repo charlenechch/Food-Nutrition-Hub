@@ -50,6 +50,7 @@ const AddFoodPage = () => {
   // Main Food State
   const [food, setFood] = useState({
     name: "",
+    recipeName: "",
     origin: "",
     category: [],
     foodDescription: "",
@@ -180,6 +181,7 @@ const AddFoodPage = () => {
 
       const newFoodData = {
         name: food.name,
+        recipeName: food.recipeName,
         category: Array.isArray(food.category) ? food.category.join(", ") : food.category,        origin: food.origin,
         foodDescription: food.foodDescription,
         culturalSignificance: food.culturalSignificance,
@@ -393,6 +395,15 @@ const AddFoodPage = () => {
         {/* === Recipe Details === */}
         <div className="edit-cultural-context-card">
           <h3>{t("addFood.recipeDetails")}</h3>
+
+          <label className="basic-info-label">{t("addFood.recipeName")}</label>
+          <input 
+            className="edit-food-input" 
+            name="recipeName" 
+            value={food.recipeName} 
+            onChange={handleChange} 
+            placeholder={t("addFood.recipeNamePlaceholder")} 
+          />
           
           <div className="edit-food-basic-info-two-col">
             <div>
