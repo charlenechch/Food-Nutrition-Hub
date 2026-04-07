@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { BsPatchQuestion } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa6";
@@ -6,23 +6,70 @@ import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { FiCheck } from "react-icons/fi";
 import { CiSearch } from "react-icons/ci";
-import { mockAdminQuestions } from "../data/mockAdminQuestions"; 
-import { mockFoods } from "../data/mockFoods"; 
+import { mockFoods } from "../data/mockFoods"; // Keeping mockFoods for the dropdown unless you have a food API
 import { translateTexts } from "../hooks/useAITranslation";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AdminQuizDatabase = () => {
   const { t, i18n } = useTranslation();
-  const [questions, setQuestions] = useState(mockAdminQuestions);
-
   
+  // Replaced mock data with an empty array
+  const [questions, setQuestions] = useState([]);
+  
+  // CSRF Token for secure Admin actions
+  const [csrfToken, setCsrfToken] = useState("");
+
   const [translatedQuestions, setTranslatedQuestions] = useState({});
   const [translatedFoods, setTranslatedFoods] = useState({});
   const [isTranslating, setIsTranslating] = useState(false);
   const [translatedAnswers, setTranslatedAnswers] = useState({});
 
+  // 1. Fetch CSRF Token
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          setCsrfToken(data.csrfToken);
+        }
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
+
+  // 2. Fetch Live Questions from Database
+  const fetchAdminQuestions = useCallback(async () => {
+    try {
+      // Assuming you added the verifyToken/admin checks middleware to this route
+      const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin`, {
+        credentials: "include" 
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Ensure options are parsed back into an array if they come as a JSON string
+        const formattedData = data.map(q => ({
+          ...q,
+          options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options
+        }));
+        setQuestions(formattedData);
+      }
+    } catch (err) {
+      console.error("Failed to fetch admin questions", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAdminQuestions();
+  }, [fetchAdminQuestions]);
+
+  // Translation Logic
   useEffect(() => {
     const translateDynamicData = async () => {
-      if (i18n.language === 'en') {
+      if (i18n.language === 'en' || questions.length === 0) {
         setTranslatedQuestions({});
         setTranslatedFoods({});
         setTranslatedAnswers({});
@@ -44,8 +91,8 @@ const AdminQuizDatabase = () => {
         const qMap = {};
         const aMap = {};
         questions.forEach((q, index) => {
-          qMap[q.id] = translatedQsArray[index] || q.question; 
-          aMap[q.id] = translatedAsArray[index] || q.correctAnswer;
+          qMap[q.questionID] = translatedQsArray[index] || q.question; 
+          aMap[q.questionID] = translatedAsArray[index] || q.correctAnswer;
         });
         
         const fMap = {};
@@ -66,6 +113,7 @@ const AdminQuizDatabase = () => {
 
     translateDynamicData();
   }, [i18n.language, questions]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("default");
 
@@ -85,6 +133,10 @@ const AdminQuizDatabase = () => {
 
   const getFoodName = (id) => {
     if (translatedFoods[id]) return translatedFoods[id];
+    // If your backend returns linkedFoodName, you can just use that!
+    const question = questions.find(q => q.foodID === Number(id));
+    if (question && question.linkedFoodName) return question.linkedFoodName;
+    
     const food = mockFoods.find(f => f.foodID === Number(id));
     return food ? food.name : t("adminQuizDB.unknownFood");
   };
@@ -127,19 +179,56 @@ const AdminQuizDatabase = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
-    if (editingQuestion) {
-      setQuestions(questions.map(q => q.id === editingQuestion.id ? { ...formData, id: editingQuestion.id } : q));
-    } else {
-      const newQuestion = { ...formData, id: `mq_new_${Date.now()}` };
-      setQuestions([newQuestion, ...questions]);
+  // 3. Save Question to Database (POST or PUT)
+  const handleSave = async () => {
+    try {
+      const method = editingQuestion ? "PUT" : "POST";
+      const url = editingQuestion 
+        ? `${API_BASE_URL}/api/quiz-content/admin/${editingQuestion.questionID}`
+        : `${API_BASE_URL}/api/quiz-content/admin`;
+
+      const res = await fetch(url, {
+        method: method,
+        headers: { 
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken
+        },
+        credentials: "include",
+        body: JSON.stringify(formData)
+      });
+
+      if (res.ok) {
+        fetchAdminQuestions(); // Refresh the list from the database
+        setIsModalOpen(false);
+      } else {
+        const errData = await res.json();
+        alert(errData.error || "Failed to save question");
+      }
+    } catch (err) {
+      console.error("Failed to save question", err);
     }
-    setIsModalOpen(false);
   };
 
-  const handleDelete = (id) => {
+  // 4. Delete Question from Database (DELETE)
+  const handleDelete = async (id) => {
     if (window.confirm(t("adminQuizDB.deleteConfirm"))) {
-      setQuestions(questions.filter(q => q.id !== id));
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin/${id}`, {
+          method: "DELETE",
+          headers: {
+            "X-CSRF-Token": csrfToken
+          },
+          credentials: "include"
+        });
+
+        if (res.ok) {
+          fetchAdminQuestions(); // Refresh the list from the database
+        } else {
+          alert("Failed to delete question");
+        }
+      } catch (err) {
+        console.error("Failed to delete question", err);
+      }
     }
   };
 
@@ -197,16 +286,16 @@ const AdminQuizDatabase = () => {
         <tbody>
           {currentItems.length > 0 ? (
             currentItems.map((q) => (
-              <tr key={q.id}>
+              <tr key={q.questionID}>
                 <td data-label="Linked Food">
                   <strong>{getFoodName(q.foodID)}</strong> <br/>
                 </td>
                 <td data-label={t("adminQuizDB.tableQuestion")}>
-                  {isTranslating ? "Translating..." : (translatedQuestions[q.id] || q.question)}
+                  {isTranslating ? "Translating..." : (translatedQuestions[q.questionID] || q.question)}
                 </td>
                 <td data-label={t("adminQuizDB.tableCorrectAnswer")}>
                   <span className="recipe-status-tag approved">
-                    {isTranslating ? "..." : (translatedAnswers[q.id] || q.correctAnswer)} 
+                    {isTranslating ? "..." : (translatedAnswers[q.questionID] || q.correctAnswer)} 
                   </span>
                 </td>
                 <td data-label="Actions">
@@ -214,7 +303,7 @@ const AdminQuizDatabase = () => {
                     <button className="food-database-btn-edit" onClick={() => handleOpenModal(q)}>
                       <HiOutlinePencilAlt />
                     </button>
-                    <button className="food-database-btn-delete" onClick={() => handleDelete(q.id)}>
+                    <button className="food-database-btn-delete" onClick={() => handleDelete(q.questionID)}>
                       <RiDeleteBin5Line />
                     </button>
                   </div>
@@ -271,9 +360,7 @@ const AdminQuizDatabase = () => {
                   />
                 </div>
 
-                <div 
-                  className="lfp-recipe-list aqd-list" 
-                >
+                <div className="lfp-recipe-list aqd-list">
                   {filteredModalFoods.length > 0 ? (
                     filteredModalFoods.map(food => (
                       <div 

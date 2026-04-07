@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import QuizCard from '../components/QuizCard'; 
-import { generateDailyQuiz } from '../utils/quizGenerator'; 
 import { useAuth } from '../context/AuthContext'; 
 import '../css/Quiz.css'; 
 
@@ -20,7 +19,7 @@ export default function DailyQuizPage() {
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
-  // New states for backend integration
+  // States for backend integration
   const [hasCompletedToday, setHasCompletedToday] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
@@ -44,40 +43,47 @@ export default function DailyQuizPage() {
     fetchCsrfToken();
   }, []);
 
-  // 2. On Mount: Check if the user has already done the quiz today
+  // 2. On Mount: Check Quiz Status & Fetch Live Questions
   useEffect(() => {
-    const checkQuizStatus = async () => {
+    const fetchQuizData = async () => {
+      // If no user, they can't play to save stats, redirect or show error
       if (!user) {
         setIsLoadingStatus(false);
-        setQuestions(generateDailyQuiz()); 
         return;
       }
 
       try {
-        const res = await fetch(`${API_BASE_URL}/api/quiz/status`, {
+        // Step A: Check if they already played today
+        const statusRes = await fetch(`${API_BASE_URL}/api/userProfile/quiz/status`, {
           credentials: 'include' 
         });
         
-        if (res.ok) {
-          const data = await res.json();
-          setHasCompletedToday(data.hasCompletedToday);
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          setHasCompletedToday(statusData.hasCompletedToday);
           
-          if (!data.hasCompletedToday) {
-            const todayQuiz = generateDailyQuiz();
-            setQuestions(todayQuiz);
+          // Step B: If they haven't played, fetch the live Daily 5 questions
+          if (!statusData.hasCompletedToday) {
+            const questionsRes = await fetch(`${API_BASE_URL}/api/quiz-content/today`, {
+               credentials: 'include'
+            });
+            
+            if (questionsRes.ok) {
+              const liveQuestions = await questionsRes.json();
+              setQuestions(liveQuestions);
+            } else {
+              console.error("Failed to fetch live questions from database");
+            }
           }
-        } else {
-          setQuestions(generateDailyQuiz());
         }
       } catch (error) {
-        console.error("Failed to check quiz status:", error);
-        setQuestions(generateDailyQuiz()); 
+        console.error("Failed to check quiz status or load questions:", error);
       } finally {
         setIsLoadingStatus(false);
       }
     };
 
-    checkQuizStatus();
+    fetchQuizData();
   }, [user]);
 
   // 3. On Finish: Submit the results to the backend to update streaks & XP
@@ -92,11 +98,11 @@ export default function DailyQuizPage() {
       const totalXP = baseXP + perfectBonus;
 
       try {
-        await fetch(`${API_BASE_URL}/api/quiz/submit`, {
+        const res = await fetch(`${API_BASE_URL}/api/userProfile/quiz/submit`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken // Included CSRF token here
+            'X-CSRF-Token': csrfToken 
           },
           credentials: 'include',
           body: JSON.stringify({ 
@@ -105,9 +111,17 @@ export default function DailyQuizPage() {
             isPerfect: score === 5 
           })
         });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+        }
+
         console.log("Quiz results submitted successfully!");
       } catch (error) {
-        console.error("Failed to submit quiz results:", error);
+        console.error("Failed to submit quiz results:", error.message);
+      } finally {
+        setIsSubmitting(false);
       }
     };
 
@@ -119,7 +133,7 @@ export default function DailyQuizPage() {
       setScore(prevScore => prevScore + 1);
     }
 
-    if (currentIndex < 4) {
+    if (currentIndex < questions.length - 1) {
       setCurrentIndex(prevIndex => prevIndex + 1);
     } else {
       setIsFinished(true);
@@ -134,6 +148,25 @@ export default function DailyQuizPage() {
         <Header />
         <div className="dqp-no-ques quiz-page-container dqp-div2" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
           {t('quiz.loading', 'Loading your daily quiz...')}
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Fallback if not logged in
+  if (!user) {
+    return (
+      <>
+        <Header />
+        <div className="quiz-results-card dqp-div">
+          <h2>{t('quiz.loginRequired', 'Login Required')}</h2>
+          <p className="quiz-normal-score" style={{ margin: '20px 0' }}>
+            {t('quiz.loginDesc', 'Please log in to play the Daily Quiz and earn XP!')}
+          </p>
+          <button onClick={() => navigate('/loginregister')} className="quiz-btn-primary dqp-div-btn">
+            {t('profile.loginToView', 'Go to Login')}
+          </button>
         </div>
         <Footer />
       </>
@@ -169,9 +202,9 @@ export default function DailyQuizPage() {
     return (
       <div className="quiz-results-card dqp-div">
         <h2>{t('quiz.completed', 'Quiz Complete!')}</h2>
-        <h1 className="dqp-h1">{score} / 5</h1>
+        <h1 className="dqp-h1">{score} / {questions.length}</h1>
         
-        {score === 5 ? (
+        {score === questions.length ? (
           <p className="quiz-perfect-score">
             {t('quiz.perfectScore', { baseXP, bonusXP: perfectBonus, totalXP })}
           </p>
@@ -192,8 +225,21 @@ export default function DailyQuizPage() {
     );
   }
 
+  // Edge case where no questions are in the database yet
   if (questions.length === 0) {
-    return <div className="dqp-no-ques">{t('quiz.loading', 'Loading...')}</div>;
+    return (
+      <>
+        <Header />
+        <div className="dqp-no-ques quiz-page-container dqp-div2" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', flexDirection: 'column' }}>
+          <h2>{t('quiz.noQuestions', 'No Questions Available')}</h2>
+          <p style={{ marginTop: '10px', color: '#666' }}>The admin hasn't added any questions to the database yet!</p>
+          <button onClick={() => navigate(-1)} className="lrp-btn lrp-btn-outline" style={{ marginTop: '20px' }}>
+             {t('quiz.back', 'Go Back')}
+          </button>
+        </div>
+        <Footer />
+      </>
+    );
   }
 
   return (
@@ -212,7 +258,7 @@ export default function DailyQuizPage() {
           <h2 className="quiz-header-section-h2">{t('quiz.header')}</h2>
           
           <h4 className="quiz-progress-text">
-            {t('quiz.progress', { current: currentIndex + 1, total: 5 })}
+            {t('quiz.progress', { current: currentIndex + 1, total: questions.length })}
           </h4>
           
           <p className="quiz-disclaimer">

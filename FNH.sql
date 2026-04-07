@@ -257,3 +257,19 @@ CREATE TABLE badge (
   FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID)
     ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+ALTER TABLE userProfile
+ADD COLUMN quiz_last_completed_date DATE DEFAULT NULL,
+ADD COLUMN quiz_current_streak INT DEFAULT 0,
+ADD COLUMN quiz_longest_streak INT DEFAULT 0,
+ADD COLUMN quiz_perfect_days INT DEFAULT 0;
+
+CREATE TABLE quiz_questions (
+  questionID INT AUTO_INCREMENT PRIMARY KEY,
+  foodID INT NOT NULL,
+  question TEXT NOT NULL,
+  options JSON NOT NULL,
+  correctAnswer VARCHAR(255) NOT NULL,
+  explanation TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
