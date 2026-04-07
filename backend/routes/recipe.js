@@ -674,7 +674,7 @@ try {
       SELECT 
         f.foodID AS id,
         r.recipeID,
-        r.recipeName AS foodName, 
+        r.recipeName AS name, 
         f.origin AS culturalOrigin,
         r.status,
         r.admin_feedback,
@@ -756,7 +756,7 @@ try {
     return {
       id: recipe.id, 
       recipeID: recipe.recipeID,
-      name: recipe.foodName || 'Untitled Recipe',
+      name: recipe.name || 'Untitled Recipe',
       culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
       status: (recipe.status || 'pending').toLowerCase(),
       adminFeedback: recipe.admin_feedback || null,

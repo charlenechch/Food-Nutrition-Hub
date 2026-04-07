@@ -311,8 +311,8 @@ const LinkFoodPage = () => {
   }); 
   
   const filteredRecipes = existingRecipes.filter(recipe => 
-    recipe.name.toLowerCase().includes(recipeSearchTerm.toLowerCase()) || 
-    (recipe.author && recipe.author.toLowerCase().includes(recipeSearchTerm.toLowerCase()))
+    (recipe.name || '').toLowerCase().includes(recipeSearchTerm.toLowerCase()) || 
+    (recipe.author || '').toLowerCase().includes(recipeSearchTerm.toLowerCase())
   );
 
   return (
