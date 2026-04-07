@@ -40,7 +40,7 @@ const translateRoutes = require("./routes/translation");
 const mapRoutes = require("./routes/map");
 const xpRoutes = require("./routes/xp");
 // ✅ Added Quiz Content Routes
-const quizContentRoutes = require("./routes/quizContentRoutes"); 
+const quizContentRoutes = require("./routes/quizContentroutes"); 
 
 // Admin
 const adminRoutes = require("./routes/admin");
