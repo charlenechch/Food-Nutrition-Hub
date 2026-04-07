@@ -489,28 +489,3 @@
 .rp-author-name:hover {
   text-decoration: underline;
 }
-
-.rp-filter-item {
-  position: relative;
-}
-
-.rp-select {
-  cursor: pointer;
-}
-
-.rp-dropdown-menu-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  z-index: 10;
-  background: white;
-  border: 1px solid #e8dccf;
-  border-radius: 8px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.rp-food-card {
-  cursor: pointer;
-}
