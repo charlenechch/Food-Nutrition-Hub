@@ -1751,6 +1751,7 @@ router.put('/recipes/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const {
+      recipeName,
       description,
       ingredients,
       steps,
@@ -1763,6 +1764,7 @@ router.put('/recipes/:id', async (req, res) => {
     const query = `
       UPDATE recipe 
       SET 
+        recipeName = ?,
         description = ?,
         ingredients = ?,
         steps = ?,
@@ -1776,6 +1778,7 @@ router.put('/recipes/:id', async (req, res) => {
     `;
     
     const [result] = await db.query(query, [
+      recipeName,
       description || null,
       ingredients,
       steps,
@@ -1832,7 +1835,7 @@ router.post('/publishRecipe/:id', async (req, res) => {
     
     // Fetch user info for notification
     const [rows] = await db.query(`
-      SELECT u.userID, u.email, u.firstname, f.name AS recipeName
+      SELECT u.userID, u.email, u.firstname, r.name AS recipeName
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID

@@ -480,8 +480,8 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     const templateData = [
       ["Name", "Origin", "Category", "Difficulty", "DietaryTags", 
        "FoodDescription", "Image", "PrepTime", "CulturalSignificance", 
-       "TraditionalPreparation", "CommonIngredients", "Alternative", 
-       "AltDescription", "HealthTips", "Energy_kcal", "Protein_g", "Fat_g", 
+       "TraditionalPreparation", "CommonIngredients", "HealthTips", 
+       "Energy_kcal", "Protein_g", "Fat_g", 
        "Carbohydrates_g", "Fiber_g", "VitaminC_mg", "RecipeName",
        "RecipeDescription", "Ingredients", "Steps", "CookTime", "Servings", "DidYouKnow", "ChefTips"],
       ["* REQUIRED: Food name", "* REQUIRED: Enum: e.g. Malay, Chinese, Iban (or refer to the instructions)", 
@@ -539,7 +539,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
     const colWidths = [
       {wch: 30}, {wch: 70}, {wch: 70}, {wch: 50}, {wch: 70},
       {wch: 40}, {wch: 40}, {wch: 40}, {wch: 40}, {wch: 40}, {wch: 40},
-      {wch: 40}, {wch: 40}, {wch: 40}, {wch: 30}, {wch: 30}, {wch: 30},
+      {wch: 40}, {wch: 30}, {wch: 30}, {wch: 30},
       {wch: 30}, {wch: 30}, {wch: 30}, {wch: 40}, {wch: 40},
       {wch: 60}, {wch: 60}, {wch: 30}, {wch: 40}, {wch: 30}, {wch: 30}
     ];

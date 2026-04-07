@@ -1046,7 +1046,6 @@ router.post('/export/saved-foods', async (req, res) => {
           f.culturalSignificance,
           f.traditionalPreparation,
           f.commonIngredients,
-          f.alternative,
           f.altDescription,
           f.healthTips,
           f.Energy_kcal,
