@@ -803,6 +803,14 @@ export default function RecipesPage() {
                         </span>
                       </span>
                     )}
+                    {r.contributorBadgeType && (
+                      <span className="user-badge-inline">
+                        {getTierById(r.contributorBadgeType).icon}
+                        <span className="badge-tooltip-mini" style={{ color: getTierById(r.contributorBadgeType).color }}>
+                          {getTierById(r.contributorBadgeType).title} — {r.contributorBadgeMonth}
+                        </span>
+                      </span>
+                    )}
                   </span>
                   </div>
                   <h3 className="efp-food-title">{translatedRecipes[`name_${r.id}`] || r.name || t("recipes.unknownRecipe")}</h3>

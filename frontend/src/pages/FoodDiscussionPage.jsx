@@ -199,6 +199,14 @@ const Comment = React.memo(function Comment({
                 </span>
               </span>
               )}
+            {item.contributorBadgeType && (
+              <span className="user-badge-inline">
+                {getTierById(item.contributorBadgeType).icon}
+                <span className="badge-tooltip-mini" style={{ color: getTierById(item.contributorBadgeType).color }}>
+                  {getTierById(item.contributorBadgeType).title} — {item.contributorBadgeMonth}
+                </span>
+              </span>
+            )}
           </span>
           <span className="fd-disc-time">• {getTimeAgo(timestamp)}</span>
           

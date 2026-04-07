@@ -350,6 +350,14 @@ export default function Community() {
                                 </span>
                               </span>
                             )}
+                            {post.contributorBadgeType && (
+                              <span className="user-badge-inline">
+                                {getTierById(post.contributorBadgeType).icon}
+                                <span className="badge-tooltip-mini" style={{ color: getTierById(post.contributorBadgeType).color }}>
+                                  {getTierById(post.contributorBadgeType).title} — {post.contributorBadgeMonth}
+                                </span>
+                              </span>
+                            )}
                           </span>
                           <span className="post-date">{post.daysAgo}</span>
                         </div>
