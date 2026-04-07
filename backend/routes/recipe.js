@@ -1658,7 +1658,7 @@ router.get('/waiting-recipes', async (req, res) => {
     
     const formattedRecipes = rows.map(recipe => ({
       id: recipe.id,
-      name: recipe.foodName,
+      name: recipe.name,
       author: recipe.author || 'Unknown Author'
     }));
     
