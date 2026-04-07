@@ -279,7 +279,11 @@ app.use("/api/ai", cors({ origin: allowedOrigins, credentials: true }), aiRoutes
 
 app.use("/api/userProfile", hppProtect({ 
   policy: "none", 
-  allowlist: ["dietary", "allergies", "emailNotifications", "pushNotifications", "profileVisibility", "language", "location", "bio", "pdpaConsent", "tncConsent", "newLevel", "equippedBadge", "equippedContributorBadge", "badgeId"], 
+  allowlist: [
+    "dietary", "allergies", "emailNotifications", "pushNotifications", "profileVisibility", "language", 
+    "location", "bio", "pdpaConsent", "tncConsent", "newLevel", "equippedBadge", "equippedContributorBadge", "badgeId",
+    "score", "xpEarned", "isPerfect"
+  ], 
   logger: (tag, meta) => logger.warn(`HPP UserProfile Parameter: ${tag}`, meta) 
 }), userProfileRoutes);
 app.use("/api/recipe", hppProtect({ policy: "first", allowlist: ["includeAll", "status", "foodID", "name", "origin", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "category", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory", "recipe", "content", "image", "userProfileID", "status", "comment", "feedback", "steps", "DidYouKnow", "rating"], logger: (tag, meta) => logger.warn(`HPP Recipe Parameter: ${tag}`, meta) }), recipeRoutes);
@@ -291,7 +295,6 @@ app.use("/api/foodSearch", foodSearchRoutes);
 
 app.use("/api/translate", hppProtect({ policy: "none", allowlist: ["texts", "targetLang"], logger: (tag, meta) => logger.warn(`HPP Translate: ${tag}`, meta) }), translateRoutes);
 
-// ✅ ADDED: Live Quiz Content Route with HPP bypass for JSON arrays
 app.use("/api/quiz-content", hppProtect({ 
   policy: "none", 
   allowlist: ["foodID", "question", "options", "correctAnswer", "explanation"], 
