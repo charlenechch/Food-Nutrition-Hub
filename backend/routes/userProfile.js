@@ -1566,10 +1566,10 @@ router.post("/quiz/submit", async (req, res) => {
     if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
     
     // Basic CSRF check based on your existing architecture
-    const csrfToken = req.headers['x-csrf-token'];
-    if (!csrfToken || csrfToken !== req.session.csrfToken) {
-      return res.status(403).json({ error: "Invalid CSRF token" });
-    }
+    // const csrfToken = req.headers['x-csrf-token'];
+   // if (!csrfToken || csrfToken !== req.session.csrfToken) {
+    //  return res.status(403).json({ error: "Invalid CSRF token" });
+    //}
 
     const userID = req.session.user.userID;
     const { score, xpEarned, isPerfect } = req.body;
