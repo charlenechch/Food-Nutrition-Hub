@@ -1546,7 +1546,10 @@
     "topRecipeDesc": "Diberikan kepada Penyumbang Resipi #1 bulan ini.",
     "topPostTitle": "Penyumbang Komuniti Teratas",
     "topPostDesc": "Diberikan kepada Penyumbang Kiriman Komuniti #1 bulan ini.",
-    "contributorBadgeLocked": "Raih dengan menduduki tempat #1 dalam papan kedudukan bulanan."
+    "contributorBadgeLocked": "Raih dengan menduduki tempat #1 dalam papan kedudukan bulanan.",
+    "contributorModalTitle": "Tahniah!",
+    "contributorModalMessage": "Anda menduduki tempat #1 dalam papan kedudukan {{title}} pada {{month}}. Lencana anda telah diberikan!",
+    "contributorModalBtn": "Tuntut Lencana"
   },
 
   "leaderboard": {

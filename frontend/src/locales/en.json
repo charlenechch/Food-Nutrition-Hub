@@ -1546,7 +1546,10 @@
     "topRecipeDesc": "Awarded to the #1 Recipe Contributor of the month.",
     "topPostTitle": "Top Community Poster",
     "topPostDesc": "Awarded to the #1 Community Post Contributor of the month.",
-    "contributorBadgeLocked": "Earn by ranking #1 on the monthly leaderboard."
+    "contributorBadgeLocked": "Earn by ranking #1 on the monthly leaderboard.",
+    "contributorModalTitle": "Congratulations!",
+    "contributorModalMessage": "You ranked #1 on the {{title}} leaderboard in {{month}}. Your badge has been awarded!",
+    "contributorModalBtn": "Claim Badge"
   },
 
   "leaderboard": {

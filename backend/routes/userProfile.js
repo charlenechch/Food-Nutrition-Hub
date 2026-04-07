@@ -983,6 +983,85 @@ router.get("/:id/badges", async (req, res) => {
   }
 });
 
+// GET /api/userProfile/unseen-badges
+router.get("/unseen-badges", async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    const userID = req.session.user.userID;
+
+    const [profileRows] = await db.execute(
+      "SELECT userProfileID FROM userProfile WHERE userID = ?",
+      [userID]
+    );
+
+    if (profileRows.length === 0) {
+      return res.status(404).json({ success: false, message: "User profile not found" });
+    }
+
+    const userProfileID = profileRows[0].userProfileID;
+
+    const [badges] = await db.execute(
+      `SELECT id, badge_type, awarded_month, awarded_at
+       FROM badge
+       WHERE userProfileID = ? AND seen = 0
+       ORDER BY awarded_at ASC`,
+      [userProfileID]
+    );
+
+    return res.json({ success: true, badges });
+
+  } catch (error) {
+    console.error("❌ Error fetching unseen badges:", error);
+    return res.status(500).json({ success: false, message: "Failed to fetch unseen badges", error: error.message });
+  }
+});
+
+// PUT /api/userProfile/mark-badge-seen
+router.put("/mark-badge-seen", async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    const userID = req.session.user.userID;
+    const { badgeId } = req.body;
+
+    if (!badgeId) {
+      return res.status(400).json({ success: false, message: "Badge ID is required" });
+    }
+
+    // Verify the badge belongs to this user before marking as seen
+    const [profileRows] = await db.execute(
+      "SELECT userProfileID FROM userProfile WHERE userID = ?",
+      [userID]
+    );
+
+    if (profileRows.length === 0) {
+      return res.status(404).json({ success: false, message: "User profile not found" });
+    }
+
+    const userProfileID = profileRows[0].userProfileID;
+
+    const [result] = await db.execute(
+      `UPDATE badge SET seen = 1 WHERE id = ? AND userProfileID = ?`,
+      [badgeId, userProfileID]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Badge not found or does not belong to this user" });
+    }
+
+    return res.json({ success: true, message: "Badge marked as seen" });
+
+  } catch (error) {
+    console.error("❌ Error marking badge as seen:", error);
+    return res.status(500).json({ success: false, message: "Failed to mark badge as seen", error: error.message });
+  }
+});
+
 // View other user's profile (/api/userProfile/:id) 
 router.get("/:identifier", async (req, res) => {
   console.log("👥 Other user profile request received");
