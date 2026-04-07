@@ -5,16 +5,15 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import QuizCard from '../components/QuizCard'; 
 import { generateDailyQuiz } from '../utils/quizGenerator'; 
-import { useAuth } from '../context/AuthContext'; // Added Auth Context
+import { useAuth } from '../context/AuthContext'; 
 import '../css/Quiz.css'; 
 
-// Make sure your API URL matches your environment setup
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function DailyQuizPage() {
   const { t } = useTranslation(); 
   const navigate = useNavigate(); 
-  const { user } = useAuth(); // Retrieve the logged-in user
+  const { user } = useAuth(); 
 
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -25,38 +24,54 @@ export default function DailyQuizPage() {
   const [hasCompletedToday, setHasCompletedToday] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
+  
+  // CSRF Token State
+  const [csrfToken, setCsrfToken] = useState("");
 
-  // 1. On Mount: Check if the user has already done the quiz today
+  // 1. Fetch CSRF Token
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          setCsrfToken(data.csrfToken);
+        }
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+    fetchCsrfToken();
+  }, []);
+
+  // 2. On Mount: Check if the user has already done the quiz today
   useEffect(() => {
     const checkQuizStatus = async () => {
-      // If no user is logged in, you might want to redirect them or let them play as guest
       if (!user) {
         setIsLoadingStatus(false);
-        setQuestions(generateDailyQuiz()); // Fallback for guests, if allowed
+        setQuestions(generateDailyQuiz()); 
         return;
       }
 
       try {
         const res = await fetch(`${API_BASE_URL}/api/quiz/status`, {
-          credentials: 'include' // Important for session/cookie auth
+          credentials: 'include' 
         });
         
         if (res.ok) {
           const data = await res.json();
           setHasCompletedToday(data.hasCompletedToday);
           
-          // Only generate/load questions if they haven't completed it
           if (!data.hasCompletedToday) {
             const todayQuiz = generateDailyQuiz();
             setQuestions(todayQuiz);
           }
         } else {
-          // Fallback if API fails (let them play)
           setQuestions(generateDailyQuiz());
         }
       } catch (error) {
         console.error("Failed to check quiz status:", error);
-        setQuestions(generateDailyQuiz()); // Fallback
+        setQuestions(generateDailyQuiz()); 
       } finally {
         setIsLoadingStatus(false);
       }
@@ -65,7 +80,7 @@ export default function DailyQuizPage() {
     checkQuizStatus();
   }, [user]);
 
-  // 2. On Finish: Submit the results to the backend to update streaks & XP
+  // 3. On Finish: Submit the results to the backend to update streaks & XP
   useEffect(() => {
     const submitResults = async () => {
       if (!isFinished || isSubmitting || !user) return;
@@ -79,7 +94,10 @@ export default function DailyQuizPage() {
       try {
         await fetch(`${API_BASE_URL}/api/quiz/submit`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken // Included CSRF token here
+          },
           credentials: 'include',
           body: JSON.stringify({ 
             score: score, 
@@ -94,7 +112,7 @@ export default function DailyQuizPage() {
     };
 
     submitResults();
-  }, [isFinished, score, isSubmitting, user]);
+  }, [isFinished, score, isSubmitting, user, csrfToken]);
 
   const handleNextQuestion = (wasCorrect) => {
     if (wasCorrect) {
@@ -110,7 +128,6 @@ export default function DailyQuizPage() {
 
   // --- RENDER STATES ---
 
-  // State 1: Checking backend status
   if (isLoadingStatus) {
     return (
       <>
@@ -123,7 +140,6 @@ export default function DailyQuizPage() {
     );
   }
 
-  // State 2: User already completed the quiz today
   if (hasCompletedToday) {
     return (
       <>
@@ -145,7 +161,6 @@ export default function DailyQuizPage() {
     );
   }
 
-  // State 3: User finished the active quiz
   if (isFinished) {
     const baseXP = score * 5;
     const perfectBonus = score === 5 ? 15 : 0;
@@ -169,7 +184,7 @@ export default function DailyQuizPage() {
         <button 
           onClick={() => navigate('/')}
           className="quiz-btn-primary dqp-div-btn"
-          disabled={isSubmitting} // Prevent rapid clicking while saving
+          disabled={isSubmitting} 
         >
           {isSubmitting ? t('quiz.saving', 'Saving Results...') : t('quiz.returnBtn', 'Return Home')}
         </button>
@@ -177,12 +192,10 @@ export default function DailyQuizPage() {
     );
   }
 
-  // State 4: Edge case where questions didn't load
   if (questions.length === 0) {
     return <div className="dqp-no-ques">{t('quiz.loading', 'Loading...')}</div>;
   }
 
-  // State 5: Active Quiz Play
   return (
     <>
     <Header />
