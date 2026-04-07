@@ -1544,10 +1544,8 @@ router.get("/quiz/status", async (req, res) => {
     if (rows.length === 0) return res.status(404).json({ error: "Profile not found" });
 
     const today = getTodayString();
-    // Compare DB date string to today's date string
     const dbDate = rows[0].quiz_last_completed_date;
     
-    // Handle date formatting depending on how MySQL returns it
     let formattedDbDate = null;
     if (dbDate) {
       formattedDbDate = new Date(dbDate).toISOString().split('T')[0];
@@ -1565,16 +1563,12 @@ router.post("/quiz/submit", async (req, res) => {
   try {
     if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
     
-    // Basic CSRF check based on your existing architecture
-    const csrfToken = req.headers['x-csrf-token'];
-    if (!csrfToken || csrfToken !== req.session.csrfToken) {
-      return res.status(403).json({ error: "Invalid CSRF token" });
-    }
+    // ✅ THE MANUAL CSRF CHECK HAS BEEN REMOVED FROM HERE
+    // Your server.js handles this verification globally now.
 
     const userID = req.session.user.userID;
     const { score, xpEarned, isPerfect } = req.body;
 
-    // Fetch current stats
     const [rows] = await db.execute(
       `SELECT total_xp, quiz_last_completed_date, quiz_current_streak, quiz_longest_streak, quiz_perfect_days 
        FROM userProfile WHERE userID = ?`,
@@ -1592,20 +1586,18 @@ router.post("/quiz/submit", async (req, res) => {
       dbDateStr = new Date(profile.quiz_last_completed_date).toISOString().split('T')[0];
     }
 
-    // Prevent double submission
     if (dbDateStr === today) {
       return res.status(400).json({ error: "Quiz already completed today" });
     }
 
-    // Calculate Streaks
     let currentStreak = profile.quiz_current_streak || 0;
     let longestStreak = profile.quiz_longest_streak || 0;
     let perfectDays = profile.quiz_perfect_days || 0;
 
     if (dbDateStr === yesterday) {
-      currentStreak += 1; // Streak kept alive
+      currentStreak += 1;
     } else {
-      currentStreak = 1;  // Streak broken, reset
+      currentStreak = 1; 
     }
 
     if (currentStreak > longestStreak) {
@@ -1618,7 +1610,6 @@ router.post("/quiz/submit", async (req, res) => {
 
     const newTotalXp = (profile.total_xp || 0) + xpEarned;
 
-    // Save to Database
     await db.execute(
       `UPDATE userProfile 
        SET total_xp = ?, 
