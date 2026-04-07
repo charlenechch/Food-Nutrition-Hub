@@ -147,7 +147,6 @@ export default function RecipesPage() {
   const [selectedPrepTime, setSelectedPrepTime] = useState("all");
   const [selectedCookTime, setSelectedCookTime] = useState("all");
   const [dietFilters, setDietFilters] = useState([]);
-  const [originDropdownOpen, setOriginDropdownOpen] = useState(false);
 
   // Filter Logic
   const origins = [
@@ -644,33 +643,31 @@ export default function RecipesPage() {
             <div className="efp-filters">
               <div className="efp-filters-header"><Filter className="efp-filter-icon" size={18} /><h2 className="efp-filters-title">{t("explore.filter")}</h2></div>
               <div className="efp-grid-2">
-                <div className="efp-filter-item rp-filter-item">
+                <div className="efp-filter-item">
                   <label className="efp-label">{t("explore.culturalOrigin")}</label>
-                  
-                  <div 
-                    className="efp-select rp-select" 
-                    onClick={() => setOriginDropdownOpen(!originDropdownOpen)}
+                  <select 
+                    value={selectedOrigin} 
+                    onChange={(e) => setSelectedOrigin(e.target.value)} 
+                    className="efp-select"
                   >
-                    {selectedOrigin === "all" ? t("explore.allOrigins") : selectedOrigin}
-                  </div>
-
-                  {originDropdownOpen && (
-                    <div className="dropdown-menu-list rp-dropdown-menu-list">
-                      {["All", "Malay", "Chinese", "Iban", "Melanau", "Kenyah", "Bidayuh", "Kayan", "Lunbawang", "Punan", "Bisayah", "Kelabit", "Berawan", "Kejaman", "Ukit", "Sekapan", "Penan"].map((origin) => (
-                        <div 
-                          key={origin}
-                          className={`dropdown-item ${selectedOrigin === (origin === "All" ? "all" : origin) ? "selected" : ""}`}
-                          style={{ padding: "10px", cursor: "pointer", borderBottom: "1px solid #f0f0f0" }}
-                          onClick={() => { 
-                            setSelectedOrigin(origin === "All" ? "all" : origin); 
-                            setOriginDropdownOpen(false); 
-                          }}
-                        >
-                          {origin === "All" ? t("explore.allOrigins") : origin}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    <option value="all">{t("explore.allOrigins")}</option>
+                    <option value="Malay">Malay</option>
+                    <option value="Chinese">Chinese</option>
+                    <option value="Iban">Iban</option>
+                    <option value="Melanau">Melanau</option>
+                    <option value="Kenyah">Kenyah</option>
+                    <option value="Bidayuh">Bidayuh</option>
+                    <option value="Kayan">Kayan</option>
+                    <option value="Lunbawang">Lunbawang</option>
+                    <option value="Punan">Punan</option>
+                    <option value="Bisayah">Bisayah</option>
+                    <option value="Kelabit">Kelabit</option>
+                    <option value="Berawan">Berawan</option>
+                    <option value="Kejaman">Kejaman</option>
+                    <option value="Ukit">Ukit</option>
+                    <option value="Sekapan">Sekapan</option>
+                    <option value="Penan">Penan</option>
+                  </select>
                 </div>
                 <div className="efp-filter-item">
                   <label className="efp-label">{t("explore.difficulty")}</label>
