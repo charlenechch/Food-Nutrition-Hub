@@ -1405,56 +1405,122 @@ router.patch('/sendFeedback/:id', async (req, res) => {
 router.delete("/admin/delete/:id", async (req, res) => {
   const { id } = req.params;
   console.log(`🗑️ [ADMIN] Deleting recipe ID: ${id}`);
+  console.log(`📝 Request params:`, req.params);
+  console.log(`👤 Session user:`, req.session?.user ? {
+    userID: req.session.user.userID,
+    role: req.session.user.role,
+    firstname: req.session.user.firstname,
+    lastname: req.session.user.lastname
+  } : 'No session user');
 
   // 1. Security Check: Ensure user is Admin
   if (req.session?.user?.role !== "admin") {
+    console.log(`❌ Security check failed. User role: ${req.session?.user?.role}`);
     return res.status(403).json({ success: false, message: "Unauthorized: Admin access required." });
   }
+  console.log(`✅ Security check passed - User is admin`);
 
   try {
     // 2. Get recipe details before deletion
+    console.log(`🔍 Fetching recipe details for recipeID: ${id}`);
     const [recipeRows] = await db.query(
       "SELECT recipeName, foodID FROM recipe WHERE recipeID = ?", 
       [id]
     );
     
+    console.log(`📊 Recipe query result:`, {
+      rowCount: recipeRows.length,
+      recipeData: recipeRows.length > 0 ? recipeRows[0] : 'No data'
+    });
+    
     if (recipeRows.length === 0) {
+      console.log(`❌ Recipe not found with ID: ${id}`);
       return res.status(404).json({ success: false, message: "Recipe not found." });
     }
     
     const recipeName = recipeRows[0].recipeName;
     const foodID = recipeRows[0].foodID;
+    console.log(`✅ Found recipe - Name: "${recipeName}", FoodID: ${foodID}`);
 
     // 3. Delete from 'recipe' table (using recipeID)
-    await db.query("DELETE FROM recipe WHERE recipeID = ?", [id]);
+    console.log(`🗑️ Deleting from recipe table where recipeID = ${id}`);
+    const [deleteRecipeResult] = await db.query("DELETE FROM recipe WHERE recipeID = ?", [id]);
+    console.log(`📊 Recipe delete result:`, {
+      affectedRows: deleteRecipeResult.affectedRows,
+      changedRows: deleteRecipeResult.changedRows
+    });
 
     // 4. Check if any other recipes use this foodID
+    console.log(`🔍 Checking for other recipes using foodID: ${foodID}`);
     const [otherRecipes] = await db.query(
       "SELECT COUNT(*) as count FROM recipe WHERE foodID = ?", 
       [foodID]
     );
     
+    console.log(`📊 Other recipes count: ${otherRecipes[0].count}`);
+    
     // 5. Only delete from 'food' table if no other recipes reference it
+    let foodDeleted = false;
     if (otherRecipes[0].count === 0) {
-      await db.query("DELETE FROM food WHERE foodID = ?", [foodID]);
+      console.log(`🗑️ No other recipes reference foodID ${foodID}, deleting from food table`);
+      const [deleteFoodResult] = await db.query("DELETE FROM food WHERE foodID = ?", [foodID]);
+      foodDeleted = true;
+      console.log(`📊 Food delete result:`, {
+        affectedRows: deleteFoodResult.affectedRows,
+        foodID: foodID
+      });
       console.log(`✅ [ADMIN] Food ID ${foodID} deleted (no other recipes reference it)`);
     } else {
       console.log(`ℹ️ [ADMIN] Food ID ${foodID} kept (${otherRecipes[0].count} other recipes still reference it)`);
     }
 
+    // Log activity
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+    console.log(`📝 Logging activity - Admin: ${adminName} (ID: ${adminID})`);
     await logActivity(db, adminID, adminName, "recipe_deleted", `Deleted recipe "${recipeName}" (Recipe ID: ${id}).`);
+    console.log(`✅ Activity logged successfully`);
 
-    console.log(`✅ [ADMIN] Recipe ${id} deleted successfully.`);
-    res.json({ success: true, message: "Recipe deleted successfully." });
+    console.log(`✅ [ADMIN] Recipe ${id} deleted successfully. Summary:`, {
+      recipeID: id,
+      recipeName: recipeName,
+      foodID: foodID,
+      foodDeleted: foodDeleted,
+      remainingRecipesForFood: otherRecipes[0].count
+    });
+    
+    res.json({ 
+      success: true, 
+      message: "Recipe deleted successfully.",
+      debug: {
+        recipeID: id,
+        recipeName: recipeName,
+        foodID: foodID,
+        foodDeleted: foodDeleted,
+        remainingRecipesForFood: otherRecipes[0].count
+      }
+    });
 
   } catch (error) {
     console.error(`❌ [ADMIN] Error deleting recipe ${id}:`, error);
+    console.error(`❌ Error details:`, {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      sql: error.sql,
+      sqlMessage: error.sqlMessage,
+      stack: error.stack
+    });
+    
     res.status(500).json({ 
       success: false, 
       message: "Server error during deletion.",
-      error: error.message 
+      error: error.message,
+      debug: process.env.NODE_ENV === 'development' ? {
+        code: error.code,
+        sqlMessage: error.sqlMessage,
+        stack: error.stack
+      } : undefined
     });
   }
 });
