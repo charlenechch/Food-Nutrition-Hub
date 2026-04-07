@@ -55,6 +55,7 @@ CREATE TABLE userProfile (
     posts INT DEFAULT 0,
     likes INT DEFAULT 0,
     totalSubmissions int DEFAULT '0',
+    equippedContributorBadge INT DEFAULT NULL,
     KEY fk_userProfile_user_restrict (userID),
 	CONSTRAINT fk_userProfile_user_restrict FOREIGN KEY (userID) REFERENCES user (userID) ON DELETE RESTRICT ON UPDATE CASCADE
 );
