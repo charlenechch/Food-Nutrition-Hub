@@ -297,12 +297,12 @@ app.use("/api/translate", hppProtect({ policy: "none", allowlist: ["texts", "tar
 
 app.use("/api/quiz-content", hppProtect({ 
   policy: "none", 
-  allowlist: ["foodID", "question", "options", "correctAnswer", "explanation"], 
+  allowlist: ["foodID", "question", "options", "correctAnswer", "explanation", "questionID"], 
   logger: (tag, meta) => logger.warn(`HPP Quiz Content: ${tag}`, meta) 
 }), quizContentRoutes);
 
 // ---------- Global HPP for everything else ----------
-app.use(hppProtect({ policy: "first", allowlist: ["id", "page", "q", "sort", "lat", "lng", "email", "password", "newPassword", "userID", "code", "rememberDevice", "token", "role", "userProfileID", "firebase_uid", "googlePhotoUrl", "firebaseUID", "bio", "location", "firstname", "lastname", "city", "suspendedUntil", "suspensionReason", "avatar", "allergies", "dietary", "emailNotifications", "prefs", "pushNotifications", "profileVisibility", "language", "recipes", "status", "stats", "saveFoods", "likes", "type", "postId", "postID", "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID", "likeID", "name", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "category", "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll", "view", "year", "feedback", "format", "saveIds", "month", "pdpaConsent", "tncConsent", "userIds", "emails", "subject", "message", "sendEmail", "actionType", "search", "startDate", "endDate", "limit"], logger: (tag, meta) => { logger.warn(`[GLOBAL HPP] ${tag}`, meta); }, }));
+app.use(hppProtect({ policy: "first", allowlist: ["id", "page", "q", "sort", "lat", "lng", "email", "password", "questionID", "newPassword", "userID", "code", "rememberDevice", "token", "role", "userProfileID", "firebase_uid", "googlePhotoUrl", "firebaseUID", "bio", "location", "firstname", "lastname", "city", "suspendedUntil", "suspensionReason", "avatar", "allergies", "dietary", "emailNotifications", "prefs", "pushNotifications", "profileVisibility", "language", "recipes", "status", "stats", "saveFoods", "likes", "type", "postId", "postID", "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID", "likeID", "name", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "category", "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll", "view", "year", "feedback", "format", "saveIds", "month", "pdpaConsent", "tncConsent", "userIds", "emails", "subject", "message", "sendEmail", "actionType", "search", "startDate", "endDate", "limit"], logger: (tag, meta) => { logger.warn(`[GLOBAL HPP] ${tag}`, meta); }, }));
 
 // ---------- Other Routes ----------
 app.use("/api/logout", logoutRoutes);
