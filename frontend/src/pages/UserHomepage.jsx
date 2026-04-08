@@ -21,7 +21,7 @@ const HERO_IMAGES = [LoginFood, KoloImg];
 
 
 // ── Dish Spotlight Component — DB driven ──
-function DishSpotlight({ allFoods, navigate, t }) {
+function DishSpotlight({ allFoods, navigate, t, onScrollNext }) {
   const [active, setActive] = React.useState(0);
   const timerRef = React.useRef(null);
 
@@ -65,6 +65,12 @@ function DishSpotlight({ allFoods, navigate, t }) {
         <div className="dish-spotlight-img" style={{ backgroundImage: `url(${dishImg})` }}>
           <div className="dish-img-overlay" />
           <span className="dish-origin-badge">{dishOrigin}</span>
+          {onScrollNext && (
+            <div className="snap-scroll-hint dish-scroll-hint" onClick={onScrollNext}>
+              <span className="snap-scroll-text">Explore</span>
+              <FaAnglesDown className="snap-bounce-icon" />
+            </div>
+          )}
         </div>
         <div className="dish-spotlight-content">
           <span className="dish-tag-pill">{dishCategory}</span>
@@ -393,9 +399,9 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </div>
 
-        <div className="scroll-hint-container" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
-          <span className="scroll-text">{t("home.scrollExplore")}</span>
-          <FaAnglesDown className="bounce-icon" />
+        <div className="snap-scroll-hint hero-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
+          <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
+          <FaAnglesDown className="snap-bounce-icon" />
         </div>
 
         <button className="hero-arrow arrow-right" onClick={nextSlide} aria-label="Next image"></button>
@@ -447,12 +453,13 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       </section>
 
       {/* ── SECTION 3: Dish Spotlight ── */}
-      <section className="snap-section dish-snap-section" style={{position:'relative'}}>
-        <DishSpotlight allFoods={allFoods} navigate={navigate} t={t} />
-        <div className="snap-scroll-hint dish-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 3, behavior: 'smooth' })}>
-          <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
-          <FaAnglesDown className="snap-bounce-icon" />
-        </div>
+      <section className="snap-section dish-snap-section">
+        <DishSpotlight
+          allFoods={allFoods}
+          navigate={navigate}
+          t={t}
+          onScrollNext={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 3, behavior: 'smooth' })}
+        />
       </section>
 
       {/* ── SECTION 4: Rest of content ── */}

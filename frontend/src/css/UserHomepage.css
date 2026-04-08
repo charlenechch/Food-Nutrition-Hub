@@ -1096,3 +1096,35 @@
   .food-carousel { grid-template-columns: 1fr; }
   .stats-grid { gap: 1px; }
 }
+
+/* ── SCROLL HINT OVERRIDES — fix duplicates ── */
+
+/* Hide the old scroll-hint-container entirely — replaced by snap-scroll-hint */
+.scroll-hint-container { display: none !important; }
+
+/* Hero hint — white text on dark image */
+.hero-scroll-hint { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); }
+.hero-scroll-hint .snap-scroll-text,
+.hero-scroll-hint .snap-bounce-icon { color: rgba(255,255,255,0.75); }
+.hero-scroll-hint:hover .snap-scroll-text,
+.hero-scroll-hint:hover .snap-bounce-icon { color: #fff; }
+
+/* Stats hint — position relative inside the inner wrapper */
+.stats-snap-inner .snap-scroll-hint {
+  position: static;
+  transform: none;
+  align-self: flex-start;
+  margin-top: -20px;
+}
+
+/* Dish hint — on dark image side, bottom center of the left panel */
+.dish-spotlight-img .snap-scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.dish-scroll-hint .snap-scroll-text,
+.dish-scroll-hint .snap-bounce-icon { color: rgba(255,255,255,0.75); }
+.dish-scroll-hint:hover .snap-scroll-text,
+.dish-scroll-hint:hover .snap-bounce-icon { color: #fff; }
