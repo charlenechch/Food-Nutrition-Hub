@@ -649,21 +649,27 @@
   .hero-section {
     height: calc(100dvh - 70px);
     min-height: unset;
-    padding: 16px 20px 88px;
+    /* No padding-top needed — flexbox centers the content.
+       Bottom padding reserves space for dots + EXPLORE hint. */
+    padding: 0 20px 88px;
     align-items: center;
     justify-content: center;
   }
 
 
-  /* Tighter SDG badges */
+  /* SDG badges — force single row */
   .hero-sdg-badges {
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: center;
-    gap: 6px;
-    margin-bottom: 10px;
+    gap: 8px;
+    margin-bottom: 12px;
   }
-  .sdg-badge { font-size: 0.65rem; padding: 4px 10px; }
+  .sdg-badge {
+    font-size: 0.62rem;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
 
   .hero-title {
     font-size: clamp(1.75rem, 7vw, 2.6rem);
