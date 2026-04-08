@@ -262,13 +262,15 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     };
   }, []);
 
-  // Parallax — snap container is the scroller on both desktop and mobile
+  // Parallax — translate the bg div at 40% scroll speed.
+  // Using transform on a child div works on iOS Safari (backgroundPosition doesn't).
   useEffect(() => {
     const container = snapContainerRef.current;
     if (!container) return;
     const handleScroll = () => {
-      if (!heroRef.current) return;
-      heroRef.current.style.backgroundPosition = `center ${container.scrollTop * 0.4}px`;
+      const bg = heroRef.current?.querySelector(".hero-parallax-bg");
+      if (!bg) return;
+      bg.style.transform = `translateY(${container.scrollTop * 0.35}px)`;
     };
     container.addEventListener("scroll", handleScroll, { passive: true });
     return () => container.removeEventListener("scroll", handleScroll);
@@ -301,10 +303,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       <header
         ref={heroRef}
         className="hero-section home-snap-section"
-        style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${HERO_IMAGES[currentSlide]})`
-        }}
       >
+        {/* Separate bg layer so we can transform it for parallax on iOS */}
+        <div
+          className="hero-parallax-bg"
+          style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${HERO_IMAGES[currentSlide]})` }}
+        />
         <button className="hero-arrow arrow-left" onClick={prevSlide} aria-label="Previous image"></button>
 
         <div className="home-hero-content-wrapper">

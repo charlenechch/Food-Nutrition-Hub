@@ -33,16 +33,24 @@
    HERO SECTION
 ───────────────────────────────────────── */
 .hero-section {
-  background-size: cover;
-  background-position: center;
-  background-attachment: scroll;
-  will-change: background-position;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
   color: #ffffff;
   padding: 80px 20px;
+  overflow: hidden;     /* clip the oversized parallax bg */
+  position: relative;
+}
+
+.hero-parallax-bg {
+  position: absolute;
+  inset: -30% 0;          /* oversized top+bottom so translateY never shows edge */
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  will-change: transform;
+  pointer-events: none;
 }
 
 .home-hero-content-wrapper {
@@ -52,6 +60,7 @@
   width: 100%;
   max-width: 800px;
   z-index: 5;
+  position: relative;
 }
 
 /* Hero arrow hit boxes */
@@ -647,13 +656,14 @@
   /* Fills exactly the space below the fixed header (~70px).
      dvh accounts for iOS Safari browser chrome at bottom. */
   .hero-section {
-    height: calc(100dvh - 70px);
+    /* Full viewport height — content clears header via padding-top */
+    height: 100dvh;
     min-height: unset;
-    /* No padding-top needed — flexbox centers the content.
-       Bottom padding reserves space for dots + EXPLORE hint. */
-    padding: 0 20px 88px;
+    /* 70px clears header, 88px reserves space for dots + EXPLORE at bottom */
+    padding: 70px 20px 88px;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
   }
 
 
