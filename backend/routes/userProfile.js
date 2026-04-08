@@ -1536,22 +1536,20 @@ router.get("/quiz/status", async (req, res) => {
     
     const userID = req.session.user.userID;
     
-    const [rows] = await db.execute(
+    // ✅ TESTING MODIFICATION: Always return false so the quiz stays open
+    /* const [rows] = await db.execute(
       `SELECT quiz_last_completed_date FROM userProfile WHERE userID = ?`,
       [userID]
     );
-
     if (rows.length === 0) return res.status(404).json({ error: "Profile not found" });
 
     const today = getTodayString();
-    const dbDate = rows[0].quiz_last_completed_date;
-    
     let formattedDbDate = null;
-    if (dbDate) {
-      formattedDbDate = new Date(dbDate).toISOString().split('T')[0];
+    if (rows[0].quiz_last_completed_date) {
+      formattedDbDate = new Date(rows[0].quiz_last_completed_date).toISOString().split('T')[0];
     }
-
     res.json({ hasCompletedToday: formattedDbDate === today });
+    */
   } catch (error) {
     console.error("Quiz status error:", error);
     res.status(500).json({ error: "Server error" });
