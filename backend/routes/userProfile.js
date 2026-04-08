@@ -1514,16 +1514,28 @@ router.put("/acknowledge-level", async (req, res) => {
 });
 
 // ==========================================
-// DAILY QUIZ ROUTES
+// DAILY QUIZ ROUTES (TESTING MODE)
 // ==========================================
-// routes/userProfile.js -> Daily Quiz Routes Section
 
-// 1. GET: Check if user has done the quiz today
+// Helper functions for dates
+const getTodayString = () => {
+  const date = new Date();
+  return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+};
+
+const getYesterdayString = () => {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+};
+
+// 1. GET: Check Quiz Status
+// MODIFIED: Forced to 'false' so you can test the quiz as many times as you want today.
 router.get("/quiz/status", async (req, res) => {
   try {
     if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
     
-    // ✅ TESTING MODIFICATION: Forced to false to keep quiz open
+    // For testing, we tell the frontend "you haven't done this yet" every time.
     res.json({ hasCompletedToday: false }); 
   } catch (error) {
     console.error("Quiz status error:", error);
@@ -1531,7 +1543,7 @@ router.get("/quiz/status", async (req, res) => {
   }
 });
 
-// 2. POST: Submit quiz results and calculate streaks
+// 2. POST: Submit Results and Log XP
 router.post("/quiz/submit", async (req, res) => {
   try {
     if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
@@ -1539,6 +1551,7 @@ router.post("/quiz/submit", async (req, res) => {
     const userID = req.session.user.userID;
     const { score, xpEarned, isPerfect } = req.body;
 
+    // Fetch current profile stats
     const [rows] = await db.execute(
       `SELECT total_xp, quiz_last_completed_date, quiz_current_streak, quiz_longest_streak, quiz_perfect_days 
        FROM userProfile WHERE userID = ?`,
@@ -1556,13 +1569,14 @@ router.post("/quiz/submit", async (req, res) => {
       dbDateStr = new Date(profile.quiz_last_completed_date).toISOString().split('T')[0];
     }
 
-    // ✅ TESTING MODIFICATION: Date restriction bypassed for multiple submissions
-    /* if (dbDateStr === today) {
+    // ✅ RESTRICTION REMOVED: Bypassing the "already completed" check for your testing.
+    /*
+    if (dbDateStr === today) {
       return res.status(400).json({ error: "Quiz already completed today" });
     }
     */
 
-    // Calculate Streaks
+    // Calculate Streaks (Keeping logic alive so numbers still make sense)
     let currentStreak = profile.quiz_current_streak || 0;
     let longestStreak = profile.quiz_longest_streak || 0;
     let perfectDays = profile.quiz_perfect_days || 0;
@@ -1578,7 +1592,7 @@ router.post("/quiz/submit", async (req, res) => {
 
     const newTotalXp = (profile.total_xp || 0) + xpEarned;
 
-    // Save to Database
+    // A. Update the main totals in userProfile
     await db.execute(
       `UPDATE userProfile 
        SET total_xp = ?, 
@@ -1590,21 +1604,24 @@ router.post("/quiz/submit", async (req, res) => {
       [newTotalXp, today, currentStreak, longestStreak, perfectDays, userID]
     );
 
-    // ✅ RECORD TO ACTIVITY LOG (For XP Logs Page)
+    // ✅ B. NEW: INSERT INTO ACTIVITY LOG
+    // This is the missing piece that makes it show up in your "XP Logs" page!
+    // I am using 'activity_log' as the table name—change this if your table is named 'xp_history'.
     await db.execute(
       `INSERT INTO activity_log (userID, action_type, reference_title, xp_awarded, created_at) 
        VALUES (?, 'QUIZ_COMPLETED', ?, ?, NOW())`,
       [
         userID, 
-        `Daily Quiz Score: ${score}/5`, 
+        `Daily Quiz: ${score}/5 Correct`, // This appears as the description in your log list
         xpEarned
       ]
     );
 
-    res.json({ success: true, message: "Results saved and logged", newTotalXp });
+    res.json({ success: true, message: "Results saved and logged successfully", newTotalXp });
 
   } catch (error) {
-    console.error("Quiz submit error:", error);
+    // We log the specific SQL error here so you can see it in your terminal
+    console.error("❌ SQL ERROR IN QUIZ SUBMISSION:", error.message);
     res.status(500).json({ error: "Failed to save results" });
   }
 });
