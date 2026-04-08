@@ -46,14 +46,12 @@ export default function DailyQuizPage() {
   // 2. On Mount: Check Quiz Status & Fetch Live Questions
   useEffect(() => {
     const fetchQuizData = async () => {
-      // If no user, they can't play to save stats, redirect or show error
       if (!user) {
         setIsLoadingStatus(false);
         return;
       }
 
       try {
-        // Step A: Check if they already played today
         const statusRes = await fetch(`${API_BASE_URL}/api/userProfile/quiz/status`, {
           credentials: 'include' 
         });
@@ -62,7 +60,6 @@ export default function DailyQuizPage() {
           const statusData = await statusRes.json();
           setHasCompletedToday(statusData.hasCompletedToday);
           
-          // Step B: If they haven't played, fetch the live Daily 5 questions
           if (!statusData.hasCompletedToday) {
             const questionsRes = await fetch(`${API_BASE_URL}/api/quiz-content/today`, {
                credentials: 'include'
@@ -71,8 +68,6 @@ export default function DailyQuizPage() {
             if (questionsRes.ok) {
               const liveQuestions = await questionsRes.json();
               setQuestions(liveQuestions);
-            } else {
-              console.error("Failed to fetch live questions from database");
             }
           }
         }
@@ -86,10 +81,11 @@ export default function DailyQuizPage() {
     fetchQuizData();
   }, [user]);
 
-  // 3. On Finish: Submit the results to the backend to update streaks & XP
+  // 3. On Finish: Submit the results to the backend
   useEffect(() => {
     const submitResults = async () => {
-      if (!isFinished || isSubmitting || !user) return;
+      // ✅ Added hasCompletedToday to the guard to stop submission if already done
+      if (!isFinished || isSubmitting || hasCompletedToday || !user) return;
       
       setIsSubmitting(true);
 
@@ -114,10 +110,15 @@ export default function DailyQuizPage() {
 
         if (!res.ok) {
           const errorData = await res.json();
+          // ✅ If the backend says it's already done, update local state to stop attempts
+          if (res.status === 400 && errorData.error === "Quiz already completed today") {
+            setHasCompletedToday(true);
+          }
           throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
         }
 
         console.log("Quiz results submitted successfully!");
+        setHasCompletedToday(true); // ✅ Set true on success to stop future attempts
       } catch (error) {
         console.error("Failed to submit quiz results:", error.message);
       } finally {
@@ -126,7 +127,8 @@ export default function DailyQuizPage() {
     };
 
     submitResults();
-  }, [isFinished, score, isSubmitting, user, csrfToken]);
+    // ✅ REMOVED 'isSubmitting' from the dependency array to prevent the infinite loop
+  }, [isFinished, score, user, csrfToken, hasCompletedToday]);
 
   const handleNextQuestion = (wasCorrect) => {
     if (wasCorrect) {
@@ -154,7 +156,6 @@ export default function DailyQuizPage() {
     );
   }
 
-  // Fallback if not logged in
   if (!user) {
     return (
       <>
@@ -225,7 +226,6 @@ export default function DailyQuizPage() {
     );
   }
 
-  // Edge case where no questions are in the database yet
   if (questions.length === 0) {
     return (
       <>
@@ -246,7 +246,6 @@ export default function DailyQuizPage() {
     <>
     <Header />
       <div className="quiz-page-container dqp-div2">
-        
         <button 
           onClick={() => navigate(-1)} 
           className="lrp-btn lrp-btn-outline dqp-back"
@@ -256,11 +255,9 @@ export default function DailyQuizPage() {
 
         <div className="quiz-header-section">
           <h2 className="quiz-header-section-h2">{t('quiz.header')}</h2>
-          
           <h4 className="quiz-progress-text">
             {t('quiz.progress', { current: currentIndex + 1, total: questions.length })}
           </h4>
-          
           <p className="quiz-disclaimer">
             {t('quiz.disclaimer')}
           </p>
@@ -270,7 +267,6 @@ export default function DailyQuizPage() {
           quizData={questions[currentIndex]} 
           onNext={handleNextQuestion} 
         />
-
       </div>
       <Footer/>
     </>
