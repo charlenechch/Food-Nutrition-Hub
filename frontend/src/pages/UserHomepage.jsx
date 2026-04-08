@@ -417,7 +417,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           <div className="stats-intro">
             <p className="stats-eyebrow">{t("home.statsEyebrow", "What is SarawakEats?")}</p>
             <h2 className="stats-headline">{t("home.statsHeadline", "Where food becomes a story worth preserving.")}</h2>
-            <p className="stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
+            <p className="stats-subtext" style={{textAlign: "justify"}}>{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
           </div>
           <div className="stats-grid">
             <div className="stat-item">
@@ -439,12 +439,20 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               <span className="stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
             </div>
           </div>
+          <div className="snap-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 2, behavior: 'smooth' })}>
+            <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
+            <FaAnglesDown className="snap-bounce-icon" />
+          </div>
         </div>
       </section>
 
       {/* ── SECTION 3: Dish Spotlight ── */}
-      <section className="snap-section dish-snap-section">
+      <section className="snap-section dish-snap-section" style={{position:'relative'}}>
         <DishSpotlight allFoods={allFoods} navigate={navigate} t={t} />
+        <div className="snap-scroll-hint dish-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 3, behavior: 'smooth' })}>
+          <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
+          <FaAnglesDown className="snap-bounce-icon" />
+        </div>
       </section>
 
       {/* ── SECTION 4: Rest of content ── */}
@@ -479,10 +487,10 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </section>
         )}
 
+        {/* heritage-fact-banner commented out
         <section className="heritage-fact-banner">
           <div className="fact-decoration-circle circle-1"></div>
           <div className="fact-decoration-circle circle-2"></div>
-          
           <div className="fact-content-wrapper">
             <div className="fact-icon-box">
               <FaLightbulb className="glowing-bulb" />
@@ -498,6 +506,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             </button>
           </div>
         </section>
+        */}
       </main>
 
       {isRandomizing && (
