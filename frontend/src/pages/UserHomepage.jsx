@@ -165,10 +165,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }
   };
 
-  const getHeroTitle = () => {
-    if (!user) return t("home.heroTitle", "Welcome, Guest!");
-    if (user.role === "guest" || !user.firstname) return t("home.heroGuest", "Welcome, Guest!");
-    return t("home.heroUser", { name: user.firstname });
+  // True when a real named user is logged in (not guest)
+  const isLoggedInUser = user && user.role !== "guest" && user.firstname;
+
+  const getWelcomeTitle = () => {
+    if (isLoggedInUser) return t("home.heroUser", { name: user.firstname });
+    return t("home.mainHeadline", "Discover Sarawak's Heritage and Food");
   };
 
   const nextSlide = () => setCurrentSlide((prev) => (prev === HERO_IMAGES.length - 1 ? 0 : prev + 1));
@@ -310,9 +312,10 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             <span className="sdg-badge">🌿 SDG 3 · Good Health</span>
             <span className="sdg-badge">🏙️ SDG 11 · Sustainable Communities</span>
           </div>
-          <span className="hero-greeting">{getHeroTitle()}</span>
-          <h1 className="hero-title">{t("home.mainHeadline", "Discover Sarawak's Heritage and Food")}</h1>
-          <p className="hero-subtitle">{t("home.heroSubtitle", "A community-driven hub preserving the nutritional heritage of Sarawak's traditional foods — for healthier communities and richer cultural identity.")}</p>
+          <h1 className="hero-title">{getWelcomeTitle()}</h1>
+          {!isLoggedInUser && (
+            <p className="hero-subtitle">{t("home.heroSubtitle", "A community-driven hub preserving the nutritional heritage of Sarawak's traditional foods — for healthier communities and richer cultural identity.")}</p>
+          )}
 
           <div className="hero-search-container" ref={searchRef}>
             <form className="hero-search-form" onSubmit={handleSearchSubmit}>
