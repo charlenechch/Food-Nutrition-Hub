@@ -39,6 +39,8 @@ const notificationRoutes = require("./routes/notifications");
 const translateRoutes = require("./routes/translation");
 const mapRoutes = require("./routes/map");
 const xpRoutes = require("./routes/xp");
+// ✅ Added Quiz Content Routes
+const quizContentRoutes = require("./routes/quizContentroutes"); 
 
 // Admin
 const adminRoutes = require("./routes/admin");
@@ -218,7 +220,6 @@ const otpLimiter = rateLimit({
 });
 
 // ---------- Sessions ----------
-// ✅ FIXED: Passing existing database pool 'db' to prevent ECONNRESET
 const sessionStore = new MySQLStore({
   clearExpired: true,
   checkExpirationInterval: 15 * 60 * 1000,
@@ -278,18 +279,27 @@ app.use("/api/ai", cors({ origin: allowedOrigins, credentials: true }), aiRoutes
 
 app.use("/api/userProfile", hppProtect({ 
   policy: "none", 
-  allowlist: ["dietary", "allergies", "emailNotifications", "pushNotifications", "profileVisibility", "language", "location", "bio", "pdpaConsent", "tncConsent", "newLevel", "equippedBadge"], 
+  allowlist: [
+    "dietary", "allergies", "emailNotifications", "pushNotifications", "profileVisibility", "language", 
+    "location", "bio", "pdpaConsent", "tncConsent", "newLevel", "equippedBadge", "equippedContributorBadge", "badgeId",
+    "score", "xpEarned", "isPerfect"
+  ], 
   logger: (tag, meta) => logger.warn(`HPP UserProfile Parameter: ${tag}`, meta) 
 }), userProfileRoutes);
-app.use("/api/recipe", hppProtect({ policy: "first", allowlist: ["includeAll", "status", "foodID", "name", "origin", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "category", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory", "recipe", "content", "image", "userProfileID", "status", "comment", "feedback", "steps", "DidYouKnow", "rating"], logger: (tag, meta) => logger.warn(`HPP Recipe Parameter: ${tag}`, meta) }), recipeRoutes);
+app.use("/api/recipe", hppProtect({ policy: "first", allowlist: ["includeAll", "status", "foodID", "name", "origin", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "category", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "id", "title", "foodName", "culturalOrigin", "culturalStory", "recipe", "content", "image", "userProfileID", "status", "comment", "feedback", "steps", "DidYouKnow", "rating", "recipeName"], logger: (tag, meta) => logger.warn(`HPP Recipe Parameter: ${tag}`, meta) }), recipeRoutes);
 
-
-app.use("/api/foods", hppProtect({ policy: "first", allowlist: ["name", "category", "culturalSignificance", "traditionalPreparation", "origin", "description", "image", "dietaryTags", "ingredients", "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg", "difficulty", "prepTime", "commonIngredients", "healthTips", "servings", "cookTime", "steps", "DidYouKnow", "chefTips", "foodItems", "recipeDescription", "foodDescription", "didYouKnow", "recipeId"], skipArrays: true, logger: (tag, meta) => logger.warn(`HPP Foods Parameter: ${tag}`, meta) }), foodRoutes);
+app.use("/api/foods", hppProtect({ policy: "first", allowlist: ["name", "category", "culturalSignificance", "traditionalPreparation", "origin", "description", "image", "dietaryTags", "ingredients", "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", "VitaminC_mg", "difficulty", "prepTime", "commonIngredients", "healthTips", "servings", "cookTime", "steps", "DidYouKnow", "chefTips", "foodItems", "recipeDescription", "foodDescription", "didYouKnow", "recipeId", "recipeName"], skipArrays: true, logger: (tag, meta) => logger.warn(`HPP Foods Parameter: ${tag}`, meta) }), foodRoutes);
 
 app.use("/api/export", hppProtect({ policy: "none", allowlist: ["format", "year", "saveIds", "month", "custom", "startDate", "endDate", "dataTypes", "recipeIds", "postIds", "likedPostIds"], logger: (tag, meta) => logger.warn(`HPP Export Parameter: ${tag}`, meta) }), exportRoutes);
 app.use("/api/foodSearch", foodSearchRoutes);
 
 app.use("/api/translate", hppProtect({ policy: "none", allowlist: ["texts", "targetLang"], logger: (tag, meta) => logger.warn(`HPP Translate: ${tag}`, meta) }), translateRoutes);
+
+app.use("/api/quiz-content", hppProtect({ 
+  policy: "none", 
+  allowlist: ["foodID", "question", "options", "correctAnswer", "explanation"], 
+  logger: (tag, meta) => logger.warn(`HPP Quiz Content: ${tag}`, meta) 
+}), quizContentRoutes);
 
 // ---------- Global HPP for everything else ----------
 app.use(hppProtect({ policy: "first", allowlist: ["id", "page", "q", "sort", "lat", "lng", "email", "password", "newPassword", "userID", "code", "rememberDevice", "token", "role", "userProfileID", "firebase_uid", "googlePhotoUrl", "firebaseUID", "bio", "location", "firstname", "lastname", "city", "suspendedUntil", "suspensionReason", "avatar", "allergies", "dietary", "emailNotifications", "prefs", "pushNotifications", "profileVisibility", "language", "recipes", "status", "stats", "saveFoods", "likes", "type", "postId", "postID", "content", "title", "culturalOrigin", "recipe", "reply", "comment", "foodID", "likeID", "name", "difficulty", "prepTime", "cookTime", "servings", "image", "description", "dietaryTags", "ingredients", "instructions", "funFact", "chefTips", "category", "isAdmin", "isAdminAction", "adminRole", "adminId", "includeAll", "view", "year", "feedback", "format", "saveIds", "month", "pdpaConsent", "tncConsent", "userIds", "emails", "subject", "message", "sendEmail", "actionType", "search", "startDate", "endDate", "limit"], logger: (tag, meta) => { logger.warn(`[GLOBAL HPP] ${tag}`, meta); }, }));

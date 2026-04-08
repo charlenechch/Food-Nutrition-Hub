@@ -19,7 +19,7 @@ router.get("/search", async (req, res) => {
       `SELECT 
         foodID, name, origin, category, difficulty, dietaryTags,
         description, image, prepTime, culturalSignificance, traditionalPreparation,
-        commonIngredients, alternative, altDescription, healthTips,
+        commonIngredients, healthTips,
         Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg,
         likes_count, liked_by
       FROM food
@@ -68,14 +68,14 @@ router.get("/search", async (req, res) => {
       }
     }
 
-    const alternatives = [];
-    if (row.alternative || row.altDescription) {
-      alternatives.push({
-        name: row.alternative || "Alternative",
-        calories: null,
-        note: row.altDescription || "",
-      });
-    }
+    // const alternatives = [];
+    // if (row.alternative || row.altDescription) {
+    //   alternatives.push({
+    //     name: row.alternative || "Alternative",
+    //     calories: null,
+    //     note: row.altDescription || "",
+    //   });
+    // }
 
     return res.json({
       found: true,
@@ -83,7 +83,7 @@ router.get("/search", async (req, res) => {
       food_name: row.name,
       confidence: 1.0, // per your choice
       nutrition,
-      alternatives,
+      // alternatives,
       tips,
       extra: {
         origin: row.origin,

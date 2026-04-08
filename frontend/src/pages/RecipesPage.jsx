@@ -149,10 +149,11 @@ export default function RecipesPage() {
   const [dietFilters, setDietFilters] = useState([]);
 
   // Filter Logic
-  const origins = useMemo(() => {
-    const set = new Set(recipes.map(r => r.origin).filter(Boolean));
-    return ["all", ...Array.from(set)];
-  }, [recipes]);
+  const origins = [
+    "all", "Malay", "Chinese", "Iban", "Melanau", "Kenyah", 
+    "Bidayuh", "Kayan", "Lunbawang", "Punan", "Bisayah", 
+    "Kelabit", "Berawan", "Kejaman", "Ukit", "Sekapan", "Penan"
+  ];
 
   const filtered = useMemo(() => {
     const terms = tokenize(searchQuery);
@@ -493,8 +494,18 @@ export default function RecipesPage() {
                     <option value="Chinese">Chinese</option>
                     <option value="Iban">Iban</option>
                     <option value="Melanau">Melanau</option>
+                    <option value="Kenyah">Kenyah</option>
                     <option value="Bidayuh">Bidayuh</option>
-                    <option value="Dayak">Dayak</option>
+                    <option value="Kayan">Kayan</option>
+                    <option value="Lunbawang">Lunbawang</option>
+                    <option value="Punan">Punan</option>
+                    <option value="Bisayah">Bisayah</option>
+                    <option value="Kelabit">Kelabit</option>
+                    <option value="Berawan">Berawan</option>
+                    <option value="Kejaman">Kejaman</option>
+                    <option value="Ukit">Ukit</option>
+                    <option value="Sekapan">Sekapan</option>
+                    <option value="Penan">Penan</option>
                   </select>
                 </div>
               </div>
@@ -634,8 +645,28 @@ export default function RecipesPage() {
               <div className="efp-grid-2">
                 <div className="efp-filter-item">
                   <label className="efp-label">{t("explore.culturalOrigin")}</label>
-                  <select value={selectedOrigin} onChange={(e) => setSelectedOrigin(e.target.value)} className="efp-select">
-                    {origins.map(o => <option key={o} value={o}>{o === "all" ? t("explore.allOrigins") : o}</option>)}
+                  <select 
+                    value={selectedOrigin} 
+                    onChange={(e) => setSelectedOrigin(e.target.value)} 
+                    className="efp-select"
+                  >
+                    <option value="all">{t("explore.allOrigins")}</option>
+                    <option value="Malay">Malay</option>
+                    <option value="Chinese">Chinese</option>
+                    <option value="Iban">Iban</option>
+                    <option value="Melanau">Melanau</option>
+                    <option value="Kenyah">Kenyah</option>
+                    <option value="Bidayuh">Bidayuh</option>
+                    <option value="Kayan">Kayan</option>
+                    <option value="Lunbawang">Lunbawang</option>
+                    <option value="Punan">Punan</option>
+                    <option value="Bisayah">Bisayah</option>
+                    <option value="Kelabit">Kelabit</option>
+                    <option value="Berawan">Berawan</option>
+                    <option value="Kejaman">Kejaman</option>
+                    <option value="Ukit">Ukit</option>
+                    <option value="Sekapan">Sekapan</option>
+                    <option value="Penan">Penan</option>
                   </select>
                 </div>
                 <div className="efp-filter-item">
@@ -737,9 +768,8 @@ export default function RecipesPage() {
             return (
               <div 
                 key={`recipe-${recipeId}-${index}`} 
-                className="efp-food-card"
+                className="efp-food-card rp-food-card"
                 onClick={() => navigate(`/recipes/${recipeId}`)}
-                style={{ cursor: "pointer" }}
               >
                 <div className="efp-food-media">
                   <img src={r.image || 'https://via.placeholder.com/300x200?text=No+Image'} alt={r.name} className="efp-image" loading="lazy" />
@@ -748,9 +778,8 @@ export default function RecipesPage() {
                 </div>
                 <div className="efp-food-body">
                   <div 
-                    className="rp-author-info"
+                    className="rp-author-info rp-food-card"
                     onClick={(e) => handleProfileClick(e, r.authorId || r.userProfileID)}
-                    style={{ cursor: "pointer" }}
                     title={`View ${r.author}'s profile`}
                   >
                     {/* ✅ UPDATED: Added UI Avatars and onError Fallback */}
@@ -771,6 +800,14 @@ export default function RecipesPage() {
                         {getTierById(r.equippedBadge).icon}
                         <span className="badge-tooltip-mini" style={{ color: getTierById(r.equippedBadge).color }}>
                           {getTierById(r.equippedBadge).title}
+                        </span>
+                      </span>
+                    )}
+                    {r.contributorBadgeType && (
+                      <span className="user-badge-inline">
+                        {getTierById(r.contributorBadgeType).icon}
+                        <span className="badge-tooltip-mini" style={{ color: getTierById(r.contributorBadgeType).color }}>
+                          {getTierById(r.contributorBadgeType).title} — {r.contributorBadgeMonth}
                         </span>
                       </span>
                     )}

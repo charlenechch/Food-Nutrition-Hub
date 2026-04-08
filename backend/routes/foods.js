@@ -256,7 +256,8 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     commonIngredients,
     healthTips,
     
-    // Recipe Table Fields
+    // Recipe Table Fields 
+    recipeName,
     ingredients,        
     steps,             
     recipeDescription, 
@@ -321,9 +322,9 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       INSERT INTO recipe 
       (
         foodID, userProfileID, description, ingredients, steps, 
-        cookTime, servings, DidYouKnow, chefTips, status, publish
+        cookTime, servings, DidYouKnow, chefTips, status, publish, recipeName
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const recipeValues = [
@@ -337,7 +338,8 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       didYouKnow || "",
       chefTips || "", 
       'Approved',
-      'publish'
+      'publish',
+      recipeName || ""
     ];
 
     await connection.query(recipeSql, recipeValues);
@@ -914,6 +916,10 @@ router.post("/bulk-import", async (req, res) => {
           throw new Error("Missing name or origin");
         }
 
+        if (!foodItem.recipeName) {
+          throw new Error("Missing recipeName");
+        }
+
         // Validate required fields for RECIPE table
         if (!foodItem.ingredients || !foodItem.steps) {
           throw new Error("Missing ingredients or steps for recipe");
@@ -966,9 +972,9 @@ router.post("/bulk-import", async (req, res) => {
             INSERT INTO recipe 
             (
               foodID, userProfileID, description, ingredients, steps, cookTime, 
-              servings, DidYouKnow, chefTips, status
+              servings, DidYouKnow, chefTips, status, recipeName
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
           
           const recipeValues = [
@@ -981,7 +987,8 @@ router.post("/bulk-import", async (req, res) => {
             foodItem.servings || 1,
             foodItem.DidYouKnow || "",
             foodItem.chefTips || "",
-            "Approved" // Directly approved
+            "Approved", // Directly approved
+            foodItem.recipeName
           ];
 
           await connection.query(recipeSql, recipeValues);

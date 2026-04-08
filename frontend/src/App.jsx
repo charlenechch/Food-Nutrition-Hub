@@ -27,6 +27,7 @@ import Analytics from "./pages/Analytics";
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import ConsentModal from './components/ConsentModal';
 import LevelUpModal from './components/LevelUpModal';
+import ContributorBadgeModal from './components/ContributorBadgeModal';
 import FoodMap from "./pages/FoodMap";
 import XpLogs from "./pages/XpLogsPage";
 import Leaderboard from "./pages/Leaderboard";
@@ -241,6 +242,70 @@ function LevelUpOverlays() {
   );
 }
 
+function ContributorBadgeOverlays() {
+  const { user } = useAuth();
+  const [unseenBadges, setUnseenBadges] = useState([]);
+  const [currentBadge, setCurrentBadge] = useState(null);
+
+  useEffect(() => {
+    if (!user || user.role === "guest") return;
+
+    const fetchUnseenBadges = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/userProfile/unseen-badges`, {
+          credentials: "include"
+        });
+        const data = await res.json();
+        if (data.success && data.badges.length > 0) {
+          setUnseenBadges(data.badges);
+          setCurrentBadge(data.badges[0]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch unseen badges", err);
+      }
+    };
+
+    fetchUnseenBadges();
+  }, [user]);
+
+  if (!user || user.role === "guest") return null;
+
+  const handleDismiss = async (badge) => {
+    try {
+      const csrfRes = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/csrf-token`, {
+        credentials: "include"
+      });
+      const csrfData = await csrfRes.json();
+
+      await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/userProfile/mark-badge-seen`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfData.csrfToken
+        },
+        credentials: "include",
+        body: JSON.stringify({ badgeId: badge.id })
+      });
+
+      // Show next unseen badge if any
+      const remaining = unseenBadges.filter(b => b.id !== badge.id);
+      setUnseenBadges(remaining);
+      setCurrentBadge(remaining.length > 0 ? remaining[0] : null);
+
+    } catch (err) {
+      console.error("Failed to mark badge as seen", err);
+      setCurrentBadge(null);
+    }
+  };
+
+  return (
+    <ContributorBadgeModal
+      badge={currentBadge}
+      onDismiss={handleDismiss}
+    />
+  );
+}
+
 // -------------------------------
 //  Main App Component
 // -------------------------------
@@ -254,6 +319,7 @@ function AppRoutes() {
       <ScrollToTop />
       <ConsentModal />
       <LevelUpOverlays />
+      <ContributorBadgeOverlays />
       <Routes>
         {/* === Default Landing (GUEST FIRST) === */}
           <Route path="/" element={<UserHomepage />} />

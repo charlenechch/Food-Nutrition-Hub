@@ -55,13 +55,14 @@ CREATE TABLE userProfile (
     posts INT DEFAULT 0,
     likes INT DEFAULT 0,
     totalSubmissions int DEFAULT '0',
+    equippedContributorBadge INT DEFAULT NULL,
     KEY fk_userProfile_user_restrict (userID),
 	CONSTRAINT fk_userProfile_user_restrict FOREIGN KEY (userID) REFERENCES user (userID) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE food (
     foodID INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(20) NOT NULL,
+    name VARCHAR(100) NULL,
     origin VARCHAR(100) NOT NULL,
     category VARCHAR(100) NOT NULL,
     difficulty ENUM('Easy', 'Medium', 'Hard') NOT NULL,
@@ -253,6 +254,34 @@ CREATE TABLE badge (
   awarded_month VARCHAR(7) DEFAULT NULL,
   seen TINYINT(1) DEFAULT 0,
   awarded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID)
+    ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+ALTER TABLE userProfile
+ADD COLUMN quiz_last_completed_date DATE DEFAULT NULL,
+ADD COLUMN quiz_current_streak INT DEFAULT 0,
+ADD COLUMN quiz_longest_streak INT DEFAULT 0,
+ADD COLUMN quiz_perfect_days INT DEFAULT 0;
+
+CREATE TABLE quiz_questions (
+  questionID INT AUTO_INCREMENT PRIMARY KEY,
+  foodID INT NOT NULL,
+  question TEXT NOT NULL,
+  options JSON NOT NULL,
+  correctAnswer VARCHAR(255) NOT NULL,
+  explanation TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE leaderboardSnapshot (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  snapshot_month VARCHAR(7) NOT NULL,
+  type VARCHAR(20) NOT NULL,
+  rank_position INT NOT NULL,
+  userProfileID INT NOT NULL,
+  contributions INT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID)
     ON DELETE CASCADE ON UPDATE CASCADE
 );

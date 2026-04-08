@@ -492,6 +492,14 @@ export default function RecipeDetailPage() {
                           </span>
                         </span>
                       )}
+                      {recipe.contributorBadgeType && (
+                        <span className="user-badge-inline">
+                          {getTierById(recipe.contributorBadgeType).icon}
+                          <span className="badge-tooltip-mini" style={{ color: getTierById(recipe.contributorBadgeType).color }}>
+                            {getTierById(recipe.contributorBadgeType).title} — {recipe.contributorBadgeMonth}
+                          </span>
+                        </span>
+                      )}
                     </span>
                   </div>
                 </div>

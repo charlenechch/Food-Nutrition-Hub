@@ -201,8 +201,18 @@ export default function Community() {
                       <option value="Chinese">Chinese</option>
                       <option value="Iban">Iban</option>
                       <option value="Melanau">Melanau</option>
+                      <option value="Kenyah">Kenyah</option>
                       <option value="Bidayuh">Bidayuh</option>
-                      <option value="Dayak">Dayak</option>
+                      <option value="Kayan">Kayan</option>
+                      <option value="Lunbawang">Lunbawang</option>
+                      <option value="Punan">Punan</option>
+                      <option value="Bisayah">Bisayah</option>
+                      <option value="Kelabit">Kelabit</option>
+                      <option value="Berawan">Berawan</option>
+                      <option value="Kejaman">Kejaman</option>
+                      <option value="Ukit">Ukit</option>
+                      <option value="Sekapan">Sekapan</option>
+                      <option value="Penan">Penan</option>
                     </select>
                   </div>
                 </div>
@@ -250,7 +260,7 @@ export default function Community() {
               </button>
               {originDropdownOpen && (
                 <div className="dropdown-menu-list">
-                  {["All", "Malay", "Chinese", "Iban", "Melanau", "Bidayuh", "Dayak"].map((origin) => (
+                  {["All", "Malay", "Chinese", "Iban", "Melanau", "Kenyah", "Bidayuh", "Kayan", "Lunbawang", "Punan", "Bisayah", "Kelabit", "Berawan", "Kejaman", "Ukit", "Sekapan", "Penan"].map((origin) => (
                     <div key={origin}
                       className={`dropdown-item ${selectedOrigin === (origin === "All" ? "all" : origin) ? "selected" : ""}`}
                       onClick={() => { setSelectedOrigin(origin === "All" ? "all" : origin); setOriginDropdownOpen(false); }}>
@@ -337,6 +347,14 @@ export default function Community() {
                                 {getTierById(post.equippedBadge).icon}
                                 <span className="badge-tooltip-mini" style={{ color: getTierById(post.equippedBadge).color }}>
                                   {getTierById(post.equippedBadge).title}
+                                </span>
+                              </span>
+                            )}
+                            {post.contributorBadgeType && (
+                              <span className="user-badge-inline">
+                                {getTierById(post.contributorBadgeType).icon}
+                                <span className="badge-tooltip-mini" style={{ color: getTierById(post.contributorBadgeType).color }}>
+                                  {getTierById(post.contributorBadgeType).title} — {post.contributorBadgeMonth}
                                 </span>
                               </span>
                             )}

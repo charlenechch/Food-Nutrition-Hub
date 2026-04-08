@@ -27,6 +27,7 @@ const profileUpdateSchema = Joi.object({
   
   // ✅ Allows a string (the badge ID) or a real database NULL
   equippedBadge: Joi.string().max(50).allow(null, '').optional(),
+  equippedContributorBadge: Joi.number().integer().min(1).allow(null).optional(),
   
   dietary: Joi.alternatives().try(
     Joi.array().items(Joi.string().max(60)),
@@ -747,10 +748,11 @@ router.get("/", async (req, res) => {
     const [rows] = await db.execute(
       `SELECT
         u.userID, u.firstname AS firstName, u.lastname AS lastName, u.email, u.role,
-        up.userProfileID, up.location, up.bio, up.avatar, up.total_xp, up.equippedBadge, /* ✅ ADDED THIS */
+        up.userProfileID, up.location, up.bio, up.avatar, up.total_xp, up.equippedBadge, up.equippedContributorBadge,
         up.dietaryPreference AS dietary, up.allergies,
         up.emailNotifications, up.pushNotifications, up.profileVisibility, up.language,
-        up.recipes, up.posts, up.likes
+        up.recipes, up.posts, up.likes,
+        up.quiz_last_completed_date, up.quiz_current_streak, up.quiz_longest_streak, up.quiz_perfect_days
       FROM user u
       LEFT JOIN userProfile up ON up.userID = u.userID
       WHERE u.userID = ?`,
@@ -835,9 +837,16 @@ router.get("/", async (req, res) => {
       avatar: profile.avatar,
       total_xp: profile.total_xp,
       equippedBadge: profile.equippedBadge || null,
+      equippedContributorBadge: profile.equippedContributorBadge || null,
 
       savedFoods: savedFoodsData,
       status: contributions,
+      quizStats: {
+        lastCompletedDate: profile.quiz_last_completed_date,
+        currentStreak: profile.quiz_current_streak || 0,
+        longestStreak: profile.quiz_longest_streak || 0,
+        totalPerfectDays: profile.quiz_perfect_days || 0
+      },
       stats: {
         recipes: freshStats.recipes || 0,
         posts: freshStats.posts || 0,
@@ -894,7 +903,7 @@ router.put("/update", async (req, res) => {
     const { 
       location, bio, dietary, allergies, 
       emailNotifications, pushNotifications, 
-      profileVisibility, language, equippedBadge 
+      profileVisibility, language, equippedBadge, equippedContributorBadge
     } = value;
 
     console.log(`💾 Executing profile update query for user: ${userID}`);
@@ -909,7 +918,8 @@ router.put("/update", async (req, res) => {
            pushNotifications = COALESCE(?, pushNotifications), 
            profileVisibility = COALESCE(?, profileVisibility), 
            language = COALESCE(?, language), 
-           equippedBadge = ? 
+           equippedBadge = ?,
+           equippedContributorBadge = ?
        WHERE userID = ?`,
       [
         location !== undefined ? location : null,
@@ -920,8 +930,8 @@ router.put("/update", async (req, res) => {
         pushNotifications !== undefined ? pushNotifications : null,
         profileVisibility !== undefined ? profileVisibility : null,
         language !== undefined ? language : null,
-        // ✅ This logic forces the literal database NULL if the badge is 'null' or empty
         (equippedBadge === 'null' || !equippedBadge) ? null : equippedBadge,
+        equippedContributorBadge !== undefined ? equippedContributorBadge : null,
         userID
       ]
     );
@@ -973,6 +983,85 @@ router.get("/:id/badges", async (req, res) => {
   }
 });
 
+// GET /api/userProfile/unseen-badges
+router.get("/unseen-badges", async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    const userID = req.session.user.userID;
+
+    const [profileRows] = await db.execute(
+      "SELECT userProfileID FROM userProfile WHERE userID = ?",
+      [userID]
+    );
+
+    if (profileRows.length === 0) {
+      return res.status(404).json({ success: false, message: "User profile not found" });
+    }
+
+    const userProfileID = profileRows[0].userProfileID;
+
+    const [badges] = await db.execute(
+      `SELECT id, badge_type, awarded_month, awarded_at
+       FROM badge
+       WHERE userProfileID = ? AND seen = 0
+       ORDER BY awarded_at ASC`,
+      [userProfileID]
+    );
+
+    return res.json({ success: true, badges });
+
+  } catch (error) {
+    console.error("❌ Error fetching unseen badges:", error);
+    return res.status(500).json({ success: false, message: "Failed to fetch unseen badges", error: error.message });
+  }
+});
+
+// PUT /api/userProfile/mark-badge-seen
+router.put("/mark-badge-seen", async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    const userID = req.session.user.userID;
+    const { badgeId } = req.body;
+
+    if (!badgeId) {
+      return res.status(400).json({ success: false, message: "Badge ID is required" });
+    }
+
+    // Verify the badge belongs to this user before marking as seen
+    const [profileRows] = await db.execute(
+      "SELECT userProfileID FROM userProfile WHERE userID = ?",
+      [userID]
+    );
+
+    if (profileRows.length === 0) {
+      return res.status(404).json({ success: false, message: "User profile not found" });
+    }
+
+    const userProfileID = profileRows[0].userProfileID;
+
+    const [result] = await db.execute(
+      `UPDATE badge SET seen = 1 WHERE id = ? AND userProfileID = ?`,
+      [badgeId, userProfileID]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Badge not found or does not belong to this user" });
+    }
+
+    return res.json({ success: true, message: "Badge marked as seen" });
+
+  } catch (error) {
+    console.error("❌ Error marking badge as seen:", error);
+    return res.status(500).json({ success: false, message: "Failed to mark badge as seen", error: error.message });
+  }
+});
+
 // View other user's profile (/api/userProfile/:id) 
 router.get("/:identifier", async (req, res) => {
   console.log("👥 Other user profile request received");
@@ -984,10 +1073,11 @@ router.get("/:identifier", async (req, res) => {
     const [rows] = await db.execute(
       `SELECT 
         u.userID, u.firstname AS firstName, u.lastname AS lastName, u.email, u.role,
-        up.userProfileID, up.location, up.bio, up.avatar, up.total_xp, up.equippedBadge, /* ✅ ADDED THIS */
+        up.userProfileID, up.location, up.bio, up.avatar, up.total_xp, up.equippedBadge, up.equippedContributorBadge,
         up.dietaryPreference AS dietary, up.allergies,
         up.emailNotifications, up.pushNotifications, up.profileVisibility, up.language,
-        up.recipes, up.posts, up.likes
+        up.recipes, up.posts, up.likes,
+        up.quiz_last_completed_date, up.quiz_current_streak, up.quiz_longest_streak, up.quiz_perfect_days
       FROM user u
       LEFT JOIN userProfile up ON up.userID = u.userID
       WHERE u.userID = ? 
@@ -1113,6 +1203,7 @@ router.get("/:identifier", async (req, res) => {
       avatar: profile.avatar,
       total_xp: profile.total_xp,
       equippedBadge: profile.equippedBadge || null,
+      equippedContributorBadge: profile.equippedContributorBadge || null,
       // Only expose email and sensitive prefs to owner or admin
       ...(isSensitiveViewer && { email: profile.email }),
       savedFoods: isSensitiveViewer ? savedFoodsData : [],
@@ -1419,6 +1510,113 @@ router.put("/acknowledge-level", async (req, res) => {
   } catch (err) {
     console.error("Error updating acknowledged level:", err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ==========================================
+// DAILY QUIZ ROUTES (TESTING MODE)
+// ==========================================
+
+// Helper functions for dates
+const getTodayString = () => {
+  const date = new Date();
+  return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+};
+
+const getYesterdayString = () => {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+};
+
+// 1. GET: Check Quiz Status
+// ✅ FORCED TO FALSE so the quiz always opens for your testing
+router.get("/quiz/status", async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
+    res.json({ hasCompletedToday: false }); 
+  } catch (error) {
+    console.error("Quiz status error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// 2. POST: Submit Results and Log XP History
+router.post("/quiz/submit", async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
+    
+    const userID = req.session.user.userID;
+    const { score, xpEarned, isPerfect } = req.body;
+
+    // Fetch the userProfileID required for the xp_logs table
+    const [rows] = await db.execute(
+      `SELECT userProfileID, total_xp, quiz_last_completed_date, quiz_current_streak, quiz_longest_streak, quiz_perfect_days 
+       FROM userProfile WHERE userID = ?`,
+      [userID]
+    );
+
+    if (rows.length === 0) return res.status(404).json({ error: "Profile not found" });
+
+    const profile = rows[0];
+    const userProfileID = profile.userProfileID; 
+    const today = getTodayString();
+    const yesterday = getYesterdayString();
+    
+    let dbDateStr = null;
+    if (profile.quiz_last_completed_date) {
+      dbDateStr = new Date(profile.quiz_last_completed_date).toISOString().split('T')[0];
+    }
+
+    // ✅ RESTRICTION BYPASSED for unlimited testing
+    /*
+    if (dbDateStr === today) {
+      return res.status(400).json({ error: "Quiz already completed today" });
+    }
+    */
+
+    // Calculate Streaks logic
+    let currentStreak = profile.quiz_current_streak || 0;
+    let longestStreak = profile.quiz_longest_streak || 0;
+    let perfectDays = profile.quiz_perfect_days || 0;
+
+    if (dbDateStr === yesterday) {
+      currentStreak += 1; 
+    } else if (dbDateStr !== today) {
+      currentStreak = 1;  
+    }
+
+    if (currentStreak > longestStreak) longestStreak = currentStreak;
+    if (isPerfect) perfectDays += 1;
+
+    const newTotalXp = (profile.total_xp || 0) + xpEarned;
+
+    // Save update to User Profile
+    await db.execute(
+      `UPDATE userProfile 
+       SET total_xp = ?, 
+           quiz_last_completed_date = ?, 
+           quiz_current_streak = ?, 
+           quiz_longest_streak = ?, 
+           quiz_perfect_days = ?
+       WHERE userID = ?`,
+      [newTotalXp, today, currentStreak, longestStreak, perfectDays, userID]
+    );
+
+    // ✅ RECORD TO XP HISTORY (Using the correct table from FNH.sql)
+    // Table: xp_logs | Columns: userProfileID, action_type, reference_id, xp_awarded, created_at
+    await db.execute(
+      `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded, created_at) 
+       VALUES (?, 'QUIZ_COMPLETED', NULL, ?, NOW())`,
+      [userProfileID, xpEarned]
+    );
+
+    res.json({ success: true, message: "Results saved and logged to XP history", newTotalXp });
+
+  } catch (error) {
+    // This logs the real error to your backend terminal so you can fix it
+    console.error("❌ SQL ERROR IN QUIZ SUBMIT:", error.message);
+    res.status(500).json({ error: "Failed to save results" });
   }
 });
 

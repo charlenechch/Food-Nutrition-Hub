@@ -10,8 +10,7 @@ import { FaCamera } from "react-icons/fa";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const ORIGIN_OPTIONS = [
-  "Iban", "Melanau", "Bidayuh", "Dayak",
-  "Malay", "Chinese", "Indigenous", "Multi-ethnic",
+  "Malay", "Chinese", "Iban", "Melanau", "Kenyah", "Bidayuh", "Kayan", "Lunbawang", "Punan", "Bisayah", "Kelabit", "Berawan", "Kejaman", "Ukit", "Sekapan", "Penan"
 ];
 
 export default function ReviseCommunityPostPage() {

@@ -98,7 +98,7 @@ const isCommunity = (c) => {
 };
 
 const isRecipe = (c) => {
-    return c && c.foodName !== undefined;
+    return c && (c.recipeID !== undefined || c.name !== undefined);
   };
 
 const byDateDesc = (a, b) => {
@@ -189,6 +189,7 @@ export default function UserProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [equippedBadge, setEquippedBadge] = useState(null);
   const [earnedBadges, setEarnedBadges] = useState([]);
+  const [equippedContributorBadge, setEquippedContributorBadge] = useState(null);
 
   //CSRF Token State
   const [csrfToken, setCsrfToken] = useState("");
@@ -253,11 +254,11 @@ const formatContributionDate = (dateString) => {
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", location: "" });
   const [bio, setBio] = useState("");
   const quizStats = user?.quizStats || {
-    lastCompletedDate: "2026-04-01",
-    currentStreak: 5,
-    longestStreak: 14,
-    scoreToday: 5,
-    totalPerfectDays: 12
+    lastCompletedDate: null,
+    currentStreak: 0,
+    longestStreak: 0,
+    scoreToday: 0,
+    totalPerfectDays: 0
   };
 
   const [tab, setTab] = useState(() => {
@@ -520,10 +521,21 @@ const toggleSelectAll = () => {
     }
   };
 
-  // ✅ Save: Equip Badge Instantly
-  const handleEquipBadge = async (badgeId) => {
+  // Save: Equip Badge Instantly
+  const handleEquipBadge = async (badgeId, contributorBadgeDbId = null) => {
+    // contributorBadgeDbId is the badge.id from the badge table (for contributor badges)
+    // badgeId is the tier.id string (for level/quiz badges) or badge_type (for contributor)
+
+    const isContributorBadge = contributorBadgeDbId !== null;
+
     // 1. Update UI instantly
-    setEquippedBadge(badgeId);
+    if (isContributorBadge) {
+      setEquippedContributorBadge(contributorBadgeDbId);
+      setEquippedBadge(null); // clear level badge
+    } else {
+      setEquippedBadge(badgeId);
+      setEquippedContributorBadge(null); // clear contributor badge
+    }
 
     // Prepare data for backend
     const updateData = {
@@ -535,7 +547,8 @@ const toggleSelectAll = () => {
       pushNotifications: prefs.pushNotifications,
       profileVisibility: prefs.profileVisibility,
       language: prefs.language,
-      equippedBadge: badgeId // ✅ Send the new badge ID
+      equippedBadge: isContributorBadge ? null : badgeId,
+      equippedContributorBadge: isContributorBadge ? contributorBadgeDbId : null,
     };
 
     try {
@@ -725,7 +738,7 @@ const ContributionRow = ({ c }) => {
   const navigate = useNavigate();
 
     // 1. Logic to determine if item is Recipe or Community Post
-    const isRecipeItem = c?.foodName !== undefined;
+    const isRecipeItem = c?.name !== undefined;
     const isCommunityItem = ["community", "post", "story", "community_post"].includes((c?.type || "").toLowerCase());
 
     const handleRevise = () => {
@@ -786,7 +799,7 @@ const ContributionRow = ({ c }) => {
         </div>
         <div className="upp-row-body">
           <div className="upp-row-top">
-            <h4 className="upp-food-title upp-row-title">{c.foodName || c.title}</h4>
+            <h4 className="upp-food-title upp-row-title">{c.recipeName || c.name || c.title}</h4>
             <span className={`upp-chip ${getStatusClass(c.status)}`}>
               {fmtStatus(c.status)}
             </span>
@@ -883,6 +896,7 @@ const ContributionRow = ({ c }) => {
         }
         setUser(data);
         setEquippedBadge(data.equippedBadge || null);
+        setEquippedContributorBadge(data.equippedContributorBadge || null);
 
         // Fetch earned contributor badges
         const profileIdToFetch = userProfileID || data.userProfileID;
@@ -893,7 +907,8 @@ const ContributionRow = ({ c }) => {
             });
             const badgesData = await badgesRes.json();
             if (badgesData.success) {
-              setEarnedBadges(badgesData.badges.map(b => b.badge_type));
+              // Store full badge objects so we can show one per month
+              setEarnedBadges(badgesData.badges);
             }
           } catch (err) {
             console.error("Failed to fetch earned badges", err);
@@ -1399,10 +1414,7 @@ const handleDeleteAccount = async () => {
               {equippedBadge && equippedBadge !== 'null' && (
               <span 
                 className="upp-equipped-badge" 
-                style={{ 
-                  background: "transparent",
-                  boxShadow: `0 4px 12px ${getTierById(equippedBadge).color}40`,
-                }}
+                style={{ boxShadow: `0 4px 12px ${getTierById(equippedBadge).color}40` }}
               >
                 {getTierById(equippedBadge).icon}
                 
@@ -1411,6 +1423,24 @@ const handleDeleteAccount = async () => {
                 </span>
               </span>
               )}
+
+              {equippedContributorBadge && (() => {
+                const earnedBadge = earnedBadges.find(b => b.id === equippedContributorBadge);
+                if (!earnedBadge) return null;
+                const tier = getTierById(earnedBadge.badge_type);
+                return (
+                  <span
+                    className="upp-equipped-badge"
+                    style={{ boxShadow: `0 4px 12px ${tier.color}40` }}
+                  >
+                    {tier.icon}
+                    <span className="upp-mini-tooltip" style={{ color: tier.color }}>
+                      {tier.title} — {earnedBadge.awarded_month}
+                    </span>
+                  </span>
+                );
+              })()}
+
             </h1>
             {user?.bio && (
               <p className="upp-sub">
@@ -1435,7 +1465,7 @@ const handleDeleteAccount = async () => {
             </div>
             
             <div className = "xp-tiers-container">
-              {TIERS.map((tier) => {
+              {TIERS.filter(tier => tier.id !== "top_recipe" && tier.id !== "top_post").map((tier) => {
                 const currentLevel = Math.max(1, Math.floor(1 + Math.pow((user?.total_xp || 0) / 100, 2/3) + 0.0001));
                 
                 let isUnlocked = currentLevel >= tier.minLevel;
@@ -1445,9 +1475,6 @@ const handleDeleteAccount = async () => {
                 }
                 if (tier.id === "food_encyclopedia") {
                   isUnlocked = quizStats.totalPerfectDays >= 10;
-                }
-                if (tier.id === "top_recipe" || tier.id === "top_post") {
-                  isUnlocked = earnedBadges.includes(tier.id);
                 }
                 
                 const isEquipped = equippedBadge === tier.id;
@@ -1476,9 +1503,7 @@ const handleDeleteAccount = async () => {
                       </p>
                       {!isUnlocked && (
                         <span className="upp-locked-text">
-                          {tier.id === "top_recipe" || tier.id === "top_post"
-                            ? t("gamification.contributorBadgeLocked")
-                            : t("gamification.unlocksAtLevel", { level: tier.minLevel })}
+                          {t("gamification.unlocksAtLevel", { level: tier.minLevel })}
                         </span>
                       )}
 
@@ -1495,6 +1520,108 @@ const handleDeleteAccount = async () => {
                   </div>
                 );
               })}
+
+              {/* Contributor badges — one per month won */}
+              {(() => {
+                const contributorTiers = {
+                  top_recipe: TIERS.find(t => t.id === "top_recipe"),
+                  top_post: TIERS.find(t => t.id === "top_post"),
+                };
+
+                // Show one locked badge for each type if none earned
+                const recipeEarned = earnedBadges.filter(b => b.badge_type === "top_recipe");
+                const postEarned = earnedBadges.filter(b => b.badge_type === "top_post");
+
+                const elements = [];
+
+                // If no recipe badges earned, show one locked placeholder
+                if (recipeEarned.length === 0) {
+                  const tier = contributorTiers.top_recipe;
+                  elements.push(
+                    <div key="top_recipe_locked" className="upp-badge-container" style={{ cursor: "not-allowed" }}>
+                      <div className="upp-badge-icon" style={{ background: "transparent", border: "2px solid transparent", filter: "grayscale(100%) opacity(0.3)", padding: "4px" }}>
+                        {tier.icon}
+                      </div>
+                      <div className="upp-badge-tooltip">
+                        <h4 style={{ color: tier.color }}>{t("gamification.topRecipeTitle")}</h4>
+                        <p>{t("gamification.topRecipeDesc")}</p>
+                        <span className="upp-locked-text">{t("gamification.contributorBadgeLocked")}</span>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  recipeEarned.forEach(badge => {
+                    const tier = contributorTiers.top_recipe;
+                    const isEquipped = equippedContributorBadge === badge.id;
+                    elements.push(
+                      <div key={`top_recipe_${badge.id}`} className="upp-badge-container" style={{ cursor: "pointer" }}>
+                        <div className="upp-badge-icon" style={{ background: "transparent", border: isEquipped ? `2px solid ${tier.color}` : "2px solid transparent", padding: "4px" }}>
+                          {tier.icon}
+                        </div>
+                        <div className="upp-badge-tooltip">
+                          <h4 style={{ color: tier.color }}>{t("gamification.topRecipeTitle")}</h4>
+                          <p>{t("gamification.topRecipeDesc")}</p>
+                          <p style={{ fontSize: "0.75rem", color: "#888" }}>{badge.awarded_month}</p>
+                          {!userProfileID && (
+                            <button
+                              className={`lrp-btn ${isEquipped ? "lrp-btn-outline" : "lrp-btn-primary"} upp-equip-btn`}
+                              disabled={isEquipped}
+                              onClick={() => handleEquipBadge("top_recipe", badge.id)}
+                            >
+                              {isEquipped ? t("gamification.equipped") : t("gamification.equipTitle")}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
+                }
+
+                // If no post badges earned, show one locked placeholder
+                if (postEarned.length === 0) {
+                  const tier = contributorTiers.top_post;
+                  elements.push(
+                    <div key="top_post_locked" className="upp-badge-container" style={{ cursor: "not-allowed" }}>
+                      <div className="upp-badge-icon" style={{ background: "transparent", border: "2px solid transparent", filter: "grayscale(100%) opacity(0.3)", padding: "4px" }}>
+                        {tier.icon}
+                      </div>
+                      <div className="upp-badge-tooltip">
+                        <h4 style={{ color: tier.color }}>{t("gamification.topPostTitle")}</h4>
+                        <p>{t("gamification.topPostDesc")}</p>
+                        <span className="upp-locked-text">{t("gamification.contributorBadgeLocked")}</span>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  postEarned.forEach(badge => {
+                    const tier = contributorTiers.top_post;
+                    const isEquipped = equippedContributorBadge === badge.id;
+                    elements.push(
+                      <div key={`top_post_${badge.id}`} className="upp-badge-container" style={{ cursor: "pointer" }}>
+                        <div className="upp-badge-icon" style={{ background: "transparent", border: isEquipped ? `2px solid ${tier.color}` : "2px solid transparent", padding: "4px" }}>
+                          {tier.icon}
+                        </div>
+                        <div className="upp-badge-tooltip">
+                          <h4 style={{ color: tier.color }}>{t("gamification.topPostTitle")}</h4>
+                          <p>{t("gamification.topPostDesc")}</p>
+                          <p style={{ fontSize: "0.75rem", color: "#888" }}>{badge.awarded_month}</p>
+                          {!userProfileID && (
+                            <button
+                              className={`lrp-btn ${isEquipped ? "lrp-btn-outline" : "lrp-btn-primary"} upp-equip-btn`}
+                              disabled={isEquipped}
+                              onClick={() => handleEquipBadge("top_post", badge.id)}
+                            >
+                              {isEquipped ? t("gamification.equipped") : t("gamification.equipTitle")}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
+                }
+
+                return elements;
+              })()}
             </div>
           </div>
           {/* ===== TABS ===== */}
