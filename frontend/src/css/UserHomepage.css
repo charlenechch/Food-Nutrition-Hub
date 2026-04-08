@@ -620,7 +620,6 @@
   background: rgba(145, 104, 72, 0.12);
   border-radius: 16px;
   overflow: hidden;
-  margin-bottom: 20px;
 }
 .stat-item {
   background: #ffffff;
@@ -1165,4 +1164,48 @@
 
 @media (max-width: 768px) {
   .corner-hint { right: 20px !important; bottom: 20px !important; }
+}
+
+/* ── SCROLL HINT FINAL POSITIONS ── */
+
+/* Section 1 hero — center bottom */
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  right: auto !important;
+}
+.hero-scroll-hint .snap-scroll-text,
+.hero-scroll-hint .snap-bounce-icon { color: rgba(255,255,255,0.85); }
+.hero-scroll-hint:hover .snap-scroll-text,
+.hero-scroll-hint:hover .snap-bounce-icon { color: #fff; }
+
+/* Section 2 stats — center bottom */
+.stats-scroll-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.stats-scroll-hint .snap-scroll-text,
+.stats-scroll-hint .snap-bounce-icon { color: #875c36; }
+.stats-scroll-hint:hover { opacity: 1; }
+
+/* Nudge stats grid up so the explore hint is visible */
+.stats-snap-inner {
+  gap: 40px;
+  padding-bottom: 80px;
+}
+
+/* Section 3 dish — no hint, remove any leftover dish-scroll-hint */
+.dish-spotlight-img .snap-scroll-hint,
+.dish-scroll-hint { display: none !important; }
+
+/* Remove old corner-hint overrides */
+.corner-hint {
+  position: static !important;
+  bottom: auto !important;
+  right: auto !important;
+  transform: none !important;
 }

@@ -399,7 +399,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </div>
 
-        <div className="snap-scroll-hint hero-scroll-hint corner-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
+        <div className="snap-scroll-hint hero-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
           <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
           <FaAnglesDown className="snap-bounce-icon" />
         </div>
@@ -445,7 +445,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               <span className="stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
             </div>
           </div>
-          <div className="snap-scroll-hint corner-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 2, behavior: 'smooth' })}>
+          <div className="snap-scroll-hint stats-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 2, behavior: 'smooth' })}>
             <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
             <FaAnglesDown className="snap-bounce-icon" />
           </div>
@@ -454,12 +454,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
       {/* ── SECTION 3: Dish Spotlight ── */}
       <section className="snap-section dish-snap-section">
-        <DishSpotlight
-          allFoods={allFoods}
-          navigate={navigate}
-          t={t}
-          onScrollNext={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 3, behavior: 'smooth' })}
-        />
+        <DishSpotlight allFoods={allFoods} navigate={navigate} t={t} />
       </section>
 
 
