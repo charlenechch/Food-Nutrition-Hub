@@ -19,13 +19,11 @@ import LoginPromptModal from "../components/LoginPromptModal";
 
 const HERO_IMAGES = [LoginFood, KoloImg];
 
-
 // ── Dish Spotlight Component — DB driven ──
-function DishSpotlight({ allFoods, navigate, t, onScrollNext }) {
+function DishSpotlight({ allFoods, navigate, t }) {
   const [active, setActive] = React.useState(0);
   const timerRef = React.useRef(null);
 
-  // ← Change these IDs to whichever foods you want featured in the spotlight
   const SPOTLIGHT_IDS = [2, 3, 8, 10];
 
   const spotlightDishes = React.useMemo(() => {
@@ -60,38 +58,32 @@ function DishSpotlight({ allFoods, navigate, t, onScrollNext }) {
   const dishOrigin = dish.ethnicity || dish.origin || "Sarawak";
 
   return (
-    <section className="dish-spotlight-section">
-      <div className="dish-spotlight-card">
-        <div className="dish-spotlight-img" style={{ backgroundImage: `url(${dishImg})` }}>
-          <div className="dish-img-overlay" />
-          <span className="dish-origin-badge">{dishOrigin}</span>
-          {onScrollNext && (
-            <div className="snap-scroll-hint dish-scroll-hint" onClick={onScrollNext}>
-              <span className="snap-scroll-text">Explore</span>
-              <FaAnglesDown className="snap-bounce-icon" />
-            </div>
-          )}
+    <section className="home-dish-spotlight-section">
+      <div className="home-dish-spotlight-card">
+        <div className="home-dish-spotlight-img" style={{ backgroundImage: `url(${dishImg})` }}>
+          <div className="home-dish-img-overlay" />
+          <span className="home-dish-origin-badge">{dishOrigin}</span>
         </div>
-        <div className="dish-spotlight-content">
-          <span className="dish-tag-pill">{dishCategory}</span>
-          <h2 className="dish-spotlight-title">{dish.name}</h2>
-          <p className="dish-spotlight-quote">
+        <div className="home-dish-spotlight-content">
+          <span className="home-dish-tag-pill">{dishCategory}</span>
+          <h2 className="home-dish-spotlight-title">{dish.name}</h2>
+          <p className="home-dish-spotlight-quote">
             {dish.description || t("home.dishDefaultDesc", "A beloved traditional dish from the rich culinary heritage of Sarawak.")}
           </p>
-          <div className="dish-spotlight-actions">
+          <div className="home-dish-spotlight-actions">
             <button
-              className="dish-btn-primary"
+              className="home-dish-btn-primary"
               onClick={() => navigate(dishId ? `/fooddetail/${dishId}` : `/foods?search=${encodeURIComponent(dish.name)}`)}
             >
               {t("home.exploreDish", "Explore this dish")}
             </button>
-            <button className="dish-btn-link" onClick={() => navigate("/analyzer")}>
+            <button className="home-dish-btn-link" onClick={() => navigate("/analyzer")}>
               {t("home.viewNutrition", "View nutrition →")}
             </button>
           </div>
-          <div className="dish-dots">
+          <div className="home-dish-dots">
             {spotlightDishes.map((_, i) => (
-              <span key={i} className={`dish-dot${i === active ? " active" : ""}`} onClick={() => goTo(i)} />
+              <span key={i} className={`home-dish-dot${i === active ? " active" : ""}`} onClick={() => goTo(i)} />
             ))}
           </div>
         </div>
@@ -115,34 +107,21 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const heroRef = useRef(null);
   const snapContainerRef = useRef(null);
   const isSnappingRef = useRef(false);
-  
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [currentFact, setCurrentFact] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [isCarouselPaused, setIsCarouselPaused] = useState(false); 
+  const isMobileRef = useRef(false);
 
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
   const [isRandomizing, setIsRandomizing] = useState(false);
   const [randomizerText, setRandomizerText] = useState("");
   const [randomizerResult, setRandomizerResult] = useState(null);
 
-  const heritageFacts = [
-    { titleKey: "home.fact1Title", textKey: "home.fact1Text" },
-    { titleKey: "home.fact2Title", textKey: "home.fact2Text" },
-    { titleKey: "home.fact3Title", textKey: "home.fact3Text" },
-    { titleKey: "home.fact4Title", textKey: "home.fact4Text" },
-  ];
-
-  const PRESET_SIGNATURES = [
-    { name: "Kolo Mee",      image: KoloImg,  tagKey: "home.tagLocalFav" },
-    { name: "Kek Lapis",     image: KekImg,   tagKey: "home.tagSweet" },
-  ];
-
-  const signatureDishes = useMemo(() => {
-    return PRESET_SIGNATURES.map(preset => {
-      const match = allFoods.find(f => f.name.toLowerCase() === preset.name.toLowerCase());
-      return { ...preset, dbId: match ? (match.foodID || match.id) : null };
-    });
-  }, [allFoods]);
+  // Track mobile breakpoint
+  useEffect(() => {
+    const check = () => { isMobileRef.current = window.innerWidth <= 768; };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     const fetchFoods = async () => {
@@ -157,19 +136,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     };
     fetchFoods();
   }, []);
-
-  const handleDishClick = (dish) => {
-    if (dish.dbId) navigate(`/fooddetail/${dish.dbId}`);
-    else navigate(`/foods?search=${encodeURIComponent(dish.name)}`);
-  };
-
-  const handleNextFact = () => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      setCurrentFact((prev) => (prev + 1) % heritageFacts.length);
-      setIsAnimating(false);
-    }, 300);
-  };
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -209,7 +175,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? HERO_IMAGES.length - 1 : prev - 1));
 
   useEffect(() => {
-    if (isCarouselPaused) return; 
+    if (isCarouselPaused) return;
     const slideInterval = setInterval(nextSlide, 6000);
     return () => clearInterval(slideInterval);
   }, [currentSlide, isCarouselPaused]);
@@ -227,7 +193,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
       if (e.key === "/" && e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
-        e.preventDefault(); 
+        e.preventDefault();
         searchRef.current?.querySelector("input")?.focus();
       }
     };
@@ -243,23 +209,16 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleProtectedAction = (path, featureKey) => {
-    if (!user || user.role === "guest") {
-      setModalMessage(t("home.loginPrompt", { feature: t(featureKey) }));
-      setShowLoginPrompt(true);
-    } else {
-      navigate(path);
-    }
-  };
-
-  // Snap scroll
+  // Snap scroll — desktop only, touch/mobile uses normal scroll
   useEffect(() => {
     const container = snapContainerRef.current;
     if (!container) return;
+
     const handleWheel = (e) => {
+      if (isMobileRef.current) return;
       e.preventDefault();
       if (isSnappingRef.current) return;
-      const sections = container.querySelectorAll('.snap-section');
+      const sections = container.querySelectorAll(".home-snap-section");
       const currentIndex = Math.round(container.scrollTop / window.innerHeight);
       let nextIndex = currentIndex;
       if (e.deltaY > 0 && currentIndex < sections.length - 1) nextIndex = currentIndex + 1;
@@ -270,13 +229,16 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         setTimeout(() => { isSnappingRef.current = false; }, 800);
       }
     };
+
     let touchStartY = 0;
     const handleTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
     const handleTouchEnd = (e) => {
+      // Mobile: let the browser scroll naturally
+      if (isMobileRef.current) return;
       if (isSnappingRef.current) return;
       const delta = touchStartY - e.changedTouches[0].clientY;
-      if (Math.abs(delta) < 30) return;
-      const sections = container.querySelectorAll('.snap-section');
+      if (Math.abs(delta) < 50) return;
+      const sections = container.querySelectorAll(".home-snap-section");
       const currentIndex = Math.round(container.scrollTop / window.innerHeight);
       let nextIndex = currentIndex;
       if (delta > 0 && currentIndex < sections.length - 1) nextIndex = currentIndex + 1;
@@ -287,6 +249,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         setTimeout(() => { isSnappingRef.current = false; }, 800);
       }
     };
+
     container.addEventListener("wheel", handleWheel, { passive: false });
     container.addEventListener("touchstart", handleTouchStart, { passive: true });
     container.addEventListener("touchend", handleTouchEnd, { passive: true });
@@ -297,7 +260,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     };
   }, []);
 
-  // Parallax on snap container scroll
+  // Parallax on scroll
   useEffect(() => {
     const container = snapContainerRef.current;
     if (!container) return;
@@ -311,42 +274,38 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
   const handleRandomize = () => {
     if (!allFoods || allFoods.length === 0) return;
-    
     setIsRandomizing(true);
-    setRandomizerResult(null); 
+    setRandomizerResult(null);
     let ticks = 0;
-    const maxTicks = 20; 
-    
+    const maxTicks = 20;
     const interval = setInterval(() => {
       const randomFood = allFoods[Math.floor(Math.random() * allFoods.length)];
       setRandomizerText(randomFood.name);
       ticks++;
-      
       if (ticks >= maxTicks) {
         clearInterval(interval);
         const finalFood = allFoods[Math.floor(Math.random() * allFoods.length)];
         setRandomizerText(finalFood.name);
-        setTimeout(() => {
-          setRandomizerResult(finalFood);
-        }, 300);
+        setTimeout(() => { setRandomizerResult(finalFood); }, 300);
       }
-    }, 100); 
+    }, 100);
   };
 
   return (
-    <div className="homepage snap-container" ref={snapContainerRef}>
+    <div className="homepage home-snap-container" ref={snapContainerRef}>
       <Header transparent={true} />
 
+      {/* ── SECTION 1: Hero ── */}
       <header
         ref={heroRef}
-        className="hero-section snap-section"
+        className="hero-section home-snap-section"
         style={{
           backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${HERO_IMAGES[currentSlide]})`
         }}
       >
         <button className="hero-arrow arrow-left" onClick={prevSlide} aria-label="Previous image"></button>
 
-        <div className="hero-content-wrapper">
+        <div className="home-hero-content-wrapper">
           <div className="hero-sdg-badges">
             <span className="sdg-badge">🌿 SDG 3 · Good Health</span>
             <span className="sdg-badge">🏙️ SDG 11 · Sustainable Communities</span>
@@ -366,9 +325,9 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
                   onChange={handleSearchChange}
                   onFocus={() => {
                     if (searchTerm) setShowSuggestions(true);
-                    setIsCarouselPaused(true); 
+                    setIsCarouselPaused(true);
                   }}
-                  onBlur={() => setIsCarouselPaused(false)} 
+                  onBlur={() => setIsCarouselPaused(false)}
                   autoComplete="off"
                 />
                 <button type="submit" className="search-button">{t("home.searchBtn")}</button>
@@ -399,9 +358,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </div>
 
-        <div className="snap-scroll-hint hero-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
-          <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
-          <FaAnglesDown className="snap-bounce-icon" />
+        <div
+          className="home-scroll-hint hero-scroll-hint"
+          onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight, behavior: "smooth" })}
+        >
+          <span className="home-scroll-text">{t("home.scrollExplore", "Explore")}</span>
+          <FaAnglesDown className="home-bounce-icon" />
         </div>
 
         <button className="hero-arrow arrow-right" onClick={nextSlide} aria-label="Next image"></button>
@@ -418,48 +380,47 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       </header>
 
       {/* ── SECTION 2: Stats ── */}
-      <section className="snap-section stats-snap-section">
-        <div className="stats-snap-inner">
-          <div className="stats-intro">
-            <p className="stats-eyebrow">{t("home.statsEyebrow", "What is SarawakEats?")}</p>
-            <h2 className="stats-headline">{t("home.statsHeadline", "Where food becomes a story worth preserving.")}</h2>
-            <p className="stats-subtext" style={{textAlign: "justify"}}>{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
+      <section className="home-snap-section home-stats-section">
+        <div className="home-stats-inner">
+          <div className="home-stats-intro">
+            <p className="home-stats-eyebrow">{t("home.statsEyebrow", "What is SarawakEats?")}</p>
+            <h2 className="home-stats-headline">{t("home.statsHeadline", "Where food becomes a story worth preserving.")}</h2>
+            <p className="home-stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
           </div>
-          <div className="stats-grid-row">
-            <div className="stats-grid">
-              <div className="stat-item">
-                <span className="stat-num">27+</span>
-                <div className="stat-divider" />
-                <span className="stat-title">{t("home.stat1Title", "Ethnic groups")}</span>
-                <span className="stat-desc">{t("home.stat1Desc", "Each with their own culinary traditions passed down through generations.")}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-num">100+</span>
-                <div className="stat-divider" />
-                <span className="stat-title">{t("home.stat2Title", "Traditional dishes")}</span>
-                <span className="stat-desc">{t("home.stat2Desc", "From Laksa to Umai, flavours unique to the Land of the Hornbills.")}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-num">400+</span>
-                <div className="stat-divider" />
-                <span className="stat-title">{t("home.stat3Title", "Years of heritage")}</span>
-                <span className="stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
-              </div>
+          <div className="home-stats-grid">
+            <div className="home-stat-item">
+              <span className="home-stat-num">27+</span>
+              <div className="home-stat-divider" />
+              <span className="home-stat-title">{t("home.stat1Title", "Ethnic groups")}</span>
+              <span className="home-stat-desc">{t("home.stat1Desc", "Each with their own culinary traditions passed down through generations.")}</span>
             </div>
-            <div className="snap-scroll-hint stats-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 2, behavior: 'smooth' })}>
-              <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
-              <FaAnglesDown className="snap-bounce-icon" />
+            <div className="home-stat-item">
+              <span className="home-stat-num">100+</span>
+              <div className="home-stat-divider" />
+              <span className="home-stat-title">{t("home.stat2Title", "Traditional dishes")}</span>
+              <span className="home-stat-desc">{t("home.stat2Desc", "From Laksa to Umai, flavours unique to the Land of the Hornbills.")}</span>
             </div>
+            <div className="home-stat-item">
+              <span className="home-stat-num">400+</span>
+              <div className="home-stat-divider" />
+              <span className="home-stat-title">{t("home.stat3Title", "Years of heritage")}</span>
+              <span className="home-stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
+            </div>
+          </div>
+          <div
+            className="home-scroll-hint home-stats-scroll-hint"
+            onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 2, behavior: "smooth" })}
+          >
+            <span className="home-scroll-text">{t("home.scrollExplore", "Explore")}</span>
+            <FaAnglesDown className="home-bounce-icon" />
           </div>
         </div>
       </section>
 
       {/* ── SECTION 3: Dish Spotlight ── */}
-      <section className="snap-section dish-snap-section">
+      <section className="home-snap-section home-dish-snap-section">
         <DishSpotlight allFoods={allFoods} navigate={navigate} t={t} />
       </section>
-
-
 
       {isRandomizing && (
         <div className="randomizer-overlay">
@@ -474,10 +435,9 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               <div className="result-reveal slide-up">
                 <h3>{t("home.randomizerHowAbout")}</h3>
                 <div className="slot-machine-text highlight-winner">{randomizerResult.name}</div>
-                
                 <div className="randomizer-actions">
-                  <button 
-                    className="feature-btn btn-accent map-btn" 
+                  <button
+                    className="feature-btn btn-accent map-btn"
                     onClick={() => {
                       setIsRandomizing(false);
                       navigate(`/map?q=${encodeURIComponent(randomizerResult.name)}`);
@@ -485,7 +445,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
                   >
                     {t("home.randomizerFindOnMap")}
                   </button>
-                  
                   <div className="secondary-actions">
                     <button className="text-btn" onClick={handleRandomize}>{t("home.randomizerSpinAgain")}</button>
                     <button className="text-btn close-btn" onClick={() => setIsRandomizing(false)}>{t("home.randomizerCancel")}</button>
