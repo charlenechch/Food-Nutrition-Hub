@@ -20,6 +20,9 @@
   overflow-x: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  /* CSS scroll snap — works on all browsers including iOS Safari */
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
 }
 .home-snap-container::-webkit-scrollbar { display: none; }
 
@@ -27,30 +30,24 @@
   height: 100vh;
   min-height: 100vh;
   position: relative;
+  /* Each section snaps into place */
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 /* ─────────────────────────────────────────
    HERO SECTION
 ───────────────────────────────────────── */
 .hero-section {
+  background-size: cover;
+  background-position: center;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
   color: #ffffff;
   padding: 80px 20px;
-  overflow: hidden;     /* clip the oversized parallax bg */
   position: relative;
-}
-
-.hero-parallax-bg {
-  position: absolute;
-  inset: -30% 0;          /* oversized top+bottom so translateY never shows edge */
-  background-size: cover;
-  background-position: center;
-  z-index: 0;
-  will-change: transform;
-  pointer-events: none;
 }
 
 .home-hero-content-wrapper {
@@ -90,7 +87,7 @@
 /* Dots */
 .hero-dots {
   position: absolute;
-  bottom: 80px;
+  bottom: 76px;
   display: flex;
   gap: 12px;
   z-index: 10;
@@ -640,16 +637,17 @@
 ───────────────────────────────────────── */
 @media (max-width: 768px) {
 
-  /* Container: let sections be taller than viewport */
+  /* Container: keep snap scroll on mobile too */
   .home-snap-container {
-    height: 100%;
-    overflow-y: auto;
+    height: 100dvh;
+    scroll-snap-type: y mandatory;
   }
 
-  /* Each section can grow */
+  /* Each section fills the viewport and snaps */
   .home-snap-section {
-    height: auto;
-    min-height: 100dvh;
+    height: 100dvh;
+    min-height: unset;
+    overflow: hidden;
   }
 
   /* ── Hero ── */
@@ -694,7 +692,7 @@
   .hero-arrow { width: 20%; }
 
   /* Dots sit just above the explore hint */
-  .hero-dots { bottom: 50px; }
+  .hero-dots { bottom: 68px; }
 
   /* Explore hint — always visible */
   .hero-scroll-hint {
@@ -730,8 +728,8 @@
   /* ── Stats ── */
   .home-stats-section {
     align-items: flex-start;
-    height: auto;
-    min-height: 100dvh;
+    height: 100dvh;
+    overflow-y: auto;    /* internal scroll if content taller than viewport */
   }
   .home-stats-inner { padding: 80px 20px 60px; gap: 28px; }
   .home-stats-headline { font-size: clamp(1.5rem, 5.5vw, 2rem); }
@@ -751,10 +749,10 @@
 
   /* ── Dish spotlight ── */
   .home-dish-snap-section {
-    height: auto;
-    min-height: 100dvh;
+    height: 100dvh;
+    overflow-y: auto;
   }
-  .home-dish-spotlight-section { height: auto; }
+  .home-dish-spotlight-section { height: auto; min-height: 100%; }
   .home-dish-spotlight-card {
     grid-template-columns: 1fr;
     height: auto;

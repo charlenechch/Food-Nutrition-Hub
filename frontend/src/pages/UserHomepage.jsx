@@ -217,7 +217,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     if (!container) return;
 
     const handleWheel = (e) => {
-      if (isMobileRef.current) return;
       e.preventDefault();
       if (isSnappingRef.current) return;
       const sections = container.querySelectorAll(".home-snap-section");
@@ -235,8 +234,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     let touchStartY = 0;
     const handleTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
     const handleTouchEnd = (e) => {
-      // Mobile: let the browser scroll naturally
-      if (isMobileRef.current) return;
       if (isSnappingRef.current) return;
       const delta = touchStartY - e.changedTouches[0].clientY;
       if (Math.abs(delta) < 50) return;
@@ -262,19 +259,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     };
   }, []);
 
-  // Parallax — translate the bg div at 40% scroll speed.
-  // Using transform on a child div works on iOS Safari (backgroundPosition doesn't).
-  useEffect(() => {
-    const container = snapContainerRef.current;
-    if (!container) return;
-    const handleScroll = () => {
-      const bg = heroRef.current?.querySelector(".hero-parallax-bg");
-      if (!bg) return;
-      bg.style.transform = `translateY(${container.scrollTop * 0.35}px)`;
-    };
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, []);
+
 
   const handleRandomize = () => {
     if (!allFoods || allFoods.length === 0) return;
@@ -303,12 +288,8 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
       <header
         ref={heroRef}
         className="hero-section home-snap-section"
+        style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${HERO_IMAGES[currentSlide]})` }}
       >
-        {/* Separate bg layer so we can transform it for parallax on iOS */}
-        <div
-          className="hero-parallax-bg"
-          style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${HERO_IMAGES[currentSlide]})` }}
-        />
         <button className="hero-arrow arrow-left" onClick={prevSlide} aria-label="Previous image"></button>
 
         <div className="home-hero-content-wrapper">
