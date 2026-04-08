@@ -620,6 +620,7 @@
   background: rgba(145, 104, 72, 0.12);
   border-radius: 16px;
   overflow: hidden;
+  margin-bottom: 20px;
 }
 .stat-item {
   background: #ffffff;
