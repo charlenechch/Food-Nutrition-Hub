@@ -395,13 +395,14 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               <span className="home-stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
             </div>
           </div>
-          <div
-            className="home-scroll-hint home-stats-scroll-hint"
-            onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 2, behavior: "smooth" })}
-          >
-            <span className="home-scroll-text">{t("home.scrollExplore", "Explore")}</span>
-            <FaAnglesDown className="home-bounce-icon" />
-          </div>
+        </div>
+        {/* Explore hint — direct child of section so it anchors bottom-right */}
+        <div
+          className="home-scroll-hint home-stats-scroll-hint"
+          onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 2, behavior: "smooth" })}
+        >
+          <span className="home-scroll-text">{t("home.scrollExplore", "Explore")}</span>
+          <FaAnglesDown className="home-bounce-icon" />
         </div>
       </section>
 
