@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { BsPatchQuestion } from "react-icons/bs";
-import { FaPlus } from "react-icons/fa6";
+import { FaPlus, FaRegFlag } from "react-icons/fa6"; // Added FaRegFlag
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { FiCheck } from "react-icons/fi";
 import { CiSearch } from "react-icons/ci";
 import { mockFoods } from "../data/mockFoods"; 
 import { translateTexts } from "../hooks/useAITranslation";
+import Modal from "../components/Modal"; // ✅ 1. Import Modal Component
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -16,22 +17,33 @@ const AdminQuizDatabase = () => {
   
   const [questions, setQuestions] = useState([]);
   const [csrfToken, setCsrfToken] = useState("");
-  const [isTokenReady, setIsTokenReady] = useState(false); // ✅ Track if session is ready
+  const [isTokenReady, setIsTokenReady] = useState(false); 
   const hasInitialFetched = useRef(false);
+
+  // ✅ 2. Initialize Modal State (Matches Recipe Database Style)
+  const [modal, setModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+    icon: null,
+    primaryText: "OK",
+    onPrimary: null,
+  });
+
+  const closeModal = () => setModal((m) => ({ ...m, open: false, onPrimary: null }));
 
   const [translatedQuestions, setTranslatedQuestions] = useState({});
   const [translatedFoods, setTranslatedFoods] = useState({});
   const [isTranslating, setIsTranslating] = useState(false);
   const [translatedAnswers, setTranslatedAnswers] = useState({});
 
-  // 1. Core Fetcher for CSRF Token
   const refreshCsrfToken = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
       if (res.ok) {
         const data = await res.json();
         setCsrfToken(data.csrfToken);
-        return data.csrfToken; // Return token for sequential logic
+        return data.csrfToken;
       }
     } catch (err) {
       console.error("Critical: Failed to fetch CSRF token", err);
@@ -39,9 +51,8 @@ const AdminQuizDatabase = () => {
     return null;
   }, []);
 
-  // 2. Fetch Questions (Blocked until handshake completes to prevent 403 race)
   const fetchAdminQuestions = useCallback(async () => {
-    if (!isTokenReady) return; // ✅ Block until security handshake is finished
+    if (!isTokenReady) return; 
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin`, {
@@ -64,16 +75,14 @@ const AdminQuizDatabase = () => {
     } catch (err) {
       console.error("Failed to fetch admin questions", err);
     }
-  }, [isTokenReady]); // ✅ Dependencies ensure fetch only happens after token is set
+  }, [isTokenReady]);
 
-  // Initialize Security Handshake with timing buffer to prevent race conditions
   useEffect(() => {
     const init = async () => {
       if (hasInitialFetched.current) return;
       
       const token = await refreshCsrfToken();
       if (token) {
-        // ✅ The Fix: Allow 150ms for the browser to process 'Set-Cookie' header
         setTimeout(() => {
           setIsTokenReady(true);
         }, 150);
@@ -82,7 +91,6 @@ const AdminQuizDatabase = () => {
     init();
   }, [refreshCsrfToken]);
 
-  // Fetch data only after token check and timing buffer is done
   useEffect(() => {
     if (isTokenReady && !hasInitialFetched.current) {
       fetchAdminQuestions();
@@ -201,14 +209,9 @@ const AdminQuizDatabase = () => {
     setIsModalOpen(true);
   };
 
-  // 3. Save Question (Handshaking with CSRF)
   const handleSave = async () => {
     let currentToken = csrfToken;
-    
-    // If token is missing, try one last refresh
-    if (!currentToken) {
-      currentToken = await refreshCsrfToken();
-    }
+    if (!currentToken) currentToken = await refreshCsrfToken();
 
     if (!currentToken) {
       alert("Security handshake failed. Please refresh the page.");
@@ -225,7 +228,7 @@ const AdminQuizDatabase = () => {
         method: method,
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": currentToken // ✅ Must match allowlist in server.js
+          "X-CSRF-Token": currentToken 
         },
         credentials: "include",
         body: JSON.stringify(formData)
@@ -236,7 +239,6 @@ const AdminQuizDatabase = () => {
         setIsModalOpen(false);
       } else {
         const errData = await res.json();
-        // If server says token is invalid, refresh it for the next attempt
         if (errData.error === "Invalid CSRF token") {
           await refreshCsrfToken();
           alert("Security token refreshed. Please try saving again.");
@@ -249,28 +251,48 @@ const AdminQuizDatabase = () => {
     }
   };
 
-  // 4. Delete Question
-  const handleDelete = async (id) => {
-    if (window.confirm(t("adminQuizDB.deleteConfirm"))) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin/${id}`, {
-          method: "DELETE",
-          headers: {
-            "X-CSRF-Token": csrfToken
-          },
-          credentials: "include" // ✅ Critical: Ensures the session is sent
-        });
+  // ✅ 3. Updated Delete Logic with Pop-up Modal
+  const handleDeleteClick = (id) => {
+    setModal({
+      open: true,
+      title: t("adminRcpDB.confirmDeletion"), // Using shared keys from Recipe DB
+      message: t("adminQuizDB.deleteConfirm"), 
+      icon: <RiDeleteBin5Line size={30} color="#dc3545" />,
+      primaryText: t("adminRcpDB.yesDelete"),
+      onPrimary: () => performDelete(id),
+    });
+  };
 
-        if (res.ok) {
-          fetchAdminQuestions(); 
-        } else if (res.status === 403) {
-          alert("Unauthorized. Your session may have expired.");
-        } else {
-          alert("Failed to delete question");
-        }
-      } catch (err) {
-        console.error("Delete error:", err);
+  const performDelete = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin/${id}`, {
+        method: "DELETE",
+        headers: { "X-CSRF-Token": csrfToken },
+        credentials: "include"
+      });
+
+      if (res.ok) {
+        fetchAdminQuestions(); 
+        setModal({
+          open: true,
+          title: t("adminRcpDB.deletedTitle"),
+          message: t("adminQuizDB.deletedMsg", "Question successfully deleted!"),
+          icon: <FaRegFlag size={30} color="green" />,
+          primaryText: t("adminRcpDB.ok"),
+          onPrimary: closeModal,
+        });
+      } else {
+        const result = await res.json();
+        setModal({
+          open: true,
+          title: t("adminRcpDB.errorTitle"),
+          message: result.error || t("adminRcpDB.deleteFailed"),
+          primaryText: t("adminRcpDB.close"),
+          onPrimary: closeModal,
+        });
       }
+    } catch (err) {
+      console.error("Delete error:", err);
     }
   };
 
@@ -346,7 +368,8 @@ const AdminQuizDatabase = () => {
                     <button className="food-database-btn-edit" onClick={() => handleOpenModal(q)}>
                       <HiOutlinePencilAlt />
                     </button>
-                    <button className="food-database-btn-delete" onClick={() => handleDelete(q.questionID)}>
+                    {/* ✅ 4. Use handleDeleteClick instead of handleDelete */}
+                    <button className="food-database-btn-delete" onClick={() => handleDeleteClick(q.questionID)}>
                       <RiDeleteBin5Line />
                     </button>
                   </div>
@@ -474,6 +497,18 @@ const AdminQuizDatabase = () => {
           </div>
         </div>
       )}
+
+      {/* ✅ 5. Render Confirmation Modal Component */}
+      <Modal 
+        open={modal.open} 
+        title={modal.title} 
+        icon={modal.icon} 
+        primaryText={modal.primaryText} 
+        onClose={closeModal} 
+        onPrimary={modal.onPrimary}
+      >
+        {modal.message}
+      </Modal>
     </div>
   );
 };
