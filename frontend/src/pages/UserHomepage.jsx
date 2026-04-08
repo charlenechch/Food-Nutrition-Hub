@@ -425,29 +425,31 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             <h2 className="stats-headline">{t("home.statsHeadline", "Where food becomes a story worth preserving.")}</h2>
             <p className="stats-subtext" style={{textAlign: "justify"}}>{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
           </div>
-          <div className="stats-grid">
-            <div className="stat-item">
-              <span className="stat-num">27+</span>
-              <div className="stat-divider" />
-              <span className="stat-title">{t("home.stat1Title", "Ethnic groups")}</span>
-              <span className="stat-desc">{t("home.stat1Desc", "Each with their own culinary traditions passed down through generations.")}</span>
+          <div className="stats-grid-row">
+            <div className="stats-grid">
+              <div className="stat-item">
+                <span className="stat-num">27+</span>
+                <div className="stat-divider" />
+                <span className="stat-title">{t("home.stat1Title", "Ethnic groups")}</span>
+                <span className="stat-desc">{t("home.stat1Desc", "Each with their own culinary traditions passed down through generations.")}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-num">100+</span>
+                <div className="stat-divider" />
+                <span className="stat-title">{t("home.stat2Title", "Traditional dishes")}</span>
+                <span className="stat-desc">{t("home.stat2Desc", "From Laksa to Umai, flavours unique to the Land of the Hornbills.")}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-num">400+</span>
+                <div className="stat-divider" />
+                <span className="stat-title">{t("home.stat3Title", "Years of heritage")}</span>
+                <span className="stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
+              </div>
             </div>
-            <div className="stat-item">
-              <span className="stat-num">100+</span>
-              <div className="stat-divider" />
-              <span className="stat-title">{t("home.stat2Title", "Traditional dishes")}</span>
-              <span className="stat-desc">{t("home.stat2Desc", "From Laksa to Umai, flavours unique to the Land of the Hornbills.")}</span>
+            <div className="snap-scroll-hint stats-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 2, behavior: 'smooth' })}>
+              <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
+              <FaAnglesDown className="snap-bounce-icon" />
             </div>
-            <div className="stat-item">
-              <span className="stat-num">400+</span>
-              <div className="stat-divider" />
-              <span className="stat-title">{t("home.stat3Title", "Years of heritage")}</span>
-              <span className="stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
-            </div>
-          </div>
-          <div className="snap-scroll-hint stats-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 2, behavior: 'smooth' })}>
-            <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
-            <FaAnglesDown className="snap-bounce-icon" />
           </div>
         </div>
       </section>

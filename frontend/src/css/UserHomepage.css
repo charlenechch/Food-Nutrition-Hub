@@ -1202,3 +1202,49 @@
 .dish-spotlight-img .snap-scroll-hint,
 .dish-scroll-hint { display: none !important; }
 
+/* Remove old corner-hint overrides */
+.corner-hint {
+  position: static !important;
+  bottom: auto !important;
+  right: auto !important;
+  transform: none !important;
+}
+
+/* ── STATS GRID ROW — hint beside the grid ── */
+.stats-grid-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.stats-grid-row .stats-grid {
+  flex: 1;
+}
+
+.stats-grid-row .stats-scroll-hint {
+  position: static !important;
+  transform: none !important;
+  bottom: auto !important;
+  left: auto !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 0 0 28px;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.3s;
+  flex-shrink: 0;
+}
+.stats-grid-row .stats-scroll-hint:hover { opacity: 1; }
+.stats-grid-row .stats-scroll-hint .snap-scroll-text,
+.stats-grid-row .stats-scroll-hint .snap-bounce-icon { color: #875c36; }
+
+/* Add top padding so headline isn't cut off */
+.stats-snap-inner { padding-top: 40px !important; }
+
+@media (max-width: 768px) {
+  .stats-grid-row { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .stats-grid-row .stats-scroll-hint { padding: 0; align-self: center; }
+}
