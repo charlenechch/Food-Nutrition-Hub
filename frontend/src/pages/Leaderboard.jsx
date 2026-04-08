@@ -340,6 +340,7 @@ const Leaderboard = () => {
               <div className="reward-footer">
                 <span>{t("leaderboard.xp_awarded_automatically")}</span>
                 <p className="reward-disclaimer">{t("leaderboard.approval_disclaimer")}</p>
+                <p className="reward-disclaimer">{t("leaderboard.tiebreaker_note")}</p>
               </div>
             </div>
           </div>
