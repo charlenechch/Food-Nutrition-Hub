@@ -799,7 +799,7 @@ const ContributionRow = ({ c }) => {
         </div>
         <div className="upp-row-body">
           <div className="upp-row-top">
-            <h4 className="upp-food-title upp-row-title">{c.foodName || c.title}</h4>
+            <h4 className="upp-food-title upp-row-title">{c.recipeName || c.name || c.title}</h4>
             <span className={`upp-chip ${getStatusClass(c.status)}`}>
               {fmtStatus(c.status)}
             </span>
