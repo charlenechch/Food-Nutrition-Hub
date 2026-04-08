@@ -265,20 +265,9 @@ app.use((req, res, next) => {
   return csrfProtection(req, res, next);
 });
 
-// ✅ MODIFIED: Added session.save() to fix token sync
 app.get("/api/csrf-token", (req, res) => {
-  if (!req.session.initialized) {
-    req.session.initialized = true;
-  }
-
   csrfProtection(req, res, () => {
-     req.session.save((err) => {
-       if (err) {
-         logger.error("Session save failed during CSRF fetch", err);
-         return res.status(500).json({ error: "Session synchronization failed" });
-       }
-       res.json({ csrfToken: req.csrfToken() });
-     });
+     res.json({ csrfToken: req.csrfToken() });
   });
 });
 

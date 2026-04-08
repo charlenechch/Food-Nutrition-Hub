@@ -16,7 +16,7 @@ const AdminQuizDatabase = () => {
   
   const [questions, setQuestions] = useState([]);
   const [csrfToken, setCsrfToken] = useState("");
-  const [isSessionReady, setIsSessionReady] = useState(false); // ✅ Fix: Track security handshake
+  const [isTokenReady, setIsTokenReady] = useState(false); // ✅ Track if session is ready
   const hasInitialFetched = useRef(false);
 
   const [translatedQuestions, setTranslatedQuestions] = useState({});
@@ -31,8 +31,7 @@ const AdminQuizDatabase = () => {
       if (res.ok) {
         const data = await res.json();
         setCsrfToken(data.csrfToken);
-        setIsSessionReady(true); // ✅ Session cookie is now confirmed
-        return data.csrfToken;
+        return data.csrfToken; // Return token for sequential logic
       }
     } catch (err) {
       console.error("Critical: Failed to fetch CSRF token", err);
@@ -40,9 +39,9 @@ const AdminQuizDatabase = () => {
     return null;
   }, []);
 
-  // 2. Fetch Questions (Only after token is ready to ensure session affinity)
+  // 2. Fetch Questions (Blocked until handshake completes to prevent 403 race)
   const fetchAdminQuestions = useCallback(async () => {
-    if (!isSessionReady) return; // ✅ Block until session is ready to prevent 403
+    if (!isTokenReady) return; // ✅ Block until security handshake is finished
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin`, {
@@ -65,23 +64,31 @@ const AdminQuizDatabase = () => {
     } catch (err) {
       console.error("Failed to fetch admin questions", err);
     }
-  }, [isSessionReady]); // ✅ Re-fetch when handshake finishes
+  }, [isTokenReady]); // ✅ Dependencies ensure fetch only happens after token is set
 
-  // Initialize Security Handshake
+  // Initialize Security Handshake with timing buffer to prevent race conditions
   useEffect(() => {
     const init = async () => {
-      await refreshCsrfToken();
+      if (hasInitialFetched.current) return;
+      
+      const token = await refreshCsrfToken();
+      if (token) {
+        // ✅ The Fix: Allow 150ms for the browser to process 'Set-Cookie' header
+        setTimeout(() => {
+          setIsTokenReady(true);
+        }, 150);
+      }
     };
     init();
   }, [refreshCsrfToken]);
 
-  // Fetch data only after token check is done
+  // Fetch data only after token check and timing buffer is done
   useEffect(() => {
-    if (isSessionReady && !hasInitialFetched.current) {
+    if (isTokenReady && !hasInitialFetched.current) {
       fetchAdminQuestions();
       hasInitialFetched.current = true;
     }
-  }, [isSessionReady, fetchAdminQuestions]);
+  }, [isTokenReady, fetchAdminQuestions]);
 
   // AI Translation Logic
   useEffect(() => {
@@ -218,7 +225,7 @@ const AdminQuizDatabase = () => {
         method: method,
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": currentToken // ✅ Header must match backend key
+          "X-CSRF-Token": currentToken // ✅ Must match allowlist in server.js
         },
         credentials: "include",
         body: JSON.stringify(formData)
@@ -251,7 +258,7 @@ const AdminQuizDatabase = () => {
           headers: {
             "X-CSRF-Token": csrfToken
           },
-          credentials: "include"
+          credentials: "include" // ✅ Critical: Ensures the session is sent
         });
 
         if (res.ok) {
@@ -281,7 +288,7 @@ const AdminQuizDatabase = () => {
           <button 
             className="admin-food-btn-add lrp-no-outline"
             onClick={() => handleOpenModal()}
-            disabled={!isSessionReady}
+            disabled={!isTokenReady}
           >
             <FaPlus /> {t("adminQuizDB.addQuestion")}
           </button>
@@ -349,7 +356,7 @@ const AdminQuizDatabase = () => {
           ) : (
             <tr>
               <td colSpan="4" className = "aqd-no-ques-found">
-                {isSessionReady ? t("adminQuizDB.noQuestionsFound") : "Verifying Admin Session..."}
+                {isTokenReady ? t("adminQuizDB.noQuestionsFound") : "Verifying Admin Session..."}
               </td>
             </tr>
           )}
