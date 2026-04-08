@@ -68,8 +68,6 @@ export default function DailyQuizPage() {
             if (questionsRes.ok) {
               const liveQuestions = await questionsRes.json();
               setQuestions(liveQuestions);
-            } else {
-              console.error("Failed to fetch live questions from database");
             }
           }
         }
@@ -86,7 +84,7 @@ export default function DailyQuizPage() {
   // 3. On Finish: Submit the results to the backend
   useEffect(() => {
     const submitResults = async () => {
-      // ✅ FIX: Added hasCompletedToday to guard to stop multiple attempts
+      // Guard: Ensure submission only happens once and only when finished
       if (!isFinished || isSubmitting || hasCompletedToday || !user || !csrfToken) return;
       
       setIsSubmitting(true);
@@ -112,7 +110,7 @@ export default function DailyQuizPage() {
 
         if (!res.ok) {
           const errorData = await res.json();
-          // Stop trying if backend says it's already recorded for today
+          // Stop attempts if backend indicates completion
           if (res.status === 400 && errorData.error === "Quiz already completed today") {
             setHasCompletedToday(true);
           }
@@ -120,7 +118,8 @@ export default function DailyQuizPage() {
         }
 
         console.log("Quiz results submitted successfully!");
-        setHasCompletedToday(true); // Stop further attempts on success
+        // Update local state to show finished state correctly
+        setHasCompletedToday(false); 
       } catch (error) {
         console.error("Failed to submit quiz results:", error.message);
       } finally {
@@ -129,7 +128,7 @@ export default function DailyQuizPage() {
     };
 
     submitResults();
-    // ✅ FIX: Removed 'isSubmitting' from the dependency array to fix the infinite loop
+    // Removed isSubmitting from dependencies to prevent infinite loop
   }, [isFinished, score, user, csrfToken, hasCompletedToday]);
 
   const handleNextQuestion = (wasCorrect) => {
@@ -185,10 +184,7 @@ export default function DailyQuizPage() {
           <p className="quiz-normal-score" style={{ margin: '20px 0' }}>
             {t('quiz.alreadyCompletedDesc', "You've already completed today's quiz. Come back tomorrow to keep your streak alive!")}
           </p>
-          <button 
-            onClick={() => navigate('/')}
-            className="quiz-btn-primary dqp-div-btn"
-          >
+          <button onClick={() => navigate('/')} className="quiz-btn-primary dqp-div-btn">
             {t('quiz.returnBtn', 'Return Home')}
           </button>
         </div>
@@ -248,30 +244,17 @@ export default function DailyQuizPage() {
     <>
     <Header />
       <div className="quiz-page-container dqp-div2">
-        
-        <button 
-          onClick={() => navigate(-1)} 
-          className="lrp-btn lrp-btn-outline dqp-back"
-        >
+        <button onClick={() => navigate(-1)} className="lrp-btn lrp-btn-outline dqp-back">
           <span>&larr;</span> {t('quiz.back', 'Back')}
         </button>
-
         <div className="quiz-header-section">
           <h2 className="quiz-header-section-h2">{t('quiz.header')}</h2>
-          
           <h4 className="quiz-progress-text">
             {t('quiz.progress', { current: currentIndex + 1, total: questions.length })}
           </h4>
-          
-          <p className="quiz-disclaimer">
-            {t('quiz.disclaimer')}
-          </p>
+          <p className="quiz-disclaimer">{t('quiz.disclaimer')}</p>
         </div>
-
-        <QuizCard 
-          quizData={questions[currentIndex]} 
-          onNext={handleNextQuestion} 
-        />
+        <QuizCard quizData={questions[currentIndex]} onNext={handleNextQuestion} />
       </div>
       <Footer/>
     </>

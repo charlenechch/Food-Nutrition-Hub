@@ -1516,40 +1516,15 @@ router.put("/acknowledge-level", async (req, res) => {
 // ==========================================
 // DAILY QUIZ ROUTES
 // ==========================================
-
-// Helper functions for dates
-const getTodayString = () => {
-  const date = new Date();
-  return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-};
-
-const getYesterdayString = () => {
-  const date = new Date();
-  date.setDate(date.getDate() - 1);
-  return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-};
+// routes/userProfile.js -> Daily Quiz Routes Section
 
 // 1. GET: Check if user has done the quiz today
 router.get("/quiz/status", async (req, res) => {
   try {
     if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
     
-    const userID = req.session.user.userID;
-    
-    // ✅ TESTING MODIFICATION: Always return false so the quiz stays open
-    /* const [rows] = await db.execute(
-      `SELECT quiz_last_completed_date FROM userProfile WHERE userID = ?`,
-      [userID]
-    );
-    if (rows.length === 0) return res.status(404).json({ error: "Profile not found" });
-
-    const today = getTodayString();
-    let formattedDbDate = null;
-    if (rows[0].quiz_last_completed_date) {
-      formattedDbDate = new Date(rows[0].quiz_last_completed_date).toISOString().split('T')[0];
-    }
-    res.json({ hasCompletedToday: formattedDbDate === today });
-    */
+    // ✅ TESTING MODIFICATION: Forced to false to keep quiz open
+    res.json({ hasCompletedToday: false }); 
   } catch (error) {
     console.error("Quiz status error:", error);
     res.status(500).json({ error: "Server error" });
@@ -1561,9 +1536,6 @@ router.post("/quiz/submit", async (req, res) => {
   try {
     if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
     
-    // ✅ THE MANUAL CSRF CHECK HAS BEEN REMOVED FROM HERE
-    // Your server.js handles this verification globally now.
-
     const userID = req.session.user.userID;
     const { score, xpEarned, isPerfect } = req.body;
 
@@ -1584,30 +1556,29 @@ router.post("/quiz/submit", async (req, res) => {
       dbDateStr = new Date(profile.quiz_last_completed_date).toISOString().split('T')[0];
     }
 
-    /*if (dbDateStr === today) {
+    // ✅ TESTING MODIFICATION: Date restriction bypassed for multiple submissions
+    /* if (dbDateStr === today) {
       return res.status(400).json({ error: "Quiz already completed today" });
-    }*/
+    }
+    */
 
+    // Calculate Streaks
     let currentStreak = profile.quiz_current_streak || 0;
     let longestStreak = profile.quiz_longest_streak || 0;
     let perfectDays = profile.quiz_perfect_days || 0;
 
     if (dbDateStr === yesterday) {
-      currentStreak += 1;
-    } else {
-      currentStreak = 1; 
+      currentStreak += 1; 
+    } else if (dbDateStr !== today) {
+      currentStreak = 1;  
     }
 
-    if (currentStreak > longestStreak) {
-      longestStreak = currentStreak;
-    }
-
-    if (isPerfect) {
-      perfectDays += 1;
-    }
+    if (currentStreak > longestStreak) longestStreak = currentStreak;
+    if (isPerfect) perfectDays += 1;
 
     const newTotalXp = (profile.total_xp || 0) + xpEarned;
 
+    // Save to Database
     await db.execute(
       `UPDATE userProfile 
        SET total_xp = ?, 
@@ -1619,17 +1590,18 @@ router.post("/quiz/submit", async (req, res) => {
       [newTotalXp, today, currentStreak, longestStreak, perfectDays, userID]
     );
 
+    // ✅ RECORD TO ACTIVITY LOG (For XP Logs Page)
     await db.execute(
       `INSERT INTO activity_log (userID, action_type, reference_title, xp_awarded, created_at) 
        VALUES (?, 'QUIZ_COMPLETED', ?, ?, NOW())`,
       [
         userID, 
-        `Daily Quiz: ${score}/5 Correct`, 
+        `Daily Quiz Score: ${score}/5`, 
         xpEarned
       ]
     );
 
-    res.json({ success: true, message: "Results saved", newTotalXp });
+    res.json({ success: true, message: "Results saved and logged", newTotalXp });
 
   } catch (error) {
     console.error("Quiz submit error:", error);
