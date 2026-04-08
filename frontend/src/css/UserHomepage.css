@@ -1222,21 +1222,21 @@
 }
 
 .stats-grid-row .stats-scroll-hint {
-  position: static !important;
-  transform: none !important;
-  bottom: auto !important;
+  position: absolute !important;
+  bottom: 32px !important;
+  right: 40px !important;
   left: auto !important;
+  transform: none !important;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 6px;
-  padding: 0 0 0 28px;
+  padding: 0;
   opacity: 0.5;
   cursor: pointer;
   transition: opacity 0.3s;
-  flex-shrink: 0;
 }
+
 .stats-grid-row .stats-scroll-hint:hover { opacity: 1; }
 .stats-grid-row .stats-scroll-hint .snap-scroll-text,
 .stats-grid-row .stats-scroll-hint .snap-bounce-icon { color: #875c36; }
