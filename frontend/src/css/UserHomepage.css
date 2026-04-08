@@ -1202,10 +1202,3 @@
 .dish-spotlight-img .snap-scroll-hint,
 .dish-scroll-hint { display: none !important; }
 
-/* Remove old corner-hint overrides */
-.corner-hint {
-  position: static !important;
-  bottom: auto !important;
-  right: auto !important;
-  transform: none !important;
-}
