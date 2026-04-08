@@ -1622,12 +1622,12 @@ router.post("/quiz/submit", async (req, res) => {
     );
 
     await db.execute(
-      `INSERT INTO xp_history (userID, xp_amount, source_type, description, earned_at) 
-       VALUES (?, ?, 'Daily Quiz', ?, NOW())`,
+      `INSERT INTO activity_log (userID, action_type, reference_title, xp_awarded, created_at) 
+       VALUES (?, 'QUIZ_COMPLETED', ?, ?, NOW())`,
       [
         userID, 
-        xpEarned, 
-        `Completed daily quiz with a score of ${score}/5`
+        `Daily Quiz: ${score}/5 Correct`, 
+        xpEarned
       ]
     );
 
