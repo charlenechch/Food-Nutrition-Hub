@@ -656,7 +656,8 @@
   /* ── Hero ── */
   .hero-section {
     min-height: 100dvh;
-    padding: 100px 20px 140px;
+    /* top padding clears the header; bottom padding leaves room for hint + dots */
+    padding: 100px 20px 160px;
     align-items: center;
   }
   .hero-title { font-size: clamp(1.9rem, 7vw, 2.8rem); letter-spacing: -0.5px; }
@@ -664,7 +665,19 @@
   .hero-sdg-badges { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 8px; }
   .sdg-badge { font-size: 0.68rem; padding: 5px 10px; }
   .hero-arrow { width: 20%; }
-  .hero-dots { bottom: 60px; }
+
+  /* Dots sit just above the explore hint */
+  .hero-dots { bottom: 68px; }
+
+  /* Explore hint — explicitly shown and positioned */
+  .hero-scroll-hint {
+    display: flex !important;
+    position: absolute;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+  }
 
   /* Search pill stacks vertically */
   .unified-search-pill {
@@ -734,17 +747,6 @@
 
   /* Stats scroll hint hidden on mobile — natural scroll takes over */
   .home-stats-scroll-hint { display: none; }
-
-  /* Hero scroll hint — keep visible, anchor to bottom of hero */
-  .hero-scroll-hint {
-    display: flex;
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  /* Push dots up to avoid overlapping the explore hint */
-  .hero-dots { bottom: 56px; }
 }
 
 /* ─────────────────────────────────────────

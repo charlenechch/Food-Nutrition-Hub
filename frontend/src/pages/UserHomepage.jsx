@@ -260,26 +260,16 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     };
   }, []);
 
-  // Parallax — desktop uses snap container scroll, mobile uses window scroll
+  // Parallax — snap container is the scroller on both desktop and mobile
   useEffect(() => {
     const container = snapContainerRef.current;
     if (!container) return;
-
-    const applyParallax = (scrollY) => {
+    const handleScroll = () => {
       if (!heroRef.current) return;
-      heroRef.current.style.backgroundPosition = `center ${scrollY * 0.4}px`;
+      heroRef.current.style.backgroundPosition = `center ${container.scrollTop * 0.4}px`;
     };
-
-    const handleContainerScroll = () => applyParallax(container.scrollTop);
-    const handleWindowScroll = () => applyParallax(window.scrollY);
-
-    container.addEventListener("scroll", handleContainerScroll, { passive: true });
-    window.addEventListener("scroll", handleWindowScroll, { passive: true });
-
-    return () => {
-      container.removeEventListener("scroll", handleContainerScroll);
-      window.removeEventListener("scroll", handleWindowScroll);
-    };
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleRandomize = () => {
