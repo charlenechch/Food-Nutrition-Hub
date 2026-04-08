@@ -1586,10 +1586,10 @@ router.post("/quiz/submit", async (req, res) => {
       dbDateStr = new Date(profile.quiz_last_completed_date).toISOString().split('T')[0];
     }
 
-    if (dbDateStr === today) {
+    /*if (dbDateStr === today) {
       return res.status(400).json({ error: "Quiz already completed today" });
-    }
-
+    }*/
+   
     let currentStreak = profile.quiz_current_streak || 0;
     let longestStreak = profile.quiz_longest_streak || 0;
     let perfectDays = profile.quiz_perfect_days || 0;
