@@ -266,8 +266,21 @@ app.use((req, res, next) => {
 });
 
 app.get("/api/csrf-token", (req, res) => {
+  // 1. Force a session property to exist so the cookie is generated
+  if (!req.session.initialized) {
+    req.session.initialized = true;
+  }
+
   csrfProtection(req, res, () => {
-     res.json({ csrfToken: req.csrfToken() });
+    const token = req.csrfToken();
+    // 2. CRITICAL: Save the session manually before sending the response
+    req.session.save((err) => {
+      if (err) {
+        logger.error("Session save failed during CSRF fetch", err);
+        return res.status(500).json({ error: "Session synchronization failed" });
+      }
+      res.json({ csrfToken: token });
+    });
   });
 });
 
@@ -298,6 +311,7 @@ app.use("/api/translate", hppProtect({ policy: "none", allowlist: ["texts", "tar
 app.use("/api/quiz-content", hppProtect({ 
   policy: "none", 
   allowlist: ["foodID", "question", "options", "correctAnswer", "explanation", "questionID"], 
+  skipArrays: true,
   logger: (tag, meta) => logger.warn(`HPP Quiz Content: ${tag}`, meta) 
 }), quizContentRoutes);
 
