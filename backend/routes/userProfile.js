@@ -1589,7 +1589,7 @@ router.post("/quiz/submit", async (req, res) => {
     /*if (dbDateStr === today) {
       return res.status(400).json({ error: "Quiz already completed today" });
     }*/
-   
+
     let currentStreak = profile.quiz_current_streak || 0;
     let longestStreak = profile.quiz_longest_streak || 0;
     let perfectDays = profile.quiz_perfect_days || 0;
@@ -1619,6 +1619,16 @@ router.post("/quiz/submit", async (req, res) => {
            quiz_perfect_days = ?
        WHERE userID = ?`,
       [newTotalXp, today, currentStreak, longestStreak, perfectDays, userID]
+    );
+
+    await db.execute(
+      `INSERT INTO xp_history (userID, xp_amount, source_type, description, earned_at) 
+       VALUES (?, ?, 'Daily Quiz', ?, NOW())`,
+      [
+        userID, 
+        xpEarned, 
+        `Completed daily quiz with a score of ${score}/5`
+      ]
     );
 
     res.json({ success: true, message: "Results saved", newTotalXp });
