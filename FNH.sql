@@ -56,6 +56,11 @@ CREATE TABLE userProfile (
     likes INT DEFAULT 0,
     totalSubmissions int DEFAULT '0',
     equippedContributorBadge INT DEFAULT NULL,
+    equippedBadge VARCHAR(50) DEFAULT 'novice';
+    quiz_last_completed_date DATE DEFAULT NULL,
+    quiz_current_streak INT DEFAULT 0,
+    quiz_longest_streak INT DEFAULT 0,
+    quiz_perfect_days INT DEFAULT 0;
     KEY fk_userProfile_user_restrict (userID),
 	CONSTRAINT fk_userProfile_user_restrict FOREIGN KEY (userID) REFERENCES user (userID) ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -245,8 +250,6 @@ CREATE TABLE recipe_ratings (
     FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON DELETE CASCADE
 );
 
-ALTER TABLE userProfile ADD COLUMN equippedBadge VARCHAR(50) DEFAULT 'novice';
-
 CREATE TABLE badge (
   id INT AUTO_INCREMENT PRIMARY KEY,
   userProfileID INT NOT NULL,
@@ -257,12 +260,6 @@ CREATE TABLE badge (
   FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID)
     ON DELETE CASCADE ON UPDATE CASCADE
 );
-
-ALTER TABLE userProfile
-ADD COLUMN quiz_last_completed_date DATE DEFAULT NULL,
-ADD COLUMN quiz_current_streak INT DEFAULT 0,
-ADD COLUMN quiz_longest_streak INT DEFAULT 0,
-ADD COLUMN quiz_perfect_days INT DEFAULT 0;
 
 CREATE TABLE quiz_questions (
   questionID INT AUTO_INCREMENT PRIMARY KEY,
