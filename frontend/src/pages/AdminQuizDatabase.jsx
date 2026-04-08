@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { BsPatchQuestion } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa6";
@@ -16,33 +16,31 @@ const AdminQuizDatabase = () => {
   
   const [questions, setQuestions] = useState([]);
   const [csrfToken, setCsrfToken] = useState("");
-  const [isTokenLoading, setIsTokenLoading] = useState(true); // ✅ New: Track token status
+  const [isTokenReady, setIsTokenReady] = useState(false); // ✅ Track if session is ready
+  const hasInitialFetched = useRef(false);
 
   const [translatedQuestions, setTranslatedQuestions] = useState({});
   const [translatedFoods, setTranslatedFoods] = useState({});
   const [isTranslating, setIsTranslating] = useState(false);
   const [translatedAnswers, setTranslatedAnswers] = useState({});
 
-  // 1. Fetch CSRF Token
-  const fetchCsrfToken = useCallback(async () => {
+  // 1. Core Fetcher for CSRF Token
+  const refreshCsrfToken = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
       if (res.ok) {
         const data = await res.json();
         setCsrfToken(data.csrfToken);
+        setIsTokenReady(true);
+        return data.csrfToken;
       }
     } catch (err) {
-      console.error("Failed to fetch CSRF token", err);
-    } finally {
-      setIsTokenLoading(false);
+      console.error("Critical: Failed to fetch CSRF token", err);
     }
+    return null;
   }, []);
 
-  useEffect(() => {
-    fetchCsrfToken();
-  }, [fetchCsrfToken]);
-
-  // 2. Fetch Live Questions from Database
+  // 2. Fetch Questions (Only after token is ready to ensure session affinity)
   const fetchAdminQuestions = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin`, {
@@ -50,7 +48,8 @@ const AdminQuizDatabase = () => {
       });
 
       if (res.status === 403) {
-        console.error("Access Denied: You must be an admin.");
+        console.error("403 Forbidden: Session expired or not an admin account.");
+        // If GET fails with 403, requireAdmin is likely blocking
         return;
       }
 
@@ -67,11 +66,23 @@ const AdminQuizDatabase = () => {
     }
   }, []);
 
+  // Initialize Security Handshake
   useEffect(() => {
-    fetchAdminQuestions();
-  }, [fetchAdminQuestions]);
+    const init = async () => {
+      await refreshCsrfToken();
+    };
+    init();
+  }, [refreshCsrfToken]);
 
-  // Translation Logic
+  // Fetch data only after token check is done
+  useEffect(() => {
+    if (isTokenReady && !hasInitialFetched.current) {
+      fetchAdminQuestions();
+      hasInitialFetched.current = true;
+    }
+  }, [isTokenReady, fetchAdminQuestions]);
+
+  // AI Translation Logic
   useEffect(() => {
     const translateDynamicData = async () => {
       if (i18n.language === 'en' || questions.length === 0) {
@@ -182,12 +193,17 @@ const AdminQuizDatabase = () => {
     setIsModalOpen(true);
   };
 
-  // 3. Save Question to Database (POST or PUT)
+  // 3. Save Question (Handshaking with CSRF)
   const handleSave = async () => {
-    // ✅ Check for token before allowing save
-    if (!csrfToken) {
-      alert("Security token missing. Refreshing...");
-      await fetchCsrfToken();
+    let currentToken = csrfToken;
+    
+    // If token is missing, try one last refresh
+    if (!currentToken) {
+      currentToken = await refreshCsrfToken();
+    }
+
+    if (!currentToken) {
+      alert("Security handshake failed. Please refresh the page.");
       return;
     }
 
@@ -201,7 +217,7 @@ const AdminQuizDatabase = () => {
         method: method,
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken // ✅ Crucial: Header must match backend expectation
+          "X-CSRF-Token": currentToken // ✅ Must match allowlist in server.js
         },
         credentials: "include",
         body: JSON.stringify(formData)
@@ -212,23 +228,21 @@ const AdminQuizDatabase = () => {
         setIsModalOpen(false);
       } else {
         const errData = await res.json();
-        // If CSRF is invalid, refresh the token automatically
+        // If server says token is invalid, refresh it for the next attempt
         if (errData.error === "Invalid CSRF token") {
-          fetchCsrfToken();
+          await refreshCsrfToken();
+          alert("Security token refreshed. Please try saving again.");
+        } else {
+          alert(errData.error || "Failed to save question");
         }
-        alert(errData.error || "Failed to save question");
       }
     } catch (err) {
-      console.error("Failed to save question", err);
+      console.error("Save error:", err);
     }
   };
 
-  // 4. Delete Question from Database (DELETE)
+  // 4. Delete Question
   const handleDelete = async (id) => {
-    if (!csrfToken) {
-      await fetchCsrfToken();
-    }
-
     if (window.confirm(t("adminQuizDB.deleteConfirm"))) {
       try {
         const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin/${id}`, {
@@ -241,11 +255,13 @@ const AdminQuizDatabase = () => {
 
         if (res.ok) {
           fetchAdminQuestions(); 
+        } else if (res.status === 403) {
+          alert("Unauthorized. Your session may have expired.");
         } else {
           alert("Failed to delete question");
         }
       } catch (err) {
-        console.error("Failed to delete question", err);
+        console.error("Delete error:", err);
       }
     }
   };
@@ -264,14 +280,13 @@ const AdminQuizDatabase = () => {
           <button 
             className="admin-food-btn-add lrp-no-outline"
             onClick={() => handleOpenModal()}
-            disabled={isTokenLoading} // ✅ Prevent action until token is ready
+            disabled={!isTokenReady}
           >
             <FaPlus /> {t("adminQuizDB.addQuestion")}
           </button>
         </div>
       </div>
 
-      {/* SEARCH AND FILTER UI */}
       <div className="food-filters">
         <div className="search-box">
           <CiSearch className="search-icon" />
@@ -294,7 +309,6 @@ const AdminQuizDatabase = () => {
         </select>
       </div>
 
-      {/* TABLE UI */}
       <table className="food-table aqd-table">
         <thead>
           <tr>
@@ -334,14 +348,13 @@ const AdminQuizDatabase = () => {
           ) : (
             <tr>
               <td colSpan="4" className = "aqd-no-ques-found">
-                {t("adminQuizDB.noQuestionsFound")}
+                {isTokenReady ? t("adminQuizDB.noQuestionsFound") : "Verifying Admin Session..."}
               </td>
             </tr>
           )}
         </tbody>
       </table>
 
-      {/* PAGINATION UI */}
       {totalPages > 1 && (
         <div className="admin-pagination fdt-pagination aqd-pagination">
           <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
@@ -358,7 +371,6 @@ const AdminQuizDatabase = () => {
         </div>
       )}
 
-      {/* MODAL UI */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
           <div className="add-options-modal quiz-form-modal" onClick={(e) => e.stopPropagation()}>
@@ -368,10 +380,8 @@ const AdminQuizDatabase = () => {
             </div>
             
             <div className="add-options-body quiz-modal-scrollable">
-              
               <div className="umg-field aqd-field">
                 <label className="umg-label aqd-label">{t("adminQuizDB.linkedFoodEntity")}</label>
-                
                 <div className="search-box aqd-search-box">
                   <CiSearch className="search-icon aqd-search-icon"/>
                   <input 
@@ -382,37 +392,21 @@ const AdminQuizDatabase = () => {
                     className = "aqd-search-box-input"
                   />
                 </div>
-
                 <div className="lfp-recipe-list aqd-list">
-                  {filteredModalFoods.length > 0 ? (
-                    filteredModalFoods.map(food => (
-                      <div 
-                        key={food.foodID}
-                        onClick={() => setFormData({...formData, foodID: food.foodID})}
-                        className = "aqd-filtered-modals-div"
-                        style={{ 
-                          background: formData.foodID === food.foodID ? "#ffffff" : "transparent", 
-                          border: formData.foodID === food.foodID ? "1px solid #916848" : "1px solid transparent",
-                          boxShadow: formData.foodID === food.foodID ? "0 2px 4px rgba(0,0,0,0.05)" : "none",
-                        }}
-                      >
-                        <div>
-                          <h4 className="aqd-filtered-modal-h4" style={{ color: formData.foodID === food.foodID ? "#916848" : "#3d2b1f" }}>
-                            {food.name}
-                          </h4>
-                        </div>
-                        {formData.foodID === food.foodID && (
-                          <div className = "aqd-form-data-div">
-                            <FiCheck className = "aqd-form-data-ficheck"/>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className = "aqd-form-data-div2">
-                      {t("adminQuizDB.noFoodsFound")} "{modalFoodSearchTerm}"
+                  {filteredModalFoods.map(food => (
+                    <div 
+                      key={food.foodID}
+                      onClick={() => setFormData({...formData, foodID: food.foodID})}
+                      className = "aqd-filtered-modals-div"
+                      style={{ 
+                        background: formData.foodID === food.foodID ? "#ffffff" : "transparent", 
+                        border: formData.foodID === food.foodID ? "1px solid #916848" : "1px solid transparent"
+                      }}
+                    >
+                      <h4 className="aqd-filtered-modal-h4">{food.name}</h4>
+                      {formData.foodID === food.foodID && <FiCheck className = "aqd-form-data-ficheck"/>}
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
 
@@ -449,7 +443,7 @@ const AdminQuizDatabase = () => {
                 <label className="umg-label">{t("adminQuizDB.correctAnswerPrompt")}</label>
                 <input 
                   type="text"
-                  className={`umg-input ${formData.correctAnswer && formData.options.includes(formData.correctAnswer) ? 'valid-answer' : formData.correctAnswer ? 'invalid-answer' : ''}`}
+                  className="umg-input"
                   value={formData.correctAnswer} 
                   onChange={(e) => setFormData({...formData, correctAnswer: e.target.value})}
                 />
@@ -463,20 +457,12 @@ const AdminQuizDatabase = () => {
                   onChange={(e) => setFormData({...formData, explanation: e.target.value})}
                 />
               </div>
-
             </div>
 
             <div className="modal-actions aqd-modal-actions">
               <button className="cancel-btn" onClick={() => setIsModalOpen(false)}>{t("adminQuizDB.cancel")}</button>
-              <button 
-                className="quiz-save-btn" 
-                onClick={handleSave}
-                disabled={isTokenLoading} // ✅ Prevent save until token ready
-              >
-                {t("adminQuizDB.saveQuestion")}
-              </button>
+              <button className="quiz-save-btn" onClick={handleSave}>{t("adminQuizDB.saveQuestion")}</button>
             </div>
-
           </div>
         </div>
       )}
