@@ -6,7 +6,7 @@ import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { FiCheck } from "react-icons/fi";
 import { CiSearch } from "react-icons/ci";
-import { mockFoods } from "../data/mockFoods"; // Keeping mockFoods for the dropdown unless you have a food API
+import { mockFoods } from "../data/mockFoods"; 
 import { translateTexts } from "../hooks/useAITranslation";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -14,11 +14,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const AdminQuizDatabase = () => {
   const { t, i18n } = useTranslation();
   
-  // Replaced mock data with an empty array
   const [questions, setQuestions] = useState([]);
-  
-  // CSRF Token for secure Admin actions
   const [csrfToken, setCsrfToken] = useState("");
+  const [isTokenLoading, setIsTokenLoading] = useState(true); // ✅ New: Track token status
 
   const [translatedQuestions, setTranslatedQuestions] = useState({});
   const [translatedFoods, setTranslatedFoods] = useState({});
@@ -26,31 +24,38 @@ const AdminQuizDatabase = () => {
   const [translatedAnswers, setTranslatedAnswers] = useState({});
 
   // 1. Fetch CSRF Token
-  useEffect(() => {
-    const fetchCsrfToken = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
-        if (res.ok) {
-          const data = await res.json();
-          setCsrfToken(data.csrfToken);
-        }
-      } catch (err) {
-        console.error("Failed to fetch CSRF token", err);
+  const fetchCsrfToken = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/csrf-token`, { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setCsrfToken(data.csrfToken);
       }
-    };
-    fetchCsrfToken();
+    } catch (err) {
+      console.error("Failed to fetch CSRF token", err);
+    } finally {
+      setIsTokenLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchCsrfToken();
+  }, [fetchCsrfToken]);
 
   // 2. Fetch Live Questions from Database
   const fetchAdminQuestions = useCallback(async () => {
     try {
-      // Assuming you added the verifyToken/admin checks middleware to this route
       const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin`, {
         credentials: "include" 
       });
+
+      if (res.status === 403) {
+        console.error("Access Denied: You must be an admin.");
+        return;
+      }
+
       if (res.ok) {
         const data = await res.json();
-        // Ensure options are parsed back into an array if they come as a JSON string
         const formattedData = data.map(q => ({
           ...q,
           options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options
@@ -133,10 +138,8 @@ const AdminQuizDatabase = () => {
 
   const getFoodName = (id) => {
     if (translatedFoods[id]) return translatedFoods[id];
-    // If your backend returns linkedFoodName, you can just use that!
     const question = questions.find(q => q.foodID === Number(id));
     if (question && question.linkedFoodName) return question.linkedFoodName;
-    
     const food = mockFoods.find(f => f.foodID === Number(id));
     return food ? food.name : t("adminQuizDB.unknownFood");
   };
@@ -181,6 +184,13 @@ const AdminQuizDatabase = () => {
 
   // 3. Save Question to Database (POST or PUT)
   const handleSave = async () => {
+    // ✅ Check for token before allowing save
+    if (!csrfToken) {
+      alert("Security token missing. Refreshing...");
+      await fetchCsrfToken();
+      return;
+    }
+
     try {
       const method = editingQuestion ? "PUT" : "POST";
       const url = editingQuestion 
@@ -191,17 +201,21 @@ const AdminQuizDatabase = () => {
         method: method,
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken
+          "X-CSRF-Token": csrfToken // ✅ Crucial: Header must match backend expectation
         },
         credentials: "include",
         body: JSON.stringify(formData)
       });
 
       if (res.ok) {
-        fetchAdminQuestions(); // Refresh the list from the database
+        fetchAdminQuestions(); 
         setIsModalOpen(false);
       } else {
         const errData = await res.json();
+        // If CSRF is invalid, refresh the token automatically
+        if (errData.error === "Invalid CSRF token") {
+          fetchCsrfToken();
+        }
         alert(errData.error || "Failed to save question");
       }
     } catch (err) {
@@ -211,6 +225,10 @@ const AdminQuizDatabase = () => {
 
   // 4. Delete Question from Database (DELETE)
   const handleDelete = async (id) => {
+    if (!csrfToken) {
+      await fetchCsrfToken();
+    }
+
     if (window.confirm(t("adminQuizDB.deleteConfirm"))) {
       try {
         const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin/${id}`, {
@@ -222,7 +240,7 @@ const AdminQuizDatabase = () => {
         });
 
         if (res.ok) {
-          fetchAdminQuestions(); // Refresh the list from the database
+          fetchAdminQuestions(); 
         } else {
           alert("Failed to delete question");
         }
@@ -246,12 +264,14 @@ const AdminQuizDatabase = () => {
           <button 
             className="admin-food-btn-add lrp-no-outline"
             onClick={() => handleOpenModal()}
+            disabled={isTokenLoading} // ✅ Prevent action until token is ready
           >
             <FaPlus /> {t("adminQuizDB.addQuestion")}
           </button>
         </div>
       </div>
 
+      {/* SEARCH AND FILTER UI */}
       <div className="food-filters">
         <div className="search-box">
           <CiSearch className="search-icon" />
@@ -274,6 +294,7 @@ const AdminQuizDatabase = () => {
         </select>
       </div>
 
+      {/* TABLE UI */}
       <table className="food-table aqd-table">
         <thead>
           <tr>
@@ -320,6 +341,7 @@ const AdminQuizDatabase = () => {
         </tbody>
       </table>
 
+      {/* PAGINATION UI */}
       {totalPages > 1 && (
         <div className="admin-pagination fdt-pagination aqd-pagination">
           <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
@@ -336,6 +358,7 @@ const AdminQuizDatabase = () => {
         </div>
       )}
 
+      {/* MODAL UI */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
           <div className="add-options-modal quiz-form-modal" onClick={(e) => e.stopPropagation()}>
@@ -445,7 +468,13 @@ const AdminQuizDatabase = () => {
 
             <div className="modal-actions aqd-modal-actions">
               <button className="cancel-btn" onClick={() => setIsModalOpen(false)}>{t("adminQuizDB.cancel")}</button>
-              <button className="quiz-save-btn" onClick={handleSave}>{t("adminQuizDB.saveQuestion")}</button>
+              <button 
+                className="quiz-save-btn" 
+                onClick={handleSave}
+                disabled={isTokenLoading} // ✅ Prevent save until token ready
+              >
+                {t("adminQuizDB.saveQuestion")}
+              </button>
             </div>
 
           </div>
