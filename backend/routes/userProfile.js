@@ -1529,15 +1529,11 @@ const getYesterdayString = () => {
   return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 };
 
-/**
- * 1. GET: Check Quiz Status
- * MODIFIED: Always returns 'false' so the quiz remains open for testing.
- */
+// 1. GET: Check Quiz Status
+// ✅ FORCED TO FALSE so the quiz always opens for your testing
 router.get("/quiz/status", async (req, res) => {
   try {
     if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
-    
-    // Forced to false to keep the quiz available during your testing phase
     res.json({ hasCompletedToday: false }); 
   } catch (error) {
     console.error("Quiz status error:", error);
@@ -1545,10 +1541,7 @@ router.get("/quiz/status", async (req, res) => {
   }
 });
 
-/**
- * 2. POST: Submit Results and Log XP
- * MODIFIED: Bypasses the 24-hour limit and logs to 'adminActivityLog'.
- */
+// 2. POST: Submit Results and Log XP History
 router.post("/quiz/submit", async (req, res) => {
   try {
     if (!req.session || !req.session.user) return res.status(401).json({ error: "Not authenticated" });
@@ -1556,7 +1549,7 @@ router.post("/quiz/submit", async (req, res) => {
     const userID = req.session.user.userID;
     const { score, xpEarned, isPerfect } = req.body;
 
-    // 1. Fetch current profile stats and the required userProfileID
+    // Fetch the userProfileID required for the xp_logs table
     const [rows] = await db.execute(
       `SELECT userProfileID, total_xp, quiz_last_completed_date, quiz_current_streak, quiz_longest_streak, quiz_perfect_days 
        FROM userProfile WHERE userID = ?`,
@@ -1566,7 +1559,7 @@ router.post("/quiz/submit", async (req, res) => {
     if (rows.length === 0) return res.status(404).json({ error: "Profile not found" });
 
     const profile = rows[0];
-    const userProfileID = profile.userProfileID;
+    const userProfileID = profile.userProfileID; 
     const today = getTodayString();
     const yesterday = getYesterdayString();
     
@@ -1575,14 +1568,14 @@ router.post("/quiz/submit", async (req, res) => {
       dbDateStr = new Date(profile.quiz_last_completed_date).toISOString().split('T')[0];
     }
 
-    // ✅ TESTING BYPASS: This block is commented out to allow unlimited daily retakes
+    // ✅ RESTRICTION BYPASSED for unlimited testing
     /*
     if (dbDateStr === today) {
       return res.status(400).json({ error: "Quiz already completed today" });
     }
     */
 
-    // 2. Calculate Streaks
+    // Calculate Streaks logic
     let currentStreak = profile.quiz_current_streak || 0;
     let longestStreak = profile.quiz_longest_streak || 0;
     let perfectDays = profile.quiz_perfect_days || 0;
@@ -1598,7 +1591,7 @@ router.post("/quiz/submit", async (req, res) => {
 
     const newTotalXp = (profile.total_xp || 0) + xpEarned;
 
-    // 3. Update the main totals in the userProfile table
+    // Save update to User Profile
     await db.execute(
       `UPDATE userProfile 
        SET total_xp = ?, 
@@ -1610,21 +1603,18 @@ router.post("/quiz/submit", async (req, res) => {
       [newTotalXp, today, currentStreak, longestStreak, perfectDays, userID]
     );
 
-    // ✅ 4. RECORD TO XP LOGS (Using 'adminActivityLog' table)
-    // Matches your columns: userProfileID, action_type, reference_id, xp_awarded, created_at
+    // ✅ RECORD TO XP HISTORY (Using the correct table from FNH.sql)
+    // Table: xp_logs | Columns: userProfileID, action_type, reference_id, xp_awarded, created_at
     await db.execute(
-      `INSERT INTO adminActivityLog (userProfileID, action_type, reference_id, xp_awarded, created_at) 
+      `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded, created_at) 
        VALUES (?, 'QUIZ_COMPLETED', NULL, ?, NOW())`,
-      [
-        userProfileID, 
-        xpEarned
-      ]
+      [userProfileID, xpEarned]
     );
 
-    res.json({ success: true, message: "Results saved and logged successfully", newTotalXp });
+    res.json({ success: true, message: "Results saved and logged to XP history", newTotalXp });
 
   } catch (error) {
-    // This logs the exact database error to your server terminal for debugging
+    // This logs the real error to your backend terminal so you can fix it
     console.error("❌ SQL ERROR IN QUIZ SUBMIT:", error.message);
     res.status(500).json({ error: "Failed to save results" });
   }
