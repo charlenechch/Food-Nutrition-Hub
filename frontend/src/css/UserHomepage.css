@@ -309,7 +309,13 @@
 .hero-scroll-hint:hover .home-bounce-icon { color: #fff; }
 
 /* Stats hint — brown on cream */
-.home-stats-scroll-hint { position: static; transform: none; margin-top: 8px; align-self: flex-start; }
+.home-stats-scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  right: 40px;
+  left: auto;
+  transform: none;
+}
 .home-stats-scroll-hint .home-scroll-text,
 .home-stats-scroll-hint .home-bounce-icon { color: #875c36; }
 

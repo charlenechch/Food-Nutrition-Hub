@@ -13,6 +13,11 @@ const formatActionType = (actionType, t) => {
 const getReferenceTitle = (actionType, referenceId, referenceTitle, t) => {
   if (referenceTitle) return referenceTitle; 
   
+  // Specific check for Quiz to avoid "Item #" display
+  if (actionType === "QUIZ_COMPLETED") {
+    return t("profile.quizSubtitle"); 
+  }
+  
   if (actionType.includes("RECIPE")) {
     return t("profile.deletedRecipe", { id: referenceId });
   }

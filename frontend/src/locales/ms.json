@@ -506,7 +506,10 @@
     "action_RECIPE_RATING_UPDATED": "Penilaian Resipi Dikemas Kini",
     "quizStats": "Statistik Kuiz",
     "longestStreak": "Rentetan Terpanjang",
-    "perfectDays": "Hari Sempurna"
+    "perfectDays": "Hari Sempurna",
+    "action_QUIZ_COMPLETED": "Kuiz Harian Selesai",
+    "quizSubtitle": "Diperoleh dengan menyelesaikan cabaran harian",
+    "deletedItem": "Item #{{id}}"
   },
 
   "auth": {
