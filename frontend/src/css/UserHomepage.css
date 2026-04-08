@@ -1128,3 +1128,40 @@
 .dish-scroll-hint .snap-bounce-icon { color: rgba(255,255,255,0.75); }
 .dish-scroll-hint:hover .snap-scroll-text,
 .dish-scroll-hint:hover .snap-bounce-icon { color: #fff; }
+
+/* ── CORNER HINT — bottom right of each section ── */
+.corner-hint {
+  position: absolute !important;
+  bottom: 32px !important;
+  right: 40px !important;
+  left: auto !important;
+  transform: none !important;
+  align-self: unset !important;
+  margin-top: 0 !important;
+}
+
+/* Stats section needs position relative for corner hint to anchor */
+.stats-snap-section { position: relative; }
+
+/* Stats corner hint — brown on cream */
+.stats-snap-section .corner-hint .snap-scroll-text,
+.stats-snap-section .corner-hint .snap-bounce-icon { color: #875c36; }
+
+/* Hero corner hint — white on dark */
+.hero-scroll-hint.corner-hint .snap-scroll-text,
+.hero-scroll-hint.corner-hint .snap-bounce-icon { color: rgba(255,255,255,0.8); }
+.hero-scroll-hint.corner-hint:hover .snap-scroll-text,
+.hero-scroll-hint.corner-hint:hover .snap-bounce-icon { color: #fff; }
+
+/* Dish hint stays bottom-center of the image panel */
+.dish-spotlight-img .snap-scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  right: auto;
+}
+
+@media (max-width: 768px) {
+  .corner-hint { right: 20px !important; bottom: 20px !important; }
+}

@@ -399,7 +399,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </div>
 
-        <div className="snap-scroll-hint hero-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
+        <div className="snap-scroll-hint hero-scroll-hint corner-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
           <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
           <FaAnglesDown className="snap-bounce-icon" />
         </div>
@@ -445,7 +445,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               <span className="stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
             </div>
           </div>
-          <div className="snap-scroll-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 2, behavior: 'smooth' })}>
+          <div className="snap-scroll-hint corner-hint" onClick={() => snapContainerRef.current?.scrollTo({ top: window.innerHeight * 2, behavior: 'smooth' })}>
             <span className="snap-scroll-text">{t("home.scrollExplore", "Explore")}</span>
             <FaAnglesDown className="snap-bounce-icon" />
           </div>
@@ -462,59 +462,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         />
       </section>
 
-      {/* ── SECTION 4: Rest of content ── */}
-      <main className="features-layout-wrapper snap-section snap-main">
-        <div style={{height: '1px'}} />
 
-
-
-        {recentFoods && recentFoods.length > 0 && (
-          <section className="recent-section">
-            <div className="section-header">
-              <h2>{t("home.recentTitle")}</h2>
-              <button className="view-all-link" onClick={() => navigate("/foods")}>
-                {t("home.viewAll")} →
-              </button>
-            </div>
-            <div className="food-carousel">
-              {recentFoods.slice(0, 4).map((food) => (
-                <div
-                  key={food.id}
-                  className="mini-food-card"
-                  onClick={() => navigate(`/fooddetail/${food.id}`)}
-                >
-                  <div className="mini-card-image" style={{ backgroundImage: `url(${food.imageUrl})` }}></div>
-                  <div className="mini-card-info">
-                    <h4>{food.name}</h4>
-                    <span className="category-tag">{food.category}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* heritage-fact-banner commented out
-        <section className="heritage-fact-banner">
-          <div className="fact-decoration-circle circle-1"></div>
-          <div className="fact-decoration-circle circle-2"></div>
-          <div className="fact-content-wrapper">
-            <div className="fact-icon-box">
-              <FaLightbulb className="glowing-bulb" />
-            </div>
-            <div className={`fact-text-area ${isAnimating ? "fade-out" : "fade-in"}`}>
-              <span className="fact-label">{t("home.didYouKnow")}</span>
-              <h3 className="fact-title">{t(heritageFacts[currentFact].titleKey)}</h3>
-              <p className="fact-body">{t(heritageFacts[currentFact].textKey)}</p>
-            </div>
-            <button className="fact-refresh-btn" onClick={handleNextFact} aria-label="Next Fact">
-              <FaSyncAlt className={isAnimating ? "spin-icon" : ""} />
-              <span>{t("home.nextFact")}</span>
-            </button>
-          </div>
-        </section>
-        */}
-      </main>
 
       {isRandomizing && (
         <div className="randomizer-overlay">
