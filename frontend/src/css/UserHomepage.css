@@ -732,8 +732,19 @@
   .home-dish-origin-badge { bottom: 14px; left: 14px; font-size: 0.62rem; padding: 5px 10px; }
   .home-dish-btn-primary { padding: 11px 18px; font-size: 0.85rem; }
 
-  /* Scroll hints hidden on mobile — natural scroll takes over */
-  .home-scroll-hint { display: none; }
+  /* Stats scroll hint hidden on mobile — natural scroll takes over */
+  .home-stats-scroll-hint { display: none; }
+
+  /* Hero scroll hint — keep visible, anchor to bottom of hero */
+  .hero-scroll-hint {
+    display: flex;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  /* Push dots up to avoid overlapping the explore hint */
+  .hero-dots { bottom: 56px; }
 }
 
 /* ─────────────────────────────────────────
