@@ -16,7 +16,7 @@ const AdminQuizDatabase = () => {
   
   const [questions, setQuestions] = useState([]);
   const [csrfToken, setCsrfToken] = useState("");
-  const [isTokenReady, setIsTokenReady] = useState(false); // ✅ Track if session is ready
+  const [isSessionReady, setIsSessionReady] = useState(false); // ✅ Fix: Track security handshake
   const hasInitialFetched = useRef(false);
 
   const [translatedQuestions, setTranslatedQuestions] = useState({});
@@ -31,7 +31,7 @@ const AdminQuizDatabase = () => {
       if (res.ok) {
         const data = await res.json();
         setCsrfToken(data.csrfToken);
-        setIsTokenReady(true);
+        setIsSessionReady(true); // ✅ Session cookie is now confirmed
         return data.csrfToken;
       }
     } catch (err) {
@@ -42,6 +42,8 @@ const AdminQuizDatabase = () => {
 
   // 2. Fetch Questions (Only after token is ready to ensure session affinity)
   const fetchAdminQuestions = useCallback(async () => {
+    if (!isSessionReady) return; // ✅ Block until session is ready to prevent 403
+
     try {
       const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin`, {
         credentials: "include" 
@@ -49,7 +51,6 @@ const AdminQuizDatabase = () => {
 
       if (res.status === 403) {
         console.error("403 Forbidden: Session expired or not an admin account.");
-        // If GET fails with 403, requireAdmin is likely blocking
         return;
       }
 
@@ -64,7 +65,7 @@ const AdminQuizDatabase = () => {
     } catch (err) {
       console.error("Failed to fetch admin questions", err);
     }
-  }, []);
+  }, [isSessionReady]); // ✅ Re-fetch when handshake finishes
 
   // Initialize Security Handshake
   useEffect(() => {
@@ -76,11 +77,11 @@ const AdminQuizDatabase = () => {
 
   // Fetch data only after token check is done
   useEffect(() => {
-    if (isTokenReady && !hasInitialFetched.current) {
+    if (isSessionReady && !hasInitialFetched.current) {
       fetchAdminQuestions();
       hasInitialFetched.current = true;
     }
-  }, [isTokenReady, fetchAdminQuestions]);
+  }, [isSessionReady, fetchAdminQuestions]);
 
   // AI Translation Logic
   useEffect(() => {
@@ -217,7 +218,7 @@ const AdminQuizDatabase = () => {
         method: method,
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": currentToken // ✅ Must match allowlist in server.js
+          "X-CSRF-Token": currentToken // ✅ Header must match backend key
         },
         credentials: "include",
         body: JSON.stringify(formData)
@@ -280,7 +281,7 @@ const AdminQuizDatabase = () => {
           <button 
             className="admin-food-btn-add lrp-no-outline"
             onClick={() => handleOpenModal()}
-            disabled={!isTokenReady}
+            disabled={!isSessionReady}
           >
             <FaPlus /> {t("adminQuizDB.addQuestion")}
           </button>
@@ -348,7 +349,7 @@ const AdminQuizDatabase = () => {
           ) : (
             <tr>
               <td colSpan="4" className = "aqd-no-ques-found">
-                {isTokenReady ? t("adminQuizDB.noQuestionsFound") : "Verifying Admin Session..."}
+                {isSessionReady ? t("adminQuizDB.noQuestionsFound") : "Verifying Admin Session..."}
               </td>
             </tr>
           )}
