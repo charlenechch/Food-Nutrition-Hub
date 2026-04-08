@@ -6,8 +6,8 @@ const { sendEmail } = require("../config/mailer");
 const { deleteUser } = require("../routes/userProfile");
 const { createNotification, isEmailNotificationsEnabled } = require("../routes/notifications");
 
-// Finds and updates user statuses based on expired suspensions and inactivity.
-async function updateStaleAndExpiredUsers() {
+// Runs daily maintenance: status cleanup, leaderboard snapshots, XP/badge rewards, and data cleanup
+async function runDailyMaintenance() {
     console.log("🕒 Starting Status Cleanup...");
     
     try {
@@ -554,7 +554,7 @@ async function updateStaleAndExpiredUsers() {
 }
 
 // Run the script and exit
-updateStaleAndExpiredUsers()
+runDailyMaintenance()
     .then(async () => {
         await db.end();
         process.exit(0);
