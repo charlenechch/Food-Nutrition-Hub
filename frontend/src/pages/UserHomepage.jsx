@@ -24,7 +24,7 @@ function DishSpotlight({ allFoods, navigate, t }) {
   const [active, setActive] = React.useState(0);
   const timerRef = React.useRef(null);
 
-  const SPOTLIGHT_IDS = [2, 3, 8, 10];
+  const SPOTLIGHT_IDS = [2, 10, 55];
 
   const spotlightDishes = React.useMemo(() => {
     if (!allFoods || allFoods.length === 0) return [];
