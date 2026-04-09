@@ -756,33 +756,33 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
   .home-stats-headline { font-size: clamp(1.4rem, 5.5vw, 1.9rem); }
   .home-stats-subtext { font-size: 0.88rem; text-align: justify; }
 
-  /* Swipeable card carousel — one card per view, fits within padding */
+  /* Swipeable card carousel — one card per view */
   .home-stats-grid {
     display: flex;
     flex-direction: row;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    gap: 0;
+    gap: 12px;
     border-radius: 0;
     background: transparent;
     padding: 4px 0 8px;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    /* Negative margin to allow cards to touch edges while inner has padding */
-    margin: 0 -20px;
-    padding-left: 20px;
-    padding-right: 20px;
+    box-sizing: border-box;
+    width: 100%;
   }
   .home-stats-grid::-webkit-scrollbar { display: none; }
 
   .home-stat-item {
-    /* Each card = full width of the visible area (minus the inner padding) */
-    flex: 0 0 calc(100vw - 40px);
+    flex: 0 0 100%;
     scroll-snap-align: start;
     scroll-snap-stop: always;
     border-radius: 16px;
@@ -791,9 +791,9 @@
     flex-direction: column;
     gap: 6px;
     box-shadow: none;
-    margin-right: 12px;
+    box-sizing: border-box;
+    min-width: 0;
   }
-  .home-stat-item:last-child { margin-right: 0; }
   .home-stat-num { font-size: 2.4rem; }
 
   /* Dot indicators */
