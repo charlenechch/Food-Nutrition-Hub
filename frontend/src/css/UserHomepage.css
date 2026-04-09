@@ -1000,4 +1000,8 @@
     font-size: 0.82rem;
     line-height: 1.5;
   }
+
+  .home-stats-section.home-snap-section {
+    justify-content: flex-start;
+  }
 }
