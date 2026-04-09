@@ -655,7 +655,7 @@
   /* Stats section overrides to allow full content */
   .home-stats-section.home-snap-section {
     height: auto;
-    min-height: 100dvh;
+    min-height: auto;
   }
 
   /* ── Section 1 ── */
@@ -851,18 +851,6 @@
   }
 
   /* Explore hint — pushed to bottom, centered */
-  /* .home-stats-scroll-hint {
-    position: static !important;
-    bottom: auto !important;
-    right: auto !important;
-    left: auto !important;
-    display: flex !important;
-    transform: none !important;
-    align-self: center;
-    margin-top: auto;
-    padding-bottom: 8px;
-  } */
-
   .home-stats-scroll-hint {
     position: absolute;
     bottom: 16px;        /* distance from bottom */
@@ -873,6 +861,7 @@
     gap: 6px;
     z-index: 5;
   }
+
   /* Section 3: Dish spotlight */
   .home-dish-snap-section {
     height: 100dvh;
