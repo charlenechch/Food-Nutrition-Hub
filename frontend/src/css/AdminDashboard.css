@@ -2409,11 +2409,12 @@
   }
 
   .food-actions button {
-    width: 100%;     
-    margin-left: 0 !important; 
+    flex: 1; 
+    margin-left: 0; 
     justify-content: center;   
     font-size: 15px; 
-    height: 48px;   
+    height: 48px;
+    white-space: nowrap;
   }
 
   .admin-food-btn-template {
