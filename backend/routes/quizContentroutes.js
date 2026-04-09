@@ -146,7 +146,6 @@ router.delete("/admin/:id", isAuthenticated, isAdmin, async (req, res) => {
     await db.execute(`DELETE FROM quiz_questions WHERE questionID = ?`, [req.params.id]);
     res.json({ success: true, message: "Deleted" });
   } catch (error) {
-    console.error("Admin delete error:", error);
     res.status(500).json({ error: "Failed delete" });
   }
 });
