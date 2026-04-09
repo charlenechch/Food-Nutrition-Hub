@@ -770,7 +770,7 @@
   /* Inner fills section, no overflow clipping on sides */
   .home-stats-inner {
     flex: 1;
-    padding: 32px 20px 8px;
+    padding: 32px 20px 20px;
     gap: 8px;
     display: flex;
     flex-direction: column;
