@@ -628,9 +628,7 @@
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ─────────────────────────────────────────
-   TABLET  (769px – 1024px)
-───────────────────────────────────────── */
+/* TABLET  (769px – 1024px) */
 @media (max-width: 1024px) {
   .home-stats-inner { padding: 36px 40px 60px; gap: 28px; }
   .home-stats-headline { font-size: clamp(1.8rem, 3vw, 2.5rem); }
@@ -639,12 +637,7 @@
   .home-dish-spotlight-title { font-size: clamp(1.8rem, 3.5vw, 3rem); }
 }
 
-/* ─────────────────────────────────────────
-   MOBILE  (≤ 768px)
-   - Sections scroll naturally (no snap)
-   - Stats section grows to fit content
-   - Dish spotlight stacks vertically
-───────────────────────────────────────── */
+/* MOBILE  (≤ 768px) */
 @media (max-width: 768px) {
 
   /* Container: keep snap scroll on mobile too */
@@ -665,9 +658,7 @@
     min-height: 100dvh;
   }
 
-  /* ── Hero ── */
-  /* Fills exactly the space below the fixed header (~70px).
-     dvh accounts for iOS Safari browser chrome at bottom. */
+  /* ── Section 1 ── */
   .hero-section {
     /* Full viewport height — content clears header via padding-top */
     height: 100dvh;
@@ -679,7 +670,6 @@
     box-sizing: border-box;
   }
 
-
   /* SDG badges — force single row */
   .hero-sdg-badges {
     flex-direction: row;
@@ -688,6 +678,7 @@
     gap: 8px;
     margin-bottom: 12px;
   }
+
   .sdg-badge {
     font-size: 0.62rem;
     padding: 4px 10px;
@@ -699,15 +690,21 @@
     letter-spacing: -0.5px;
     margin-bottom: 10px;
   }
+
   .hero-subtitle {
     font-size: 0.88rem;
     margin-bottom: 16px;
     line-height: 1.6;
   }
-  .hero-arrow { width: 20%; }
+
+  .hero-arrow { 
+    width: 20%;
+  }
 
   /* Dots sit just above the explore hint */
-  .hero-dots { bottom: 68px; }
+  .hero-dots { 
+    bottom: 68px; 
+  }
 
   /* Explore hint — always visible */
   .hero-scroll-hint {
@@ -727,28 +724,42 @@
     padding: 10px;
     gap: 8px;
   }
-  .unified-search-pill .search-icon { display: none; }
-  .unified-search-pill input { padding: 9px 12px; font-size: 0.92rem; }
+
+  .unified-search-pill .search-icon { 
+    display: none; 
+  }
+
+  .unified-search-pill input {
+    padding: 9px 12px; font-size: 0.92rem; 
+  }
+
   .unified-search-pill .search-button {
     width: 100%;
     border-radius: 10px;
     padding: 11px 20px;
     font-size: 0.92rem;
   }
-  /* Randomizer button — tighter on mobile */
-  .randomizer-btn { margin-top: 10px; padding: 7px 16px; font-size: 0.85rem; }
-  /* Dropdown: position below the stacked pill */
-  .search-dropdown { top: auto; margin-top: 8px; position: relative; }
 
-  /* ── Stats ── */
+  /* Randomizer button — tighter on mobile */
+  .randomizer-btn { 
+    margin-top: 10px; padding: 7px 16px; font-size: 0.85rem; 
+  }
+
+  /* Dropdown: position below the stacked pill */
+  .search-dropdown { 
+    top: auto; margin-top: 8px; position: relative; 
+  }
+
+  /* Section 2: Stats */
   .home-stats-section {
     align-items: flex-start;
-    height: 100dvh;
+    min-height: 100dvh;
     overflow: hidden;
     scroll-snap-align: start;
     scroll-snap-stop: always;
     position: relative;
   }
+
   /* Inner fills section, no overflow clipping on sides */
   .home-stats-inner {
     padding: 56px 20px 16px;
@@ -760,9 +771,18 @@
     width: 100%;
     box-sizing: border-box;
   }
-  .home-stats-eyebrow { margin-bottom: 4px; }
-  .home-stats-headline { font-size: clamp(1.3rem, 5vw, 1.7rem); margin-bottom: 4px; }
-  .home-stats-subtext { font-size: 0.85rem; text-align: justify; line-height: 1.55; }
+
+  .home-stats-eyebrow { 
+    margin-bottom: 4px; 
+  }
+
+  .home-stats-headline { 
+    font-size: clamp(1.3rem, 5vw, 1.7rem); margin-bottom: 4px; 
+  }
+
+  .home-stats-subtext { 
+    font-size: 0.85rem; text-align: justify; line-height: 1.55; 
+  }
 
   /* Swipeable card carousel — one card per view */
   .home-stats-grid {
@@ -805,8 +825,6 @@
     justify-content: center;
     gap: 6px;
     margin-top: 4px;
-  }
-  .home-stats-dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
@@ -814,6 +832,7 @@
     transition: all 0.3s;
     cursor: pointer;
   }
+
   .home-stats-dot.active {
     background: #875c36;
     width: 18px;
@@ -833,7 +852,7 @@
     padding-bottom: 8px;
   }
 
-  /* ── Dish spotlight ── */
+  /* Section 3: Dish spotlight */
   .home-dish-snap-section {
     height: 100dvh;
     overflow-y: auto;
@@ -862,9 +881,7 @@
   /* Stats scroll hint shown on mobile — static position below grid */
 }
 
-/* ─────────────────────────────────────────
-   VERY SMALL  (≤ 400px)
-───────────────────────────────────────── */
+/* VERY SMALL  (≤ 400px) */
 @media (max-width: 400px) {
   .hero-title { font-size: clamp(1.6rem, 8vw, 2.2rem); }
   .home-stat-num { font-size: 2.2rem; }
