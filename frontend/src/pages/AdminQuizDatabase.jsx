@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { BsPatchQuestion } from "react-icons/bs";
-import { FaPlus, FaRegFlag } from "react-icons/fa6"; 
+import { FaPlus, FaRegFlag, FaMagic } from "react-icons/fa6"; 
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { FiCheck } from "react-icons/fi";
@@ -151,11 +151,7 @@ const AdminQuizDatabase = () => {
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [modalFoodSearchTerm, setModalFoodSearchTerm] = useState("");
   const [formData, setFormData] = useState({
-    foodID: "",
-    question: "",
-    options: ["", "", "", ""],
-    correctAnswer: "",
-    explanation: ""
+    foodID: "", question: "", options: ["", "", "", ""], correctAnswer: "", explanation: ""
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -207,6 +203,36 @@ const AdminQuizDatabase = () => {
     setIsModalOpen(true);
   };
 
+  // ✅ NEW: Handle Auto-Generate Trigger
+  const handleAutoGenerate = async () => {
+    if (!window.confirm("This will automatically create 5 new questions based on your food database. Continue?")) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/quiz-content/admin/auto-generate`, {
+        method: "POST",
+        headers: { "X-CSRF-Token": csrfToken },
+        credentials: "include"
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        fetchAdminQuestions(); // Refresh list
+        setModal({
+          open: true,
+          title: "Auto-Generation Success",
+          message: data.message,
+          icon: <FaMagic size={30} color="#916848" />,
+          primaryText: "OK",
+          onPrimary: closeModal,
+        });
+      } else {
+        alert("Failed to auto-generate questions.");
+      }
+    } catch (err) {
+      console.error("Auto-generate error:", err);
+    }
+  };
+
   const handleSave = async () => {
     let currentToken = csrfToken;
     if (!currentToken) currentToken = await refreshCsrfToken();
@@ -232,7 +258,7 @@ const AdminQuizDatabase = () => {
           "X-CSRF-Token": currentToken 
         },
         credentials: "include",
-        body: JSON.stringify(sanitizedPayload) // ✅ Only send approved fields
+        body: JSON.stringify(sanitizedPayload) 
       });
 
       if (res.ok) {
@@ -307,6 +333,16 @@ const AdminQuizDatabase = () => {
           <span className="food-icon"><BsPatchQuestion /></span> {t("adminQuizDB.title")}
         </h2>
         <div className="food-actions">
+          {/* ✅ UPDATED UI: Added the Auto-Generate button */}
+          <button 
+            className="lrp-btn lrp-btn-outline" 
+            style={{ marginRight: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}
+            onClick={handleAutoGenerate}
+            disabled={!isTokenReady}
+          >
+            <FaMagic /> ✨ {t("adminQuizDB.autoGenerate", "Auto-Generate")}
+          </button>
+
           <button 
             className="admin-food-btn-add lrp-no-outline"
             onClick={() => handleOpenModal()}
