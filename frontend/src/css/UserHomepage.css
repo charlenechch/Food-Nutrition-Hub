@@ -753,10 +753,6 @@
   }
 
   /* Section 2: Stats */
-  /* .home-stats-section {
-    min-height: 85dvh;
-    overflow: hidden;
-  } */
   .home-stats-section {
     align-items: flex-start;
     height: auto;
@@ -779,15 +775,19 @@
   }
 
   .home-stats-eyebrow { 
-    margin-bottom: 4px; 
+    margin-bottom: 10px; 
   }
 
   .home-stats-headline { 
-    font-size: clamp(1.3rem, 5vw, 1.7rem); margin-bottom: 4px; 
+    font-size: clamp(1.3rem, 5vw, 1.7rem); 
+    margin-bottom: 10px; 
   }
 
   .home-stats-subtext { 
-    font-size: 0.85rem; text-align: justify; line-height: 1.55; 
+    font-size: 0.85rem; 
+    text-align: justify; 
+    line-height: 1.55; 
+    margin-bottom: 20px;
   }
 
   /* Swipeable card carousel — one card per view */
