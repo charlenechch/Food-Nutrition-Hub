@@ -968,8 +968,8 @@
   }
 }
 
-/* 382px and below */
-@media (max-width: 382px) {
+/* 386px and below */
+@media (max-width: 386px) {
   .hero-sdg-badges {
     flex-direction: column;
     align-items: center;
@@ -980,5 +980,24 @@
     font-size: 0.6rem;
     padding: 4px 10px;
     white-space: nowrap;
+  }
+
+  .home-stats-inner {
+    padding: 20px 16px 8px;
+  }
+
+  .home-stats-eyebrow {
+    margin-bottom: 6px;
+    font-size: 0.72rem;
+  }
+
+  .home-stats-headline {
+    font-size: clamp(1.15rem, 5vw, 1.5rem);
+    line-height: 1.2;
+  }
+
+  .home-stats-subtext {
+    font-size: 0.82rem;
+    line-height: 1.5;
   }
 }
