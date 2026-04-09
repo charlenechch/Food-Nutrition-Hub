@@ -379,26 +379,20 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             <div className="home-stat-item">
               <span className="home-stat-num">27+</span>
               <div className="home-stat-divider" />
-              <div className="home-stat-text">
-                <span className="home-stat-title">{t("home.stat1Title", "Ethnic groups")}</span>
-                <span className="home-stat-desc">{t("home.stat1Desc", "Each with their own culinary traditions passed down through generations.")}</span>
-              </div>
+              <span className="home-stat-title">{t("home.stat1Title", "Ethnic groups")}</span>
+              <span className="home-stat-desc">{t("home.stat1Desc", "Each with their own culinary traditions passed down through generations.")}</span>
             </div>
             <div className="home-stat-item">
               <span className="home-stat-num">100+</span>
               <div className="home-stat-divider" />
-              <div className="home-stat-text">
-                <span className="home-stat-title">{t("home.stat2Title", "Traditional dishes")}</span>
-                <span className="home-stat-desc">{t("home.stat2Desc", "From Laksa to Umai, flavours unique to the Land of the Hornbills.")}</span>
-              </div>
+              <span className="home-stat-title">{t("home.stat2Title", "Traditional dishes")}</span>
+              <span className="home-stat-desc">{t("home.stat2Desc", "From Laksa to Umai, flavours unique to the Land of the Hornbills.")}</span>
             </div>
             <div className="home-stat-item">
               <span className="home-stat-num">400+</span>
               <div className="home-stat-divider" />
-              <div className="home-stat-text">
-                <span className="home-stat-title">{t("home.stat3Title", "Years of heritage")}</span>
-                <span className="home-stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
-              </div>
+              <span className="home-stat-title">{t("home.stat3Title", "Years of heritage")}</span>
+              <span className="home-stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
             </div>
           </div>
         </div>
