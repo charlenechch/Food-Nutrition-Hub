@@ -496,6 +496,12 @@ export default function AdminSystemSettings({
         const data = await response.json();
         
         if (data.success) {
+
+            await Promise.all([
+                fetchBackupList(),
+                fetchLastBackupInfo()  
+            ]);
+
         setSysDialog({
             open: true,
             title: t("adminSettings.backupSuccessful"),
@@ -507,9 +513,6 @@ export default function AdminSystemSettings({
             primaryText: t("adminSettings.ok"),
             onPrimary: closeSysDialog,
         });
-        
-        // Refresh backup list
-        fetchBackupList();
         } else {
         throw new Error(data.error);
         }
@@ -636,10 +639,12 @@ export default function AdminSystemSettings({
         const data = await response.json();
         
         if (data.success && data.hasBackup) {
+        console.log('Setting last backup:', data.lastBackup);
         setLastBackup(data.lastBackup);
         }
     } catch (error) {
         console.error('Fetch last backup error:', error);
+        setLastBackup(null);
     }
     };
 
@@ -748,6 +753,8 @@ export default function AdminSystemSettings({
                             {t("adminSettings.restore")}
                             </button>
                         </div>
+
+
                         
                         {/* Show recent backups */}
                         {backupList.length > 0 && (
