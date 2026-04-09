@@ -775,12 +775,12 @@
   }
 
   .home-stats-eyebrow { 
-    margin-bottom: 10px; 
+    margin-bottom: 20px; 
   }
 
   .home-stats-headline { 
     font-size: clamp(1.3rem, 5vw, 1.7rem); 
-    margin-bottom: 20px; 
+    margin-bottom: 30px; 
   }
 
   .home-stats-subtext { 
