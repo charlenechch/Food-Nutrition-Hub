@@ -748,34 +748,42 @@
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }
+  /* Inner: flex column, space content at top, EXPLORE pinned at bottom */
   .home-stats-inner {
-    padding: 52px 20px 20px;
-    gap: 16px;
+    padding: 60px 20px 24px;
+    gap: 12px;
     justify-content: flex-start;
     height: 100%;
+    display: flex;
+    flex-direction: column;
   }
   .home-stats-headline { font-size: clamp(1.4rem, 5.5vw, 1.9rem); }
   .home-stats-subtext { font-size: 0.88rem; text-align: justify; }
 
-  /* Swipeable card carousel — one card per view */
+  /* Swipeable card carousel — one card per view, fits within padding */
   .home-stats-grid {
     display: flex;
     flex-direction: row;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    gap: 12px;
+    gap: 0;
     border-radius: 0;
     background: transparent;
-    padding: 4px 2px 8px;
+    padding: 4px 0 8px;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    /* Negative margin to allow cards to touch edges while inner has padding */
+    margin: 0 -20px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
   .home-stats-grid::-webkit-scrollbar { display: none; }
 
   .home-stat-item {
-    flex: 0 0 calc(100% - 4px);
-    scroll-snap-align: center;
+    /* Each card = full width of the visible area (minus the inner padding) */
+    flex: 0 0 calc(100vw - 40px);
+    scroll-snap-align: start;
     scroll-snap-stop: always;
     border-radius: 16px;
     border: 1px solid rgba(145,104,72,0.12);
@@ -783,15 +791,17 @@
     flex-direction: column;
     gap: 6px;
     box-shadow: none;
+    margin-right: 12px;
   }
-  .home-stat-num { font-size: 2.6rem; }
+  .home-stat-item:last-child { margin-right: 0; }
+  .home-stat-num { font-size: 2.4rem; }
 
   /* Dot indicators */
   .home-stats-dots {
     display: flex;
     justify-content: center;
     gap: 6px;
-    margin-top: 4px;
+    margin-top: 2px;
   }
   .home-stats-dot {
     width: 6px;
@@ -807,7 +817,7 @@
     border-radius: 3px;
   }
 
-  /* Explore hint — centered at bottom */
+  /* Explore hint — push to bottom with auto margin */
   .home-stats-scroll-hint {
     position: static !important;
     bottom: auto !important;
@@ -816,7 +826,8 @@
     display: flex !important;
     transform: none !important;
     align-self: center;
-    margin: auto auto 0;
+    margin-top: auto;
+    margin-bottom: 8px;
   }
 
   /* ── Dish spotlight ── */
