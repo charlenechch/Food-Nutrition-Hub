@@ -780,14 +780,14 @@
 
   .home-stats-headline { 
     font-size: clamp(1.3rem, 5vw, 1.7rem); 
-    margin-bottom: 10px; 
+    margin-bottom: 20px; 
   }
 
   .home-stats-subtext { 
     font-size: 0.85rem; 
     text-align: justify; 
     line-height: 1.55; 
-    margin-bottom: 20px;
+    margin-bottom: 35px;
   }
 
   /* Swipeable card carousel — one card per view */
