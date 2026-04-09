@@ -873,16 +873,13 @@
     border-radius: 3px;
   }
 
-  /* Explore hint */
+  /* Explore hint — pushed to bottom, centered */
   .home-stats-scroll-hint {
     position: static;
     transform: none;
-    margin-top: 6px;
-    margin-bottom: 12px;
+    margin: auto auto 12px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    flex-direction: column;
     gap: 6px;
     z-index: 5;
   }
