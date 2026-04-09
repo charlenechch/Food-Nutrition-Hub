@@ -311,7 +311,7 @@
 /* Stats hint — brown on cream */
 .home-stats-scroll-hint {
   position: absolute;
-  bottom: 32px;
+  bottom: 28px;
   right: 40px;
   left: auto;
   transform: none;
@@ -331,7 +331,7 @@
 .home-stats-inner {
   width: 100%;
   max-width: 1200px;
-  padding: 40px 60px 80px;
+  padding: 40px 60px 100px;
   display: flex;
   flex-direction: column;
   gap: 48px;
@@ -653,7 +653,7 @@
   .home-snap-section {
     height: 100dvh;
     min-height: unset;
-    overflow: hidden;
+    overflow: visible;
   }
 
   /* ── Hero ── */
