@@ -484,7 +484,7 @@ export default function RecipeDetailPage() {
                     </span>
                     <span style={{ fontWeight: "700", color: "#2c2c2c", fontSize: "1.1rem" }}>
                       {recipe.authorName}
-                      {recipe.equippedBadge && recipe.equippedBadge !== 'null' && recipe.equippedBadge !== 'novice' && (
+                      {recipe.equippedBadge && recipe.equippedBadge !== 'null' && (
                         <span className="user-badge-inline">
                           {getTierById(recipe.equippedBadge).icon}
                           <span className="badge-tooltip-mini" style={{ color: getTierById(recipe.equippedBadge).color }}>
