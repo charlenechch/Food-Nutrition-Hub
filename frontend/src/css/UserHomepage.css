@@ -767,7 +767,7 @@
 
   /* Inner fills section, no overflow clipping on sides */
   .home-stats-inner {
-    padding: 32px 20px 16px;
+    padding: 32px 20px 70px;
     gap: 8px;
     justify-content: flex-start;
     display: flex;
