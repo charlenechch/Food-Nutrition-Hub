@@ -753,7 +753,8 @@
   /* Section 2: Stats */
   .home-stats-section {
     align-items: flex-start;
-    min-height: 100dvh;
+    height: auto;
+    min-height: 85dvh;
     overflow: hidden;
     scroll-snap-align: start;
     scroll-snap-stop: always;
