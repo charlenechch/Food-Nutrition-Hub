@@ -311,10 +311,10 @@
 /* Stats hint — brown on cream */
 .home-stats-scroll-hint {
   position: absolute;
-  bottom: 36px;
-  right: 40px;
-  left: auto;
-  transform: none;
+  bottom: 28px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
 }
 .home-stats-scroll-hint .home-scroll-text,
 .home-stats-scroll-hint .home-bounce-icon { color: #875c36; }
