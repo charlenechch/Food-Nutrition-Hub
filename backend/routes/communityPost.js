@@ -340,8 +340,8 @@ router.post('/comments', async (req, res) => {
         // Create userProfile if it doesn't exist
         const [createResult] = await db.execute(
           `INSERT INTO userProfile 
-           (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
-           VALUES (?, '[]', '[]', true, true, true, 'en')`,
+          (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, equippedBadge) 
+          VALUES (?, '[]', '[]', true, true, true, 'en', 'novice')`,
           [userID]
         );
         
@@ -654,8 +654,9 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
         
         // Create userProfile if it doesn't exist
         const [createResult] = await db.execute(
-          `INSERT INTO userProfile (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
-           VALUES (?, '[]', '[]', true, true, true, 'en')`,
+          `INSERT INTO userProfile 
+          (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, equippedBadge) 
+          VALUES (?, '[]', '[]', true, true, true, 'en', 'novice')`, 
           [userID]
         );
         

@@ -144,9 +144,8 @@ router.post("/login", async (req, res) => {
       // In auth.js
 const [result] = await db.execute(
   `INSERT INTO userProfile 
-   (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, total_xp) 
-   VALUES (?, '[]', '[]', true, true, true, 'en', 0)`,
-  [user.userID]
+   (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, total_xp, equippedBadge) 
+   VALUES (?, '[]', '[]', true, true, true, 'en', 0, 'novice')`, 
 );
       userProfileID = result.insertId;
     } else {
@@ -263,8 +262,8 @@ router.post("/google-login", async (req, res) => {
       // Create their UserProfile 
       await db.execute(
         `INSERT INTO userProfile 
-         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, recipes, posts, likes, avatar, total_xp) 
-         VALUES (?, '[]', '[]', true, true, true, 'en', 0, 0, 0, ?, 0)`,
+        (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, recipes, posts, likes, avatar, total_xp, equippedBadge) 
+        VALUES (?, '[]', '[]', true, true, true, 'en', 0, 0, 0, ?, 0, 'novice')`, 
         [newUserID, googlePhotoUrl || null]
       );
 

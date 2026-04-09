@@ -183,18 +183,19 @@ const ensureUserProfileExists = async (userID) => {
 
     console.log(`📊 UserProfile check result:`, existingProfile);
 
-    if (existingProfile.length === 0) {
-      // Create new profile with default values
-      console.log(`🆕 Creating new userProfile for user: ${userID}`);
-      const [result] = await db.execute(
-        `INSERT INTO userProfile 
-         (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language) 
-         VALUES (?, '[]', '[]', true, true, true, 'en')`,
-        [userID]
-      );
-      console.log(`✅ Created userProfile with ID: ${result.insertId}`);
-      return false; // Profile was created
-    }
+    // Inside helper function ensureUserProfileExists
+if (existingProfile.length === 0) {
+  // Create new profile with default values
+  console.log(`🆕 Creating new userProfile for user: ${userID}`);
+  const [result] = await db.execute(
+    `INSERT INTO userProfile 
+     (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, equippedBadge) 
+     VALUES (?, '[]', '[]', true, true, true, 'en', 'novice')`, 
+    [userID]
+  );
+  console.log(`✅ Created userProfile with ID: ${result.insertId}`);
+  return false; // Profile was created
+}
     console.log(`✅ UserProfile already exists for user: ${userID}`);
     return true; // Profile already existed
   } catch (error) {
