@@ -382,16 +382,35 @@
   gap: 6px;
   justify-content: center;
 }
+
 .home-stat-num {
   font-family: 'Playfair Display', serif;
   font-size: 2.8rem;
   font-weight: 700;
   color: #875c36;
   line-height: 1;
+  margin-bottom: 2px;
 }
-.home-stat-divider { width: 32px; height: 2px; background: #875c36; margin: 4px 0; }
-.home-stat-title { font-size: 1rem; font-weight: 600; color: #2d2d2d; }
-.home-stat-desc { font-size: 0.875rem; color: #888; line-height: 1.6; }
+
+.home-stat-divider { 
+  width: 32px; 
+  height: 2px; 
+  background:  #875c36; 
+  margin: 4px 0;
+  margin-bottom: 10px; 
+}
+.home-stat-title { 
+  font-size: 1rem; 
+  font-weight: 600; 
+  color: #2d2d2d; 
+  margin-bottom: 5px;
+}
+
+.home-stat-desc { 
+  font-size: 0.875rem; 
+  color: #888; 
+  line-height: 1.6; 
+}
 
 /* ─────────────────────────────────────────
    SECTION 3: DISH SPOTLIGHT
@@ -800,7 +819,7 @@
     gap: 0;
     border-radius: 0;
     background: transparent;
-    padding: 4px 0 8px;
+    padding: 4px 0 12px;
     scrollbar-width: none;
     -ms-overflow-style: none;
     box-sizing: border-box;
