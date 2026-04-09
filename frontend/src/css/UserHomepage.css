@@ -748,10 +748,10 @@
     scroll-snap-align: start;
     scroll-snap-stop: always;
   }
-  /* Inner: flex column, space content at top, EXPLORE pinned at bottom */
+  /* Inner: flex column, compact spacing so all content fits */
   .home-stats-inner {
-    padding: 60px 20px 24px;
-    gap: 12px;
+    padding: 56px 20px 16px;
+    gap: 8px;
     justify-content: flex-start;
     height: 100%;
     display: flex;
@@ -760,8 +760,9 @@
     box-sizing: border-box;
     overflow: hidden;
   }
-  .home-stats-headline { font-size: clamp(1.4rem, 5.5vw, 1.9rem); }
-  .home-stats-subtext { font-size: 0.88rem; text-align: justify; }
+  .home-stats-eyebrow { margin-bottom: 4px; }
+  .home-stats-headline { font-size: clamp(1.3rem, 5vw, 1.7rem); margin-bottom: 4px; }
+  .home-stats-subtext { font-size: 0.85rem; text-align: justify; line-height: 1.55; }
 
   /* Swipeable card carousel — one card per view */
   .home-stats-grid {
@@ -817,7 +818,7 @@
     border-radius: 3px;
   }
 
-  /* Explore hint — push to bottom with auto margin */
+  /* Explore hint — centered, small gap below dots */
   .home-stats-scroll-hint {
     position: static !important;
     bottom: auto !important;
@@ -826,8 +827,8 @@
     display: flex !important;
     transform: none !important;
     align-self: center;
-    margin-top: auto;
-    margin-bottom: 8px;
+    margin-top: 16px;
+    margin-bottom: 0;
   }
 
   /* ── Dish spotlight ── */
