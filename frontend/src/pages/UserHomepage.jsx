@@ -111,9 +111,23 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+  const [activeDot, setActiveDot] = useState(0);
+  const statsGridRef = useRef(null);
   const [isRandomizing, setIsRandomizing] = useState(false);
   const [randomizerText, setRandomizerText] = useState("");
   const [randomizerResult, setRandomizerResult] = useState(null);
+
+  // Dot indicator tracking for stat card carousel
+  useEffect(() => {
+    const grid = statsGridRef.current;
+    if (!grid) return;
+    const handleScroll = () => {
+      const index = Math.round(grid.scrollLeft / grid.offsetWidth);
+      setActiveDot(index);
+    };
+    grid.addEventListener("scroll", handleScroll, { passive: true });
+    return () => grid.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Track mobile breakpoint
   useEffect(() => {
@@ -375,7 +389,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             <h2 className="home-stats-headline">{t("home.statsHeadline", "Where food becomes a story worth preserving.")}</h2>
             <p className="home-stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
           </div>
-          <div className="home-stats-grid">
+          <div className="home-stats-grid" ref={statsGridRef}>
             <div className="home-stat-item">
               <span className="home-stat-num">27+</span>
               <div className="home-stat-divider" />
@@ -394,6 +408,15 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
               <span className="home-stat-title">{t("home.stat3Title", "Years of heritage")}</span>
               <span className="home-stat-desc">{t("home.stat3Desc", "Centuries of trade, migration, and culture woven into every recipe.")}</span>
             </div>
+          </div>
+          <div className="home-stats-dots">
+            {[0,1,2].map(i => (
+              <span
+                key={i}
+                className={`home-stats-dot${activeDot === i ? " active" : ""}`}
+                onClick={() => statsGridRef.current?.scrollTo({ left: i * statsGridRef.current.offsetWidth, behavior: "smooth" })}
+              />
+            ))}
           </div>
         </div>
         {/* Explore hint — direct child of section so it anchors bottom-right */}

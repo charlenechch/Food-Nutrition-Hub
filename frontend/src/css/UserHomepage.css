@@ -741,29 +741,82 @@
   .search-dropdown { top: auto; margin-top: 8px; position: relative; }
 
   /* ── Stats ── */
-  /* Let section grow naturally and scroll — content is too tall for 100dvh on mobile */
   .home-stats-section {
     align-items: flex-start;
-    height: auto;
-    min-height: 100dvh;
-    overflow-y: visible;
+    height: 100dvh;
+    overflow-y: auto;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
-  .home-stats-inner { padding: 40px 20px 80px; gap: 24px; }
-  .home-stats-headline { font-size: clamp(1.5rem, 5.5vw, 2rem); }
-  .home-stats-subtext { font-size: 0.92rem; text-align: justify; }
+  .home-stats-inner {
+    padding: 52px 20px 20px;
+    gap: 16px;
+    justify-content: flex-start;
+    height: 100%;
+  }
+  .home-stats-headline { font-size: clamp(1.4rem, 5.5vw, 1.9rem); }
+  .home-stats-subtext { font-size: 0.88rem; text-align: justify; }
+
+  /* Swipeable card carousel — one card per view */
   .home-stats-grid {
-    grid-template-columns: 1fr;
-    border-radius: 12px;
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+    border-radius: 0;
+    background: transparent;
+    padding: 4px 2px 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  .home-stat-item { padding: 1.2rem 1.2rem; }
-  .home-stat-num { font-size: 2.2rem; }
-  /* Explore hint — show below the stats grid, centered */
+  .home-stats-grid::-webkit-scrollbar { display: none; }
+
+  .home-stat-item {
+    flex: 0 0 calc(100% - 4px);
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    border-radius: 16px;
+    border: 1px solid rgba(145,104,72,0.12);
+    padding: 1.4rem 1.4rem;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: none;
+  }
+  .home-stat-num { font-size: 2.6rem; }
+
+  /* Dot indicators */
+  .home-stats-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .home-stats-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(145,104,72,0.25);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .home-stats-dot.active {
+    background: #875c36;
+    width: 18px;
+    border-radius: 3px;
+  }
+
+  /* Explore hint — centered at bottom */
   .home-stats-scroll-hint {
     position: static !important;
+    bottom: auto !important;
+    right: auto !important;
+    left: auto !important;
     display: flex !important;
-    transform: none;
+    transform: none !important;
     align-self: center;
-    margin: 8px auto 0;
+    margin: auto auto 0;
   }
 
   /* ── Dish spotlight ── */
