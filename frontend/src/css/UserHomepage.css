@@ -390,6 +390,7 @@
   line-height: 1;
 }
 .home-stat-divider { width: 32px; height: 2px; background: #875c36; margin: 4px 0; }
+.home-stat-text { display: flex; flex-direction: column; gap: 3px; }
 .home-stat-title { font-size: 1rem; font-weight: 600; color: #2d2d2d; }
 .home-stat-desc { font-size: 0.875rem; color: #888; line-height: 1.6; }
 
@@ -741,29 +742,50 @@
   .search-dropdown { top: auto; margin-top: 8px; position: relative; }
 
   /* ── Stats ── */
-  /* Let section grow naturally and scroll — content is too tall for 100dvh on mobile */
+  /* Section grows to fit all content — no snap clipping on mobile */
   .home-stats-section {
     align-items: flex-start;
-    height: auto;
+    height: auto !important;
     min-height: 100dvh;
-    overflow-y: visible;
+    overflow: visible !important;
+    scroll-snap-align: none;
   }
-  .home-stats-inner { padding: 40px 20px 80px; gap: 24px; }
-  .home-stats-headline { font-size: clamp(1.5rem, 5.5vw, 2rem); }
-  .home-stats-subtext { font-size: 0.92rem; text-align: justify; }
+  .home-stats-inner { padding: 60px 20px 40px; gap: 20px; }
+  .home-stats-headline { font-size: clamp(1.4rem, 5.5vw, 1.9rem); }
+  .home-stats-subtext { font-size: 0.9rem; text-align: justify; }
   .home-stats-grid {
     grid-template-columns: 1fr;
     border-radius: 12px;
+    gap: 1px;
   }
-  .home-stat-item { padding: 1.2rem 1.2rem; }
-  .home-stat-num { font-size: 2.2rem; }
-  /* Explore hint — show below the stats grid, centered */
+  /* Horizontal card: number left, text right */
+  .home-stat-item {
+    flex-direction: row;
+    align-items: center;
+    padding: 0.9rem 1.2rem;
+    gap: 1rem;
+    border-left: 3px solid #875c36;
+    border-radius: 0;
+  }
+  .home-stat-num {
+    font-size: 2rem;
+    min-width: 72px;
+    flex-shrink: 0;
+  }
+  .home-stat-divider { display: none; }
+  /* Text block on the right */
+  .home-stat-item .home-stat-title { font-size: 0.9rem; margin-bottom: 2px; }
+  .home-stat-item .home-stat-desc { font-size: 0.78rem; line-height: 1.4; }
+  /* Explore hint — static, centered below grid, no absolute positioning */
   .home-stats-scroll-hint {
     position: static !important;
+    bottom: auto !important;
+    right: auto !important;
+    left: auto !important;
     display: flex !important;
-    transform: none;
+    transform: none !important;
     align-self: center;
-    margin: 8px auto 0;
+    margin: 16px auto 24px;
   }
 
   /* ── Dish spotlight ── */
