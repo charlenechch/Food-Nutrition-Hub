@@ -3200,38 +3200,3 @@
   margin-top: auto; 
   padding-top: 30px;
 }
-
-/* ==========================================================================
-   Quiz Database Auto-Generate Button Styles
-   ========================================================================== */
-
-/* Base button style */
-.lrp-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  height: 42px; /* Matches your other dashboard buttons */
-}
-
-/* Outline variant for Auto-Generate */
-.lrp-btn-outline {
-  background-color: transparent !important;
-  border: 1px solid #916848 !important;
-  color: #916848 !important;
-}
-
-.lrp-btn-outline:hover {
-  background-color: #f7f2ec !important;
-  border-color: #7a583d !important;
-}
-
-/* Helper to remove borders if needed */
-.lrp-no-outline {
-  border: none !important;
-}
