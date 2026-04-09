@@ -1568,12 +1568,12 @@ router.post("/quiz/submit", async (req, res) => {
       dbDateStr = new Date(profile.quiz_last_completed_date).toISOString().split('T')[0];
     }
 
-    // ✅ RESTRICTION BYPASSED for unlimited testing
-    /*
+    // ✅ RESTRICTION BYPASSED for unlimited testing (comment it)
+    
     if (dbDateStr === today) {
       return res.status(400).json({ error: "Quiz already completed today" });
     }
-    */
+    
 
     // Calculate Streaks logic
     let currentStreak = profile.quiz_current_streak || 0;
