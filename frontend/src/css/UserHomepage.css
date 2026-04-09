@@ -855,7 +855,7 @@
     display: flex;
     justify-content: center;
     gap: 6px;
-    margin-top: 4px;
+    margin-top: 2px;
   }
 
   .home-stats-dot {
@@ -873,14 +873,16 @@
     border-radius: 3px;
   }
 
-  /* Explore hint — pushed to bottom, centered */
+  /* Explore hint */
   .home-stats-scroll-hint {
     position: static;
     transform: none;
-    margin-top: 8px;
-    margin-bottom: 16px;
+    margin-top: 6px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex-direction: column;
     gap: 6px;
     z-index: 5;
   }
