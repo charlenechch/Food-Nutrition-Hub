@@ -9,7 +9,6 @@ import { CiSearch } from "react-icons/ci";
 import { mockFoods } from "../data/mockFoods"; 
 import { translateTexts } from "../hooks/useAITranslation";
 import Modal from "../components/Modal"; 
-import "../styles/AdminDashboard.css"; 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -304,7 +303,7 @@ const AdminQuizDatabase = () => {
           open: true,
           title: t("adminRcpDB.deletedTitle"),
           message: t("adminQuizDB.deletedMsg", "Question successfully deleted!"),
-          icon: <FaMagic size={30} color="green" />,
+          icon: <FaRegFlag size={30} color="green" />,
           primaryText: t("adminRcpDB.ok"),
           onPrimary: closeModal,
         });
