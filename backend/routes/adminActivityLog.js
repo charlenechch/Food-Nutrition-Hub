@@ -32,12 +32,12 @@ router.get("/", requireAdmin, async (req, res) => {
     }
 
     if (startDate) {
-      conditions.push("DATE(createdAt) >= ?");
+      conditions.push("DATE(CONVERT_TZ(createdAt, '+00:00', '+08:00')) >= ?");
       values.push(startDate);
     }
 
     if (endDate) {
-      conditions.push("DATE(createdAt) <= ?");
+      conditions.push("DATE(CONVERT_TZ(createdAt, '+00:00', '+08:00')) <= ?");
       values.push(endDate);
     }
 
