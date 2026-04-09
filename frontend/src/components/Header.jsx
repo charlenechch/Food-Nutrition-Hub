@@ -18,6 +18,10 @@ export default function Header() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  
+  // Real Quiz Data State connected to backend
+  const [quizData, setQuizData] = useState({ hasCompletedToday: false, currentStreak: 0 });
+  
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -33,29 +37,34 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Current language label derived from i18n state (no separate useState needed)
   const currentLang = i18n.language === "en" ? "EN" : "BM";
 
-  const mockDailyQuiz = { 
-    lastCompletedDate: "2026-04-04", 
-    currentStreak: 40 
+  // Fetch Quiz Status from Backend
+  const fetchQuizStatus = async () => {
+    if (!user || user.role === "guest") return;
+    try {
+      const res = await fetch(`${API_URL}/api/userProfile/quiz/status`, { 
+        credentials: "include" 
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setQuizData(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch quiz status:", err);
+    }
   };
 
+  useEffect(() => {
+    fetchQuizStatus();
+  }, [user, location.pathname]); // Refreshes when user navigates around the app
+
+  // Three-State Logic
   const getQuizState = () => {
     if (!user || user.role === "guest") return null;
-
-    const todayObj = new Date();
-    const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
-    
-    const yesterdayObj = new Date(todayObj);
-    yesterdayObj.setDate(yesterdayObj.getDate() - 1);
-    const yesterdayStr = `${yesterdayObj.getFullYear()}-${String(yesterdayObj.getMonth() + 1).padStart(2, '0')}-${String(yesterdayObj.getDate()).padStart(2, '0')}`;
-
-    const lastDate = mockDailyQuiz.lastCompletedDate;
-
-    if (lastDate === todayStr) return "done";
-    if (lastDate === yesterdayStr) return "ready";
-    return "lost";
+    if (quizData.currentStreak === 0) return "none";    // State 1: No Streak
+    if (quizData.hasCompletedToday) return "safe";      // State 3: Safe (completed today)
+    return "warning";                                   // State 2: Warning (streak > 0, but not played)
   };
 
   const quizState = getQuizState();
@@ -90,7 +99,6 @@ export default function Header() {
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
 
-  // Toggle between EN and BM, persist to localStorage
   const toggleLanguage = () => {
     const newLang = i18n.language === "en" ? "ms" : "en";
     i18n.changeLanguage(newLang);
@@ -266,17 +274,18 @@ export default function Header() {
               <FaGlobe className="mobile-icon" /> {currentLang}
             </button>
 
+            {/* Mobile Quiz Button */}
             {user && user.role !== "guest" && quizState && (
               <button onClick={() => { navigate("/daily-quiz"); closeMenu(); }} className="mobile-btn">
                 <div className="quiz-icon-wrapper">
                   <Brain size={18} />
-                  {quizState !== "done" && <span className="quiz-red-dot"></span>}
+                  {quizState !== "safe" && <span className="quiz-red-dot"></span>}
                 </div>
                 {t('nav.dailyQuiz')}
-                {quizState !== "lost" && (
-                  <span className={`quiz-flame ${quizState === "done" ? "active" : "faded"}`}>
-                    <Flame size={16} fill={quizState === "done" ? "#f97316" : "none"} color={quizState === "done" ? "#f97316" : "currentColor"} />
-                    {mockDailyQuiz.currentStreak}
+                {quizState !== "none" && (
+                  <span className={`quiz-flame ${quizState === "safe" ? "active" : "warning"}`}>
+                    <Flame size={16} fill={quizState === "safe" ? "#f97316" : "none"} color={quizState === "safe" ? "#f97316" : "currentColor"} />
+                    {quizData.currentStreak}
                   </span>
                 )}
               </button>
@@ -308,16 +317,24 @@ export default function Header() {
             <FaGlobe className="icon" /> {currentLang}
           </button>
 
+          {/* Desktop Quiz Button */}
           {user && user.role !== "guest" && quizState && (
             <button className="quiz-nav-btn" onClick={() => navigate("/daily-quiz")}>
               <div className="quiz-icon-wrapper">
                 <Brain size={18} />
-                {quizState !== "done" && <span className="quiz-red-dot"></span>}
+                {/* Red dot nudge if not played today */}
+                {quizState !== "safe" && <span className="quiz-red-dot"></span>}
               </div>
-              {quizState !== "lost" && (
-                <span className={`quiz-flame ${quizState === "done" ? "active" : "faded"}`}>
-                  <Flame size={16} fill={quizState === "done" ? "#f97316" : "none"} color={quizState === "done" ? "#f97316" : "currentColor"} />
-                  <span className = "h-quiz-state-span">{mockDailyQuiz.currentStreak}</span>
+
+              {/* Show flame only if streak > 0 */}
+              {quizState !== "none" && (
+                <span className={`quiz-flame ${quizState === "safe" ? "active" : "warning"}`}>
+                  <Flame 
+                    size={16} 
+                    fill={quizState === "safe" ? "#f97316" : "none"} 
+                    color={quizState === "safe" ? "#f97316" : "#6b7280"} 
+                  />
+                  <span className="h-quiz-state-span">{quizData.currentStreak}</span>
                 </span>
               )}
             </button>

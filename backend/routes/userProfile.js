@@ -1515,7 +1515,7 @@ router.put("/acknowledge-level", async (req, res) => {
 });
 
 // ==========================================
-// DAILY QUIZ ROUTES (PRODUCTION MODE)
+// DAILY QUIZ ROUTES
 // ==========================================
 
 // Helper functions for dates
@@ -1532,7 +1532,7 @@ const getYesterdayString = () => {
 
 /**
  * 1. GET: Check Quiz Status
- * RESTORED: Now checks the database to see if the user already finished today.
+ * Sends both completion status AND current streak to the frontend (Header)
  */
 router.get("/quiz/status", async (req, res) => {
   try {
@@ -1540,13 +1540,13 @@ router.get("/quiz/status", async (req, res) => {
     
     const userID = req.session.user.userID;
 
-    // Fetch the last completion date from the profile
+    // Fetch both the last completion date AND the current streak
     const [rows] = await db.execute(
-      "SELECT quiz_last_completed_date FROM userProfile WHERE userID = ?",
+      "SELECT quiz_last_completed_date, quiz_current_streak FROM userProfile WHERE userID = ?",
       [userID]
     );
 
-    if (rows.length === 0) return res.json({ hasCompletedToday: false });
+    if (rows.length === 0) return res.json({ hasCompletedToday: false, currentStreak: 0 });
 
     const today = getTodayString();
     let hasCompleted = false;
@@ -1556,7 +1556,11 @@ router.get("/quiz/status", async (req, res) => {
       hasCompleted = (dbDateStr === today);
     }
 
-    res.json({ hasCompletedToday: hasCompleted }); 
+    // Link: Send the streak to the frontend so the Header can determine the visual state
+    res.json({ 
+      hasCompletedToday: hasCompleted,
+      currentStreak: rows[0].quiz_current_streak || 0 
+    }); 
   } catch (error) {
     console.error("Quiz status error:", error);
     res.status(500).json({ error: "Server error" });
@@ -1565,7 +1569,6 @@ router.get("/quiz/status", async (req, res) => {
 
 /**
  * 2. POST: Submit Results and Log XP
- * RESTORED: Re-enabled the 24-hour block and switched logging to 'xp_logs'.
  */
 router.post("/quiz/submit", async (req, res) => {
   try {
@@ -1593,7 +1596,7 @@ router.post("/quiz/submit", async (req, res) => {
       dbDateStr = new Date(profile.quiz_last_completed_date).toISOString().split('T')[0];
     }
 
-    // ✅ RESTORED: Block submission if already completed today
+    // Block submission if already completed today
     if (dbDateStr === today) {
       return res.status(400).json({ error: "Quiz already completed today" });
     }
@@ -1626,8 +1629,7 @@ router.post("/quiz/submit", async (req, res) => {
       [newTotalXp, today, currentStreak, longestStreak, perfectDays, userID]
     );
 
-    // ✅ B. RECORD TO XP HISTORY (Using 'xp_logs' table)
-    // Matches your schema: userProfileID, action_type, reference_id, xp_awarded, created_at
+    // B. RECORD TO XP HISTORY
     await db.execute(
       `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded, created_at) 
        VALUES (?, 'QUIZ_COMPLETED', NULL, ?, NOW())`,
