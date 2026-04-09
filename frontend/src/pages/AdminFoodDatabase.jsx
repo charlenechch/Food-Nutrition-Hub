@@ -770,7 +770,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
                 <td data-label={t("adminFoodDB.colCategory")}><span className="category-tag">{food.category}</span></td>
                 <td data-label={t("adminFoodDB.colOrigin")}>{food.origin}</td>
                 <td data-label={t("adminFoodDB.colLastUpdated")}>{food.lastUpdated ? new Date(food.lastUpdated).toLocaleString() : "—"}</td>
-                <td data-label={t("adminFoodDB.colActions")}>
+                <td data-label={t("adminFoodDB.colActions")}  className="admin-recipe-action-buttons">
                   <button className="food-database-btn-edit" onClick={() => navigate(`/admin/editfood/${food.foodID}`)}><HiOutlinePencilAlt /></button>
                   <button className="food-database-btn-delete" onClick={() => handleDeleteClick(food)}><RiDeleteBin5Line /></button>
                 </td>

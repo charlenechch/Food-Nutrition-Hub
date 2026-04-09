@@ -2405,6 +2405,8 @@
 
   .food-actions {
     width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
 
@@ -2412,7 +2414,7 @@
     flex: 1; 
     margin-left: 0; 
     justify-content: center;   
-    font-size: 15px; 
+    font-size: 14px; 
     height: 48px;
     white-space: nowrap;
   }
