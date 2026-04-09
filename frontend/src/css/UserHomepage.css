@@ -886,31 +886,57 @@
 
   /* Section 3: Dish spotlight */
   .home-dish-snap-section {
-    height: 100dvh;
-    overflow-y: auto;
+    height: auto;
+    min-height: 100dvh;
+    overflow: hidden;
   }
-  .home-dish-spotlight-section { height: auto; min-height: 100%; }
+
+  .home-dish-spotlight-section {
+    height: auto;
+    min-height: 100%;
+  }
+
   .home-dish-spotlight-card {
+    display: grid;
     grid-template-columns: 1fr;
     height: auto;
     min-height: 100dvh;
   }
-  .home-dish-spotlight-img {
-    height: 45vmax;
-    min-height: 220px;
-  }
-  .home-dish-spotlight-content {
-    padding: 2rem 1.25rem 2.5rem;
-    height: auto;
-    gap: 14px;
-    overflow-y: visible;
-  }
-  .home-dish-spotlight-title { font-size: clamp(1.7rem, 6vw, 2.4rem); }
-  .home-dish-spotlight-quote { font-size: 0.88rem; max-width: 100%; }
-  .home-dish-origin-badge { bottom: 14px; left: 14px; font-size: 0.62rem; padding: 5px 10px; }
-  .home-dish-btn-primary { padding: 11px 18px; font-size: 0.85rem; }
 
-  /* Stats scroll hint shown on mobile — static position below grid */
+  .home-dish-spotlight-img {
+    height: 220px;
+    min-height: 220px;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .home-dish-spotlight-content {
+    padding: 1.5rem 1.25rem 2rem;
+    height: auto;
+    overflow: visible;
+    gap: 14px;
+  }
+
+  .home-dish-spotlight-title {
+    font-size: clamp(1.7rem, 6vw, 2.4rem);
+  }
+
+  .home-dish-spotlight-quote {
+    font-size: 0.88rem;
+    max-width: 100%;
+  }
+
+  .home-dish-origin-badge {
+    bottom: 14px;
+    left: 14px;
+    font-size: 0.62rem;
+    padding: 5px 10px;
+  }
+
+  .home-dish-btn-primary {
+    padding: 11px 18px;
+    font-size: 0.85rem;
+  }
 }
 
 /* VERY SMALL  (≤ 400px) */
