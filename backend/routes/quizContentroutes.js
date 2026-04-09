@@ -5,6 +5,7 @@ const router = express.Router();
 // SECURITY MIDDLEWARES
 // ==========================================
 
+// 1. Check if user is logged in
 const isAuthenticated = (req, res, next) => {
   if (!req.session || (!req.session.user && !req.session.userId)) {
     return res.status(401).json({ error: "Not authenticated" });
@@ -12,7 +13,9 @@ const isAuthenticated = (req, res, next) => {
   next();
 };
 
+// 2. Check if user is an Admin
 const isAdmin = (req, res, next) => {
+  // ✅ Checks multiple common session paths for the role
   const role = req.session?.role || req.session?.user?.role;
   if (role?.toLowerCase() !== 'admin') {
     return res.status(403).json({ error: "Unauthorized access. Admins only." });
@@ -23,74 +26,6 @@ const isAdmin = (req, res, next) => {
 // ==========================================
 // ADMIN ROUTES (Manage Quiz Database)
 // ==========================================
-
-/**
- * ✅ NEW: Auto-Generate Questions Route
- * Uses procedural logic from quizGenerator.js to create questions from existing food data.
- */
-router.post("/admin/auto-generate", isAuthenticated, isAdmin, async (req, res) => {
-  const db = req.app.get("dbPool");
-  try {
-    // 1. Fetch all real food data from the database
-    const [foods] = await db.execute("SELECT * FROM food");
-    
-    if (foods.length < 5) {
-      return res.status(400).json({ error: "Insufficient food data to generate a quiz (minimum 5 required)." });
-    }
-
-    // 2. Define templates based on your quizGenerator.js rules
-    const templates = [
-      {
-        type: 'visual',
-        question: (f) => "What dish is shown in this picture?",
-        answer: (f) => f.name,
-        distractors: (f, all) => all.filter(x => x.name !== f.name).map(x => x.name)
-      },
-      {
-        type: 'culture',
-        question: (f) => `What is the cultural origin of ${f.name}?`,
-        answer: (f) => f.origin,
-        distractors: (f, all) => all.filter(x => x.origin !== f.origin).map(x => x.origin)
-      },
-      {
-        type: 'nutrition',
-        question: (f) => `Roughly how many calories are in a standard serving of ${f.name}?`,
-        answer: (f) => `${f.Energy_kcal} kcal`,
-        distractors: (f) => [
-          `${Math.round(f.Energy_kcal * 0.5)} kcal`, 
-          `${Math.round(f.Energy_kcal * 1.5)} kcal`, 
-          `${Math.round(f.Energy_kcal * 2)} kcal`
-        ]
-      }
-    ];
-
-    // 3. Pick 5 random foods
-    const selectedFoods = foods.sort(() => 0.5 - Math.random()).slice(0, 5);
-
-    for (const food of selectedFoods) {
-      const template = templates[Math.floor(Math.random() * templates.length)];
-      
-      // Generate 3 wrong options
-      const rawDistractors = template.distractors(food, foods);
-      const uniqueDistractors = [...new Set(rawDistractors)]
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3);
-
-      const options = [template.answer(food), ...uniqueDistractors].sort(() => 0.5 - Math.random());
-
-      // 4. Save to database
-      await db.execute(
-        `INSERT INTO quiz_questions (foodID, question, options, correctAnswer, explanation) VALUES (?, ?, ?, ?, ?)`,
-        [food.foodID, template.question(food), JSON.stringify(options), template.answer(food), food.description || "Learn more about this heritage dish!"]
-      );
-    }
-
-    res.json({ success: true, message: `Successfully auto-generated 5 new questions!` });
-  } catch (error) {
-    console.error("Auto-generate error:", error);
-    res.status(500).json({ error: "Internal server error during auto-generation" });
-  }
-});
 
 // GET: Fetch all questions for Admin Dashboard
 router.get("/admin", isAuthenticated, isAdmin, async (req, res) => {
@@ -109,7 +44,7 @@ router.get("/admin", isAuthenticated, isAdmin, async (req, res) => {
   }
 });
 
-// POST: Add a new question manually
+// POST: Add a new question
 router.post("/admin", isAuthenticated, isAdmin, async (req, res) => {
   const db = req.app.get("dbPool");
   const { foodID, question, options, correctAnswer, explanation } = req.body;
@@ -120,6 +55,7 @@ router.post("/admin", isAuthenticated, isAdmin, async (req, res) => {
     );
     res.json({ success: true, message: "Question added" });
   } catch (error) {
+    console.error("Admin post error:", error);
     res.status(500).json({ error: "Failed to add" });
   }
 });
@@ -135,6 +71,7 @@ router.put("/admin/:id", isAuthenticated, isAdmin, async (req, res) => {
     );
     res.json({ success: true, message: "Updated" });
   } catch (error) {
+    console.error("Admin put error:", error);
     res.status(500).json({ error: "Failed update" });
   }
 });
@@ -146,6 +83,7 @@ router.delete("/admin/:id", isAuthenticated, isAdmin, async (req, res) => {
     await db.execute(`DELETE FROM quiz_questions WHERE questionID = ?`, [req.params.id]);
     res.json({ success: true, message: "Deleted" });
   } catch (error) {
+    console.error("Admin delete error:", error);
     res.status(500).json({ error: "Failed delete" });
   }
 });
@@ -154,9 +92,11 @@ router.delete("/admin/:id", isAuthenticated, isAdmin, async (req, res) => {
 // PLAYER ROUTE (Play the Game)
 // ==========================================
 
+// GET: Fetch 5 random questions for the Daily Quiz
 router.get("/today", isAuthenticated, async (req, res) => {
   const db = req.app.get("dbPool");
   try {
+    // 💡 Fix: Using LEFT JOIN ensures questions show up even if the linked food is missing in the food table
     const [rows] = await db.execute(`
       SELECT q.*, f.name as foodName, f.image, f.origin as foodOrigin 
       FROM quiz_questions q 
@@ -165,6 +105,7 @@ router.get("/today", isAuthenticated, async (req, res) => {
       LIMIT 5
     `);
     
+    // Parse the JSON options back into an array for the frontend
     const formattedQuestions = rows.map(q => ({
       ...q,
       options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options
@@ -172,6 +113,7 @@ router.get("/today", isAuthenticated, async (req, res) => {
 
     res.json(formattedQuestions);
   } catch (error) {
+    console.error("Daily quiz fetch error:", error);
     res.status(500).json({ error: "Failed to generate daily quiz" });
   }
 });
