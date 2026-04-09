@@ -102,33 +102,41 @@ router.get("/counts", async (req, res) => {
     
     const query = `
         SELECT 
-            p.postID,
-            p.status,
-            p.created_at,
-            p.updated_at,
-            p.culturalStory,
-            p.photos,
-            p.foodName,
-            p.origin AS culturalOrigin,
-            p.recipe,
-            up.userProfileID,
-            up.avatar, 
-            up.equippedBadge,
-            up.equippedContributorBadge,
-            b.badge_type AS contributorBadgeType,
-            b.awarded_month AS contributorBadgeMonth,
-            CONCAT(u.firstname, ' ', u.lastname) AS author,
-            COUNT(DISTINCT l.likeID) as likeCount,
-            COUNT(DISTINCT c.commentID) as commentCount
-        FROM posts p
-        JOIN userProfile up ON p.userProfileID = up.userProfileID
-        JOIN user u ON up.userID = u.userID
-        LEFT JOIN likes l ON p.postID = l.postID
-        LEFT JOIN comments c ON p.postID = c.postID
-        LEFT JOIN badge b ON b.id = up.equippedContributorBadge
-        WHERE p.status = 'Approved'
-        GROUP BY p.postID
-        ORDER BY p.created_at DESC
+          p.postID,
+          p.status,
+          p.created_at,
+          p.updated_at,
+          p.culturalStory,
+          p.photos,
+          p.foodName,
+          p.origin AS culturalOrigin,
+          p.recipe,
+          up.userProfileID,
+          up.avatar, 
+          up.equippedBadge, 
+          up.equippedContributorBadge,
+          b.badge_type AS contributorBadgeType,
+          b.awarded_month AS contributorBadgeMonth,
+          CONCAT(u.firstname, ' ', u.lastname) AS author,
+          COUNT(DISTINCT l.likeID) as likeCount,
+          COUNT(DISTINCT c.commentID) as commentCount
+      FROM posts p
+      JOIN userProfile up ON p.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      LEFT JOIN likes l ON p.postID = l.postID
+      LEFT JOIN comments c ON p.postID = c.postID
+      LEFT JOIN badge b ON b.id = up.equippedContributorBadge
+      WHERE p.status = 'Approved'
+      GROUP BY 
+          p.postID, 
+          up.userProfileID, 
+          up.equippedBadge, 
+          up.equippedContributorBadge, 
+          b.badge_type, 
+          b.awarded_month, 
+          u.firstname, 
+          u.lastname
+      ORDER BY p.created_at DESC
     `;
 
     const [posts] = await db.execute(query);
