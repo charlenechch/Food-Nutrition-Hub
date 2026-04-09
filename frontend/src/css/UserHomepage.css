@@ -967,3 +967,18 @@
     gap: 8px; 
   }
 }
+
+/* 382px and below */
+@media (max-width: 382px) {
+  .hero-sdg-badges {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sdg-badge {
+    font-size: 0.6rem;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+}
