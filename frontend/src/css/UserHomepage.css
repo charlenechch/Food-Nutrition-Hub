@@ -742,13 +742,13 @@
   .search-dropdown { top: auto; margin-top: 8px; position: relative; }
 
   /* ── Stats ── */
-  /* Section grows to fit all content — no snap clipping on mobile */
+  /* Section stays as snap target but scrolls internally */
   .home-stats-section {
     align-items: flex-start;
-    height: auto !important;
-    min-height: 100dvh;
-    overflow: visible !important;
-    scroll-snap-align: none;
+    height: 100dvh;
+    overflow-y: auto;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
   .home-stats-inner { padding: 60px 20px 40px; gap: 20px; }
   .home-stats-headline { font-size: clamp(1.4rem, 5.5vw, 1.9rem); }
