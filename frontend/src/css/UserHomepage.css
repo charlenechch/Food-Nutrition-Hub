@@ -762,7 +762,7 @@
 
   /* Inner fills section, no overflow clipping on sides */
   .home-stats-inner {
-    padding: 56px 20px 16px;
+    padding: 32px 20px 16px;
     gap: 8px;
     justify-content: flex-start;
     height: 100%;
@@ -800,7 +800,10 @@
     box-sizing: border-box;
     width: 100%;
   }
-  .home-stats-grid::-webkit-scrollbar { display: none; }
+
+  .home-stats-grid::-webkit-scrollbar { 
+    display: none; 
+  }
 
   .home-stat-item {
     /* 100% of the grid width = full card width respecting inner padding */
@@ -817,6 +820,7 @@
     min-width: 0;
     width: 100%;
   }
+
   .home-stat-num { font-size: 2.4rem; }
 
   /* Dot indicators */
@@ -840,7 +844,7 @@
   }
 
   /* Explore hint — pushed to bottom, centered */
-  .home-stats-scroll-hint {
+  /* .home-stats-scroll-hint {
     position: static !important;
     bottom: auto !important;
     right: auto !important;
@@ -850,8 +854,17 @@
     align-self: center;
     margin-top: auto;
     padding-bottom: 8px;
-  }
+  } */
 
+  .home-stats-scroll-hint {
+    position: absolute;
+    bottom: 16px;        /* distance from bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
   /* Section 3: Dish spotlight */
   .home-dish-snap-section {
     height: 100dvh;
