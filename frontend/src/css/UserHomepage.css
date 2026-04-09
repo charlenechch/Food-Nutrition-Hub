@@ -653,11 +653,16 @@
     scroll-snap-type: y mandatory;
   }
 
-  /* Each section fills the viewport and snaps */
+  /* Sections fill viewport by default */
   .home-snap-section {
     height: 100dvh;
     min-height: unset;
     overflow: visible;
+  }
+  /* Stats section overrides to allow full content */
+  .home-stats-section.home-snap-section {
+    height: auto;
+    min-height: 100dvh;
   }
 
   /* ── Hero ── */
@@ -736,25 +741,29 @@
   .search-dropdown { top: auto; margin-top: 8px; position: relative; }
 
   /* ── Stats ── */
+  /* Let section grow naturally and scroll — content is too tall for 100dvh on mobile */
   .home-stats-section {
     align-items: flex-start;
-    height: 100dvh;
-    overflow-y: auto;    /* internal scroll if content taller than viewport */
+    height: auto;
+    min-height: 100dvh;
+    overflow-y: visible;
   }
-  .home-stats-inner { padding: 80px 20px 60px; gap: 28px; }
+  .home-stats-inner { padding: 40px 20px 80px; gap: 24px; }
   .home-stats-headline { font-size: clamp(1.5rem, 5.5vw, 2rem); }
-  .home-stats-subtext { font-size: 0.92rem; text-align: left; }
+  .home-stats-subtext { font-size: 0.92rem; text-align: justify; }
   .home-stats-grid {
     grid-template-columns: 1fr;
     border-radius: 12px;
   }
-  .home-stat-item { padding: 1.4rem 1.2rem; }
-  .home-stat-num { font-size: 2.5rem; }
+  .home-stat-item { padding: 1.2rem 1.2rem; }
+  .home-stat-num { font-size: 2.2rem; }
+  /* Explore hint — show below the stats grid, centered */
   .home-stats-scroll-hint {
-    position: static;
+    position: static !important;
+    display: flex !important;
     transform: none;
     align-self: center;
-    margin-top: 4px;
+    margin: 8px auto 0;
   }
 
   /* ── Dish spotlight ── */
@@ -783,8 +792,7 @@
   .home-dish-origin-badge { bottom: 14px; left: 14px; font-size: 0.62rem; padding: 5px 10px; }
   .home-dish-btn-primary { padding: 11px 18px; font-size: 0.85rem; }
 
-  /* Stats scroll hint hidden on mobile — natural scroll takes over */
-  .home-stats-scroll-hint { display: none; }
+  /* Stats scroll hint shown on mobile — static position below grid */
 }
 
 /* ─────────────────────────────────────────
