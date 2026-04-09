@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { BsPatchQuestion } from "react-icons/bs";
-import { FaPlus, FaRegFlag } from "react-icons/fa6"; // Added FaRegFlag
+import { FaPlus, FaRegFlag } from "react-icons/fa6"; 
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import { FiCheck } from "react-icons/fi";
 import { CiSearch } from "react-icons/ci";
 import { mockFoods } from "../data/mockFoods"; 
 import { translateTexts } from "../hooks/useAITranslation";
-import Modal from "../components/Modal"; // ✅ 1. Import Modal Component
+import Modal from "../components/Modal"; 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -20,7 +20,6 @@ const AdminQuizDatabase = () => {
   const [isTokenReady, setIsTokenReady] = useState(false); 
   const hasInitialFetched = useRef(false);
 
-  // ✅ 2. Initialize Modal State (Matches Recipe Database Style)
   const [modal, setModal] = useState({
     open: false,
     title: "",
@@ -98,7 +97,6 @@ const AdminQuizDatabase = () => {
     }
   }, [isTokenReady, fetchAdminQuestions]);
 
-  // AI Translation Logic
   useEffect(() => {
     const translateDynamicData = async () => {
       if (i18n.language === 'en' || questions.length === 0) {
@@ -224,6 +222,9 @@ const AdminQuizDatabase = () => {
         ? `${API_BASE_URL}/api/quiz-content/admin/${editingQuestion.questionID}`
         : `${API_BASE_URL}/api/quiz-content/admin`;
 
+      // ✅ MODIFIED: Strip out fields that cause 400 Bad Request errors
+      const { created_at, linkedFoodName, questionID, ...sanitizedPayload } = formData;
+
       const res = await fetch(url, {
         method: method,
         headers: { 
@@ -231,7 +232,7 @@ const AdminQuizDatabase = () => {
           "X-CSRF-Token": currentToken 
         },
         credentials: "include",
-        body: JSON.stringify(formData)
+        body: JSON.stringify(sanitizedPayload) // ✅ Only send approved fields
       });
 
       if (res.ok) {
@@ -251,11 +252,10 @@ const AdminQuizDatabase = () => {
     }
   };
 
-  // ✅ 3. Updated Delete Logic with Pop-up Modal
   const handleDeleteClick = (id) => {
     setModal({
       open: true,
-      title: t("adminRcpDB.confirmDeletion"), // Using shared keys from Recipe DB
+      title: t("adminRcpDB.confirmDeletion"), 
       message: t("adminQuizDB.deleteConfirm"), 
       icon: <RiDeleteBin5Line size={30} color="#dc3545" />,
       primaryText: t("adminRcpDB.yesDelete"),
@@ -368,7 +368,6 @@ const AdminQuizDatabase = () => {
                     <button className="food-database-btn-edit" onClick={() => handleOpenModal(q)}>
                       <HiOutlinePencilAlt />
                     </button>
-                    {/* ✅ 4. Use handleDeleteClick instead of handleDelete */}
                     <button className="food-database-btn-delete" onClick={() => handleDeleteClick(q.questionID)}>
                       <RiDeleteBin5Line />
                     </button>
@@ -498,7 +497,6 @@ const AdminQuizDatabase = () => {
         </div>
       )}
 
-      {/* ✅ 5. Render Confirmation Modal Component */}
       <Modal 
         open={modal.open} 
         title={modal.title} 
