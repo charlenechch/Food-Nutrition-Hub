@@ -311,7 +311,7 @@
 /* Stats hint — brown on cream */
 .home-stats-scroll-hint {
   position: absolute;
-  bottom: 100px;
+  bottom: 36px;
   right: 40px;
   left: auto;
   transform: none;
@@ -325,17 +325,20 @@
 .home-stats-section {
   background-color: #fcf9f6;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
+  overflow: hidden;
 }
 .home-stats-inner {
   width: 100%;
   max-width: 1200px;
-  padding: 40px 60px 100px;
+  padding: 48px 60px 72px;
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  justify-content: center;
+  gap: 28px;
   box-sizing: border-box;
+  height: 100%;
 }
 .home-stats-intro { max-width: 700px; }
 .home-stats-eyebrow {
@@ -343,21 +346,21 @@
   letter-spacing: 3px;
   text-transform: uppercase;
   color: #875c36;
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.6rem;
   font-weight: 600;
 }
 .home-stats-headline {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1.8rem, 3.5vw, 3rem);
+  font-size: clamp(1.6rem, 2.8vw, 2.4rem);
   font-weight: 700;
   color: #2d2d2d;
   line-height: 1.2;
-  margin: 0 0 1.2rem 0;
+  margin: 0 0 0.8rem 0;
 }
 .home-stats-subtext {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   color: #777;
-  line-height: 1.8;
+  line-height: 1.65;
   font-weight: 300;
   margin: 0;
   max-width: 620px;
@@ -373,14 +376,15 @@
 }
 .home-stat-item {
   background: #ffffff;
-  padding: 2.5rem 2rem;
+  padding: 1.6rem 2rem;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  justify-content: center;
 }
 .home-stat-num {
   font-family: 'Playfair Display', serif;
-  font-size: 3.5rem;
+  font-size: 2.8rem;
   font-weight: 700;
   color: #875c36;
   line-height: 1;
@@ -628,7 +632,7 @@
    TABLET  (769px – 1024px)
 ───────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .home-stats-inner { padding: 40px 40px 80px; gap: 40px; }
+  .home-stats-inner { padding: 36px 40px 60px; gap: 28px; }
   .home-stats-headline { font-size: clamp(1.8rem, 3vw, 2.5rem); }
   .home-stat-num { font-size: 2.8rem; }
   .home-dish-spotlight-content { padding: 0 3rem; }
