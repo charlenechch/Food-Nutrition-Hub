@@ -351,9 +351,9 @@ const EditCommunityPostPage = () => {
             ) : (
               // SMART UX: Admin forgot feedback
               <>
-                <p style={{ color: "#d73a49", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
-                   <FaExclamationTriangle /> 
-                   {t("editPost.forgotFeedback", "Reminder: Feedback is required!")}
+                <p style={{ color: "#d73a49", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                  <FaExclamationTriangle /> 
+                  {t("editPost.forgotFeedback", "Reminder: Feedback is required!")}
                 </p>
                 <p>{t("editPost.warningReject", "Please provide a reason for rejecting this post.")}</p>
                 <textarea
