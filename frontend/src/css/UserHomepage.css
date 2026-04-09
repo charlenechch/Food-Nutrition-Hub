@@ -744,11 +744,12 @@
   .home-stats-section {
     align-items: flex-start;
     height: 100dvh;
-    overflow-y: auto;
+    overflow: hidden;
     scroll-snap-align: start;
     scroll-snap-stop: always;
+    position: relative;
   }
-  /* Inner: flex column, compact spacing so all content fits */
+  /* Inner fills section, no overflow clipping on sides */
   .home-stats-inner {
     padding: 56px 20px 16px;
     gap: 8px;
@@ -758,7 +759,6 @@
     flex-direction: column;
     width: 100%;
     box-sizing: border-box;
-    overflow: hidden;
   }
   .home-stats-eyebrow { margin-bottom: 4px; }
   .home-stats-headline { font-size: clamp(1.3rem, 5vw, 1.7rem); margin-bottom: 4px; }
@@ -771,7 +771,7 @@
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    gap: 12px;
+    gap: 0;
     border-radius: 0;
     background: transparent;
     padding: 4px 0 8px;
@@ -783,6 +783,7 @@
   .home-stats-grid::-webkit-scrollbar { display: none; }
 
   .home-stat-item {
+    /* 100% of the grid width = full card width respecting inner padding */
     flex: 0 0 100%;
     scroll-snap-align: start;
     scroll-snap-stop: always;
@@ -794,6 +795,7 @@
     box-shadow: none;
     box-sizing: border-box;
     min-width: 0;
+    width: 100%;
   }
   .home-stat-num { font-size: 2.4rem; }
 
@@ -802,7 +804,7 @@
     display: flex;
     justify-content: center;
     gap: 6px;
-    margin-top: 2px;
+    margin-top: 4px;
   }
   .home-stats-dot {
     width: 6px;
@@ -818,7 +820,7 @@
     border-radius: 3px;
   }
 
-  /* Explore hint — centered, small gap below dots */
+  /* Explore hint — pushed to bottom, centered */
   .home-stats-scroll-hint {
     position: static !important;
     bottom: auto !important;
@@ -827,8 +829,8 @@
     display: flex !important;
     transform: none !important;
     align-self: center;
-    margin-top: 16px;
-    margin-bottom: 0;
+    margin-top: auto;
+    padding-bottom: 8px;
   }
 
   /* ── Dish spotlight ── */
