@@ -913,6 +913,7 @@
   .home-dish-spotlight-content {
     padding: 1.5rem 1.25rem 2rem;
     height: auto;
+    display: flex; 
     overflow: visible;
     gap: 14px;
   }
@@ -936,6 +937,13 @@
   .home-dish-btn-primary {
     padding: 11px 18px;
     font-size: 0.85rem;
+  }
+
+  .home-dish-dots {
+    margin-top: auto;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
   }
 }
 
