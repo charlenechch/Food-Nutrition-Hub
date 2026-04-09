@@ -382,16 +382,35 @@
   gap: 6px;
   justify-content: center;
 }
+
 .home-stat-num {
   font-family: 'Playfair Display', serif;
   font-size: 2.8rem;
   font-weight: 700;
   color: #875c36;
   line-height: 1;
+  margin-bottom: 2px;
 }
-.home-stat-divider { width: 32px; height: 2px; background: #875c36; margin: 4px 0; }
-.home-stat-title { font-size: 1rem; font-weight: 600; color: #2d2d2d; }
-.home-stat-desc { font-size: 0.875rem; color: #888; line-height: 1.6; }
+
+.home-stat-divider { 
+  width: 32px; 
+  height: 2px; 
+  background:  #875c36; 
+  margin: 4px 0;
+  margin-bottom: 10px; 
+}
+.home-stat-title { 
+  font-size: 1rem; 
+  font-weight: 600; 
+  color: #2d2d2d; 
+  margin-bottom: 5px;
+}
+
+.home-stat-desc { 
+  font-size: 0.875rem; 
+  color: #888; 
+  line-height: 1.6; 
+}
 
 /* ─────────────────────────────────────────
    SECTION 3: DISH SPOTLIGHT
@@ -753,10 +772,6 @@
   }
 
   /* Section 2: Stats */
-  /* .home-stats-section {
-    min-height: 85dvh;
-    overflow: hidden;
-  } */
   .home-stats-section {
     align-items: flex-start;
     height: auto;
@@ -770,7 +785,7 @@
   /* Inner fills section, no overflow clipping on sides */
   .home-stats-inner {
     flex: 1;
-    padding: 32px 20px 8px;
+    padding: 32px 20px 20px;
     gap: 8px;
     display: flex;
     flex-direction: column;
@@ -779,15 +794,19 @@
   }
 
   .home-stats-eyebrow { 
-    margin-bottom: 4px; 
+    margin-bottom: 20px; 
   }
 
   .home-stats-headline { 
-    font-size: clamp(1.3rem, 5vw, 1.7rem); margin-bottom: 4px; 
+    font-size: clamp(1.3rem, 5vw, 1.7rem); 
+    margin-bottom: 30px; 
   }
 
   .home-stats-subtext { 
-    font-size: 0.85rem; text-align: justify; line-height: 1.55; 
+    font-size: 0.85rem; 
+    text-align: justify; 
+    line-height: 1.55; 
+    margin-bottom: 35px;
   }
 
   /* Swipeable card carousel — one card per view */
@@ -800,7 +819,7 @@
     gap: 0;
     border-radius: 0;
     background: transparent;
-    padding: 4px 0 8px;
+    padding: 4px 0 12px;
     scrollbar-width: none;
     -ms-overflow-style: none;
     box-sizing: border-box;
@@ -827,14 +846,16 @@
     width: 100%;
   }
 
-  .home-stat-num { font-size: 2.4rem; }
+  .home-stat-num { 
+    font-size: 2.4rem; 
+  }
 
   /* Dot indicators */
   .home-stats-dots {
     display: flex;
     justify-content: center;
     gap: 6px;
-    margin-top: 4px;
+    margin-top: 2px;
   }
 
   .home-stats-dot {
@@ -852,24 +873,16 @@
     border-radius: 3px;
   }
 
-  /* Explore hint — pushed to bottom, centered */
-  /* .home-stats-scroll-hint {
-    position: absolute;
-    bottom: 16px;        
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    z-index: 5;
-  } */
-
+  /* Explore hint */
   .home-stats-scroll-hint {
     position: static;
     transform: none;
-    margin: auto auto 16px;
+    margin-top: 6px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex-direction: column;
     gap: 6px;
     z-index: 5;
   }
