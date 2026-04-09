@@ -310,7 +310,7 @@ app.use("/api/translate", hppProtect({ policy: "none", allowlist: ["texts", "tar
 
 app.use("/api/quiz-content", hppProtect({ 
   policy: "none", 
-  allowlist: ["foodID", "question", "options", "correctAnswer", "explanation", "questionID", "created_at", "linkedFoodName"], 
+  allowlist: ["foodID", "question", "options", "correctAnswer", "explanation", "questionID"], 
   skipArrays: true,
   logger: (tag, meta) => logger.warn(`HPP Quiz Content: ${tag}`, meta) 
 }), quizContentRoutes);
