@@ -109,7 +109,7 @@ export default function DailyQuizPage() {
     const translateDailyQuiz = async () => {
       if (!questions || questions.length === 0) return;
 
-      // If English, just use the raw database questions
+      // If English, just use the raw database questions instantly
       if (i18n.language === 'en') {
         setTranslatedQuiz(questions);
         return;
@@ -117,39 +117,37 @@ export default function DailyQuizPage() {
 
       setIsTranslating(true);
       try {
-        // Extract all text layers needed for translation
-        const qPrompts = questions.map(q => q.question);
-        const cAnswers = questions.map(q => q.correctAnswer);
-        const allOpts = questions.flatMap(q => q.options); // Flatten all 20 options into one array
-
-        // Translate everything concurrently
-        const [transPrompts, transAnswers, transOpts] = await Promise.all([
-          translateTexts(qPrompts, i18n.language),
-          translateTexts(cAnswers, i18n.language),
-          translateTexts(allOpts, i18n.language)
-        ]);
-
-        // Rebuild the questions array with translated strings so the scoring logic survives
-        let optIndex = 0;
-        const fullyTranslated = questions.map((q, idx) => {
-          const mappedOptions = q.options.map((originalOpt) => {
-            const translatedOpt = transOpts[optIndex] || originalOpt; 
-            optIndex++;
-            return translatedOpt;
+        // 🚀 SPEED OPTIMIZATION: Pack EVERYTHING into a single JSON object.
+        // This forces the AI to translate all 30 strings in exactly ONE network request.
+        const payloadToTranslate = {};
+        
+        questions.forEach((q, qIndex) => {
+          payloadToTranslate[`q_${qIndex}`] = q.question;
+          payloadToTranslate[`ans_${qIndex}`] = q.correctAnswer;
+          q.options.forEach((opt, optIndex) => {
+            payloadToTranslate[`opt_${qIndex}_${optIndex}`] = opt;
           });
+        });
 
+        // ⚡ Make EXACTLY ONE call to the AI hook
+        const translatedResult = await translateTexts(payloadToTranslate, i18n.language);
+
+        // Rebuild the questions array using the keys we sent
+        const fullyTranslated = questions.map((q, qIndex) => {
           return {
             ...q,
-            question: transPrompts[idx] || q.question,
-            correctAnswer: transAnswers[idx] || q.correctAnswer, 
-            options: mappedOptions 
+            question: translatedResult[`q_${qIndex}`] || q.question,
+            correctAnswer: translatedResult[`ans_${qIndex}`] || q.correctAnswer,
+            options: q.options.map((opt, optIndex) => 
+              translatedResult[`opt_${qIndex}_${optIndex}`] || opt
+            )
           };
         });
 
         setTranslatedQuiz(fullyTranslated);
       } catch (error) {
         console.error("Quiz translation failed:", error);
-        setTranslatedQuiz(questions); 
+        setTranslatedQuiz(questions); // Fallback to English if API fails
       } finally {
         setIsTranslating(false);
       }
