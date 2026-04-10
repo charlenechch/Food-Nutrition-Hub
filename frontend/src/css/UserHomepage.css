@@ -889,11 +889,13 @@
     height: auto;
     min-height: 100dvh;
     overflow: hidden;
+    background-color: #fcf9f6;
   }
 
   .home-dish-spotlight-section {
     height: auto;
     min-height: 100%;
+    background-color: #fcf9f6;
   }
 
   .home-dish-spotlight-card {
@@ -901,6 +903,7 @@
     grid-template-columns: 1fr;
     height: auto;
     min-height: 100dvh;
+    background-color: #fcf9f6;
   }
 
   .home-dish-spotlight-img {
@@ -908,14 +911,17 @@
     min-height: 220px;
     background-size: cover;
     background-position: center;
+    display: block;
+    margin: 0;
   }
 
   .home-dish-spotlight-content {
-    padding: 1.5rem 1.25rem 2rem;
+    padding: 1.2rem 1rem 1.8rem;
     height: auto;
     display: flex; 
     overflow: visible;
     gap: 14px;
+    margin: 0px;
   }
 
   .home-dish-spotlight-title {
