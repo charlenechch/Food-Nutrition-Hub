@@ -906,13 +906,19 @@
     background-color: #fcf9f6;
   }
 
-  .home-dish-spotlight-img {
+  /* .home-dish-spotlight-img {
     height: 220px;
     min-height: 220px;
     background-size: cover;
     background-position: center;
     display: block;
     margin: 0;
+  } */
+
+  .home-dish-spotlight-img {
+    height: 260px;
+    background-size: cover;
+    background-position: center top;
   }
 
   .home-dish-spotlight-content {
