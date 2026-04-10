@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import QuizCard from '../components/QuizCard'; 
 import { useAuth } from '../context/AuthContext'; 
+import { translateTexts } from "../hooks/useAITranslation"; 
 import '../css/Quiz.css'; 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -20,11 +21,12 @@ const shuffleArray = (array) => {
 };
 
 export default function DailyQuizPage() {
-  const { t } = useTranslation(); 
+  const { t, i18n } = useTranslation(); 
   const navigate = useNavigate(); 
   const { user } = useAuth(); 
 
   const [questions, setQuestions] = useState([]);
+  const [translatedQuiz, setTranslatedQuiz] = useState([]); 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
@@ -33,6 +35,7 @@ export default function DailyQuizPage() {
   const [hasCompletedToday, setHasCompletedToday] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
+  const [isTranslating, setIsTranslating] = useState(false); 
   
   // CSRF Token State
   const [csrfToken, setCsrfToken] = useState("");
@@ -78,9 +81,7 @@ export default function DailyQuizPage() {
             if (questionsRes.ok) {
               const liveQuestions = await questionsRes.json();
               
-              // ✅ FIX: Randomize the options for each question before saving to state
               const randomizedQuestions = liveQuestions.map(q => {
-                // Ensure options exists and is handled as an array
                 const optionsArray = Array.isArray(q.options) ? q.options : JSON.parse(q.options || "[]");
                 return {
                   ...q,
@@ -89,6 +90,7 @@ export default function DailyQuizPage() {
               });
 
               setQuestions(randomizedQuestions);
+              setTranslatedQuiz(randomizedQuestions); // Fallback to English initially
             }
           }
         }
@@ -102,10 +104,63 @@ export default function DailyQuizPage() {
     fetchQuizData();
   }, [user]);
 
-  // 3. On Finish: Submit the results to the backend
+  // ✅ 3. AI TRANSLATION ENGINE FOR THE QUIZ
+  useEffect(() => {
+    const translateDailyQuiz = async () => {
+      if (!questions || questions.length === 0) return;
+
+      // If English, just use the raw database questions
+      if (i18n.language === 'en') {
+        setTranslatedQuiz(questions);
+        return;
+      }
+
+      setIsTranslating(true);
+      try {
+        // Extract all text layers needed for translation
+        const qPrompts = questions.map(q => q.question);
+        const cAnswers = questions.map(q => q.correctAnswer);
+        const allOpts = questions.flatMap(q => q.options); // Flatten all 20 options into one array
+
+        // Translate everything concurrently
+        const [transPrompts, transAnswers, transOpts] = await Promise.all([
+          translateTexts(qPrompts, i18n.language),
+          translateTexts(cAnswers, i18n.language),
+          translateTexts(allOpts, i18n.language)
+        ]);
+
+        // Rebuild the questions array with translated strings so the scoring logic survives
+        let optIndex = 0;
+        const fullyTranslated = questions.map((q, idx) => {
+          const mappedOptions = q.options.map((originalOpt) => {
+            const translatedOpt = transOpts[optIndex] || originalOpt; 
+            optIndex++;
+            return translatedOpt;
+          });
+
+          return {
+            ...q,
+            question: transPrompts[idx] || q.question,
+            correctAnswer: transAnswers[idx] || q.correctAnswer, 
+            options: mappedOptions 
+          };
+        });
+
+        setTranslatedQuiz(fullyTranslated);
+      } catch (error) {
+        console.error("Quiz translation failed:", error);
+        setTranslatedQuiz(questions); 
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+
+    translateDailyQuiz();
+  }, [questions, i18n.language]);
+
+  // 4. On Finish: Submit the results to the backend
   useEffect(() => {
     const submitResults = async () => {
-      // Guard: Ensure submission only happens once and only when finished
       if (!isFinished || isSubmitting || hasCompletedToday || !user || !csrfToken) return;
       
       setIsSubmitting(true);
@@ -131,7 +186,6 @@ export default function DailyQuizPage() {
 
         if (!res.ok) {
           const errorData = await res.json();
-          // Stop attempts if backend indicates completion
           if (res.status === 400 && errorData.error === "Quiz already completed today") {
             setHasCompletedToday(true);
           }
@@ -139,7 +193,6 @@ export default function DailyQuizPage() {
         }
 
         console.log("Quiz results submitted successfully!");
-        // Update local state to show finished state correctly
         setHasCompletedToday(true); 
       } catch (error) {
         console.error("Failed to submit quiz results:", error.message);
@@ -149,7 +202,6 @@ export default function DailyQuizPage() {
     };
 
     submitResults();
-    // Removed isSubmitting from dependencies to prevent infinite loop
   }, [isFinished, score, user, csrfToken, hasCompletedToday]);
 
   const handleNextQuestion = (wasCorrect) => {
@@ -157,7 +209,7 @@ export default function DailyQuizPage() {
       setScore(prevScore => prevScore + 1);
     }
 
-    if (currentIndex < questions.length - 1) {
+    if (currentIndex < translatedQuiz.length - 1) {
       setCurrentIndex(prevIndex => prevIndex + 1);
     } else {
       setIsFinished(true);
@@ -165,8 +217,7 @@ export default function DailyQuizPage() {
   };
 
   // --- RENDER STATES ---
-
-  if (isLoadingStatus) {
+  if (isLoadingStatus || isTranslating) {
     return (
       <>
         <Header />
@@ -222,9 +273,9 @@ export default function DailyQuizPage() {
     return (
       <div className="quiz-results-card dqp-div">
         <h2>{t('quiz.completed', 'Quiz Complete!')}</h2>
-        <h1 className="dqp-h1">{score} / {questions.length}</h1>
+        <h1 className="dqp-h1">{score} / {translatedQuiz.length}</h1> 
         
-        {score === questions.length ? (
+        {score === translatedQuiz.length ? (
           <p className="quiz-perfect-score">
             {t('quiz.perfectScore', { baseXP, bonusXP: perfectBonus, totalXP })}
           </p>
@@ -245,7 +296,7 @@ export default function DailyQuizPage() {
     );
   }
 
-  if (questions.length === 0) {
+  if (translatedQuiz.length === 0) { 
     return (
       <>
         <Header />
@@ -271,11 +322,11 @@ export default function DailyQuizPage() {
         <div className="quiz-header-section">
           <h2 className="quiz-header-section-h2">{t('quiz.header')}</h2>
           <h4 className="quiz-progress-text">
-            {t('quiz.progress', { current: currentIndex + 1, total: questions.length })}
+            {t('quiz.progress', { current: currentIndex + 1, total: translatedQuiz.length })}
           </h4>
           <p className="quiz-disclaimer">{t('quiz.disclaimer')}</p>
         </div>
-        <QuizCard quizData={questions[currentIndex]} onNext={handleNextQuestion} />
+        <QuizCard quizData={translatedQuiz[currentIndex]} onNext={handleNextQuestion} /> 
       </div>
       <Footer/>
     </>
