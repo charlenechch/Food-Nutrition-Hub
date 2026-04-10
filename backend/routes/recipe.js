@@ -64,6 +64,7 @@ console.log(`Fetching ${includeAll ? 'ALL' : 'APPROVED'} recipes...`);
 const query = `
 SELECT 
       f.foodID AS id,
+      r.recipeID,
       r.recipeName, 
       f.origin, 
       f.difficulty, 
@@ -88,7 +89,8 @@ SELECT
       up.equippedBadge,
       up.equippedContributorBadge,
       b.badge_type AS contributorBadgeType,
-      b.awarded_month AS contributorBadgeMonth
+      b.awarded_month AS contributorBadgeMonth,
+      (SELECT COALESCE(ROUND(AVG(rating), 1), 0) FROM recipe_ratings WHERE recipeID = r.recipeID) AS avgRating
       FROM recipe r
       INNER JOIN food f ON r.foodID = f.foodID
     LEFT JOIN userProfile up ON r.userProfileID = up.userProfileID
@@ -178,7 +180,8 @@ SELECT
       approvedBy: getSafe(data, 'approved_by') || null,
       funFact: getSafe(data, 'funFact') || '',
       chefTips: getSafe(data, 'chefTips') || '',
-      status: getSafe(data, 'status') || 'Pending' // This is now safe
+      status: getSafe(data, 'status') || 'Pending',
+      avgRating: Number(getSafe(data, 'avgRating')) || 0
     };
   });
 

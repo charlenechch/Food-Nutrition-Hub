@@ -145,7 +145,12 @@
     "cat_rice_dish": "Hidangan Nasi",
     "cat_noodles": "Mi",
     "cat_soup": "Sup",
-    "cat_meat": "Daging"
+    "cat_meat": "Daging",
+
+    "sortBy": "Susun Mengikut Penilaian",
+    "defaultSort": "Lalai (Terbaru)",
+    "highestRated": "Penilaian Tertinggi",
+    "lowestRated": "Penilaian Terendah"
   },
 
   "foodDetail": {

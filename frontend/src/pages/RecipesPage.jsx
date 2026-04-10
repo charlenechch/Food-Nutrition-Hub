@@ -147,6 +147,7 @@ export default function RecipesPage() {
   const [selectedPrepTime, setSelectedPrepTime] = useState("all");
   const [selectedCookTime, setSelectedCookTime] = useState("all");
   const [dietFilters, setDietFilters] = useState([]);
+  const [ratingSort, setRatingSort] = useState(""); // ✅ Sorting state
 
   // Filter Logic
   const origins = [
@@ -158,7 +159,7 @@ export default function RecipesPage() {
   const filtered = useMemo(() => {
     const terms = tokenize(searchQuery);
 
-    return recipes.filter((r) => {
+    const filteredArray = recipes.filter((r) => {
       const haystack = [
         r.name, r.origin, r.category, r.description, r.ingredients, r.instructions,
         Array.isArray(r.dietaryTags) ? r.dietaryTags.join(" ") : r.dietaryTags, r.difficulty
@@ -198,11 +199,19 @@ export default function RecipesPage() {
         matchPrepBucket && matchCookBucket && matchCategory && matchDiet
       );
     });
-  }, [recipes, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedCategories, dietFilters]);
+
+    // ✅ Apply sorting logic
+    return filteredArray.sort((a, b) => {
+      if (ratingSort === "highest") return (b.avgRating || 0) - (a.avgRating || 0);
+      if (ratingSort === "lowest") return (a.avgRating || 0) - (b.avgRating || 0);
+      return 0;
+    });
+
+  }, [recipes, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedCategories, dietFilters, ratingSort]);
 
   useEffect(() => {
     setPage(1);
-  }, [recipes.length, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedCategories.join(","), dietFilters.join(",")]);
+  }, [recipes.length, searchQuery, selectedOrigin, selectedDifficulty, selectedPrepTime, selectedCookTime, selectedCategories.join(","), dietFilters.join(","), ratingSort]);
 
   const clearAll = () => {
     setSearchQuery("");
@@ -212,6 +221,7 @@ export default function RecipesPage() {
     setSelectedCookTime("all");
     setSelectedCategories([]);
     setDietFilters([]);
+    setRatingSort(""); // ✅ Reset sorting state
   };
 
   const [info, setInfo] = useState({
@@ -631,6 +641,9 @@ export default function RecipesPage() {
         <div className="rp-filter-card efp-controls">
           <div className="efp-search-row">
             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t("recipes.searchPlaceholder")} className="efp-input" />
+            
+            {/* ❌ Removed the sorting dropdown from here */}
+
             <div className="efp-btn-group">
               <button type="button" className="efp-btn" onClick={() => setShowFilters(v => !v)}><Sliders size={18} /> {t("explore.filters")}</button>
               <button type="button" className="efp-btn" onClick={clearAll}><X size={18} /> {t("explore.clearAll")}</button>
@@ -642,6 +655,21 @@ export default function RecipesPage() {
           <div className="rp-filter-card efp-card efp-filters-card">
             <div className="efp-filters">
               <div className="efp-filters-header"><Filter className="efp-filter-icon" size={18} /><h2 className="efp-filters-title">{t("explore.filter")}</h2></div>
+              
+              {/* ✅ ADDED SORTING DROPDOWN HERE, right at the top of the filters list */}
+              <div className="efp-filter-item" style={{ marginBottom: "20px" }}>
+                <label className="efp-label">{t("explore.sortBy") || "Sort By Rating"}</label>
+                <select 
+                  value={ratingSort} 
+                  onChange={(e) => setRatingSort(e.target.value)}
+                  className="efp-select"
+                >
+                  <option value="">{t("explore.defaultSort") || "Default (Newest)"}</option>
+                  <option value="highest">{t("explore.highestRated") || "Highest Rated"}</option>
+                  <option value="lowest">{t("explore.lowestRated") || "Lowest Rated"}</option>
+                </select>
+              </div>
+
               <div className="efp-grid-2">
                 <div className="efp-filter-item">
                   <label className="efp-label">{t("explore.culturalOrigin")}</label>
@@ -773,7 +801,17 @@ export default function RecipesPage() {
               >
                 <div className="efp-food-media">
                   <img src={r.image || 'https://via.placeholder.com/300x200?text=No+Image'} alt={r.name} className="efp-image" loading="lazy" />
-                  <div className="efp-badges"><span className={diffClass}>{r.difficulty || t("explore.easy")}</span></div>
+                  
+                  <div className="efp-badges">
+                    <span className={diffClass}>{r.difficulty || t("explore.easy")}</span>
+                    {/* ✅ NEW Star Rating Badge */}
+                    {(r.avgRating > 0) && (
+                      <span className="efp-badge" style={{ backgroundColor: '#fcf8f5', color: '#6a4a2f', borderColor: '#efe5dc' }}>
+                        ⭐ {r.avgRating}
+                      </span>
+                    )}
+                  </div>
+                  
                   {Array.isArray(r.dietaryTags) && r.dietaryTags.includes("vegetarian") && <span className="efp-badge-topright">V</span>}
                 </div>
                 <div className="efp-food-body">
@@ -782,7 +820,6 @@ export default function RecipesPage() {
                     onClick={(e) => handleProfileClick(e, r.authorId || r.userProfileID)}
                     title={`View ${r.author}'s profile`}
                   >
-                    {/* ✅ UPDATED: Added UI Avatars and onError Fallback */}
                     <img 
                       src={r.authorImage || `https://ui-avatars.com/api/?name=${r.author || "User"}&background=8b5e3c&color=fff&rounded=true`} 
                       alt={r.author} 

@@ -146,7 +146,12 @@
     "cat_rice_dish": "Rice Dish",
     "cat_noodles": "Noodles",
     "cat_soup": "Soup",
-    "cat_meat": "Meat"
+    "cat_meat": "Meat",
+
+    "sortBy": "Sort By Rating",
+    "defaultSort": "Default (Newest)",
+    "highestRated": "Highest Rated",
+    "lowestRated": "Lowest Rated"
   },
 
   "foodDetail": {
