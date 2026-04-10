@@ -17,6 +17,21 @@ const Leaderboard = () => {
     level: []
   });
   const [loading, setLoading] = useState(true);
+
+  // XP needed to reach a given level (inverse of the level formula)
+  const xpForLevel = (level) => {
+    if (level <= 1) return 0;
+    return Math.ceil(Math.pow(level - 1, 3 / 2) * 100);
+  };
+
+  const getXpBarPercent = (totalXp, level) => {
+    const currentLevelXp = xpForLevel(level);
+    const nextLevelXp = xpForLevel(level + 1);
+    const range = nextLevelXp - currentLevelXp;
+    if (range <= 0) return 100;
+    const progress = totalXp - currentLevelXp;
+    return Math.min(100, Math.max(0, (progress / range) * 100));
+  };
   
   // Generate last 6 months for the dropdown
   const getLast6Months = () => {
@@ -307,7 +322,7 @@ const Leaderboard = () => {
                           <div className="xp-progress">
                             <div 
                               className="xp-progress-fill" 
-                              style={{ width: `${(user.xp % 500) / 5}%` }}
+                              style={{ width: `${getXpBarPercent(user.xp, user.level)}%` }}
                             ></div>
                           </div>
                         </div>
