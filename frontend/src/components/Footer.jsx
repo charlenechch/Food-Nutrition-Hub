@@ -27,6 +27,7 @@ export default function Footer() {
             <li><a href="/analyzer">{t("nav.analyzer")}</a></li>
             <li><a href="/recipes">{t("nav.recipes")}</a></li>
             <li><a href="/community">{t("nav.community")}</a></li>
+            <li><a href="/map">{t("nav.map")}</a></li>
           </ul>
         </div>
 
