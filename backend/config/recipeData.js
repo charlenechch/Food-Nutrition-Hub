@@ -314,6 +314,60 @@ const recipeData = [
     chefTips: "Use fresh bamboo for authentic flavor. The bamboo should be green and moist inside. Listen for the bubbling sound - it means the dish is cooking properly inside the sealed bamboo.",
     publish: "publish",
     recipeName: "AyamPansuh1",
+  }, 
+
+  {
+    foodID: 11, //laksa
+    userProfileID: 10,
+    status: "Approved",
+    description: "If you are looking for a Laksa that is slightly subtler compared to the full-on Assam and Curry Laksas you get in Penang and Malacca, look towards Sarawak’s version of this dish. A typical bowl of Laksa in this East Malaysian state comes fully loaded with shrimp and chicken amongst other ingredients. But the magic, as with all Laksas is in its reddish-brown broth; a delectable potion of chicken and shellfish stock, sambal (chilli paste), local Sarawak black pepper and other spices.",
+    ingredients: `400g dried rice vermicelli noodles
+                  750g chicken thighs on the bone
+                  500g raw king prawns – shells and heads removed and reserved for stock
+                  Prawn shell trimmings from above
+                  1.5 litres of water
+                  4 dried tamarind slices (Asam gelugor)
+                  6 cardomom pods
+                  4 star anise
+                  250 ml coconut milk
+                  3 tbsp vegetable oil
+                  Spice Paste:
+                  8 candlenuts
+                  20 black peppercorns (Sarawak peppercorns are best if you can find them)
+                  4 tbsp ground coriander
+                  2 tbsp ground cumin
+                  1 tbsp ground nutmeg
+                  4 tbsp dried shrimp – soaked and drained
+                  2 stalks lemongrass
+                  5 cm length galangal (15g)
+                  5 cm length ginger (15g)
+                  1 tbsp belacan (fermented shrimp paste)  – toasted before use
+                  20 dried chillies (20g) – soaked, deseeded and sliced
+                  4 red chillies (75g) – deseeded and sliced
+                  14 shallots (200g) – halved
+                  4 cloves garlic
+                  2 tbsp palm (or brown) sugar
+                  Seasoning:
+                  2 – 3 tbsp light soy sauce (to taste)
+                  1 – 2 tbsp fish sauce (to taste)
+                  Large pinch of salt (to taste)
+                  1 – 2 tbsp palm (or brown) sugar (to taste)
+                  Garnish:
+                  100g beansprouts – blached for 30 seconds in boiling water then refreshed
+                  100g lettuce leaves – finely sliced
+                  50g mint – leaves picked`,
+    steps:`1. Set the stock to cook: In a large saucepan, lightly brown the chicken thighs, prawn trimmings, star anise and cardamom in 1 tablespoon of oil. Cover with 1.5 litres of water and simmer for 35 – 40 minutes with the tamarind slices and a large pinch of salt. When ready, pass the stock through a sieve and set aside. Reserve the chicken thighs and shred the meat finely. Discard the prawn shells and spices.
+            2. Cook the rice noodles in simmering water for 3 minutes (or as per the packet instructions). Refresh in cold water, drain and set aside.
+            3. Process all the spice paste ingredients in a food processor until smooth. Sauté the paste in 2 tablespoons of oil for 7 to 8 minutes until fragrant. To make the Laksa broth, add the stock, coconut milk and seasonings. Bring to a simmer for 15 minutes.
+            4. Poach the prawns in the broth for 5 minutes until cooked. Remove and set aside
+            5. Construct the Laksa: In a soup bowl, add a bed of cooked vermicelli noodles. Ladle over a few measures of the hot broth then top as desired with the shredded chicken, prawns and vegetable garnish (lettuce and mint). Serve immediately. It’s traditional to have an extra side bowl of sambal and some wedges of lime for people to help themselves to.
+          `,
+    cookTime: 60,
+    servings: 6,
+    DidYouKnow: "Sarawak Laksa was famously called the 'Breakfast of the Gods' by the late world-renowned chef Anthony Bourdain, who visited Kuching twice just for a bowl. Unlike most laksa that rely on commercial curry powder, the Sarawakian version uses a secret "laksa paste" made from over 20 different herbs and spices that creates a flavour that is neither a typical curry nor a sour soup.",
+    chefTips: "To get that deep and signature flavour, always boil the prawn heads and shells to create a concentrated stock before adding other ingredients. ",
+    publish: "publish",
+    recipeName: "Sarawak Laksa",
   }
 ];
 

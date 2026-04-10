@@ -232,7 +232,30 @@ const foods = [
     commonIngredients: ["Chicken, fresh hollow bamboo stalk, Umbut tepus (wild ginger shoot), bunga kantan (torch ginger flower), turmeric leaves, Lemongrass, ginger, shallots, garlic, Tapioca leaves."],
     healthTips: "Naturally Oil-Free: Cooks in its own trapped steam with zero added cooking oils. High Protein & Low Carb: A clean, lean protein source that naturally fits into low-carb diets. Antioxidant-Rich: Native ingredients like bunga kantan are packed with natural anti-inflammatory compounds.",
     gram_per_serving: 0.0
+  }, 
+
+  {
+    name: "Sarawak Laksa",
+    origin: "Chinese",
+    category: "Noodle",
+    difficulty: "hard",
+    dietaryTags: [""],
+    description: "Sarawak Laksa is an iconic noodle soup featuring thin rice vermicelli submerged in a fragrant broth. Unlike other Malaysian laksas, it strikes a unique balance between a spicy sambal base and a tangy tamarind kick, smoothed over with a light touch of coconut milk. It is famously topped with a standard set of fresh ingredients.",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkbjK4YZPkQhHoK4G3g8vvDVPOTbxnPc8u_g&s",
+    prepTime: 30,
+    Energy_kcal: 869.21,
+    Protein_g: 39.12,
+    Fat_g: 45.69,
+    Carbohydrates_g: 75.50,
+    Fiber_g: 3.25,
+    VitaminC_mg: 34.81,
+    culturalSignificance: "While many laksa recipes in Malaysia come from various regions such as Penang and Johor, the Sarawak Laksa is the undisputed crown jewel of Kuching. It is a unique hybrid of Chinese and Malay culinary influences that evolved in the mid-20th century. Whether at a corner kopitiam or a high-end hotel, Sarawakians from all walks of life gather over this dish, representing  the state's spirit of unity. For many Sarawakians, it is a shared obsession to travel across town to find the perfect bowl.",
+    traditionalPreparation: "Rice vermicelli is blanched and submerged in a fragrant broth made from a complex paste of sambal belacan, tamarind, and local aromatics, enriched with a light touch of coconut milk. It is typically topped with prawns, shredded chicken, omelette strips, and bean sprouts, and is traditionally served with a side of sambal belacan and calamansi lime to sharpen the flavors.",
+    commonIngredients: NULL,
+    healthTips: "The broth contains sodium and saturated fat (from coconut milk). Enjoy the noodles and toppings, but try not to drink the whole bowl of soup if you’re watching your heart health.",
+    gram_per_serving: 400.0
   }
+
 
 ];
 
