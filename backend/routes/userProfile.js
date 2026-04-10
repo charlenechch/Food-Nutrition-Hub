@@ -1241,11 +1241,10 @@ router.put("/consent", async (req, res) => {
     const userID = req.session.user.userID;
 
     const { pdpaConsent, tncConsent } = req.body;
-    const { CURRENT_POLICY_VERSION } = require("../config/policyVersion");
 
     const [result] = await db.execute(
       "UPDATE user SET pdpa_consent = ?, tnc_consent = ?, consent_date = NOW(), agreed_version = ? WHERE userID = ?",
-      [pdpaConsent ? 1 : 0, tncConsent ? 1 : 0, CURRENT_POLICY_VERSION, userID]
+      [pdpaConsent ? 1 : 0, tncConsent ? 1 : 0, 1, userID]
     );
 
     if (result.affectedRows === 0) {
@@ -1255,7 +1254,7 @@ router.put("/consent", async (req, res) => {
     // Update consent fields and agreed_version in the session
     req.session.user.pdpa_consent = 1;
     req.session.user.tnc_consent = 1;
-    req.session.user.agreed_version = CURRENT_POLICY_VERSION;
+    req.session.user.agreed_version = 1;
     
     // Save the updated session
     req.session.save((err) => {

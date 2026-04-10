@@ -64,22 +64,21 @@ export default function AdminSystemSettings({
         "Maintenance Notice": {
             subject: "Scheduled Maintenance Notice",
             message:
-                `Hello,\n\nWe will perform scheduled maintenance from <Date>, <Time> to <Date>, <Time>. ${platformName} may be unavailable during this time.\n\nThanks,\nSarawakEats Admin`,
+                `Hello,\n\nWe will be performing scheduled maintenance on ${platformName} from <Date>, <Time> to <Date>, <Time>. The platform may be unavailable during this period.\n\nWe recommend saving any unfinished work before the maintenance window begins. We apologise for any inconvenience caused.\n\nThanks,\nSarawakEats Admin`,
         },
         "Policy Update": {
             subject: "Platform Policy Update",
-            message:
-                `Hello,\n\nWe've updated our community guidelines and privacy policy on <Date>. Please review the changes in the Terms of Service and Privacy Policy at the website footer section.\n\nThanks,\nSarawakEats Admin`,
+            message: `Hello,\n\nWe've updated our Privacy Policy and/or Terms & Conditions on <Date>.\n\nKey changes include:\n• <Describe what changed>\n• <Describe what changed>\n\nYou can review the full updated documents at any time via the Privacy Policy and Terms & Conditions links in the website footer.\n\nBy continuing to use SarawakEats, you acknowledge and accept the updated policies.\n\nThanks,\nSarawakEats Admin`,
         },
         "System Update": {
             subject: `${platformName} Platform Update`,
             message:
-                `Hello,\n\nWe've made updates to ${platformName} including <brief summary of changes>. These improvements were deployed on <Date>.\n\nIf you notice any issues, please report them to our ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
+                `Hello,\n\nWe've made some improvements to ${platformName} on <Date>. Here's what's new:\n• <Describe what changed>\n• <Describe what changed>\n\nIf you notice any issues, please report them to us at ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
         },
         "Outage Resolved": {
             subject: `${platformName} Service Restored`,
             message:
-                `Hello,\n\nService has been restored on ${platformName}. A fix has been applied and service was fully restored on <Date>.\n\nWe apologize for the disruption. If you still experience issues, please contact ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
+                `Hello,\n\nWe're pleased to inform you that ${platformName} is back online as of <Date>, <Time>.\n\nWe experienced a service disruption due to <brief description of issue>. The issue has been resolved and the platform is now fully operational.\n\nWe apologise for the inconvenience. If you still experience any issues, please contact us at ${platformemail}.\n\nThanks,\nSarawakEats Admin`,
         },
     };
 
