@@ -1521,7 +1521,8 @@
     "checkboxTnc": "I have read and agree to the",
     "agreeBtn": "I Agree & Continue",
     "saving": "Saving...",
-    "error": "Failed to save consent. Please try again."
+    "error": "Failed to save consent. Please try again.",
+    "disagreeNote": "If you do not agree, please contact us at info@sarawakeats.com to request account deletion."
   },
   
   "gamification": {

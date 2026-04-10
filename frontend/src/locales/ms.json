@@ -1521,7 +1521,8 @@
     "checkboxTnc": "Saya telah membaca dan bersetuju dengan",
     "agreeBtn": "Saya Bersetuju & Teruskan",
     "saving": "Menyimpan...",
-    "error": "Gagal menyimpan persetujuan. Sila cuba lagi."
+    "error": "Gagal menyimpan persetujuan. Sila cuba lagi.",
+    "disagreeNote": "Jika anda tidak bersetuju, sila hubungi kami di info@sarawakeats.com untuk meminta pemadaman akaun."
   },
 
   "gamification": {

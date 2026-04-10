@@ -61,8 +61,6 @@ export default function ConsentModal() {
   const [isTncChecked, setIsTncChecked] = useState(false);
   const [pdpaScrolled, setPdpaScrolled] = useState(false);
   const [tncScrolled, setTncScrolled] = useState(false);
-
-  const [policyVersion, setPolicyVersion] = useState(null);
   const [policyLastUpdatedEN, setPolicyLastUpdatedEN] = useState(null);
   const [policyLastUpdatedMS, setPolicyLastUpdatedMS] = useState(null);
 
@@ -70,7 +68,6 @@ export default function ConsentModal() {
     fetch(`${API_URL}/api/auth/policyversion`)
       .then(res => res.json())
       .then(data => {
-        setPolicyVersion(data.version);
         setPolicyLastUpdatedEN(data.lastUpdatedEN);
         setPolicyLastUpdatedMS(data.lastUpdatedMS);
       })
@@ -83,7 +80,7 @@ export default function ConsentModal() {
   const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
-    if (!user || user.role === "guest" || (user.agreed_version >= policyVersion)) return;
+    if (!user || user.role === "guest" || user.agreed_version !== 0) return;
 
     const fetchCsrfToken = async () => {
       try {
@@ -95,10 +92,10 @@ export default function ConsentModal() {
       }
     };
     fetchCsrfToken();
-  }, [user, policyVersion]);
+  }, [user]);
 
   useEffect(() => {
-    if (user && user.role !== "guest" && (user.agreed_version < policyVersion)) {
+    if (user && user.role !== "guest" && user.agreed_version === 0) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -106,8 +103,7 @@ export default function ConsentModal() {
     return () => { document.body.style.overflow = ""; };
   }, [user]);
 
-  if (!policyVersion) return null;
-  if (!user || user.role === "guest" || (user.agreed_version >= policyVersion)) {
+  if (!user || user.role === "guest" || user.agreed_version !== 0) {
     return null;
   }
 
@@ -128,7 +124,7 @@ export default function ConsentModal() {
         headers: { "X-CSRF-Token": csrfToken }
       });
 
-      setUser({ ...user, pdpa_consent: 1, tnc_consent: 1, agreed_version: policyVersion });
+      setUser({ ...user, pdpa_consent: 1, tnc_consent: 1, agreed_version: 1 });
 
     } catch (err) {
       console.error("Consent Error:", err);
@@ -222,6 +218,7 @@ export default function ConsentModal() {
             {isSubmitting ? t("consent.saving") : t("consent.agreeBtn")}
           </button>
 
+          <p className="tpm-disagree-note">{t("consent.disagreeNote")}</p>
         </div>
       </div>
 
@@ -309,6 +306,10 @@ export default function ConsentModal() {
         .tpm-btn:not(:disabled):hover {
           background: #4a2e1a; transform: translateY(-2px);
           box-shadow: 0 10px 20px rgba(92,58,33,0.2);
+        }
+        .tpm-disagree-note {
+          text-align: center; font-size: 0.78rem; color: #999;
+          margin-top: 14px; line-height: 1.5;
         }
         @media (max-width: 600px) {
           .tpm-card { padding: 24px 18px; }
