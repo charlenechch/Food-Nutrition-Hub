@@ -251,7 +251,7 @@ const foods = [
     VitaminC_mg: 34.81,
     culturalSignificance: "While many laksa recipes in Malaysia come from various regions such as Penang and Johor, the Sarawak Laksa is the undisputed crown jewel of Kuching. It is a unique hybrid of Chinese and Malay culinary influences that evolved in the mid-20th century. Whether at a corner kopitiam or a high-end hotel, Sarawakians from all walks of life gather over this dish, representing  the state's spirit of unity. For many Sarawakians, it is a shared obsession to travel across town to find the perfect bowl.",
     traditionalPreparation: "Rice vermicelli is blanched and submerged in a fragrant broth made from a complex paste of sambal belacan, tamarind, and local aromatics, enriched with a light touch of coconut milk. It is typically topped with prawns, shredded chicken, omelette strips, and bean sprouts, and is traditionally served with a side of sambal belacan and calamansi lime to sharpen the flavors.",
-    commonIngredients: NULL,
+    commonIngredients: "Prawn",
     healthTips: "The broth contains sodium and saturated fat (from coconut milk). Enjoy the noodles and toppings, but try not to drink the whole bowl of soup if you’re watching your heart health.",
     gram_per_serving: 400.0
   }
@@ -263,14 +263,21 @@ const foods = [
   try {
     for (const food of foods) {
       const sql = `
-        INSERT INTO food 
-        (name, origin, category, difficulty, dietaryTags, description, image, prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, VitaminC_mg, culturalSignificance, traditionalPreparation, commonIngredients, healthTips, gram_per_serving)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO food (
+          name, origin, category, difficulty, dietaryTags, description, image, 
+          prepTime, Energy_kcal, Protein_g, Fat_g, Carbohydrates_g, Fiber_g, 
+          VitaminC_mg, culturalSignificance, traditionalPreparation, 
+          commonIngredients, healthTips, gram_per_serving,
+          likes_count, liked_by, updatedAt, createdAt, 
+          embedding, embedding_text, embedding_s1, embedding_s3
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                  ?, ?, ?, ?, ?, ?, ?, ?)
       `;
+      
       const values = [
         food.name,
         food.origin,
-        food.category,
+        Array.isArray(food.category) ? food.category.join(', ') : food.category,
         food.difficulty,
         food.dietaryTags.join(', '),
         food.description,
@@ -284,11 +291,22 @@ const foods = [
         food.VitaminC_mg,
         food.culturalSignificance,
         food.traditionalPreparation,
-        food.commonIngredients,
+        Array.isArray(food.commonIngredients) ? food.commonIngredients.join(', ') : food.commonIngredients,
         food.healthTips,
         food.gram_per_serving,
+        0,      // likes_count
+        null,   // liked_by
+        new Date(), // updatedAt
+        new Date(), // createdAt
+        null,   // embedding
+        null,   // embedding_text
+        null,   // embedding_s1
+        null    // embedding_s3
       ];
 
+      console.log(`Inserting: ${food.name}`);
+      console.log(`Values count: ${values.length}`); // Should show 27
+      
       await db.pool.query(sql, values);
     }
 
@@ -296,6 +314,8 @@ const foods = [
     process.exit(0);
   } catch (err) {
     console.error("❌ Error inserting data:", err.message);
+    console.error("SQL:", sql);
+    console.error("Values count:", values ? values.length : 'undefined');
     process.exit(1);
   }
 })();

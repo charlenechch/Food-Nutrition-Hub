@@ -9,11 +9,12 @@ const restaurantData = [
         "latitude": 1.5502,
         "longitude": 110.3378,
         "rating": 4.5,
-        "price": 25.00,
         "address": "Kuching, Sarawak",
         "description": "Traditional Iban restaurant serving authentic Linut and other Dayak dishes.",
         "opening_hours": "11:00 AM - 10:00 PM",
-        "is_halal": 0
+        "is_halal": 0,
+        "price_min": 25.00,
+        "price_max": 25.00,
     },
 
     {
@@ -24,11 +25,12 @@ const restaurantData = [
         "latitude": 1.5560,
         "longitude": 110.3520,
         "rating": 4.6,
-        "price": 8.00,
         "address": "Kuching, Sarawak",
         "description": "Popular spot for Kolo Mee, one of Kuching most beloved noodle dishes.",
         "opening_hours": "7:00 AM - 2:00 PM",
-        "is_halal": 0
+        "is_halal": 0,
+        "price_min": 8.00,
+        "price_max": 8.00,
     },
 
     {
@@ -43,7 +45,9 @@ const restaurantData = [
         "address": "Jalan Tuanku Abdul Halim, Kuching, Sarawak",
         "description": "One of the few restaurants dedicated to Dayak cuisine. Famous for Umai, Pansoh and tuak.",
         "opening_hours": "11:00 AM - 10:00 PM",
-        "is_halal": 0
+        "is_halal": 0,
+        "price_min": 35.00,
+        "price_max": 35.00,
     },
 
     {
@@ -53,12 +57,13 @@ const restaurantData = [
         "city": "Kuching",
         "latitude": 1.5502,
         "longitude": 110.3378,
-        "rating": 4.5,
-        "price": 25.00,
+        "rating": 4.5,      
         "address": "Kuching, Sarawak",
         "description": "Traditional Iban restaurant also known for their fresh Umai preparation.",
         "opening_hours": "11:00 AM - 10:00 PM",
-        "is_halal": 0
+        "is_halal": 0,
+        "price_min": 25.00,
+        "price_max": 25.00,
     },
 
     {
@@ -69,11 +74,12 @@ const restaurantData = [
         "latitude": 1.5490,
         "longitude": 110.3460,
         "rating": 4.5,
-        "price": 30.00,
         "address": "Kuching, Sarawak",
         "description": "Cosy heritage restaurant serving traditional Sarawakian dishes including Umai.",
         "opening_hours": "11:00 AM - 9:00 PM",
-        "is_halal": 0
+        "is_halal": 0,
+        "price_min": 30.00,
+        "price_max": 30.00,
     }
 
 ];
@@ -82,8 +88,8 @@ const restaurantData = [
   try {
     for (const r of restaurantData) {
     const sql = `
-      INSERT INTO restaurants (restaurantID, foodID, name, city, latitude, longitude, rating, price, address, description, opening_hours, is_halal)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO restaurants (restaurantID, foodID, name, city, latitude, longitude, rating, address, description, opening_hours, is_halal, price_min, price_max)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     const values = [
@@ -94,11 +100,12 @@ const restaurantData = [
       r.latitude,
       r.longitude,
       r.rating,
-      r.price,
       r.address,
       r.description,
       r.opening_hours,
-      r.is_halal
+      r.is_halal,
+      r.price_min,
+      r.price_max
     ];
     await db.pool.query(sql, values);
     }

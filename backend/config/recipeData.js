@@ -178,7 +178,7 @@ const recipeData = [
 
   {
     foodID: 6, //belacan bihun
-    userProfileID: 6,
+    userProfileID: 5,
     status: "Approved",
     description: "Featuring rice noodles served with a spicy, umami-rich gravy made from belacan.",
     ingredients: `70g rice vermicelli
@@ -208,7 +208,7 @@ const recipeData = [
 
   {
     foodID: 7, //daun ubi tumbuk
-    userProfileID: 7,
+    userProfileID: 8,
     status: "Approved",
     description: "Daun Ubi Tumbuk is a traditional vegetable dish widely enjoyed among Borneo’s native communities. It was pounded using a wooden mortar and pestle and typically stir-fried with garlic, shallots, and ikan bilis (anchovies). This daily Sarawakian dish is prized for its simplicity and clean taste. ",
     ingredients: `200 grams Daun Ubi (Cassava Leaves)
@@ -364,42 +364,47 @@ const recipeData = [
           `,
     cookTime: 60,
     servings: 6,
-    DidYouKnow: "Sarawak Laksa was famously called the 'Breakfast of the Gods' by the late world-renowned chef Anthony Bourdain, who visited Kuching twice just for a bowl. Unlike most laksa that rely on commercial curry powder, the Sarawakian version uses a secret "laksa paste" made from over 20 different herbs and spices that creates a flavour that is neither a typical curry nor a sour soup.",
+    DidYouKnow: "Sarawak Laksa was famously called the 'Breakfast of the Gods' by the late world-renowned chef Anthony Bourdain, who visited Kuching twice just for a bowl. Unlike most laksa that rely on commercial curry powder, the Sarawakian version uses a secret 'laksa paste' made from over 20 different herbs and spices that creates a flavour that is neither a typical curry nor a sour soup.",
     chefTips: "To get that deep and signature flavour, always boil the prawn heads and shells to create a concentrated stock before adding other ingredients. ",
     publish: "publish",
     recipeName: "Sarawak Laksa",
   }
 ];
 
-
-
 (async () => {
   try {
     for (const recipe of recipeData) {
-    const sql = `
-      INSERT INTO recipe (foodID, userProfileID, description, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, publish, recipeName)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    
-    const values = [
-      recipe.foodID,
-      recipe.userProfileID,
-      recipe.ingredients,
-      recipe.steps,
-      recipe.cookTime,
-      recipe.servings,
-      recipe.DidYouKnow,
-      recipe.chefTips,
-      recipe.publish,
-      recipe.recipeName
-    ];
-    await db.pool.query(sql, values);
+      const sql = `
+        INSERT INTO recipe (
+          foodID, userProfileID, description, ingredients, steps, 
+          cookTime, servings, DidYouKnow, chefTips, status, publish, recipeName
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      
+      const values = [
+        recipe.foodID,
+        recipe.userProfileID,
+        recipe.description,
+        recipe.ingredients,
+        recipe.steps,
+        recipe.cookTime,
+        recipe.servings,
+        recipe.DidYouKnow,
+        recipe.chefTips,
+        "Approved",
+        "publish",
+        recipe.recipeName
+      ];
+
+      console.log(`Inserting recipe: ${recipe.recipeName}`);
+      await db.pool.query(sql, values);
     }
 
-    console.log("✅ All data inserted successfully!");
+    console.log("✅ All recipe data inserted successfully!");
     process.exit(0);
   } catch (err) {
     console.error("❌ Error inserting data:", err.message);
+    console.error("Failed recipe:", recipeData[0]?.recipeName);
     process.exit(1);
   }
-})(); 
+})();
