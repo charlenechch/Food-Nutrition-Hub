@@ -1290,7 +1290,7 @@
   "adminSettings": {
     "pageTitle": "SarawakEats System Management",
     "emailNotifications": "Email Notifications",
-    "communication": "Communication",
+    "adminControls": "Admin Controls",
     "sendAnnouncement": "Send Announcement",
     "backupMaintenance": "Backup & Maintenance",
     "lastBackup": "Last Backup",

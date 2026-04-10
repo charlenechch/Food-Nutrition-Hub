@@ -690,9 +690,9 @@ export default function AdminSystemSettings({
                         <hr className="admset-sep" />
                         */}
 
-                        {/* Section 2: Communication */}
+                        {/* Section 2: Admin Controls */}
                         <div className="admset-block">
-                            <div className="admset-label mb-6">{t("adminSettings.communication")}</div>
+                            <div className="admset-label mb-6">{t("adminSettings.adminControls")}</div>
                             <div className="admset-grid-1">
                                 <button
                                     className="admset-btn admset-btn-outline justify-start"
