@@ -42,6 +42,8 @@
   border: 4px solid white;
   position: relative;
   z-index: 2;
+  overflow: hidden;
+  padding: 16px;
 }
 
 .contributor-title {
