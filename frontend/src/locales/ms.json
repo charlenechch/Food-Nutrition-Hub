@@ -1289,7 +1289,7 @@
   "adminSettings": {
     "pageTitle": "Pengurusan Sistem SarawakEats",
     "emailNotifications": "Pemberitahuan E-mel",
-    "communication": "Komunikasi",
+    "adminControls": "Kawalan Admin",
     "sendAnnouncement": "Hantar Pengumuman",
     "backupMaintenance": "Sandaran & Penyelenggaraan",
     "lastBackup": "Sandaran Terakhir",
