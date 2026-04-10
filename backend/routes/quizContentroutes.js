@@ -96,7 +96,6 @@ router.delete("/admin/:id", isAuthenticated, isAdmin, async (req, res) => {
 router.get("/today", isAuthenticated, async (req, res) => {
   const db = req.app.get("dbPool");
   try {
-    // 💡 Fix: Using LEFT JOIN ensures questions show up even if the linked food is missing in the food table
     const [rows] = await db.execute(`
       SELECT q.*, f.name as foodName, f.image, f.origin as foodOrigin 
       FROM quiz_questions q 
