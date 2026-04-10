@@ -805,8 +805,8 @@ const ContributionRow = ({ c }) => {
             </span>
           </div>
 
-          {/* 👇 MODIFIED: Show Feedback for ALL statuses if text exists 👇 */}
-          {feedbackText && (
+          {/* Show Feedback for ALL statuses if text exists */}
+          {feedbackText && !userProfileID && (
             <div style={{
               marginTop: "10px",
               padding: "10px",
@@ -816,7 +816,6 @@ const ContributionRow = ({ c }) => {
               fontSize: "0.9rem",
               color: styles.text,
               marginBottom: "5px",
-              // THESE 3 LINES FIX THE OVERFLOW:
               whiteSpace: "pre-wrap",    
               wordBreak: "break-word",   
               overflowWrap: "break-word" 
@@ -824,7 +823,6 @@ const ContributionRow = ({ c }) => {
               <strong>{t("profile.adminFeedback")}:</strong> {feedbackText}
             </div>
           )}
-          {/* 👆 END MODIFIED BLOCK 👆 */}
 
           <div className="upp-row-meta">
             <div className="upp-muted">
@@ -873,7 +871,7 @@ const ContributionRow = ({ c }) => {
         console.log("🔍 Response status:", res.status);
 
         if (res.status === 401) {
-          // ✅ Show login popup instead of redirect/logout
+          // Show login popup instead of redirect/logout
           setShowLoginPrompt(true);
           setIsLoading(false);
           return;
