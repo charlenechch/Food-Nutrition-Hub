@@ -335,22 +335,18 @@
 
 /* Custom Dropdown Arrow Styles */
 
-/* 1. Wrapper to contain the select box and the arrow */
 .custom-select-wrapper {
-    position: relative; /* Essential for positioning the arrow */
-    width: 100%;
+  position: relative;
+  width: 100%; 
 }
 
-/* 2. Arrow Pseudo-element */
 .custom-select-wrapper::after {
-    content: '▼'; /* The downward arrow character */
-    position: absolute;
-    top: 50%; /* Center vertically */
-    right: 15px; /* Adjust position from the right edge */
-    transform: translateY(-50%);
-    pointer-events: none; /* Allows clicks to pass through to the select element */
-    color: #60482e; /* Using a dark brown color from your theme */
-    font-size: 0.7rem;
+  content: "▼"; 
+  position: absolute;
+  right: 16px;  
+  top: 50%;  
+  transform: translateY(-50%); 
+  pointer-events: none; 
 }
 
 .edit-cultural-context-card {
