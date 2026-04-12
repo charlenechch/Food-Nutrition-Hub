@@ -329,7 +329,7 @@ const buildHealthAlerts = (food) => {
               </button>
               <button type="button" className="lrp-btn lrp-btn-outline fdp-share"
                 onClick={handleShare} aria-label="Share this food" title="Share">
-                <Share2 className="rdp-sec-icon" />
+                <Share2 size = "18" className="rdp-sec-icon" />
               </button>
             </div>
             <div className="fdp-actions">
