@@ -358,14 +358,14 @@ const LinkFoodPage = () => {
 
           <button className="admin-edit-food-save-btn" onClick={handleSaveAttempt}>
             <span className="admin-edit-food-save-icon"><FiLink /></span>
-            {t("addFood.linkFoodBtn")}
+            {t("addFood.addFoodBtn")}
           </button>
         </div>
 
         {/* === Recipe Selection Card === */}
         <div className="edit-food-basic-info-card lfp-recipe-select">
           <h3 className = "lfp-recipe-select-h3">
-            <FiLink /> {t("addFood.selectRecipeHeader")}
+            <FiLink /> {t("addFood.selectRecipeHeader")} <span className="red-asterisk">*</span>
           </h3>
           <p className = "lfp-recipe-select-p">
             {t("addFood.selectRecipeDesc")}
@@ -412,7 +412,7 @@ const LinkFoodPage = () => {
         <div className="edit-grid">
           {/* === Image Section === */}
           <div className="edit-food-image-upload-section">
-            <h3>{t("addFood.foodImage")}</h3>
+            <h3>{t("addFood.foodImage")} <span className="red-asterisk">*</span></h3>
             <div className="image-preview">
               {selectedImage ? (
                 <img src={URL.createObjectURL(selectedImage)} alt="Preview" />
@@ -502,7 +502,7 @@ const LinkFoodPage = () => {
             onChange={handleChange} rows={4} placeholder={t("addFood.culturalSignificancePlaceholder")}
           />
 
-          <label className="basic-info-label">{t("addFood.traditionalPreparation")}</label>
+          <label className="basic-info-label">{t("addFood.traditionalPreparation")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" name="traditionalPreparation" value={food.traditionalPreparation} 
             onChange={handleChange} rows={4} placeholder={t("addFood.traditionalPreparationPlaceholder")}
