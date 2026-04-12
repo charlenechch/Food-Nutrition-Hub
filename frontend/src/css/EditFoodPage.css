@@ -296,6 +296,7 @@
   width: 100%;
   outline: none;
   background-position: right 12px center;
+  margin-bottom: 0;
 }
 
 @media (max-width: 720px) {
@@ -337,6 +338,7 @@
 .custom-select-wrapper {
   position: relative;
   width: 100%; 
+  margin-bottom: 14px;
 }
 
 .custom-select-wrapper::after {
@@ -346,6 +348,9 @@
   top: 50%;  
   transform: translateY(-50%); 
   pointer-events: none; 
+  line-height: 1; 
+  font-size: 12px; 
+  color: #7a6b5a;
 }
 
 .edit-cultural-context-card {
