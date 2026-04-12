@@ -339,7 +339,7 @@ const AddFoodPage = () => {
         <div className="edit-grid">
           {/* === Image Section === */}
           <div className="edit-food-image-upload-section">
-            <h3>{t("addFood.foodImage")}</h3>
+            <h3>{t("addFood.foodImage")} <span className="red-asterisk">*</span></h3>
             <div className="image-preview">
               {selectedImage ? (
                 <img src={URL.createObjectURL(selectedImage)} alt="Preview" />
