@@ -547,11 +547,9 @@ const EditFoodPage = () => {
             {/* Basic Info Section */}
             <div className="edit-food-basic-info-card">
               <h3>{t("editFood.basicInformation")}</h3>
-              <div className="edit-food-basic-info-two-col">
-                <div>
-                  <label className="basic-info-label">{t("editFood.foodName")} <span className="red-asterisk">*</span></label>
-                  <input className="edit-food-input" name="name" value={food.name} onChange={handleFoodChange} />
-                </div>
+              <div>
+                <label className="basic-info-label">{t("editFood.foodName")} <span className="red-asterisk">*</span></label>
+                <input className="edit-food-input" name="name" value={food.name} onChange={handleFoodChange} />
               </div>
 
               {/* <div className="edit-food-basic-info-two-col efpage-basic-info">
