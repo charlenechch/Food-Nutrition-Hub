@@ -872,7 +872,7 @@ export default function RecipesPage() {
               <button 
                 onClick={() => setPage(p => Math.max(p - 1, 1))} 
                 disabled={page === 1} 
-                className="community-page-btn nav-btn"
+                className="community-page-btn nav-btn lrp-no-outline"
               >
                 {t("explore.prev")}
               </button>
@@ -881,7 +881,7 @@ export default function RecipesPage() {
                   <button 
                     key={i + 1} 
                     onClick={() => setPage(i + 1)} 
-                    className={`community-page-btn page-num ${page === i + 1 ? "active" : ""}`}
+                    className={`lrp-no-outline community-page-btn page-num ${page === i + 1 ? "active" : ""}`}
                   >
                     {i + 1}
                   </button>
@@ -890,7 +890,7 @@ export default function RecipesPage() {
               <button 
                 onClick={() => setPage(p => Math.min(p + 1, totalPages))} 
                 disabled={page === totalPages} 
-                className="community-page-btn nav-btn"
+                className="community-page-btn nav-btn lrp-no-outline"
               >
                 {t("explore.next")}
               </button>

@@ -277,6 +277,34 @@ const EditFoodPage = () => {
     });
   };
 
+  const handleSaveAttempt = () => {
+    const currentCats = Array.isArray(food.category) ? food.category : [];
+
+    const requiredFields = [
+      "name", "origin", "recipeName", "difficulty", "servings",
+      "prepTime", "cookTime", "ingredients", "steps", "recipeDescription",
+      "didYouKnow", "chefTips", "foodDescription", "culturalSignificance",
+      "traditionalPreparation", "calories", "protein", "carbs",
+      "fat", "fiber", "vitaminc", "healthTips"
+    ];
+
+    const hasEmptyFields = requiredFields.some((key) => {
+      const value = food[key];
+      return value === undefined || value === null || String(value).trim() === "";
+    });
+
+    if (hasEmptyFields || currentCats.length === 0) {
+      setShowNotification({
+        visible: true,
+        message: t("addFood.fillAllFieldsError"), 
+        type: "error"
+      });
+      return; 
+    }
+    
+    setShowSaveConfirm(true);
+  };
+
   // --- Confirm Save (upload then PUT) ---
   const handleConfirmSave = async () => {
     setShowSaveConfirm(false);
@@ -469,7 +497,7 @@ const EditFoodPage = () => {
               <p>{food.name}</p>
             </div>
 
-            <button className="admin-edit-food-save-btn" onClick={handleSaveClick}>
+            <button className="admin-edit-food-save-btn" onClick={handleSaveAttempt}>
               <span className="admin-edit-food-save-icon">
                 <FiSave />
               </span>
@@ -480,7 +508,7 @@ const EditFoodPage = () => {
           <div className="edit-grid">
             {/* Image Section */}
             <div className="edit-food-image-upload-section">
-              <h3>{t("editFood.foodImage")}</h3>
+              <h3>{t("editFood.foodImage")} <span className="red-asterisk">*</span></h3>
               <div className="image-preview">
                 {selectedImage ? (
                   <img src={URL.createObjectURL(selectedImage)} alt="New Image Preview" />
@@ -519,11 +547,9 @@ const EditFoodPage = () => {
             {/* Basic Info Section */}
             <div className="edit-food-basic-info-card">
               <h3>{t("editFood.basicInformation")}</h3>
-              <div className="edit-food-basic-info-two-col">
-                <div>
-                  <label className="basic-info-label">{t("editFood.foodName")}</label>
-                  <input className="edit-food-input" name="name" value={food.name} onChange={handleFoodChange} />
-                </div>
+              <div>
+                <label className="basic-info-label">{t("editFood.foodName")} <span className="red-asterisk">*</span></label>
+                <input className="edit-food-input" name="name" value={food.name} onChange={handleFoodChange} />
               </div>
 
               {/* <div className="edit-food-basic-info-two-col efpage-basic-info">
@@ -539,7 +565,7 @@ const EditFoodPage = () => {
 
               {/* Origin */}
               <div className="food-origin-field">
-                <label className="basic-info-label">{t("editFood.regionOfOrigin")}</label>
+                <label className="basic-info-label">{t("editFood.regionOfOrigin")} <span className="red-asterisk">*</span></label>
                 <div className="custom-select-wrapper">
                   <select className="edit-food-select" name="origin" value={food.origin} onChange={handleFoodChange}>
                     <option value="">{t("editFood.selectOrigin")}</option>
@@ -554,7 +580,7 @@ const EditFoodPage = () => {
 
               {/* Category */}
               <div className="food-category-field">
-                <label className="basic-info-label">{t("editFood.category")}</label>
+                <label className="basic-info-label">{t("editFood.category")} <span className="red-asterisk">*</span></label>
                 <div className="dietary-preferences-grid">
                   {FOOD_TYPE_OPTIONS.map((cat) => {
                     const currentCats = Array.isArray(food.category) ? food.category : [];
@@ -580,7 +606,7 @@ const EditFoodPage = () => {
           <div className="edit-cultural-context-card">
             <h3>{t("addFood.recipeDetails")}</h3>
 
-            <label className="basic-info-label">{t("addFood.recipeName")}</label>
+            <label className="basic-info-label">{t("addFood.recipeName")} <span className="red-asterisk">*</span></label>
             <input 
               className="edit-food-input" 
               name="name" 
@@ -591,7 +617,7 @@ const EditFoodPage = () => {
             
             <div className="edit-food-basic-info-two-col">
               <div>
-                <label className="basic-info-label">{t("addFood.difficultyLevel")}</label>
+                <label className="basic-info-label">{t("addFood.difficultyLevel")} <span className="red-asterisk">*</span></label>
                 <div className="custom-select-wrapper">
                   <select className="edit-food-select" name="difficulty" value={food.difficulty} onChange={handleFoodChange}>
                     {DIFFICULTY_OPTIONS.map((opt) => (
@@ -601,42 +627,42 @@ const EditFoodPage = () => {
                 </div>
               </div>
               <div>
-                <label className="basic-info-label">{t("addFood.servings")}</label>
+                <label className="basic-info-label">{t("addFood.servings")} <span className="red-asterisk">*</span></label>
                 <input type="number" className="edit-food-input" name="servings" value={recipe.servings} onChange={handleRecipeChange} placeholder={t("addFood.servingsPlace")} />
               </div>
             </div>
 
             <div className="edit-food-basic-info-two-col">
               <div>
-                <label className="basic-info-label">{t("addFood.prepTime")}</label>
+                <label className="basic-info-label">{t("addFood.prepTime")} <span className="red-asterisk">*</span></label>
                 <input type="number" className="edit-food-input" name="prepTime" value={food.prepTime} onChange={handleFoodChange} placeholder={t("addFood.prepTimePlace")} />
               </div>
               <div>
-                <label className="basic-info-label">{t("addFood.cookTime")}</label>
+                <label className="basic-info-label">{t("addFood.cookTime")} <span className="red-asterisk">*</span></label>
                 <input type="number" className="edit-food-input" name="cookTime" value={recipe.cookTime} onChange={handleRecipeChange} placeholder={t("addFood.cookTimePlace")} />
               </div>
             </div>
 
-            <label className="basic-info-label">{t("addFood.ingredientsList")}</label>
+            <label className="basic-info-label">{t("addFood.ingredientsList")} <span className="red-asterisk">*</span></label>
             <textarea className="edit-food-textarea" name="ingredients" value={recipe.ingredients} onChange={handleRecipeChange} rows={5} placeholder={t("addFood.ingredientsListPlace")} />
 
-            <label className="basic-info-label">{t("addFood.stepsList")}</label>
+            <label className="basic-info-label">{t("addFood.stepsList")} <span className="red-asterisk">*</span></label>
             <textarea className="edit-food-textarea" name="steps" value={recipe.steps} onChange={handleRecipeChange} rows={6} placeholder={t("addFood.stepsListPlace")} />
 
-            <label className="basic-info-label">{t("addFood.recipeDescription")}</label>
+            <label className="basic-info-label">{t("addFood.recipeDescription")} <span className="red-asterisk">*</span></label>
             <textarea className="edit-food-textarea" name="description" value={recipe.description} onChange={handleRecipeChange} rows={6} placeholder={t("addFood.recipeDescriptionPlace")} />
 
-            <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
+            <label className="basic-info-label">{t("addFood.didYouKnow")} <span className="red-asterisk">*</span></label>
             <textarea className="edit-food-textarea" name="DidYouKnow" value={recipe.DidYouKnow} onChange={handleRecipeChange} rows={2} placeholder={t("addFood.didYouKnowPlace")} />
             
-            <label className="basic-info-label">{t("addFood.chefTips")}</label>
+            <label className="basic-info-label">{t("addFood.chefTips")} <span className="red-asterisk">*</span></label>
             <textarea className="edit-food-textarea" name="chefTips" value={recipe.chefTips} onChange={handleRecipeChange} rows={3} placeholder={t("addFood.chefTipsPlace")} />
           </div>
 
           {/* Cultural Context */}
           <div className="edit-cultural-context-card">
             <h3>{t("editFood.culturalContext")}</h3>
-            <label className="basic-info-label">{t("editFood.descriptionLabel")}</label>
+            <label className="basic-info-label">{t("editFood.descriptionLabel")} <span className="red-asterisk">*</span></label>
             <textarea
               className="edit-food-textarea"
               name="description"
@@ -645,7 +671,7 @@ const EditFoodPage = () => {
               placeholder={t("editFood.descriptionPlaceholder")}
               rows={5}
             />
-            <label className="basic-info-label">{t("editFood.culturalSignificance")}</label>
+            <label className="basic-info-label">{t("editFood.culturalSignificance")} <span className="red-asterisk">*</span></label>
             <textarea
               className="edit-food-textarea"
               name="culturalSignificance"
@@ -654,7 +680,7 @@ const EditFoodPage = () => {
               placeholder={t("editFood.culturalSignificancePlaceholder")}
               rows={5}
             />
-            <label className="basic-info-label">{t("editFood.traditionalPreparation")}</label>
+            <label className="basic-info-label">{t("editFood.traditionalPreparation")} <span className="red-asterisk">*</span></label>
             <textarea
               className="edit-food-textarea"
               name="traditionalPreparation"
@@ -683,7 +709,7 @@ const EditFoodPage = () => {
                 { label: t("editFood.vitaminC"), name: "VitaminC_mg" },
               ].map((item) => (
                 <div key={item.name}>
-                  <label className="basic-info-label">{item.label}</label>
+                  <label className="basic-info-label">{item.label} <span className="red-asterisk">*</span></label>
                   <input className="edit-food-input" name={item.name} value={food[item.name]} onChange={handleFoodChange} />
                 </div>
               ))}
@@ -694,7 +720,7 @@ const EditFoodPage = () => {
           <div className="edit-cultural-context-card">
             <h3>{t("addFood.additionalDetails")}</h3>
             
-            <label className="basic-info-label">{t("addFood.commonIngredients")}</label>
+            <label className="basic-info-label">{t("addFood.commonIngredients")} <span className="red-asterisk">*</span></label>
             <div style={chipContainerStyle}>
               {COMMON_INGREDIENTS_LIST.map((ing) => {
                 const isSelected = selectedIngredients.includes(ing);
@@ -713,12 +739,12 @@ const EditFoodPage = () => {
 
             {showOtherIngredient && (
               <div className="efpage-show-ing">
-                <label className="basic-info-label efpage-show-ing-label">{t("addFood.otherIngredientsLabel")}</label>
+                <label className="basic-info-label efpage-show-ing-label">{t("addFood.otherIngredientsLabel")} <span className="red-asterisk">*</span></label>
                 <textarea className="edit-food-textarea" value={otherIngredientText} onChange={(e) => setOtherIngredientText(e.target.value)} rows={2} />
               </div>
             )}
 
-            <label className="basic-info-label">{t("addFood.dietaryPreferences")}</label>
+            <label className="basic-info-label">{t("addFood.dietaryPreferences")} <span className="red-asterisk">*</span></label>
             <div style={chipContainerStyle}>
               {DIETARY_TAG_OPTIONS.map((tag) => {
                 const isSelected = selectedDietary.includes(tag);
@@ -731,7 +757,7 @@ const EditFoodPage = () => {
               })}
             </div>
 
-            <label className="basic-info-label efpage-cultural-label">{t("addFood.healthTips")}</label>
+            <label className="basic-info-label efpage-cultural-label">{t("addFood.healthTips")} <span className="red-asterisk">*</span></label>
             <textarea className="edit-food-textarea" name="healthTips" value={food.healthTips} onChange={handleFoodChange} rows={2} />
           </div>
         </div>
