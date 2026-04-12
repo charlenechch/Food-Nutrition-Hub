@@ -143,6 +143,34 @@ const AddFoodPage = () => {
     });
   };
 
+  const handleSaveAttempt = () => {
+    const currentCats = Array.isArray(food.category) ? food.category : [];
+
+    const requiredFields = [
+      "name", "origin", "recipeName", "difficulty", "servings",
+      "prepTime", "cookTime", "ingredients", "steps", "recipeDescription",
+      "didYouKnow", "chefTips", "foodDescription", "culturalSignificance",
+      "traditionalPreparation", "calories", "protein", "carbs",
+      "fat", "fiber", "vitaminc", "healthTips"
+    ];
+
+    const hasEmptyFields = requiredFields.some((key) => {
+      const value = food[key];
+      return value === undefined || value === null || String(value).trim() === "";
+    });
+
+    if (hasEmptyFields || currentCats.length === 0 || !selectedImage) {
+      setShowNotification({
+        visible: true,
+        message: "Please fill in every single input field and upload an image before saving.",
+        type: "error"
+      });
+      return; 
+    }
+    
+    setShowSaveConfirm(true);
+  };
+
   // --- Main Add Logic ---
   const handleConfirmAdd = async () => {
     setShowSaveConfirm(false);
@@ -302,7 +330,7 @@ const AddFoodPage = () => {
             <h2>{t("addFood.pageTitle")}</h2>
           </div>
 
-          <button className="admin-edit-food-save-btn" onClick={() => setShowSaveConfirm(true)}>
+          <button className="admin-edit-food-save-btn" onClick={handleSaveAttempt}>
             <span className="admin-edit-food-save-icon"><FiPlus /></span>
             {t("addFood.addFoodBtn")}
           </button>
@@ -341,7 +369,7 @@ const AddFoodPage = () => {
           <div className="edit-food-basic-info-card">
             <h3>{t("addFood.basicInfo")}</h3>
             
-            <label className="basic-info-label">{t("addFood.foodName")}</label>
+            <label className="basic-info-label">{t("addFood.foodName")} <span className="red-asterisk">*</span></label>
             <input
               className="edit-food-input"
               name="name"
@@ -351,7 +379,7 @@ const AddFoodPage = () => {
             />
 
             <div className="food-origin-field">
-              <label className="basic-info-label">{t("addFood.regionOfOrigin")}</label>
+              <label className="basic-info-label">{t("addFood.regionOfOrigin")} <span className="red-asterisk">*</span></label>
               <div className="custom-select-wrapper">
                 <select 
                   className="edit-food-select" 
@@ -368,7 +396,7 @@ const AddFoodPage = () => {
             </div>
 
             <div className="food-category-field afp-category">
-              <label className="basic-info-label">{t("addFood.category")}</label>
+              <label className="basic-info-label">{t("addFood.category")} <span className="red-asterisk">*</span></label>
               
               <div className="dietary-preferences-grid">
                 {FOOD_TYPE_OPTIONS.map((cat) => {
@@ -396,7 +424,7 @@ const AddFoodPage = () => {
         <div className="edit-cultural-context-card">
           <h3>{t("addFood.recipeDetails")}</h3>
 
-          <label className="basic-info-label">{t("addFood.recipeName")}</label>
+          <label className="basic-info-label">{t("addFood.recipeName")} <span className="red-asterisk">*</span></label>
           <input 
             className="edit-food-input" 
             name="recipeName" 
@@ -407,7 +435,7 @@ const AddFoodPage = () => {
           
           <div className="edit-food-basic-info-two-col">
             <div>
-              <label className="basic-info-label">{t("addFood.difficultyLevel")}</label>
+              <label className="basic-info-label">{t("addFood.difficultyLevel")} <span className="red-asterisk">*</span></label>
               <div className="custom-select-wrapper">
                 <select 
                   className="edit-food-select" 
@@ -422,7 +450,7 @@ const AddFoodPage = () => {
               </div>
             </div>
             <div>
-              <label className="basic-info-label">{t("addFood.servings")}</label>
+              <label className="basic-info-label">{t("addFood.servings")} <span className="red-asterisk">*</span></label>
               <input
                 type="number"
                 className="edit-food-input"
@@ -436,7 +464,7 @@ const AddFoodPage = () => {
 
           <div className="edit-food-basic-info-two-col">
             <div>
-              <label className="basic-info-label">{t("addFood.prepTime")}</label>
+              <label className="basic-info-label">{t("addFood.prepTime")} <span className="red-asterisk">*</span></label>
               <input
                 type="number"
                 className="edit-food-input"
@@ -447,7 +475,7 @@ const AddFoodPage = () => {
               />
             </div>
             <div>
-              <label className="basic-info-label">{t("addFood.cookTime")}</label>
+              <label className="basic-info-label">{t("addFood.cookTime")} <span className="red-asterisk">*</span></label>
               <input
                 type="number"
                 className="edit-food-input"
@@ -459,7 +487,7 @@ const AddFoodPage = () => {
             </div>
           </div>
 
-          <label className="basic-info-label">{t("addFood.ingredientsList")}</label>
+          <label className="basic-info-label">{t("addFood.ingredientsList")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" 
             name="ingredients" 
@@ -469,7 +497,7 @@ const AddFoodPage = () => {
             placeholder={t("addFood.ingredientsListPlace")}
           />
 
-          <label className="basic-info-label">{t("addFood.stepsList")}</label>
+          <label className="basic-info-label">{t("addFood.stepsList")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" 
             name="steps" 
@@ -479,7 +507,7 @@ const AddFoodPage = () => {
             placeholder={t("addFood.stepsListPlace")}
           />
 
-          <label className="basic-info-label">{t("addFood.recipeDescription")}</label>
+          <label className="basic-info-label">{t("addFood.recipeDescription")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" 
             name="recipeDescription" 
@@ -489,7 +517,7 @@ const AddFoodPage = () => {
             placeholder={t("addFood.recipeDescriptionPlace")}
           />
 
-          <label className="basic-info-label">{t("addFood.didYouKnow")}</label>
+          <label className="basic-info-label">{t("addFood.didYouKnow")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" 
             name="didYouKnow" 
@@ -499,7 +527,7 @@ const AddFoodPage = () => {
             placeholder={t("addFood.didYouKnowPlace")}
           />
           
-          <label className="basic-info-label">{t("addFood.chefTips")}</label>
+          <label className="basic-info-label">{t("addFood.chefTips")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" 
             name="chefTips" 
@@ -513,7 +541,7 @@ const AddFoodPage = () => {
         {/* === Cultural Context === */}
         <div className="edit-cultural-context-card">
           <h3>{t("addFood.culturalContext")}</h3>
-          <label className="basic-info-label">{t("addFood.description")}</label>
+          <label className="basic-info-label">{t("addFood.description")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" 
             name="foodDescription" 
@@ -523,7 +551,7 @@ const AddFoodPage = () => {
             placeholder={t("addFood.descriptionPlaceholder")}
           />
 
-          <label className="basic-info-label">{t("addFood.culturalSignificance")}</label>
+          <label className="basic-info-label">{t("addFood.culturalSignificance")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" 
             name="culturalSignificance" 
@@ -533,7 +561,7 @@ const AddFoodPage = () => {
             placeholder={t("addFood.culturalSignificancePlaceholder")}
           />
 
-          <label className="basic-info-label">{t("addFood.traditionalPreparation")}</label>
+          <label className="basic-info-label">{t("addFood.traditionalPreparation")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" 
             name="traditionalPreparation" 
@@ -559,7 +587,7 @@ const AddFoodPage = () => {
               { labelKey: "addFood.vitaminC",      name: "vitaminc",  placeholderKey: "addFood.vitCPlace" },
             ].map((item) => (
               <div key={item.name}>
-                <label className="basic-info-label">{t(item.labelKey)}</label>
+                <label className="basic-info-label">{t(item.labelKey)} <span className="red-asterisk">*</span></label>
                 <input 
                   type="number" 
                   className="edit-food-input" 
@@ -577,7 +605,7 @@ const AddFoodPage = () => {
         <div className="edit-cultural-context-card">
           <h3>{t("addFood.additionalDetails")}</h3>
           
-          <label className="basic-info-label">{t("addFood.commonIngredients")}</label>
+          <label className="basic-info-label">{t("addFood.commonIngredients")} <span className="red-asterisk">*</span></label>
           <div style={chipContainerStyle}>
             {COMMON_INGREDIENTS_LIST.map((ing) => {
               const isSelected = selectedIngredients.includes(ing);
@@ -606,7 +634,7 @@ const AddFoodPage = () => {
           {showOtherIngredient && (
             <div className = "efpage-show-ing">
               <label className="basic-info-label efpage-show-ing-label">
-                {t("addFood.otherIngredientsLabel")}
+                {t("addFood.otherIngredientsLabel")} <span className="red-asterisk">*</span>
               </label>
               <textarea 
                 className="edit-food-textarea" 
@@ -618,7 +646,7 @@ const AddFoodPage = () => {
             </div>
           )}
 
-          <label className="basic-info-label">{t("addFood.dietaryPreferences")}</label>
+          <label className="basic-info-label">{t("addFood.dietaryPreferences")} <span className="red-asterisk">*</span></label>
           <div style={chipContainerStyle}>
             {DIETARY_TAG_OPTIONS.map((tag) => {
               const isSelected = selectedDietary.includes(tag);
@@ -637,7 +665,7 @@ const AddFoodPage = () => {
             })}
           </div>
 
-          <label className="basic-info-label efpage-cultural-label">{t("addFood.healthTips")}</label>
+          <label className="basic-info-label efpage-cultural-label">{t("addFood.healthTips")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" 
             name="healthTips" 
