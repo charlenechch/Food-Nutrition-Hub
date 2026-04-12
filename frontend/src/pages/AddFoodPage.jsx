@@ -162,7 +162,7 @@ const AddFoodPage = () => {
     if (hasEmptyFields || currentCats.length === 0 || !selectedImage) {
       setShowNotification({
         visible: true,
-        message: "Please fill in every single input field and upload an image before saving.",
+        message: t("addFood.fillAllFieldsError"),
         type: "error"
       });
       return; 

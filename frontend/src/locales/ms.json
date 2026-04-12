@@ -878,7 +878,8 @@
     "recipeDescription": "Penerangan Resipi",
     "recipeDescriptionPlace": "cth., Semangkuk Laksa Sarawak tradisional yang kaya dengan aroma dan kepedasan sambal, resipi turun-temurun...",
     "recipeName": "Nama Resipi",
-    "recipeNamePlaceholder": "cth., Ayam Pansuh Tradisional Nenek"
+    "recipeNamePlaceholder": "cth., Ayam Pansuh Tradisional Nenek",
+    "fillAllFieldsError": "Sila lengkapkan setiap ruang maklumat dan muat naik gambar sebelum menyimpan."
   },
 
   "addRecipe": {
