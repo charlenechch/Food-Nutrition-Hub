@@ -1,22 +1,9 @@
-USE railway;
-
 CREATE TABLE sessions (
     session_id varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
     expires int unsigned NOT NULL,
     data mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
     PRIMARY KEY (session_id)
-) 
-
-CREATE TABLE otp (
-    id int NOT NULL AUTO_INCREMENT,
-    userID int NOT NULL,
-    code varchar(6) NOT NULL,
-    expires_at datetime NOT NULL,
-    created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    KEY userID (userID),
-    FOREIGN KEY (userID) REFERENCES user (userID) ON DELETE CASCADE
-) 
+);
 
 CREATE TABLE user (
     userID INT AUTO_INCREMENT PRIMARY KEY,
@@ -39,6 +26,17 @@ CREATE TABLE user (
     deletion_warning_sent TINYINT(1) NOT NULL DEFAULT 0
 );
 
+CREATE TABLE otp (
+    id int NOT NULL AUTO_INCREMENT,
+    userID int NOT NULL,
+    code varchar(6) NOT NULL,
+    expires_at datetime NOT NULL,
+    created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY userID (userID),
+    FOREIGN KEY (userID) REFERENCES user (userID) ON DELETE CASCADE
+);
+
 CREATE TABLE userProfile (
     userProfileID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL UNIQUE,
@@ -56,11 +54,11 @@ CREATE TABLE userProfile (
     likes INT DEFAULT 0,
     totalSubmissions int DEFAULT '0',
     equippedContributorBadge INT DEFAULT NULL,
-    equippedBadge VARCHAR(50) DEFAULT 'novice';
+    equippedBadge VARCHAR(50) DEFAULT 'novice',
     quiz_last_completed_date DATE DEFAULT NULL,
     quiz_current_streak INT DEFAULT 0,
     quiz_longest_streak INT DEFAULT 0,
-    quiz_perfect_days INT DEFAULT 0;
+    quiz_perfect_days INT DEFAULT 0,
     KEY fk_userProfile_user_restrict (userID),
 	CONSTRAINT fk_userProfile_user_restrict FOREIGN KEY (userID) REFERENCES user (userID) ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -87,7 +85,7 @@ CREATE TABLE food (
     VitaminC_mg DECIMAL(6,2),
 	likes_count INT DEFAULT 0,
     liked_by JSON NULL,
-    gram_per_serving DECIMAL(10,2),
+    gram_per_serving DECIMAL(10,2)
 );
 
 CREATE TABLE recipe (
@@ -105,10 +103,10 @@ CREATE TABLE recipe (
     updatedAt TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     admin_feedback TEXT NULL,
     status ENUM('Approved', 'Pending', 'Rejected') DEFAULT 'Pending',
-    publish ENUM('waiting', 'publish') DEFAULT 'waiting';
-    approved_by VARCHAR(255);
+    publish ENUM('waiting', 'publish') DEFAULT 'waiting',
+    approved_by VARCHAR(255),
     approved_at DATETIME DEFAULT NULL,
-    recipeName VARCHAR(100);
+    recipeName VARCHAR(100),
     FOREIGN KEY (foodID) REFERENCES food(foodID) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON UPDATE CASCADE ON DELETE CASCADE
 );
@@ -125,7 +123,7 @@ CREATE TABLE posts (
     photos TEXT NOT NULL,
     recipe TEXT NULL,
     admin_feedback TEXT NULL,
-    approved_by VARCHAR(255);
+    approved_by VARCHAR(255),
     approved_at DATETIME DEFAULT NULL,
 	FOREIGN KEY (userProfileID) REFERENCES userProfile (userProfileID) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -236,7 +234,7 @@ CREATE TABLE xp_logs (
     xp_awarded INT NOT NULL, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_xp_userProfile FOREIGN KEY (userProfileID) 
-        REFERENCES userProfile(userProfileID) ON DELETE CASCADE ON UPDATE CASCADE
+	REFERENCES userProfile(userProfileID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE recipe_ratings (
@@ -251,34 +249,32 @@ CREATE TABLE recipe_ratings (
 );
 
 CREATE TABLE badge (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  userProfileID INT NOT NULL,
-  badge_type VARCHAR(50) NOT NULL,
-  awarded_month VARCHAR(7) DEFAULT NULL,
-  seen TINYINT(1) DEFAULT 0,
-  awarded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID)
-    ON DELETE CASCADE ON UPDATE CASCADE
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    userProfileID INT NOT NULL,
+    badge_type VARCHAR(50) NOT NULL,
+    awarded_month VARCHAR(7) DEFAULT NULL,
+    seen TINYINT(1) DEFAULT 0,
+    awarded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE quiz_questions (
-  questionID INT AUTO_INCREMENT PRIMARY KEY,
-  foodID INT NOT NULL,
-  question TEXT NOT NULL,
-  options JSON NOT NULL,
-  correctAnswer VARCHAR(255) NOT NULL,
-  explanation TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    questionID INT AUTO_INCREMENT PRIMARY KEY,
+    foodID INT NOT NULL,
+    question TEXT NOT NULL,
+    options JSON NOT NULL,
+    correctAnswer VARCHAR(255) NOT NULL,
+    explanation TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE leaderboardSnapshot (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  snapshot_month VARCHAR(7) NOT NULL,
-  type VARCHAR(20) NOT NULL,
-  rank_position INT NOT NULL,
-  userProfileID INT NOT NULL,
-  contributions INT NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID)
-    ON DELETE CASCADE ON UPDATE CASCADE
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    snapshot_month VARCHAR(7) NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    rank_position INT NOT NULL,
+    userProfileID INT NOT NULL,
+    contributions INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userProfileID) REFERENCES userProfile(userProfileID) ON DELETE CASCADE ON UPDATE CASCADE
 );
