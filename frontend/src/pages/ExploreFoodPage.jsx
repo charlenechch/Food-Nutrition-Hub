@@ -502,19 +502,19 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         {totalPages > 1 && (
           <div className="community-pagination">
             <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1} className="community-page-btn nav-btn">
+              disabled={currentPage === 1} className="community-page-btn nav-btn lrp-no-outline">
               ← {t("explore.prev")}
             </button>
             <div className="page-numbers">
               {[...Array(totalPages)].map((_, i) => (
                 <button key={i + 1} onClick={() => setCurrentPage(i + 1)}
-                  className={`community-page-btn page-num ${currentPage === i + 1 ? "active" : ""}`}>
+                  className={`lrp-no-outline community-page-btn page-num ${currentPage === i + 1 ? "active" : ""}`}>
                   {i + 1}
                 </button>
               ))}
             </div>
             <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages} className="community-page-btn nav-btn">
+              disabled={currentPage === totalPages} className="community-page-btn nav-btn lrp-no-outline">
               {t("explore.next")} →
             </button>
           </div>
