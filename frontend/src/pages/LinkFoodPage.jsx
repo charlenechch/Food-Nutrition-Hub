@@ -215,6 +215,30 @@ const LinkFoodPage = () => {
     });
   };
 
+  const handleSaveAttempt = () => {
+    const requiredFields = [
+      "linkedFood", "recipeName", "difficulty", "servings", "prepTime",
+      "cookTime", "ingredients", "steps", "recipeDescription", "didYouKnow",
+      "chefTips", "calories", "protein", "carbs", "fat", "fiber", "vitaminc"
+    ];
+
+    const hasEmptyFields = requiredFields.some((key) => {
+      const value = food[key];
+      return value === undefined || value === null || String(value).trim() === "";
+    });
+
+    if (hasEmptyFields || !selectedImage) {
+      setShowNotification({
+        visible: true,
+        message: t("addFood.fillAllFieldsError"), 
+        type: "error"
+      });
+      return; 
+    }
+    
+    setShowSaveConfirm(true);
+  };
+
   const handleConfirmLink = async () => {
     setShowSaveConfirm(false);
 
@@ -332,9 +356,9 @@ const LinkFoodPage = () => {
             <h2>{t("addFood.linkRecipeTitle")}</h2>
           </div>
 
-          <button className="admin-edit-food-save-btn" onClick={() => setShowSaveConfirm(true)}>
+          <button className="admin-edit-food-save-btn" onClick={handleSaveAttempt}>
             <span className="admin-edit-food-save-icon"><FiLink /></span>
-            {t("addFood.linkBtn")}
+            {t("addFood.linkFoodBtn")}
           </button>
         </div>
 
@@ -420,7 +444,7 @@ const LinkFoodPage = () => {
           <div className="edit-food-basic-info-card">
             <h3>{t("addFood.basicInfo")}</h3>
             
-            <label className="basic-info-label">{t("addFood.foodName")}</label>
+            <label className="basic-info-label">{t("addFood.foodName")} <span className="red-asterisk">*</span></label>
             <input
               className="edit-food-input"
               name="name"
@@ -430,7 +454,7 @@ const LinkFoodPage = () => {
             />
 
             <div className="food-origin-field">
-              <label className="basic-info-label">{t("addFood.regionOfOrigin")}</label>
+              <label className="basic-info-label">{t("addFood.regionOfOrigin")} <span className="red-asterisk">*</span></label>
               <div className="custom-select-wrapper">
                 <select 
                   className="edit-food-select" 
@@ -447,7 +471,7 @@ const LinkFoodPage = () => {
             </div>
 
             <div className="food-category-field afp-category">
-              <label className="basic-info-label">{t("addFood.category")}</label>
+              <label className="basic-info-label">{t("addFood.category")} <span className="red-asterisk">*</span></label>
               <div className="dietary-preferences-grid">
                 {FOOD_TYPE_OPTIONS.map((cat) => {
                   const currentCats = Array.isArray(food.category) ? food.category : [];
@@ -466,13 +490,13 @@ const LinkFoodPage = () => {
         {/* === Cultural Context === */}
         <div className="edit-cultural-context-card">
           <h3>{t("addFood.culturalContext")}</h3>
-          <label className="basic-info-label">{t("addFood.description")}</label>
+          <label className="basic-info-label">{t("addFood.description")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" name="description" value={food.description} 
             onChange={handleChange} rows={4} placeholder={t("addFood.descriptionPlaceholder")}
           />
 
-          <label className="basic-info-label">{t("addFood.culturalSignificance")}</label>
+          <label className="basic-info-label">{t("addFood.culturalSignificance")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" name="culturalSignificance" value={food.culturalSignificance} 
             onChange={handleChange} rows={4} placeholder={t("addFood.culturalSignificancePlaceholder")}
@@ -500,7 +524,7 @@ const LinkFoodPage = () => {
               { labelKey: "addFood.vitaminC",      name: "vitaminc",  placeholderKey: "addFood.vitCPlace" },
             ].map((item) => (
               <div key={item.name}>
-                <label className="basic-info-label">{t(item.labelKey)}</label>
+                <label className="basic-info-label">{t(item.labelKey)} <span className="red-asterisk">*</span></label>
                 <input 
                   type="number" className="edit-food-input" name={item.name} 
                   value={food[item.name]} onChange={handleChange} placeholder={t(item.placeholderKey)}
@@ -514,7 +538,7 @@ const LinkFoodPage = () => {
         <div className="edit-cultural-context-card">
           <h3>{t("addFood.additionalDetails")}</h3>
           
-          <label className="basic-info-label">{t("addFood.commonIngredients")}</label>
+          <label className="basic-info-label">{t("addFood.commonIngredients")} <span className="red-asterisk">*</span></label>
           <div style={chipContainerStyle}>
             {COMMON_INGREDIENTS_LIST.map((ing) => {
               const isSelected = selectedIngredients.includes(ing);
@@ -534,7 +558,7 @@ const LinkFoodPage = () => {
           {showOtherIngredient && (
             <div className = "efpage-show-ing">
               <label className="basic-info-label efpage-show-ing-label">
-                {t("addFood.otherIngredientsLabel")}
+                {t("addFood.otherIngredientsLabel")} <span className="red-asterisk">*</span>
               </label>
               <textarea 
                 className="edit-food-textarea" value={otherIngredientText} onChange={(e) => setOtherIngredientText(e.target.value)}
@@ -543,7 +567,7 @@ const LinkFoodPage = () => {
             </div>
           )}
 
-          <label className="basic-info-label">{t("addFood.dietaryPreferences")}</label>
+          <label className="basic-info-label">{t("addFood.dietaryPreferences")} <span className="red-asterisk">*</span></label>
           <div style={chipContainerStyle}>
             {DIETARY_TAG_OPTIONS.map((tag) => {
               const isSelected = selectedDietary.includes(tag);
@@ -555,7 +579,7 @@ const LinkFoodPage = () => {
             })}
           </div>
 
-          <label className="basic-info-label efpage-cultural-label">{t("addFood.healthTips")}</label>
+          <label className="basic-info-label efpage-cultural-label">{t("addFood.healthTips")} <span className="red-asterisk">*</span></label>
           <textarea 
             className="edit-food-textarea" name="healthTips" value={food.healthTips} 
             onChange={handleChange} rows={2} placeholder={t("addFood.healthTipsPlaceholder")}
