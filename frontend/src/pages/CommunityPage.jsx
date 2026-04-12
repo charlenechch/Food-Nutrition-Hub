@@ -179,7 +179,7 @@ export default function Community() {
               <p>{t("community.shareSubtitle")}</p>
             </div>
             {!expanded && (
-              <button className="share-cta-btn" onClick={handleExpand}>
+              <button className="share-cta-btn lrp-no-outline" onClick={handleExpand}>
                 {isAuthenticated ? t("community.addStory") : t("community.loginToShare2")}
               </button>
             )}
@@ -374,13 +374,13 @@ export default function Community() {
 
               {totalPages > 1 && (
                 <div className="community-pagination">
-                  <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="community-page-btn nav-btn">← {t("explore.prev")}</button>
+                  <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="community-page-btn nav-btn lrp-no-outline">← {t("explore.prev")}</button>
                   <div className="page-numbers">
                     {[...Array(totalPages)].map((_, i) => (
-                      <button key={i + 1} onClick={() => paginate(i + 1)} className={`community-page-btn page-num ${currentPage === i + 1 ? "active" : ""}`}>{i + 1}</button>
+                      <button key={i + 1} onClick={() => paginate(i + 1)} className={`lrp-no-outline community-page-btn page-num ${currentPage === i + 1 ? "active" : ""}`}>{i + 1}</button>
                     ))}
                   </div>
-                  <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="community-page-btn nav-btn">{t("explore.next")} →</button>
+                  <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="community-page-btn nav-btn lrp-no-outline">{t("explore.next")} →</button>
                 </div>
               )}
             </>
