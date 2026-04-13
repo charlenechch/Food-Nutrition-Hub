@@ -109,15 +109,23 @@ export default function ResetPasswordPage() {
 
       // Sync with backend if needed
       if (email && csrfToken) {
-        await fetch(`${API_URL}/api/auth/updatePassword`, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "X-CSRF-Token": csrfToken
-          },
-          credentials: "include",
-          body: JSON.stringify({ email, newPassword: pwd }),
-        });
+        try {
+          const syncRes = await fetch(`${API_URL}/api/auth/updatePassword`, {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "X-CSRF-Token": csrfToken
+            },
+            credentials: "include",
+            body: JSON.stringify({ email, newPassword: pwd }),
+          });
+
+          if (!syncRes.ok) {
+            console.error("❌ Failed to sync password with backend");
+          }
+        } catch (syncErr) {
+          console.error("❌ Backend sync error:", syncErr);
+        }
       }
 
       setSuccess(true);
