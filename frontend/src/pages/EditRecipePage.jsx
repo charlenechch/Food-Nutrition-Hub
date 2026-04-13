@@ -340,7 +340,7 @@ const EditRecipePage = () => {
                   ></textarea>
                   {(recipe.status === "Approved" || recipe.status === "Rejected") && (
                     <button
-                      className="approve-btn"
+                      className="approve-btn lrp-no-outline"
                       style={{ marginTop: "10px" }}
                       onClick={handleSendFeedback}
                     >
