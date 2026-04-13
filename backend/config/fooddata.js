@@ -102,7 +102,7 @@ const foods = [
 
   {
     name: "Terung Asam",
-    origin: "Dayak",
+    origin: "Iban",
     category: "Vegetables",
     difficulty: "medium",
     dietaryTags: ["gluten-free", "dairy-free", "nut-free", "halal", "spicy"],
