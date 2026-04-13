@@ -554,7 +554,7 @@ export default function LoginRegisterPage() {
 
                     <button 
                       onClick={handleVerifyOtp} 
-                      className="mh-btn-primary" 
+                      className="mh-btn-primary lrp-no-outline" 
                       disabled={isVerifyingOtp}
                     >
                       {isVerifyingOtp ? t("auth.verifying") : t("auth.verifyCode")}
@@ -562,13 +562,13 @@ export default function LoginRegisterPage() {
 
                     <button 
                       onClick={handleResendOtp} 
-                      className="mh-btn-text" 
+                      className="mh-btn-text lrp-no-outline" 
                       disabled={resendCooldown > 0}
                     >
                       {resendCooldown > 0 ? t("auth.resendCodeIn", { seconds: resendCooldown }) : t("auth.resendCode")}
                     </button>
                     
-                    <button onClick={() => setShowOtpInput(false)} className="mh-btn-text-small">
+                    <button onClick={() => setShowOtpInput(false)} className="mh-btn-text-small lrp-no-outline">
                       <FaArrowRight style={{ transform: "rotate(180deg)" }}/> {t("auth.backToLogin")}
                     </button>
                   </div>
@@ -580,7 +580,7 @@ export default function LoginRegisterPage() {
                   {showResendButton && (
                     <button
                       type="button"
-                      className="mh-btn-text"
+                      className="mh-btn-text lrp-no-outline"
                       onClick={handleResendVerification}
                       disabled={resendCooldown > 0 || isResending}
                     >
@@ -632,14 +632,14 @@ export default function LoginRegisterPage() {
                     <span onClick={() => navigate("/forgotpassword")} className="mh-forgot">{t("auth.forgotPassword")}</span>
                   </div>
 
-                  <button onClick={handleLogin} className="mh-btn-primary">
+                  <button onClick={handleLogin} className="mh-btn-primary lrp-no-outline">
                     {t("auth.signIn")} <FaArrowRight className="btn-arrow"/>
                   </button>
 
                   <div className="mh-google-wrapper">
                     <button 
                       onClick={handleGoogleLogin} 
-                      className="mh-btn-google"
+                      className="mh-btn-google lrp-no-outline"
                       type="button" 
                     >
                       <img 
@@ -724,13 +724,13 @@ export default function LoginRegisterPage() {
                   </label>
                 </div>
 
-                <button onClick={handleRegister} className="mh-btn-primary">{t("auth.createAccount")}</button>
+                <button onClick={handleRegister} className="mh-btn-primary lrp-no-outline">{t("auth.createAccount")}</button>
 
                 <div className="mh-google-wrapper">
                   <button
                     onClick={handleGoogleLogin}
                     className="mh-btn-google"
-                    type="button"
+                    type="button lrp-no-outline"
                   >
                     <img
                       src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -749,7 +749,7 @@ export default function LoginRegisterPage() {
             {!showOtpInput && (
               <>
                 <div className="mh-separator"><span>{t("auth.or")}</span></div>
-                <button onClick={handleGuest} className="mh-btn-outline">{t("auth.continueAsGuest")}</button>
+                <button onClick={handleGuest} className="mh-btn-outline lrp-no-outline">{t("auth.continueAsGuest")}</button>
               </>
             )}
           </div>
