@@ -729,8 +729,8 @@ export default function LoginRegisterPage() {
                 <div className="mh-google-wrapper">
                   <button
                     onClick={handleGoogleLogin}
-                    className="mh-btn-google"
-                    type="button lrp-no-outline"
+                    className="mh-btn-google lrp-no-outline"
+                    type="button"
                   >
                     <img
                       src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"

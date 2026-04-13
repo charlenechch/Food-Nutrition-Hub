@@ -110,7 +110,7 @@ export default function ForgotPasswordPage() {
 
                 <button 
                   type="submit" 
-                  className="mh-btn-primary" 
+                  className="mh-btn-primary lrp-no-outline" 
                   disabled={loading}
                 >
                   {loading ? t("forgotPassword.sending") : t("forgotPassword.sendResetLink")}
@@ -120,7 +120,7 @@ export default function ForgotPasswordPage() {
 
                 <button
                   type="button"
-                  className="mh-back-btn"
+                  className="mh-back-btn lrp-no-outline"
                   onClick={() => navigate("/loginregister")}
                 >
                   <FaArrowLeft /> {t("auth.backToLogin")}
@@ -145,7 +145,7 @@ export default function ForgotPasswordPage() {
 
               <button
                 type="button"
-                className="mh-btn-primary"
+                className="mh-btn-primary lrp-no-outline"
                 onClick={() => navigate("/loginregister")}
               >
                 {t("auth.backToLogin")}
