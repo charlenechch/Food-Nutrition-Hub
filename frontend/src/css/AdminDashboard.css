@@ -310,8 +310,7 @@
 }
 
 .admin-beige-trigger:focus, .admin-beige-trigger:focus-visible, .admin-beige-trigger:active,
-.admin-food-btn-filter:focus, .admin-food-btn-filter:focus-visible, .admin-food-btn-filter:active, 
-.advanced-filters:focus, .advanced-filters:focus-visible, .advanced-filters:active {
+.admin-food-btn-filter:focus, .admin-food-btn-filter:focus-visible, .admin-food-btn-filter:active {
   outline: none;
   box-shadow: 0 0 0 2px #d5c2ac;
 }
