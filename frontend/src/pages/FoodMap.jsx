@@ -231,7 +231,7 @@ export default function FoodMap() {
           {!loading && (
             <span className="foodmap-count">{pins.length} restaurants</span>
           )}
-          <button className="foodmap-nearbtn" onClick={geolocate}>
+          <button className="foodmap-nearbtn lrp-no-outline" onClick={geolocate}>
             📍 Near Me
           </button>
         </div>
@@ -240,14 +240,14 @@ export default function FoodMap() {
         {geoError && (
           <div className="foodmap-geo-error">
             ⚠️ {geoError}
-            <button onClick={() => setGeoError(null)}>✕</button>
+            <button className = "lrp-no-outline" onClick={() => setGeoError(null)}>✕</button>
           </div>
         )}
 
         {/* FOOD FILTER CHIPS */}
         <div className="foodmap-cats">
           <button
-            className={`foodmap-cat-chip ${activeFilter === "all" ? "active-all" : ""}`}
+            className={`foodmap-cat-chip lrp-no-outline ${activeFilter === "all" ? "active-all" : ""}`}
             onClick={() => handleChipClick("all")}
           >
             🍽️ All Foods
@@ -255,7 +255,7 @@ export default function FoodMap() {
           {Object.entries(FOODS).map(([name, meta]) => (
             <button
               key={name}
-              className={`foodmap-cat-chip ${activeFilter === name ? "active-cat" : ""}`}
+              className={`foodmap-cat-chip lrp-no-outline ${activeFilter === name ? "active-cat" : ""}`}
               style={activeFilter === name
                 ? { borderColor: meta.color, background: meta.color + "14", color: meta.color }
                 : {}
@@ -382,8 +382,8 @@ export default function FoodMap() {
 
             {/* Zoom */}
             <div className="foodmap-zoom">
-              <button className="foodmap-zoom-btn" onClick={() => mapRef.current?.zoomIn()}>+</button>
-              <button className="foodmap-zoom-btn" onClick={() => mapRef.current?.zoomOut()}>−</button>
+              <button className="foodmap-zoom-btn lrp-no-outline" onClick={() => mapRef.current?.zoomIn()}>+</button>
+              <button className="foodmap-zoom-btn lrp-no-outline" onClick={() => mapRef.current?.zoomOut()}>−</button>
             </div>
 
             {/* Detail card */}
@@ -454,7 +454,7 @@ function DetailCard({ pin, onClose, onDirections }) {
   return (
     <div className="foodmap-detail">
       <div className="foodmap-detail-head" style={{ background: meta.color }}>
-        <button className="foodmap-detail-close" onClick={onClose}>✕</button>
+        <button className="foodmap-detail-close lrp-no-outline" onClick={onClose}>✕</button>
         {pin.food && (
           <div className="foodmap-detail-cat-badge">
             {meta.emoji} {pin.food}
@@ -497,8 +497,8 @@ function DetailCard({ pin, onClose, onDirections }) {
           {pin.open_now === false && <span className="foodmap-closed">Closed</span>}
         </div>
         <div className="foodmap-detail-actions">
-          <button className="foodmap-detail-btn" onClick={onDirections}>🗺️ Directions</button>
-          <button className="foodmap-detail-btn primary"
+          <button className="foodmap-detail-btn lrp-no-outline" onClick={onDirections}>🗺️ Directions</button>
+          <button className="foodmap-detail-btn primary lrp-no-outline"
             style={{ background: meta.color, borderColor: meta.color }}>
             🔖 Save
           </button>
