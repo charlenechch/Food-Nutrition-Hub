@@ -72,12 +72,12 @@ function DishSpotlight({ allFoods, navigate, t }) {
           </p>
           <div className="home-dish-spotlight-actions">
             <button
-              className="home-dish-btn-primary"
+              className="home-dish-btn-primary lrp-no-outline"
               onClick={() => navigate(dishId ? `/fooddetail/${dishId}` : `/foods?search=${encodeURIComponent(dish.name)}`)}
             >
               {t("home.exploreDish", "Explore this dish")}
             </button>
-            <button className="home-dish-btn-link" onClick={() => navigate("/analyzer")}>
+            <button className="home-dish-btn-link lrp-no-outline" onClick={() => navigate("/analyzer")}>
               {t("home.viewNutrition", "View nutrition →")}
             </button>
           </div>
@@ -332,7 +332,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
                   onBlur={() => setIsCarouselPaused(false)}
                   autoComplete="off"
                 />
-                <button type="submit" className="search-button">{t("home.searchBtn")}</button>
+                <button type="submit" className="search-button lrp-no-outline">{t("home.searchBtn")}</button>
               </div>
             </form>
 
