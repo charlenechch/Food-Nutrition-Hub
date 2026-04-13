@@ -26,7 +26,7 @@ export default function TermsAndConditionsPage() {
       <Header />
 
       <div className="terms-content-wrapper">
-        <button className="terms-back-btn" onClick={() => navigate(-1)}>
+        <button className="lrp-no-outline terms-back-btn" onClick={() => navigate(-1)}>
           <FaArrowLeft /> {t("termsAndConditions.back")}
         </button>
 
