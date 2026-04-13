@@ -406,7 +406,7 @@ const AdminQuizDatabase = () => {
           <div className="add-options-modal quiz-form-modal" onClick={(e) => e.stopPropagation()}>
             <div className="add-options-header">
               <h3>{editingQuestion ? t("adminQuizDB.editQuestion") : t("adminQuizDB.addNewQuestion")}</h3>
-              <button className="add-options-close" onClick={() => setIsModalOpen(false)}>×</button>
+              <button className="add-options-close lrp-no-outline" onClick={() => setIsModalOpen(false)}>×</button>
             </div>
             
             <div className="add-options-body quiz-modal-scrollable">
@@ -490,8 +490,8 @@ const AdminQuizDatabase = () => {
             </div>
 
             <div className="modal-actions aqd-modal-actions">
-              <button className="cancel-btn" onClick={() => setIsModalOpen(false)}>{t("adminQuizDB.cancel")}</button>
-              <button className="quiz-save-btn" onClick={handleSave}>{t("adminQuizDB.saveQuestion")}</button>
+              <button className="cancel-btn lrp-no-outline" onClick={() => setIsModalOpen(false)}>{t("adminQuizDB.cancel")}</button>
+              <button className="quiz-save-btn lrp-no-outline" onClick={handleSave}>{t("adminQuizDB.saveQuestion")}</button>
             </div>
           </div>
         </div>
