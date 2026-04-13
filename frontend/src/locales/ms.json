@@ -1560,8 +1560,8 @@
     "contributorModalTitle": "Tahniah!",
     "contributorModalMessage": "Anda menduduki tempat #1 dalam papan kedudukan {{title}} pada {{month}}. Lencana anda telah diberikan!",
     "contributorModalBtn": "Tuntut Lencana",
-    "unlocksAtStreak": "Dinyahkunci pada 7 hari berturut-turut",
-    "unlocksAtPerfect": "Dinyahkunci selepas 10 kuiz sempurna"
+    "unlocksAtStreak": "Terbuka pada 7 hari berturut-turut",
+    "unlocksAtPerfect": "Terbuka selepas 10 kuiz sempurna"
   },
 
   "leaderboard": {
