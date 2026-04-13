@@ -645,7 +645,8 @@
     "checkInbox": "Check your inbox",
     "sentTo": "We've sent a secure reset link to",
     "tipSpam": "• Check your spam folder if you don't see it.",
-    "tipExpiry": "• The link expires in 1 hour."
+    "tipExpiry": "• The link expires in 1 hour.",
+    "emailNotFound": "No account found with that email address."
   },
   
   "resetPassword": {

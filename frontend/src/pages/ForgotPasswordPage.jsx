@@ -42,6 +42,12 @@ export default function ForgotPasswordPage() {
       });
       const checkData = await checkRes.json();
 
+      if (!checkData.exists) {
+        setError(t("forgotPassword.emailNotFound"));
+        setLoading(false);
+        return;
+      }
+
       if (checkData.isGoogleUser) {
         setError("You signed up with Google. Please use Google to sign in.");
         setLoading(false);

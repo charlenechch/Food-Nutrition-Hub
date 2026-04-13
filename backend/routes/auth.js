@@ -562,13 +562,13 @@ router.post("/checkLoginMethod", async (req, res) => {
       [email]
     );
 
-    // If no user found, return isGoogleUser: false so the forgot password flow continues normally
+    // If no user found, tell the frontend so it can block the reset flow
     if (users.length === 0) {
-      return res.json({ isGoogleUser: false });
+      return res.json({ exists: false, isGoogleUser: false });
     }
 
     const isGoogleUser = users[0].password === null;
-    return res.json({ isGoogleUser });
+    return res.json({ exists: true, isGoogleUser });
 
   } catch (err) {
     console.error("checkLoginMethod error:", err);

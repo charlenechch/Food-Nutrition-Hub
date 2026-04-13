@@ -644,7 +644,8 @@
     "checkInbox": "Semak peti masuk anda",
     "sentTo": "Kami telah menghantar pautan tetapan semula selamat ke",
     "tipSpam": "• Semak folder spam jika anda tidak menemuinya.",
-    "tipExpiry": "• Pautan ini tamat tempoh dalam 1 jam."
+    "tipExpiry": "• Pautan ini tamat tempoh dalam 1 jam.",
+    "emailNotFound": "Tiada akaun yang dijumpai dengan alamat e-mel tersebut."
   },
 
   "resetPassword": {
