@@ -268,7 +268,7 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                 <div className="comment-text-content">{c.text}</div>
               </div>
               {canDeleteComment(c.userProfileID) && (
-                <button className="delete-icon-btn" onClick={() => openDeleteModal(c.id)} title={t("communityPost.deleteComment")}>
+                <button className="delete-icon-btn lrp-no-outline" onClick={() => openDeleteModal(c.id)} title={t("communityPost.deleteComment")}>
                   <i className="fas fa-trash-alt"></i>
                 </button>
               )}
@@ -333,7 +333,7 @@ export default function CommunityPost() {
       <Header />
       <div className="community-page" style={{ marginTop: "100px" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 20px" }}>
-          <button className="back-btn" style={{ marginBottom: "20px" }} onClick={() => navigate("/community")}>
+          <button className="back-btn lrp-no-outline" style={{ marginBottom: "20px" }} onClick={() => navigate("/community")}>
             {t("communityPost.backToCommunity")}
           </button>
         </div>

@@ -235,10 +235,10 @@ export default function Community() {
                   <input id="file-input" type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageUpload} />
                 </div>
                 <div className="form-actions">
-                  <button type="submit" className="submit-btn" disabled={submitting}>
+                  <button type="submit" className="submit-btn lrp-no-outline" disabled={submitting}>
                     {submitting ? t("community.submitting") : t("community.submitBtn")}
                   </button>
-                  <button type="button" className="cancel-btn" onClick={resetForm}>{t("community.cancel")}</button>
+                  <button type="button" className="cancel-btn lrp-no-outline" onClick={resetForm}>{t("community.cancel")}</button>
                 </div>
               </form>
             </div>
