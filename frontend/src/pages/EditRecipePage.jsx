@@ -215,8 +215,8 @@ const EditRecipePage = () => {
     <div className="admin-review-page">
       <Header />
 
-      <div className="admin-review-header">
-        <button className="admin-recipe-edit-back-btn" onClick={handleBack}>
+      <div className="admin-review-header">admin-edit-food-back-btn
+        <button className="admin-edit-food-back-btn" onClick={handleBack}>
           <span className="recipe-edit-btn"><FaArrowLeft /></span> {backButtonText}
         </button>
         <div className="review-title">

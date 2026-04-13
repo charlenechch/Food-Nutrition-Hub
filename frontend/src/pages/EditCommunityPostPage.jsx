@@ -244,7 +244,7 @@ const EditCommunityPostPage = () => {
       <Header />
 
       <div className="admin-review-header">
-        <button className="admin-recipe-edit-back-btn" onClick={handleBack}>
+        <button className="admin-edit-food-back-btn" onClick={handleBack}>
           <span className="recipe-edit-btn"><FaArrowLeft /></span> {backButtonText}
         </button>
 
