@@ -316,13 +316,13 @@ const Analytics = () => {
             <label className="filter-label">{t("analytics.viewType")}</label>
             <div className="timeframe-tabs">
               <button 
-                className={`timeframe-tab ${timeframeType === 'yearly' ? 'active' : ''}`}
+                className={`timeframe-tab lrp-no-outline ${timeframeType === 'yearly' ? 'active' : ''}`}
                 onClick={() => handleTimeframeTypeChange('yearly')}
               >
                 {t("analytics.yearlyView")}
               </button>
               <button 
-                className={`timeframe-tab ${timeframeType === 'monthly' ? 'active' : ''}`}
+                className={`timeframe-tab lrp-no-outline ${timeframeType === 'monthly' ? 'active' : ''}`}
                 onClick={() => handleTimeframeTypeChange('monthly')}
               >
                 {t("analytics.monthlyView")}
@@ -517,13 +517,13 @@ const Analytics = () => {
                 </h3>
                 <div className="view-toggle">
                   <button 
-                    className={`toggle-btn ${viewMode === 'recipes' ? 'active' : ''}`}
+                    className={`toggle-btn lrp-no-outline ${viewMode === 'recipes' ? 'active' : ''}`}
                     onClick={() => handleViewModeChange('recipes')}
                   >
                     {t("analytics.recipes")}
                   </button>
                   <button 
-                    className={`toggle-btn ${viewMode === 'stories' ? 'active' : ''}`}
+                    className={`toggle-btn lrp-no-outline ${viewMode === 'stories' ? 'active' : ''}`}
                     onClick={() => handleViewModeChange('stories')}
                   >
                     {t("analytics.stories")}
