@@ -40,7 +40,7 @@ export default function Modal({
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="lrp-modal-close"
+          className="lrp-modal-close lrp-no-outline"
           aria-label="Close"
           onClick={onClose}
         >
