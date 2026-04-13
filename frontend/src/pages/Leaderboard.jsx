@@ -212,19 +212,19 @@ const Leaderboard = () => {
 
       <div className="tabs">
         <button
-          className={`tab-btn ${activeTab === "recipes" ? "active" : ""}`}
+          className={`lrp-no-outline tab-btn ${activeTab === "recipes" ? "active" : ""}`}
           onClick={() => setActiveTab("recipes")}
         >
           🍳 {t("leaderboard.top_recipe_contributors")}
         </button>
         <button
-          className={`tab-btn ${activeTab === "posts" ? "active" : ""}`}
+          className={`lrp-no-outline tab-btn ${activeTab === "posts" ? "active" : ""}`}
           onClick={() => setActiveTab("posts")}
         >
           💬 {t("leaderboard.top_community_posters")}
         </button>
         <button
-          className={`tab-btn ${activeTab === "level" ? "active" : ""}`}
+          className={`lrp-no-outline tab-btn ${activeTab === "level" ? "active" : ""}`}
           onClick={() => setActiveTab("level")}
         >
           ⭐ {t("leaderboard.level_leaders")}
