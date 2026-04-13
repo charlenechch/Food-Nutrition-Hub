@@ -492,7 +492,6 @@
     "referenceId": "ID Rujukan: #{{id}}",
     "deletedRecipe": "Resipi Dibuang #{{id}}",
     "deletedPost": "Siaran Dibuang #{{id}}",
-    "deletedItem": "Item #{{id}}",
     "prev": "‹ Sebelum",
     "next": "Seterusnya ›",
     "action_RECIPE_APPROVED": "Resipi Diluluskan",

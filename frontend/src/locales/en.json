@@ -493,7 +493,6 @@
     "referenceId": "Reference ID: #{{id}}",
     "deletedRecipe": "Deleted Recipe #{{id}}",
     "deletedPost": "Deleted Post #{{id}}",
-    "deletedItem": "Item #{{id}}",
     "prev": "‹ Prev",
     "next": "Next ›",
     "action_RECIPE_APPROVED": "Recipe Approved",
