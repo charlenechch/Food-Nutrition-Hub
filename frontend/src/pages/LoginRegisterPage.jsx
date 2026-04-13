@@ -735,9 +735,9 @@ export default function LoginRegisterPage() {
                     <img
                       src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
                       alt="G"
-                      className="mh-google-icon"
+                      className="mh-google-icon "
                     />
-                    {t("auth.continueWithGoogle")}
+                    {t("auth.continueWithGoogle lrp-no-outline")}
                   </button>
                   <p className="mh-google-note">
                     {t("auth.googleSignUpNote")}
