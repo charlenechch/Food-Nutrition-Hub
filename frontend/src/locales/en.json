@@ -1559,7 +1559,9 @@
     "contributorBadgeLocked": "Earn by ranking #1 on the monthly leaderboard.",
     "contributorModalTitle": "Congratulations!",
     "contributorModalMessage": "You ranked #1 on the {{title}} leaderboard in {{month}}. Your badge has been awarded!",
-    "contributorModalBtn": "Claim Badge"
+    "contributorModalBtn": "Claim Badge",
+    "unlocksAtStreak": "Unlocks at 7-day streak",
+    "unlocksAtPerfect": "Unlocks after 10 perfect quizzes"
   },
 
   "leaderboard": {

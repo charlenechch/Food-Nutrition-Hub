@@ -1501,7 +1501,11 @@ const handleDeleteAccount = async () => {
                       </p>
                       {!isUnlocked && (
                         <span className="upp-locked-text">
-                          {t("gamification.unlocksAtLevel", { level: tier.minLevel })}
+                          {tier.id === "streak_master"
+                            ? t("gamification.unlocksAtStreak")
+                            : tier.id === "food_encyclopedia"
+                            ? t("gamification.unlocksAtPerfect")
+                            : t("gamification.unlocksAtLevel", { level: tier.minLevel })}
                         </span>
                       )}
 

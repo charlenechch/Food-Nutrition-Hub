@@ -1559,7 +1559,9 @@
     "contributorBadgeLocked": "Raih dengan menduduki tempat #1 dalam papan kedudukan bulanan.",
     "contributorModalTitle": "Tahniah!",
     "contributorModalMessage": "Anda menduduki tempat #1 dalam papan kedudukan {{title}} pada {{month}}. Lencana anda telah diberikan!",
-    "contributorModalBtn": "Tuntut Lencana"
+    "contributorModalBtn": "Tuntut Lencana",
+    "unlocksAtStreak": "Dinyahkunci pada 7 hari berturut-turut",
+    "unlocksAtPerfect": "Dinyahkunci selepas 10 kuiz sempurna"
   },
 
   "leaderboard": {
