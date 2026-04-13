@@ -254,7 +254,7 @@ export default function DailyQuizPage() {
           <p className="quiz-normal-score" style={{ margin: '20px 0' }}>
             {t('quiz.alreadyCompletedDesc', "You've already completed today's quiz. Come back tomorrow to keep your streak alive!")}
           </p>
-          <button onClick={() => navigate('/')} className="quiz-btn-primary dqp-div-btn">
+          <button onClick={() => navigate('/')} className="lrp-no-outline quiz-btn-primary dqp-div-btn">
             {t('quiz.returnBtn', 'Return Home')}
           </button>
         </div>
@@ -285,7 +285,7 @@ export default function DailyQuizPage() {
 
         <button 
           onClick={() => navigate('/')}
-          className="quiz-btn-primary dqp-div-btn"
+          className="lrp-no-outline quiz-btn-primary dqp-div-btn"
           disabled={isSubmitting} 
         >
           {isSubmitting ? t('quiz.saving', 'Saving Results...') : t('quiz.returnBtn', 'Return Home')}
@@ -301,7 +301,7 @@ export default function DailyQuizPage() {
         <div className="dqp-no-ques quiz-page-container dqp-div2" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh', flexDirection: 'column' }}>
           <h2>{t('quiz.noQuestions', 'No Questions Available')}</h2>
           <p style={{ marginTop: '10px', color: '#666' }}>The admin hasn't added any questions to the database yet!</p>
-          <button onClick={() => navigate(-1)} className="lrp-btn lrp-btn-outline" style={{ marginTop: '20px' }}>
+          <button onClick={() => navigate(-1)} className="lrp-no-outline lrp-btn lrp-btn-outline" style={{ marginTop: '20px' }}>
              {t('quiz.back', 'Go Back')}
           </button>
         </div>
@@ -314,7 +314,7 @@ export default function DailyQuizPage() {
     <>
     <Header />
       <div className="quiz-page-container dqp-div2">
-        <button onClick={() => navigate(-1)} className="lrp-btn lrp-btn-outline dqp-back">
+        <button onClick={() => navigate(-1)} className="lrp-no-outline lrp-btn lrp-btn-outline dqp-back">
           <span>&larr;</span> {t('quiz.back', 'Back')}
         </button>
         <div className="quiz-header-section">

@@ -135,11 +135,11 @@ export default function QuizCard({ quizData, onNext }) {
             <div className="quiz-action-group">
               <button 
                 onClick={() => window.open(`/fooddetail/${quizData.foodID}`, '_blank', 'noopener,noreferrer')}
-                className="quiz-btn-secondary"
+                className="quiz-btn-secondary lrp-no-outline"
               >
                 {t('quiz.viewDetailsBtn', 'View Food Details')}
               </button>
-              <button onClick={handleNextClick} className="quiz-btn-primary">
+              <button onClick={handleNextClick} className="quiz-btn-primary lrp-no-outline">
                 {t('quiz.nextBtn', 'Next Question ➔')}
               </button>
             </div>
