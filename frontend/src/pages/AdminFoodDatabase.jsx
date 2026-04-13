@@ -789,8 +789,8 @@ const AdminFoodDatabase = ({ categories = [] }) => {
               <br />{t("adminFoodDB.deleteCannotUndo")}
             </p>
             <div className="modal-actions">
-              <button className="cancel-btn" onClick={() => setShowConfirm(false)}>{t("adminFoodDB.cancel")}</button>
-              <button className="confirm-delete-btn" onClick={handleConfirmDelete}>{t("adminFoodDB.delete")}</button>
+              <button className="cancel-btn lrp-no-outline" onClick={() => setShowConfirm(false)}>{t("adminFoodDB.cancel")}</button>
+              <button className="confirm-delete-btn lrp-no-outline" onClick={handleConfirmDelete}>{t("adminFoodDB.delete")}</button>
             </div>
           </div>
         </div>
