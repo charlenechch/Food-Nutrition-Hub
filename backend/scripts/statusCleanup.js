@@ -115,6 +115,12 @@ async function runDailyMaintenance() {
             console.log("ℹ️ No stale users to mark as Inactive.");
         }
 
+        // Clean up expired OTPs
+        const [otpResult] = await db.execute(
+            `DELETE FROM otp WHERE expires_at < NOW()`
+        );
+        console.log(`✅ ${otpResult.affectedRows} expired OTP(s) deleted.`);
+
         // Warn users approaching 2 years inactive 
         const warningCutoffStart = new Date();
         warningCutoffStart.setDate(warningCutoffStart.getDate() - 700);
