@@ -1316,7 +1316,7 @@ const handleDeleteAccount = async () => {
               
               <div className="upp-avatar-actions">
                 <label htmlFor="avatar-upload" className="lrp-btn lrp-btn-primary">
-                  <span><Camera size={16} />{t("profile.chooseImage")}</span>
+                  <span><Camera size={21} /> {t("profile.chooseImage")}</span>
                 </label>
                 <input
                   id="avatar-upload"
