@@ -662,7 +662,17 @@
 
 .upp-btn {
     width: auto;
-    font-size: .8rem;
+    min-width: 230px; 
+    font-size: 0.85rem;
+    white-space: nowrap; 
+    flex-shrink: 0; 
+    justify-content: center;
+}
+
+.upp-row.between > div:first-child {
+    flex: 1; 
+    min-width: 0; 
+    padding-right: 20px; 
 }
 
 .upp-card .upp-btn {

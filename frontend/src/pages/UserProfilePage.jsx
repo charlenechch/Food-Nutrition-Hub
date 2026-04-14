@@ -2175,7 +2175,7 @@ const handleDeleteAccount = async () => {
                     </div>
                     <button
                       type="button"
-                      className="lrp-btn lrp-btn-outline upp-btn upp-btn--danger"
+                      className="lrp-btn lrp-btn-danger upp-btn"
                       onClick={handleDeleteAccount}
                     >
                       {t("profile.deleteAccount")}
