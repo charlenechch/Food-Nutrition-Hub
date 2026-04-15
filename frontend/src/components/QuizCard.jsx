@@ -5,10 +5,11 @@ import { translateTexts } from '../hooks/useAITranslation';
 
 export default function QuizCard({ quizData, onNext }) {
   const { t, i18n } = useTranslation();
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  
+  // ✅ Changed state to track the index instead of the text string
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
   const [revealPhase, setRevealPhase] = useState(0); 
-
   const [translatedData, setTranslatedData] = useState({});
 
   useEffect(() => {
@@ -43,22 +44,25 @@ export default function QuizCard({ quizData, onNext }) {
   }, [revealPhase]);
 
   useEffect(() => {
-    setSelectedAnswer(null);
+    // ✅ Resetting the index when a new question loads
+    setSelectedIndex(null);
     setRevealPhase(0);
   }, [quizData?.questionID]);
 
   if (!quizData) return <div>{t('quiz.loading', 'Loading question...')}</div>;
 
-  const isCorrect = selectedAnswer === quizData.correctAnswer;
+  // ✅ Check correctness using the original options array and the selected index
+  const isCorrect = selectedIndex !== null && quizData.options[selectedIndex] === quizData.correctAnswer;
 
-  const handleOptionClick = (option) => {
-    setSelectedAnswer(option);
+  // ✅ Handler now expects an index
+  const handleOptionClick = (index) => {
+    setSelectedIndex(index);
     setRevealPhase(1);
   };
 
   const handleNextClick = () => {
     onNext(isCorrect); 
-    setSelectedAnswer(null); 
+    setSelectedIndex(null); // ✅ Reset index on next
   };
 
   const displayFoodName = translatedData.foodName || quizData.foodName;
@@ -94,7 +98,7 @@ export default function QuizCard({ quizData, onNext }) {
                   if (originalOption === quizData.correctAnswer) {
                     btnClass += " correct-feedback";
                     icon = <span className="feedback-icon">✓</span>;
-                  } else if (originalOption === selectedAnswer) {
+                  } else if (index === selectedIndex) { // ✅ Now checks if the index matches
                     btnClass += " incorrect-feedback";
                     icon = <span className="feedback-icon">✗</span>;
                   } else {
@@ -105,7 +109,7 @@ export default function QuizCard({ quizData, onNext }) {
                 return (
                   <button 
                     key={index}
-                    onClick={() => revealPhase === 0 && handleOptionClick(originalOption)}
+                    onClick={() => revealPhase === 0 && handleOptionClick(index)} // ✅ Passes the index instead of the text
                     className={btnClass}
                     disabled={revealPhase === 1}
                   >
