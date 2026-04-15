@@ -45,7 +45,7 @@ export default function QuizCard({ quizData, onNext }) {
   useEffect(() => {
     setSelectedAnswer(null);
     setRevealPhase(0);
-  }, [quizData]);
+  }, [quizData?.questionID]);
 
   if (!quizData) return <div>{t('quiz.loading', 'Loading question...')}</div>;
 

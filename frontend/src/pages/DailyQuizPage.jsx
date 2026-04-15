@@ -215,7 +215,7 @@ export default function DailyQuizPage() {
   };
 
   // --- RENDER STATES ---
-  if (isLoadingStatus || isTranslating) {
+  if (isLoadingStatus) {
     return (
       <>
         <Header />
@@ -324,7 +324,21 @@ export default function DailyQuizPage() {
           </h4>
           <p className="quiz-disclaimer">{t('quiz.disclaimer')}</p>
         </div>
-        <QuizCard quizData={translatedQuiz[currentIndex]} onNext={handleNextQuestion} /> 
+        
+        {/* ✅ FIX: Wrap QuizCard so it stays mounted but looks "busy" while translating */}
+        <div style={{ 
+          opacity: isTranslating ? 0.5 : 1, 
+          pointerEvents: isTranslating ? 'none' : 'auto',
+          transition: 'opacity 0.3s ease'
+        }}>
+          {isTranslating && (
+             <div style={{ textAlign: "center", marginBottom: "10px", color: "#666" }}>
+                Translating...
+             </div>
+          )}
+          <QuizCard quizData={translatedQuiz[currentIndex]} onNext={handleNextQuestion} /> 
+        </div>
+
       </div>
       <Footer/>
     </>
