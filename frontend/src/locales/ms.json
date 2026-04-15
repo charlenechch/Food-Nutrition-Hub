@@ -1607,7 +1607,7 @@
     "completed": "Kuiz Selesai!",
     "perfectScore": "Markah Penuh! Anda memperoleh +{{baseXP}} XP dan Bonus Sempurna +{{bonusXP}} XP! (Jumlah: {{totalXP}} XP)",
     "normalScore": "Anda betul {{score}}/5! Anda memperoleh +{{totalXP}} XP.",
-    "returnBtn": "Kembali ke Komuniti",
+    "returnBtn": "Kembali ke Laman Utama",
     "correct": "🎉 Betul!",
     "incorrect": "❌ Salah! Jawapan yang betul adalah: {{answer}}",
     "viewDetailsBtn": "Lihat Butiran Makanan",
