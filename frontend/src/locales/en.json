@@ -1173,7 +1173,8 @@
     "deleteFailed": "Delete Failed",
     "pleaseRetry": "Please try again.",
     "suspendedDetailsReason": "Reason: {{reason}}",
-    "suspendedDetailsUntil": "Suspended until: {{date}}"
+    "suspendedDetailsUntil": "Suspended until: {{date}}",
+    "inactiveTooltip": "This user has not logged in for 14 or more days."
   },
 
   "revisePost": {

@@ -1172,7 +1172,8 @@
     "deleteFailed": "Pemadaman Gagal",
     "pleaseRetry": "Sila cuba lagi.",
     "suspendedDetailsReason": "Sebab: {{reason}}",
-    "suspendedDetailsUntil": "Digantung sehingga: {{date}}"
+    "suspendedDetailsUntil": "Digantung sehingga: {{date}}",
+    "inactiveTooltip": "Pengguna ini tidak log masuk selama 14 hari atau lebih."
   },
 
   "revisePost": {
