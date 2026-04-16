@@ -179,7 +179,7 @@ export default function FoodMap() {
         let lng = parseFloat(coords.longitude.toFixed(7));
 
         // If outside Sarawak bounds, fall back to Kuching center
-        if (lat < 0.5 || lat > 3.0 || lng < 108 || lng > 112) {
+        if (lat < 0.9 || lat > 5.0 || lng < 109.5 || lng > 119.0)  {
           setGeoError("Location seems outside Sarawak. Showing Kuching instead.");
           lat = 1.5535;
           lng = 110.3493;
