@@ -632,7 +632,7 @@ export default function UserManagement() {
                               <span className="umg-pill umg-pill-active">{t("adminUser.activeStatus")}</span>
                             )}
                             {u.status === "Inactive" && (
-                              <span className="umg-pill umg-pill-inactive">{t("adminUser.inactiveStatus")}</span>
+                              <span className="umg-pill umg-pill-inactive" title={t("adminUser.inactiveTooltip")}>{t("adminUser.inactiveStatus")}</span>
                             )}
                             {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) && (
                               <>
@@ -783,10 +783,14 @@ export default function UserManagement() {
                       </select>
                     </div>
 
+                    {userMode === "edit" && (
                     <div className="umg-field">
                       <label className="umg-label">{t("adminUser.currentStatusLabel")}</label>
                       <div className="umg-value">
-                        <span className={`umg-pill ${userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive"}`}>
+                        <span
+                          className={`umg-pill ${userForm.status === "Active" ? "umg-pill-active" : "umg-pill-inactive"}`}
+                          title={userForm.status === "Inactive" ? t("adminUser.inactiveTooltip") : undefined}
+                        >
                           {userForm.status}
                         </span>
                         {(userForm.suspendedUntil && new Date(userForm.suspendedUntil) > new Date()) && (
@@ -802,6 +806,7 @@ export default function UserManagement() {
                         </div>
                       )}
                     </div>
+                    )}
                   </div>
 
                   {userMode === "edit" && (

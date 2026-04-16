@@ -1173,7 +1173,8 @@
     "deleteFailed": "Delete Failed",
     "pleaseRetry": "Please try again.",
     "suspendedDetailsReason": "Reason: {{reason}}",
-    "suspendedDetailsUntil": "Suspended until: {{date}}"
+    "suspendedDetailsUntil": "Suspended until: {{date}}",
+    "inactiveTooltip": "This user has not logged in for 14 or more days."
   },
 
   "revisePost": {
@@ -1328,7 +1329,7 @@
     "missingRequiredFields": "Missing Required Fields",
     "provideSubjectAndMessage": "Please provide a subject and message.",
     "provideRecipient": "Please select at least one recipient.",
-    "unfilledPlaceholders": "Your announcement contains unfilled placeholders. Please replace <Date> and <Time> with actual values before sending, or remove them if they are not needed.",
+    "unfilledPlaceholders": "Your announcement contains unfilled placeholders (e.g. <Date>, <Time>, <Describe what changed>). Please replace them with actual values before sending, or remove them if they are not needed.",
     "unfilledPlaceholdersTitle": "Unfilled Placeholders",
     "templateHint": "Templates are pre-filled suggestions. Feel free to edit the subject and message to suit your needs.",
     "announcementSent": "Announcement Sent",
