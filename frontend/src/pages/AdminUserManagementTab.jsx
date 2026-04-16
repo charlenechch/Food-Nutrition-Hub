@@ -783,6 +783,7 @@ export default function UserManagement() {
                       </select>
                     </div>
 
+                    {userMode === "edit" && (
                     <div className="umg-field">
                       <label className="umg-label">{t("adminUser.currentStatusLabel")}</label>
                       <div className="umg-value">
@@ -802,6 +803,7 @@ export default function UserManagement() {
                         </div>
                       )}
                     </div>
+                    )}
                   </div>
 
                   {userMode === "edit" && (
