@@ -79,12 +79,12 @@ async function searchGoogleForFood(foodName, lat, lng, limit = 3) {
     const res = await axios.post(
       'https://places.googleapis.com/v1/places:searchText',
       {
-        textQuery:      `${foodName} Kuching Sarawak`,
+        textQuery:      `${foodName} Sarawak`,
         maxResultCount: limit,
         locationBias: {
           circle: {
             center: { latitude: parseFloat(lat), longitude: parseFloat(lng) },
-            radius: 15000.0,
+            radius: 50000.0,
           },
         },
       },
