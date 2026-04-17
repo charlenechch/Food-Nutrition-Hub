@@ -130,6 +130,7 @@ const requireAdmin = (req, res, next) => {
 // Check if user has completed consent
 const requireConsent = async (req, res, next) => {
   if (!req.session?.user) return next(); // skip for guests
+  if (req.originalUrl.startsWith('/api/userProfile/consent')) return next(); // skip for consent endpoint
   
   try {
     const { pool: db } = require("../config/db");
