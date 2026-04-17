@@ -127,6 +127,29 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+// Check if user has completed consent
+const requireConsent = async (req, res, next) => {
+  if (!req.session?.user) return next(); // skip for guests
+  
+  try {
+    const { pool: db } = require("../config/db");
+    const [rows] = await db.query(
+      "SELECT agreed_version FROM user WHERE userID = ?",
+      [req.session.user.userID]
+    );
+    
+    if (rows.length > 0 && rows[0].agreed_version === 0) {
+      return res.status(403).json({
+        success: false,
+        message: "Please complete the consent process before proceeding."
+      });
+    }
+    next();
+  } catch (err) {
+    next(); // fail open — don't block users if DB check fails
+  }
+};
+
 module.exports = {
   requireAuth,
   allowRoles,
@@ -134,4 +157,5 @@ module.exports = {
   attachUser,
   allowPageAccess,
   requireAdmin,
+  requireConsent,
 };
