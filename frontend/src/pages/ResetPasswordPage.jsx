@@ -154,7 +154,7 @@ export default function ResetPasswordPage() {
         <h3>{t("resetPassword.successTitle")}</h3>
         <p>{t("resetPassword.successMsg")}</p>
         <p className="mh-redirect-text">{t("resetPassword.redirecting")}</p>
-        <button className="mh-btn-primary" onClick={() => navigate("/loginregister")}>
+        <button className="mh-btn-primary lrp-no-outline" onClick={() => navigate("/loginregister")}>
           {t("resetPassword.loginNow")}
         </button>
       </div>
@@ -166,7 +166,7 @@ export default function ResetPasswordPage() {
         <div className="mh-error-icon"><FaExclamationCircle /></div>
         <h3>{t("resetPassword.linkExpiredTitle")}</h3>
         <p>{error}</p>
-        <button className="mh-btn-primary" onClick={() => navigate("/forgotpassword")}>
+        <button className="mh-btn-primary lrp-no-outline" onClick={() => navigate("/forgotpassword")}>
           {t("resetPassword.requestNewLink")}
         </button>
       </div>
@@ -228,13 +228,13 @@ export default function ResetPasswordPage() {
             </div>
           </div>
 
-          <button type="submit" className="mh-btn-primary">
+          <button type="submit" className="mh-btn-primary lrp-no-outline">
             {t("resetPassword.saveNewPassword")}
           </button>
           
           <button 
             type="button" 
-            className="mh-btn-text"
+            className="mh-btn-text lrp-no-outline"
             onClick={() => navigate("/loginregister")}
           >
             {t("auth.cancel")}
