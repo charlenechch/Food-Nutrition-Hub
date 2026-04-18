@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage() {
       <Header />
       
       <div className="pp-content-wrapper">
-        <button className="lrp-no-outline pp-back-btn" onClick={() => navigate(-1)}>
+        <button className="lrp-no-outline pp-back-btn" onClick={() => window.history.length > 1 ? navigate(-1) : window.close()}>
           <FaArrowLeft /> {t("privacyPolicy.back")}
         </button>
 
