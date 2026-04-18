@@ -737,7 +737,7 @@ export default function LoginRegisterPage() {
                       alt="G"
                       className="mh-google-icon "
                     />
-                    {t("auth.continueWithGoogle lrp-no-outline")}
+                    {t("auth.continueWithGoogle")}
                   </button>
                   <p className="mh-google-note">
                     {t("auth.googleSignUpNote")}
