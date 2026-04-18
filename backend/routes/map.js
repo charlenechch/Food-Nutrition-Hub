@@ -24,6 +24,17 @@ const SARAWAK_FOODS = [
   'Ayam Pansuh',
 ];
 
+// ── Haversine distance in km ──────────────────────────────────
+function distanceKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 // ── Normalize Google Places result ────────────────────────────
 function fromGoogle(place, foodLabel = '') {
   return {
@@ -59,7 +70,6 @@ function fromMySQL(row) {
     lng:     parseFloat(row.longitude),
     rating:  parseFloat(row.rating) || null,
     reviews: null,
-    // ✅ Use price_min and price_max
     price:   (row.price_min && row.price_max)
                ? `RM ${row.price_min} - ${row.price_max}`
                : row.price_min
@@ -73,8 +83,8 @@ function fromMySQL(row) {
   };
 }
 
-// ── Search Google for one specific food (used for default load) ──
-async function searchGoogleForFood(foodName, lat, lng, limit = 3) {
+// ── Search Google for one specific food ──────────────────────
+async function searchGoogleForFood(foodName, lat, lng, limit = 3, radius = 15000) {
   try {
     const res = await axios.post(
       'https://places.googleapis.com/v1/places:searchText',
@@ -84,7 +94,7 @@ async function searchGoogleForFood(foodName, lat, lng, limit = 3) {
         locationBias: {
           circle: {
             center: { latitude: parseFloat(lat), longitude: parseFloat(lng) },
-            radius: 50000.0,
+            radius: radius,
           },
         },
       },
@@ -130,10 +140,14 @@ function dedupe(pins) {
 // ────────────────────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
-    const lat = parseFloat(req.query.lat) || KUCHING.lat;
-    const lng = parseFloat(req.query.lng) || KUCHING.lng;
+    const userLat = parseFloat(req.query.lat);
+    const userLng = parseFloat(req.query.lng);
+    const isUserLocation = !isNaN(userLat) && !isNaN(userLng);
+    const lat = isUserLocation ? userLat : KUCHING.lat;
+    const lng = isUserLocation ? userLng : KUCHING.lng;
+    const searchRadius = isUserLocation ? 10000 : 15000;
 
-    // 1. MySQL curated picks — always show these
+    // 1. MySQL curated picks — filter by distance if user location is known
     const rows = await many(`
       SELECT
         r.restaurantID, r.foodID, r.name, r.city,
@@ -145,15 +159,17 @@ router.get('/', async (req, res) => {
       LEFT JOIN food f ON f.foodID = r.foodID
       ORDER BY r.rating DESC
     `);
-    const mysqlPins = rows.map(fromMySQL);
+    const mysqlPins = rows.map(fromMySQL).filter(pin => {
+      if (!isUserLocation) return true; // show all if no user location
+      return distanceKm(lat, lng, pin.lat, pin.lng) <= 10; // within 10km of user
+    });
 
-    // 2. Google — search all 10 Sarawak foods in parallel
-    //    Each returns up to 3 restaurants properly labelled
+    // 2. Google — search all 10 Sarawak foods in parallel with dynamic radius
     const googleResults = await Promise.all(
-      SARAWAK_FOODS.map((food) => searchGoogleForFood(food, lat, lng, 3))
+      SARAWAK_FOODS.map((food) => searchGoogleForFood(food, lat, lng, 3, searchRadius))
     );
 
-    // Flatten + deduplicate (same restaurant may appear in multiple food searches)
+    // Flatten + deduplicate
     const googlePins = dedupe(googleResults.flat());
 
     // 3. Merge — MySQL picks first, then Google results
@@ -178,10 +194,14 @@ router.get('/search', async (req, res) => {
     const query = req.query.q?.trim();
     if (!query) return res.status(400).json({ error: 'q param is required' });
 
-    const lat = parseFloat(req.query.lat) || KUCHING.lat;
-    const lng = parseFloat(req.query.lng) || KUCHING.lng;
+    const userLat = parseFloat(req.query.lat);
+    const userLng = parseFloat(req.query.lng);
+    const isUserLocation = !isNaN(userLat) && !isNaN(userLng);
+    const lat = isUserLocation ? userLat : KUCHING.lat;
+    const lng = isUserLocation ? userLng : KUCHING.lng;
+    const searchRadius = isUserLocation ? 10000 : 15000;
 
-    // 1. MySQL — restaurants serving this food
+    // 1. MySQL — restaurants serving this food, filtered by distance if user location known
     const rows = await many(`
       SELECT
         r.restaurantID, r.foodID, r.name, r.city,
@@ -194,10 +214,13 @@ router.get('/search', async (req, res) => {
       WHERE f.name LIKE ? OR r.name LIKE ?
       ORDER BY r.rating DESC
     `, [`%${query}%`, `%${query}%`]);
-    const mysqlPins = rows.map(fromMySQL);
+    const mysqlPins = rows.map(fromMySQL).filter(pin => {
+      if (!isUserLocation) return true;
+      return distanceKm(lat, lng, pin.lat, pin.lng) <= 10;
+    });
 
-    // 2. Google — full search for this specific food (more results when filtering)
-    const googlePins = await searchGoogleForFood(query, lat, lng, 20);
+    // 2. Google — full search for this specific food with dynamic radius
+    const googlePins = await searchGoogleForFood(query, lat, lng, 20, searchRadius);
 
     const allPins = [...mysqlPins, ...dedupe(googlePins)];
     res.json({ pins: allPins, total: allPins.length, query });
