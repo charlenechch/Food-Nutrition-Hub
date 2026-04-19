@@ -512,6 +512,14 @@ function DetailCard({ pin, onClose, onDirections }) {
         </div>
         <div className="foodmap-detail-actions">
           <button className="foodmap-detail-btn lrp-no-outline" onClick={onDirections}>🗺️ Directions</button>
+          {pin.reviews > 0 && (
+            <button
+              className="foodmap-detail-btn lrp-no-outline"
+              onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pin.name + ' ' + pin.address)}`, "_blank")}
+            >
+              ⭐ {pin.reviews} Reviews
+            </button>
+          )}
           <button className="foodmap-detail-btn primary lrp-no-outline"
             style={{ background: meta.color, borderColor: meta.color }}>
             🔖 Save
