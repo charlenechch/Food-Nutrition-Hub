@@ -160,8 +160,8 @@ router.get('/', async (req, res) => {
       ORDER BY r.rating DESC
     `);
     const mysqlPins = rows.map(fromMySQL).filter(pin => {
-      if (!isUserLocation) return true; // show all if no user location
-      return distanceKm(lat, lng, pin.lat, pin.lng) <= 10; // within 10km of user
+      if (!isUserLocation) return true;
+      return distanceKm(lat, lng, pin.lat, pin.lng) <= 10;
     });
 
     // 2. Google — search all 10 Sarawak foods in parallel with dynamic radius
@@ -169,8 +169,11 @@ router.get('/', async (req, res) => {
       SARAWAK_FOODS.map((food) => searchGoogleForFood(food, lat, lng, 3, searchRadius))
     );
 
-    // Flatten + deduplicate
-    const googlePins = dedupe(googleResults.flat());
+    // Flatten + deduplicate + filter by distance
+    const googlePins = dedupe(googleResults.flat()).filter(pin => {
+      if (!isUserLocation) return true;
+      return distanceKm(lat, lng, pin.lat, pin.lng) <= 10;
+    });
 
     // 3. Merge — MySQL picks first, then Google results
     const allPins = [...mysqlPins, ...googlePins];
@@ -219,8 +222,11 @@ router.get('/search', async (req, res) => {
       return distanceKm(lat, lng, pin.lat, pin.lng) <= 10;
     });
 
-    // 2. Google — full search for this specific food with dynamic radius
-    const googlePins = await searchGoogleForFood(query, lat, lng, 20, searchRadius);
+    // 2. Google — full search for this specific food with dynamic radius + distance filter
+    const googlePins = (await searchGoogleForFood(query, lat, lng, 20, searchRadius)).filter(pin => {
+      if (!isUserLocation) return true;
+      return distanceKm(lat, lng, pin.lat, pin.lng) <= 10;
+    });
 
     const allPins = [...mysqlPins, ...dedupe(googlePins)];
     res.json({ pins: allPins, total: allPins.length, query });
