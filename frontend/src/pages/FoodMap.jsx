@@ -88,15 +88,16 @@ export default function FoodMap() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [userPos,      setUserPos]      = useState(null);
   const [geoError,     setGeoError]     = useState(null);
-  const mapRef      = useRef(null);
-  const searchTimer = useRef(null);
+  const mapRef        = useRef(null);
+  const searchTimer   = useRef(null);
+  const userCoordsRef = useRef(null); // ← stores user lat/lng after Near Me
 
   // Load all pins
   const loadAll = useCallback(async (lat, lng) => {
     setLoading(true);
     setError(null);
     try {
-      const params = (lat && lng) ? `?lat=${lat}&lng=${lng}` : "";
+      const params = (lat != null && lng != null) ? `?lat=${lat}&lng=${lng}` : "";
       const res    = await fetch(`${API}/api/map${params}`);
       if (!res.ok) throw new Error(`API error ${res.status}`);
       const data   = await res.json();
@@ -111,12 +112,20 @@ export default function FoodMap() {
 
   // Filter by food category
   const filterByFood = useCallback(async (foodName) => {
-    if (foodName === "all") { loadAll(); return; }
+    if (foodName === "all") {
+      const c = userCoordsRef.current;
+      loadAll(c?.lat, c?.lng);
+      return;
+    }
     setSearching(true);
     setSelected(null);
     setSearchInput("");
     try {
-      const res  = await fetch(`${API}/api/map/search?q=${encodeURIComponent(foodName)}`);
+      const c = userCoordsRef.current;
+      const params = c
+        ? `?q=${encodeURIComponent(foodName)}&lat=${c.lat}&lng=${c.lng}`
+        : `?q=${encodeURIComponent(foodName)}`;
+      const res  = await fetch(`${API}/api/map/search${params}`);
       if (!res.ok) throw new Error(`Filter error ${res.status}`);
       const data = await res.json();
       setPins(data.pins || []);
@@ -135,7 +144,11 @@ export default function FoodMap() {
     setSelected(null);
     if (!preserveFilter) setActiveFilter("all");
     try {
-      const res  = await fetch(`${API}/api/map/search?q=${encodeURIComponent(q)}`);
+      const c = userCoordsRef.current;
+      const params = c
+        ? `?q=${encodeURIComponent(q)}&lat=${c.lat}&lng=${c.lng}`
+        : `?q=${encodeURIComponent(q)}`;
+      const res  = await fetch(`${API}/api/map/search${params}`);
       if (!res.ok) throw new Error(`Search error ${res.status}`);
       const data = await res.json();
       setPins(data.pins || []);
@@ -187,7 +200,8 @@ export default function FoodMap() {
 
         setUserPos([lat, lng]);
         setFlyTarget([lat, lng]);
-        loadAll(lat, lng); // ← always called now
+        userCoordsRef.current = { lat, lng }; // ← save coords for all subsequent calls
+        loadAll(lat, lng);
       },
       (err) => {
         const msgs = {
