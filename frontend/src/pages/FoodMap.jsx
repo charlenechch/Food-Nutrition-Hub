@@ -327,7 +327,7 @@ export default function FoodMap() {
                   {googlePins.length > 0 && (
                     <>
                       <div className="foodmap-section-label google">
-                        🌐 Nearby Restaurants
+                        🌐 {userPos ? "Nearby Restaurants" : "More Restaurants"}
                       </div>
                       {googlePins.map((pin) => (
                         <PinCard
