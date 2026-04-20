@@ -270,3 +270,12 @@
   font-weight: 600;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
+
+.fdp-no-comments p {
+    margin: 1.5rem 0; 
+}
+
+.fdp-no-comments .lrp-btn {
+    padding-top: 0.4rem;    
+    padding-bottom: 0.4rem; 
+}
