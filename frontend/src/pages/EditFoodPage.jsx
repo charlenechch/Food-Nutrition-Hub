@@ -277,7 +277,7 @@ const EditFoodPage = () => {
     });
   };
 
-  const handleSaveAttempt = () => {
+const handleSaveAttempt = () => {
     const currentCats = Array.isArray(food.category) ? food.category : [];
 
     const requiredFoodFields = [
@@ -302,7 +302,17 @@ const EditFoodPage = () => {
       return value === undefined || value === null || String(value).trim() === "";
     });
 
-    if (hasEmptyFoodFields || hasEmptyRecipeFields || currentCats.length === 0) {
+    const hasIngredients = selectedIngredients.length > 0 || (showOtherIngredient && otherIngredientText.trim() !== "");
+
+    const hasDietary = selectedDietary.length > 0;
+
+    if (
+      hasEmptyFoodFields || 
+      hasEmptyRecipeFields || 
+      currentCats.length === 0 || 
+      !hasIngredients || 
+      !hasDietary
+    ) {
       setShowNotification({
         visible: true,
         message: t("addFood.fillAllFieldsError"), 
