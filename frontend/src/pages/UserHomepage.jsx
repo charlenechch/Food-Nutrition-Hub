@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
+import { translateTexts } from "../hooks/useAITranslation";
 
 import LoginFood from "../assets/LoginFood.png";
 import KoloImg from "../assets/kolomee.jpg";
@@ -17,7 +18,7 @@ import { useAuth } from "../context/AuthContext";
 const HERO_IMAGES = [LoginFood, KoloImg];
 
 // ── Dish Spotlight Component — DB driven ──
-function DishSpotlight({ allFoods, navigate, t }) {
+function DishSpotlight({ allFoods, navigate, t, translatedFoods = {} }) {
   const [active, setActive] = React.useState(0);
   const timerRef = React.useRef(null);
 
@@ -63,9 +64,11 @@ function DishSpotlight({ allFoods, navigate, t }) {
         </div>
         <div className="home-dish-spotlight-content">
           <span className="home-dish-tag-pill">{dishCategory}</span>
-          <h2 className="home-dish-spotlight-title">{dish.name}</h2>
+          <h2 className="home-dish-spotlight-title">
+            {translatedFoods[`name_${dish.foodID}`] || dish.name}
+          </h2>
           <p className="home-dish-spotlight-quote">
-            {dish.description || t("home.dishDefaultDesc", "A beloved traditional dish from the rich culinary heritage of Sarawak.")}
+            {translatedFoods[`desc_${dish.foodID}`] || dish.description || t("home.dishDefaultDesc")}
           </p>
           <div className="home-dish-spotlight-actions">
             <button
@@ -93,6 +96,8 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const [translatedFoods, setTranslatedFoods] = useState({});
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const [modalMessage, setModalMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -288,6 +293,32 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }, 100);
   };
 
+  useEffect(() => {
+    if (!allFoods.length || i18n.language === "en") {
+      setTranslatedFoods({});
+      return;
+    }
+
+    const cacheKey = `translations_${i18n.language}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      setTranslatedFoods(JSON.parse(cached));
+      return;
+    }
+
+    setIsTranslating(true);
+    const texts = {};
+    allFoods.forEach(f => {
+      texts[`name_${f.foodID}`] = f.name;
+      texts[`desc_${f.foodID}`] = f.description;
+    });
+    translateTexts(texts, i18n.language).then(result => {
+      setTranslatedFoods(result);
+      localStorage.setItem(cacheKey, JSON.stringify(result));
+      setIsTranslating(false);
+    });
+  }, [allFoods, i18n.language]);
+
   return (
     <div className="homepage home-snap-container" ref={snapContainerRef}>
       <Header transparent={true} />
@@ -425,7 +456,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
       {/* ── SECTION 3: Dish Spotlight ── */}
       <section className="home-snap-section home-dish-snap-section">
-        <DishSpotlight allFoods={allFoods} navigate={navigate} t={t} />
+        <DishSpotlight allFoods={allFoods} navigate={navigate} t={t} translatedFoods={translatedFoods} /> 
       </section>
 
       {isRandomizing && (

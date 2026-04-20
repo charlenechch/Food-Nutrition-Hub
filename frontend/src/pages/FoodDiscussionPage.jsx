@@ -16,7 +16,7 @@ import { translateTexts } from "../hooks/useAITranslation";
 
 // Delete Confirmation Modal Component
 const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", isAdminAction = false }) => {
-  const { t } = useTranslation(); 
+  const { t } = useTranslation();
   if (!show) return null;
 
   return (
@@ -140,6 +140,9 @@ const Comment = React.memo(function Comment({
     commentUserId
   });
 
+  // ✅ FIXED: only useTranslation here, no translatedFood state or useEffect
+  const { t, i18n } = useTranslation();
+
   const handleLike = () => {
     if (isGuest) return setShowLoginPrompt(true);
     onToggleLike(itemId);
@@ -223,7 +226,7 @@ const Comment = React.memo(function Comment({
           </span>
           <span className="fd-disc-time">• {getTimeAgo(timestamp, i18n.language)}</span>
           
-          {/* ✅ UPDATED DELETE BUTTON - Show for owners AND admins */}
+          {/* UPDATED DELETE BUTTON - Show for owners AND admins */}
           {canDelete && (
             <button 
               className={`fd-delete-btn ${isAdmin && !isOwner ? 'fd-admin-delete-btn' : ''}`} 
@@ -262,7 +265,7 @@ const Comment = React.memo(function Comment({
             />
             <div className="fd-reply-actions">
               <button className="lrp-btn lrp-btn-primary" disabled={!replyTexts[itemId]?.trim()} onClick={handlePostReply}>
-               {t("foodDiscussion.sendReply")}
+                {t("foodDiscussion.sendReply")}
               </button>
               <button className="lrp-btn lrp-btn-outline" onClick={() => setReplyToId(null)}>
                 {t("foodDiscussion.cancel")}
@@ -292,7 +295,7 @@ const Comment = React.memo(function Comment({
                   isGuest={isGuest}
                   setShowLoginPrompt={setShowLoginPrompt}
                   currentUserId={currentUserId}
-                  isAdmin={isAdmin} // ✅ PASS ADMIN PROP TO REPLIES
+                  isAdmin={isAdmin}
                   onProfileClick={onProfileClick}
                 />
               ))}
@@ -361,6 +364,9 @@ export default function FoodDiscussionPage() {
   const [replyTexts, setReplyTexts] = useState({});
   const [loading, setLoading] = useState(true);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [translatedFood, setTranslatedFood] = useState({});
+
+  const { t, i18n } = useTranslation();
 
   const [foodLike, setFoodLike] = useState({
     isLiked: false,
@@ -371,11 +377,11 @@ export default function FoodDiscussionPage() {
   // Delete confirmation modal state
   const [deleteModal, setDeleteModal] = useState({
     show: false,
-    type: "comment", // "comment" or "reply"
+    type: "comment",
     commentId: null,
     replyId: null,
     onConfirm: null,
-    isAdminAction: false // Track if this is an admin action
+    isAdminAction: false
   });
 
   const [infoDlg, setInfoDlg] = useState({
@@ -390,6 +396,18 @@ export default function FoodDiscussionPage() {
     setInfoDlg({ open: true, title, message, icon, primaryText });
 
   const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false}));
+
+  // Translation effect for food name and description
+  useEffect(() => {
+    if (!food || i18n.language === "en") {
+      setTranslatedFood({});
+      return;
+    }
+    translateTexts({
+      name: food.name,
+      description: food.description,
+    }, i18n.language).then(setTranslatedFood);
+  }, [food, i18n.language]);
 
   //FoodDiscussionPage clickable Profile
   const handleProfileClick = (commentUserProfileID) => {
@@ -466,7 +484,7 @@ export default function FoodDiscussionPage() {
     if (foodId) fetchComments();
   }, [foodId]);
 
-// ✅ Load likes from localStorage on component mount - USER-SPECIFIC
+// Load likes from localStorage on component mount - USER-SPECIFIC
 const loadLikesFromStorage = () => {
   if (!userProfileID) {
     console.log('🟡 userProfileID not available yet');
@@ -512,9 +530,9 @@ const fetchFoodLikeStatus = async () => {
           initialized: true
         }));
         
-        // ✅ Sync localStorage with server data - USER-SPECIFIC
+        // Sync localStorage with server data - USER-SPECIFIC
         try {
-          if (userProfileID) { // ✅ Check if userProfileID exists
+          if (userProfileID) {
             const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
             localStorage.setItem(userSpecificKey, JSON.stringify({
               ...serverLikeData,
@@ -537,7 +555,7 @@ const fetchFoodLikeStatus = async () => {
   }
 };
 
-// ✅ Toggle food like - USER-SPECIFIC STORAGE
+// Toggle food like - USER-SPECIFIC STORAGE
 const toggleFoodLike = async () => {
   if (isGuest) return setShowLoginPrompt(true);
   
@@ -550,7 +568,7 @@ const toggleFoodLike = async () => {
   const newIsLiked = !foodLike.isLiked;
   const newLikesCount = newIsLiked ? foodLike.likesCount + 1 : foodLike.likesCount - 1;
 
-  // ✅ IMMEDIATELY update state AND localStorage
+  // IMMEDIATELY update state AND localStorage
   setFoodLike(prev => ({
     ...prev,
     isLiked: !prev.isLiked,
@@ -558,12 +576,12 @@ const toggleFoodLike = async () => {
     loading: true
   }));
 
-  // ✅ Save to localStorage immediately 
+  // Save to localStorage immediately 
   try {
     const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
     localStorage.setItem(userSpecificKey, JSON.stringify({
       isLiked: newIsLiked,
-      likesCount: newLikesCount, // This is just for this user's view
+      likesCount: newLikesCount,
       lastUpdated: new Date().toISOString()
     }));
   } catch (storageError) {
@@ -587,15 +605,13 @@ const toggleFoodLike = async () => {
     if (res.ok && data.success) {
       console.log('🟢 API Success - isLiked:', data.data.isLiked, 'likesCount:', data.data.likesCount);
       
-      // ✅ Update both state and localStorage with server response
       setFoodLike(prev => ({
         ...prev,
         isLiked: data.data.isLiked,
-        likesCount: data.data.likesCount, // Use server's count
+        likesCount: data.data.likesCount,
         loading: false
       }));
 
-      // ✅ Sync localStorage with server data - USER-SPECIFIC
       try {
         const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
         localStorage.setItem(userSpecificKey, JSON.stringify({
@@ -609,14 +625,12 @@ const toggleFoodLike = async () => {
       }
     } else {
       console.log('🔴 API Error:', data.message);
-      // Revert on error
       setFoodLike(prev => ({
         ...prev,
         ...previousState,
         loading: false
       }));
       
-      // ✅ Also revert localStorage on error - USER-SPECIFIC
       try {
         const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
         localStorage.setItem(userSpecificKey, JSON.stringify(previousState));
@@ -632,14 +646,12 @@ const toggleFoodLike = async () => {
     }
   } catch (err) {
     console.error("❌ Network error:", err);
-    // Revert on error
     setFoodLike(prev => ({
       ...prev,
       ...previousState,
       loading: false
     }));
     
-    // ✅ Also revert localStorage on network error - USER-SPECIFIC
     try {
       const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
       localStorage.setItem(userSpecificKey, JSON.stringify(previousState));
@@ -662,7 +674,7 @@ const toggleFoodLike = async () => {
       }
     }, [foodId]);
 
-    // ✅ Post Comment
+    // Post Comment
     const postComment = async () => {
       if (isGuest) return setShowLoginPrompt(true);
       if (!newComment.trim()) return;
@@ -781,7 +793,7 @@ const toggleFoodLike = async () => {
     }
   };
 
-  // ✅ Post Reply
+  // Post Reply
 const postReply = async (discussionId) => {
   if (isGuest) return setShowLoginPrompt(true);
   const text = replyTexts[discussionId]?.trim();
@@ -833,7 +845,7 @@ const postReply = async (discussionId) => {
       )
     );
     
-    setReplyTexts((prev) => ({ ...prev, [discussionId]: "" })); //Clear the input
+    setReplyTexts((prev) => ({ ...prev, [discussionId]: "" }));
     setReplyToId(null);
 
     const res = await fetch(`${API}/api/foodDiscussion/${discussionId}/replies`, {
@@ -850,7 +862,6 @@ const postReply = async (discussionId) => {
     const data = await res.json();
 
     if (res.ok && data.success) {
-      // Replace temporary reply with real one, ensuring userProfileID is included
       setComments((prev) =>
         prev.map((c) =>
           c.id === discussionId || c.discussionID === discussionId
@@ -875,7 +886,6 @@ const postReply = async (discussionId) => {
         icon: <CheckCircle2 />,
       });
     } else {
-      // ✅ Remove temporary reply if failed
       setComments((prev) =>
         prev.map((c) =>
           c.id === discussionId || c.discussionID === discussionId
@@ -893,7 +903,6 @@ const postReply = async (discussionId) => {
       });
     }
   } catch (err) {
-    // ✅ Remove temporary reply on error
     setComments((prev) =>
       prev.map((c) =>
         c.id === discussionId || c.discussionID === discussionId
@@ -922,7 +931,7 @@ const postReply = async (discussionId) => {
       return;
     }
 
-    // ✅ IMMEDIATELY update UI state
+    // IMMEDIATELY update UI state
     setComments(prev => prev.map(comment => {
       if (comment.id === targetId || comment.discussionID === targetId) {
         const currentlyLiked = comment.user_liked || false;
@@ -953,7 +962,6 @@ const postReply = async (discussionId) => {
 
       if (!res.ok || !data.success) {
         console.error("Like failed:", data.message);
-        // Revert the UI state on error
         setComments(prev => prev.map(comment => {
           if (comment.id === targetId || comment.discussionID === targetId) {
             const currentlyLiked = comment.user_liked || false;
@@ -961,8 +969,8 @@ const postReply = async (discussionId) => {
             
             return {
               ...comment,
-              user_liked: !currentlyLiked, // Revert the like state
-              likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1 // Revert the count
+              user_liked: !currentlyLiked,
+              likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1
             };
           }
           return comment;
@@ -975,7 +983,6 @@ const postReply = async (discussionId) => {
       }
     } catch (err) {
       console.error("Error updating like:", err);
-      // Revert the UI state on network error
       setComments(prev => prev.map(comment => {
         if (comment.id === targetId || comment.discussionID === targetId) {
           const currentlyLiked = comment.user_liked || false;
@@ -983,8 +990,8 @@ const postReply = async (discussionId) => {
           
           return {
             ...comment,
-            user_liked: !currentlyLiked, // Revert the like state
-            likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1 // Revert the count
+            user_liked: !currentlyLiked,
+            likes: currentlyLiked ? currentLikes + 1 : currentLikes - 1
           };
         }
         return comment;
@@ -1023,12 +1030,10 @@ const postReply = async (discussionId) => {
       console.log('Delete response:', data);
 
       if (res.ok && data.success) {
-        // Remove comment from state
         setComments(prev => prev.filter(comment => 
           comment.id !== commentId && comment.discussionID !== commentId
         ));
         setDeleteModal({ show: false, type: "comment", commentId: null, replyId: null, onConfirm: null, isAdminAction: false });
-        //alert(isAdminAction ? "Comment deleted successfully as administrator." : "Comment deleted successfully.");
       } else {
         openInfo({
           title: "Failed to delete comment",
@@ -1093,7 +1098,6 @@ const postReply = async (discussionId) => {
       console.log('Parsed response data:', data);
 
       if (res.ok && data.success) {
-        // Remove reply from state
         setComments(prev => prev.map(comment => {
           if (comment.id === commentId || comment.discussionID === commentId) {
             return {
@@ -1104,7 +1108,6 @@ const postReply = async (discussionId) => {
           return comment;
         }));
         setDeleteModal({ show: false, type: "reply", commentId: null, replyId: null, onConfirm: null, isAdminAction: false });
-        //alert(isAdminAction ? "Reply deleted successfully as administrator." : "Reply deleted successfully.");
       } else {
         openInfo({
           title: "Failed to delete reply",
@@ -1122,23 +1125,23 @@ const postReply = async (discussionId) => {
     }
   };
 
-  // ✅ UPDATED: Handle comment deletion
+  // UPDATED: Handle comment deletion
   const handleDeleteComment = (commentId, isAdminAction = false) => {
     showDeleteConfirmation("comment", commentId, null, isAdminAction);
   };
 
-  // ✅ UPDATED: Handle reply deletion
+  // UPDATED: Handle reply deletion
   const handleDeleteReply = (commentId, replyId, isAdminAction = false) => {
     showDeleteConfirmation("reply", commentId, replyId, isAdminAction);
   };
 
-  // ✅ Render Loading
+  // Render Loading
   if (loading) {
     return (
       <div className="food-discussion-page">
         <Header />
         <div className="fdp-disc-container">
-          <p>Loading comments...</p>
+          <p>{t("foodDiscussion.loading")}</p>
         </div>
         <Footer />
       </div>
@@ -1148,7 +1151,6 @@ const postReply = async (discussionId) => {
   const handleBack = () => navigate(-1);
   const totalComments =
   comments.length + comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0);
-  //const totalLikes = comments.reduce((acc, c) => acc + (c.likes || 0), 0);
 
   return (
     <div className="food-discussion-page">
@@ -1200,7 +1202,7 @@ const postReply = async (discussionId) => {
                 }}
                 title={foodLike.isLiked ? "Unlike this food" : "Like this food"}
               >
-                {foodLike.loading ? '⏳' : (foodLike.isLiked ? "♥" : "♡")} {foodLike.likesCount} likes
+                {foodLike.loading ? '⏳' : (foodLike.isLiked ? "♥" : "♡")} {foodLike.likesCount} {t("foodDiscussion.likes")}
               </span>
             </div>
           </div>
@@ -1252,7 +1254,7 @@ const postReply = async (discussionId) => {
                     isGuest={isGuest}
                     setShowLoginPrompt={setShowLoginPrompt}
                     currentUserId={actualUserID}
-                    isAdmin={isAdmin} // ✅ PASS ADMIN PROP
+                    isAdmin={isAdmin}
                     onProfileClick={handleProfileClick}
                   />
                   {i < comments.length - 1 && <hr className="fd-divider" />}
@@ -1261,7 +1263,7 @@ const postReply = async (discussionId) => {
             </div>
           ) : (
             <p className = "fdp-no-cmt">
-              {t("foodDiscussion.noComments2")}
+              {t("foodDiscussion.noComments")}
             </p>
           )}
         </div>
