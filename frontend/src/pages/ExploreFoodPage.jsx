@@ -351,7 +351,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
               <div>
                 <label className="efp-label">{t("explore.dietaryPrefs")}</label>
                 <div className="efp-checkbox-grid">
-                  {["vegetarian", "gluten-free", "dairy-free", "low-fat", "high-protein", "high-fiber", "spicy", "paleo"].map((tag) => (
+                  {["vegetarian", "vegan", "halal", "gluten-free", "dairy-free", "low-fat", "high-protein", "spicy"].map((tag) => (
                     <label key={tag} className="efp-checkbox-item">
                       <input type="checkbox" className="efp-checkbox"
                         checked={selectedDietaryTags.includes(tag)}
