@@ -306,7 +306,12 @@ app.use("/api/foods", hppProtect({ policy: "first", allowlist: ["name", "categor
 app.use("/api/export", requireConsent, hppProtect({ policy: "none", allowlist: ["format", "year", "saveIds", "month", "custom", "startDate", "endDate", "dataTypes", "recipeIds", "postIds", "likedPostIds"], logger: (tag, meta) => logger.warn(`HPP Export Parameter: ${tag}`, meta) }), exportRoutes);
 app.use("/api/foodSearch", foodSearchRoutes);
 
-app.use("/api/translate", hppProtect({ policy: "none", allowlist: ["texts", "targetLang"], logger: (tag, meta) => logger.warn(`HPP Translate: ${tag}`, meta) }), translateRoutes);
+app.use("/api/translate", hppProtect({ 
+  policy: "skip",   // or check what option your hpp-protect supports for skipping body
+  allowlist: ["texts", "targetLang"],
+  skipBody: true,   // skip HPP processing on body entirely
+  logger: (tag, meta) => logger.warn(`HPP Translate: ${tag}`, meta) 
+}), translateRoutes);
 
 app.use("/api/quiz-content", hppProtect({ 
   policy: "none", 
