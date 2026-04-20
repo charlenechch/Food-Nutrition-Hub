@@ -524,9 +524,9 @@ export default function RecipesPage() {
                 <div className="rp-field">
                   <label>{t("recipes.formDifficulty")}</label>
                   <select name="difficulty" value={form.difficulty} onChange={onChangeForm} required>
-                    <option>{t("explore.easy")}</option>
-                    <option>{t("explore.medium")}</option>
-                    <option>{t("explore.hard")}</option>
+                    <option>{t("explore.difficulty_easy")}</option>
+                    <option>{t("explore.difficulty_medium")}</option>
+                    <option>{t("explore.difficulty_hard")}</option>
                   </select>
                 </div>
                 <div className="rp-field">
