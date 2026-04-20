@@ -1,4 +1,3 @@
-/* src/pages/UserHomepage.jsx */
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/UserHomepage.css";
@@ -15,7 +14,6 @@ import { FaSearch, FaStar, FaLightbulb, FaSyncAlt, FaUserEdit, FaDice } from "re
 import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
 
 import { useAuth } from "../context/AuthContext";
-import LoginPromptModal from "../components/LoginPromptModal";
 
 const HERO_IMAGES = [LoginFood, KoloImg];
 
@@ -97,7 +95,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const { user } = useAuth();
   const { t } = useTranslation();
 
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [allFoods, setAllFoods] = useState([]);
@@ -273,8 +270,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     };
   }, []);
 
-
-
   const handleRandomize = () => {
     if (!allFoods || allFoods.length === 0) return;
     setIsRandomizing(true);
@@ -308,12 +303,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
         <div className="home-hero-content-wrapper">
           <div className="hero-sdg-badges">
-            <span className="sdg-badge">🌿 SDG 3 · Good Health</span>
-            <span className="sdg-badge">🏙️ SDG 11 · Sustainable Communities</span>
+            <span className="sdg-badge">🌿 {t("home.sdg3", "SDG 3 · Good Health")}</span>
+            <span className="sdg-badge">🏙️ {t("home.sdg11", "SDG 11 · Sustainable Communities")}</span>
           </div>
           <h1 className="hero-title">{getWelcomeTitle()}</h1>
           {!isLoggedInUser && (
-            <p className="hero-subtitle">{t("home.heroSubtitle", "A community-driven hub preserving the nutritional heritage of Sarawak's traditional foods — for healthier communities and richer cultural identity.")}</p>
+            <p className="hero-subtitle">{t("home.heroSubtitle")}</p>
           )}
 
           <div className="hero-search-container" ref={searchRef}>
@@ -387,7 +382,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           <div className="home-stats-intro">
             <p className="home-stats-eyebrow">{t("home.statsEyebrow", "What is SarawakEats?")}</p>
             <h2 className="home-stats-headline">{t("home.statsHeadline", "Where food becomes a story worth preserving.")}</h2>
-            <p className="home-stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
+            <p className="home-stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
           </div>
           <div className="home-stats-grid" ref={statsGridRef}>
             <div className="home-stat-item">
@@ -466,14 +461,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             )}
           </div>
         </div>
-      )}
-
-      {showLoginPrompt && (
-        <LoginPromptModal
-          message={modalMessage}
-          onClose={() => setShowLoginPrompt(false)}
-          onLogin={() => navigate("/loginregister")}
-        />
       )}
       <Footer />
     </div>
