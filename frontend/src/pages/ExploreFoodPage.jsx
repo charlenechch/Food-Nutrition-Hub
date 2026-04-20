@@ -439,7 +439,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
                 <div className="efp-food-body">
                   <div className="efp-food-headline">
-                    <h3 className="efp-food-title">{translatedFoods[`name_${food.id}`] || food.name}</h3>
+                    <h3 className="efp-food-title">{translatedFoods[`name_${food.foodID}`] || food.name}</h3>
                     
                     <div className="efp-category-group">
                       {food.category && (
@@ -452,7 +452,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                       )}
                     </div>
                   </div>
-                  <p className="efp-desc">{translatedFoods[`desc_${food.id}`] || food.description}</p>
+                  <p className="efp-desc">{translatedFoods[`desc_${food.foodID}`] || food.description}</p>
                   <div className="efp-meta">
                     <span className="muted">{t("explore.origin")}: {food.origin}</span>
                     <span className="efp-cal">{Math.round(food.Energy_kcal_ps)} {t("explore.calories")}</span>
