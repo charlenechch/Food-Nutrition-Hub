@@ -306,6 +306,33 @@
     "confidenceWarning": "Tahap ketepatan adalah sederhana. Sila sahkan nama makanan tersebut."
   },
 
+  "map": {
+    "searchPlaceholder": "Cari makanan Sarawak… cth. Umai, Linut, Kolo Mee",
+    "searching": "Mencari…",
+    "restaurants": "restoran",
+    "nearMe": "Berhampiran Saya",
+    "allFoods": "Semua Makanan",
+    "allRestaurants": "Semua Restoran",
+    "places": "tempat",
+    "loadingRestaurants": "Memuatkan restoran…",
+    "noRestaurants": "Tiada restoran dijumpai untuk makanan ini.",
+    "picks": "Pilihan Sarawak Eats",
+    "nearbyRestaurants": "Restoran Berhampiran",
+    "moreRestaurants": "Lebih Banyak Restoran",
+    "pick": "Pilihan",
+    "open": "Buka",
+    "openNow": "Buka Sekarang",
+    "closed": "Tutup",
+    "halal": "Halal",
+    "reviews": "Ulasan",
+    "directions": "Arah",
+    "geoNotSupported": "Geolokasi tidak disokong.",
+    "geoOutsideSarawak": "Lokasi nampaknya di luar Sarawak. Menunjukkan Kuching.",
+    "geoDenied": "Lokasi ditolak. Benarkan dalam tetapan pelayar.",
+    "geoUnavailable": "Lokasi tidak tersedia.",
+    "geoFailed": "Tidak dapat mendapatkan lokasi anda."
+  }, 
+
   "community": {
     "heroTitle": "Komuniti",
     "heroSubtitle": "Koleksi kenangan, resipi, dan kisah warisan dari seluruh Sarawak.",

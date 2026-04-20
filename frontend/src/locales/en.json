@@ -366,6 +366,33 @@
     "unknownChef": "Unknown Chef"
   },
 
+  "map": {
+    "searchPlaceholder": "Search Sarawak food… e.g. Umai, Linut, Kolo Mee",
+    "searching": "Searching…",
+    "restaurants": "restaurants",
+    "nearMe": "Near Me",
+    "allFoods": "All Foods",
+    "allRestaurants": "All Restaurants",
+    "places": "places",
+    "loadingRestaurants": "Loading restaurants…",
+    "noRestaurants": "No restaurants found for this food yet.",
+    "picks": "Sarawak Eats Picks",
+    "nearbyRestaurants": "Nearby Restaurants",
+    "moreRestaurants": "More Restaurants",
+    "pick": "Pick",
+    "open": "Open",
+    "openNow": "Open Now",
+    "closed": "Closed",
+    "halal": "Halal",
+    "reviews": "Reviews",
+    "directions": "Directions",
+    "geoNotSupported": "Geolocation not supported.",
+    "geoOutsideSarawak": "Location seems outside Sarawak. Showing Kuching instead.",
+    "geoDenied": "Location denied. Allow it in browser settings.",
+    "geoUnavailable": "Location unavailable.",
+    "geoFailed": "Could not get your location."
+  },
+
   "profile": {
     "unknown": "Unknown",
     "dateNotAvailable": "Date not available",

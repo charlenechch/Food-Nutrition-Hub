@@ -5,6 +5,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "../css/FoodMap.css";
 import Header from "../components/Header";
+import { useTranslation } from "react-i18next";
 
 const API = import.meta.env.VITE_API_URL || "https://api.sarawakeats.site";
 
@@ -77,6 +78,7 @@ function FlyTo({ target }) {
 
 // Main component
 export default function FoodMap() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [pins,         setPins]         = useState([]);
   const [loading,      setLoading]      = useState(true);
@@ -185,7 +187,7 @@ export default function FoodMap() {
   // Geolocate
   const geolocate = () => {
     setGeoError(null);
-    if (!navigator.geolocation) { setGeoError("Geolocation not supported."); return; }
+    if (!navigator.geolocation) { setGeoError(t("map.geoNotSupported")); return; }
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         let lat = parseFloat(coords.latitude.toFixed(7));
@@ -193,22 +195,22 @@ export default function FoodMap() {
 
         // If outside Sarawak bounds, fall back to Kuching center
         if (lat < 0.9 || lat > 5.0 || lng < 109.5 || lng > 119.0)  {
-          setGeoError("Location seems outside Sarawak. Showing Kuching instead.");
+          setGeoError(t("map.geoOutsideSarawak"));
           lat = 1.5535;
           lng = 110.3493;
         }
 
         setUserPos([lat, lng]);
         setFlyTarget([lat, lng]);
-        userCoordsRef.current = { lat, lng }; // ← save coords for all subsequent calls
+        userCoordsRef.current = { lat, lng };
         loadAll(lat, lng);
       },
       (err) => {
         const msgs = {
-          [err.PERMISSION_DENIED]:    "Location denied. Allow it in browser settings.",
-          [err.POSITION_UNAVAILABLE]: "Location unavailable.",
+          [err.PERMISSION_DENIED]:    t("map.geoDenied"),
+          [err.POSITION_UNAVAILABLE]: t("map.geoUnavailable"),
         };
-        setGeoError(msgs[err.code] || "Could not get your location.");
+        setGeoError(msgs[err.code] || t("map.geoFailed"));
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
@@ -237,16 +239,16 @@ export default function FoodMap() {
               type="text"
               value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search Sarawak food… e.g. Umai, Linut, Kolo Mee"
+              placeholder={t("map.searchPlaceholder")}
               className="foodmap-search-input"
             />
-            {searching && <span className="foodmap-searching">Searching…</span>}
+            {searching && <span className="foodmap-searching">{t("map.searching")}</span>}
           </div>
           {!loading && (
-            <span className="foodmap-count">{pins.length} restaurants</span>
+            <span className="foodmap-count">{pins.length} {t("map.restaurants")}</span>
           )}
           <button className="foodmap-nearbtn lrp-no-outline" onClick={geolocate}>
-            📍 Near Me
+            📍 {t("map.nearMe")}
           </button>
         </div>
 
@@ -264,7 +266,7 @@ export default function FoodMap() {
             className={`foodmap-cat-chip lrp-no-outline ${activeFilter === "all" ? "active-all" : ""}`}
             onClick={() => handleChipClick("all")}
           >
-            🍽️ All Foods
+            🍽️ {t("map.allFoods")}
           </button>
           {Object.entries(FOODS).map(([name, meta]) => (
             <button
@@ -288,23 +290,23 @@ export default function FoodMap() {
           <div className="foodmap-sidebar">
             <div className="foodmap-list-head">
               <span className="foodmap-list-title">
-                {activeFilter === "all" ? "All Restaurants" : activeFilter}
+                {activeFilter === "all" ? t("map.allRestaurants") : activeFilter}
               </span>
-              <span className="foodmap-list-count">{pins.length} places</span>
+              <span className="foodmap-list-count">{pins.length} {t("map.places")}</span>
             </div>
 
             <div className="foodmap-cards">
               {loading && (
                 <div className="foodmap-state">
                   <div className="foodmap-spinner" />
-                  <p>Loading restaurants…</p>
+                  <p>{t("map.loadingRestaurants")}</p>
                 </div>
               )}
               {error && <div className="foodmap-error">⚠️ {error}</div>}
               {!loading && !error && pins.length === 0 && (
                 <div className="foodmap-state">
                   <div className="foodmap-state-icon">🍃</div>
-                  <p>No restaurants found for this food yet.</p>
+                  <p>{t("map.noRestaurants")}</p>
                 </div>
               )}
 
@@ -313,7 +315,7 @@ export default function FoodMap() {
                   {curatedPins.length > 0 && (
                     <>
                       <div className="foodmap-section-label curated">
-                        ⭐ Sarawak Eats Picks
+                        ⭐ {t("map.picks")}
                       </div>
                       {/* Group curated picks by restaurant name */}
                       {Object.values(
@@ -341,7 +343,7 @@ export default function FoodMap() {
                   {googlePins.length > 0 && (
                     <>
                       <div className="foodmap-section-label google">
-                        🌐 {userPos ? "Nearby Restaurants" : "More Restaurants"}
+                        🌐 {userPos ? t("map.nearbyRestaurants") : t("map.moreRestaurants")}
                       </div>
                       {googlePins.map((pin) => (
                         <PinCard
@@ -417,6 +419,7 @@ export default function FoodMap() {
 
 // Pin card in sidebar
 function PinCard({ pin, active, onClick }) {
+  const { t } = useTranslation();
   const foods = pin.foods || [pin.food];
   const primaryMeta = getFoodMeta(foods[0]);
 
@@ -447,15 +450,15 @@ function PinCard({ pin, active, onClick }) {
               </span>
             );
           })}
-          {pin.is_pick && <span className="foodmap-pick-badge">⭐ Pick</span>}
+          {pin.is_pick && <span className="foodmap-pick-badge">⭐ {t("map.pick")}</span>}
         </div>
 
         <div className="foodmap-card-address">{pin.address}</div>
         <div className="foodmap-card-meta">
           {pin.price          && <span className="foodmap-card-price">{pin.price}</span>}
-          {pin.open_now === true  && <span className="foodmap-open">Open</span>}
-          {pin.open_now === false && <span className="foodmap-closed">Closed</span>}
-          {pin.halal          && <span className="foodmap-halal">Halal</span>}
+          {pin.open_now === true  && <span className="foodmap-open">{t("map.open")}</span>}
+          {pin.open_now === false && <span className="foodmap-closed">{t("map.closed")}</span>}
+          {pin.halal          && <span className="foodmap-halal">{t("map.halal")}</span>}
         </div>
       </div>
     </div>
@@ -464,6 +467,7 @@ function PinCard({ pin, active, onClick }) {
 
 // Detail card
 function DetailCard({ pin, onClose, onDirections }) {
+  const { t } = useTranslation();
   const meta = getFoodMeta(pin.food);
   return (
     <div className="foodmap-detail">
@@ -472,7 +476,7 @@ function DetailCard({ pin, onClose, onDirections }) {
         {pin.food && (
           <div className="foodmap-detail-cat-badge">
             {meta.emoji} {pin.food}
-            {pin.is_pick && " · ⭐ Pick"}
+            {pin.is_pick && ` · ⭐ ${t("map.pick")}`}
           </div>
         )}
         <div className="foodmap-detail-name">{pin.name}</div>
@@ -483,7 +487,7 @@ function DetailCard({ pin, onClose, onDirections }) {
           <div className="foodmap-detail-row">
             <span className="foodmap-detail-icon">⭐</span>
             <span className="foodmap-detail-text">
-              <b>{pin.rating}</b>{pin.reviews ? ` · ${pin.reviews} reviews` : ""}
+              <b>{pin.rating}</b>{pin.reviews ? ` · ${pin.reviews} ${t("map.reviews")}` : ""}
             </span>
           </div>
         )}
@@ -506,18 +510,18 @@ function DetailCard({ pin, onClose, onDirections }) {
           </div>
         )}
         <div className="foodmap-detail-tags">
-          {pin.halal              && <span className="foodmap-halal">✅ Halal</span>}
-          {pin.open_now === true  && <span className="foodmap-open">Open Now</span>}
-          {pin.open_now === false && <span className="foodmap-closed">Closed</span>}
+          {pin.halal              && <span className="foodmap-halal">✅ {t("map.halal")}</span>}
+          {pin.open_now === true  && <span className="foodmap-open">{t("map.openNow")}</span>}
+          {pin.open_now === false && <span className="foodmap-closed">{t("map.closed")}</span>}
         </div>
         <div className="foodmap-detail-actions">
-          <button className="foodmap-detail-btn lrp-no-outline" onClick={onDirections}>🗺️ Directions</button>
+          <button className="foodmap-detail-btn lrp-no-outline" onClick={onDirections}>🗺️ {t("map.directions")}</button>
           {pin.reviews > 0 && (
             <button
               className="foodmap-detail-btn lrp-no-outline"
               onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pin.name + ' ' + pin.address)}`, "_blank")}
             >
-              ⭐ {pin.reviews} Reviews
+              ⭐ {pin.reviews} {t("map.reviews")}
             </button>
           )}
         </div>
