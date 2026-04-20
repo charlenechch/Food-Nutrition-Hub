@@ -412,7 +412,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
               : calorieLabel === t("explore.calModerate") ? "efp-badge efp-badge--warn"
               : "efp-badge efp-badge--high";
             const diff = (food.difficulty || "").toLowerCase();
-            const diffLabel = diff ? diff[0].toUpperCase() + diff.slice(1) : "";
+            const diffLabel = diff ? t(`explore.difficulty_${diff}`) || (diff[0].toUpperCase() + diff.slice(1)) : "";
             const diffClass = diff === "easy" ? "efp-badge efp-badge--ok"
               : diff === "medium" ? "efp-badge efp-badge--warn"
               : diff === "hard" ? "efp-badge efp-badge--high" : "efp-badge";
@@ -446,7 +446,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                         (Array.isArray(food.category) ? food.category : food.category.split(','))
                           .map((cat, index) => (
                             <span key={`cat-${index}`} className="efp-badge-cat">
-                              {cat.trim()}
+                              {t(`explore.cat_${cat.trim().toLowerCase().replace(/\s+/g, "_")}`) || cat.trim()}
                             </span>
                           ))
                       )}
@@ -454,7 +454,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   </div>
                   <p className="efp-desc">{translatedFoods[`desc_${food.foodID}`] || food.description}</p>
                   <div className="efp-meta">
-                    <span className="muted">{t("explore.origin")}: {food.origin}</span>
+                    <span className="muted">{t("explore.origin")}: {t(`explore.origin_${food.origin?.toLowerCase()}`) || food.origin}</span>
                     <span className="efp-cal">{Math.round(food.Energy_kcal_ps)} {t("explore.calories")}</span>
                   </div>
                   <div className="efp-nutri">
@@ -477,7 +477,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                         <button key={tag} type="button" className="efp-tag"
                           onClick={(e) => { e.stopPropagation(); setSelectedDietaryTags((prev) => prev.includes(tag) ? prev : [...prev, tag]); }}
                           title={`Filter by ${humanize(tag)}`}>
-                          {humanize(tag)}
+                          {t(`explore.dietary_${tag}`) || humanize(tag)}
                         </button>
                       ))}
                     </div>
