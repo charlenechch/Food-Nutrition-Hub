@@ -277,42 +277,23 @@ const EditFoodPage = () => {
     });
   };
 
-const handleSaveAttempt = () => {
+  const handleSaveAttempt = () => {
     const currentCats = Array.isArray(food.category) ? food.category : [];
 
-    const requiredFoodFields = [
-      "name", "origin", "difficulty", "prepTime", 
-      "description", "culturalSignificance", "traditionalPreparation", 
-      "Energy_kcal", "Protein_g", "Carbohydrates_g", "Fat_g", "Fiber_g", 
-      "VitaminC_mg", "healthTips"
+    const requiredFields = [
+      "name", "origin", "recipeName", "difficulty", "servings",
+      "prepTime", "cookTime", "ingredients", "steps", "recipeDescription",
+      "didYouKnow", "chefTips", "foodDescription", "culturalSignificance",
+      "traditionalPreparation", "calories", "protein", "carbs",
+      "fat", "fiber", "vitaminc", "healthTips"
     ];
 
-    const requiredRecipeFields = [
-      "name", "servings", "cookTime", "ingredients", 
-      "steps", "description", "DidYouKnow", "chefTips"
-    ];
-
-    const hasEmptyFoodFields = requiredFoodFields.some((key) => {
+    const hasEmptyFields = requiredFields.some((key) => {
       const value = food[key];
       return value === undefined || value === null || String(value).trim() === "";
     });
 
-    const hasEmptyRecipeFields = requiredRecipeFields.some((key) => {
-      const value = recipe[key];
-      return value === undefined || value === null || String(value).trim() === "";
-    });
-
-    const hasIngredients = selectedIngredients.length > 0 || (showOtherIngredient && otherIngredientText.trim() !== "");
-
-    const hasDietary = selectedDietary.length > 0;
-
-    if (
-      hasEmptyFoodFields || 
-      hasEmptyRecipeFields || 
-      currentCats.length === 0 || 
-      !hasIngredients || 
-      !hasDietary
-    ) {
+    if (hasEmptyFields || currentCats.length === 0) {
       setShowNotification({
         visible: true,
         message: t("addFood.fillAllFieldsError"), 
@@ -416,7 +397,6 @@ const handleSaveAttempt = () => {
             "Content-Type": "application/json",
             "X-CSRF-Token": csrfToken,
           },
-          credentials: "include",
           body: JSON.stringify(recipeDataToSave),
         });
         recipeResult = await recipeRes.json();
