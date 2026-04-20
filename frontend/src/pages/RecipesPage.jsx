@@ -500,8 +500,8 @@ export default function RecipesPage() {
                   <label>{t("recipes.formOrigin")}</label>
                   <select name="origin" value={form.origin} onChange={onChangeForm} required>
                     <option value="">{t("recipes.selectOrigin")}</option>
-                    <option value="Malay">Malay</option>
-                    <option value="Chinese">Chinese</option>
+                    <option value="Malay">{i18n.exists("explore.origin_malay") ? t("explore.origin_malay") : "Malay"}</option>
+                    <option value="Chinese">{i18n.exists("explore.origin_chinese") ? t("explore.origin_chinese") : "Chinese"}</option>
                     <option value="Iban">Iban</option>
                     <option value="Melanau">Melanau</option>
                     <option value="Kenyah">Kenyah</option>
@@ -701,9 +701,9 @@ export default function RecipesPage() {
                   <label className="efp-label">{t("explore.difficulty")}</label>
                   <select value={selectedDifficulty} onChange={(e) => setSelectedDifficulty(e.target.value)} className="efp-select">
                     <option value="all">{t("recipes.allDifficulties")}</option>
-                    <option value="Easy">{t("explore.easy")}</option>
-                    <option value="Medium">{t("explore.medium")}</option>
-                    <option value="Hard">{t("explore.hard")}</option>
+                    <option value="Easy">{t("explore.difficulty_easy")}</option>
+                    <option value="Medium">{t("explore.difficulty_medium")}</option>
+                    <option value="Hard">{t("explore.difficulty_hard")}</option>
                   </select>
                 </div>
               </div>
