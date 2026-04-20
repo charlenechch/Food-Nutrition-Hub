@@ -405,6 +405,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
           )}
         </div>
 
+        {/* Food Grid */}
         <div className="efp-grid">
           {currentFoods.map((food) => {
             const calorieLabel = getCalorieRangeLabel(food.Energy_kcal_ps);
@@ -416,6 +417,8 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
             const diffClass = diff === "easy" ? "efp-badge efp-badge--ok"
               : diff === "medium" ? "efp-badge efp-badge--warn"
               : diff === "hard" ? "efp-badge efp-badge--high" : "efp-badge";
+            const originKey = `explore.origin_${food.origin?.toLowerCase()}`;
+            const originLabel = i18n.exists(originKey) ? t(originKey) : food.origin;
 
             return (
               <div 
@@ -454,7 +457,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   </div>
                   <p className="efp-desc">{translatedFoods[`desc_${food.foodID}`] || food.description}</p>
                   <div className="efp-meta">
-                    <span className="muted">{t("explore.origin")}: {t(`explore.origin_${food.origin?.toLowerCase()}`) || food.origin}</span>
+                    <span className="muted">{t("explore.origin")}: {originLabel}</span>
                     <span className="efp-cal">{Math.round(food.Energy_kcal_ps)} {t("explore.calories")}</span>
                   </div>
                   <div className="efp-nutri">
@@ -499,6 +502,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
           </div>
         )}
 
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="community-pagination">
             <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}

@@ -8,7 +8,6 @@ import { useTranslation } from "react-i18next";
 
 import LoginFood from "../assets/LoginFood.png";
 import KoloImg from "../assets/kolomee.jpg";
-import KekImg from "../assets/keklapis.jpg";
 
 import { FaSearch, FaStar, FaLightbulb, FaSyncAlt, FaUserEdit, FaDice } from "react-icons/fa";
 import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
@@ -22,7 +21,7 @@ function DishSpotlight({ allFoods, navigate, t }) {
   const [active, setActive] = React.useState(0);
   const timerRef = React.useRef(null);
 
-  const SPOTLIGHT_IDS = [2, 10, 55];
+  const SPOTLIGHT_IDS = [2, 10, 11];
 
   const spotlightDishes = React.useMemo(() => {
     if (!allFoods || allFoods.length === 0) return [];
