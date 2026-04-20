@@ -27,8 +27,8 @@
   },
 
   "modal": {
-    "loginRequired": "Log Masuk Diperlukan",
-    "loginMessage": "Sila log masuk atau daftar untuk mengakses ciri ini.",
+    "loginRequired": "Sila Log Masuk",
+    "loginMessage": "Sila log masuk atau daftar untuk mengakses fungsi ini.",
     "logIn": "Log Masuk",
     "register": "Daftar"
   },
@@ -59,6 +59,7 @@
     "stat2Desc": "Dari Laksa hingga Umai, cita rasa yang unik di Bumi Kenyalang.",
     "stat3Title": "Warisan berzaman",
     "stat3Desc": "Setiap resipi menyatukan sejarah perdagangan, penghijrahan, dan budaya yang merentas zaman.",
+    "scrollExplore": "Teroka",
     "exploreDish": "Terokai hidangan ini",
     "viewNutrition": "Lihat nutrisi →"
   },
