@@ -192,6 +192,14 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
       setTranslatedFoods({});
       return;
     }
+
+    const cacheKey = `translations_${i18n.language}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      setTranslatedFoods(JSON.parse(cached));
+      return;
+    }
+
     setIsTranslating(true);
     const texts = {};
     foods.forEach(f => {
@@ -200,6 +208,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     });
     translateTexts(texts, i18n.language).then(result => {
       setTranslatedFoods(result);
+      localStorage.setItem(cacheKey, JSON.stringify(result));
       setIsTranslating(false);
     });
   }, [foods, i18n.language]);
