@@ -16,7 +16,7 @@ import { translateTexts } from "../hooks/useAITranslation";
 
 // Delete Confirmation Modal Component
 const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", isAdminAction = false }) => {
-  const { t } = useTranslation(); // ← add this
+  const { t } = useTranslation(); 
   if (!show) return null;
 
   return (
@@ -168,21 +168,6 @@ const Comment = React.memo(function Comment({
     }
   };
 
-  const { t, i18n } = useTranslation();
-  const [translatedFood, setTranslatedFood] = useState({});
-
-  // Translation
-  useEffect(() => {
-    if (!food || i18n.language === "en") {
-      setTranslatedFood({});
-      return;
-    }
-    translateTexts({
-      name: food.name,
-      description: food.description,
-    }, i18n.language).then(setTranslatedFood);
-  }, [food, i18n.language]);
-
   return (
     <div className={`fd-disc-comment ${isReply ? "fd-disc-reply" : ""}`}>
       <div 
@@ -236,7 +221,7 @@ const Comment = React.memo(function Comment({
               </span>
             )}
           </span>
-          <span className="fd-disc-time">• {getTimeAgo(timestamp)}</span>
+          <span className="fd-disc-time">• {getTimeAgo(timestamp, i18n.language)}</span>
           
           {/* ✅ UPDATED DELETE BUTTON - Show for owners AND admins */}
           {canDelete && (
@@ -261,7 +246,7 @@ const Comment = React.memo(function Comment({
               {userLiked ? "♥" : "♡"} {likes}
             </button>
             <button className="fd-link-btn" onClick={handleToggleReply}>
-              ↩ Reply
+              ↩ {t("foodDiscussion.reply")}
             </button>
           </div>
         )}
@@ -270,17 +255,17 @@ const Comment = React.memo(function Comment({
           <div className="fd-reply-box">
             <textarea
               className="fd-input"
-              placeholder="Write your reply..."
+              placeholder={t("foodDiscussion.writeReply")}
               value={replyTexts[itemId] || ""}
               onChange={handleReplyChange}
               rows="2"
             />
             <div className="fd-reply-actions">
               <button className="lrp-btn lrp-btn-primary" disabled={!replyTexts[itemId]?.trim()} onClick={handlePostReply}>
-                Send Reply
+               {t("foodDiscussion.sendReply")}
               </button>
               <button className="lrp-btn lrp-btn-outline" onClick={() => setReplyToId(null)}>
-                Cancel
+                {t("foodDiscussion.cancel")}
               </button>
             </div>
           </div>
