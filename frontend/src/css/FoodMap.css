@@ -392,16 +392,46 @@
   box-shadow: none;
   border: none
 }                                              
-                                                                   
+
 /* ── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .foodmap-body    { flex-direction: column; }
-  .foodmap-sidebar { width: 100%; height: 45%; border-right: none; border-top: 1px solid #ede5db; order: 2; }
-  .foodmap-map-wrap{ height: 55%; order: 1; min-height: 0; }
-  .foodmap-detail  { left: 10px; right: 10px; width: auto; bottom: calc(45% + 10px); }
-  .foodmap-count   { display: none; }
-  .foodmap-cats    { padding: 8px 12px; gap: 6px; }
-  .foodmap-cat-chip{ padding: 5px 10px; font-size: 11px; }
+  .foodmap-body    { 
+    flex-direction: column; 
+  }
+
+  .foodmap-sidebar { 
+    width: 100%; 
+    height: 45%; 
+    border-right: none; 
+    border-top: 1px solid #ede5db; 
+    order: 2; 
+  }
+
+  .foodmap-map-wrap{ 
+    height: 55%; 
+    order: 1; 
+    min-height: 0; 
+  }
+
+  .foodmap-detail  { 
+    left: 10px; 
+    right: 10px; 
+    width: auto; 
+    bottom: calc(45% + 10px); 
+  }
+
+  .foodmap-count   { 
+    display: none; 
+  }
+
+  .foodmap-cats    { 
+    padding: 8px 12px; 
+    gap: 6px; 
+  }
+  .foodmap-cat-chip{ 
+    padding: 5px 10px; 
+    font-size: 11px; 
+  }
 }
 
 .foodmap-card-foods {
