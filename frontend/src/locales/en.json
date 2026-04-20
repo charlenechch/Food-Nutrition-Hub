@@ -299,11 +299,11 @@
     "calories": "Calories",
     "fiber": "Fiber",
     "vitaminC": "Vitamin C",
-    "healthierAlts": "Healthier Alternatives",
     "healthTips": "Health Tips",
     "errorFetch": "Failed to fetch item.",
     "errorAI": "Could not analyze using AI.",
-    "errorGeneral": "Something went wrong."
+    "errorGeneral": "Something went wrong.",
+    "confidenceWarning": "Match confidence is moderate. Please verify the food name."
   },
 
   "community": {

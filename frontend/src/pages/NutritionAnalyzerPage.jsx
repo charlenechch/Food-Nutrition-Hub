@@ -8,12 +8,13 @@ import { LuSparkles } from "react-icons/lu";
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { useTranslation } from "react-i18next";
+import { translateTexts } from "../hooks/useAITranslation";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function NutritionAnalyzerPage() {
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isGuest = !user || user?.role === "guest";
 
   const [foodName, setFoodName] = useState("");
@@ -67,13 +68,15 @@ export default function NutritionAnalyzerPage() {
 
       if (lookupData.found && lookupData.item) {
         const item = lookupData.item;
+        const tips = item.healthTips ? [item.healthTips] : [];
+        const translatedTips = await translateTips(tips);
         setResult({
           food_name: item.name,
           nutrition: item,
           alternatives: item.alternative
             ? [{ title: item.alternative, description: item.altDescription }]
             : [],
-          tips: item.healthTips ? [item.healthTips] : [],
+          tips: translatedTips,
         });
       } else {
         setError("Could not load nutrition for this food.");
@@ -84,6 +87,15 @@ export default function NutritionAnalyzerPage() {
       setLoading(false);
     }
   };
+
+  const translateTips = async (tips) => {
+    if (i18n.language === "en" || !tips?.length) return tips;
+    const texts = {};
+    tips.forEach((tip, i) => { texts[`tip_${i}`] = tip; });
+    const translated = await translateTexts(texts, i18n.language);
+    return tips.map((_, i) => translated[`tip_${i}`] || tips[i]);
+  };
+
   const handleAnalyze = async (e) => {
     e.preventDefault();
     if (requireLogin()) return;
@@ -114,7 +126,7 @@ export default function NutritionAnalyzerPage() {
         if (data.ok && data.data) {
           // ADDED: capture warning for low confidence matches
           if (data.data.confidence_level === "low") {
-            setWarning(data.warning || "Match confidence is moderate. Please verify the food name.");
+            setWarning(data.warning ? t("analyzer.confidenceWarning") : "");
           } else {
             setWarning("");
           }
@@ -127,13 +139,12 @@ export default function NutritionAnalyzerPage() {
 
           if (lookupData.found && lookupData.item) {
             const item = lookupData.item;
+            const tips = item.healthTips ? [item.healthTips] : [];
+            const translatedTips = await translateTips(tips);
             setResult({
               food_name: item.name,
               nutrition: item,
-              alternatives: item.alternative
-                ? [{ title: item.alternative, description: item.altDescription }]
-                : [],
-              tips: item.healthTips ? [item.healthTips] : [],
+              tips: translatedTips,
             });
             return;
           }
@@ -155,11 +166,13 @@ export default function NutritionAnalyzerPage() {
       const dbData = await dbRes.json();
 
       if (dbData.found && dbData.item) {
+        const tips = dbData.item.healthTips ? [dbData.item.healthTips] : [];
+        const translatedTips = await translateTips(tips);
         setResult({
           food_name: dbData.item.name,
           nutrition: dbData.item,
           alternatives: dbData.item.alternative ? [{ title: dbData.item.alternative, description: dbData.item.altDescription }] : [],
-          tips: dbData.item.healthTips ? [dbData.item.healthTips] : [],
+          tips: translatedTips,
         });
         return;
       }
@@ -174,11 +187,13 @@ export default function NutritionAnalyzerPage() {
       });
       const aiData = await aiRes.json();
       if (aiData.found && aiData.item) {
+        const tips = aiData.item.healthTips ? [aiData.item.healthTips] : [];
+        const translatedTips = await translateTips(tips);
         setResult({
           food_name: aiData.item.name,
           nutrition: aiData.item,
           alternatives: aiData.item.alternative ? [{ title: aiData.item.alternative, description: aiData.item.altDescription }] : [],
-          tips: aiData.item.healthTips ? [aiData.item.healthTips] : [],
+          tips: translatedTips,
         });
         return;
       }
