@@ -371,9 +371,9 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   <label className="efp-label">{t("explore.difficulty")}</label>
                   <select value={selectedDifficulty} onChange={(e) => setSelectedDifficulty(e.target.value)} className="efp-select">
                     <option value="all">{t("explore.allCategories")}</option>
-                    <option value="Easy">{t("explore.easy")}</option>
-                    <option value="Medium">{t("explore.medium")}</option>
-                    <option value="Hard">{t("explore.hard")}</option>
+                    <option value="Easy">{t("explore.difficulty_easy")}</option>
+                    <option value="Medium">{t("explore.difficulty_medium")}</option>
+                    <option value="Hard">{t("explore.difficulty_hard")}</option>
                   </select>
                 </div>
                 <div className="efp-filter-item">
