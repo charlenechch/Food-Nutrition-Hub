@@ -63,7 +63,9 @@ function DishSpotlight({ allFoods, navigate, t, translatedFoods = {} }) {
           <span className="home-dish-origin-badge">{dishOrigin}</span>
         </div>
         <div className="home-dish-spotlight-content">
-          <span className="home-dish-tag-pill">{dishCategory}</span>
+          <span className="home-dish-tag-pill">
+            {t(`explore.cat_${dishCategory.toLowerCase().replace(" ", "_")}`, dishCategory)}
+          </span>
           <h2 className="home-dish-spotlight-title">
             {translatedFoods[`name_${dish.foodID}`] || dish.name}
           </h2>
