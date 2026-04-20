@@ -195,8 +195,8 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
     setIsTranslating(true);
     const texts = {};
     foods.forEach(f => {
-      texts[`name_${f.id}`] = f.name;
-      texts[`desc_${f.id}`] = f.description;
+      texts[`name_${food.id}`] = f.name;
+      texts[`desc_${foood.id}`] = f.description;
     });
     translateTexts(texts, i18n.language).then(result => {
       setTranslatedFoods(result);

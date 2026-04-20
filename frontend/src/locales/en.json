@@ -58,10 +58,10 @@
     "stat2Title": "Traditional dishes",
     "stat2Desc": "From Laksa to Umai, flavours unique to the Land of the Hornbills.",
     "stat3Title": "Years of heritage",
-    "stat3Desc": "Centuries of trade, migration, and culture woven into every recipe."
-
-    
-    
+    "stat3Desc": "Centuries of trade, migration, and culture woven into every recipe.",
+    "dishDefaultDesc": "A beloved traditional dish from the rich culinary heritage of Sarawak.",
+    "exploreDish": "Explore this dish",
+    "viewNutrition": "View nutrition →"
   },
 
   "explore": {
@@ -76,7 +76,7 @@
     "filter": "Filter",
     "culturalOrigin": "Cultural Origin",
     "foodType": "Food Type",
-    "mainDish": "Main Dish",
+    "mainDish": "Main Dish",  
     "appetizer": "Appetizer",
     "vegetable": "Vegetable",
     "dessert": "Dessert",
