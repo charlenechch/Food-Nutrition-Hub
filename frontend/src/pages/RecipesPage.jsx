@@ -409,7 +409,7 @@ export default function RecipesPage() {
   }
 
   const CATEGORY_OPTIONS = ["Poultry", "Seafood", "Vegetables", "Fermented", "Dessert", "Rice Dish", "Noodles", "Soup", "Meat"];
-  const DIET_OPTIONS = ["vegetarian", "gluten-free", "dairy-free", "spicy", "paleo", "halal", "keto", "nut-free"];
+  const DIET_OPTIONS = ["vegetarian", "vegan", "halal", "gluten-free", "dairy-free", "low-fat", "high-protein", "spicy"];
 
   function toggleCategory(cat) {
     setForm(prev => {
