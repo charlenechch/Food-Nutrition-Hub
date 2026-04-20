@@ -387,6 +387,12 @@
   opacity: .88; 
 }
 
+.foodmap-detail-btn.active, .foodmap-detail-btn.focus, .foodmap-detail-btn.focus-visible {
+  outline: none;
+  box-shadow: none;
+  border: none
+}                                              
+                                                                   
 /* ── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .foodmap-body    { flex-direction: column; }
