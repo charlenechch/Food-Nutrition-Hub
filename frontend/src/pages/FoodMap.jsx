@@ -520,10 +520,6 @@ function DetailCard({ pin, onClose, onDirections }) {
               ⭐ {pin.reviews} Reviews
             </button>
           )}
-          <button className="foodmap-detail-btn primary lrp-no-outline"
-            style={{ background: meta.color, borderColor: meta.color }}>
-            🔖 Save
-          </button>
         </div>
       </div>
     </div>
