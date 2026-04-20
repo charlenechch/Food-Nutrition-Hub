@@ -11,9 +11,12 @@ import { useAuth } from "../context/AuthContext";
 import Modal from "../components/Modal";
 import LoginPromptModal from "../components/LoginPromptModal";
 import { getTierById } from "../utils/gamificationTiers";
+import { useTranslation } from "react-i18next";
+import { translateTexts } from "../hooks/useAITranslation";
 
-// ✅ Delete Confirmation Modal Component
+// Delete Confirmation Modal Component
 const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", isAdminAction = false }) => {
+  const { t } = useTranslation(); // ← add this
   if (!show) return null;
 
   return (
@@ -21,30 +24,30 @@ const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", i
       <div className="modal-card">
         <div className="modal-card-header">
           <h3>
-            {isAdminAction ? "Admin: Delete " : "Delete "}
-            {type === "reply" ? "Reply" : "Comment"}
+            {isAdminAction ? t("foodDiscussion.adminDelete") : t("foodDiscussion.delete")}
+            {type === "reply" ? t("foodDiscussion.reply") : t("foodDiscussion.comment")}
           </h3>
           {isAdminAction && (
             <div className="admin-delete-warning">
               <i className="fas fa-exclamation-triangle"></i>
-              <span>You are deleting this as an administrator</span>
+              <span>{t("foodDiscussion.adminDeleteWarning")}</span>
             </div>
           )}
         </div>
         <div className="modal-card-body">
           <p>
             {isAdminAction 
-              ? `Are you sure you want to delete this ${type} as an administrator? This action cannot be undone.`
-              : `Are you sure you want to delete this ${type}? This action cannot be undone.`
+              ? t("foodDiscussion.confirmDeleteAdmin", { type: t(`foodDiscussion.${type}`) })
+              : t("foodDiscussion.confirmDelete", { type: t(`foodDiscussion.${type}`) })
             }
           </p>
         </div>
         <div className="modal-card-actions">
           <button className="lrp-btn lrp-btn-outline" onClick={onClose}>
-            Cancel
+            {t("foodDiscussion.cancel")}
           </button>
           <button className="lrp-btn lrp-btn-danger" onClick={onConfirm}>
-            Delete
+            {t("foodDiscussion.delete")}
           </button>
         </div>
       </div>
@@ -52,17 +55,22 @@ const DeleteConfirmationModal = ({ show, onClose, onConfirm, type = "comment", i
   );
 };
 
-// ✅ Format "time ago"
-function getTimeAgo(timestamp) {
+// Format "time ago"
+function getTimeAgo(timestamp, lang = "en") {
   const now = new Date();
   const past = new Date(timestamp);
   const diff = Math.floor((now - past) / 1000);
   
-  // If more than 2 days, show actual date
-  if (diff >= 172800) { 
-    return formatToDate(timestamp);
-  }
+  if (diff >= 172800) return formatToDate(timestamp, lang);
   
+  if (lang === "ms") {
+    if (diff < 60) return "baru sahaja";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m lalu`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}j lalu`;
+    if (diff < 2592000) return `${Math.floor(diff / 86400)}h lalu`;
+    return `${Math.floor(diff / 2592000)}bln lalu`;
+  }
+
   if (diff < 60) return "now";
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
@@ -70,22 +78,27 @@ function getTimeAgo(timestamp) {
   return `${Math.floor(diff / 2592000)}mo ago`;
 }
 
-function formatToDate(timestamp) {
+function formatToDate(timestamp, lang = "en") {
   const date = new Date(timestamp);
-  
-  const monthNames = [
+
+  const monthNamesEn = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
-  
+  const monthNamesMs = [
+    'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun',
+    'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'
+  ];
+
+  const monthNames = lang === "ms" ? monthNamesMs : monthNamesEn;
   const day = date.getDate();
   const month = monthNames[date.getMonth()];
   const year = date.getFullYear();
-  
+
   return `${day} ${month} ${year}`;
 }
 
-// ✅ Single Comment Component
+// Single Comment Component
 const Comment = React.memo(function Comment({
   item,
   isReply = false,
@@ -154,6 +167,21 @@ const Comment = React.memo(function Comment({
       onDeleteComment(itemId, isAdmin && !isOwner);
     }
   };
+
+  const { t, i18n } = useTranslation();
+  const [translatedFood, setTranslatedFood] = useState({});
+
+  // Translation
+  useEffect(() => {
+    if (!food || i18n.language === "en") {
+      setTranslatedFood({});
+      return;
+    }
+    translateTexts({
+      name: food.name,
+      description: food.description,
+    }, i18n.language).then(setTranslatedFood);
+  }, [food, i18n.language]);
 
   return (
     <div className={`fd-disc-comment ${isReply ? "fd-disc-reply" : ""}`}>
@@ -290,7 +318,7 @@ const Comment = React.memo(function Comment({
   );
 });
 
-// ✅ Main Component
+// Main Component
 export default function FoodDiscussionPage() {
   const { user } = useAuth();
   const { foodId } = useParams();
@@ -321,9 +349,7 @@ export default function FoodDiscussionPage() {
   const isGuest = !user || user.role === "guest";
   const actualUserID = userProfileID;
   
-//================
 //CSRF
-//=============
   const [csrfToken, setCsrfToken] = useState("");
 
   useEffect(() => {
@@ -424,7 +450,7 @@ export default function FoodDiscussionPage() {
     });
   };
 
-  // ✅ Fetch comments
+  // Fetch comments
   const fetchComments = async () => {
     try {
       setLoading(true);
@@ -1156,7 +1182,7 @@ const postReply = async (discussionId) => {
       <div className="fdp-disc-container">
         <div className="fdp-disc-topbar">
           <button className="lrp-btn lrp-btn-outline fdp-back" onClick={handleBack}>
-            ← Back to Food Details
+            ← {t("foodDiscussion.back")}
           </button>
         </div>
 
@@ -1169,17 +1195,17 @@ const postReply = async (discussionId) => {
               className="fd-hero-img"
             />
             <div className="fd-hero-title">
-              {food?.name || "Food Discussion"}
+              {translatedFood.name || food?.name || "Food Discussion"}
             </div>
           </div>
 
           {/* Description */}
           <div className="fd-summary-content">
-            <p className="fd-muted">{food?.description}</p>
+            <p className="fd-muted">{translatedFood.description || food?.description}</p>
 
             {/* Stats */}
             <div className="fd-sum-stats">
-              <span>💬 {totalComments} comments</span>
+              💬 {totalComments} {t("foodDiscussion.comments")}
               <span 
                 className={`fd-food-like-btn ${foodLike.isLiked ? 'liked' : ''}`}
                 onClick={toggleFoodLike}
@@ -1198,10 +1224,10 @@ const postReply = async (discussionId) => {
 
         {/* Add Comment Box */}
         <div className="fd-card">
-          <h3 className="fd-section-title">Add Your Comment</h3>
+          <h3 className="fd-section-title">{t("foodDiscussion.addComment")}</h3>
           <textarea
             className="fd-input"
-            placeholder="Share your thoughts…"
+            placeholder={t("foodDiscussion.sharePlaceholder")}
             value={newComment}
             onChange={(e) => !isGuest && setNewComment(e.target.value)}
             onClick={() => isGuest && setShowLoginPrompt(true)}
@@ -1214,7 +1240,7 @@ const postReply = async (discussionId) => {
               onClick={postComment}
             >
               <i className="fas fa-paper-plane fdp-post-btn"></i>
-              Post Comment
+              {t("foodDiscussion.postComment")}
             </button>
           </div>
         </div>
@@ -1222,7 +1248,7 @@ const postReply = async (discussionId) => {
         {/* List Comments */}
         <div className="fd-card">
           <h3 className="fd-section-title">
-            <i className="fas fa-comment-dots" /> Community Comments ({comments.length})
+            <i className="fas fa-comment-dots" /> {t("foodDiscussion.communityComments", { count: comments.length })}
           </h3>
           {comments.length > 0 ? (
             <div className="fd-disc-list">
@@ -1250,7 +1276,7 @@ const postReply = async (discussionId) => {
             </div>
           ) : (
             <p className = "fdp-no-cmt">
-              No comments yet. Be the first to share your thoughts!
+              {t("foodDiscussion.noComments2")}
             </p>
           )}
         </div>

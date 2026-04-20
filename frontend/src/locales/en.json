@@ -177,6 +177,28 @@
     "alertSourceVitC": "Good source of Vitamin C."
   },
 
+  "foodDiscussion": {
+    "loading": "Loading comments...",
+    "back": "Back to Food Details",
+    "comments": "comments",
+    "likes": "likes",
+    "addComment": "Add Your Comment",
+    "sharePlaceholder": "Share your thoughts…",
+    "postComment": "Post Comment",
+    "communityComments": "Community Comments ({{count}})",
+    "noComments": "No comments yet. Be the first to share your thoughts!",
+    "reply": "Reply",
+    "comment": "Comment",
+    "writeReply": "Write your reply...",
+    "sendReply": "Send Reply",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "adminDelete": "Admin: Delete ",
+    "adminDeleteWarning": "You are deleting this as an administrator",
+    "confirmDelete": "Are you sure you want to delete this {{type}}? This action cannot be undone.",
+    "confirmDeleteAdmin": "Are you sure you want to delete this {{type}} as an administrator? This action cannot be undone."
+  },
+
   "recipes": {
     "pageTitle": "Traditional Recipes",
     "pageSubtitle": "Authentic Sarawakian recipes with cultural stories",
