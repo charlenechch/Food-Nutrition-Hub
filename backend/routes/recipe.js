@@ -1756,6 +1756,37 @@ router.get('/recipes/food/:foodId', async (req, res) => {
 router.put('/recipes/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // CHECK AUTHENTICATION
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Not authenticated' 
+      });
+    }
+
+    const userID = req.session.user.userID;
+    const isAdmin = req.session.user.role === 'admin';
+    
+    // If NOT admin, verify ownership
+    if (!isAdmin) {
+      const [recipeCheck] = await db.query(
+        `SELECT r.recipeID 
+         FROM recipe r 
+         INNER JOIN userProfile up ON r.userProfileID = up.userProfileID 
+         WHERE r.recipeID = ? AND up.userID = ?`,
+        [id, userID]
+      );
+      
+      if (recipeCheck.length === 0) {
+        return res.status(403).json({ 
+          success: false, 
+          error: 'You do not have permission to edit this recipe' 
+        });
+      }
+    }
+    
+    // Continue with update (no ownership check needed for admins)
     const {
       recipeName,
       description,
@@ -1796,14 +1827,23 @@ router.put('/recipes/:id', async (req, res) => {
     ]);
     
     if (result.affectedRows === 0) {
-      return res.status(404).json({ success: false, error: 'Recipe not found' });
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Recipe not found' 
+      });
     }
     
-    res.json({ success: true, message: 'Recipe updated successfully' });
+    res.json({ 
+      success: true, 
+      message: 'Recipe updated successfully' 
+    });
     
   } catch (error) {
     console.error('Error updating recipe:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 });
 

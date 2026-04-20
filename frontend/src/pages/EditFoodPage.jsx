@@ -406,6 +406,7 @@ const EditFoodPage = () => {
             "Content-Type": "application/json",
             "X-CSRF-Token": csrfToken,
           },
+          credentials: "include",
           body: JSON.stringify(recipeDataToSave),
         });
         recipeResult = await recipeRes.json();
