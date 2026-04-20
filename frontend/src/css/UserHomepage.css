@@ -33,7 +33,7 @@
   scroll-snap-stop: always;
 }
 
-/* HERO SECTION */
+/* SECTION 1 - HERO SECTION */
 .hero-section {
   background-size: cover;
   background-position: center;
@@ -146,9 +146,7 @@
   backdrop-filter: blur(8px);
 }
 
-/* ─────────────────────────────────────────
-   SEARCH PILL
-───────────────────────────────────────── */
+/* SEARCH PILL */
 .hero-search-container {
   position: relative;
   max-width: 700px;
@@ -156,7 +154,11 @@
   margin: 0 auto 20px;
   z-index: 100;
 }
-.hero-search-form { display: block; width: 100%; }
+
+.hero-search-form { 
+  display: block; 
+  width: 100%; 
+}
 
 .unified-search-pill {
   display: flex;
@@ -171,11 +173,13 @@
   box-sizing: border-box;
   width: 100%;
 }
+
 .unified-search-pill:focus-within {
   background: #ffffff;
   box-shadow: 0 15px 40px rgba(0,0,0,0.25);
   transform: translateY(-2px);
 }
+
 .unified-search-pill .search-icon {
   position: static;
   transform: none;
@@ -184,6 +188,7 @@
   margin-right: 12px;
   flex-shrink: 0;
 }
+
 .unified-search-pill input {
   flex: 1;
   min-width: 0;
@@ -195,6 +200,7 @@
   outline: none;
   box-shadow: none;
 }
+
 .unified-search-pill .search-button {
   background-color: #916848;
   color: white;
@@ -208,7 +214,10 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
-.unified-search-pill .search-button:hover { background-color: #7a5337; }
+
+.unified-search-pill .search-button:hover { 
+  background-color: #7a5337; 
+}
 
 /* Search dropdown */
 .search-dropdown {
@@ -228,6 +237,7 @@
   border: 1px solid rgba(255,255,255,0.5);
   box-sizing: border-box;
 }
+
 .search-suggestion-item {
   display: flex;
   align-items: center;
@@ -236,11 +246,30 @@
   border-radius: 12px;
   transition: background 0.2s;
 }
-.search-suggestion-item:hover { background-color: rgba(145,104,72,0.1); }
-.suggestion-icon { color: #916848; margin-right: 15px; font-size: 1rem; }
-.suggestion-text { display: flex; flex-direction: column; }
-.suggestion-name { font-weight: 600; color: #333; font-size: 0.95rem; }
-.suggestion-category { font-size: 0.8rem; color: #888; }
+
+.search-suggestion-item:hover { 
+  background-color: rgba(145,104,72,0.1); 
+}
+
+.suggestion-icon { 
+  color: #916848; margin-right: 15px; font-size: 1rem; 
+}
+
+.suggestion-text { 
+  display: flex; 
+  flex-direction: column; 
+}
+
+.suggestion-name { 
+  font-weight: 600; 
+  color: #333; 
+  font-size: 0.95rem; 
+}
+
+.suggestion-category { 
+  font-size: 0.8rem; 
+  color: #888; 
+}
 
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-10px); }
@@ -265,17 +294,19 @@
   gap: 8px;
   transition: all 0.3s ease;
 }
+
 .randomizer-btn:hover {
   background: rgba(255,255,255,0.25);
   transform: translateY(-2px);
   border-color: #ffd700;
   color: #ffd700;
 }
-.dice-icon { font-size: 1.1rem; }
 
-/* ─────────────────────────────────────────
-   SCROLL HINT
-───────────────────────────────────────── */
+.dice-icon { 
+  font-size: 1.1rem; 
+}
+
+/* SCROLL HINT */
 .home-scroll-hint {
   position: absolute;
   bottom: 32px;
@@ -290,17 +321,23 @@
   transition: opacity 0.3s;
   z-index: 20;
 }
-.home-scroll-hint:hover { opacity: 1; }
+
+.home-scroll-hint:hover { 
+  opacity: 1; 
+}
+
 .home-scroll-text {
   font-size: 0.65rem;
   letter-spacing: 2.5px;
   text-transform: uppercase;
   font-weight: 600;
 }
+
 .home-bounce-icon {
   font-size: 1.1rem;
   animation: homeBounce 2s infinite;
 }
+
 @keyframes homeBounce {
   0%, 60%, 100% { transform: translateY(0); }
   30%           { transform: translateY(6px); }
@@ -323,9 +360,7 @@
 .home-stats-scroll-hint .home-scroll-text,
 .home-stats-scroll-hint .home-bounce-icon { color: #875c36; }
 
-/* ─────────────────────────────────────────
-   SECTION 2: STATS
-───────────────────────────────────────── */
+/* SECTION 2: STATS */
 .home-stats-section {
   background-color: #fcf9f6;
   display: flex;
@@ -675,6 +710,7 @@
     min-height: unset;
     overflow: visible;
   }
+
   /* Stats section overrides to allow full content */
   .home-stats-section.home-snap-section {
     height: 100dvh;
@@ -698,7 +734,7 @@
   /* SDG badges — force single row */
   .hero-sdg-badges {
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
     margin-bottom: 12px;
