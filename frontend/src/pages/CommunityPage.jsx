@@ -336,7 +336,11 @@ export default function Community() {
                   <div className="premium-card" key={post.id} onClick={() => navigate(`/community/${post.id}`)}>
                     <div className="card-image-wrap">
                       <img src={post.images?.[0] || "https://images.googleapis.com/photo-1551218808-94e220e084d2"} alt={post.foodName} />
-                      <span className="origin-badge">{post.culturalOrigin}</span>
+                      <span className="origin-badge">
+                        {i18n.exists(`explore.origin_${post.culturalOrigin?.toLowerCase()}`)
+                          ? t(`explore.origin_${post.culturalOrigin?.toLowerCase()}`)
+                          : post.culturalOrigin}
+                      </span>
                     </div>
                     <div className="card-body">
                       <h3>{post.foodName}</h3>
@@ -404,6 +408,7 @@ export default function Community() {
                 ))}
               </div>
 
+              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="community-pagination">
                   <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="community-page-btn nav-btn lrp-no-outline">← {t("explore.prev")}</button>
