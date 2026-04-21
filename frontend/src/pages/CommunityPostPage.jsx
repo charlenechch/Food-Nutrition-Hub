@@ -10,6 +10,7 @@ import Modal from "../components/Modal";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useTranslation } from "react-i18next";
 import { getTierById } from "../utils/gamificationTiers";
+import { translateTexts } from "../hooks/useAITranslation";
 
 function computeIsLoggedIn(user) {
   if (user?.role === "admin") {
@@ -322,32 +323,13 @@ export default function CommunityPost() {
     }
     try {
       setIsTranslating(true);
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-      if (i18n.language === "ms") {
-        // App is in BM — "translate" means show English original (post.culturalStory is in English)
-        // Backend can't translate to English, so we just surface the raw English text
-        setTranslatedStory(post.culturalStory);
-        setShowTranslated(true);
-        setIsTranslating(false);
-        return;
-      }
-
-      // App is in English — translate story to BM
-      const res = await fetch(`${API_BASE_URL}/api/translate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ texts: { story: post.culturalStory }, targetLang: "ms" }),
-      });
-      const data = await res.json();
-      console.log("[Translate] response:", data);
-      const translated = data.translations?.story || null;
-      if (translated && translated !== post.culturalStory) {
+      // Mirror ExploreFoodPage: pass i18n.language directly to translateTexts.
+      // The hook skips the API call when lang === "en" and only hits /api/translate for "ms".
+      const result = await translateTexts({ story: post.culturalStory }, i18n.language);
+      const translated = result?.story;
+      if (translated) {
         setTranslatedStory(translated);
         setShowTranslated(true);
-      } else {
-        console.warn("[Translate] No translated text or same as original:", data);
       }
     } catch (err) {
       console.error("[Translate] Failed:", err);
@@ -497,19 +479,21 @@ export default function CommunityPost() {
               <div className="story-section">
                 <div className="story-section-header">
                   <h3>{t("communityPost.culturalStory")}</h3>
+                {i18n.language !== "en" && (
                   <button
                     className={`translate-btn lrp-no-outline ${isTranslating ? "translating" : ""} ${showTranslated ? "active" : ""}`}
                     onClick={handleTranslate}
                     disabled={isTranslating}
                   >
                     {isTranslating ? (
-                      <><span className="translate-spinner" /> {i18n.language === "ms" ? "Menterjemah..." : "Translating..."}</>
+                      <><span className="translate-spinner" /> Menterjemah...</>
                     ) : showTranslated ? (
-                      <><i className="fas fa-undo" /> {i18n.language === "ms" ? "Tunjuk Asal" : "Show Original"}</>
+                      <><i className="fas fa-undo" /> Tunjuk Asal</>
                     ) : (
-                      <><i className="fas fa-language" /> {i18n.language === "ms" ? "English" : "BM"}</>
+                      <><i className="fas fa-language" /> Terjemahkan</>
                     )}
                   </button>
+                )}
                 </div>
                 <p>{showTranslated && translatedStory ? translatedStory : post.culturalStory}</p>
               </div>
