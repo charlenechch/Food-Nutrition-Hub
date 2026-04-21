@@ -79,8 +79,8 @@ function DishSpotlight({ allFoods, navigate, t, translatedFoods = {} }) {
             >
               {t("home.exploreDish", "Explore this dish")}
             </button>
-            <button className="home-dish-btn-link lrp-no-outline" onClick={() => navigate("/analyzer")}>
-              {t("home.viewNutrition", "View nutrition →")}
+            <button className="home-dish-btn-link lrp-no-outline" onClick={() => navigate("/recipes")}>
+              {t("home.viewNutrition", "View Recipe →")}
             </button>
           </div>
           <div className="home-dish-dots">
