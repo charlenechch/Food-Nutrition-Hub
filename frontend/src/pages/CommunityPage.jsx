@@ -154,9 +154,27 @@ export default function Community() {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString(i18n.language === "ms" ? "ms-MY" : i18n.language === "zh" ? "zh-CN" : "en-GB", {
-      day: "numeric", month: "short", year: "numeric"
-    });
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (i18n.language === "ms") {
+      if (diffMins < 1) return "Baru sahaja";
+      if (diffMins < 60) return `${diffMins} minit lalu`;
+      if (diffHours < 24) return `${diffHours} jam lalu`;
+      if (diffDays < 7) return `${diffDays} hari lalu`;
+      return date.toLocaleDateString("ms-MY", { day: "numeric", month: "short", year: "numeric" });
+    }
+
+    // Default English
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
   };
 
   return (
@@ -318,7 +336,11 @@ export default function Community() {
                   <div className="premium-card" key={post.id} onClick={() => navigate(`/community/${post.id}`)}>
                     <div className="card-image-wrap">
                       <img src={post.images?.[0] || "https://images.googleapis.com/photo-1551218808-94e220e084d2"} alt={post.foodName} />
-                      <span className="origin-badge">{post.culturalOrigin}</span>
+                      <span className="origin-badge">
+                        {i18n.exists(`explore.origin_${post.culturalOrigin?.toLowerCase()}`)
+                          ? t(`explore.origin_${post.culturalOrigin?.toLowerCase()}`)
+                          : post.culturalOrigin}
+                      </span>
                     </div>
                     <div className="card-body">
                       <h3>{post.foodName}</h3>
@@ -373,7 +395,7 @@ export default function Community() {
                               </span>
                             )}
                           </span>
-                          <span className="post-date">{post.daysAgo}</span>
+                          <span className="post-date">{formatDate(post.createdAt)}</span>
                         </div>
                       </div>
                       <p className="card-excerpt">{post.culturalStory}</p>
@@ -386,6 +408,7 @@ export default function Community() {
                 ))}
               </div>
 
+              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="community-pagination">
                   <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="community-page-btn nav-btn lrp-no-outline">← {t("explore.prev")}</button>

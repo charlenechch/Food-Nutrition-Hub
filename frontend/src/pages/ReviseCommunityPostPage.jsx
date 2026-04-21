@@ -151,20 +151,32 @@ export default function ReviseCommunityPostPage() {
     setSuccess("");
 
     try {
-      const revisedData = {
-        title: form.title.trim(),
-        culturalOrigin: form.culturalOrigin,
-        content: form.content.trim(),
-        recipe: form.recipe,
-        status: "Pending",
-        image: form.image
-      };
+
+      const formData = new FormData();
+
+      formData.append('title', form.title.trim());
+      formData.append('culturalOrigin', form.culturalOrigin);
+      formData.append('content', form.content.trim());
+      formData.append('recipe', form.recipe);
+      formData.append('status', 'Pending');
+      
+      if (selectedFile) {
+        formData.append('images', selectedFile);
+      }
+      // const revisedData = {
+      //   title: form.title.trim(),
+      //   culturalOrigin: form.culturalOrigin,
+      //   content: form.content.trim(),
+      //   recipe: form.recipe,
+      //   status: "Pending",
+      //   image: form.image
+      // };
 
       const res = await fetch(`${API_BASE_URL}/api/communityPost/revise/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        headers: { "X-CSRF-Token": csrfToken },
         credentials: "include",
-        body: JSON.stringify(revisedData),
+        body: formData,
       });
 
       // Parse the JSON response FIRST so we can read the backend's custom error message
