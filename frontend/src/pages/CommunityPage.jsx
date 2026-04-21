@@ -154,9 +154,27 @@ export default function Community() {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString(i18n.language === "ms" ? "ms-MY" : i18n.language === "zh" ? "zh-CN" : "en-GB", {
-      day: "numeric", month: "short", year: "numeric"
-    });
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (i18n.language === "ms") {
+      if (diffMins < 1) return "Baru sahaja";
+      if (diffMins < 60) return `${diffMins} minit lalu`;
+      if (diffHours < 24) return `${diffHours} jam lalu`;
+      if (diffDays < 7) return `${diffDays} hari lalu`;
+      return date.toLocaleDateString("ms-MY", { day: "numeric", month: "short", year: "numeric" });
+    }
+
+    // Default English
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
   };
 
   return (

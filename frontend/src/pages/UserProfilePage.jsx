@@ -1868,7 +1868,7 @@ const handleDeleteAccount = async () => {
                 ) : (
                   <div className="upp-center">
                     <p className="upp-muted">{t("profile.noSavedFoods")}</p>
-                    <p className="upp-muted">{t("profile.exploreFoods")}</p>
+                    <p className="upp-muted">{t("profile.exploreToSave")}</p>
                   </div>
                 )}
               </>
@@ -2083,7 +2083,7 @@ const handleDeleteAccount = async () => {
             {tab === "settings" && !userProfileID && (
               <div className="upp-stack">
                 <div className="upp-card">
-                  <h3 className="upp-card-title"><Bell className="rdp-sec-icon" color={"#6a4a2f"} /> Notifications</h3>
+                  <h3 className="upp-card-title"><Bell className="rdp-sec-icon" color={"#6a4a2f"} /> {t("profile.notifications")}</h3>
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">{t("profile.emailNotifications")}</div>
@@ -2118,7 +2118,7 @@ const handleDeleteAccount = async () => {
                 </div>
 
                 <div className="upp-card">
-                  <h3 className="upp-card-title"><Eye className="rdp-sec-icon" color={"#6a4a2f"}/> Privacy</h3>
+                  <h3 className="upp-card-title"><Eye className="rdp-sec-icon" color={"#6a4a2f"}/> {t("profile.privacy")}</h3>
                   {/* Profile visibility toggle disabled
                   <div className="upp-row between">
                     <div>
@@ -2143,7 +2143,6 @@ const handleDeleteAccount = async () => {
                     <button 
                       className="lrp-btn lrp-btn-outline upp-btn" 
                       onClick={openExportModal}
-                      disabled={!user?.savedFoods || user.savedFoods.length === 0}
                     >
                       {t("profile.exportDataBtn")}
                     </button>
@@ -2152,7 +2151,7 @@ const handleDeleteAccount = async () => {
 
                 {user?.role === "admin" && (
                   <div className="upp-card">
-                    <h3 className="upp-card-title"><Shield className="rdp-sec-icon" color={"#6a4a2f"} /> Admin Access</h3>
+                    <h3 className="upp-card-title"><Shield className="rdp-sec-icon" color={"#6a4a2f"} /> {t("profile.adminAccess")}</h3>
                     <div className="upp-row between">
                       <div>
                         <div className="upp-strong">{t("profile.adminPanel")}</div>
@@ -2166,7 +2165,7 @@ const handleDeleteAccount = async () => {
                 )}
 
                 <div className="upp-card">
-                  <h3 className="upp-card-title"><OctagonX className="rdp-sec-icon" color={"#6a4a2f"}/> Account Deletion</h3>
+                  <h3 className="upp-card-title"><OctagonX className="rdp-sec-icon" color={"#6a4a2f"}/> {t("profile.accountDeletion")}</h3>
                   <div className="upp-row between">
                     <div>
                       <div className="upp-strong">{t("profile.deleteAccount")}</div>
@@ -2202,14 +2201,14 @@ const handleDeleteAccount = async () => {
             
             <div className="upp-modal-body">
               <p className="upp-muted">
-                Select the data you would like to include in your export.
+                {t("profile.exportMsg")}
               </p>
               {[
-                { key: "profile", label: "Profile Information" },
-                { key: "savedFoods", label: `Saved Foods (${user?.savedFoods?.length || 0})` },
-                { key: "recipes", label: `My Recipes (${exportModal.exportRecipes.length})` },
-                { key: "posts", label: `My Community Posts (${exportModal.exportPosts.length})` },
-                { key: "likedPosts", label: `Liked Posts (${exportModal.exportLikedPosts.length})` },
+                { key: "profile", label: t("profile.exportProfileLabel") },
+                { key: "savedFoods", label: `${t("profile.tabSavedFoodsLabel")} (${user?.savedFoods?.length || 0})` },
+                { key: "recipes", label: `${t("profile.tabMyRecipesLabel")} (${exportModal.exportRecipes.length})` },
+                { key: "posts", label: `${t("profile.tabMyPostsLabel")} (${exportModal.exportPosts.length})` },
+                { key: "likedPosts", label: `${t("profile.tabLikedPostsLabel")} (${exportModal.exportLikedPosts.length})` },
               ].map(({ key, label }) => {
                 const isExpanded = exportModal.expandedType === key;
                 const isActive = key === "profile"
@@ -2229,7 +2228,7 @@ const handleDeleteAccount = async () => {
                     onClick={() => setExportModal(m => ({ ...m, expandedType: m.expandedType === key ? null : key }))}
                   >
                     <span>{label}</span>
-                    {isActive && <span className="upp-export-active-badge">✓ Included</span>}
+                    {isActive && <span className="upp-export-active-badge">{t("profile.exportIncluded")}</span>}
                     <span className="upp-export-accordion-toggle">{isExpanded ? '▲' : '▼'}</span>
                   </div>
 
@@ -2243,19 +2242,19 @@ const handleDeleteAccount = async () => {
                             checked={exportModal.includeProfile}
                             onChange={() => setExportModal(m => ({ ...m, includeProfile: !m.includeProfile }))}
                           />
-                          <span>Include Profile Information</span>
+                          <span>{t("profile.includeProfileInfo")}</span>
                         </label>
                       </div>
                       <ul className="upp-export-profile-points">
-                        <li>Name</li>
-                        <li>Email</li>
-                        <li>Bio</li>
-                        <li>Location</li>
-                        <li>Dietary Preference</li>
-                        <li>Allergies</li>
-                        <li>Account Status</li>
-                        <li>Last Login</li>
-                        <li>Consent Date</li>
+                        <li>{t("profile.exportProfileName")}</li>
+                        <li>{t("profile.exportProfileEmail")}</li>
+                        <li>{t("profile.exportProfileBio")}</li>
+                        <li>{t("profile.exportProfileLocation")}</li>
+                        <li>{t("profile.exportProfileDietary")}</li>
+                        <li>{t("profile.exportProfileAllergies")}</li>
+                        <li>{t("profile.exportProfileStatus")}</li>
+                        <li>{t("profile.exportProfileLastLogin")}</li>
+                        <li>{t("profile.exportProfileConsent")}</li>
                       </ul>
                     </div>
                   )}
@@ -2294,7 +2293,7 @@ const handleDeleteAccount = async () => {
                         )}
                       </div>
                       <div className="upp-export-count">
-                        Selected: {exportModal.selectedFoods.length} of {user?.savedFoods?.length || 0} foods
+                        {t("profile.exportSelectedOf", { selected: exportModal.selectedFoods.length, total: user?.savedFoods?.length || 0 })} {t("profile.exportFoods")}
                       </div>
                     </div>
                   )}
@@ -2303,7 +2302,7 @@ const handleDeleteAccount = async () => {
                   {key === "recipes" && (
                     <div className="upp-export-dropdown">
                       {exportModal.exportLoading ? (
-                        <div className="upp-center upp-muted">Loading...</div>
+                        <div className="upp-center upp-muted">{t("profile.exportLoading")}</div>
                       ) : exportModal.exportRecipes.length > 0 ? (
                         <>
                           <div className="upp-export-select-all">
@@ -2344,11 +2343,11 @@ const handleDeleteAccount = async () => {
                             ))}
                           </div>
                           <div className="upp-export-count">
-                            Selected: {exportModal.selectedRecipes.length} of {exportModal.exportRecipes.length} recipes
+                            {t("profile.exportSelectedOf", { selected: exportModal.selectedRecipes.length, total: exportModal.exportRecipes.length })} {t("profile.exportRecipes")}
                           </div>
                         </>
                       ) : (
-                        <div className="upp-center upp-muted">No recipes found.</div>
+                        <div className="upp-center upp-muted">{t("profile.noRecipesFound")}</div>
                       )}
                     </div>
                   )}
@@ -2357,7 +2356,7 @@ const handleDeleteAccount = async () => {
                   {key === "posts" && (
                     <div className="upp-export-dropdown">
                       {exportModal.exportLoading ? (
-                        <div className="upp-center upp-muted">Loading...</div>
+                        <div className="upp-center upp-muted">{t("profile.exportLoading")}</div>
                       ) : exportModal.exportPosts.length > 0 ? (
                         <>
                           <div className="upp-export-select-all">
@@ -2398,11 +2397,11 @@ const handleDeleteAccount = async () => {
                             ))}
                           </div>
                           <div className="upp-export-count">
-                            Selected: {exportModal.selectedPosts.length} of {exportModal.exportPosts.length} posts
+                            {t("profile.exportSelectedOf", { selected: exportModal.selectedPosts.length, total: exportModal.exportPosts.length })} {t("profile.exportPosts")}
                           </div>
                         </>
                       ) : (
-                        <div className="upp-center upp-muted">No posts found.</div>
+                        <div className="upp-center upp-muted">{t("profile.noPostsFound")}</div>
                       )}
                     </div>
                   )}
@@ -2411,7 +2410,7 @@ const handleDeleteAccount = async () => {
                   {key === "likedPosts" && (
                     <div className="upp-export-dropdown">
                       {exportModal.exportLoading ? (
-                        <div className="upp-center upp-muted">Loading...</div>
+                        <div className="upp-center upp-muted">{t("profile.exportLoading")}</div>
                       ) : exportModal.exportLikedPosts.length > 0 ? (
                         <>
                           <div className="upp-export-select-all">
@@ -2449,11 +2448,11 @@ const handleDeleteAccount = async () => {
                             ))}
                           </div>
                           <div className="upp-export-count">
-                            Selected: {exportModal.selectedLikedPosts.length} of {exportModal.exportLikedPosts.length} liked posts
+                            {t("profile.exportSelectedOf", { selected: exportModal.selectedLikedPosts.length, total: exportModal.exportLikedPosts.length })} {t("profile.exportLikedPosts")}
                           </div>
                         </>
                       ) : (
-                        <div className="upp-center upp-muted">No liked posts found.</div>
+                        <div className="upp-center upp-muted">{t("profile.noLikedPostsFound")}</div>
                       )}
                     </div>
                   )}
