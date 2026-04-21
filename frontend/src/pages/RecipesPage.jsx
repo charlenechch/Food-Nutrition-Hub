@@ -641,9 +641,6 @@ export default function RecipesPage() {
         <div className="rp-filter-card efp-controls">
           <div className="efp-search-row">
             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t("recipes.searchPlaceholder")} className="efp-input" />
-            
-            {/* ❌ Removed the sorting dropdown from here */}
-
             <div className="efp-btn-group">
               <button type="button" className="efp-btn" onClick={() => setShowFilters(v => !v)}><Sliders size={18} /> {t("explore.filters")}</button>
               <button type="button" className="efp-btn" onClick={clearAll}><X size={18} /> {t("explore.clearAll")}</button>
@@ -656,7 +653,6 @@ export default function RecipesPage() {
             <div className="efp-filters">
               <div className="efp-filters-header"><Filter className="efp-filter-icon" size={18} /><h2 className="efp-filters-title">{t("explore.filter")}</h2></div>
               
-              {/* ✅ ADDED SORTING DROPDOWN HERE, right at the top of the filters list */}
               <div className="efp-filter-item" style={{ marginBottom: "20px" }}>
                 <label className="efp-label">{t("explore.sortBy") || "Sort By Rating"}</label>
                 <select 
@@ -679,8 +675,8 @@ export default function RecipesPage() {
                     className="efp-select"
                   >
                     <option value="all">{t("explore.allOrigins")}</option>
-                    <option value="Malay">Malay</option>
-                    <option value="Chinese">Chinese</option>
+                    <option value="Malay">{i18n.exists("explore.origin_malay") ? t("explore.origin_malay") : "Malay"}</option>
+                    <option value="Chinese">{i18n.exists("explore.origin_chinese") ? t("explore.origin_chinese") : "Chinese"}</option>
                     <option value="Iban">Iban</option>
                     <option value="Melanau">Melanau</option>
                     <option value="Kenyah">Kenyah</option>
@@ -756,7 +752,7 @@ export default function RecipesPage() {
                   {DIET_OPTIONS.map(tag => (
                     <label key={tag} className="efp-checkbox-item">
                       <input type="checkbox" className="efp-checkbox" checked={dietFilters.includes(tag)} onChange={() => setDietFilters(prev => dietFilters.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])} />
-                      <span className="efp-checkbox-text">{tag.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase())}</span>
+                      <span>{t(`explore.dietary_${tag}`, tag.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase()))}</span>
                     </label>
                   ))}
                 </div>
