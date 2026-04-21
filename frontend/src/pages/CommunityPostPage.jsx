@@ -429,7 +429,7 @@ export default function CommunityPost() {
                         </span>
                       )}
                     </span>
-                    <span className="post-date">{formatDate(post.createdAt)}</span>
+                    <span className="post-date">{formatDate(post.createdAt) || post.daysAgo}</span>
                   </div>
                 </div>
                 <span className="origin-pill">
