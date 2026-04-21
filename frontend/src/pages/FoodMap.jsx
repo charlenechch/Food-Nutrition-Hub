@@ -92,6 +92,13 @@ export default function FoodMap() {
   const [userPos,      setUserPos]      = useState(null);
   const [geoError,     setGeoError]     = useState(null);
   const [translatedPins, setTranslatedPins] = useState({}); // ← ADDED
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const mapRef        = useRef(null);
   const searchTimer   = useRef(null);
   const userCoordsRef = useRef(null); // ← stores user lat/lng after Near Me
@@ -428,12 +435,24 @@ export default function FoodMap() {
 
             {/* Detail card */}
             {selected && (
-              <DetailCard
-                pin={selected}
-                onClose={closeDetail}
-                onDirections={openDirections}
-                translatedPins={translatedPins} // ← ADDED
-              />
+              isMobile
+                ? (
+                  <div className="foodmap-detail-overlay" onClick={(e) => { if (e.target === e.currentTarget) closeDetail(); }}>
+                    <DetailCard
+                      pin={selected}
+                      onClose={closeDetail}
+                      onDirections={openDirections}
+                      translatedPins={translatedPins}
+                    />
+                  </div>
+                ) : (
+                  <DetailCard
+                    pin={selected}
+                    onClose={closeDetail}
+                    onDirections={openDirections}
+                    translatedPins={translatedPins}
+                  />
+                )
             )}
           </div>
         </div>
