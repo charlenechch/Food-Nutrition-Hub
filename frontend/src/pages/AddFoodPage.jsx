@@ -159,7 +159,16 @@ const AddFoodPage = () => {
       return value === undefined || value === null || String(value).trim() === "";
     });
 
-    if (hasEmptyFields || currentCats.length === 0 || !selectedImage) {
+    const hasIngredients = selectedIngredients.length > 0 || (showOtherIngredient && otherIngredientText.trim() !== "");
+    const hasDietary = selectedDietary.length > 0;
+
+    if (
+        hasEmptyFields || 
+        currentCats.length === 0 || 
+        !selectedImage || 
+        !hasIngredients || 
+        !hasDietary
+    ) {
       setShowNotification({
         visible: true,
         message: t("addFood.fillAllFieldsError"),

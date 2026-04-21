@@ -265,7 +265,9 @@ const buildHealthAlerts = (food) => {
                   <div className="fdp-badges">
                       {food.origin && (
                         <span className="fdp-badge fdp-badge-origin">
-                          {food.origin}
+                          {i18n.exists(`explore.origin_${food.origin?.toLowerCase()}`) 
+                            ? t(`explore.origin_${food.origin?.toLowerCase()}`) 
+                            : food.origin}
                         </span>
                       )}
                     </div>
@@ -277,7 +279,7 @@ const buildHealthAlerts = (food) => {
                         (Array.isArray(food.category) ? food.category : food.category.split(','))
                           .map((cat, index) => (
                             <span key={`cat-${index}`} className="fdp-badge">
-                              {cat.trim()}
+                              {t(`explore.cat_${cat.trim().toLowerCase().replace(/\s+/g, "_")}`) || cat.trim()}
                             </span>
                           ))
                       )}

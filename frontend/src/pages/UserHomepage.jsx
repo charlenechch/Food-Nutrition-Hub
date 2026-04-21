@@ -1,4 +1,3 @@
-/* src/pages/UserHomepage.jsx */
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/UserHomepage.css";
@@ -6,25 +5,24 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
+import { translateTexts } from "../hooks/useAITranslation";
 
 import LoginFood from "../assets/LoginFood.png";
 import KoloImg from "../assets/kolomee.jpg";
-import KekImg from "../assets/keklapis.jpg";
 
 import { FaSearch, FaStar, FaLightbulb, FaSyncAlt, FaUserEdit, FaDice } from "react-icons/fa";
 import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
 
 import { useAuth } from "../context/AuthContext";
-import LoginPromptModal from "../components/LoginPromptModal";
 
 const HERO_IMAGES = [LoginFood, KoloImg];
 
 // ── Dish Spotlight Component — DB driven ──
-function DishSpotlight({ allFoods, navigate, t }) {
+function DishSpotlight({ allFoods, navigate, t, translatedFoods = {} }) {
   const [active, setActive] = React.useState(0);
   const timerRef = React.useRef(null);
 
-  const SPOTLIGHT_IDS = [2, 10, 55];
+  const SPOTLIGHT_IDS = [2, 10, 11];
 
   const spotlightDishes = React.useMemo(() => {
     if (!allFoods || allFoods.length === 0) return [];
@@ -65,10 +63,14 @@ function DishSpotlight({ allFoods, navigate, t }) {
           <span className="home-dish-origin-badge">{dishOrigin}</span>
         </div>
         <div className="home-dish-spotlight-content">
-          <span className="home-dish-tag-pill">{dishCategory}</span>
-          <h2 className="home-dish-spotlight-title">{dish.name}</h2>
+          <span className="home-dish-tag-pill">
+            {t(`explore.cat_${dishCategory.toLowerCase().replace(" ", "_")}`, dishCategory)}
+          </span>
+          <h2 className="home-dish-spotlight-title">
+            {translatedFoods[`name_${dish.foodID}`] || dish.name}
+          </h2>
           <p className="home-dish-spotlight-quote">
-            {dish.description || t("home.dishDefaultDesc", "A beloved traditional dish from the rich culinary heritage of Sarawak.")}
+            {translatedFoods[`desc_${dish.foodID}`] || dish.description || t("home.dishDefaultDesc")}
           </p>
           <div className="home-dish-spotlight-actions">
             <button
@@ -95,9 +97,10 @@ function DishSpotlight({ allFoods, navigate, t }) {
 export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [translatedFoods, setTranslatedFoods] = useState({});
+  const [isTranslating, setIsTranslating] = useState(false);
 
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [allFoods, setAllFoods] = useState([]);
@@ -273,8 +276,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     };
   }, []);
 
-
-
   const handleRandomize = () => {
     if (!allFoods || allFoods.length === 0) return;
     setIsRandomizing(true);
@@ -294,6 +295,32 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     }, 100);
   };
 
+  useEffect(() => {
+    if (!allFoods.length || i18n.language === "en") {
+      setTranslatedFoods({});
+      return;
+    }
+
+    const cacheKey = `translations_${i18n.language}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      setTranslatedFoods(JSON.parse(cached));
+      return;
+    }
+
+    setIsTranslating(true);
+    const texts = {};
+    allFoods.forEach(f => {
+      texts[`name_${f.foodID}`] = f.name;
+      texts[`desc_${f.foodID}`] = f.description;
+    });
+    translateTexts(texts, i18n.language).then(result => {
+      setTranslatedFoods(result);
+      localStorage.setItem(cacheKey, JSON.stringify(result));
+      setIsTranslating(false);
+    });
+  }, [allFoods, i18n.language]);
+
   return (
     <div className="homepage home-snap-container" ref={snapContainerRef}>
       <Header transparent={true} />
@@ -308,12 +335,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
         <div className="home-hero-content-wrapper">
           <div className="hero-sdg-badges">
-            <span className="sdg-badge">🌿 SDG 3 · Good Health</span>
-            <span className="sdg-badge">🏙️ SDG 11 · Sustainable Communities</span>
+            <span className="sdg-badge">🌿 {t("home.sdg3", "SDG 3 · Good Health")}</span>
+            <span className="sdg-badge">🏙️ {t("home.sdg11", "SDG 11 · Sustainable Communities")}</span>
           </div>
           <h1 className="hero-title">{getWelcomeTitle()}</h1>
           {!isLoggedInUser && (
-            <p className="hero-subtitle">{t("home.heroSubtitle", "A community-driven hub preserving the nutritional heritage of Sarawak's traditional foods — for healthier communities and richer cultural identity.")}</p>
+            <p className="hero-subtitle">{t("home.heroSubtitle")}</p>
           )}
 
           <div className="hero-search-container" ref={searchRef}>
@@ -387,7 +414,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           <div className="home-stats-intro">
             <p className="home-stats-eyebrow">{t("home.statsEyebrow", "What is SarawakEats?")}</p>
             <h2 className="home-stats-headline">{t("home.statsHeadline", "Where food becomes a story worth preserving.")}</h2>
-            <p className="home-stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
+            <p className="home-stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
           </div>
           <div className="home-stats-grid" ref={statsGridRef}>
             <div className="home-stat-item">
@@ -431,7 +458,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
       {/* ── SECTION 3: Dish Spotlight ── */}
       <section className="home-snap-section home-dish-snap-section">
-        <DishSpotlight allFoods={allFoods} navigate={navigate} t={t} />
+        <DishSpotlight allFoods={allFoods} navigate={navigate} t={t} translatedFoods={translatedFoods} /> 
       </section>
 
       {isRandomizing && (
@@ -466,14 +493,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             )}
           </div>
         </div>
-      )}
-
-      {showLoginPrompt && (
-        <LoginPromptModal
-          message={modalMessage}
-          onClose={() => setShowLoginPrompt(false)}
-          onLogin={() => navigate("/loginregister")}
-        />
       )}
       <Footer />
     </div>

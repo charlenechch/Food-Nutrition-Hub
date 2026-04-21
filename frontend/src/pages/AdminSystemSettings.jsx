@@ -973,7 +973,7 @@ export default function AdminSystemSettings({
                                     }
 
                                     const combinedText = sysEmailForm.subject + " " + sysEmailForm.message;
-                                    if (combinedText.includes("<Date>") || combinedText.includes("<Time>")) {
+                                    if (/<[^>]+>/.test(combinedText)) {
                                         setSysDialog({
                                             open: true,
                                             title: t("adminSettings.unfilledPlaceholdersTitle"),

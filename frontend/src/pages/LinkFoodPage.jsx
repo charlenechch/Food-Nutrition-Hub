@@ -216,10 +216,12 @@ const LinkFoodPage = () => {
   };
 
   const handleSaveAttempt = () => {
+    const currentCats = Array.isArray(food.category) ? food.category : [];
+
     const requiredFields = [
-      "linkedFood", "recipeName", "difficulty", "servings", "prepTime",
-      "cookTime", "ingredients", "steps", "recipeDescription", "didYouKnow",
-      "chefTips", "calories", "protein", "carbs", "fat", "fiber", "vitaminc"
+      "name", "origin", "description", "culturalSignificance", 
+      "traditionalPreparation", "calories", "protein", "carbs", 
+      "fat", "fiber", "vitaminc", "healthTips"
     ];
 
     const hasEmptyFields = requiredFields.some((key) => {
@@ -227,7 +229,19 @@ const LinkFoodPage = () => {
       return value === undefined || value === null || String(value).trim() === "";
     });
 
-    if (hasEmptyFields || !selectedImage) {
+    const hasIngredients = selectedIngredients.length > 0 || (showOtherIngredient && otherIngredientText.trim() !== "");
+    const hasDietary = selectedDietary.length > 0;
+    
+    const hasImage = selectedImage || existingImageUrl;
+
+    if (
+      hasEmptyFields || 
+      currentCats.length === 0 || 
+      !hasImage || 
+      !selectedRecipeId || 
+      !hasIngredients || 
+      !hasDietary
+    ) {
       setShowNotification({
         visible: true,
         message: t("addFood.fillAllFieldsError"), 

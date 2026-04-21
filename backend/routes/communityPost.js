@@ -251,6 +251,8 @@ router.get("/:id", async (req, res) => {
         c.comment AS text,
         c.created_at,
         up.userProfileID,
+        up.avatar,
+        up.equippedBadge,
         COALESCE(CONCAT(u.firstname, ' ', u.lastname), 'Unknown User') AS author
       FROM comments c
       LEFT JOIN userProfile up ON c.userProfileID = up.userProfileID
@@ -281,7 +283,9 @@ router.get("/:id", async (req, res) => {
         text: comment.text,
         author: comment.author,
         daysAgo: getTimeAgo(comment.created_at),
-        userProfileID: comment.userProfileID
+        userProfileID: comment.userProfileID,
+        userProfilePic: comment.avatar || null,
+        equippedBadge: comment.equippedBadge || null
       })),
       recipe: post.recipe,
       status: post.status,
@@ -429,13 +433,15 @@ router.post('/comments', async (req, res) => {
     const [result] = await db.execute(insertQuery, [cleanContent, postId, userProfileID]);
     console.log('✅ Comment inserted with ID:', result.insertId);
 
-    // ✅ Retrieve the created comment with user info
+    // Retrieve the created comment with user info
     const commentQuery = `
       SELECT 
         c.commentID,
         c.comment AS text,
         c.created_at,
         up.userProfileID,
+        up.avatar,
+        up.equippedBadge,
         CONCAT(u.firstname, ' ', u.lastname) AS author,
         u.role
       FROM comments c
@@ -458,6 +464,8 @@ router.post('/comments', async (req, res) => {
       author: newComment.author,
       daysAgo: getTimeAgo(newComment.created_at),
       userProfileID: newComment.userProfileID,
+      userProfilePic: newComment.avatar || null,
+      equippedBadge: newComment.equippedBadge || null,
       isAdmin: newComment.role === 'admin'
     };
 

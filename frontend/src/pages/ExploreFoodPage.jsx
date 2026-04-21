@@ -192,14 +192,23 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
       setTranslatedFoods({});
       return;
     }
+
+    const cacheKey = `translations_${i18n.language}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      setTranslatedFoods(JSON.parse(cached));
+      return;
+    }
+
     setIsTranslating(true);
     const texts = {};
     foods.forEach(f => {
-      texts[`name_${f.id}`] = f.name;
-      texts[`desc_${f.id}`] = f.description;
+      texts[`name_${f.foodID}`] = f.name;
+      texts[`desc_${f.foodID}`] = f.description;
     });
     translateTexts(texts, i18n.language).then(result => {
       setTranslatedFoods(result);
+      localStorage.setItem(cacheKey, JSON.stringify(result));
       setIsTranslating(false);
     });
   }, [foods, i18n.language]);
@@ -256,8 +265,8 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   <label className="efp-label">{t("explore.culturalOrigin")}</label>
                   <select value={selectedOrigin} onChange={(e) => setSelectedOrigin(e.target.value)} className="efp-select">
                     <option value="all">{t("explore.allOrigins")}</option>
-                    <option value="Malay">Malay</option>
-                    <option value="Chinese">Chinese</option>
+                    <option value="Malay">{i18n.exists("explore.origin_malay") ? t("explore.origin_malay") : "Malay"}</option>
+                    <option value="Chinese">{i18n.exists("explore.origin_chinese") ? t("explore.origin_chinese") : "Chinese"}</option>
                     <option value="Iban">Iban</option>
                     <option value="Melanau">Melanau</option>
                     <option value="Kenyah">Kenyah</option>
@@ -342,7 +351,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
               <div>
                 <label className="efp-label">{t("explore.dietaryPrefs")}</label>
                 <div className="efp-checkbox-grid">
-                  {["vegetarian", "gluten-free", "dairy-free", "low-fat", "high-protein", "high-fiber", "spicy", "paleo"].map((tag) => (
+                  {["vegetarian", "vegan", "halal", "gluten-free", "dairy-free", "low-fat", "high-protein", "spicy"].map((tag) => (
                     <label key={tag} className="efp-checkbox-item">
                       <input type="checkbox" className="efp-checkbox"
                         checked={selectedDietaryTags.includes(tag)}
@@ -362,9 +371,9 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                   <label className="efp-label">{t("explore.difficulty")}</label>
                   <select value={selectedDifficulty} onChange={(e) => setSelectedDifficulty(e.target.value)} className="efp-select">
                     <option value="all">{t("explore.allCategories")}</option>
-                    <option value="Easy">{t("explore.easy")}</option>
-                    <option value="Medium">{t("explore.medium")}</option>
-                    <option value="Hard">{t("explore.hard")}</option>
+                    <option value="Easy">{t("explore.difficulty_easy")}</option>
+                    <option value="Medium">{t("explore.difficulty_medium")}</option>
+                    <option value="Hard">{t("explore.difficulty_hard")}</option>
                   </select>
                 </div>
                 <div className="efp-filter-item">
@@ -405,6 +414,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
           )}
         </div>
 
+        {/* Food Grid */}
         <div className="efp-grid">
           {currentFoods.map((food) => {
             const calorieLabel = getCalorieRangeLabel(food.Energy_kcal_ps);
@@ -412,10 +422,12 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
               : calorieLabel === t("explore.calModerate") ? "efp-badge efp-badge--warn"
               : "efp-badge efp-badge--high";
             const diff = (food.difficulty || "").toLowerCase();
-            const diffLabel = diff ? diff[0].toUpperCase() + diff.slice(1) : "";
+            const diffLabel = diff ? t(`explore.difficulty_${diff}`) || (diff[0].toUpperCase() + diff.slice(1)) : "";
             const diffClass = diff === "easy" ? "efp-badge efp-badge--ok"
               : diff === "medium" ? "efp-badge efp-badge--warn"
               : diff === "hard" ? "efp-badge efp-badge--high" : "efp-badge";
+            const originKey = `explore.origin_${food.origin?.toLowerCase()}`;
+            const originLabel = i18n.exists(originKey) ? t(originKey) : food.origin;
 
             return (
               <div 
@@ -439,22 +451,22 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
                 <div className="efp-food-body">
                   <div className="efp-food-headline">
-                    <h3 className="efp-food-title">{translatedFoods[`name_${food.id}`] || food.name}</h3>
+                    <h3 className="efp-food-title">{translatedFoods[`name_${food.foodID}`] || food.name}</h3>
                     
                     <div className="efp-category-group">
                       {food.category && (
                         (Array.isArray(food.category) ? food.category : food.category.split(','))
                           .map((cat, index) => (
                             <span key={`cat-${index}`} className="efp-badge-cat">
-                              {cat.trim()}
+                              {t(`explore.cat_${cat.trim().toLowerCase().replace(/\s+/g, "_")}`) || cat.trim()}
                             </span>
                           ))
                       )}
                     </div>
                   </div>
-                  <p className="efp-desc">{translatedFoods[`desc_${food.id}`] || food.description}</p>
+                  <p className="efp-desc">{translatedFoods[`desc_${food.foodID}`] || food.description}</p>
                   <div className="efp-meta">
-                    <span className="muted">{t("explore.origin")}: {food.origin}</span>
+                    <span className="muted">{t("explore.origin")}: {originLabel}</span>
                     <span className="efp-cal">{Math.round(food.Energy_kcal_ps)} {t("explore.calories")}</span>
                   </div>
                   <div className="efp-nutri">
@@ -477,7 +489,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                         <button key={tag} type="button" className="efp-tag"
                           onClick={(e) => { e.stopPropagation(); setSelectedDietaryTags((prev) => prev.includes(tag) ? prev : [...prev, tag]); }}
                           title={`Filter by ${humanize(tag)}`}>
-                          {humanize(tag)}
+                          {t(`explore.dietary_${tag}`) || humanize(tag)}
                         </button>
                       ))}
                     </div>
@@ -499,6 +511,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
           </div>
         )}
 
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="community-pagination">
             <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
