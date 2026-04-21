@@ -1,4 +1,4 @@
-// ✅ backend/routes/foodDiscussion.js (Fixed endpoints)
+// backend/routes/foodDiscussion.js (Fixed endpoints)
 const express = require('express');
 const router = express.Router();
 const { pool: db } = require("../config/db");
@@ -177,7 +177,7 @@ router.get('/food/:foodId', async (req, res) => {
   }
 });
 
-// ✅ Create a new discussion comment
+// Create a new discussion comment
 router.post('/', async (req, res) => {
   try {
     const { foodID, content } = req.body;
@@ -298,7 +298,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✅ Add reply to a discussion 
+// Add reply to a discussion 
 router.post('/:discussionId/replies', async (req, res) => {
   try {
     const { discussionId } = req.params;
@@ -541,7 +541,7 @@ router.patch('/:commentId/vote', async (req, res) => {
   }
 });
 
-// ✅ Delete a comment (with admin support)
+// Delete a comment (with admin support)
 router.delete('/:commentId', async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -631,7 +631,7 @@ router.delete('/:commentId', async (req, res) => {
   }
 });
 
-// ✅ Delete a reply (with admin support) - FIXED
+// Delete a reply (with admin support) - FIXED
 router.delete('/:commentId/replies/:replyId', async (req, res) => {
   console.log('=== REPLY DELETE DEBUG START ===');
   console.log('Time:', new Date().toISOString());
@@ -872,7 +872,7 @@ router.delete('/:commentId/like', async (req, res) => {
   }
 });
 
-// ✅ Get food like status for current user
+// Get food like status for current user
 router.get('/food/:foodId/like-status', async (req, res) => {
   try {
     const { foodId } = req.params;
@@ -936,7 +936,7 @@ router.get('/food/:foodId/like-status', async (req, res) => {
   }
 });
 
-  // ✅ Toggle food like (POST route)
+  // Toggle food like (POST route)
 router.post('/food/:foodId/toggle-like', async (req, res) => {
   try {
     const { foodId } = req.params;
@@ -1043,7 +1043,7 @@ router.post('/food/:foodId/toggle-like', async (req, res) => {
   }
 });
 
-// ✅ get user id
+// Get user id
 router.get('/get-user-profile', async (req, res) => {
   try {
     if (!req.session || !req.session.user) {

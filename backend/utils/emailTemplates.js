@@ -72,12 +72,7 @@ function getPasswordResetEmailHTML({ resetLink, firstName = '' }) {
           We received a request to reset your password. Click the button below to create a new password:
         </p>
         
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetLink}" 
-             style="background-color: #2c5f2d; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
-            Reset Password
-          </a>
-        </div>
+        <p><a href="${resetLink}">Reset your password</a></p>
         
         <p style="color: #666; font-size: 14px;">
           Or copy and paste this link into your browser:
@@ -93,7 +88,7 @@ function getPasswordResetEmailHTML({ resetLink, firstName = '' }) {
         </div>
         
         <p style="color: #666; font-size: 14px; margin-top: 30px;">
-          If you didn't request a password reset, please ignore this email or contact support if you're concerned about your account security.
+          If you didn't request a password reset, please ignore this email or contact us at <a href="mailto:info@sarawakeats.com">info@sarawakeats.com</a> if you're concerned about your account security.
         </p>
         
         <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
