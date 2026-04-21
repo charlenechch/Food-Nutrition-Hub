@@ -369,7 +369,8 @@
     "loading": "Memuatkan...",
     "error": "Ralat",
     "notFound": "Perkongsian tidak dijumpai",
-    "unknownChef": "Chef Tidak Diketahui"
+    "unknownChef": "Chef Tidak Diketahui",
+    "translate": "Terjemahkan"
   },
 
   "map": {

@@ -369,7 +369,8 @@
     "loading": "Loading...",
     "error": "Error",
     "notFound": "Post not found",
-    "unknownChef": "Unknown Chef"
+    "unknownChef": "Unknown Chef",
+    "translate": "Translate"
   },
 
   "map": {

@@ -10,6 +10,7 @@ import Modal from "../components/Modal";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useTranslation } from "react-i18next";
 import { getTierById } from "../utils/gamificationTiers";
+import { translateTexts } from "../hooks/useAITranslation";
 
 function computeIsLoggedIn(user) {
   if (user?.role === "admin") {
@@ -316,23 +317,9 @@ export default function CommunityPost() {
     }
     try {
       setIsTranslating(true);
-      const currentLang = i18n.language;
-      const targetLang = currentLang === "ms" ? "English" : "Bahasa Malaysia";
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          messages: [{
-            role: "user",
-            content: `Translate the following cultural story into ${targetLang}. Return only the translated text, no preamble or explanation.\n\n${post.culturalStory}`
-          }]
-        })
-      });
-      const data = await response.json();
-      const translated = data.content?.find(b => b.type === "text")?.text || "";
-      setTranslatedStory(translated);
+      const targetLang = i18n.language === "en" ? "ms" : "en";
+      const result = await translateTexts({ story: post.culturalStory }, targetLang);
+      setTranslatedStory(result.story || post.culturalStory);
       setShowTranslated(true);
     } catch (err) {
       console.error("Translation failed:", err);
