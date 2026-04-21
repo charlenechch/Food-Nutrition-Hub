@@ -372,10 +372,85 @@
 }
 
 .title-and-likes-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.likes-bar { display: flex; align-items: center; gap: 8px; cursor: pointer; background: none; border: none; font-size: 1.1rem; padding: 5px; }
-.likes-bar .heart-icon { color: #ccc; transition: color 0.2s; font-size: 1.5rem; }
-.likes-bar.liked .heart-icon { color: #e55353; }
-.likes-bar .likes-count { font-weight: 500; color: #333; }
+
+/* --- LIKE BUTTON (uiverse) --- */
+.like-button {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  height: 48px;
+  width: 136px;
+  border-radius: 16px;
+  border: none;
+  background-color: #1d1d1d;
+  overflow: hidden;
+  box-shadow:
+    inset -2px -2px 5px rgba(255, 255, 255, 0.2),
+    inset 2px 2px 5px rgba(0, 0, 0, 0.1),
+    4px 4px 10px rgba(0, 0, 0, 0.4),
+    -2px -2px 8px rgba(255, 255, 255, 0.1);
+  user-select: none;
+}
+
+.like-button .like {
+  width: 70%;
+  height: 100%;
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.like-button .like-icon {
+  fill: #505050;
+  height: 28px;
+  width: 28px;
+  transition: fill 0.2s ease-out;
+}
+
+.like-button .like-text {
+  color: #fcfcfc;
+  font-size: 16px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.like-button .like-count {
+  position: absolute;
+  right: 0;
+  width: 30%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #717070;
+  font-size: 16px;
+  border-left: 2px solid #4e4e4e;
+  transition: all 0.5s ease-out;
+}
+
+.like-button .like-count.two {
+  transform: translateY(40px);
+}
+
+/* Liked state */
+.like-button.is-liked .like-icon {
+  fill: #fc4e4e;
+  animation: lb-enlarge 0.2s ease-out 1;
+}
+
+.like-button.is-liked .like-count.two {
+  transform: translateY(0);
+  color: #fcfcfc;
+}
+
+.like-button.is-liked .like-count.one {
+  transform: translateY(-40px);
+}
+
+@keyframes lb-enlarge {
+  0%   { transform: scale(0.5); }
+  100% { transform: scale(1.2); }
+}
 
 .image-carousel { position: relative; width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 2rem; }
 .post-img-small { width: 100%; height: 400px; object-fit: cover; }
