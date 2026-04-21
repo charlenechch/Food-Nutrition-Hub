@@ -631,7 +631,7 @@ router.delete('/:commentId', async (req, res) => {
   }
 });
 
-// Delete a reply (with admin support) - FIXED
+// Delete a reply (with admin support)
 router.delete('/:commentId/replies/:replyId', async (req, res) => {
   console.log('=== REPLY DELETE DEBUG START ===');
   console.log('Time:', new Date().toISOString());
