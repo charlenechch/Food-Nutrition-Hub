@@ -115,7 +115,7 @@ const LikeButton = ({ postId, initialLikes, user, onAlert }) => {
   );
 };
 
-const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDeleted, onAlert }) => {
+const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDeleted, onAlert, formatDate }) => {
   const { t } = useTranslation();
   const navigate = useNavigate(); 
   const [comment, setComment] = useState("");
@@ -271,13 +271,21 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                       )}
                     </span>
                   <span className="comment-meta-dot">•</span>
-                  <span className="comment-time">{c.daysAgo}</span>
+                  <span className="comment-time">{formatDate ? formatDate(c.createdAt) : c.daysAgo}</span>
                 </div>
                 <div className="comment-text-content">{c.text}</div>
               </div>
               {canDeleteComment(c.userProfileID) && (
                 <button className="delete-icon-btn lrp-no-outline" onClick={() => openDeleteModal(c.id)} title={t("communityPost.deleteComment")}>
-                  <i className="fas fa-trash-alt"></i>
+                  <svg className="trash-svg" viewBox="0 -10 64 74" xmlns="http://www.w3.org/2000/svg">
+                    <g id={`trash-can-${c.id}`}>
+                      <rect x={16} y={24} width={32} height={30} rx={3} ry={3} fill="#e74c3c" />
+                      <g className="lid-group">
+                        <rect x={12} y={12} width={40} height={6} rx={2} ry={2} fill="#c0392b" />
+                        <rect x={26} y={8} width={12} height={4} rx={2} ry={2} fill="#c0392b" />
+                      </g>
+                    </g>
+                  </svg>
                 </button>
               )}
             </div>
@@ -515,6 +523,7 @@ export default function CommunityPost() {
             <CommentSection
               postId={post.id} user={user} comments={comments}
               onCommentAdded={handleNewComment} onCommentDeleted={handleCommentDeleted} onAlert={openAlert}
+              formatDate={formatDate}
             />
           </div>
         </div>
