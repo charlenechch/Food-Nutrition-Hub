@@ -301,6 +301,46 @@ export default function CommunityPost() {
   const closeDlg = () => setDlg({ ...dlg, open: false });
   const openAlert = (title, message) => setDlg({ open: true, title, message });
 
+  const [translatedStory, setTranslatedStory] = useState(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [showTranslated, setShowTranslated] = useState(false);
+
+  const handleTranslate = async () => {
+    if (showTranslated) {
+      setShowTranslated(false);
+      return;
+    }
+    if (translatedStory) {
+      setShowTranslated(true);
+      return;
+    }
+    try {
+      setIsTranslating(true);
+      const currentLang = i18n.language;
+      const targetLang = currentLang === "ms" ? "English" : "Bahasa Malaysia";
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{
+            role: "user",
+            content: `Translate the following cultural story into ${targetLang}. Return only the translated text, no preamble or explanation.\n\n${post.culturalStory}`
+          }]
+        })
+      });
+      const data = await response.json();
+      const translated = data.content?.find(b => b.type === "text")?.text || "";
+      setTranslatedStory(translated);
+      setShowTranslated(true);
+    } catch (err) {
+      console.error("Translation failed:", err);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -440,8 +480,24 @@ export default function CommunityPost() {
               </div>
 
               <div className="story-section">
-                <h3>{t("communityPost.culturalStory")}</h3>
-                <p>{post.culturalStory}</p>
+                <div className="story-section-header">
+                  <h3>{t("communityPost.culturalStory")}</h3>
+                  <button
+                    className={`translate-btn lrp-no-outline ${isTranslating ? "translating" : ""} ${showTranslated ? "active" : ""}`}
+                    onClick={handleTranslate}
+                    disabled={isTranslating}
+                    title={showTranslated ? "Show original" : `Translate to ${i18n.language === "ms" ? "English" : "Bahasa Malaysia"}`}
+                  >
+                    {isTranslating ? (
+                      <><span className="translate-spinner" /> {t("communityPost.translating") || "Translating..."}</>
+                    ) : showTranslated ? (
+                      <><i className="fas fa-undo" /> {t("communityPost.showOriginal") || "Show Original"}</>
+                    ) : (
+                      <><i className="fas fa-language" /> {t("communityPost.translate") || "Translate"}</>
+                    )}
+                  </button>
+                </div>
+                <p>{showTranslated && translatedStory ? translatedStory : post.culturalStory}</p>
               </div>
 
               {post.recipe && (

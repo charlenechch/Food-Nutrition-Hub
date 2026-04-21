@@ -932,6 +932,65 @@
 .delete-icon-btn:hover {
   color: #d32f2f; 
 }
+/* STORY SECTION TRANSLATE */
+.story-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.story-section-header h3 {
+  margin: 0;
+}
+
+.translate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid #d4c5b5;
+  background: white;
+  color: #916848;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.translate-btn:hover:not(:disabled) {
+  background: #fdf6f0;
+  border-color: #916848;
+  box-shadow: 0 2px 8px rgba(145, 104, 72, 0.15);
+}
+
+.translate-btn.active {
+  background: #fdf6f0;
+  border-color: #916848;
+  color: #7a5638;
+}
+
+.translate-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.translate-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(145, 104, 72, 0.3);
+  border-top-color: #916848;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
 .comment-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
 .comment-author { font-weight: 700; color: #333; }
 .comment-date { color: #888; font-size: 0.8rem; }
