@@ -598,7 +598,7 @@ export default function RecipesPage() {
                   {DIET_OPTIONS.map(tag => (
                     <label key={tag} className="rp-diet-item">
                       <input type="checkbox" checked={form.dietaryTags.includes(tag)} onChange={() => toggleDiet(tag)} />
-                      <span>{tag.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase())}</span>
+                     <span>{t(`explore.dietary_${tag}`, tag.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase()))}</span>
                     </label>
                   ))}
                 </div>
