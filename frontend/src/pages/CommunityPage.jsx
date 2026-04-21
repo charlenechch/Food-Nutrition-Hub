@@ -16,7 +16,7 @@ import { getTierById } from "../utils/gamificationTiers";
 export default function Community() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isAuthenticated = user && user.role !== "guest";
 
   const [expanded, setExpanded] = useState(false);
