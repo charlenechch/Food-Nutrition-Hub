@@ -303,12 +303,14 @@ export default function CommunityPost() {
   const openAlert = (title, message) => setDlg({ open: true, title, message });
 
   const [translatedStory, setTranslatedStory] = useState(null);
+  const [translatedRecipe, setTranslatedRecipe] = useState(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [showTranslated, setShowTranslated] = useState(false);
 
   // Reset translation when navigating to a different post
   useEffect(() => {
     setTranslatedStory(null);
+    setTranslatedRecipe(null);
     setShowTranslated(false);
   }, [id]);
 
@@ -323,12 +325,12 @@ export default function CommunityPost() {
     }
     try {
       setIsTranslating(true);
-      // Mirror ExploreFoodPage: pass i18n.language directly to translateTexts.
-      // The hook skips the API call when lang === "en" and only hits /api/translate for "ms".
-      const result = await translateTexts({ story: post.culturalStory }, i18n.language);
-      const translated = result?.story;
-      if (translated) {
-        setTranslatedStory(translated);
+      const texts = { story: post.culturalStory };
+      if (post.recipe) texts.recipe = post.recipe;
+      const result = await translateTexts(texts, i18n.language);
+      if (result?.story) {
+        setTranslatedStory(result.story);
+        if (result.recipe) setTranslatedRecipe(result.recipe);
         setShowTranslated(true);
       }
     } catch (err) {
@@ -501,7 +503,7 @@ export default function CommunityPost() {
               {post.recipe && (
                 <div className="recipe-box">
                   <h3>{t("communityPost.recipe")}</h3>
-                  <div className="recipe-content" dangerouslySetInnerHTML={{ __html: formatTextForDisplay(post.recipe) }} />
+                  <div className="recipe-content" dangerouslySetInnerHTML={{ __html: formatTextForDisplay(showTranslated && translatedRecipe ? translatedRecipe : post.recipe) }} />
                 </div>
               )}
             </div>
