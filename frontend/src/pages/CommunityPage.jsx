@@ -152,6 +152,13 @@ export default function Community() {
     : sortOption === "mostLiked" ? t("community.mostLiked")
     : t("community.mostDiscussed");
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString(i18n.language === "ms" ? "ms-MY" : i18n.language === "zh" ? "zh-CN" : "en-GB", {
+      day: "numeric", month: "short", year: "numeric"
+    });
+  };
+
   return (
     <div className="community-wrapper">
       <Header />
@@ -316,7 +323,7 @@ export default function Community() {
                     <div className="card-body">
                       <h3>{post.foodName}</h3>
                       <div className="card-meta">
-                        {/* ✅ UPDATED AVATAR IMPLEMENTATION */}
+                        {/*  UPDATED AVATAR IMPLEMENTATION */}
                         <div className="user-avatar"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -366,7 +373,7 @@ export default function Community() {
                               </span>
                             )}
                           </span>
-                          <span className="post-date">{post.daysAgo}</span>
+                          <span className="post-date">{formatDate(post.createdAt)}</span>
                         </div>
                       </div>
                       <p className="card-excerpt">{post.culturalStory}</p>
