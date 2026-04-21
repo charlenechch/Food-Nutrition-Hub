@@ -10,7 +10,7 @@ import { translateTexts } from "../hooks/useAITranslation";
 import RecipeStarRating from "../components/RecipeStarRating";
 import { getTierById } from "../utils/gamificationTiers";
 
-// ✅ Import Auth & Login Modal
+// Import Auth & Login Modal
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "../components/LoginPromptModal";
 
@@ -184,7 +184,7 @@ export default function RecipeDetailPage() {
     return loggedIn;
   };
 
-  // ✅ checkSavedStatus defined before useEffect
+  // checkSavedStatus defined before useEffect
   const checkSavedStatus = async () => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -250,7 +250,7 @@ export default function RecipeDetailPage() {
     }
   }, [id]);
 
-  // ✅ Save recipe handler
+  // Save recipe handler
   const handleSaveRecipe = async () => {
     if (!isLoggedIn()) {
       setShowLoginPrompt(true);
@@ -415,7 +415,9 @@ export default function RecipeDetailPage() {
                       <div className="rdp-badges">
                         {recipe.origin && (
                           <span className="rdp-badge rdp-badge-origin">
-                            {recipe.origin}
+                            {i18n.exists(`explore.origin_${recipe.origin?.toLowerCase()}`)
+                            ? t(`explore.origin_${recipe.origin?.toLowerCase()}`)
+                            : recipe.origin}
                           </span>
                         )}
                       </div>
@@ -427,7 +429,7 @@ export default function RecipeDetailPage() {
                           (Array.isArray(recipe.category) ? recipe.category : recipe.category.split(','))
                             .map((cat, index) => (
                               <span key={`cat-${index}`} className="rdp-badge">
-                                {cat.trim()}
+                                {t(`explore.cat_${cat.trim().toLowerCase().replace(/\s+/g, "_")}`) || cat.trim()}
                               </span>
                             ))
                         )}
@@ -437,7 +439,7 @@ export default function RecipeDetailPage() {
                 )}
               </div>
 
-              {/* ✅ NEW: AUTHOR & RATING SUMMARY BAR */}
+              {/* NEW: AUTHOR & RATING SUMMARY BAR */}
               <div 
                 className="rdp-summary-bar"
                 style={{ 
@@ -554,8 +556,9 @@ export default function RecipeDetailPage() {
                   )}
                 </div>
               </div>
-              {/* ✅ END SUMMARY BAR */}
+              {/* END SUMMARY BAR */}
 
+              {/* Prep / Cook Time, Servings, Difficulty  */}
               <div className="rdp-card2 rdp-meta" style={{ borderTop: "none", paddingTop: "16px" }}>
                 <div className="rdp-meta-item">
                   <div className="rdp-meta-label">{t("recipeDetail.prepTime")}</div>
@@ -580,7 +583,9 @@ export default function RecipeDetailPage() {
               <div className="rdp-tags">
                 {tags.map((tag) => (
                   <span key={tag} className="rdp-tag">
-                    {tag.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                    {i18n.exists(`explore.dietary_${tag}`)
+                      ? t(`explore.dietary_${tag}`)
+                      : tag.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                   </span>
                 ))}
               </div>
