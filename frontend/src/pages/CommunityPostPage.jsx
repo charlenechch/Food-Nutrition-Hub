@@ -29,6 +29,7 @@ function getStableProfileId(user) {
 
 const formatTextForDisplay = (text) => {
   if (!text) return '';
+  if (typeof text !== 'string') text = String(text);
   let cleanedText = text.replace(/\\t/g, ' ').replace(/\t/g, ' ').replace(/\\n/g, '\n').replace(/\n\s*\n/g, '\n\n').trim();
   const lines = cleanedText.split('\n').filter(line => line.trim());
   let html = ''; let inList = false;
@@ -330,7 +331,7 @@ export default function CommunityPost() {
       const result = await translateTexts(texts, i18n.language);
       if (result?.story) {
         setTranslatedStory(result.story);
-        if (result.recipe) setTranslatedRecipe(result.recipe);
+        if (result.recipe) setTranslatedRecipe(typeof result.recipe === 'string' ? result.recipe : JSON.stringify(result.recipe));
         setShowTranslated(true);
       }
     } catch (err) {
