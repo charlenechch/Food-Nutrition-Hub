@@ -16,7 +16,7 @@ import { getTierById } from "../utils/gamificationTiers";
 export default function Community() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isAuthenticated = user && user.role !== "guest";
 
   const [expanded, setExpanded] = useState(false);
@@ -152,6 +152,13 @@ export default function Community() {
     : sortOption === "mostLiked" ? t("community.mostLiked")
     : t("community.mostDiscussed");
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString(i18n.language === "ms" ? "ms-MY" : i18n.language === "zh" ? "zh-CN" : "en-GB", {
+      day: "numeric", month: "short", year: "numeric"
+    });
+  };
+
   return (
     <div className="community-wrapper">
       <Header />
@@ -185,6 +192,7 @@ export default function Community() {
             )}
           </div>
 
+          {/* Add Community Post Form */}
           {expanded && (
             <div className="share-form-container">
               <form className="heritage-form" onSubmit={handleSubmit}>
@@ -193,12 +201,13 @@ export default function Community() {
                     <label>{t("community.foodName")} *</label>
                     <input type="text" name="foodName" value={formData.foodName} onChange={handleInputChange} required placeholder={t("community.foodNamePlaceholder")} />
                   </div>
+                  {/* Origin */}
                   <div className="form-group">
                     <label>{t("community.origin")} *</label>
                     <select name="culturalOrigin" value={formData.culturalOrigin} onChange={handleInputChange} required>
                       <option value="">{t("community.selectOrigin")}</option>
-                      <option value="Malay">Malay</option>
-                      <option value="Chinese">Chinese</option>
+                       <option value="Malay">{i18n.exists("explore.origin_malay") ? t("explore.origin_malay") : "Malay"}</option>
+                       <option value="Chinese">{i18n.exists("explore.origin_chinese") ? t("explore.origin_chinese") : "Chinese"}</option>
                       <option value="Iban">Iban</option>
                       <option value="Melanau">Melanau</option>
                       <option value="Kenyah">Kenyah</option>
@@ -245,6 +254,7 @@ export default function Community() {
           )}
         </section>
 
+        {/* Search Sort and Filter */}
         <div className="sticky-filter-bar" id="posts-anchor">
           <div className="search-pill">
             <FaSearch className="search-icon" />
@@ -264,7 +274,10 @@ export default function Community() {
                     <div key={origin}
                       className={`dropdown-item ${selectedOrigin === (origin === "All" ? "all" : origin) ? "selected" : ""}`}
                       onClick={() => { setSelectedOrigin(origin === "All" ? "all" : origin); setOriginDropdownOpen(false); }}>
-                      {origin === "All" ? t("explore.allOrigins") : origin}
+                      {origin === "All" ? t("explore.allOrigins") : 
+                        i18n.exists(`explore.origin_${origin.toLowerCase()}`) 
+                          ? t(`explore.origin_${origin.toLowerCase()}`) 
+                          : origin}
                     </div>
                   ))}
                 </div>
@@ -288,6 +301,7 @@ export default function Community() {
           </div>
         </div>
 
+        {/* Community Post */}
         <section className="recent-section">
           {loading ? (
             <div className="loading-state"><div className="spinner"></div><p>{t("community.loadingStories")}</p></div>
@@ -309,7 +323,7 @@ export default function Community() {
                     <div className="card-body">
                       <h3>{post.foodName}</h3>
                       <div className="card-meta">
-                        {/* ✅ UPDATED AVATAR IMPLEMENTATION */}
+                        {/*  UPDATED AVATAR IMPLEMENTATION */}
                         <div className="user-avatar"
                           onClick={(e) => {
                             e.stopPropagation();
