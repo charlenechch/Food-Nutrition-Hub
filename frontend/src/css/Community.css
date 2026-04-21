@@ -1211,9 +1211,7 @@
   outline: none;
 }
 
-
-
-
+/* Responsive Adjustments */
 @media (max-width: 450px) {
   .community-page {
     padding: 0 15px 60px; 
@@ -1277,14 +1275,37 @@
   }
 
   .title-and-likes-wrapper {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
   }
 
   .title-and-likes-wrapper h1 {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     line-height: 1.2;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Shrink like button to stay inline on mobile */
+  .like-button {
+    height: 32px;
+    width: 90px;
+    flex-shrink: 0;
+  }
+
+  .like-button .like-icon {
+    height: 15px;
+    width: 15px;
+  }
+
+  .like-button .like-text {
+    font-size: 11px;
+  }
+
+  .like-button .like-count {
+    font-size: 11px;
   }
 
   .post-img-small {
