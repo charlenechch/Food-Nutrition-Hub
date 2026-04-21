@@ -373,7 +373,7 @@ export default function Community() {
                               </span>
                             )}
                           </span>
-                          <span className="post-date">{formatDate(post.createdAt)}</span>
+                          <span className="post-date">{post.daysAgo}</span>
                         </div>
                       </div>
                       <p className="card-excerpt">{post.culturalStory}</p>
