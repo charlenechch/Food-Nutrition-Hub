@@ -385,7 +385,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
           </div>
           <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
             <h2 style="color: #17a2b8;">Hello ${currentUser.firstname},</h2>
-            <p>This is a notification that your SarawakEats account details have been updated by an administrator.</p>
+            <p>Your SarawakEats account details have been updated by an administrator.</p>
             
             <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 5px solid #17a2b8;">
               <p style="margin: 0;"><strong>What changed?</strong></p>

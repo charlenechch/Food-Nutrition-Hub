@@ -474,7 +474,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
           </div>
           <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
             <h2 style="color: #387346;">Hello ${firstname},</h2>
-            <p>This is a notification that an administrator has updated the details for the food item:</p>
+            <p>An administrator has updated the details for the food item:</p>
             <h3 style="text-align:center; background:#f4f4f4; padding:10px;">${foodName}</h3>
             
             <p>These changes were made to ensure the accuracy of our food database.</p>
