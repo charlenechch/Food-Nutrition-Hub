@@ -134,7 +134,7 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
               <p>This email is to inform you that your SarawakEats account (<strong>${userEmail}</strong>) has been removed by an administrator.</p>
               
               <div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; margin: 20px 0; color: #721c24; border-left: 5px solid #dc3545;">
-                <p style="margin: 5px 0 0; font-size: 0.9em;">If you believe this is a mistake, please contact our support team immediately.</p>
+                <p style="margin: 5px 0 0; font-size: 0.9em;">If you believe this is a mistake, please contact us at <a href="mailto:info@sarawakeats.com">info@sarawakeats.com</a> immediately.</p>
               </div>
 
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
@@ -310,7 +310,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
               <p style="margin-top: 15px; font-size: 0.95em;">
                 If you believe this suspension is an error or would like to request an early unsuspension, 
-                please contact our support team for an appeal.
+                please contact us at <a href="mailto:info@sarawakeats.com">info@sarawakeats.com</a> for an appeal.
               </p>
               
               <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
@@ -394,7 +394,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
               </ul>
             </div>
 
-            <p>If you did not request this change, please contact support immediately.</p>
+            <p>If you did not request this change, please contact us at <a href="mailto:info@sarawakeats.com">info@sarawakeats.com</a> immediately.</p>
             
             <p><a href="https://sarawakeats.site/profile">View your profile</a></p>
 
