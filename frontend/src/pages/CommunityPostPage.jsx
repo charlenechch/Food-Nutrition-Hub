@@ -429,10 +429,7 @@ export default function CommunityPost() {
                         </span>
                       )}
                     </span>
-                    <div className="post-metadata-row">
-                      <span className="post-date">{formatDate(post.createdAt)}</span>
-                      <span className="meta-dot">•</span>
-                    </div>
+                    <span className="post-date">{formatDate(post.createdAt)}</span>
                   </div>
                 </div>
                 <span className="origin-pill">

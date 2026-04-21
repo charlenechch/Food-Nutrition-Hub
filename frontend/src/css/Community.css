@@ -823,6 +823,7 @@
   line-height: 1.8; 
   font-size: 1.05rem;
   color: #444;
+  margin-top: 10px;
   margin-bottom: 20px;
   text-align: justify;
 }
