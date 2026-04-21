@@ -388,6 +388,7 @@
     0 2px 8px rgba(0, 0, 0, 0.08),    /* lighter shadow */
     0 1px 3px rgba(0, 0, 0, 0.05);
   user-select: none;
+  margin-bottom: 15px;
 }
 
 .like-button .like {
@@ -420,7 +421,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #aaa;         /* was #717070 */
+  color: #555;         /* was #717070 */
   font-size: 14px;     /* was 16px */
   border-left: 1px solid #e0d0c0;    /* was 2px solid #4e4e4e */
   transition: all 0.5s ease-out;
