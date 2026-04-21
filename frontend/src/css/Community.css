@@ -7,13 +7,11 @@
   font-family: 'Poppins', sans-serif;
 }
 
-/* ===========================================
-   1. HERO SECTION
-=========================================== */
+/*  HERO SECTION */
 .community-hero {
   background: #916848;
   color: white;
-  padding: 80px 20px 60px;
+  padding: 120px 20px 60px;
   text-align: center;
   background-image: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
 }
@@ -27,7 +25,7 @@
 .community-hero-content p {
   font-size: 1.1rem;
   opacity: 0.9;
-  max-width: 600px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -39,34 +37,6 @@
   z-index: 2;
 }
 
-/* --- BACK BUTTON STYLE --- */
-.back-btn {
-  background: white;
-  border: 1px solid #ddd;
-  color: #555;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  margin-bottom: 20px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  position: relative;
-  z-index: 10;
-}
-
-.back-btn:hover {
-  background: #916848;
-  color: white;
-  border-color: #916848;
-}
-
-/* ===========================================
-   2. SHARE BANNER
-=========================================== */
 .share-banner {
   background: white;
   border-radius: 20px;
@@ -328,6 +298,30 @@
 /* ===========================================
    5. POST DETAIL PAGE STYLES
 =========================================== */
+.community-back-btn {
+  background: white;
+  border: 1px solid #ddd;
+  color: #555;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  position: relative;
+  z-index: 10;
+}
+
+.community-back-btn:hover {
+  background: #916848;
+  color: white;
+  border-color: #916848;
+}
+
 .post-layout {
   display: grid; 
   grid-template-columns: 68% 32%; 
