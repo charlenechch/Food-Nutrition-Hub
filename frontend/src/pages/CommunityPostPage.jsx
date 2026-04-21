@@ -271,7 +271,13 @@ const CommentSection = ({ postId, user, comments, onCommentAdded, onCommentDelet
                       )}
                     </span>
                   <span className="comment-meta-dot">•</span>
-                  <span className="comment-time">{formatDate ? formatDate(c.createdAt) : c.daysAgo}</span>
+                  <span className="comment-time">
+                    {c.createdAt
+                      ? formatDate(c.createdAt)
+                      : (c.daysAgo && !isNaN(new Date(c.daysAgo))
+                          ? formatDate(c.daysAgo)
+                          : c.daysAgo)}
+                  </span>
                 </div>
                 <div className="comment-text-content">{c.text}</div>
               </div>
