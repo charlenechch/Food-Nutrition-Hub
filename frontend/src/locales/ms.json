@@ -370,7 +370,8 @@
     "error": "Ralat",
     "notFound": "Perkongsian tidak dijumpai",
     "unknownChef": "Chef Tidak Diketahui",
-    "translate": "Terjemahkan"
+    "translate": "Terjemahkan",
+    "showOriginal": "Tunjuk Asal"
   },
 
   "map": {

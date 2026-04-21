@@ -370,7 +370,8 @@
     "error": "Error",
     "notFound": "Post not found",
     "unknownChef": "Unknown Chef",
-    "translate": "Translate"
+    "translate": "Translate",
+    "showOriginal": "Show Original"
   },
 
   "map": {

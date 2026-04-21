@@ -305,6 +305,12 @@ export default function CommunityPost() {
   const [isTranslating, setIsTranslating] = useState(false);
   const [showTranslated, setShowTranslated] = useState(false);
 
+  // Reset translation when navigating to a different post
+  useEffect(() => {
+    setTranslatedStory(null);
+    setShowTranslated(false);
+  }, [id]);
+
   const handleTranslate = async () => {
     if (showTranslated) {
       setShowTranslated(false);
@@ -316,22 +322,35 @@ export default function CommunityPost() {
     }
     try {
       setIsTranslating(true);
-      // Always translate to the opposite of current app language
-      const targetLang = i18n.language === "ms" ? "en" : "ms";
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+      if (i18n.language === "ms") {
+        // App is in BM — "translate" means show English original (post.culturalStory is in English)
+        // Backend can't translate to English, so we just surface the raw English text
+        setTranslatedStory(post.culturalStory);
+        setShowTranslated(true);
+        setIsTranslating(false);
+        return;
+      }
+
+      // App is in English — translate story to BM
       const res = await fetch(`${API_BASE_URL}/api/translate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ texts: { story: post.culturalStory }, targetLang }),
+        body: JSON.stringify({ texts: { story: post.culturalStory }, targetLang: "ms" }),
       });
       const data = await res.json();
-      if (data.success && data.translations?.story) {
-        setTranslatedStory(data.translations.story);
+      console.log("[Translate] response:", data);
+      const translated = data.translations?.story || null;
+      if (translated && translated !== post.culturalStory) {
+        setTranslatedStory(translated);
         setShowTranslated(true);
+      } else {
+        console.warn("[Translate] No translated text or same as original:", data);
       }
     } catch (err) {
-      console.error("Translation failed:", err);
+      console.error("[Translate] Failed:", err);
     } finally {
       setIsTranslating(false);
     }
@@ -482,14 +501,13 @@ export default function CommunityPost() {
                     className={`translate-btn lrp-no-outline ${isTranslating ? "translating" : ""} ${showTranslated ? "active" : ""}`}
                     onClick={handleTranslate}
                     disabled={isTranslating}
-                    title={showTranslated ? "Show original" : `Translate to ${i18n.language === "ms" ? "English" : "Bahasa Malaysia"}`}
                   >
                     {isTranslating ? (
-                      <><span className="translate-spinner" /> {t("communityPost.translating") || "Translating..."}</>
+                      <><span className="translate-spinner" /> {i18n.language === "ms" ? "Menterjemah..." : "Translating..."}</>
                     ) : showTranslated ? (
-                      <><i className="fas fa-undo" /> {t("communityPost.showOriginal") || "Show Original"}</>
+                      <><i className="fas fa-undo" /> {i18n.language === "ms" ? "Tunjuk Asal" : "Show Original"}</>
                     ) : (
-                      <><i className="fas fa-language" /> {t("communityPost.translate") || "Translate"}</>
+                      <><i className="fas fa-language" /> {i18n.language === "ms" ? "English" : "BM"}</>
                     )}
                   </button>
                 </div>
