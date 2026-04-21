@@ -355,8 +355,8 @@
     "culturalStory": "Kisah Budaya",
     "recipe": "Resipi",
     "comments": "Komen",
-    "like": "suka",
-    "likes": "suka",
+    "like": "Suka",
+    "likes": "Suka",
     "deleteComment": "Padam Komen?",
     "deleteWarning": "Tindakan ini tidak boleh dibatalkan.",
     "cancel": "Batal",
@@ -365,10 +365,10 @@
     "addComment": "Tambah komen...",
     "posting": "Menghantar...",
     "postComment": "Hantar Komen",
-    "noComments": "Belum ada komen. Jadilah yang pertama!",
+    "noComments": "Belum ada komen.",
     "loading": "Memuatkan...",
     "error": "Ralat",
-    "notFound": "Siaran tidak dijumpai",
+    "notFound": "Perkongsian tidak dijumpai",
     "unknownChef": "Chef Tidak Diketahui"
   },
 
