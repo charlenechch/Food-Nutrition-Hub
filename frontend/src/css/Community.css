@@ -1024,6 +1024,10 @@
   .custom-dropdown-wrapper {
     width: 100%;
   }
+
+  .lrp-modal-actions button {
+    white-space: nowrap;
+  }
 }
 
 @media (max-width: 900px) {
