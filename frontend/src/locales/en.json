@@ -270,7 +270,12 @@
     "loginToSave": "Please login or register to save this recipe.",
     "linkCopied": "Link copied",
     "linkCopiedMsg": "The link to this recipe has been copied to your clipboard.",
-    "copyLink": "Copy this link"
+    "copyLink": "Copy this link",
+    "ratePrompt": "Click a star to rate this recipe!",
+    "userRating": "You rated this {{rating}} out of 5",
+    "rateLoginRequired": "Please log in to rate this recipe.",
+    "rateError": "Failed to submit rating",
+    "rateAlertError": "Failed to submit rating. Please try refreshing the page."
   }, 
 
   "analyzer": {

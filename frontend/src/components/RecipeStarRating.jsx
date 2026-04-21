@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FaStar } from "react-icons/fa";
-// ✅ IMPORT AUTH AND MODAL
+import { useTranslation } from "react-i18next"; // ✅ Import translation hook
 import { useAuth } from "../context/AuthContext";
 import LoginPromptModal from "./LoginPromptModal"; 
 
@@ -10,9 +10,9 @@ const RecipeStarRating = ({
   initialCount = 0, 
   initialUserRating = 0, 
   csrfToken,
-  onRateSuccess // 👈 Added this prop to communicate with the parent page
+  onRateSuccess 
 }) => {
-  // ✅ GET USER STATUS
+  const { t } = useTranslation(); // ✅ Initialize translation
   const { user } = useAuth();
   const isGuest = !user || user.role === "guest";
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -33,14 +33,12 @@ const RecipeStarRating = ({
   }, [initialAvg, initialCount]);
 
   const handleRate = async (selectedRating) => {
-    // ✅ CHECK FOR GUEST BEFORE DOING ANYTHING
     if (isGuest) {
       setShowLoginPrompt(true);
       return;
     }
 
     setIsSubmitting(true);
-    // Instantly update visually so it feels fast to the user
     setRating(selectedRating); 
 
     try {
@@ -50,12 +48,11 @@ const RecipeStarRating = ({
         credentials: "include", 
         headers: { 
           "Content-Type": "application/json",
-          "X-CSRF-Token": csrfToken // 👈 The security badge!
+          "X-CSRF-Token": csrfToken 
         },
         body: JSON.stringify({ rating: selectedRating })
       });
 
-      // Safely try to parse the JSON response
       let data;
       try {
         data = await response.json();
@@ -64,15 +61,13 @@ const RecipeStarRating = ({
       }
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Failed to submit rating");
+        throw new Error(data.message || t("recipeDetail.rateError")); // ✅ Translated error
       }
 
-      // If successful, update the average and total count based on the backend math
       if (data.avgRating !== undefined) {
         setAvg(data.avgRating);
         setCount(data.totalRatings);
         
-        // 👇 Tell the parent page (RecipeDetailPage) about the new average!
         if (onRateSuccess) {
             onRateSuccess(data.avgRating, data.totalRatings);
         }
@@ -80,8 +75,8 @@ const RecipeStarRating = ({
 
     } catch (error) {
       console.error("Error submitting rating:", error);
-      alert("Failed to submit rating. Please try refreshing the page.");
-      setRating(initialUserRating); // Revert the visual star if it failed
+      alert(t("recipeDetail.rateAlertError")); // ✅ Translated alert
+      setRating(initialUserRating); 
     } finally {
       setIsSubmitting(false);
     }
@@ -90,7 +85,6 @@ const RecipeStarRating = ({
   return (
     <div className="recipe-rating-container" style={{ margin: "20px 0", display: "flex", flexDirection: "column", gap: "5px" }}>
       
-      {/* 1. The 5 Clickable Stars */}
       <div style={{ display: "flex", gap: "5px", justifyContent: "flex-end" }}>
         {[1, 2, 3, 4, 5].map((starValue) => (
           <FaStar
@@ -100,7 +94,6 @@ const RecipeStarRating = ({
               cursor: isSubmitting ? "wait" : "pointer",
               transition: "color 0.2s"
             }}
-            // Fill stars with yellow based on hover OR saved rating
             color={starValue <= (hover || rating) ? "#FFD700" : "#E4E5E9"}
             onMouseEnter={() => setHover(starValue)}
             onMouseLeave={() => setHover(0)}
@@ -109,21 +102,19 @@ const RecipeStarRating = ({
         ))}
       </div>
 
-      {/* 2. The Text Display (Now reflects USER rating) */}
       <div style={{ fontSize: "0.95rem", color: "#666", marginTop: "4px", textAlign: "right" }}>
         {rating === 0 ? (
-          <span>Click a star to rate this recipe!</span>
+          <span>{t("recipeDetail.ratePrompt")}</span> // ✅ Translated prompt
         ) : (
           <span>
-            You rated this <strong>{rating}</strong> out of 5
+            {t("recipeDetail.userRating", { rating })} {/* ✅ Translated with variable */}
           </span>
         )}
       </div>
 
-      {/* ✅ RENDER THE LOGIN PROMPT IF NEEDED */}
       {showLoginPrompt && (
         <LoginPromptModal
-          message="Please log in to rate this recipe."
+          message={t("recipeDetail.rateLoginRequired")} // ✅ Translated modal message
           onClose={() => setShowLoginPrompt(false)}
         />
       )}

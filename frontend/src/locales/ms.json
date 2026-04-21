@@ -269,8 +269,13 @@
     "loginToSave": "Sila log masuk atau daftar untuk menyimpan resipi ini.",
     "linkCopied": "Pautan disalin",
     "linkCopiedMsg": "Pautan resipi ini telah disalin ke papan klip anda.",
-    "copyLink": "Salin pautan ini"
-  },
+    "copyLink": "Salin pautan ini",
+    "ratePrompt": "Klik bintang untuk menilai resipi ini!",
+    "userRating": "Anda menilai ini {{rating}} daripada 5",
+    "rateLoginRequired": "Sila log masuk untuk menilai resipi ini.",
+    "rateError": "Gagal menghantar penilaian",
+    "rateAlertError": "Gagal menghantar penilaian. Sila cuba segar semula halaman ini."
+    },
 
   "analyzer": {
     "title": "Penganalisis Nutrisi AI",
