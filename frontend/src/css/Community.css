@@ -378,17 +378,15 @@
   position: relative;
   cursor: pointer;
   display: flex;
-  height: 48px;
-  width: 136px;
+  height: 40px;        /* was 48px */
+  width: 110px;        /* was 136px */
   border-radius: 16px;
-  border: none;
-  background-color: #1d1d1d;
+  border: 1px solid #e0d0c0;          /* add border */
+  background-color: #ffffff;          /* was #1d1d1d */
   overflow: hidden;
   box-shadow:
-    inset -2px -2px 5px rgba(255, 255, 255, 0.2),
-    inset 2px 2px 5px rgba(0, 0, 0, 0.1),
-    4px 4px 10px rgba(0, 0, 0, 0.4),
-    -2px -2px 8px rgba(255, 255, 255, 0.1);
+    0 2px 8px rgba(0, 0, 0, 0.08),    /* lighter shadow */
+    0 1px 3px rgba(0, 0, 0, 0.05);
   user-select: none;
 }
 
@@ -402,15 +400,15 @@
 }
 
 .like-button .like-icon {
-  fill: #505050;
-  height: 28px;
-  width: 28px;
+  fill: #ccc;          /* was #505050 */
+  height: 22px;        /* was 28px */
+  width: 22px;
   transition: fill 0.2s ease-out;
 }
 
 .like-button .like-text {
-  color: #fcfcfc;
-  font-size: 16px;
+  color: #555;         /* was #fcfcfc */
+  font-size: 14px;     /* was 16px */
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -422,16 +420,17 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #717070;
-  font-size: 16px;
-  border-left: 2px solid #4e4e4e;
+  color: #aaa;         /* was #717070 */
+  font-size: 14px;     /* was 16px */
+  border-left: 1px solid #e0d0c0;    /* was 2px solid #4e4e4e */
   transition: all 0.5s ease-out;
 }
 
-.like-button .like-count.two {
-  transform: translateY(40px);
+/* Liked state — count turns brown to match your theme */
+.like-button.is-liked .like-count.two {
+  transform: translateY(0);
+  color: #916848;      /* was #fcfcfc */
 }
-
 /* Liked state */
 .like-button.is-liked .like-icon {
   fill: #fc4e4e;
