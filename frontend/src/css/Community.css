@@ -621,7 +621,7 @@
 
 /* Post Info and Text */
 .post-info h1 {
-  font-size: 2rem;
+  font-size: 1.8rem;
   margin-bottom: 10px;
   line-height: 1.2;
 }
@@ -761,8 +761,8 @@
 }
 
 .author-avatar-large {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   background-color: #e0d0c0; 
   color: #7a5638; 
   border-radius: 50%;
@@ -816,7 +816,6 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-left: auto;
 }
 
 /* Post Description  */
@@ -825,6 +824,7 @@
   font-size: 1.05rem;
   color: #444;
   margin-bottom: 20px;
+  text-align: justify;
 }
 
 

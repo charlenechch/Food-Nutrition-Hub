@@ -372,20 +372,21 @@ export default function CommunityPost() {
                 style={{ cursor: "pointer" }}
                 title={`View ${post.author || "User"}'s profile`}
               >
-                <div className="author-avatar-large" style={{ overflow: "hidden" }}>
-                  <img 
-                    src={post.authorProfilePic || `https://ui-avatars.com/api/?name=${post.author || "User"}&background=8b5e3c&color=fff&rounded=true`} 
-                    alt={post.author || "User"} 
-                    loading="lazy"
-                    onError={(e) => {
-                      e.target.onerror = null; 
-                      e.target.src = `https://ui-avatars.com/api/?name=${post.author || "User"}&background=8b5e3c&color=fff&rounded=true`;
-                    }}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
-                  />
-                </div>
-                <div className="author-text-info">
-                  <span className="author-name-large">
+                <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                  <div className="author-avatar-large" style={{ overflow: "hidden" }}>
+                    <img 
+                      src={post.authorProfilePic || `https://ui-avatars.com/api/?name=${post.author || "User"}&background=8b5e3c&color=fff&rounded=true`} 
+                      alt={post.author || "User"} 
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.onerror = null; 
+                        e.target.src = `https://ui-avatars.com/api/?name=${post.author || "User"}&background=8b5e3c&color=fff&rounded=true`;
+                      }}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
+                    />
+                  </div>
+                  <div className="author-text-info">
+                    <span className="author-name-large">
                       {post.author || t("communityPost.unknownChef")}
                       {post.equippedBadge && post.equippedBadge !== 'null' && (
                         <span className="user-badge-inline">
@@ -404,12 +405,17 @@ export default function CommunityPost() {
                         </span>
                       )}
                     </span>
-                  <div className="post-metadata-row">
-                    <span className="post-date">{post.daysAgo}</span>
-                    <span className="meta-dot">•</span>
-                    <span className="origin-pill">{post.culturalOrigin}</span>
+                    <div className="post-metadata-row">
+                      <span className="post-date">{formatDate(post.createdAt)}</span>
+                      <span className="meta-dot">•</span>
+                    </div>
                   </div>
                 </div>
+                <span className="origin-pill">
+                  {i18n.exists(`explore.origin_${post.culturalOrigin?.toLowerCase()}`)
+                    ? t(`explore.origin_${post.culturalOrigin?.toLowerCase()}`)
+                    : post.culturalOrigin}
+                </span>
               </div>
 
               <div className="story-section">
