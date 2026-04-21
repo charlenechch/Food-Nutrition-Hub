@@ -10,7 +10,6 @@ import Modal from "../components/Modal";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useTranslation } from "react-i18next";
 import { getTierById } from "../utils/gamificationTiers";
-import { translateTexts } from "../hooks/useAITranslation";
 
 function computeIsLoggedIn(user) {
   if (user?.role === "admin") {
@@ -317,10 +316,20 @@ export default function CommunityPost() {
     }
     try {
       setIsTranslating(true);
-      const targetLang = i18n.language === "en" ? "ms" : "en";
-      const result = await translateTexts({ story: post.culturalStory }, targetLang);
-      setTranslatedStory(result.story || post.culturalStory);
-      setShowTranslated(true);
+      // Always translate to the opposite of current app language
+      const targetLang = i18n.language === "ms" ? "en" : "ms";
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_BASE_URL}/api/translate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ texts: { story: post.culturalStory }, targetLang }),
+      });
+      const data = await res.json();
+      if (data.success && data.translations?.story) {
+        setTranslatedStory(data.translations.story);
+        setShowTranslated(true);
+      }
     } catch (err) {
       console.error("Translation failed:", err);
     } finally {

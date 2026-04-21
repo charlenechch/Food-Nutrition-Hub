@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import "../css/FoodMap.css";
 import Header from "../components/Header";
 import { useTranslation } from "react-i18next";
+import { translateTexts } from "../hooks/useAITranslation"; // ← ADDED
 
 const API = import.meta.env.VITE_API_URL || "https://api.sarawakeats.site";
 
@@ -78,7 +79,7 @@ function FlyTo({ target }) {
 
 // Main component
 export default function FoodMap() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); // ← ADDED i18n
   const [searchParams] = useSearchParams();
   const [pins,         setPins]         = useState([]);
   const [loading,      setLoading]      = useState(true);
@@ -90,9 +91,32 @@ export default function FoodMap() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [userPos,      setUserPos]      = useState(null);
   const [geoError,     setGeoError]     = useState(null);
+  const [translatedPins, setTranslatedPins] = useState({}); // ← ADDED
   const mapRef        = useRef(null);
   const searchTimer   = useRef(null);
   const userCoordsRef = useRef(null); // ← stores user lat/lng after Near Me
+
+  // ← ADDED: translate pin descriptions when language or pins change
+  useEffect(() => {
+    if (!pins.length || i18n.language === "en") {
+      setTranslatedPins({});
+      return;
+    }
+    const cacheKey = `map_translations_${i18n.language}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) { setTranslatedPins(JSON.parse(cached)); return; }
+
+    const texts = {};
+    pins.forEach(p => {
+      if (p.desc) texts[`desc_${p.id}`] = p.desc;
+    });
+    if (!Object.keys(texts).length) return;
+
+    translateTexts(texts, i18n.language).then(result => {
+      setTranslatedPins(result);
+      localStorage.setItem(cacheKey, JSON.stringify(result));
+    });
+  }, [pins, i18n.language]);
 
   // Load all pins
   const loadAll = useCallback(async (lat, lng) => {
@@ -408,6 +432,7 @@ export default function FoodMap() {
                 pin={selected}
                 onClose={closeDetail}
                 onDirections={openDirections}
+                translatedPins={translatedPins} // ← ADDED
               />
             )}
           </div>
@@ -466,7 +491,7 @@ function PinCard({ pin, active, onClick }) {
 }
 
 // Detail card
-function DetailCard({ pin, onClose, onDirections }) {
+function DetailCard({ pin, onClose, onDirections, translatedPins = {} }) { // ← ADDED translatedPins
   const { t } = useTranslation();
   const meta = getFoodMeta(pin.food);
   return (
@@ -480,7 +505,8 @@ function DetailCard({ pin, onClose, onDirections }) {
           </div>
         )}
         <div className="foodmap-detail-name">{pin.name}</div>
-        {pin.desc && <div className="foodmap-detail-desc">{pin.desc}</div>}
+        {/* ← CHANGED: use translated desc if available, fallback to raw */}
+        {pin.desc && <div className="foodmap-detail-desc">{translatedPins[`desc_${pin.id}`] || pin.desc}</div>}
       </div>
       <div className="foodmap-detail-body">
         {pin.rating && (
