@@ -290,7 +290,7 @@ export default function CommunityPost() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t , i18n } = useTranslation();
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -329,6 +329,30 @@ export default function CommunityPost() {
       navigate(`/profile/${postUID}`);
     }
   };  
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (i18n.language === "ms") {
+      if (diffMins < 1) return "Baru sahaja";
+      if (diffMins < 60) return `${diffMins} minit lalu`;
+      if (diffHours < 24) return `${diffHours} jam lalu`;
+      if (diffDays < 7) return `${diffDays} hari lalu`;
+      return date.toLocaleDateString("ms-MY", { day: "numeric", month: "short", year: "numeric" });
+    }
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  };
 
   if (loading) return <><Header /><div className="community-page" style={{ marginTop: "100px" }}><div className="loading">{t("communityPost.loading")}</div></div><Footer /></>;
   if (error) return <><Header /><div className="community-page" style={{ marginTop: "100px" }}><div className="error"><h2>{t("communityPost.error")}</h2><p>{error}</p></div></div><Footer /></>;
