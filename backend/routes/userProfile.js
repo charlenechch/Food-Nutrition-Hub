@@ -1548,17 +1548,35 @@ router.get("/quiz/status", async (req, res) => {
     if (rows.length === 0) return res.json({ hasCompletedToday: false, currentStreak: 0 });
 
     const today = getTodayString();
+    const yesterday = getYesterdayString(); // Utilizing your existing helper!
     let hasCompleted = false;
+    let currentStreak = rows[0].quiz_current_streak || 0;
 
     if (rows[0].quiz_last_completed_date) {
       const dbDateStr = new Date(rows[0].quiz_last_completed_date).toISOString().split('T')[0];
-      hasCompleted = (dbDateStr === today);
+      
+      if (dbDateStr === today) {
+        // Stage 1: Played today
+        hasCompleted = true;
+      } else if (dbDateStr !== yesterday && currentStreak > 0) {
+        // STAGE 3 TRIGGERED: It wasn't today, and it wasn't yesterday. 
+        // Two days have passed. The streak is broken!
+        currentStreak = 0;
+
+        // Update the database so it doesn't have to keep calculating this
+        await db.execute(
+          "UPDATE userProfile SET quiz_current_streak = 0 WHERE userID = ?",
+          [userID]
+        );
+      }
+      // Note: If dbDateStr === yesterday, it bypasses the else-if. 
+      // currentStreak stays the same, hasCompleted is false. (Stage 2 Warning is maintained)
     }
 
-    // Link: Send the streak to the frontend so the Header can determine the visual state
+    // Send the calculated streak to the frontend so the Header can determine the visual state
     res.json({ 
       hasCompletedToday: hasCompleted,
-      currentStreak: rows[0].quiz_current_streak || 0 
+      currentStreak: currentStreak 
     }); 
   } catch (error) {
     console.error("Quiz status error:", error);
