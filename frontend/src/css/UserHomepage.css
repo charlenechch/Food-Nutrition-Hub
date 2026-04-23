@@ -536,6 +536,7 @@
   font-weight: 300;
   max-width: 480px;
   border-radius: 0;
+  text-align: justify;
 }
 .home-dish-spotlight-actions {
   display: flex;
@@ -946,15 +947,6 @@
     background-color: #fcf9f6;
   }
 
-  /* .home-dish-spotlight-img {
-    height: 220px;
-    min-height: 220px;
-    background-size: cover;
-    background-position: center;
-    display: block;
-    margin: 0;
-  } */
-
   .home-dish-spotlight-img {
     height: 260px;
     background-size: cover;
@@ -977,6 +969,7 @@
   .home-dish-spotlight-quote {
     font-size: 0.88rem;
     max-width: 100%;
+    text-align: justify;
   }
 
   .home-dish-origin-badge {
