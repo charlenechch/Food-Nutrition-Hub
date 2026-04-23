@@ -103,20 +103,16 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    // ✅ Accept all common image formats
     const allowedTypes = [
       'image/jpeg', 
       'image/jpg', 
       'image/png', 
-      'image/gif', 
-      'image/webp',
-      'image/svg+xml',
-      'image/bmp'
+      'image/webp'
     ];
     
     const mimetype = allowedTypes.includes(file.mimetype);
     const fileExtension = file.originalname.toLowerCase().split('.').pop();
-    const allowedExtensions = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+    const allowedExtensions = ['jpeg', 'jpg', 'png', 'webp'];
     const extension = allowedExtensions.includes(fileExtension);
     
     if (mimetype && extension) {
@@ -446,6 +442,22 @@ router.post("/avatar", upload.single('avatar'), async (req, res) => {
 
     // Ensure userProfile exists first
     await ensureUserProfileExists(userID);
+
+    // MIME type allowlist + magic bytes validation
+    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedMimeTypes.includes(req.file.mimetype)) {
+      return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+    }
+
+    const buffer = req.file.buffer;
+    const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+    const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+    const isWebp = buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46
+                && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+
+    if (!isJpeg && !isPng && !isWebp) {
+      return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+    }
 
     // Upload to Cloudinary
     const result = await uploadToCloudinary(req.file.buffer, 'avatars');
