@@ -396,7 +396,7 @@ try {
     instructions, funFact, chefTips
   } = req.body;
 
-  // ✅ NEW: Validate and sanitize (added, no removals)
+  // Validate and sanitize (added, no removals)
   {
     const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
     if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
@@ -415,6 +415,28 @@ try {
       return res.status(400).json({ 
         error: 'Image too large. Please use an image smaller than 10MB.' 
       });
+    }
+  }
+
+  // MIME type allowlist + magic bytes validation
+  if (image && image.includes(';base64,')) {
+    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const mimeType = image.split(';')[0].split(':')[1];
+
+    if (!allowedMimeTypes.includes(mimeType)) {
+      return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+    }
+
+    const base64Data = image.split(',')[1];
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+    const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+    const isWebp = buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46
+                && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+
+    if (!isJpeg && !isPng && !isWebp) {
+      return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
     }
   }
 
