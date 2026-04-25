@@ -401,6 +401,7 @@
   color: #8b5a2b;
   margin: 0;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .sticky-note-icon {

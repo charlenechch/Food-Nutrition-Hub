@@ -8,9 +8,7 @@ const { updateFirebaseEmail, createFirebaseUser } = userProfileRoutes;
 const { sendEmail } = require("../config/mailer");
 const { createNotification, isEmailNotificationsEnabled } = require("./notifications");
 const { logActivity } = require("./adminActivityLog");
-
-// embed 
-const { embedFood, embedFoodS1, embedFoodS3 } = require("../utils/embeddings");
+const { embedFood, embedFoodS1, embedFoodS3, embedFoodS4 } = require("../utils/embeddings");
 
 // ✅ Example Admin API – only admins can access
 router.get("/dashboard", requireAdmin, (req, res) => {
@@ -53,7 +51,7 @@ router.get("/users", requireAdmin, async (req, res) => {
              year: 'numeric', 
              hour: '2-digit', 
              minute: '2-digit',
-             hour12: true 
+             hour12: false 
           }).replace(',', '');
         } catch (e) {
           console.warn(`Invalid date format for user ${u.userID}: ${u.lastLogin}`);
@@ -441,7 +439,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
             year: 'numeric', 
             hour: '2-digit', 
             minute: '2-digit',
-            hour12: true 
+            hour12: false 
         }).replace(',', '');
       } catch (e) {
         console.warn(`Invalid date format for user ${user.userID}: ${user.lastLogin}`);
@@ -714,40 +712,12 @@ router.post("/announcement", requireAdmin, async (req, res) => {
     }
 });
 
-router.get("/embed-all", async (req, res) => {
-  try {
-    const [rows] = await db.execute(
-      `SELECT foodID, name, description, commonIngredients, culturalSignificance FROM food`
-    );
-
-    // Run in background so request doesn't timeout
-    res.json({ ok: true, message: `Started embedding ${rows.length} foods. Check Railway logs.` });
-
-    for (const row of rows) {
-      try {
-        await embedFoodS1(row.foodID, row.name, row.description || "");
-        await new Promise(r => setTimeout(r, 200));
-        await embedFood(row.foodID, row.name, row.description || "", row.commonIngredients || "");
-        await new Promise(r => setTimeout(r, 200));
-        await embedFoodS3(row.foodID, row.name, row.description || "", row.commonIngredients || "", row.culturalSignificance || "");
-        await new Promise(r => setTimeout(r, 200));
-        console.log(`✅ Done: ${row.name}`);
-      } catch (err) {
-        console.error(`❌ Failed: ${row.name}`, err.message);
-      }
-    }
-    console.log("✅ All embeddings done!");
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // embed
 router.get("/embed-all", async (req, res) => {
   try {
     // only embed foods that have real nutrition data
     const [rows] = await db.execute(
-      `SELECT foodID, name, description, commonIngredients, culturalSignificance 
+      `SELECT foodID, name, description, commonIngredients, culturalSignificance, traditionalPreparation 
       FROM food 
       WHERE Energy_kcal > 0 
       AND Protein_g > 0
@@ -758,7 +728,8 @@ router.get("/embed-all", async (req, res) => {
       AND LENGTH(description) > 20
       AND name NOT LIKE '%test%'
       AND name NOT LIKE '%ddd%'`
-);
+    );
+
     // Respond immediately so request doesn't timeout
     res.json({ ok: true, message: `Started embedding ${rows.length} foods. Check Railway logs.` });
 
@@ -769,7 +740,7 @@ router.get("/embed-all", async (req, res) => {
         await new Promise(r => setTimeout(r, 200));
         await embedFood(row.foodID, row.name, row.description || "", row.commonIngredients || "");
         await new Promise(r => setTimeout(r, 200));
-        await embedFoodS3(row.foodID, row.name, row.description || "", row.commonIngredients || "", row.culturalSignificance || "");
+        await embedFoodS3(row.foodID, row.name, row.description || "", row.commonIngredients || "", row.traditionalPreparation || "", row.culturalSignificance || "");
         await new Promise(r => setTimeout(r, 200));
         console.log(`✅ Done: ${row.name}`);
       } catch (err) {
@@ -778,36 +749,7 @@ router.get("/embed-all", async (req, res) => {
     }
     console.log("✅ All embeddings done!");
   } catch (err) {
-    // Only send error if response hasn't been sent yet
     if (!res.headersSent) res.status(500).json({ error: err.message });
-  }
-});
-
-router.get("/embed-all", async (req, res) => {
-  try {
-    const [rows] = await db.execute(
-      `SELECT foodID, name, description, commonIngredients, culturalSignificance FROM food`
-    );
-
-    // Run in background so request doesn't timeout
-    res.json({ ok: true, message: `Started embedding ${rows.length} foods. Check Railway logs.` });
-
-    for (const row of rows) {
-      try {
-        await embedFoodS1(row.foodID, row.name, row.description || "");
-        await new Promise(r => setTimeout(r, 200));
-        await embedFood(row.foodID, row.name, row.description || "", row.commonIngredients || "");
-        await new Promise(r => setTimeout(r, 200));
-        await embedFoodS3(row.foodID, row.name, row.description || "", row.commonIngredients || "", row.culturalSignificance || "");
-        await new Promise(r => setTimeout(r, 200));
-        console.log(`✅ Done: ${row.name}`);
-      } catch (err) {
-        console.error(`❌ Failed: ${row.name}`, err.message);
-      }
-    }
-    console.log("✅ All embeddings done!");
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
 });
 

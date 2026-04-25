@@ -34,7 +34,7 @@ router.post(
       if (!image)
         return res.status(400).json({ success: false, error: "No image received" });
 
-      if (typeof image !== "string" || !image.startsWith("data:image"))
+      if (typeof image !== "string" || !image.includes(";base64,"))
         return res.status(400).json({
           success: false,
           error: "Invalid image format; expected data URI",
@@ -47,6 +47,23 @@ router.post(
           success: false,
           error: "Image too large. Please use an image smaller than 10MB.",
         });
+
+      // MIME type allowlist + magic bytes validation
+      const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      const mimeType = image.split(';')[0].split(':')[1];
+      if (!allowedMimeTypes.includes(mimeType)) {
+        return res.status(400).json({ success: false, error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+      }
+
+      const base64Data = image.split(',')[1];
+      const buffer = Buffer.from(base64Data, 'base64');
+      const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+      const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+      const isWebp = buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46
+                  && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+      if (!isJpeg && !isPng && !isWebp) {
+        return res.status(400).json({ success: false, error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+      }
 
       const uploaded = await cloudinary.uploader.upload(image, {
         folder: "food-images",
@@ -412,6 +429,11 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     Fiber_g,
     VitaminC_mg,
     image,
+    healthTips,
+    commonIngredients,
+    dietaryTags,
+    difficulty,
+    prepTime,
   } = req.body;
 
   const foodId = req.params.id;
@@ -427,6 +449,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
       UPDATE food
       SET name = ?, origin = ?, category = ?, description = ?, culturalSignificance = ?, traditionalPreparation = ?,
           Energy_kcal = ?, Protein_g = ?, Fat_g = ?, Carbohydrates_g = ?, Fiber_g = ?, VitaminC_mg = ?, image = ?,
+          healthTips = ?, commonIngredients = ?, dietaryTags = ?, difficulty = ?, prepTime = ?,
           updatedAt = CURRENT_TIMESTAMP
       WHERE foodID = ?
     `;
@@ -445,6 +468,11 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
       Fiber_g || existing[0].Fiber_g || 0,
       VitaminC_mg || existing[0].VitaminC_mg || 0,
       image || existing[0].image || null,
+      healthTips || existing[0].healthTips || "",
+      commonIngredients || existing[0].commonIngredients || "",
+      dietaryTags || existing[0].dietaryTags || "",
+      difficulty || existing[0].difficulty || "",
+      prepTime || existing[0].prepTime || '0',
       foodId,
     ];
 

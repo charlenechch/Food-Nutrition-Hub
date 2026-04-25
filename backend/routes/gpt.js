@@ -72,7 +72,7 @@ These foods exist in the database (use as reference):
 
 Goal:
 - Identify the food shown in the image.
-- If it matches something from the reference list, prefer that name.
+- If the food matches anything in the reference list, you MUST return that EXACT name as food_name, including capitalisation and spacing. Do not paraphrase or shorten it.
 - If unsure, describe what you see as clearly as possible.
 - Provide alternative names / spellings used in Malaysia/Sarawak.
 - Provide a short assumptions note if uncertain.
@@ -143,12 +143,16 @@ Prefer Sarawak/Malaysian interpretation.
     //
     // S1 (embedding_s1): name + desc
     // S2 (embedding):    name + desc + ingredients
-    // S3 (embedding_s3): name + desc + ingredients + culturalSignificance
+    // S3 (embedding_s3): name + desc + ingredients + culturalSignificance + traditionalPreparation
     //
-    // Query used for all 3: food name only (clean, no noise)
+    // Query uses food name + alternative names for richer matching
     // ============================================
 
-    const queryText = gpt.food_name;
+    const altNames = Array.isArray(gpt.alternative_names) && gpt.alternative_names.length > 0
+      ? gpt.alternative_names.slice(0, 2).join(", ")
+      : "";
+    const queryText = [gpt.food_name, altNames].filter(Boolean).join(", ");
+
     console.log(`\n🔍 Searching all 3 embedding strategies for: "${queryText}"`);
 
     // Run all 3 searches in parallel
@@ -158,12 +162,11 @@ Prefer Sarawak/Malaysian interpretation.
       findClosestFoodS3(queryText),  // searches embedding_s3
     ]);
 
-    console.log(`📊 S1 (name+desc):              "${resultS1?.name}" → ${resultS1?.score?.toFixed(3)}`);
-    console.log(`📊 S2 (name+desc+ingr):         "${resultS2?.name}" → ${resultS2?.score?.toFixed(3)}`);
-    console.log(`📊 S3 (name+desc+ingr+culture): "${resultS3?.name}" → ${resultS3?.score?.toFixed(3)}`);
+    console.log(`📊 S1 (name+desc):                "${resultS1?.name}" → ${resultS1?.score?.toFixed(3)}`);
+    console.log(`📊 S2 (name+desc+ingr):           "${resultS2?.name}" → ${resultS2?.score?.toFixed(3)}`);
+    console.log(`📊 S3 (name+desc+ingr+cult+trad): "${resultS3?.name}" → ${resultS3?.score?.toFixed(3)}`);
 
     // Group results by foodID and average their scores
-    // e.g. all 3 return "Manicai" → avg = (0.82 + 0.79 + 0.78) / 3 = 0.796
     const scoreMap = {};
     for (const m of [resultS1, resultS2, resultS3]) {
       if (!m) continue;

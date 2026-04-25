@@ -55,7 +55,8 @@ const upload = multer({
     files: 5  // Change to 5
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
       cb(new Error('Only image files are allowed!'), false);
@@ -684,7 +685,7 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
 
     const { foodName, culturalOrigin, culturalStory, recipe } = req.body;
 
-    // ✅ Enhanced validation
+    // Enhanced validation
     if (!foodName || !culturalOrigin || !culturalStory) {
       return res.status(400).json({
         success: false,
@@ -704,6 +705,22 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
     const imageUrls = [];
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
+        // MIME type allowlist + magic bytes validation
+        const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+          return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+        }
+
+        const buffer = file.buffer;
+        const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+        const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+        const isWebp = buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46
+                    && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+
+        if (!isJpeg && !isPng && !isWebp) {
+          return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+        }
+
         const uploadResult = await cloudinary.uploader.upload(
           `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
           { folder: 'food-heritage', resource_type: 'image' }
@@ -965,6 +982,22 @@ router.put("/revise/:id", upload.array('images', 5), async (req, res) => {
             size: file.size,
             mimetype: file.mimetype
           });
+
+          // MIME type allowlist + magic bytes validation
+          const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+          if (!allowedMimeTypes.includes(file.mimetype)) {
+            return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+          }
+
+          const buffer = file.buffer;
+          const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+          const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+          const isWebp = buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46
+                      && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+
+          if (!isJpeg && !isPng && !isWebp) {
+            return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+          }
           
           const cloudinaryResult = await cloudinary.uploader.upload(
             `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
@@ -996,8 +1029,25 @@ router.put("/revise/:id", upload.array('images', 5), async (req, res) => {
       // If images come as base64 in body (fallback)
       try {
         console.log('☁️ Processing base64 images...');
-        // Handle base64 images if needed
-        finalImages = req.body.images; // Or process them similarly
+        const image = req.body.images;
+        // MIME type allowlist + magic bytes validation
+        if (image.includes(';base64,')) {
+          const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+          const mimeType = image.split(';')[0].split(':')[1];
+          if (!allowedMimeTypes.includes(mimeType)) {
+            return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+          }
+          const base64Data = image.split(',')[1];
+          const buffer = Buffer.from(base64Data, 'base64');
+          const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+          const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+          const isWebp = buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46
+                      && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+          if (!isJpeg && !isPng && !isWebp) {
+            return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+          }
+        }
+        finalImages = req.body.images;
         console.log('✅ Using provided base64 images');
       } catch (base64Error) {
         console.error('❌ Base64 images processing failed:', base64Error);

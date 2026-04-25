@@ -596,7 +596,7 @@ const savePersonal = async () => {
     if (!res.ok) {
       const errorText = await res.text();
       console.error("❌ Personal info update error:", errorText);
-      throw new Error(`Failed to update profile (${res.status}): ${errorText}`);
+      throw new Error(t("profile.failedUpdateProfile"));
     }
     
     const result = await res.json();
@@ -644,7 +644,7 @@ const savePrefs = async () => {
     if (!res.ok) {
       const errorText = await res.text();
       console.error("❌ Preferences update error:", errorText);
-      throw new Error(`Failed to update preferences (${res.status}): ${errorText}`);
+      throw new Error(t("profile.failedUpdatePrefs"));
     }
     
     const result = await res.json();
@@ -706,7 +706,7 @@ const handleExportData = async () => {
     
     if (!res.ok) {
       const errorText = await res.text();
-      throw new Error(`Export failed (${res.status}): ${errorText}`);
+      throw new Error(t("profile.exportFailedMsg"));
     }
     
     // Create download
@@ -880,7 +880,7 @@ const ContributionRow = ({ c }) => {
         if (!res.ok) {
           const errorText = await res.text();
           console.error("❌ Server response not OK:", errorText);
-          throw new Error(`Failed to load profile (status ${res.status})`);
+          throw new Error(t("profile.errorTitle"));
         }
 
         const data = await res.json();
@@ -1158,7 +1158,7 @@ const handleDeleteAccount = async () => {
       });
 
       if (!res.ok) {
-        throw new Error(`Failed to upload avatar (${res.status})`);
+        throw new Error(t("profile.uploadFailedMsg"));
       }
 
       const result = await res.json();
@@ -1207,7 +1207,7 @@ const handleDeleteAccount = async () => {
           });
 
           if (!res.ok) {
-            throw new Error(`Failed to remove avatar (${res.status})`);
+            throw new Error(t("profile.removeFailedMsg"));
           }
 
           const result = await res.json();

@@ -338,7 +338,7 @@ const Leaderboard = () => {
         {rewards && (
           <div className="rewards-sticky-note">
             <div className="sticky-note-header">
-              <span className="sticky-note-icon">📝</span>
+              <span className="sticky-note-icon">🏆</span>
               <h3>{rewards.title}</h3>
             </div>
             <div className="sticky-note-content">

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/UserHomepage.css";
 import Header from "../components/Header";
-import Footer from "../components/Footer";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { translateTexts } from "../hooks/useAITranslation";
@@ -495,7 +494,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </div>
       )}
-      <Footer />
     </div>
   );
 }
