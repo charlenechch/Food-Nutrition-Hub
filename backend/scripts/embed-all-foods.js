@@ -49,12 +49,21 @@ async function run() {
       );
       await new Promise(r => setTimeout(r, 200));
 
+      // Strategy 4: name + description + traditionalPreparations → embedding_s4 (optional, not stored in DB)
+      await embedFoodS4(
+        row.foodID,
+        row.name,
+        row.description || "",
+        row.traditionalPreparations || ""
+      );
+      await new Promise(r => setTimeout(r, 200));
+
     } catch (err) {
       console.error(`❌ Failed to embed "${row.name}":`, err.message);
     }
   }
 
-  console.log("\n✅ Done! All 3 strategies embedded for all foods.");
+  console.log("\n✅ Done! All 4 strategies embedded for all foods.");
   process.exit(0);
 }
 

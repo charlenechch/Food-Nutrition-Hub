@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");
 const { many } = require("../config/db");
-const { findClosestFood, findClosestFoodS1, findClosestFoodS3 } = require("../utils/embeddings");
+const { findClosestFood, findClosestFoodS1, findClosestFoodS3, findClosestFoodS4 } = require("../utils/embeddings");
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -138,34 +138,36 @@ Prefer Sarawak/Malaysian interpretation.
     // ============================================
     // STEP 2: ENSEMBLE EMBEDDING SEARCH
     //
-    // We search against 3 different DB embeddings
+    // We search against 4 different DB embeddings
     // and average their scores for better accuracy:
     //
     // S1 (embedding_s1): name + desc
     // S2 (embedding):    name + desc + ingredients
     // S3 (embedding_s3): name + desc + ingredients + culturalSignificance
+    // S4 (embedding_s4): name + desc + traditionalPreparations
     //
-    // Query used for all 3: food name only (clean, no noise)
+    // Query used for all 4: food name only (clean, no noise)
     // ============================================
 
     const queryText = gpt.food_name;
-    console.log(`\n🔍 Searching all 3 embedding strategies for: "${queryText}"`);
+    console.log(`\n🔍 Searching all 4 embedding strategies for: "${queryText}"`);
 
-    // Run all 3 searches in parallel
-    const [resultS1, resultS2, resultS3] = await Promise.all([
+    // Run all 4 searches in parallel
+    const [resultS1, resultS2, resultS3, resultS4] = await Promise.all([
       findClosestFoodS1(queryText),  // searches embedding_s1
       findClosestFood(queryText),    // searches embedding (S2)
       findClosestFoodS3(queryText),  // searches embedding_s3
+      findClosestFoodS4(queryText),  // searches embedding_s4
     ]);
 
     console.log(`📊 S1 (name+desc):              "${resultS1?.name}" → ${resultS1?.score?.toFixed(3)}`);
     console.log(`📊 S2 (name+desc+ingr):         "${resultS2?.name}" → ${resultS2?.score?.toFixed(3)}`);
     console.log(`📊 S3 (name+desc+ingr+culture): "${resultS3?.name}" → ${resultS3?.score?.toFixed(3)}`);
+    console.log(`📊 S4 (name+desc+trad):         "${resultS4?.name}" → ${resultS4?.score?.toFixed(3)}`);
 
     // Group results by foodID and average their scores
-    // e.g. all 3 return "Manicai" → avg = (0.82 + 0.79 + 0.78) / 3 = 0.796
     const scoreMap = {};
-    for (const m of [resultS1, resultS2, resultS3]) {
+    for (const m of [resultS1, resultS2, resultS3, resultS4]) {
       if (!m) continue;
       if (!scoreMap[m.foodID]) {
         scoreMap[m.foodID] = { ...m, totalScore: 0, count: 0 };

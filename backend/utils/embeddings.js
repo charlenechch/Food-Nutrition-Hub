@@ -117,6 +117,38 @@ async function findClosestFoodS3(queryText) {
 }
 
 // ============================================
+// ADDED - searches against "embedding_s4" column
+// Strategy 4: name + description + traditionalPreparations
+// ============================================
+async function findClosestFoodS4(queryText) {
+  const queryVec = await generateEmbedding(queryText);
+
+  const [rows] = await db.execute(
+    `SELECT foodID, name, embedding_s4 FROM food WHERE embedding_s4 IS NOT NULL`
+  );
+
+  if (rows.length === 0) return null;
+
+  let best = null;
+  let bestScore = -1;
+
+  for (const row of rows) {
+    try {
+      const foodVec = JSON.parse(row.embedding_s4);
+      const score = cosineSimilarity(queryVec, foodVec);
+      if (score > bestScore) {
+        bestScore = score;
+        best = { foodID: row.foodID, name: row.name, score };
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return best;
+}
+
+// ============================================
 // ORIGINAL embedFood - updates "embedding" column
 // Strategy 2: name + description + commonIngredients
 // ============================================
@@ -165,13 +197,31 @@ async function embedFoodS3(foodID, name, description = "", commonIngredients = "
   console.log(`✅ [S3] Embedded: "${name}" → "${text}"`);
 }
 
+// ============================================
+// ADDED - updates "embedding_s4" column
+// Strategy 4: name + description + traditionalPreparations
+// ============================================
+async function embedFoodS4(foodID, name, description = "", traditionalPreparations = "") {
+  const text = [name, description, traditionalPreparations].filter(Boolean).join(" | ");
+  const vector = await generateEmbedding(text);
+
+  await db.execute(
+    `UPDATE food SET embedding_s4 = ? WHERE foodID = ?`,
+    [JSON.stringify(vector), foodID]
+  );
+
+  console.log(`✅ [S4] Embedded: "${name}" → "${text}"`);
+}
+
 module.exports = {
   generateEmbedding,
   cosineSimilarity,
   findClosestFood,
   findClosestFoodS1,
   findClosestFoodS3,
+  findClosestFoodS4,
   embedFood,
   embedFoodS1,
   embedFoodS3,
+  embedFoodS4,
 };
