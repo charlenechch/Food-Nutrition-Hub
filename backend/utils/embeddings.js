@@ -153,8 +153,8 @@ async function embedFoodS1(foodID, name, description = "") {
 // ADDED - updates "embedding_s3" column
 // Strategy 3: name + description + commonIngredients + traditionalPreparation
 // ============================================
-async function embedFoodS3(foodID, name, description = "", commonIngredients = "", traditionalPreparation = "") {
-  const text = [name, description, commonIngredients, traditionalPreparation].filter(Boolean).join(" | ");
+async function embedFoodS3(foodID, name, description = "", commonIngredients = "", culturalSignificance = "", traditionalPreparation = "") {
+  const text = [name, description, commonIngredients, culturalSignificance, traditionalPreparation].filter(Boolean).join(" | ");
   const vector = await generateEmbedding(text);
 
   await db.execute(

@@ -72,7 +72,7 @@ These foods exist in the database (use as reference):
 
 Goal:
 - Identify the food shown in the image.
-- If it matches something from the reference list, prefer that name.
+- If the food matches anything in the reference list, you MUST return that EXACT name as food_name, including capitalisation and spacing. Do not paraphrase or shorten it.
 - If unsure, describe what you see as clearly as possible.
 - Provide alternative names / spellings used in Malaysia/Sarawak.
 - Provide a short assumptions note if uncertain.
@@ -138,34 +138,37 @@ Prefer Sarawak/Malaysian interpretation.
     // ============================================
     // STEP 2: ENSEMBLE EMBEDDING SEARCH
     //
-    // We search against 4 different DB embeddings
+    // We search against 3 different DB embeddings
     // and average their scores for better accuracy:
     //
     // S1 (embedding_s1): name + desc
     // S2 (embedding):    name + desc + ingredients
-    // S3 (embedding_s3): name + desc + ingredients + culturalSignificance
-    // S4 (embedding_s4): name + desc + traditionalPreparation
+    // S3 (embedding_s3): name + desc + ingredients + culturalSignificance + traditionalPreparation
     //
-    // Query used for all 4: food name only (clean, no noise)
+    // Query uses food name + alternative names for richer matching
     // ============================================
 
-    const queryText = gpt.food_name;
-    console.log(`\n🔍 Searching all 4 embedding strategies for: "${queryText}"`);
+    const altNames = Array.isArray(gpt.alternative_names) && gpt.alternative_names.length > 0
+      ? gpt.alternative_names.slice(0, 2).join(", ")
+      : "";
+    const queryText = [gpt.food_name, altNames].filter(Boolean).join(", ");
 
-    // Run all 4 searches in parallel
-    const [resultS1, resultS2, resultS3, resultS4] = await Promise.all([
+    console.log(`\n🔍 Searching all 3 embedding strategies for: "${queryText}"`);
+
+    // Run all 3 searches in parallel
+    const [resultS1, resultS2, resultS3] = await Promise.all([
       findClosestFoodS1(queryText),  // searches embedding_s1
       findClosestFood(queryText),    // searches embedding (S2)
       findClosestFoodS3(queryText),  // searches embedding_s3
     ]);
 
-    console.log(`📊 S1 (name+desc):              "${resultS1?.name}" → ${resultS1?.score?.toFixed(3)}`);
-    console.log(`📊 S2 (name+desc+ingr):         "${resultS2?.name}" → ${resultS2?.score?.toFixed(3)}`);
-    console.log(`📊 S3 (name+desc+ingr+culture): "${resultS3?.name}" → ${resultS3?.score?.toFixed(3)}`);
+    console.log(`📊 S1 (name+desc):                "${resultS1?.name}" → ${resultS1?.score?.toFixed(3)}`);
+    console.log(`📊 S2 (name+desc+ingr):           "${resultS2?.name}" → ${resultS2?.score?.toFixed(3)}`);
+    console.log(`📊 S3 (name+desc+ingr+cult+trad): "${resultS3?.name}" → ${resultS3?.score?.toFixed(3)}`);
 
     // Group results by foodID and average their scores
     const scoreMap = {};
-    for (const m of [resultS1, resultS2, resultS3, resultS4]) {
+    for (const m of [resultS1, resultS2, resultS3]) {
       if (!m) continue;
       if (!scoreMap[m.foodID]) {
         scoreMap[m.foodID] = { ...m, totalScore: 0, count: 0 };
