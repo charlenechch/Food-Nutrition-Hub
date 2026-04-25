@@ -32,6 +32,7 @@ const RecipeStarRating = ({
   }, [initialAvg, initialCount]);
 
   const handleRate = async (selectedRating) => {
+    // The onClick event now successfully reaches this point for guests!
     if (isGuest) {
       setShowLoginPrompt(true);
       return;
@@ -124,7 +125,7 @@ const RecipeStarRating = ({
         .rdp-star-row label:hover ~ input:checked ~ label {
           color: #e58e09;
         }
-        /* Read-only state (guest or submitting): freeze hover colours */
+        /* Read-only state (only for submitting now): freeze hover colours */
         .rdp-star-row--readonly label {
           cursor: default;
         }
@@ -141,10 +142,10 @@ const RecipeStarRating = ({
         className="recipe-rating-container"
         style={{ margin: "20px 0", display: "flex", flexDirection: "column", gap: "5px" }}
       >
-        {/* Star row */}
+        {/* Star row: Removed isGuest from the readonly check so guests can hover */}
         <div
-          className={`rdp-star-row${isGuest || isSubmitting ? " rdp-star-row--readonly" : ""}`}
-          onMouseLeave={() => !isGuest && setHover(0)}
+          className={`rdp-star-row${isSubmitting ? " rdp-star-row--readonly" : ""}`}
+          onMouseLeave={() => setHover(0)}
         >
           {[5, 4, 3, 2, 1].map((star) => (
             <React.Fragment key={star}>
@@ -156,11 +157,12 @@ const RecipeStarRating = ({
                 checked={activeValue === star}
                 onChange={() => {}}
               />
+              {/* Removed !isGuest checks here to allow hover and click events to fire */}
               <label
                 htmlFor={`rdp-star-${recipeId}-${star}`}
                 title={`${star} star${star > 1 ? "s" : ""}`}
-                onMouseEnter={() => !isGuest && !isSubmitting && setHover(star)}
-                onClick={() => !isGuest && !isSubmitting && handleRate(star)}
+                onMouseEnter={() => !isSubmitting && setHover(star)}
+                onClick={() => !isSubmitting && handleRate(star)}
               />
             </React.Fragment>
           ))}
