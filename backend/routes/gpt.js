@@ -157,13 +157,11 @@ Prefer Sarawak/Malaysian interpretation.
       findClosestFoodS1(queryText),  // searches embedding_s1
       findClosestFood(queryText),    // searches embedding (S2)
       findClosestFoodS3(queryText),  // searches embedding_s3
-      findClosestFoodS4(queryText),  // searches embedding_s4
     ]);
 
     console.log(`📊 S1 (name+desc):              "${resultS1?.name}" → ${resultS1?.score?.toFixed(3)}`);
     console.log(`📊 S2 (name+desc+ingr):         "${resultS2?.name}" → ${resultS2?.score?.toFixed(3)}`);
     console.log(`📊 S3 (name+desc+ingr+culture): "${resultS3?.name}" → ${resultS3?.score?.toFixed(3)}`);
-    console.log(`📊 S4 (name+desc+trad):         "${resultS4?.name}" → ${resultS4?.score?.toFixed(3)}`);
 
     // Group results by foodID and average their scores
     const scoreMap = {};

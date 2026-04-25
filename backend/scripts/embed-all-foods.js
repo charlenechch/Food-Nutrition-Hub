@@ -2,10 +2,10 @@
 require("dotenv").config({ path: require("path").resolve(__dirname, "../.env") });
 
 const { pool: db } = require("../config/db");
-const { embedFood, embedFoodS1, embedFoodS3, embedFoodS4 } = require("../utils/embeddings");
+const { embedFood, embedFoodS1, embedFoodS3 } = require("../utils/embeddings");
 
 async function run() {
-  console.log("🚀 Starting embedding generation for all 4 strategies...");
+  console.log("🚀 Starting embedding generation for all 3 strategies...");
   console.log("📌 Strategy 1 (S1): name + description             → embedding_s1");
   console.log("📌 Strategy 2 (S2): name + description + ingredients → embedding (existing)");
   console.log("📌 Strategy 3 (S3): name + description + ingredients + culturalSignificance → embedding_s3");
@@ -13,7 +13,7 @@ async function run() {
 
   // Fetch all foods with all needed columns
   const [rows] = await db.execute(
-    `SELECT foodID, name, description, commonIngredients, culturalSignificance, traditionalPreparation FROM food`
+    `SELECT foodID, name, description, commonIngredients, traditionalPreparation FROM food`
   );
 
   console.log(`📋 Found ${rows.length} foods to embed\n`);
@@ -55,7 +55,7 @@ async function run() {
     }
   }
 
-  console.log("\n✅ Done! All 4 strategies embedded for all foods.");
+  console.log("\n✅ Done! All 3 strategies embedded for all foods.");
   process.exit(0);
 }
 
