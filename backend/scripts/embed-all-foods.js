@@ -13,7 +13,7 @@ async function run() {
 
   // Fetch all foods with all needed columns
   const [rows] = await db.execute(
-    `SELECT foodID, name, description, commonIngredients, traditionalPreparation FROM food`
+    `SELECT foodID, name, description, commonIngredients, culturalSignificance, traditionalPreparation FROM food`
   );
 
   console.log(`📋 Found ${rows.length} foods to embed\n`);
@@ -45,6 +45,7 @@ async function run() {
         row.name,
         row.description || "",
         row.commonIngredients || "",
+        row.culturalSignificance || "",
         row.traditionalPreparation || ""
       );
       await new Promise(r => setTimeout(r, 200));

@@ -740,7 +740,7 @@ router.get("/embed-all", async (req, res) => {
         await new Promise(r => setTimeout(r, 200));
         await embedFood(row.foodID, row.name, row.description || "", row.commonIngredients || "");
         await new Promise(r => setTimeout(r, 200));
-        await embedFoodS3(row.foodID, row.name, row.description || "", row.commonIngredients || "", row.traditionalPreparation || "");
+        await embedFoodS3(row.foodID, row.name, row.description || "", row.commonIngredients || "", row.traditionalPreparation || "", row.culturalSignificance || "");
         await new Promise(r => setTimeout(r, 200));
         console.log(`✅ Done: ${row.name}`);
       } catch (err) {
