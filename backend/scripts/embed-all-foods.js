@@ -9,7 +9,6 @@ async function run() {
   console.log("📌 Strategy 1 (S1): name + description             → embedding_s1");
   console.log("📌 Strategy 2 (S2): name + description + ingredients → embedding (existing)");
   console.log("📌 Strategy 3 (S3): name + description + ingredients + culturalSignificance → embedding_s3");
-  console.log("📌 Strategy 4 (S4): name + description + traditionalPreparation → embedding_s4");
   console.log("");
 
   // Fetch all foods with all needed columns
@@ -46,19 +45,11 @@ async function run() {
         row.name,
         row.description || "",
         row.commonIngredients || "",
-        row.culturalSignificance || ""
-      );
-      await new Promise(r => setTimeout(r, 200));
-
-      // Strategy 4: name + description + traditionalPreparation → embedding_s4 (optional, not stored in DB)
-      await embedFoodS4(
-        row.foodID,
-        row.name,
-        row.description || "",
         row.traditionalPreparation || ""
       );
       await new Promise(r => setTimeout(r, 200));
 
+      
     } catch (err) {
       console.error(`❌ Failed to embed "${row.name}":`, err.message);
     }

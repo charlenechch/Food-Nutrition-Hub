@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");
 const { many } = require("../config/db");
-const { findClosestFood, findClosestFoodS1, findClosestFoodS3, findClosestFoodS4 } = require("../utils/embeddings");
+const { findClosestFood, findClosestFoodS1, findClosestFoodS3 } = require("../utils/embeddings");
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
