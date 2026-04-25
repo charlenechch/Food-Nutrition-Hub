@@ -429,6 +429,11 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
     Fiber_g,
     VitaminC_mg,
     image,
+    healthTips,
+    commonIngredients,
+    dietaryTags,
+    difficulty,
+    prepTime,
   } = req.body;
 
   const foodId = req.params.id;
@@ -444,6 +449,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
       UPDATE food
       SET name = ?, origin = ?, category = ?, description = ?, culturalSignificance = ?, traditionalPreparation = ?,
           Energy_kcal = ?, Protein_g = ?, Fat_g = ?, Carbohydrates_g = ?, Fiber_g = ?, VitaminC_mg = ?, image = ?,
+          healthTips = ?, commonIngredients = ?, dietaryTags = ?, difficulty = ?, prepTime = ?,
           updatedAt = CURRENT_TIMESTAMP
       WHERE foodID = ?
     `;
@@ -462,6 +468,11 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
       Fiber_g || existing[0].Fiber_g || 0,
       VitaminC_mg || existing[0].VitaminC_mg || 0,
       image || existing[0].image || null,
+      healthTips || existing[0].healthTips || "",
+      commonIngredients || existing[0].commonIngredients || "",
+      dietaryTags || existing[0].dietaryTags || "",
+      difficulty || existing[0].difficulty || "",
+      prepTime || existing[0].prepTime || '0',
       foodId,
     ];
 
