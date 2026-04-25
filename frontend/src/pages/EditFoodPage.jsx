@@ -302,7 +302,7 @@ const handleSaveAttempt = () => {
       return value === undefined || value === null || String(value).trim() === "";
     });
 
-    const hasIngredients = selectedIngredients.length > 0 || (otherIngredientText && otherIngredientText.trim() !== "");
+    const hasIngredients = selectedIngredients.length > 0 || (showOtherIngredient && otherIngredientText.trim() !== "");
 
     const hasDietary = selectedDietary.length > 0;
 
@@ -342,14 +342,10 @@ const handleSaveAttempt = () => {
     // Prepare food data
     const dietaryString = selectedDietary.join(", ");
     let ingredientsString = selectedIngredients.join(", ");
-
-    if (otherIngredientText && otherIngredientText.trim()) {
+    if (showOtherIngredient && otherIngredientText.trim()) {
       if (ingredientsString) ingredientsString += ", ";
       ingredientsString += otherIngredientText.trim();
-      console.log("Adding other ingredients in edit:", otherIngredientText);
     }
-
-    console.log("Final commonIngredients to save in edit:", ingredientsString);
 
     const foodDataToSave = {
       name: food.name,

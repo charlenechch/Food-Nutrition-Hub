@@ -211,13 +211,10 @@ const AddFoodPage = () => {
       const dietaryString = selectedDietary.join(", ");
       
       let ingredientsString = selectedIngredients.join(", ");
-      if (otherIngredientText && otherIngredientText.trim()) {
+      if (showOtherIngredient && otherIngredientText.trim()) {
         if (ingredientsString) ingredientsString += ", ";
         ingredientsString += otherIngredientText.trim();
-        console.log("Adding other ingredients:", otherIngredientText);
       }
-
-      console.log("Final commonIngredients to save:", ingredientsString);
 
       const newFoodData = {
         name: food.name,
