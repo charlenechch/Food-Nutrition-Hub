@@ -53,7 +53,7 @@ router.get("/users", requireAdmin, async (req, res) => {
              year: 'numeric', 
              hour: '2-digit', 
              minute: '2-digit',
-             hour12: true 
+             hour12: false 
           }).replace(',', '');
         } catch (e) {
           console.warn(`Invalid date format for user ${u.userID}: ${u.lastLogin}`);
@@ -441,7 +441,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
             year: 'numeric', 
             hour: '2-digit', 
             minute: '2-digit',
-            hour12: true 
+            hour12: false 
         }).replace(',', '');
       } catch (e) {
         console.warn(`Invalid date format for user ${user.userID}: ${user.lastLogin}`);
