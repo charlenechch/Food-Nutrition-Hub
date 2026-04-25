@@ -118,7 +118,7 @@ async function findClosestFoodS3(queryText) {
 
 // ============================================
 // ADDED - searches against "embedding_s4" column
-// Strategy 4: name + description + traditionalPreparations
+// Strategy 4: name + description + traditionalPreparation
 // ============================================
 async function findClosestFoodS4(queryText) {
   const queryVec = await generateEmbedding(queryText);
@@ -199,10 +199,10 @@ async function embedFoodS3(foodID, name, description = "", commonIngredients = "
 
 // ============================================
 // ADDED - updates "embedding_s4" column
-// Strategy 4: name + description + traditionalPreparations
+// Strategy 4: name + description + traditionalPreparation
 // ============================================
-async function embedFoodS4(foodID, name, description = "", traditionalPreparations = "") {
-  const text = [name, description, traditionalPreparations].filter(Boolean).join(" | ");
+async function embedFoodS4(foodID, name, description = "", traditionalPreparation = "") {
+  const text = [name, description, traditionalPreparation].filter(Boolean).join(" | ");
   const vector = await generateEmbedding(text);
 
   await db.execute(

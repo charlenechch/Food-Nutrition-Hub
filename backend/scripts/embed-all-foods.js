@@ -54,7 +54,7 @@ async function run() {
         row.foodID,
         row.name,
         row.description || "",
-        row.traditionalPreparations || ""
+        row.traditionalPreparation || ""
       );
       await new Promise(r => setTimeout(r, 200));
 

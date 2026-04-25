@@ -144,7 +144,7 @@ Prefer Sarawak/Malaysian interpretation.
     // S1 (embedding_s1): name + desc
     // S2 (embedding):    name + desc + ingredients
     // S3 (embedding_s3): name + desc + ingredients + culturalSignificance
-    // S4 (embedding_s4): name + desc + traditionalPreparations
+    // S4 (embedding_s4): name + desc + traditionalPreparation
     //
     // Query used for all 4: food name only (clean, no noise)
     // ============================================
