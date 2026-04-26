@@ -1168,7 +1168,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
 
     const actionType = status === "Approved" ? "recipe_approved" : "recipe_rejected";
-    await logActivity(db, adminID, adminName, actionType, `${status} recipe for food ID ${recipeId}.`);
+    await logActivity(db, adminID, adminName, actionType, `${status} recipe for food (ID: ${recipeId}).`);
 
     // Fetch User Info & Recipe Details
     const [rows] = await db.query(`

@@ -244,11 +244,11 @@ export default function AdminActivityLog() {
                                     const badge = ACTION_BADGE[log.actionType] || { key: null, color: "#5f5040", bg: "#f1e6d8" };
                                     return (
                                         <tr key={log.logID}>
-                                            <td className="al-td-number" data-label="ID">
+                                            <td className="al-td-number" data-label={t("adminActivityLog.col_number")}>
                                                 {(filters.page - 1) * 20 + index + 1}
                                             </td>
-                                            <td className="al-td-admin" data-label="Name">{log.adminName}</td>
-                                            <td data-label="Action">
+                                            <td className="al-td-admin" data-label={t("adminActivityLog.col_admin")}>{log.adminName}</td>
+                                            <td data-label={t("adminActivityLog.col_action")}>
                                                 <span
                                                     className="al-badge"
                                                     style={{ background: badge.bg, color: badge.color }}
@@ -256,8 +256,8 @@ export default function AdminActivityLog() {
                                                     {badge.key ? t(`adminActivityLog.${badge.key}`) : log.actionType}
                                                 </span>
                                             </td>
-                                            <td className="al-td-description" data-label="Description">{log.description}</td>
-                                            <td className="al-td-datetime" data-label="Created At">
+                                            <td className="al-td-description" data-label={t("adminActivityLog.col_description")}>{log.description}</td>
+                                            <td className="al-td-datetime" data-label={t("adminActivityLog.col_datetime")}>
                                                 {formatDate(log.createdAt)}
                                             </td>
                                         </tr>
