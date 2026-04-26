@@ -353,9 +353,9 @@ const Leaderboard = () => {
                 ))}
               </div>
               <div className="reward-footer">
-                <span>{t("leaderboard.xp_awarded_automatically")}</span>
-                <p className="reward-disclaimer">{t("leaderboard.approval_disclaimer")}</p>
-                <p className="reward-disclaimer">{t("leaderboard.tiebreaker_note")}</p>
+                <p className="reward-disclaimer"><span className="reward-bullet">•</span>{t("leaderboard.xp_awarded_automatically")}</p>
+                <p className="reward-disclaimer"><span className="reward-bullet">•</span>{t("leaderboard.approval_disclaimer")}</p>
+                <p className="reward-disclaimer"><span className="reward-bullet">•</span>{t("leaderboard.tiebreaker_note")}</p>
               </div>
             </div>
           </div>
