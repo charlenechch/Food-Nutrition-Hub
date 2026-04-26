@@ -29,8 +29,8 @@ const DIETARY_TAG_OPTIONS = [
 ];
 
 const COMMON_INGREDIENTS_LIST = [
-  "Chicken", "Rice", "Garlic", "Onion", "Ginger", 
-  "Salt", "Sugar", "Chili", "Lemongrass", "Soy Sauce"
+  "Lemongrass", "Galangal", "Coconut milk", "Belacan", "Sambal", 
+  "Tamarind", "Dried chilies", "Rice", "Turmeric", "Pandan leaves"
 ];
 
 const EditFoodPage = () => {
