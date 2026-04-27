@@ -947,7 +947,8 @@
     "recipeDescriptionPlace": "e.g., A rich, aromatic bowl of traditional Sarawak Laksa with a spicy sambal kick, passed down from my grandmother...",
     "recipeName": "Recipe Name",
     "recipeNamePlaceholder": "e.g., Grandma's Traditional Ayam Pansuh",
-    "fillAllFieldsError": "Please fill in every single input field and upload an image before saving."
+    "fillAllFieldsError": "Please fill in every single input field and upload an image before saving.",
+    "commonIngredientsPlaceholder": "e.g. Lemongrass, Galangal, Coconut milk"
   },
 
   "addRecipe": {

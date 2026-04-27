@@ -26,11 +26,6 @@ const DIETARY_TAG_OPTIONS = [
   "Dairy Free", "Low Fat", "High Protein", "Spicy"
 ];
 
-const COMMON_INGREDIENTS_LIST = [
-  "Lemongrass", "Galangal", "Coconut milk", "Belacan", "Sambal", 
-  "Tamarind", "Dried chilies", "Rice", "Turmeric", "Pandan leaves"
-];
-
 const AddFoodPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -65,6 +60,7 @@ const AddFoodPage = () => {
     customCategory: "", 
     difficulty: "Medium", 
     prepTime: "",
+    commonIngredients: "",
     healthTips: "",
     ingredients: "",
     steps: "",
@@ -77,9 +73,6 @@ const AddFoodPage = () => {
 
   // --- Multi-Select States ---
   const [selectedDietary, setSelectedDietary] = useState([]);
-  const [selectedIngredients, setSelectedIngredients] = useState([]);
-  const [showOtherIngredient, setShowOtherIngredient] = useState(false);
-  const [otherIngredientText, setOtherIngredientText] = useState("");
 
   // --- Fetch CSRF Token ---
   useEffect(() => {
@@ -151,7 +144,7 @@ const AddFoodPage = () => {
       "prepTime", "cookTime", "ingredients", "steps", "recipeDescription",
       "didYouKnow", "chefTips", "foodDescription", "culturalSignificance",
       "traditionalPreparation", "calories", "protein", "carbs",
-      "fat", "fiber", "vitaminc", "healthTips"
+      "fat", "fiber", "vitaminc", "healthTips", "commonIngredients"
     ];
 
     const hasEmptyFields = requiredFields.some((key) => {
@@ -159,7 +152,7 @@ const AddFoodPage = () => {
       return value === undefined || value === null || String(value).trim() === "";
     });
 
-    const hasIngredients = selectedIngredients.length > 0 || (showOtherIngredient && otherIngredientText.trim() !== "");
+    const hasIngredients = food.commonIngredients && food.commonIngredients.trim() !== "";
     const hasDietary = selectedDietary.length > 0;
 
     if (
@@ -209,12 +202,6 @@ const AddFoodPage = () => {
       }
 
       const dietaryString = selectedDietary.join(", ");
-      
-      let ingredientsString = selectedIngredients.join(", ");
-      if (showOtherIngredient && otherIngredientText.trim()) {
-        if (ingredientsString) ingredientsString += ", ";
-        ingredientsString += otherIngredientText.trim();
-      }
 
       const newFoodData = {
         name: food.name,
@@ -232,7 +219,7 @@ const AddFoodPage = () => {
         image: finalImageUrl,
         difficulty: food.difficulty,
         prepTime: food.prepTime || "0",
-        commonIngredients: ingredientsString,
+        commonIngredients: food.commonIngredients,
         dietaryTags: dietaryString,
         healthTips: food.healthTips,
         ingredients: food.ingredients,
@@ -614,46 +601,18 @@ const AddFoodPage = () => {
         <div className="edit-cultural-context-card">
           <h3>{t("addFood.additionalDetails")}</h3>
           
-          <label className="basic-info-label">{t("addFood.commonIngredients")} <span className="red-asterisk">*</span></label>
-          <div style={chipContainerStyle}>
-            {COMMON_INGREDIENTS_LIST.map((ing) => {
-              const isSelected = selectedIngredients.includes(ing);
-              return (
-                <button
-                  key={ing}
-                  type="button"
-                  style={getChipStyle(isSelected)}
-                  onClick={() => toggleIngredient(ing)}
-                >
-                  {ing}
-                  {isSelected && <FiPlus style={{transform: 'rotate(45deg)'}} />}
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              style={getChipStyle(showOtherIngredient)}
-              onClick={() => setShowOtherIngredient(!showOtherIngredient)}
-            >
-              {t("addFood.other")}
-              {showOtherIngredient && <FiCheck />}
-            </button>
-          </div>
-
-          {showOtherIngredient && (
-            <div className = "efpage-show-ing">
-              <label className="basic-info-label efpage-show-ing-label">
-                {t("addFood.otherIngredientsLabel")} <span className="red-asterisk">*</span>
-              </label>
-              <textarea 
-                className="edit-food-textarea" 
-                value={otherIngredientText}
-                onChange={(e) => setOtherIngredientText(e.target.value)}
-                rows={2} 
-                placeholder={t("addFood.otherIngredientsPlaceholder")}
-              />
-            </div>
-          )}
+          <label className="basic-info-label">
+            {t("addFood.commonIngredients")} <span className="red-asterisk">*</span>
+          </label>
+          
+          <textarea 
+            className="edit-food-textarea" 
+            name="commonIngredients" 
+            value={food.commonIngredients} 
+            onChange={handleChange} 
+            rows={3} 
+            placeholder={t("addFood.commonIngredientsPlaceholder")}
+          />
 
           <label className="basic-info-label">{t("addFood.dietaryPreferences")} <span className="red-asterisk">*</span></label>
           <div style={chipContainerStyle}>
