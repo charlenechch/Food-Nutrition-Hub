@@ -548,7 +548,11 @@
 /* Mobile Landscape (768px and below) */
 @media (max-width: 768px) {
   .leaderboard-container {
-    padding: 70px 1rem 1rem 1rem;
+    padding: 0 1rem 1rem 1rem;
+  }
+  
+  .leaderboard-header {
+    margin-top: 70px;
   }
   
   .leaderboard-header h1 {
@@ -643,6 +647,10 @@
 
 /* Mobile Portrait (600px and below) */
 @media (max-width: 600px) {
+  .leaderboard-header {
+    margin-top: 60px;
+  }
+
   .leaderboard-table.level-mode .table-header,
   .leaderboard-table.level-mode .table-row {
     grid-template-columns: 45px 1fr 70px 85px;
@@ -698,7 +706,11 @@
 /* Small Mobile (480px and below) */
 @media (max-width: 480px) {
   .leaderboard-container {
-    padding: 60px 0.75rem 0.75rem 0.75rem;
+    padding: 0 0.75rem 0.75rem 0.75rem;
+  }
+  
+  .leaderboard-header {
+    margin-top: 50px;
   }
   
   .leaderboard-header h1 {
