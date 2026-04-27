@@ -2,7 +2,7 @@
 .leaderboard-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 80px 2rem 2rem 2rem;
+  padding: 0 2rem 2rem 2rem;
   background: #fdfbf9;
   min-height: 100vh;
 }
