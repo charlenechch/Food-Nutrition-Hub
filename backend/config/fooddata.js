@@ -6,7 +6,7 @@ const foods = [
     origin: "Melanau",
     category: ["Rice Dish", "Fermented"],
     difficulty: "medium",
-    dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat"],
+    dietaryTags: ["gluten-free", "dairy-free", "high-protein", "low-fat"],
     description: "Linut is a traditional cuisine that is especially popular among the Indigenous Dayak communities.\
                   This staple dish is an important part of Dayak cuisine and is frequently served at traditional events and community feasts.",
     image: "https://img-global.cpcdn.com/steps/1fe46f4ff8152bed/640x640sq80/photo.webp",
@@ -55,7 +55,7 @@ const foods = [
     origin: "Melanau",
     category: "Seafood",
     difficulty: "easy",
-    dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat"],
+    dietaryTags: ["gluten-free", "dairy-free", "high-protein", "low-fat"],
     description: "Umai is a traditional Sarawakian raw fish salad popular with the Dayak and Melanau communities. \
     It highlights local methods of food preparation and preservation using fresh ingredients. \
     Raw tenggiri (mackerel) is sliced or cubed and marinated in lime juice, allowing the acidity to “cook” the fish. \
@@ -87,17 +87,17 @@ const foods = [
     The dish is composed simply of rice combined with anchovies, fragrant torch ginger, turmeric leaves, and the heat of bird’s-eye chilli.",
     image: "https://i.ytimg.com/vi/W6Co9dMpw7o/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAfGfmofQBBYx02WeMUcjjPJxH7aw",
     prepTime: 30,
-    Energy_kcal: 286,
-    Protein_g: 6.88,
-    Fat_g: 2.42,
-    Carbohydrates_g: 54.24,
-    Fiber_g: 0.8,
-    VitaminC_mg: 13.8,
+    Energy_kcal: 334.6,
+    Protein_g: 21.72,
+    Fat_g: 3.044,
+    Carbohydrates_g: 68.24,
+    Fiber_g: 2.18,
+    VitaminC_mg: 5.12,
     culturalSignificance: "Sarawak's version of fried rice, Nasi Aruk is distinct for being a Malay community specialty. It is a beloved dish for supper and gatherings, known for its intense, smoky flavour without using any oil or liquid in the frying process.",
     traditionalPreparation: "Day-old rice is fried in a dry wok with garlic, shallots, and belacan (shrimp paste), constantly stirred over high heat until it becomes fragrant, dry, and slightly toasted.",
     commonIngredients: ["Anchovies, Garlic, Chilies, White pepper, Day-old rice"],
     healthTips: "A relatively low-fat fried rice option due to the no-oil cooking method, but high in sodium from belacan and salt.",
-    gram_per_serving: 241.0
+    gram_per_serving: 313.38
   },
 
   {
@@ -105,7 +105,7 @@ const foods = [
     origin: "Iban",
     category: "Vegetables",
     difficulty: "medium",
-    dietaryTags: ["gluten-free", "dairy-free", "nut-free", "halal", "spicy"],
+    dietaryTags: ["gluten-free", "dairy-free", "halal", "spicy"],
     description: "Terung asam uses salted fish and terung sour eggplant as its main ingredients. This soup is truly delicious, with a balance of sour, salty, sweet, and spicy flavours.",
     image: "https://img-global.cpcdn.com/recipes/74dc8e14dccfda8f/600x852cq80/ikan-masin-terong-asam-dayak-resipi-foto-utama.webp",
     prepTime: 30,
