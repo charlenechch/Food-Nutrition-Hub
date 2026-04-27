@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import { useTranslation } from "react-i18next";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { FaArrowLeftLong } from "react-icons/fa6";
-import { FiSave, FiCheck } from "react-icons/fi";
+import { FiSave, FiPlus, FiCheck } from "react-icons/fi";
 
 // Get the API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -26,6 +26,11 @@ const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"];
 const DIETARY_TAG_OPTIONS = [
   "Vegetarian", "Vegan", "Halal", "Gluten Free", 
   "Dairy Free", "Low Fat", "High Protein", "Spicy"
+];
+
+const COMMON_INGREDIENTS_LIST = [
+  "Lemongrass", "Galangal", "Coconut milk", "Belacan", "Sambal", 
+  "Tamarind", "Dried chilies", "Rice", "Turmeric", "Pandan leaves"
 ];
 
 const EditFoodPage = () => {
@@ -59,6 +64,13 @@ const EditFoodPage = () => {
   const [hasExistingRecipe, setHasExistingRecipe] = useState(false);
 
   const [selectedDietary, setSelectedDietary] = useState([]);
+  const [selectedIngredients, setSelectedIngredients] = useState([]);
+  
+  // ADDED: State to hold dynamically merged ingredients
+  const [availableIngredients, setAvailableIngredients] = useState(COMMON_INGREDIENTS_LIST);
+
+  const [showOtherIngredient, setShowOtherIngredient] = useState(false);
+  const [otherIngredientText, setOtherIngredientText] = useState("");
 
   //================
   // CSRF
@@ -110,11 +122,20 @@ const EditFoodPage = () => {
             Fat_g: foodData.data.Fat_g || "",
             Fiber_g: foodData.data.Fiber_g || "",
             VitaminC_mg: foodData.data.VitaminC_mg || "",
-            commonIngredients: foodData.data.commonIngredients || "",
           });
 
           if (foodData.data.dietaryTags) {
             setSelectedDietary(foodData.data.dietaryTags.split(',').map(s => s.trim()).filter(Boolean));
+          }
+          if (foodData.data.commonIngredients) {
+            const dbIngredients = foodData.data.commonIngredients.split(',').map(s => s.trim()).filter(Boolean);
+            setSelectedIngredients(dbIngredients);
+            
+            // ADDED: Merge DB custom ingredients into the available options list
+            setAvailableIngredients(prev => {
+              const combined = new Set([...prev, ...dbIngredients]);
+              return Array.from(combined);
+            });
           }
 
           setExistingImageUrl(foodData.data.image || "");
@@ -292,7 +313,8 @@ const handleSaveAttempt = () => {
       return value === undefined || value === null || String(value).trim() === "";
     });
 
-    const hasIngredients = food.commonIngredients && food.commonIngredients.trim() !== "";
+    const hasIngredients = selectedIngredients.length > 0 || (showOtherIngredient && otherIngredientText.trim() !== "");
+
     const hasDietary = selectedDietary.length > 0;
 
     if (
@@ -330,6 +352,11 @@ const handleSaveAttempt = () => {
 
     // Prepare food data
     const dietaryString = selectedDietary.join(", ");
+    let ingredientsString = selectedIngredients.join(", ");
+    if (showOtherIngredient && otherIngredientText.trim()) {
+      if (ingredientsString) ingredientsString += ", ";
+      ingredientsString += otherIngredientText.trim();
+    }
 
     const foodDataToSave = {
       name: food.name,
@@ -345,7 +372,7 @@ const handleSaveAttempt = () => {
       Fiber_g: Number(food.Fiber_g) || 0,
       VitaminC_mg: Number(food.VitaminC_mg) || 0,
       image: finalImageUrl,
-      commonIngredients: food.commonIngredients,
+      commonIngredients: ingredientsString,
       dietaryTags: dietaryString,
       healthTips: food.healthTips,
       difficulty: food.difficulty,
@@ -468,6 +495,10 @@ const handleSaveAttempt = () => {
     setSelectedDietary((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
   };
 
+  const toggleIngredient = (ing) => {
+    setSelectedIngredients((prev) => prev.includes(ing) ? prev.filter((i) => i !== ing) : [...prev, ing]);
+  };
+
   const chipContainerStyle = { display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "8px", marginBottom: "16px" };
   const getChipStyle = (isSelected) => ({
     padding: "8px 16px", borderRadius: "20px", border: `1px solid ${isSelected ? "#d97706" : "#ddd"}`,
@@ -550,17 +581,6 @@ const handleSaveAttempt = () => {
                 <label className="basic-info-label">{t("editFood.foodName")} <span className="red-asterisk">*</span></label>
                 <input className="edit-food-input" name="name" value={food.name} onChange={handleFoodChange} />
               </div>
-
-              {/* <div className="edit-food-basic-info-two-col efpage-basic-info">
-                <div>
-                  <label className="basic-info-label">{t("addFood.alternativeName")}</label>
-                  <textarea className="edit-food-textarea resizable-field" name="alternative" value={food.alternative} onChange={handleFoodChange} rows={1} />
-                </div>
-                <div>
-                  <label className="basic-info-label">{t("addFood.altDescription")}</label>
-                  <textarea className="edit-food-textarea resizable-field" name="altDescription" value={food.altDescription} onChange={handleFoodChange} rows={1} />
-                </div>
-              </div> */}
 
               {/* Origin */}
               <div className="food-origin-field">
@@ -719,18 +739,31 @@ const handleSaveAttempt = () => {
           <div className="edit-cultural-context-card">
             <h3>{t("addFood.additionalDetails")}</h3>
             
-            <label className="basic-info-label">
-              {t("addFood.commonIngredients")} <span className="red-asterisk">*</span>
-            </label>
-            
-            <textarea 
-              className="edit-food-textarea" 
-              name="commonIngredients" 
-              value={food.commonIngredients || ""} 
-              onChange={handleFoodChange} 
-              rows={3} 
-              placeholder={t("addFood.commonIngredientsPlaceholder")}
-            />
+            <label className="basic-info-label">{t("addFood.commonIngredients")} <span className="red-asterisk">*</span></label>
+            {/* CHANGED: Using availableIngredients instead of COMMON_INGREDIENTS_LIST */}
+            <div style={chipContainerStyle}>
+              {availableIngredients.map((ing) => {
+                const isSelected = selectedIngredients.includes(ing);
+                return (
+                  <button key={ing} type="button" style={getChipStyle(isSelected)} onClick={() => toggleIngredient(ing)}>
+                    {ing}
+                    {isSelected && <FiPlus style={{transform: 'rotate(45deg)'}} />}
+                  </button>
+                );
+              })}
+              <button type="button" style={getChipStyle(showOtherIngredient)} onClick={() => setShowOtherIngredient(!showOtherIngredient)}>
+                {t("addFood.other")}
+                {showOtherIngredient && <FiCheck />}
+              </button>
+            </div>
+
+            {showOtherIngredient && (
+              <div className="efpage-show-ing">
+                <label className="basic-info-label efpage-show-ing-label">{t("addFood.otherIngredientsLabel")} <span className="red-asterisk">*</span></label>
+                <textarea className="edit-food-textarea" value={otherIngredientText} onChange={(e) => setOtherIngredientText(e.target.value)} rows={2} />
+              </div>
+            )}
+
             <label className="basic-info-label">{t("addFood.dietaryPreferences")} <span className="red-asterisk">*</span></label>
             <div style={chipContainerStyle}>
               {DIETARY_TAG_OPTIONS.map((tag) => {
