@@ -82,10 +82,8 @@ export default function FoodDetailPage() {
     const vitC = getPerServing(food, "VitaminC_mg_ps", "VitaminC_mg");
     
     if (kcal <= 40 && kcal > 0) alerts.push({ type: "info", key: "foodDetail.alertLowCal" });
-    else if (kcal >= 250) alerts.push({ type: "warning", key: "foodDetail.alertHighCal" });
 
     if (fat <= 3 && fat > 0) alerts.push({ type: "info", key: "foodDetail.alertLowFat" });
-    else if (fat >= 20) alerts.push({ type: "warning", key: "foodDetail.alertHighFat" });
     
     if (protein >= 10) alerts.push({ type: "info", key: "foodDetail.alertExcellentProtein" });
     else if (protein >= 5) alerts.push({ type: "info", key: "foodDetail.alertGoodProtein" });
