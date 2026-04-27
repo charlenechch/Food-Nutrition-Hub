@@ -7,10 +7,16 @@ const foods = [
     origin: "Melanau",
     category: ["Rice Dish", "Fermented"],
     difficulty: "medium",
+<<<<<<< HEAD
     dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat"],
     description: "Linut, also known as sagu in Bidayuh, is a thick, translucent, and glue-like porridge made from sago flour. It has a neutral taste and oftem paired \
                   with the bold, spicy, and tangy flavours of Sarawakian side dishes. Its unique, elastic texture also makes it one of the most distinctive traditional \
                   foods in the region.",
+=======
+    dietaryTags: ["gluten-free", "dairy-free", "high-protein", "low-fat"],
+    description: "Linut is a traditional cuisine that is especially popular among the Indigenous Dayak communities.\
+                  This staple dish is an important part of Dayak cuisine and is frequently served at traditional events and community feasts.",
+>>>>>>> 5c1c3418ab152cea5eabe216a608ad0e3ec003b3
     image: "https://img-global.cpcdn.com/steps/1fe46f4ff8152bed/640x640sq80/photo.webp",
     prepTime: 30,
     Energy_kcal: 344.91,
@@ -67,11 +73,8 @@ const foods = [
     origin: "Melanau",
     category: "Seafood",
     difficulty: "easy",
-    dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat"],
-    description: "Umai is a traditional Sarawakian raw fish salad popular with the Dayak and Melanau communities. It highlights local methods of food preparation and \
-                  preservation using fresh ingredients. Raw tenggiri (mackerel) is sliced or cubed and marinated in lime juice, allowing the acidity to “cook” the fish. \
-                  Chopped onions, chillies, and tomatoes are added and seasoned with salt, sugar, and soy or fish sauce. The dish tastes fresh and tangy with a \
-                  slight heat and is served chilled or at room temperature, often alongside rice.",
+    dietaryTags: ["gluten-free", "dairy-free", "high-protein", "low-fat"],
+    description: "Umai is a traditional Sarawakian raw fish salad popular with the Dayak and Melanau communities. It highlights local methods of food preparation and preservation using fresh ingredients. Raw tenggiri (mackerel) is sliced or cubed and marinated in lime juice, allowing the acidity to “cook” the fish. Chopped onions, chillies, and tomatoes are added and seasoned with salt, sugar, and soy or fish sauce. The dish tastes fresh and tangy with a slight heat and is served chilled or at room temperature, often alongside rice.",
     image: "https://munchmalaysia.com/wp-content/uploads/2023/10/umai-1024x512.jpg",
     prepTime: 20,
     Energy_kcal: 583.39,
@@ -99,12 +102,12 @@ const foods = [
                   oil or rich sauces.",
     image: "https://i.ytimg.com/vi/W6Co9dMpw7o/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAfGfmofQBBYx02WeMUcjjPJxH7aw",
     prepTime: 30,
-    Energy_kcal: 286,
-    Protein_g: 6.88,
-    Fat_g: 2.42,
-    Carbohydrates_g: 54.24,
-    Fiber_g: 0.8,
-    VitaminC_mg: 13.8,
+    Energy_kcal: 335,
+    Protein_g: 21.7,
+    Fat_g: 3.0,
+    Carbohydrates_g: 68.2,
+    Fiber_g: 2.18,
+    VitaminC_mg: 5.12,
     culturalSignificance: "Deeply rooted in the Sarawak Malay and Melanau communities, Nasi Aruk is a humble breakfast staple shaped by resourcefulness. Traditionally, \
                             it was a way to turn leftover rice into a fragrant meal without using cooking oil. Today, it remains a popular comfort food, often enjoyed as\
                              a “healthier” and more aromatic alternative to regular nasi goreng.",
@@ -113,7 +116,7 @@ const foods = [
                               allowing the rice to absorb the wok’s smoky heat (wok hei), giving the dish its distinctive toasted aroma.",
     commonIngredients: ["Overnight Rice, Dried Shrimp, Anchovies, Garlic, Chilli, Shallots"],
     healthTips: "A relatively low-fat fried rice option due to the no-oil cooking method, but high in sodium from belacan and salt.",
-    gram_per_serving: 241.0
+    gram_per_serving: 313.38
   },
 
   // Terung Asam
@@ -122,7 +125,7 @@ const foods = [
     origin: "Iban",
     category: "Vegetables",
     difficulty: "medium",
-    dietaryTags: ["gluten-free", "dairy-free", "nut-free", "halal", "spicy"],
+    dietaryTags: ["gluten-free", "dairy-free", "halal", "spicy"],
     description: "Terung Asam, also known as terung dayak, is a round, yellow-to-orange eggplant with a tough skin and a naturally sour, tangy flesh. Unlike common purple eggplants, which become soft when cooked, this remains firm, adding a refreshing acidity to soups and stews. Often described as the “lemon of the Borneo rainforest,” it is used to balance and enhance rich or savoury dishes.",
     image: "https://img-global.cpcdn.com/recipes/74dc8e14dccfda8f/600x852cq80/ikan-masin-terong-asam-dayak-resipi-foto-utama.webp",
     prepTime: 30,

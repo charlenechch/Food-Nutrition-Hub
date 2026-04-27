@@ -117,7 +117,7 @@ const recipeData = [
            2. Chop the prawns roughly and mix them with the paste in a bowl. Add lime juice, salt, and sugar, then let it sit for 10 minutes.
            3. Just before serving, stir in the shallots, chili, ginger, and lime slices. Serve immediately with cucumber and tomato on the side.`,
     cookTime: 0,
-    servings: 1,
+    servings: 4,
     DidYouKnow: "Umai is often called the 'Sarawakian ceviche'. The Melanau people traditionally used freshly caught fish from the South China Sea, with the lime juice 'cooking' the protein.",
     chefTips: "Use only the freshest seafood possible. The lime juice should turn the prawns opaque within 10 minutes. If not, the prawns may not be fresh enough.",
     publish: "publish",
@@ -129,16 +129,17 @@ const recipeData = [
     userProfileID: 4,
     status: "Approved",
     description: "The dish is composed simply of rice combined with anchovies, fragrant torch ginger, turmeric leaves, and the heat of bird’s-eye chilli.",
-    ingredients: `A handful of anchovies (ikan bilis)
-                  2 red shallots (sliced)
-                  3 cloves of garlic (sliced)
-                  4 bird’s-eye chillies (sliced)
-                  Salt, to taste
-                  Ground white pepper, to taste`,
-    steps:`1. Fry the anchovies. Remove and drain the oil. Take the oil out of the pan.
-           2. Sauté the shallots and garlic until fragrant.
-           3. Add cold/leftover rice. Mix until evenly combined.
-           4. Add the fried anchovies and bird’s-eye chillies. Season with salt and ground white pepper. Stir until everything is well mixed and the rice is fairly dry. Turn off the heat.
+    ingredients: `1 cup Bario rice
+                  1.5 cups water
+                  1 handful dried anchovies
+                  1 red onion (shallot)
+                  2 cloves garlic
+                  2 bird’s eye chilies
+                  1 inch belacan`,
+    steps:`1. Cook the rice. Let it cool. If using a pressure cooker, ensure the water level is equal to the rice. Excess water will make the rice mushy.
+           2. Prepare the ingredients. Pound the chilies with belacan and dried anchovies—otherwise, the anchovies may be picked out and discarded.
+           3. Dry-fry the anchovy mixture. Add the onions and garlic.
+           4. Add the rice and mix well.
            5. Ready to serve.`,
     cookTime: 15,
     servings: 1,
@@ -169,7 +170,7 @@ const recipeData = [
             2. Heat cooking oil, then fry the salted terubuk fish first. Remove and set aside. In the same pan, cook the sliced ingredients together with belacan and turmeric powder until fragrant.
             3. Add sour eggplant, salted fish, water, salt and seasoning powder. Bring to a boil, then turn off the heat. Ready to serve.`,
     cookTime: 30,
-    servings: 1,
+    servings: 2,
     DidYouKnow: "Terung asam (also known as terung Dayak) is a native ingredient of Sarawak, commonly used in traditional soups and dishes for its natural sour taste",
     chefTips: "Cut the terung asam into wedges and adjust the amount based on your preferred sourness. You may keep the seeds for a stronger tangy flavour or remove them for a milder taste.",
     publish: "publish",
@@ -199,7 +200,7 @@ const recipeData = [
            6. For assembly, have a bowl or plate, put some rice vermicelli, pour some gravy on top until it covers the rice vermicelli. 
            7. Drizzle with special sauces (as explained in ingredients, if desired). Garnish with some century eggs, shredded cucumber, cuttlefish and beansprouts.`,
     cookTime: 25,
-    servings: 1,
+    servings: 4,
     DidYouKnow: "Belacan Bihun is a Kuching specialty that combines Chinese rice vermicelli with Malay-style belacan gravy, showcasing Sarawak's cultural fusion.",
     chefTips: "Toast the belacan properly until fragrant but not burnt. The gravy should be thick enough to coat the noodles but still pourable.",
     publish: "publish",
@@ -225,7 +226,7 @@ const recipeData = [
            2. Mash the cassava leaves with torch ginger flower.
            3. Prepare a pan with water, then add the lemongrass, galangal, and bird-eyed anchovies. Simmer it for 10 minutes over low heat.`,
     cookTime: 20,
-    servings: 1,
+    servings: 4,
     DidYouKnow: "Cassava leaves must be thoroughly cooked as they contain cyanogenic glycosides which can be toxic when raw. Traditional pounding helps break down these compounds.",
     chefTips: "Young cassava leaves are more tender and less bitter. Always cook cassava leaves for at least 15-20 minutes to ensure safety.",
     publish: "publish",
@@ -248,7 +249,7 @@ const recipeData = [
            2. In a wok/pan, heat 3-4 tablespoons of oil. Once it’s hot, cook the garlic until aromatic. Stir in the leaves and cook for about a minute till wilt. Add water when it starts to look quite dry (about halfway through).
            3. Make a well in the middle, crack the eggs in and beat with chopsticks to mix. Once the eggs are starting to set, start mixing everything together, adding more water if needed. Turn off the heat after about a minute or so. Serve while hot.`,
     cookTime: 10,
-    servings: 1,
+    servings: 2,
     DidYouKnow: "Manicai (Sauropus androgynus) is also called 'Sweet Leaf' or 'Cekur Manis'. It's rich in vitamins A, B, and C, and contains more protein than most leafy vegetables.",
     chefTips: "Don't overcook manicai as it becomes bitter. The salting process helps reduce its natural sliminess and enhances the flavor.",
     publish: "publish",
@@ -277,7 +278,7 @@ const recipeData = [
           5. Add in small amount of water. Add in salt to taste. Serve immediately. 
           `,
     cookTime: 8,
-    servings: 1,
+    servings: 2,
     DidYouKnow: "Midin is a wild fern found only in Sarawak and is considered a delicacy. The fiddleheads are harvested young when they're still curled up.",
     chefTips: "Midin cooks very quickly - just blanch or stir-fry for 1-2 minutes. Overcooking makes it slimy. Always choose tightly curled fiddleheads.",
     publish: "publish",
@@ -309,7 +310,7 @@ const recipeData = [
           5.Seal the top of the bamboo with yam leaves (traditional method) or aluminum foil as an alternative.
           `,
     cookTime: 90,
-    servings: 1,
+    servings: 5,
     DidYouKnow: "Ayam Pansuh (or Manok Pansoh) is the ultimate Iban hospitality dish. It's traditionally served to honored guests during Gawai festivals and special occasions.",
     chefTips: "Use fresh bamboo for authentic flavor. The bamboo should be green and moist inside. Listen for the bubbling sound - it means the dish is cooking properly inside the sealed bamboo.",
     publish: "publish",
