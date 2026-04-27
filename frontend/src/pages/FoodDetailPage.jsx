@@ -73,10 +73,10 @@ export default function FoodDetailPage() {
   const buildHealthAlerts = (food) => {
     const alerts = [];
     
-    const kcal = num(food?.Energy_kcal);
-    const protein = num(food?.Protein_g);
-    const fat = num(food?.Fat_g);
-    const carbs = num(food?.Carbohydrates_g);
+    const kcal = num(food?.calories);
+    const protein = num(food?.protein);
+    const fat = num(food?.fat);
+    const carbs = num(food?.carbs);
     const fiber = num(food?.Fiber_g);
     const vitC = num(food?.VitaminC_mg);
     
@@ -98,6 +98,7 @@ export default function FoodDetailPage() {
 
     return alerts;
   };
+
   useEffect(() => {
     const fetchFood = async () => {
       try {
@@ -238,8 +239,6 @@ export default function FoodDetailPage() {
 
   const ingredients = food.commonIngredients || [];
 
-  console.log("🔍 Food Data from API:", food);
-
   return (
     <div className="food-detail-page">
       <Header />
@@ -344,25 +343,25 @@ export default function FoodDetailPage() {
               <div className="fdp-nutri-grid">
                 <div className="fdp-nutri">
                   <div className="fdp-nutri-value">
-                    {food?.Energy_kcal != null ? Math.round(Number(food.Energy_kcal)) : "-"}
+                    {food?.calories != null ? Math.round(Number(food.calories)) : "-"}
                   </div>
                   <div className="fdp-nutri-label">{t("explore.calories")}</div>
                 </div>
                 <div className="fdp-nutri">
                   <div className="fdp-nutri-value">
-                    {food?.Protein_g != null ? Number(food.Protein_g).toFixed(1) : "-"}g
+                    {food?.protein != null ? Number(food.protein).toFixed(1) : "-"}g
                   </div>
                   <div className="fdp-nutri-label">{t("explore.protein")}</div>
                 </div>
                 <div className="fdp-nutri">
                   <div className="fdp-nutri-value">
-                    {food?.Carbohydrates_g != null ? Number(food.Carbohydrates_g).toFixed(1) : "-"}g
+                    {food?.carbs != null ? Number(food.carbs).toFixed(1) : "-"}g
                   </div>
                   <div className="fdp-nutri-label">{t("explore.carbs")}</div>
                 </div>
                 <div className="fdp-nutri">
                   <div className="fdp-nutri-value">
-                    {food?.Fat_g != null ? Number(food.Fat_g).toFixed(1) : "-"}g
+                    {food?.fat != null ? Number(food.fat).toFixed(1) : "-"}g
                   </div>
                   <div className="fdp-nutri-label">{t("explore.fat")}</div>
                 </div>
