@@ -30,6 +30,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
   const [showFilters, setShowFilters] = useState(false);
   
   // Advanced Filter States
+  const [maxCalorieInDB, setMaxCalorieInDB] = useState(2000);
   const [calorieMax, setCalorieMax] = useState(2000);
 
   // --- Delete Modal States ---
@@ -76,6 +77,11 @@ const AdminFoodDatabase = ({ categories = [] }) => {
         }));
         console.log(`✅ Got ${mapped.length} foods`);
         setFoodData(mapped);
+
+        const maxCal = Math.max(...mapped.map(f => Number(f.calories) || 0), 0);
+        const roundedMax = Math.ceil(maxCal / 10) * 10; // round up to nearest 10
+        setMaxCalorieInDB(roundedMax || 2000);
+        setCalorieMax(roundedMax || 2000);
       } else {
         console.error("❌ API returned success: false", data);
         setFoodData([]);
@@ -741,7 +747,7 @@ const AdminFoodDatabase = ({ categories = [] }) => {
                   <input 
                     type="range" 
                     min="0" 
-                    max="2000" 
+                    max={maxCalorieInDB}
                     step="10" 
                     value={calorieMax} 
                     onChange={(e) => setCalorieMax(Number(e.target.value))} 
