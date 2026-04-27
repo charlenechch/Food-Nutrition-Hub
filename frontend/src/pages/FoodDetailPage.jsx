@@ -238,6 +238,8 @@ export default function FoodDetailPage() {
 
   const ingredients = food.commonIngredients || [];
 
+  console.log("🔍 Food Data from API:", food);
+
   return (
     <div className="food-detail-page">
       <Header />
