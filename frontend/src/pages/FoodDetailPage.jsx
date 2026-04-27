@@ -69,17 +69,16 @@ export default function FoodDetailPage() {
     setInfoDlg({ open: true, title, message, icon, primaryText });
   const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false }));
   const num = (v) => (v == null ? 0 : Number(v));
-  const getPerServing = (food, keyPs, keyTotal) => num(food?.[keyPs]) || num(food?.[keyTotal]);
 
   const buildHealthAlerts = (food) => {
     const alerts = [];
     
-    const kcal = getPerServing(food, "Energy_kcal_ps", "Energy_kcal");
-    const protein = getPerServing(food, "Protein_g_ps", "Protein_g");
-    const fat = getPerServing(food, "Fat_g_ps", "Fat_g");
-    const carbs = getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g");
-    const fiber = getPerServing(food, "Fiber_g_ps", "Fiber_g");
-    const vitC = getPerServing(food, "VitaminC_mg_ps", "VitaminC_mg");
+    const kcal = num(food?.Energy_kcal);
+    const protein = num(food?.Protein_g);
+    const fat = num(food?.Fat_g);
+    const carbs = num(food?.Carbohydrates_g);
+    const fiber = num(food?.Fiber_g);
+    const vitC = num(food?.VitaminC_mg);
     
     if (kcal <= 40 && kcal > 0) alerts.push({ type: "info", key: "foodDetail.alertLowCal" });
 
@@ -342,19 +341,27 @@ export default function FoodDetailPage() {
               <p className="fdp-muted">{t("foodDetail.perServing")}</p>
               <div className="fdp-nutri-grid">
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{Math.round(getPerServing(food, "Energy_kcal_ps", "Energy_kcal")) || "-"}</div>
+                  <div className="fdp-nutri-value">
+                    {food?.Energy_kcal != null ? Math.round(Number(food.Energy_kcal)) : "-"}
+                  </div>
                   <div className="fdp-nutri-label">{t("explore.calories")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{getPerServing(food, "Protein_g_ps", "Protein_g")?.toFixed?.(1) ?? "-"}g</div>
+                  <div className="fdp-nutri-value">
+                    {food?.Protein_g != null ? Number(food.Protein_g).toFixed(1) : "-"}g
+                  </div>
                   <div className="fdp-nutri-label">{t("explore.protein")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g")?.toFixed?.(1) ?? "-"}g</div>
+                  <div className="fdp-nutri-value">
+                    {food?.Carbohydrates_g != null ? Number(food.Carbohydrates_g).toFixed(1) : "-"}g
+                  </div>
                   <div className="fdp-nutri-label">{t("explore.carbs")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{getPerServing(food, "Fat_g_ps", "Fat_g")?.toFixed?.(1) ?? "-"}g</div>
+                  <div className="fdp-nutri-value">
+                    {food?.Fat_g != null ? Number(food.Fat_g).toFixed(1) : "-"}g
+                  </div>
                   <div className="fdp-nutri-label">{t("explore.fat")}</div>
                 </div>
               </div>
