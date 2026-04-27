@@ -8,7 +8,6 @@ import { CiSearch } from "react-icons/ci";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { FiCheck, FiLink } from "react-icons/fi"; 
-import { FiPlus } from "react-icons/fi";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -24,11 +23,6 @@ const FOOD_TYPE_OPTIONS = [
 const DIETARY_TAG_OPTIONS = [
   "Vegetarian", "Vegan", "Halal", "Gluten Free", 
   "Dairy Free", "Low Fat", "High Protein", "Spicy"
-];
-
-const COMMON_INGREDIENTS_LIST = [
-  "Lemongrass", "Galangal", "Coconut milk", "Belacan", "Sambal", 
-  "Tamarind", "Dried chilies", "Rice", "Turmeric", "Pandan leaves"
 ];
 
 const LinkFoodPage = () => {
@@ -65,13 +59,11 @@ const LinkFoodPage = () => {
     fat: "",
     fiber: "",
     vitaminc: "", 
+    commonIngredients: "",
     healthTips: ""
   });
 
   const [selectedDietary, setSelectedDietary] = useState([]);
-  const [selectedIngredients, setSelectedIngredients] = useState([]);
-  const [showOtherIngredient, setShowOtherIngredient] = useState(false);
-  const [otherIngredientText, setOtherIngredientText] = useState("");
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -183,10 +175,6 @@ const LinkFoodPage = () => {
     setSelectedDietary((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
   };
 
-  const toggleIngredient = (ing) => {
-    setSelectedIngredients((prev) => prev.includes(ing) ? prev.filter((i) => i !== ing) : [...prev, ing]);
-  };
-
   const handleImageUpload = async (file) => {
     if (!file) return ""; 
     return new Promise((resolve, reject) => {
@@ -229,7 +217,7 @@ const LinkFoodPage = () => {
       return value === undefined || value === null || String(value).trim() === "";
     });
 
-    const hasIngredients = selectedIngredients.length > 0 || (showOtherIngredient && otherIngredientText.trim() !== "");
+    const hasIngredients = food.commonIngredients && food.commonIngredients.trim() !== "";
     const hasDietary = selectedDietary.length > 0;
     
     const hasImage = selectedImage || existingImageUrl;
@@ -282,11 +270,6 @@ const LinkFoodPage = () => {
 
 
       const dietaryString = selectedDietary.join(", ");
-      let ingredientsString = selectedIngredients.join(", ");
-      if (showOtherIngredient && otherIngredientText.trim()) {
-        if (ingredientsString) ingredientsString += ", ";
-        ingredientsString += otherIngredientText.trim();
-      }
 
       const newFoodData = {
         recipeId: selectedRecipeId, 
@@ -303,7 +286,7 @@ const LinkFoodPage = () => {
         Fiber_g: Number(food.fiber) || 0,
         VitaminC_mg: Number(food.vitaminc) || 0,
         image: finalImageUrl,
-        commonIngredients: ingredientsString,
+        commonIngredients: food.commonIngredients, 
         dietaryTags: dietaryString,
         healthTips: food.healthTips
       };
@@ -552,34 +535,18 @@ const LinkFoodPage = () => {
         <div className="edit-cultural-context-card">
           <h3>{t("addFood.additionalDetails")}</h3>
           
-          <label className="basic-info-label">{t("addFood.commonIngredients")} <span className="red-asterisk">*</span></label>
-          <div style={chipContainerStyle}>
-            {COMMON_INGREDIENTS_LIST.map((ing) => {
-              const isSelected = selectedIngredients.includes(ing);
-              return (
-                <button
-                  key={ing} type="button" style={getChipStyle(isSelected)} onClick={() => toggleIngredient(ing)}
-                >
-                  {ing} {isSelected && <FiPlus style={{transform: 'rotate(45deg)'}} />}
-                </button>
-              );
-            })}
-            <button type="button" style={getChipStyle(showOtherIngredient)} onClick={() => setShowOtherIngredient(!showOtherIngredient)}>
-              {t("addFood.other")} {showOtherIngredient && <FiCheck />}
-            </button>
-          </div>
-
-          {showOtherIngredient && (
-            <div className = "efpage-show-ing">
-              <label className="basic-info-label efpage-show-ing-label">
-                {t("addFood.otherIngredientsLabel")} <span className="red-asterisk">*</span>
-              </label>
-              <textarea 
-                className="edit-food-textarea" value={otherIngredientText} onChange={(e) => setOtherIngredientText(e.target.value)}
-                rows={2} placeholder={t("addFood.otherIngredientsPlaceholder")}
-              />
-            </div>
-          )}
+          <label className="basic-info-label">
+            {t("addFood.commonIngredients")} <span className="red-asterisk">*</span>
+          </label>
+          
+          <textarea 
+            className="edit-food-textarea" 
+            name="commonIngredients" 
+            value={food.commonIngredients} 
+            onChange={handleChange} 
+            rows={3} 
+            placeholder={t("addFood.commonIngredientsPlaceholder")}
+          />
 
           <label className="basic-info-label">{t("addFood.dietaryPreferences")} <span className="red-asterisk">*</span></label>
           <div style={chipContainerStyle}>
