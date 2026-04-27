@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import { useTranslation } from "react-i18next";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { FaArrowLeftLong } from "react-icons/fa6";
-import { FiSave, FiPlus, FiCheck } from "react-icons/fi";
+import { FiSave, FiCheck } from "react-icons/fi";
 
 // Get the API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
