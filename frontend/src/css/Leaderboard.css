@@ -18,6 +18,7 @@
 .leaderboard-header {
   text-align: center;
   margin-bottom: 2rem;
+  margin-top: 100px;
 }
 
 .leaderboard-header h1 {
@@ -503,6 +504,10 @@
     gap: 1.5rem;
   }
   
+  .leaderboard-header {
+    margin-top: 90px; /* Reduced for tablet */
+  }
+  
   .table-header,
   .table-row {
     column-gap: 16px;
@@ -522,7 +527,11 @@
 /* Tablet Portrait (968px and below) */
 @media (max-width: 968px) {
   .leaderboard-container {
-    padding: 80px 1.5rem 1.5rem 1.5rem;
+    padding: 0 1.5rem 1.5rem 1.5rem; /* Remove top padding here */
+  }
+  
+  .leaderboard-header {
+    margin-top: 80px; /* Adjusted for tablet portrait */
   }
   
   .leaderboard-main {
@@ -552,7 +561,7 @@
   }
   
   .leaderboard-header {
-    margin-top: 70px;
+    margin-top: 70px; /* Keep this, remove padding-top */
   }
   
   .leaderboard-header h1 {
@@ -648,7 +657,7 @@
 /* Mobile Portrait (600px and below) */
 @media (max-width: 600px) {
   .leaderboard-header {
-    margin-top: 60px;
+    margin-top: 60px; /* Keep this, remove padding-top */
   }
 
   .leaderboard-table.level-mode .table-header,
@@ -710,7 +719,7 @@
   }
   
   .leaderboard-header {
-    margin-top: 50px;
+    margin-top: 50px; /* Keep this, remove padding-top */
   }
   
   .leaderboard-header h1 {
