@@ -63,10 +63,12 @@ const EditFoodPage = () => {
   });
   const [hasExistingRecipe, setHasExistingRecipe] = useState(false);
 
+  // States for selected options
   const [selectedDietary, setSelectedDietary] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   
-  // ADDED: State to hold dynamically merged ingredients
+  // ADDED: Dynamic states for rendering chips (merges hardcoded lists with DB data)
+  const [availableDietaryTags, setAvailableDietaryTags] = useState(DIETARY_TAG_OPTIONS);
   const [availableIngredients, setAvailableIngredients] = useState(COMMON_INGREDIENTS_LIST);
 
   const [showOtherIngredient, setShowOtherIngredient] = useState(false);
@@ -124,18 +126,20 @@ const EditFoodPage = () => {
             VitaminC_mg: foodData.data.VitaminC_mg || "",
           });
 
+          // Handle Dietary Tags
           if (foodData.data.dietaryTags) {
-            setSelectedDietary(foodData.data.dietaryTags.split(',').map(s => s.trim()).filter(Boolean));
+            const dbTags = foodData.data.dietaryTags.split(',').map(s => s.trim()).filter(Boolean);
+            setSelectedDietary(dbTags);
+            // Merge custom tags from DB
+            setAvailableDietaryTags(prev => Array.from(new Set([...prev, ...dbTags])));
           }
+          
+          // Handle Common Ingredients
           if (foodData.data.commonIngredients) {
             const dbIngredients = foodData.data.commonIngredients.split(',').map(s => s.trim()).filter(Boolean);
             setSelectedIngredients(dbIngredients);
-            
-            // ADDED: Merge DB custom ingredients into the available options list
-            setAvailableIngredients(prev => {
-              const combined = new Set([...prev, ...dbIngredients]);
-              return Array.from(combined);
-            });
+            // Merge custom ingredients from DB
+            setAvailableIngredients(prev => Array.from(new Set([...prev, ...dbIngredients])));
           }
 
           setExistingImageUrl(foodData.data.image || "");
@@ -740,8 +744,8 @@ const handleSaveAttempt = () => {
             <h3>{t("addFood.additionalDetails")}</h3>
             
             <label className="basic-info-label">{t("addFood.commonIngredients")} <span className="red-asterisk">*</span></label>
-            {/* CHANGED: Using availableIngredients instead of COMMON_INGREDIENTS_LIST */}
             <div style={chipContainerStyle}>
+              {/* USE dynamic state: availableIngredients */}
               {availableIngredients.map((ing) => {
                 const isSelected = selectedIngredients.includes(ing);
                 return (
@@ -766,7 +770,8 @@ const handleSaveAttempt = () => {
 
             <label className="basic-info-label">{t("addFood.dietaryPreferences")} <span className="red-asterisk">*</span></label>
             <div style={chipContainerStyle}>
-              {DIETARY_TAG_OPTIONS.map((tag) => {
+              {/* USE dynamic state: availableDietaryTags */}
+              {availableDietaryTags.map((tag) => {
                 const isSelected = selectedDietary.includes(tag);
                 return (
                   <button key={tag} type="button" style={getChipStyle(isSelected)} onClick={() => toggleDietary(tag)}>
