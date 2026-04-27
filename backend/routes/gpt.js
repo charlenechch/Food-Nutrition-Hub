@@ -71,7 +71,7 @@ These foods exist in the database (use as reference):
 [${foodListStr}]
 
 Key visual differences for similar-looking Sarawak leafy greens:
-- Manicai (Cai Xin): smooth flat leaves, pale green stems, bright glossy appearance, often with eggs 
+- Manicai: smooth flat leaves, pale green stems, bright glossy appearance, often with eggs 
 - Midin: curly fiddlehead fern tips, spiral-shaped shoots, darker green, coiled ends, usually wth belacan 
 - Daun Ubi Tumbuk: pounded or mashed appearance, darker and softer texture, less defined leaf shape, cassava leaves
 
