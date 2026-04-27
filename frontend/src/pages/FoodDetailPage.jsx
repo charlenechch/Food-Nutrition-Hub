@@ -343,19 +343,19 @@ const buildHealthAlerts = (food) => {
               <p className="fdp-muted">{t("foodDetail.perServing")}</p>
               <div className="fdp-nutri-grid">
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{food?.Energy_kcal != null ? Math.round(food.Energy_kcal) : "-"}</div>
+                  <div className="fdp-nutri-value">{Math.round(num(food?.Energy_kcal))}</div>
                   <div className="fdp-nutri-label">{t("explore.calories")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{food?.Protein_g != null ? Number(food.Protein_g).toFixed(1) : "-"}g</div>
+                  <div className="fdp-nutri-value">{num(food?.Protein_g).toFixed(1)}g</div>
                   <div className="fdp-nutri-label">{t("explore.protein")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{food?.Carbohydrates_g != null ? Number(food.Carbohydrates_g).toFixed(1) : "-"}g</div>
+                  <div className="fdp-nutri-value">{num(food?.Carbohydrates_g).toFixed(1)}g</div>
                   <div className="fdp-nutri-label">{t("explore.carbs")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{food?.Fat_g != null ? Number(food.Fat_g).toFixed(1) : "-"}g</div>
+                  <div className="fdp-nutri-value">{num(food?.Fat_g).toFixed(1)}g</div>
                   <div className="fdp-nutri-label">{t("explore.fat")}</div>
                 </div>
               </div>
