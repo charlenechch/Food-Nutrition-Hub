@@ -23,6 +23,15 @@ function normalizeImageBase64(imageBase64) {
   return { format: "png", dataUrl: `data:image/png;base64,${imageBase64}` };
 }
 
+function containsNutritionStuff(obj) {
+  const s = JSON.stringify(obj).toLowerCase();
+  return (
+    s.includes("kcal") || s.includes("calorie") || s.includes("protein") ||
+    s.includes("carb") || s.includes("fat") || s.includes("vitamin") ||
+    /\b\d+(\.\d+)?\s?(kcal|cal|g|mg)\b/i.test(s)
+  );
+}
+
 async function getFoodListFromDB() {
   try {
     const rows = await many(`SELECT name FROM food`);
