@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");
 const { many } = require("../config/db");
-const { findClosestFood, findClosestFoodS1 } = require("../utils/embeddings");
+const { findClosestFood, findClosestFoodS1, findClosestFoodS3 } = require("../utils/embeddings");
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -143,32 +143,41 @@ Prefer Sarawak/Malaysian interpretation.
     // ============================================
     // STEP 2: ENSEMBLE EMBEDDING SEARCH
     //
-    // We search against 2 embedding strategies
-    // and average their scores for best accuracy:
+    // We search against 3 different DB embeddings
+    // and average their scores for better accuracy:
     //
     // S1 (embedding_s1): name + description
     // S2 (embedding):    name + description + ingredients
+    // S3 (embedding_s3): name + description + ingredients + culturalSignificance + traditionalPreparation
     //
-    // S3 was dropped — longer embedding text consistently
-    // scored lower due to query-document length mismatch.
-    // S1 + S2 ensemble produces the most stable results.
+    // Query uses food name only for long specific names (>=12 chars)
+    // and appends one alternative name for short names (<12 chars)
+    // to improve matching without introducing noise
     // ============================================
 
-    const queryText = gpt.food_name;
-    console.log(`\n🔍 Searching S1 + S2 embedding strategies for: "${queryText}"`);
+    const altNames = Array.isArray(gpt.alternative_names) && gpt.alternative_names.length > 0
+      ? gpt.alternative_names.slice(0, 1).join(", ")
+      : "";
+    const queryText = gpt.food_name.length < 12
+      ? [gpt.food_name, altNames].filter(Boolean).join(", ")
+      : gpt.food_name;
 
-    // Run S1 and S2 searches in parallel
-    const [resultS1, resultS2] = await Promise.all([
+    console.log(`\n🔍 Searching all 3 embedding strategies for: "${queryText}"`);
+
+    // Run all 3 searches in parallel
+    const [resultS1, resultS2, resultS3] = await Promise.all([
       findClosestFoodS1(queryText),  // searches embedding_s1
       findClosestFood(queryText),    // searches embedding (S2)
+      findClosestFoodS3(queryText),  // searches embedding_s3
     ]);
 
-    console.log(`📊 S1 (name+desc):    "${resultS1?.name}" → ${resultS1?.score?.toFixed(3)}`);
-    console.log(`📊 S2 (name+desc+ingr): "${resultS2?.name}" → ${resultS2?.score?.toFixed(3)}`);
+    console.log(`📊 S1 (name+desc):                "${resultS1?.name}" → ${resultS1?.score?.toFixed(3)}`);
+    console.log(`📊 S2 (name+desc+ingr):           "${resultS2?.name}" → ${resultS2?.score?.toFixed(3)}`);
+    console.log(`📊 S3 (name+desc+ingr+cult+trad): "${resultS3?.name}" → ${resultS3?.score?.toFixed(3)}`);
 
     // Group results by foodID and average their scores
     const scoreMap = {};
-    for (const m of [resultS1, resultS2]) {
+    for (const m of [resultS1, resultS2, resultS3]) {
       if (!m) continue;
       if (!scoreMap[m.foodID]) {
         scoreMap[m.foodID] = { ...m, totalScore: 0, count: 0 };
