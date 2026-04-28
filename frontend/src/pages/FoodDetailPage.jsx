@@ -45,12 +45,20 @@ export default function FoodDetailPage() {
     fetchCsrfToken();
   }, []);
 
+  // --- Helper to safely parse strings to arrays for DB data ---
+  const parseStringToArray = (strOrArray) => {
+    if (!strOrArray) return [];
+    if (Array.isArray(strOrArray)) return strOrArray;
+    if (typeof strOrArray === 'string') return strOrArray.split(',').map(s => s.trim()).filter(Boolean);
+    return [];
+  };
+
   useEffect(() => {
     if (!food || i18n.language === "en") {
       setTranslatedFood({});
       return;
     }
-    const ingredients = food.commonIngredients || []; 
+    const ingredients = parseStringToArray(food.commonIngredients); 
     translateTexts({
       name: food.name,
       description: food.description,
@@ -69,20 +77,26 @@ export default function FoodDetailPage() {
     setInfoDlg({ open: true, title, message, icon, primaryText });
   const closeInfo = () => setInfoDlg((d) => ({ ...d, open: false }));
   const num = (v) => (v == null ? 0 : Number(v));
+  const getPerServing = (food, keyPs, keyTotal) => num(food?.[keyPs]) || num(food?.[keyTotal]);
 
   const buildHealthAlerts = (food) => {
     const alerts = [];
     
-    const kcal = num(food?.calories);
-    const protein = num(food?.protein);
-    const fat = num(food?.fat);
-    const carbs = num(food?.carbs);
-    const fiber = num(food?.Fiber_g);
-    const vitC = num(food?.VitaminC_mg);
+    const gramPerServing = num(food?.gram_per_serving) || 100;
+    const multiplier = 100 / gramPerServing;
+
+    const kcal = getPerServing(food, "Energy_kcal_ps", "Energy_kcal") * multiplier;
+    const protein = getPerServing(food, "Protein_g_ps", "Protein_g") * multiplier;
+    const fat = getPerServing(food, "Fat_g_ps", "Fat_g") * multiplier;
+    const carbs = getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g") * multiplier;
+    const fiber = getPerServing(food, "Fiber_g_ps", "Fiber_g") * multiplier;
+    const vitC = getPerServing(food, "VitaminC_mg_ps", "VitaminC_mg") * multiplier;
     
     if (kcal <= 40 && kcal > 0) alerts.push({ type: "info", key: "foodDetail.alertLowCal" });
+    else if (kcal >= 250) alerts.push({ type: "warning", key: "foodDetail.alertHighCal" });
 
     if (fat <= 3 && fat > 0) alerts.push({ type: "info", key: "foodDetail.alertLowFat" });
+    else if (fat >= 20) alerts.push({ type: "warning", key: "foodDetail.alertHighFat" });
     
     if (protein >= 10) alerts.push({ type: "info", key: "foodDetail.alertExcellentProtein" });
     else if (protein >= 5) alerts.push({ type: "info", key: "foodDetail.alertGoodProtein" });
@@ -92,7 +106,8 @@ export default function FoodDetailPage() {
     if (vitC >= 30) alerts.push({ type: "info", key: "foodDetail.alertHighVitC" });
     else if (vitC >= 15) alerts.push({ type: "info", key: "foodDetail.alertSourceVitC" });
         
-    const tags = Array.isArray(food?.dietaryTags) ? food.dietaryTags : [];
+    // FIXED: Safely parse dietary tags so alerts trigger correctly
+    const tags = parseStringToArray(food?.dietaryTags).map(t => t.toLowerCase());
     if (tags.includes("spicy")) alerts.push({ type: "info", key: "foodDetail.alertSpicy" });
     if (tags.includes("vegetarian")) alerts.push({ type: "info", key: "foodDetail.alertVegetarian" });
 
@@ -237,7 +252,8 @@ export default function FoodDetailPage() {
     </div>
   );
 
-  const ingredients = food.commonIngredients || [];
+  const ingredients = parseStringToArray(food.commonIngredients);
+  const dietaryTags = parseStringToArray(food.dietaryTags);
 
   return (
     <div className="food-detail-page">
@@ -315,6 +331,24 @@ export default function FoodDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* ADDED: Dietary Preferences Card */}
+            {dietaryTags.length > 0 && (
+              <div className="fdp-card">
+                <h3 className="rdp-sec-title">
+                  <CheckCircle2 className="rdp-sec-icon" color="#6a4a2f" /> {t("explore.dietaryPrefs") || "Dietary Preferences"}
+                </h3>
+                <div className="fdp-chip-grid">
+                  {dietaryTags.map((tag, i) => {
+                    const translationKey = `explore.dietary_${tag.toLowerCase().replace(/[\s-]+/g, "_")}`;
+                    const translatedTag = i18n.exists(translationKey) ? t(translationKey) : tag;
+                    return (
+                      <span key={i} className="fdp-chip fdp-chip-dietary">{translatedTag}</span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right column */}
@@ -326,7 +360,7 @@ export default function FoodDetailPage() {
               </button>
               <button type="button" className="lrp-btn lrp-btn-outline fdp-share"
                 onClick={handleShare} aria-label="Share this food" title="Share">
-                <Share2 size = "21" className="rdp-sec-icon" />
+                <Share2 size="21" className="rdp-sec-icon" />
               </button>
             </div>
             <div className="fdp-actions">
@@ -342,27 +376,19 @@ export default function FoodDetailPage() {
               <p className="fdp-muted">{t("foodDetail.perServing")}</p>
               <div className="fdp-nutri-grid">
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">
-                    {food?.calories != null ? Math.round(Number(food.calories)) : "-"}
-                  </div>
+                  <div className="fdp-nutri-value">{Math.round(getPerServing(food, "Energy_kcal_ps", "Energy_kcal")) || "-"}</div>
                   <div className="fdp-nutri-label">{t("explore.calories")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">
-                    {food?.protein != null ? Number(food.protein).toFixed(1) : "-"}g
-                  </div>
+                  <div className="fdp-nutri-value">{getPerServing(food, "Protein_g_ps", "Protein_g")?.toFixed?.(1) ?? "-"}g</div>
                   <div className="fdp-nutri-label">{t("explore.protein")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">
-                    {food?.carbs != null ? Number(food.carbs).toFixed(1) : "-"}g
-                  </div>
+                  <div className="fdp-nutri-value">{getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g")?.toFixed?.(1) ?? "-"}g</div>
                   <div className="fdp-nutri-label">{t("explore.carbs")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">
-                    {food?.fat != null ? Number(food.fat).toFixed(1) : "-"}g
-                  </div>
+                  <div className="fdp-nutri-value">{getPerServing(food, "Fat_g_ps", "Fat_g")?.toFixed?.(1) ?? "-"}g</div>
                   <div className="fdp-nutri-label">{t("explore.fat")}</div>
                 </div>
               </div>
