@@ -153,10 +153,7 @@ Prefer Sarawak/Malaysian interpretation.
     // Query uses food name + alternative names for richer matching
     // ============================================
 
-    const altNames = Array.isArray(gpt.alternative_names) && gpt.alternative_names.length > 0
-      ? gpt.alternative_names.slice(0, 2).join(", ")
-      : "";
-    const queryText = [gpt.food_name, altNames].filter(Boolean).join(", ");
+    const queryText = gpt.food_name;
 
     console.log(`\n🔍 Searching all 3 embedding strategies for: "${queryText}"`);
 
