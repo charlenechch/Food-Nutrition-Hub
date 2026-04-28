@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const OpenAI = require("openai");
 const { many } = require("../config/db");
-const { findClosestFood, findClosestFoodS1, findClosestFoodS3 } = require("../utils/embeddings");
+const { findClosestFood, findClosestFoodS1 } = require("../utils/embeddings");
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -71,8 +71,8 @@ These foods exist in the database (use as reference):
 [${foodListStr}]
 
 Key visual differences for similar-looking Sarawak leafy greens:
-- Manicai: smooth flat leaves, pale green stems, bright glossy appearance, often with eggs 
-- Midin: curly fiddlehead fern tips, spiral-shaped shoots, darker green, coiled ends, usually wth belacan 
+- Manicai: smooth flat leaves, pale green stems, bright glossy appearance, often with eggs
+- Midin: curly fiddlehead fern tips, spiral-shaped shoots, darker green, coiled ends, usually with belacan
 - Daun Ubi Tumbuk: pounded or mashed appearance, darker and softer texture, less defined leaf shape, cassava leaves
 
 Goal:
@@ -143,34 +143,32 @@ Prefer Sarawak/Malaysian interpretation.
     // ============================================
     // STEP 2: ENSEMBLE EMBEDDING SEARCH
     //
-    // We search against 3 different DB embeddings
-    // and average their scores for better accuracy:
+    // We search against 2 embedding strategies
+    // and average their scores for best accuracy:
     //
-    // S1 (embedding_s1): name + desc
-    // S2 (embedding):    name + desc + ingredients
-    // S3 (embedding_s3): name + desc + ingredients + culturalSignificance + traditionalPreparation
+    // S1 (embedding_s1): name + description
+    // S2 (embedding):    name + description + ingredients
     //
-    // Query uses food name + alternative names for richer matching
+    // S3 was dropped — longer embedding text consistently
+    // scored lower due to query-document length mismatch.
+    // S1 + S2 ensemble produces the most stable results.
     // ============================================
 
     const queryText = gpt.food_name;
+    console.log(`\n🔍 Searching S1 + S2 embedding strategies for: "${queryText}"`);
 
-    console.log(`\n🔍 Searching all 3 embedding strategies for: "${queryText}"`);
-
-    // Run all 3 searches in parallel
-    const [resultS1, resultS2, resultS3] = await Promise.all([
+    // Run S1 and S2 searches in parallel
+    const [resultS1, resultS2] = await Promise.all([
       findClosestFoodS1(queryText),  // searches embedding_s1
       findClosestFood(queryText),    // searches embedding (S2)
-      findClosestFoodS3(queryText),  // searches embedding_s3
     ]);
 
-    console.log(`📊 S1 (name+desc):                "${resultS1?.name}" → ${resultS1?.score?.toFixed(3)}`);
-    console.log(`📊 S2 (name+desc+ingr):           "${resultS2?.name}" → ${resultS2?.score?.toFixed(3)}`);
-    console.log(`📊 S3 (name+desc+ingr+cult+trad): "${resultS3?.name}" → ${resultS3?.score?.toFixed(3)}`);
+    console.log(`📊 S1 (name+desc):    "${resultS1?.name}" → ${resultS1?.score?.toFixed(3)}`);
+    console.log(`📊 S2 (name+desc+ingr): "${resultS2?.name}" → ${resultS2?.score?.toFixed(3)}`);
 
     // Group results by foodID and average their scores
     const scoreMap = {};
-    for (const m of [resultS1, resultS2, resultS3]) {
+    for (const m of [resultS1, resultS2]) {
       if (!m) continue;
       if (!scoreMap[m.foodID]) {
         scoreMap[m.foodID] = { ...m, totalScore: 0, count: 0 };
