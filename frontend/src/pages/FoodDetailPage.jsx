@@ -106,8 +106,8 @@ export default function FoodDetailPage() {
     if (vitC >= 30) alerts.push({ type: "info", key: "foodDetail.alertHighVitC" });
     else if (vitC >= 15) alerts.push({ type: "info", key: "foodDetail.alertSourceVitC" });
         
-    // FIXED: Safely parse dietary tags so alerts trigger correctly
-    const tags = parseStringToArray(food?.dietaryTags).map(t => t.toLowerCase());
+    // FIXED: Now checks for both dietaryTags and dietary_tags to trigger alerts
+    const tags = parseStringToArray(food?.dietaryTags || food?.dietary_tags).map(t => t.toLowerCase());
     if (tags.includes("spicy")) alerts.push({ type: "info", key: "foodDetail.alertSpicy" });
     if (tags.includes("vegetarian")) alerts.push({ type: "info", key: "foodDetail.alertVegetarian" });
 
@@ -253,7 +253,9 @@ export default function FoodDetailPage() {
   );
 
   const ingredients = parseStringToArray(food.commonIngredients);
-  const dietaryTags = parseStringToArray(food.dietaryTags);
+
+  // FIXED: Now checks for both dietaryTags and dietary_tags to render the UI chips
+  const dietaryTags = parseStringToArray(food.dietaryTags || food.dietary_tags);
 
   return (
     <div className="food-detail-page">
@@ -332,7 +334,7 @@ export default function FoodDetailPage() {
               </div>
             )}
 
-            {/* ADDED: Dietary Preferences Card */}
+            {/* Dietary Preferences Card */}
             {dietaryTags.length > 0 && (
               <div className="fdp-card">
                 <h3 className="rdp-sec-title">
