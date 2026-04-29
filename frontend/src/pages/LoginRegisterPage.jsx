@@ -388,9 +388,6 @@ export default function LoginRegisterPage() {
     try {
       const fb = await createUserWithEmailAndPassword(auth, regEmail, regPassword);
       const firebaseUID = fb.user.uid;
-      await sendEmailVerification(fb.user, {
-        url: window.location.origin + "/loginregister",
-      });
       const res = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         credentials: "include",
@@ -410,6 +407,9 @@ export default function LoginRegisterPage() {
         setRegisterError(data.message || t("auth.registrationFailed"));
         return;
       }
+      await sendEmailVerification(fb.user, {
+        url: window.location.origin + "/loginregister",
+      });
       setShowRegSuccess(true);
       setFirstName("");
       setLastName("");
