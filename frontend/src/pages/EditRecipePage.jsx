@@ -308,15 +308,18 @@ const EditRecipePage = () => {
             </div>
 
             <div className="rcp-review-section rcp-info-grid">
-              <h3>{t("editRecipe.preparationSteps", "Preparation Steps")}</h3>
-              <div className="rcp-info-grid">
-                <div className="rcp-info-item">
-                  <ol>
-                    {recipe.steps.map((s, i) => <li key={i}>{s}</li>)}
-                  </ol>
-                </div>
-              </div>
-            </div>
+  <h3>{t("editRecipe.preparationSteps", "Preparation Steps")}</h3>
+  <div className="rcp-info-grid">
+    <div className="rcp-info-item">
+      {/* Replaced <ol> with a standard div and <p> tags to prevent double-numbering */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {recipe.steps.map((s, i) => (
+          <p key={i} style={{ margin: 0 }}>{s}</p>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
 
             <div className="rcp-review-section rcp-info-grid">
               <h3>{t("editRecipe.additionalNotes", "Additional Notes")}</h3>
