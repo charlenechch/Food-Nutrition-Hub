@@ -10,6 +10,7 @@ router.get('/:id', async (req, res) => {
     console.log(`Fetching data for food ID: ${foodId}`);
 
     // 1. Fetch food details separately
+    // ADDED f.dietaryTags to this SQL query!
     const foodQuery = `
       SELECT 
         f.foodID,
@@ -20,6 +21,7 @@ router.get('/:id', async (req, res) => {
         f.culturalSignificance,
         f.traditionalPreparation,
         f.commonIngredients,
+        f.dietaryTags, 
         f.image,
         f.healthTips,
         f.Energy_kcal,
@@ -110,13 +112,14 @@ router.get('/:id', async (req, res) => {
       culturalSignificance: food.culturalSignificance,
       traditionalPreparation: food.traditionalPreparation,
       commonIngredients: ingredients,
+      dietaryTags: food.dietaryTags, // ADDED this line to send the data to the frontend!
       calories: Energy_kcal,
       protein: Protein_g,
       fat: Fat_g,
       carbs: Carbohydrates_g,
       image: food.image,
       healthTips: food.healthTips,
-      recipeId: recipeId, // This will be null if no recipe exists for THIS food
+      recipeId: recipeId,
       Fiber_g,
       VitaminC_mg,
       gram_per_serving: num(food.gram_per_serving),
