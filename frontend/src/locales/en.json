@@ -581,7 +581,11 @@
     "perfectDays": "Perfect Days",
     "action_QUIZ_COMPLETED": "Daily Quiz Completed",
     "quizSubtitle": "Earned by finishing the daily challenge",
-    "deletedItem": "Item #{{id}}"
+    "deletedItem": "Item #{{id}}",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "adminAccess": "Admin Access",
+    "accountDeletion": "Account Deletion"
   },
  
   "auth": {

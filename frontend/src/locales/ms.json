@@ -581,7 +581,11 @@
     "perfectDays": "Hari Sempurna",
     "action_QUIZ_COMPLETED": "Kuiz Harian Selesai",
     "quizSubtitle": "Diperoleh dengan menyelesaikan cabaran harian",
-    "deletedItem": "Item #{{id}}"
+    "deletedItem": "Item #{{id}}",
+    "notifications": "Pemberitahuan",
+    "privacy": "Privasi",
+    "adminAccess": "Akses Pentadbir",
+    "accountDeletion": "Pemadaman Akaun"
   },
 
   "auth": {
