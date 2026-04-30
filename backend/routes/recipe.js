@@ -1467,7 +1467,7 @@ router.delete("/admin/delete/:id", async (req, res) => {
     // 2. Get recipe details before deletion
     console.log(`🔍 Fetching recipe details for recipeID: ${id}`);
     const [recipeRows] = await db.query(
-      "SELECT recipeName, foodID FROM recipe WHERE recipeID = ?", 
+      "SELECT r.recipeName, r.foodID, u.userID FROM recipe r JOIN userProfile up ON r.userProfileID = up.userProfileID JOIN user u ON up.userID = u.userID WHERE r.recipeID = ?",  
       [id]
     );
     
@@ -1483,6 +1483,7 @@ router.delete("/admin/delete/:id", async (req, res) => {
     
     const recipeName = recipeRows[0].recipeName;
     const foodID = recipeRows[0].foodID;
+    const ownerUserID = recipeRows[0].userID;
     console.log(`✅ Found recipe - Name: "${recipeName}", FoodID: ${foodID}`);
 
     // 3. Delete from 'recipe' table (using recipeID)
@@ -1523,6 +1524,10 @@ router.delete("/admin/delete/:id", async (req, res) => {
     console.log(`📝 Logging activity - Admin: ${adminName} (ID: ${adminID})`);
     await logActivity(db, adminID, adminName, "recipe_deleted", `Deleted recipe "${recipeName}" (Recipe ID: ${id}).`);
     console.log(`✅ Activity logged successfully`);
+    if (ownerUserID) {
+        await createNotification(ownerUserID, "recipe_deleted", `Your recipe "${recipeName}" has been removed by an administrator.`, db);
+        console.log(`🔔 Recipe deletion notification created for userID: ${ownerUserID}`);
+    }
 
     console.log(`✅ [ADMIN] Recipe ${id} deleted successfully. Summary:`, {
       recipeID: id,

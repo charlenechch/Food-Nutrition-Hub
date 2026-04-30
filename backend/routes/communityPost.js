@@ -1666,8 +1666,9 @@ router.delete("/admin/delete/:id", checkIsAdmin, async (req, res) => {
 
   try {
     // Fetch post name before deletion for logging
-    const [postRows] = await db.execute("SELECT foodName FROM posts WHERE postID = ?", [id]);
+    const [postRows] = await db.execute("SELECT p.foodName, u.userID FROM posts p JOIN userProfile up ON p.userProfileID = up.userProfileID JOIN user u ON up.userID = u.userID WHERE p.postID = ?", [id]);
     const postName = postRows.length > 0 ? postRows[0].foodName : `ID ${id}`;
+    const ownerUserID = postRows.length > 0 ? postRows[0].userID : null;
 
     // Execute delete query
     const query = "DELETE FROM posts WHERE postID = ?";
@@ -1680,6 +1681,10 @@ router.delete("/admin/delete/:id", checkIsAdmin, async (req, res) => {
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
     await logActivity(db, adminID, adminName, "post_deleted", `Deleted community post "${postName}" (Post ID: ${id}).`);
+    if (ownerUserID) {
+        await createNotification(ownerUserID, "post_deleted", `Your community post "${postName}" has been removed by an administrator.`, db);
+        console.log(`🔔 Post deletion notification created for userID: ${ownerUserID}`);
+    }
 
     console.log(`✅ [ADMIN] Post ${id} deleted successfully.`);
     res.json({ success: true, message: "Post deleted successfully." });
