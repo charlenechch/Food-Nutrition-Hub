@@ -295,7 +295,7 @@ app.use("/api/userProfile", requireConsent, hppProtect({
   allowlist: [
     "dietary", "allergies", "emailNotifications", "pushNotifications", "profileVisibility", "language", 
     "location", "bio", "pdpaConsent", "tncConsent", "newLevel", "equippedBadge", "equippedContributorBadge", "badgeId",
-    "score", "xpEarned", "isPerfect"
+    "score", "xpEarned", "isPerfect", "firstName", "lastName"
   ], 
   logger: (tag, meta) => logger.warn(`HPP UserProfile Parameter: ${tag}`, meta) 
 }), userProfileRoutes);
