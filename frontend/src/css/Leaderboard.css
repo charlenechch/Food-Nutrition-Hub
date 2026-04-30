@@ -712,7 +712,7 @@ body {
 /* Small Mobile (480px and below) */
 @media (max-width: 480px) {
   .leaderboard-container {
-    padding: 70px 0.75rem 0.75rem 0.75rem;
+    padding: 80px 0.75rem 0.75rem 0.75rem;
   }
   
   .leaderboard-header h1 {
