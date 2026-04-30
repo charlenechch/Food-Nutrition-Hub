@@ -585,7 +585,9 @@
     "notifications": "Notifications",
     "privacy": "Privacy",
     "adminAccess": "Admin Access",
-    "accountDeletion": "Account Deletion"
+    "accountDeletion": "Account Deletion",
+        "firstNameRequired": "First name cannot be empty.",
+    "lastNameRequired": "Last name cannot be empty."
   },
  
   "auth": {
@@ -666,9 +668,7 @@
     "tncConsentRequired": "You must agree to the Terms & Conditions to register.",
     "continueWithGoogle": "Continue with Google",
     "googleSignUpNote": "Signing up with Google means you'll need to use Google to sign in every time.",
-    "googleUserBlocked": "You signed up with Google. Please use Google to sign in.",
-    "firstNameRequired": "First name cannot be empty.",
-    "lastNameRequired": "Last name cannot be empty."
+    "googleUserBlocked": "You signed up with Google. Please use Google to sign in."
   },
   
   "emailVerification": {

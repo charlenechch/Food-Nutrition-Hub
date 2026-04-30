@@ -569,10 +569,12 @@ const toggleSelectAll = () => {
 // Save: Personal Info
 const savePersonal = async () => {
   if (!form.firstName || !form.firstName.trim()) {
+    setForm(prev => ({ ...prev, firstName: user.firstName || "", lastName: user.lastName || "" }));
     openAlert(t("profile.updateFailed"), t("profile.firstNameRequired"), <AlertTriangle />);
     return;
   }
   if (!form.lastName || !form.lastName.trim()) {
+    setForm(prev => ({ ...prev, firstName: user.firstName || "", lastName: user.lastName || "" }));
     openAlert(t("profile.updateFailed"), t("profile.lastNameRequired"), <AlertTriangle />);
     return;
   }
