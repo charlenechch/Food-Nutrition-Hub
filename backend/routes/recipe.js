@@ -1467,7 +1467,7 @@ router.delete("/admin/delete/:id", async (req, res) => {
     // 2. Get recipe details before deletion
     console.log(`🔍 Fetching recipe details for recipeID: ${id}`);
     const [recipeRows] = await db.query(
-      "SELECT r.recipeName, r.foodID, u.userID FROM recipe r JOIN userProfile up ON r.userProfileID = up.userProfileID JOIN user u ON up.userID = u.userID WHERE r.recipeID = ?",  
+      "SELECT r.recipeName, r.foodID, u.userID, u.email, u.firstname FROM recipe r JOIN userProfile up ON r.userProfileID = up.userProfileID JOIN user u ON up.userID = u.userID WHERE r.recipeID = ?",   
       [id]
     );
     
@@ -1484,6 +1484,8 @@ router.delete("/admin/delete/:id", async (req, res) => {
     const recipeName = recipeRows[0].recipeName;
     const foodID = recipeRows[0].foodID;
     const ownerUserID = recipeRows[0].userID;
+    const ownerEmail = recipeRows[0].email;
+    const ownerFirstname = recipeRows[0].firstname;
     console.log(`✅ Found recipe - Name: "${recipeName}", FoodID: ${foodID}`);
 
     // 3. Delete from 'recipe' table (using recipeID)
@@ -1525,9 +1527,37 @@ router.delete("/admin/delete/:id", async (req, res) => {
     await logActivity(db, adminID, adminName, "recipe_deleted", `Deleted recipe "${recipeName}" (Recipe ID: ${id}).`);
     console.log(`✅ Activity logged successfully`);
     if (ownerUserID) {
-        await createNotification(ownerUserID, "recipe_deleted", `Your recipe "${recipeName}" has been removed by an administrator.`, db);
-        console.log(`🔔 Recipe deletion notification created for userID: ${ownerUserID}`);
-    }
+      await createNotification(ownerUserID, "recipe_deleted", `Your recipe "${recipeName}" has been removed by an administrator.`, db);
+      console.log(`🔔 Recipe deletion notification created for userID: ${ownerUserID}`);
+
+      const emailEnabled = await isEmailNotificationsEnabled(ownerUserID, db);
+      if (emailEnabled && ownerEmail) {
+          const html = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+              <div style="background-color: #dc3545; padding: 20px; text-align: center;">
+                <h1 style="color: #fff; margin: 0;">Recipe Removed</h1>
+              </div>
+              <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h2 style="color: #dc3545;">Hello ${ownerFirstname},</h2>
+                <p>Your recipe <strong>"${recipeName}"</strong> has been removed by an administrator.</p>
+                <p>If you have any questions, please contact us at <a href="mailto:info@sarawakeats.com">info@sarawakeats.com</a>.</p>
+                <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                  Best regards,<br>The SarawakEats Team
+                </p>
+              </div>
+            </div>
+          `;
+          await sendEmail({
+              to: ownerEmail,
+              subject: "Your Recipe Has Been Removed",
+              html: html,
+              text: `Hello ${ownerFirstname}, your recipe "${recipeName}" has been removed by an administrator. If you have any questions, please contact us at info@sarawakeats.com.`
+          });
+          console.log(`📩 Recipe deletion email sent to: ${ownerEmail}`);
+      } else {
+          console.log(`📭 Recipe deletion email skipped (notifications disabled) for userID: ${ownerUserID}`);
+      }
+  }
 
     console.log(`✅ [ADMIN] Recipe ${id} deleted successfully. Summary:`, {
       recipeID: id,
