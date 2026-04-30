@@ -568,8 +568,18 @@ const toggleSelectAll = () => {
 
 // Save: Personal Info
 const savePersonal = async () => {
+  if (!form.firstName || !form.firstName.trim()) {
+    openAlert(t("profile.updateFailed"), t("profile.firstNameRequired"), <AlertTriangle />);
+    return;
+  }
+  if (!form.lastName || !form.lastName.trim()) {
+    openAlert(t("profile.updateFailed"), t("profile.lastNameRequired"), <AlertTriangle />);
+    return;
+  }
   try {
     const updateData = { 
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
       location: form.location, 
       bio: bio,
       emailNotifications: prefs.emailNotifications,
@@ -604,7 +614,7 @@ const savePersonal = async () => {
     
     if (result.success) {
       openAlert(t("profile.saved"), t("profile.profileUpdated"), <CheckCircle2 />);
-      setUser(prev => ({ ...prev, location: form.location, bio: bio }));
+      setUser(prev => ({ ...prev, firstName: form.firstName.trim(), lastName: form.lastName.trim(), location: form.location, bio: bio }));
     } else {
       throw new Error(result.error || "Update failed");
     }

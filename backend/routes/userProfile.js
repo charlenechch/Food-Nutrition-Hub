@@ -65,11 +65,12 @@ const profileUpdateSchema = Joi.object({
     return processedArray.filter(Boolean).map(item => String(item).substring(0, 60));
   }).default([]),
   
-  // ✅ CHANGED TO OPTIONAL: This stops the 400 Bad Request error
   emailNotifications: Joi.boolean().optional(),
   pushNotifications: Joi.boolean().optional(),
   profileVisibility: Joi.boolean().optional(),
-  language: Joi.string().max(10).valid('en', 'ms', 'zh', 'id', 'ta', 'hi', 'ar', 'es', 'fr', 'de').optional()
+  language: Joi.string().max(10).valid('en', 'ms', 'zh', 'id', 'ta', 'hi', 'ar', 'es', 'fr', 'de').optional(),
+  firstName: Joi.string().max(100).allow(null, '').optional(),
+  lastName: Joi.string().max(100).allow(null, '').optional()
 })
 .required()
 .unknown(true);
@@ -208,7 +209,7 @@ const updateUserStats = async (userID) => {
     // First ensure profile exists AND get the userProfileID
     await ensureUserProfileExists(userID);
     
-    // ✅ ADD THIS: Get the userProfileID for this user
+    // Get the userProfileID for this user
     const [profileResult] = await db.execute(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
@@ -913,10 +914,18 @@ router.put("/update", async (req, res) => {
     const userID = req.session.user.userID;
     await ensureUserProfileExists(userID);
 
+    if (value.firstName !== undefined && value.firstName.trim() === "") {
+      return res.status(400).json({ error: "First name cannot be empty." });
+    }
+    if (value.lastName !== undefined && value.lastName.trim() === "") {
+      return res.status(400).json({ error: "Last name cannot be empty." });
+    }
+
     const { 
       location, bio, dietary, allergies, 
       emailNotifications, pushNotifications, 
-      profileVisibility, language, equippedBadge, equippedContributorBadge
+      profileVisibility, language, equippedBadge, equippedContributorBadge,
+      firstName, lastName
     } = value;
 
     console.log(`💾 Executing profile update query for user: ${userID}`);
@@ -950,6 +959,21 @@ router.put("/update", async (req, res) => {
     );
 
     await updateUserStats(userID);
+
+    if (firstName !== undefined || lastName !== undefined) {
+      await db.execute(
+        `UPDATE user SET 
+          firstname = COALESCE(?, firstname),
+          lastname = COALESCE(?, lastname)
+         WHERE userID = ?`,
+        [
+          firstName !== undefined ? firstName : null,
+          lastName !== undefined ? lastName : null,
+          userID
+        ]
+      );
+    }
+
     res.json({ success: true, message: "Profile updated successfully" });
 
   } catch (err) {
