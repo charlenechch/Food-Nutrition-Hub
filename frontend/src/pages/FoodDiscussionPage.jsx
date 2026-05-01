@@ -367,12 +367,6 @@ export default function FoodDiscussionPage() {
   const [translatedFood, setTranslatedFood] = useState({});
 
   const { t, i18n } = useTranslation();
-
-  const [foodLike, setFoodLike] = useState({
-    isLiked: false,
-    likesCount: 0,
-    loading: false
-  });
   
   // Delete confirmation modal state
   const [deleteModal, setDeleteModal] = useState({
@@ -431,7 +425,6 @@ export default function FoodDiscussionPage() {
   useEffect(() => {
   if (foodId && userProfileID) { 
     fetchComments();
-    fetchFoodLikeStatus(); 
   }
 }, [foodId, userProfileID]); 
 
@@ -484,193 +477,9 @@ export default function FoodDiscussionPage() {
     if (foodId) fetchComments();
   }, [foodId]);
 
-// Load likes from localStorage on component mount - USER-SPECIFIC
-const loadLikesFromStorage = () => {
-  if (!userProfileID) {
-    console.log('🟡 userProfileID not available yet');
-    return null;
-  }
-  
-  try {
-    const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
-    const storedLikes = localStorage.getItem(userSpecificKey);
-    if (storedLikes) {
-      return JSON.parse(storedLikes);
-    }
-  } catch (error) {
-    console.warn('Failed to load likes from localStorage:', error);
-  }
-  return null;
-};
-
-// Fetch food like status 
-const fetchFoodLikeStatus = async () => {
-  console.log('🟡 fetchFoodLikeStatus called - userProfileID:', userProfileID);
-  try {
-    const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/like-status`, {
-      credentials: "include",
-    });
-
-    console.log('🟡 fetchFoodLikeStatus - Response status:', res.status);
-    
-    if (res.ok) {
-      const data = await res.json();
-      console.log('🟡 fetchFoodLikeStatus - Response data:', data);
-      
-      if (data.success) {
-        const serverLikeData = {
-          isLiked: data.data.isLiked,
-          likesCount: data.data.likesCount,
-          loading: false
-        };
-        
-        setFoodLike(prev => ({
-          ...prev,
-          ...serverLikeData,
-          initialized: true
-        }));
-        
-        // Sync localStorage with server data - USER-SPECIFIC
-        try {
-          if (userProfileID) {
-            const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
-            localStorage.setItem(userSpecificKey, JSON.stringify({
-              ...serverLikeData,
-              lastUpdated: new Date().toISOString(),
-              syncedWithServer: true
-            }));
-          }
-        } catch (storageError) {
-          console.warn('Failed to sync server likes to localStorage:', storageError);
-        }
-        
-        console.log('🟢 fetchFoodLikeStatus - Updated state:', serverLikeData);
-      }
-    } else {
-      const errorText = await res.text();
-      console.log('🔴 fetchFoodLikeStatus - API error details:', errorText);
-    }
-  } catch (error) {
-    console.error('❌ fetchFoodLikeStatus - Network error:', error);
-  }
-};
-
-// Toggle food like - USER-SPECIFIC STORAGE
-const toggleFoodLike = async () => {
-  if (isGuest) return setShowLoginPrompt(true);
-  
-  if (foodLike.loading) return;
-
-  console.log('🟡 BEFORE toggle - isLiked:', foodLike.isLiked, 'likesCount:', foodLike.likesCount);
-
-  // Optimistic update
-  const previousState = { ...foodLike };
-  const newIsLiked = !foodLike.isLiked;
-  const newLikesCount = newIsLiked ? foodLike.likesCount + 1 : foodLike.likesCount - 1;
-
-  // IMMEDIATELY update state AND localStorage
-  setFoodLike(prev => ({
-    ...prev,
-    isLiked: !prev.isLiked,
-    likesCount: prev.isLiked ? prev.likesCount - 1 : prev.likesCount + 1,
-    loading: true
-  }));
-
-  // Save to localStorage immediately 
-  try {
-    const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
-    localStorage.setItem(userSpecificKey, JSON.stringify({
-      isLiked: newIsLiked,
-      likesCount: newLikesCount,
-      lastUpdated: new Date().toISOString()
-    }));
-  } catch (storageError) {
-    console.warn('Failed to save likes to localStorage:', storageError);
-  }
-
-  try {
-    console.log('🟡 Calling toggle-like API for food:', foodId);
-    const res = await fetch(`${API}/api/foodDiscussion/food/${foodId}/toggle-like`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json",
-      "X-CSRF-Token": csrfToken
-       },
-      credentials: "include",
-    });
-
-    console.log('🟡 API Response status:', res.status);
-    const data = await res.json();
-    console.log('🟡 API Response data:', data);
-
-    if (res.ok && data.success) {
-      console.log('🟢 API Success - isLiked:', data.data.isLiked, 'likesCount:', data.data.likesCount);
-      
-      setFoodLike(prev => ({
-        ...prev,
-        isLiked: data.data.isLiked,
-        likesCount: data.data.likesCount,
-        loading: false
-      }));
-
-      try {
-        const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
-        localStorage.setItem(userSpecificKey, JSON.stringify({
-          isLiked: data.data.isLiked,
-          likesCount: data.data.likesCount,
-          lastUpdated: new Date().toISOString(),
-          syncedWithServer: true
-        }));
-      } catch (storageError) {
-        console.warn('Failed to sync likes with localStorage:', storageError);
-      }
-    } else {
-      console.log('🔴 API Error:', data.message);
-      setFoodLike(prev => ({
-        ...prev,
-        ...previousState,
-        loading: false
-      }));
-      
-      try {
-        const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
-        localStorage.setItem(userSpecificKey, JSON.stringify(previousState));
-      } catch (storageError) {
-        console.warn('Failed to revert likes in localStorage:', storageError);
-      }
-      
-      openInfo({
-        title: "Couldn't update like",
-        message: data?.message || "Please try again",
-        icon: <AlertTriangle />,
-      });
-    }
-  } catch (err) {
-    console.error("❌ Network error:", err);
-    setFoodLike(prev => ({
-      ...prev,
-      ...previousState,
-      loading: false
-    }));
-    
-    try {
-      const userSpecificKey = `foodLikes_${foodId}_${userProfileID}`;
-      localStorage.setItem(userSpecificKey, JSON.stringify(previousState));
-    } catch (storageError) {
-      console.warn('Failed to revert likes in localStorage:', storageError);
-    }
-    
-    openInfo({
-      title: "Network Error",
-      message: "We couldn't update your like. Please check your connection",
-      icon: <AlertTriangle />,
-    });
-  }
-};
-
     useEffect(() => {
       if (foodId) {
         fetchComments();
-        fetchFoodLikeStatus(); 
       }
     }, [foodId]);
 
@@ -1193,17 +1002,6 @@ const postReply = async (discussionId) => {
             {/* Stats */}
             <div className="fd-sum-stats">
               💬 {totalComments} {t("foodDiscussion.comments")}
-              <span 
-                className={`fd-food-like-btn ${foodLike.isLiked ? 'liked' : ''}`}
-                onClick={toggleFoodLike}
-                style={{
-                  cursor: foodLike.loading ? 'not-allowed' : 'pointer',
-                  opacity: foodLike.loading ? 0.6 : 1
-                }}
-                title={foodLike.isLiked ? "Unlike this food" : "Like this food"}
-              >
-                {foodLike.loading ? '⏳' : (foodLike.isLiked ? "♥" : "♡")} {foodLike.likesCount} {t("foodDiscussion.likes")}
-              </span>
             </div>
           </div>
         </div>
