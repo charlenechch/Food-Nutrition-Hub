@@ -387,7 +387,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     // 6. Return Success Response
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-    await logActivity(db, adminID, adminName, "food_created", `Added new food "${name}" (ID: ${foodId}).`);
+    await logActivity(db, adminID, adminName, "food_created", `Added new food "${name}" (Food ID: ${foodId}).`);
 
     res.json({
       success: true,
@@ -523,7 +523,7 @@ router.put("/:id", requireAuth, requireAdmin, async (req, res) => {
 
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-    await logActivity(db, adminID, adminName, "food_updated", `Updated food "${name || existing[0].name}" (ID: ${foodId}).`);
+    await logActivity(db, adminID, adminName, "food_updated", `Updated food "${name || existing[0].name}" (Food ID: ${foodId}).`);
 
     res.json({ success: true, message: "Food updated successfully." });
   } catch (err) {
@@ -546,7 +546,7 @@ router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
 
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-    await logActivity(db, adminID, adminName, "food_deleted", `Deleted food "${existing[0].name}" (ID: ${req.params.id}).`);
+    await logActivity(db, adminID, adminName, "food_deleted", `Deleted food "${existing[0].name}" (Food ID: ${req.params.id}).`);
     
     res.json({ success: true, message: "Food deleted successfully" });
   } catch (err) {
