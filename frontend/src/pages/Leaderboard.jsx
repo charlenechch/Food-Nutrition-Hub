@@ -232,7 +232,7 @@ const Leaderboard = () => {
       </div>
 
       <div className="time-filter-row">
-        <div className="time-filter-section">
+        <div className={`time-filter-section ${activeTab === "level" ? "time-filter-hidden" : ""}`}>
           <div className="filter-label">
             <span>{t("leaderboard.time_period")}:</span>
           </div>
