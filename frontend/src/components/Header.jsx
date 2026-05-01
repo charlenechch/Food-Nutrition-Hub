@@ -362,7 +362,11 @@ export default function Header() {
                     </button>
                   </div>
 
-                  <div className="notification-list">
+                  <div 
+                    className="notification-list"
+                    onWheel={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}
+                  >
                     {notifications.length === 0 ? (
                       <p className="notification-empty">{t("nav.noNotifications")}</p>
                     ) : (
