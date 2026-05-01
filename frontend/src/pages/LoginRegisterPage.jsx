@@ -403,8 +403,8 @@ export default function LoginRegisterPage() {
         }),
       });
       const data = await res.json();
-      await fb.user.delete();
       if (!res.ok) {
+        await fb.user.delete();
         setRegisterError(data.message || t("auth.registrationFailed"));
         return;
       }
