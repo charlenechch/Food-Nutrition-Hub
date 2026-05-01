@@ -1168,11 +1168,10 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
 
     const actionType = status === "Approved" ? "recipe_approved" : "recipe_rejected";
-    await logActivity(db, adminID, adminName, actionType, `${status} recipe for food (ID: ${recipeId}).`);
 
     // Fetch User Info & Recipe Details
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, f.name AS recipeName
+      SELECT u.email, u.firstname, r.name AS recipeName
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
@@ -1182,6 +1181,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
     if (rows.length > 0) {
       const { email, firstname, recipeName } = rows[0];
+      await logActivity(db, adminID, adminName, actionType, `${status} recipe "${recipeName}" (ID: ${recipeId}).`);
 
       // Force stats recount and AWARD XP
       let userID = null;
@@ -1524,7 +1524,7 @@ router.delete("/admin/delete/:id", async (req, res) => {
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
     console.log(`📝 Logging activity - Admin: ${adminName} (ID: ${adminID})`);
-    await logActivity(db, adminID, adminName, "recipe_deleted", `Deleted recipe "${recipeName}" (Recipe ID: ${id}).`);
+    await logActivity(db, adminID, adminName, "recipe_deleted", `Deleted recipe "${recipeName}" (ID: ${id}).`);
     console.log(`✅ Activity logged successfully`);
     if (ownerUserID) {
       await createNotification(ownerUserID, "recipe_deleted", `Your recipe "${recipeName}" has been removed by an administrator.`, db);
