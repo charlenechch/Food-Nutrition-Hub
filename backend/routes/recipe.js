@@ -1171,7 +1171,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
     // Fetch User Info & Recipe Details
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, r.name AS recipeName
+      SELECT u.email, u.firstname, r.recipeName
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
@@ -1347,7 +1347,7 @@ router.patch('/sendFeedback/:id', async (req, res) => {
 
     // 2. Fetch Info AND Status
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, r.name AS recipeName, r.status, u.userID
+      SELECT u.email, u.firstname, r.recipeName, r.status, u.userID
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
