@@ -168,7 +168,14 @@
 .fd-disc-role { color: #555; font-size: .78rem; }
 .fd-disc-time { color: #888; font-size: .78rem; }
 
-.fd-disc-text { margin: .35rem 0 .25rem; color: #333; }
+.fd-disc-text { 
+  margin: .35rem 0 .25rem; 
+  color: #333; 
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
 
 .fd-disc-actions { display: flex; gap: .75rem; }
 .fd-link-btn {
