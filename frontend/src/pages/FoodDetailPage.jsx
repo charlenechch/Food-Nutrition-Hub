@@ -82,21 +82,17 @@ export default function FoodDetailPage() {
   const buildHealthAlerts = (food) => {
     const alerts = [];
     
-    const gramPerServing = num(food?.gram_per_serving) || 100;
-    const multiplier = 100 / gramPerServing;
-
-    const kcal = getPerServing(food, "Energy_kcal_ps", "Energy_kcal") * multiplier;
-    const protein = getPerServing(food, "Protein_g_ps", "Protein_g") * multiplier;
-    const fat = getPerServing(food, "Fat_g_ps", "Fat_g") * multiplier;
-    const carbs = getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g") * multiplier;
-    const fiber = getPerServing(food, "Fiber_g_ps", "Fiber_g") * multiplier;
-    const vitC = getPerServing(food, "VitaminC_mg_ps", "VitaminC_mg") * multiplier;
+    // Use direct keys since data is already per serving
+    const kcal = num(food?.calories || food?.Energy_kcal_ps || food?.Energy_kcal);
+    const protein = num(food?.protein || food?.Protein_g_ps || food?.Protein_g);
+    const fat = num(food?.fat || food?.Fat_g_ps || food?.Fat_g);
+    const carbs = num(food?.carbs || food?.Carbohydrates_g_ps || food?.Carbohydrates_g);
+    const fiber = num(food?.Fiber_g_ps || food?.Fiber_g);
+    const vitC = num(food?.VitaminC_mg_ps || food?.VitaminC_mg);
     
     if (kcal <= 40 && kcal > 0) alerts.push({ type: "info", key: "foodDetail.alertLowCal" });
-    else if (kcal >= 250) alerts.push({ type: "warning", key: "foodDetail.alertHighCal" });
 
     if (fat <= 3 && fat > 0) alerts.push({ type: "info", key: "foodDetail.alertLowFat" });
-    else if (fat >= 20) alerts.push({ type: "warning", key: "foodDetail.alertHighFat" });
     
     if (protein >= 10) alerts.push({ type: "info", key: "foodDetail.alertExcellentProtein" });
     else if (protein >= 5) alerts.push({ type: "info", key: "foodDetail.alertGoodProtein" });
@@ -106,7 +102,6 @@ export default function FoodDetailPage() {
     if (vitC >= 30) alerts.push({ type: "info", key: "foodDetail.alertHighVitC" });
     else if (vitC >= 15) alerts.push({ type: "info", key: "foodDetail.alertSourceVitC" });
         
-    // FIXED: Now checks for both dietaryTags and dietary_tags to trigger alerts
     const tags = parseStringToArray(food?.dietaryTags || food?.dietary_tags).map(t => t.toLowerCase());
     if (tags.includes("spicy")) alerts.push({ type: "info", key: "foodDetail.alertSpicy" });
     if (tags.includes("vegetarian")) alerts.push({ type: "info", key: "foodDetail.alertVegetarian" });
@@ -378,19 +373,31 @@ export default function FoodDetailPage() {
               <p className="fdp-muted">{t("foodDetail.perServing")}</p>
               <div className="fdp-nutri-grid">
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{Math.round(getPerServing(food, "Energy_kcal_ps", "Energy_kcal")) || "-"}</div>
+                  <div className="fdp-nutri-value">
+                    {food?.calories != null ? Math.round(Number(food.calories)) : 
+                    food?.Energy_kcal_ps != null ? Math.round(Number(food.Energy_kcal_ps)) : "-"}
+                  </div>
                   <div className="fdp-nutri-label">{t("explore.calories")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{getPerServing(food, "Protein_g_ps", "Protein_g")?.toFixed?.(1) ?? "-"}g</div>
+                  <div className="fdp-nutri-value">
+                    {food?.protein != null ? Number(food.protein).toFixed(1) : 
+                    food?.Protein_g_ps != null ? Number(food.Protein_g_ps).toFixed(1) : "-"}g
+                  </div>
                   <div className="fdp-nutri-label">{t("explore.protein")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{getPerServing(food, "Carbohydrates_g_ps", "Carbohydrates_g")?.toFixed?.(1) ?? "-"}g</div>
+                  <div className="fdp-nutri-value">
+                    {food?.carbs != null ? Number(food.carbs).toFixed(1) : 
+                    food?.Carbohydrates_g_ps != null ? Number(food.Carbohydrates_g_ps).toFixed(1) : "-"}g
+                  </div>
                   <div className="fdp-nutri-label">{t("explore.carbs")}</div>
                 </div>
                 <div className="fdp-nutri">
-                  <div className="fdp-nutri-value">{getPerServing(food, "Fat_g_ps", "Fat_g")?.toFixed?.(1) ?? "-"}g</div>
+                  <div className="fdp-nutri-value">
+                    {food?.fat != null ? Number(food.fat).toFixed(1) : 
+                    food?.Fat_g_ps != null ? Number(food.Fat_g_ps).toFixed(1) : "-"}g
+                  </div>
                   <div className="fdp-nutri-label">{t("explore.fat")}</div>
                 </div>
               </div>
