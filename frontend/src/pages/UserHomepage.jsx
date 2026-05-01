@@ -234,6 +234,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     if (!container) return;
 
     const handleWheel = (e) => {
+      if (document.body.classList.contains("notification-panel-open")) return;
       e.preventDefault();
       if (isSnappingRef.current) return;
       const sections = container.querySelectorAll(".home-snap-section");
@@ -251,6 +252,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
     let touchStartY = 0;
     const handleTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
     const handleTouchEnd = (e) => {
+      if (document.body.classList.contains("notification-panel-open")) return;
       if (isSnappingRef.current) return;
       const delta = touchStartY - e.changedTouches[0].clientY;
       if (Math.abs(delta) < 50) return;

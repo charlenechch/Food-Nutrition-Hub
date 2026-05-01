@@ -31,6 +31,7 @@ export default function Header() {
     const handleClickOutside = (e) => {
       if (notificationRef.current && !notificationRef.current.contains(e.target)) {
         setShowNotifications(false);
+        document.body.classList.remove("notification-panel-open");
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -152,7 +153,11 @@ export default function Header() {
   };
 
   const handleBellClick = () => {
-    setShowNotifications(prev => !prev);
+    setShowNotifications(prev => {
+      const next = !prev;
+      document.body.classList.toggle("notification-panel-open", next);
+      return next;
+    });
   };
 
   const handleMarkAllRead = async () => {
