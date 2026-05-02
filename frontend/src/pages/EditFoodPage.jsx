@@ -756,7 +756,7 @@ const handleSaveAttempt = () => {
               {availableDietaryTags.map((tag) => {
                 const isSelected = selectedDietary.includes(tag);
                 return (
-                  <button key={tag} type="button" style={getChipStyle(isSelected)} onClick={() => toggleDietary(tag)}>
+                  <button key={tag} className="lrp-no-outline" type="button" style={getChipStyle(isSelected)} onClick={() => toggleDietary(tag)}>
                     {tag}
                     {isSelected && <FiCheck />}
                   </button>
