@@ -142,14 +142,6 @@ const EditFoodPage = () => {
               });
             });
           }
-          
-          // Handle Common Ingredients
-          if (foodData.data.commonIngredients) {
-            const dbIngredients = foodData.data.commonIngredients.split(',').map(s => s.trim()).filter(Boolean);
-            setSelectedIngredients(dbIngredients);
-            // Merge custom ingredients from DB
-            setAvailableIngredients(prev => Array.from(new Set([...prev, ...dbIngredients])));
-          }
 
           setExistingImageUrl(foodData.data.image || "");
         } else {
