@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import PrivacyPolicyContent from "./PrivacyPolicyContent";
 import TermsAndConditionsContent from "./TermsAndConditionsContent";
 import "../css/PolicyContent.css";
-import "../css/ConsentModal.css";
+import "../components/ConsentModal.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
