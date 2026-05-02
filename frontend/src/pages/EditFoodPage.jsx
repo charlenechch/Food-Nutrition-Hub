@@ -128,9 +128,9 @@ const EditFoodPage = () => {
             
             const cleanedTags = rawTags.map(tag => {
               const match = DIETARY_TAG_OPTIONS.find(
-                option => option.toLowerCase() === tag.toLowerCase()
+                option => option.toLowerCase().replace('-', ' ') === tag.toLowerCase().replace('-', ' ')
               );
-              return match || tag;
+              return match || tag; 
             });
 
             setSelectedDietary(cleanedTags);
@@ -138,7 +138,9 @@ const EditFoodPage = () => {
             setAvailableDietaryTags(prev => {
               const combined = [...prev, ...cleanedTags];
               return combined.filter((tag, index) => {
-                return combined.findIndex(t => t.toLowerCase() === tag.toLowerCase()) === index;
+                return combined.findIndex(t => 
+                  t.toLowerCase().replace('-', ' ') === tag.toLowerCase().replace('-', ' ')
+                ) === index;
               });
             });
           }
