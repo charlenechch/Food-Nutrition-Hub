@@ -65,14 +65,9 @@ const EditFoodPage = () => {
 
   // States for selected options
   const [selectedDietary, setSelectedDietary] = useState([]);
-  const [selectedIngredients, setSelectedIngredients] = useState([]);
   
   // ADDED: Dynamic states for rendering chips (merges hardcoded lists with DB data)
   const [availableDietaryTags, setAvailableDietaryTags] = useState(DIETARY_TAG_OPTIONS);
-  const [availableIngredients, setAvailableIngredients] = useState(COMMON_INGREDIENTS_LIST);
-
-  const [showOtherIngredient, setShowOtherIngredient] = useState(false);
-  const [otherIngredientText, setOtherIngredientText] = useState("");
 
   //================
   // CSRF
@@ -124,14 +119,28 @@ const EditFoodPage = () => {
             Fat_g: foodData.data.Fat_g || "",
             Fiber_g: foodData.data.Fiber_g || "",
             VitaminC_mg: foodData.data.VitaminC_mg || "",
+            commonIngredients: foodData.data.commonIngredients || "",
           });
 
           // Handle Dietary Tags
           if (foodData.data.dietaryTags) {
-            const dbTags = foodData.data.dietaryTags.split(',').map(s => s.trim()).filter(Boolean);
-            setSelectedDietary(dbTags);
-            // Merge custom tags from DB
-            setAvailableDietaryTags(prev => Array.from(new Set([...prev, ...dbTags])));
+            const rawTags = foodData.data.dietaryTags.split(',').map(s => s.trim()).filter(Boolean);
+            
+            const cleanedTags = rawTags.map(tag => {
+              const match = DIETARY_TAG_OPTIONS.find(
+                option => option.toLowerCase() === tag.toLowerCase()
+              );
+              return match || tag;
+            });
+
+            setSelectedDietary(cleanedTags);
+
+            setAvailableDietaryTags(prev => {
+              const combined = [...prev, ...cleanedTags];
+              return combined.filter((tag, index) => {
+                return combined.findIndex(t => t.toLowerCase() === tag.toLowerCase()) === index;
+              });
+            });
           }
           
           // Handle Common Ingredients
@@ -317,7 +326,7 @@ const handleSaveAttempt = () => {
       return value === undefined || value === null || String(value).trim() === "";
     });
 
-    const hasIngredients = selectedIngredients.length > 0 || (showOtherIngredient && otherIngredientText.trim() !== "");
+    const hasIngredients = food.commonIngredients && food.commonIngredients.trim() !== "";
 
     const hasDietary = selectedDietary.length > 0;
 
@@ -356,11 +365,6 @@ const handleSaveAttempt = () => {
 
     // Prepare food data
     const dietaryString = selectedDietary.join(", ");
-    let ingredientsString = selectedIngredients.join(", ");
-    if (showOtherIngredient && otherIngredientText.trim()) {
-      if (ingredientsString) ingredientsString += ", ";
-      ingredientsString += otherIngredientText.trim();
-    }
 
     const foodDataToSave = {
       name: food.name,
@@ -376,7 +380,7 @@ const handleSaveAttempt = () => {
       Fiber_g: Number(food.Fiber_g) || 0,
       VitaminC_mg: Number(food.VitaminC_mg) || 0,
       image: finalImageUrl,
-      commonIngredients: ingredientsString,
+      commonIngredients: food.commonIngredients,
       dietaryTags: dietaryString,
       healthTips: food.healthTips,
       difficulty: food.difficulty,
@@ -497,10 +501,6 @@ const handleSaveAttempt = () => {
 
   const toggleDietary = (tag) => {
     setSelectedDietary((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
-  };
-
-  const toggleIngredient = (ing) => {
-    setSelectedIngredients((prev) => prev.includes(ing) ? prev.filter((i) => i !== ing) : [...prev, ing]);
   };
 
   const chipContainerStyle = { display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "8px", marginBottom: "16px" };
@@ -743,30 +743,18 @@ const handleSaveAttempt = () => {
           <div className="edit-cultural-context-card">
             <h3>{t("addFood.additionalDetails")}</h3>
             
-            <label className="basic-info-label">{t("addFood.commonIngredients")} <span className="red-asterisk">*</span></label>
-            <div style={chipContainerStyle}>
-              {/* USE dynamic state: availableIngredients */}
-              {availableIngredients.map((ing) => {
-                const isSelected = selectedIngredients.includes(ing);
-                return (
-                  <button key={ing} type="button" style={getChipStyle(isSelected)} onClick={() => toggleIngredient(ing)}>
-                    {ing}
-                    {isSelected && <FiPlus style={{transform: 'rotate(45deg)'}} />}
-                  </button>
-                );
-              })}
-              <button type="button" style={getChipStyle(showOtherIngredient)} onClick={() => setShowOtherIngredient(!showOtherIngredient)}>
-                {t("addFood.other")}
-                {showOtherIngredient && <FiCheck />}
-              </button>
-            </div>
-
-            {showOtherIngredient && (
-              <div className="efpage-show-ing">
-                <label className="basic-info-label efpage-show-ing-label">{t("addFood.otherIngredientsLabel")} <span className="red-asterisk">*</span></label>
-                <textarea className="edit-food-textarea" value={otherIngredientText} onChange={(e) => setOtherIngredientText(e.target.value)} rows={2} />
-              </div>
-            )}
+            <label className="basic-info-label">
+              {t("addFood.commonIngredients")} <span className="red-asterisk">*</span>
+            </label>
+            
+            <textarea 
+              className="edit-food-textarea" 
+              name="commonIngredients" 
+              value={food.commonIngredients || ""} 
+              onChange={handleFoodChange} 
+              rows={3} 
+              placeholder={t("addFood.commonIngredientsPlaceholder")}
+            />
 
             <label className="basic-info-label">{t("addFood.dietaryPreferences")} <span className="red-asterisk">*</span></label>
             <div style={chipContainerStyle}>
