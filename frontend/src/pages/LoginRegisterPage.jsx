@@ -279,6 +279,10 @@ export default function LoginRegisterPage() {
       if (res.ok && data.success) {
         setLoginError(t("auth.newCodeSent"));
         setResendCooldown(60); 
+      } else if (res.status === 429) {
+        const remaining = Math.ceil(60 - (data.timeDiff || 0));
+        setResendCooldown(remaining);
+        setLoginError(t("auth.waitSeconds", { seconds: remaining }));
       } else {
         setLoginError(data.message || t("auth.resendCodeFailed"));
       }
@@ -315,6 +319,14 @@ export default function LoginRegisterPage() {
       if (res.status === 429 && data.lockoutRemaining) {
           setServerLockoutTimer(data.lockoutRemaining);
           setLoginError(t("auth.tooManyAttempts", { time: formatTime(data.lockoutRemaining) }));
+          return;
+      }
+      if (res.status === 429 && data.otpThrottled) {
+          setTempUserId(data.tempUserId);
+          setTempRememberMe(data.rememberDevice);
+          setShowOtpInput(true);
+          setOtpCode("");
+          setLoginError("");
           return;
       }
       if (res.status === 403 && data.googleUserBlocked) {
@@ -420,7 +432,11 @@ export default function LoginRegisterPage() {
       setRegPasswordCriteria({ length: false, upper: false, lower: false, number: false, special: false });
     } catch (err) {
       console.error("Register error:", err);
-      setRegisterError(t("auth.registrationFailed"));
+      if (err.code === "auth/email-already-in-use") {
+        setRegisterError(t("auth.emailAlreadyExists"));
+      } else {
+        setRegisterError(t("auth.registrationFailed"));
+      }
     }
   };
 

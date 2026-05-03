@@ -206,7 +206,9 @@ router.post("/", async (req, res) => {
                 console.warn(`⏳ OTP request throttled for ${email}`);
                 return res.status(429).json({
                     success: false,
-                    message: `Please wait ${Math.ceil(60 - timeDiff)} seconds before requesting a new code.`
+                    otpThrottled: true,
+                    tempUserId: user.userID,
+                    rememberDevice: rememberDevice,
                 });
             }
         }
