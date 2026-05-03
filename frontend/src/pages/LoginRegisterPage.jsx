@@ -253,7 +253,7 @@ export default function LoginRegisterPage() {
         setUser(data.user);
         navigate(data.user.role === "admin" ? "/admin" : "/home");
       } else {
-        setLoginError(data.message || t("auth.invalidCode"));
+        setLoginError(data.message ? t(`auth.${data.message}`, data.message) : t("auth.invalidCode"));
       }
     } catch (err) {
       setLoginError(t("auth.verificationFailed"));

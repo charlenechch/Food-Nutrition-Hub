@@ -133,7 +133,7 @@ router.post("/verifyLogin", async (req, res) => {
     );
 
     if (rows.length === 0) {
-        return res.status(400).json({ success: false, message: "Invalid or expired code" });
+        return res.status(400).json({ success: false, message: "invalidOrExpiredCode" });
     }
 
     // If code is valid, clean up used OTP
