@@ -175,6 +175,9 @@
   word-wrap: break-word;
   word-break: break-word;
   max-width: 100%;
+  -webkit-hyphens: auto; 
+  -ms-hyphens: auto;  
+  hyphens: auto;
 }
 
 .fd-disc-actions { display: flex; gap: .75rem; }
@@ -232,6 +235,8 @@
 .fd-disc-user {
   font-weight: 600;
   color: #333;
+  overflow-wrap: break-word;
+  word-break: break-all;
 }
 
 .fd-disc-time {
