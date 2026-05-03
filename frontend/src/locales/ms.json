@@ -668,7 +668,10 @@
     "tncConsentRequired": "Anda mesti bersetuju dengan Terma & Syarat untuk mendaftar.",
     "continueWithGoogle": "Teruskan dengan Google",
     "googleSignUpNote": "Mendaftar dengan Google bermakna anda perlu menggunakan Google untuk log masuk setiap masa.",
-    "googleUserBlocked": "Anda mendaftar dengan Google. Sila gunakan Google untuk log masuk."
+    "googleUserBlocked": "Anda mendaftar dengan Google. Sila gunakan Google untuk log masuk.",
+    "emailAlreadyExists": "E-mel ini telah didaftarkan. Sila gunakan e-mel yang lain atau cuba log masuk.",
+    "resendApproved": "E-mel pengesahan telah dihantar. Sila semak peti masuk anda untuk pautan baharu.",
+    "accountSuspended": "Akaun anda telah digantung sehingga {{date}}. Sila cuba lagi selepas tarikh tersebut."
   },
 
   "emailVerification": {

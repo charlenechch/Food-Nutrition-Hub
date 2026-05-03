@@ -161,7 +161,8 @@ router.post("/", async (req, res) => {
         
         return res.status(403).json({
             success: false,
-            message: `Your account is suspended until ${untilString}. Please try again after this date.`,
+            suspended: true,
+            suspendedUntil: untilString,
         });
     }
 

@@ -668,7 +668,10 @@
     "tncConsentRequired": "You must agree to the Terms & Conditions to register.",
     "continueWithGoogle": "Continue with Google",
     "googleSignUpNote": "Signing up with Google means you'll need to use Google to sign in every time.",
-    "googleUserBlocked": "You signed up with Google. Please use Google to sign in."
+    "googleUserBlocked": "You signed up with Google. Please use Google to sign in.",
+    "emailAlreadyExists": "This email is already registered. Please use a different email or try logging in.",
+    "resendApproved": "Verification email sent. Please check your inbox for the new link.",
+    "accountSuspended": "Your account is suspended until {{date}}. Please try again after this date."
   },
   
   "emailVerification": {

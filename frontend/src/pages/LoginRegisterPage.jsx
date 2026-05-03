@@ -216,7 +216,7 @@ export default function LoginRegisterPage() {
       await sendEmailVerification(userCredential.user, {
         url: window.location.origin + "/loginregister",
       });
-      setLoginError(checkData.message);
+      setLoginError(t(`auth.${checkData.message}`, checkData.message));
       setShowResendButton(true);
       setStoredPassword("");
     } catch (err) {
@@ -405,7 +405,7 @@ export default function LoginRegisterPage() {
       const data = await res.json();
       if (!res.ok) {
         await fb.user.delete();
-        setRegisterError(data.message || t("auth.registrationFailed"));
+        setRegisterError(data.error ? t(`auth.${data.error}`, data.error) : t("auth.registrationFailed"));
         return;
       }
       await sendEmailVerification(fb.user, {
@@ -471,7 +471,7 @@ export default function LoginRegisterPage() {
         setUser(data.user);
         navigate(data.user.role === "admin" ? "/admin" : "/home");
       } else if (data.suspended) {
-        setLoginError(data.message);
+        setLoginError(t("auth.accountSuspended", { date: data.suspendedUntil }));
       } else {
         setLoginError(data.message || t("auth.googleLoginFailed"));
       }
@@ -569,7 +569,7 @@ export default function LoginRegisterPage() {
                       {resendCooldown > 0 ? t("auth.resendCodeIn", { seconds: resendCooldown }) : t("auth.resendCode")}
                     </button>
                     
-                    <button onClick={() => setShowOtpInput(false)} className="mh-btn-text-small lrp-no-outline">
+                    <button onClick={() => { setShowOtpInput(false); setLoginError(""); }} className="mh-btn-text-small lrp-no-outline">
                       <FaArrowRight style={{ transform: "rotate(180deg)" }}/> {t("auth.backToLogin")}
                     </button>
                   </div>
