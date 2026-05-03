@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
       }
 
       if (checkData.isGoogleUser) {
-        setError("You signed up with Google. Please use Google to sign in.");
+        setError(t("auth.googleUserBlocked"));
         setLoading(false);
         return;
       }
