@@ -30,31 +30,33 @@ router.get('/logs', async (req, res) => {
     const limit = 5; 
     const offset = (page - 1) * limit;
 
-    // The Main Query: Mapped perfectly to recipe, food, posts, and discussion tables!
+    // THE FIXED QUERY: 
+    // 1. Properly targets the `posts` table (not community_post).
+    // 2. Uses template literals for LIMIT/OFFSET to prevent MySQL parameter parsing crashes.
     const logsQuery = `
       SELECT 
-        xl.id,
-        xl.action_type,
-        xl.reference_id,
-        xl.xp_awarded,
-        xl.created_at,
+        x.id,
+        x.action_type,
+        x.reference_id,
+        x.xp_awarded,
+        x.created_at,
         CASE 
-          WHEN xl.action_type LIKE '%RECIPE%' THEN f.name
-          WHEN xl.action_type LIKE '%POST%' THEN p.title
-          WHEN xl.action_type LIKE '%DISCUSSION%' OR xl.action_type LIKE '%COMMENT%' THEN CONCAT('"', SUBSTRING(d.content, 1, 30), '..."')
+          WHEN x.action_type LIKE '%RECIPE%' THEN f.name
+          WHEN x.action_type LIKE '%POST%' THEN p.title
+          WHEN x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%' THEN CONCAT('"', SUBSTRING(d.content, 1, 30), '..."')
           ELSE NULL
         END AS reference_title 
-      FROM xp_logs xl
-      -- Recipes need to hop through the food table to get the actual dish name
-      LEFT JOIN recipe r ON xl.reference_id = r.recipeID AND xl.action_type LIKE '%RECIPE%'
+      FROM xp_logs x
+      -- Recipes hop through the food table to get the actual dish name
+      LEFT JOIN recipe r ON x.reference_id = r.recipeID AND x.action_type LIKE '%RECIPE%'
       LEFT JOIN food f ON r.foodID = f.foodID
-      -- Posts map to the 'posts' table using the 'title' column
-      LEFT JOIN posts p ON xl.reference_id = p.postID AND xl.action_type LIKE '%POST%'
-      -- Discussions/Comments map to the 'discussion' table using the 'content' column
-      LEFT JOIN discussion d ON xl.reference_id = d.discussionID AND (xl.action_type LIKE '%DISCUSSION%' OR xl.action_type LIKE '%COMMENT%')
-      WHERE xl.userProfileID = ?
-      ORDER BY xl.created_at DESC
-      LIMIT ? OFFSET ?
+      -- Fixed: Targets the 'posts' table correctly
+      LEFT JOIN posts p ON x.reference_id = p.postID AND x.action_type LIKE '%POST%'
+      -- Targets 'discussion' table for comments/discussions
+      LEFT JOIN discussion d ON x.reference_id = d.discussionID AND (x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%')
+      WHERE x.userProfileID = ?
+      ORDER BY x.created_at DESC
+      LIMIT ${Number(limit)} OFFSET ${Number(offset)}
     `;
 
     // The Count Query
@@ -65,7 +67,7 @@ router.get('/logs', async (req, res) => {
     `;
 
     // Execute queries using db.query directly
-    const [logs] = await db.query(logsQuery, [userProfileID, limit, offset]);
+    const [logs] = await db.query(logsQuery, [userProfileID]);
     const [countResult] = await db.query(countQuery, [userProfileID]);
 
     const totalCount = countResult[0].totalCount;
