@@ -4,20 +4,21 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/UserProfilePage.css"; 
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, MessageSquare, BookOpen, Star, Award, Trophy } from "lucide-react";
+// Added 'Image' icon specifically for Community Posts
+import { CheckCircle2, MessageSquare, BookOpen, Star, Award, Trophy, Image } from "lucide-react";
 
 const formatActionType = (actionType, t) => {
   return t(`profile.action_${actionType}`); 
 };
 
-// FIXED: Reordered so specific categories get matched before generic "Approved" or "Completed" statuses!
 const getActionIcon = (actionType) => {
   if (!actionType) return <Trophy size={22} color="#916848" />;
   
-  // 1. Check Categories first
+  // 1. Check Categories first - Each gets its own unique icon & color!
   if (actionType.includes("QUIZ")) return <Star size={22} color="#f59e0b" />;
   if (actionType.includes("RECIPE") || actionType.includes("FOOD")) return <BookOpen size={22} color="#8b5cf6" />;
-  if (actionType.includes("POST") || actionType.includes("DISCUSSION") || actionType.includes("COMMENT")) return <MessageSquare size={22} color="#3b82f6" />;
+  if (actionType.includes("POST")) return <Image size={22} color="#ec4899" />; // Pink Image icon for Posts
+  if (actionType.includes("DISCUSSION") || actionType.includes("COMMENT")) return <MessageSquare size={22} color="#3b82f6" />;
   
   // 2. Fallbacks for generic statuses
   if (actionType.includes("APPROVE") || actionType.includes("COMPLETED")) return <CheckCircle2 size={22} color="#10b981" />;
@@ -26,16 +27,18 @@ const getActionIcon = (actionType) => {
 };
 
 const getReferenceTitle = (actionType, referenceId, referenceTitle, t) => {
-  // If the backend successfully found the name of the recipe/post, use it!
+  // If the backend successfully found the name, use it!
   if (referenceTitle) return referenceTitle; 
   
   if (actionType === "QUIZ_COMPLETED") {
     return t("profile.quizSubtitle"); 
   }
   
-  // Fallbacks just in case the item was permanently deleted from the database
+  // FIXED: Separated POST and DISCUSSION so they don't share the same fallback text
   if (actionType.includes("RECIPE")) return `Recipe #${referenceId}`;
-  if (actionType.includes("POST") || actionType.includes("DISCUSSION")) return `Discussion #${referenceId}`;
+  if (actionType.includes("POST")) return `Community Post #${referenceId}`;
+  if (actionType.includes("DISCUSSION") || actionType.includes("COMMENT")) return `Discussion #${referenceId}`;
+  
   return `Item #${referenceId}`;
 };
 

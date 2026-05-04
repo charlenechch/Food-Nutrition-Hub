@@ -26,8 +26,9 @@ router.get('/logs', async (req, res) => {
     const limit = 5; 
     const offset = (page - 1) * limit;
 
-    // THE FIXED QUERY: 
-    // Safely checks posts (using p.foodName) AND discussion (using d.content)
+    // THE BULLETPROOF QUERY:
+    // We use subqueries here so we don't have to worry about old logs using foodID instead of recipeID.
+    // It directly scans the relevant table and pulls the title.
     const logsQuery = `
       SELECT 
         x.id,
@@ -36,16 +37,22 @@ router.get('/logs', async (req, res) => {
         x.xp_awarded,
         x.created_at,
         CASE 
-          WHEN x.action_type LIKE '%RECIPE%' THEN f.name
-          WHEN x.action_type LIKE '%POST%' OR x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%' 
-               THEN COALESCE(p.foodName, CONCAT('"', SUBSTRING(d.content, 1, 30), '..."'))
+          WHEN x.action_type LIKE '%RECIPE%' THEN (
+            SELECT COALESCE(f.name, r.recipeName) 
+            FROM recipe r 
+            LEFT JOIN food f ON r.foodID = f.foodID 
+            WHERE r.recipeID = x.reference_id OR r.foodID = x.reference_id 
+            LIMIT 1
+          )
+          WHEN x.action_type LIKE '%POST%' THEN (
+            SELECT foodName FROM posts WHERE postID = x.reference_id LIMIT 1
+          )
+          WHEN x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%' THEN (
+            SELECT CONCAT('"', SUBSTRING(content, 1, 30), '..."') FROM discussion WHERE discussionID = x.reference_id LIMIT 1
+          )
           ELSE NULL
         END AS reference_title 
       FROM xp_logs x
-      LEFT JOIN recipe r ON x.reference_id = r.recipeID AND x.action_type LIKE '%RECIPE%'
-      LEFT JOIN food f ON r.foodID = f.foodID
-      LEFT JOIN posts p ON x.reference_id = p.postID AND x.action_type LIKE '%POST%'
-      LEFT JOIN discussion d ON x.reference_id = d.discussionID AND (x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%')
       WHERE x.userProfileID = ?
       ORDER BY x.created_at DESC
       LIMIT ${Number(limit)} OFFSET ${Number(offset)}
