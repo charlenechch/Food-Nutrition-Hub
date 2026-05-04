@@ -4,8 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/UserProfilePage.css"; 
 import { useTranslation } from "react-i18next";
-// Added 'Image' icon specifically for Community Posts
-import { CheckCircle2, MessageSquare, BookOpen, Star, Award, Trophy, Image } from "lucide-react";
+import { CheckCircle2, MessageSquare, BookOpen, Star, Award, Trophy, Image as ImageIcon } from "lucide-react";
 
 const formatActionType = (actionType, t) => {
   return t(`profile.action_${actionType}`); 
@@ -14,32 +13,30 @@ const formatActionType = (actionType, t) => {
 const getActionIcon = (actionType) => {
   if (!actionType) return <Trophy size={22} color="#916848" />;
   
-  // 1. Check Categories first - Each gets its own unique icon & color!
+  // Categories (Every submission type gets its own unique icon)
   if (actionType.includes("QUIZ")) return <Star size={22} color="#f59e0b" />;
   if (actionType.includes("RECIPE") || actionType.includes("FOOD")) return <BookOpen size={22} color="#8b5cf6" />;
-  if (actionType.includes("POST")) return <Image size={22} color="#ec4899" />; // Pink Image icon for Posts
+  if (actionType.includes("POST")) return <ImageIcon size={22} color="#ec4899" />;
   if (actionType.includes("DISCUSSION") || actionType.includes("COMMENT")) return <MessageSquare size={22} color="#3b82f6" />;
   
-  // 2. Fallbacks for generic statuses
+  // Generic fallbacks
   if (actionType.includes("APPROVE") || actionType.includes("COMPLETED")) return <CheckCircle2 size={22} color="#10b981" />;
 
   return <Award size={22} color="#916848" />;
 };
 
 const getReferenceTitle = (actionType, referenceId, referenceTitle, t) => {
-  // If the backend successfully found the name, use it!
+  // 1. If we have the actual name of the food/post from the database, show it!
   if (referenceTitle) return referenceTitle; 
   
-  if (actionType === "QUIZ_COMPLETED") {
-    return t("profile.quizSubtitle"); 
-  }
+  // 2. Friendly fallback descriptions (No more ugly IDs!)
+  // This matches the exact style of the Quiz in your screenshot
+  if (actionType.includes("QUIZ")) return t("profile.quizSubtitle", "Earned by finishing the daily challenge");
+  if (actionType.includes("RECIPE")) return t("profile.recipeFallback", "Earned by sharing a recipe with the community");
+  if (actionType.includes("POST")) return t("profile.postFallback", "Earned by contributing to community stories");
+  if (actionType.includes("DISCUSSION") || actionType.includes("COMMENT")) return t("profile.discussionFallback", "Earned by participating in discussions");
   
-  // FIXED: Separated POST and DISCUSSION so they don't share the same fallback text
-  if (actionType.includes("RECIPE")) return `Recipe #${referenceId}`;
-  if (actionType.includes("POST")) return `Community Post #${referenceId}`;
-  if (actionType.includes("DISCUSSION") || actionType.includes("COMMENT")) return `Discussion #${referenceId}`;
-  
-  return `Item #${referenceId}`;
+  return t("profile.genericActivity", "Earned by participating in the community");
 };
 
 const getPaginationGroup = (currentPage, totalPages, isMobile) => {
@@ -96,12 +93,9 @@ export default function XpLogsPage() {
         });
         
         const data = await response.json();
-        
         if (data.success) {
           setLogs(data.logs);
           setTotalPages(data.totalPages);
-        } else {
-          console.error("Failed to load logs:", data.message);
         }
       } catch (error) {
         console.error("Error fetching live XP logs:", error);
@@ -109,17 +103,14 @@ export default function XpLogsPage() {
         setIsLoading(false);
       }
     };
-
     fetchXpLogs();
   }, [currentPage]);
 
   return (
     <div className="user-profile-page">
       <Header />
-      
       <div className="upp-page">
         <div className="upp-stack xlp-stack">
-          
           <button className="lrp-btn lrp-btn-outline xlp-btn" onClick={() => navigate(-1)}>
             {t("profile.backToProfile")}
           </button>
@@ -194,7 +185,6 @@ export default function XpLogsPage() {
                     >
                       {log.xp_awarded > 0 ? "+" : ""}{log.xp_awarded} XP
                     </div>
-
                   </div>
                 ))}
               </div>
@@ -235,11 +225,9 @@ export default function XpLogsPage() {
                 </button>
               </div>
             )}
-            
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );
