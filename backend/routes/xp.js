@@ -30,7 +30,7 @@ router.get('/logs', async (req, res) => {
     const limit = 5; 
     const offset = (page - 1) * limit;
 
-    // The Main Query: Uses f.name for recipes and p.foodName for community posts
+    // The Main Query: Mapped perfectly to recipe, food, posts, and discussion tables!
     const logsQuery = `
       SELECT 
         xl.id,
@@ -38,11 +38,20 @@ router.get('/logs', async (req, res) => {
         xl.reference_id,
         xl.xp_awarded,
         xl.created_at,
-        COALESCE(f.name, p.foodName) AS reference_title 
+        CASE 
+          WHEN xl.action_type LIKE '%RECIPE%' THEN f.name
+          WHEN xl.action_type LIKE '%POST%' THEN p.title
+          WHEN xl.action_type LIKE '%DISCUSSION%' OR xl.action_type LIKE '%COMMENT%' THEN CONCAT('"', SUBSTRING(d.content, 1, 30), '..."')
+          ELSE NULL
+        END AS reference_title 
       FROM xp_logs xl
-      LEFT JOIN recipe r ON xl.reference_id = r.recipeID AND xl.action_type LIKE 'RECIPE%'
+      -- Recipes need to hop through the food table to get the actual dish name
+      LEFT JOIN recipe r ON xl.reference_id = r.recipeID AND xl.action_type LIKE '%RECIPE%'
       LEFT JOIN food f ON r.foodID = f.foodID
-      LEFT JOIN posts p ON xl.reference_id = p.postID AND xl.action_type LIKE 'POST%'
+      -- Posts map to the 'posts' table using the 'title' column
+      LEFT JOIN posts p ON xl.reference_id = p.postID AND xl.action_type LIKE '%POST%'
+      -- Discussions/Comments map to the 'discussion' table using the 'content' column
+      LEFT JOIN discussion d ON xl.reference_id = d.discussionID AND (xl.action_type LIKE '%DISCUSSION%' OR xl.action_type LIKE '%COMMENT%')
       WHERE xl.userProfileID = ?
       ORDER BY xl.created_at DESC
       LIMIT ? OFFSET ?
