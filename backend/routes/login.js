@@ -260,62 +260,8 @@ router.post("/", async (req, res) => {
         });
     }
     
-    // Regenerate session (prevent fixation)
-    console.log("🔐 Regenerating session...");
-    req.session.regenerate(async (err) => {
-      if (err) {
-        console.error("❌ Session regeneration failed:", err);
-        return res
-          .status(500)
-          .json({ success: false, message: "Session regeneration error" });
-      }
-
-      // Remember Me logic
-      if (rememberDevice) {
-        const sevenDays = 7 * 24 * 60 * 60 * 1000;
-        req.session.cookie.maxAge = sevenDays;
-        req.session.cookie.expires = new Date(Date.now() + sevenDays);
-        req.session.rememberMe = true;
-      } else {
-        const oneDay = 24 * 60 * 60 * 1000;
-        req.session.cookie.maxAge = oneDay;
-        req.session.cookie.expires = new Date(Date.now() + oneDay);
-        req.session.rememberMe = false;
-      }
-
-      req.session.user = {
-        userID: user.userID,
-        email: user.email,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        role: user.role,
-      };
-
-      await new Promise((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) {
-            console.error("❌ Session save error:", err);
-            reject(err);
-          } else resolve();
-        });
-      });
-
-      try {
-        await db.query("UPDATE user SET lastLogin = ?, deletion_warning_sent = 0 WHERE userID = ?", [new Date(), user.userID]);
-        console.log(`✅ Updated lastLogin for user: ${user.email}`);
-      } catch (updateError) {
-        console.error("❌ Failed to update lastLogin:", updateError);
-      }
-
-      console.log("✅ Login success for:", email);
-      console.log("🧾 Session ID:", req.sessionID);
-
-      return res.json({
-        success: true,
-        message: "Login successful!",
-        user: req.session.user,
-      });
-    });
+  // Session creation is handled in otp.js after 2FA verification
+  
   } catch (err) {
     console.error("💥 Login error:", err);
     res.status(500).json({ success: false, message: "Authentication error" });
