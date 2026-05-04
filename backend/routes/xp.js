@@ -6,14 +6,12 @@ const { pool: db } = require('../config/db');
 // GET /api/xp/logs?page=1
 router.get('/logs', async (req, res) => {
   try {
-    // Reads the real user session
     if (!req.session || !req.session.user) {
       return res.status(401).json({ success: false, message: "Not logged in" });
     }
 
     const userID = req.session.user.userID;
 
-    // Convert userID into userProfileID
     const [profileRows] = await db.query(
       "SELECT userProfileID FROM userProfile WHERE userID = ?", 
       [userID]
@@ -24,14 +22,13 @@ router.get('/logs', async (req, res) => {
     }
 
     const userProfileID = profileRows[0].userProfileID;
-
-    // Pagination setup
     const page = parseInt(req.query.page) || 1;
     const limit = 5; 
     const offset = (page - 1) * limit;
 
     // THE FIXED QUERY: 
-    // Uses p.foodName instead of p.title for the posts table!
+    // We use COALESCE to check both the posts table AND the discussion table 
+    // just in case a "POST" action was actually performed on a "Discussion".
     const logsQuery = `
       SELECT 
         x.id,
@@ -41,31 +38,26 @@ router.get('/logs', async (req, res) => {
         x.created_at,
         CASE 
           WHEN x.action_type LIKE '%RECIPE%' THEN f.name
-          WHEN x.action_type LIKE '%POST%' THEN p.foodName
-          WHEN x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%' THEN CONCAT('"', SUBSTRING(d.content, 1, 30), '..."')
+          WHEN x.action_type LIKE '%POST%' OR x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%' 
+               THEN COALESCE(p.title, CONCAT('"', SUBSTRING(d.content, 1, 30), '..."'))
           ELSE NULL
         END AS reference_title 
       FROM xp_logs x
-      -- Recipes hop through the food table to get the actual dish name
-      LEFT JOIN recipe r ON x.reference_id = r.recipeID AND x.action_type LIKE '%RECIPE%'
+      LEFT JOIN recipe r ON x.reference_id = r.recipeID 
       LEFT JOIN food f ON r.foodID = f.foodID
-      -- Fixed: Targets the 'posts' table and its 'foodName' column correctly
-      LEFT JOIN posts p ON x.reference_id = p.postID AND x.action_type LIKE '%POST%'
-      -- Targets 'discussion' table for comments/discussions
-      LEFT JOIN discussion d ON x.reference_id = d.discussionID AND (x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%')
+      LEFT JOIN posts p ON x.reference_id = p.postID 
+      LEFT JOIN discussion d ON x.reference_id = d.discussionID 
       WHERE x.userProfileID = ?
       ORDER BY x.created_at DESC
       LIMIT ${Number(limit)} OFFSET ${Number(offset)}
     `;
 
-    // The Count Query
     const countQuery = `
       SELECT COUNT(*) as totalCount 
       FROM xp_logs 
       WHERE userProfileID = ?
     `;
 
-    // Execute queries using db.query directly
     const [logs] = await db.query(logsQuery, [userProfileID]);
     const [countResult] = await db.query(countQuery, [userProfileID]);
 

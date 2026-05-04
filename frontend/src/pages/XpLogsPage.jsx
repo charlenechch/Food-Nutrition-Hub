@@ -4,47 +4,44 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/UserProfilePage.css"; 
 import { useTranslation } from "react-i18next";
-// ADDED: Import modern icons to make it look like a real activity feed
 import { CheckCircle2, MessageSquare, BookOpen, Star, Award, Trophy } from "lucide-react";
 
 const formatActionType = (actionType, t) => {
   return t(`profile.action_${actionType}`); 
 };
 
-// ADDED: A helper to assign a beautiful icon based on what the user did
+// FIXED: Reordered so specific categories get matched before generic "Approved" or "Completed" statuses!
 const getActionIcon = (actionType) => {
   if (!actionType) return <Trophy size={22} color="#916848" />;
-  if (actionType.includes("APPROVE") || actionType.includes("COMPLETED")) return <CheckCircle2 size={22} color="#10b981" />;
-  if (actionType.includes("POST") || actionType.includes("DISCUSSION") || actionType.includes("COMMENT")) return <MessageSquare size={22} color="#3b82f6" />;
+  
+  // 1. Check Categories first
   if (actionType.includes("QUIZ")) return <Star size={22} color="#f59e0b" />;
   if (actionType.includes("RECIPE") || actionType.includes("FOOD")) return <BookOpen size={22} color="#8b5cf6" />;
+  if (actionType.includes("POST") || actionType.includes("DISCUSSION") || actionType.includes("COMMENT")) return <MessageSquare size={22} color="#3b82f6" />;
+  
+  // 2. Fallbacks for generic statuses
+  if (actionType.includes("APPROVE") || actionType.includes("COMPLETED")) return <CheckCircle2 size={22} color="#10b981" />;
+
   return <Award size={22} color="#916848" />;
 };
 
 const getReferenceTitle = (actionType, referenceId, referenceTitle, t) => {
+  // If the backend successfully found the name of the recipe/post, use it!
   if (referenceTitle) return referenceTitle; 
   
   if (actionType === "QUIZ_COMPLETED") {
     return t("profile.quizSubtitle"); 
   }
   
-  // FIXED: Removed the scary "Deleted Recipe" text. 
-  // If the title is missing from the DB, just gracefully say "Recipe #21" or "Post #21".
-  if (actionType.includes("RECIPE")) {
-    return `Recipe #${referenceId}`;
-  }
-  if (actionType.includes("POST") || actionType.includes("DISCUSSION")) {
-    return `Discussion #${referenceId}`;
-  }
+  // Fallbacks just in case the item was permanently deleted from the database
+  if (actionType.includes("RECIPE")) return `Recipe #${referenceId}`;
+  if (actionType.includes("POST") || actionType.includes("DISCUSSION")) return `Discussion #${referenceId}`;
   return `Item #${referenceId}`;
 };
 
 const getPaginationGroup = (currentPage, totalPages, isMobile) => {
   const visibleCount = isMobile ? 3 : 5;
-
-  if (totalPages <= visibleCount) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  }
+  if (totalPages <= visibleCount) return Array.from({ length: totalPages }, (_, i) => i + 1);
 
   const pages = [];
   let startPage, endPage;
@@ -73,7 +70,6 @@ export default function XpLogsPage() {
   const navigate = useNavigate();
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 500);
-  
   const [currentPage, setCurrentPage] = useState(1);
   const [logs, setLogs] = useState([]); 
   const [totalPages, setTotalPages] = useState(1); 
@@ -93,9 +89,7 @@ export default function XpLogsPage() {
         const response = await fetch(`${API_BASE_URL}/api/xp/logs?page=${currentPage}`, {
           method: "GET",
           credentials: "include", 
-          headers: {
-            "Content-Type": "application/json"
-          }
+          headers: { "Content-Type": "application/json" }
         });
         
         const data = await response.json();
@@ -123,10 +117,7 @@ export default function XpLogsPage() {
       <div className="upp-page">
         <div className="upp-stack xlp-stack">
           
-          <button 
-            className="lrp-btn lrp-btn-outline xlp-btn" 
-            onClick={() => navigate(-1)}
-          >
+          <button className="lrp-btn lrp-btn-outline xlp-btn" onClick={() => navigate(-1)}>
             {t("profile.backToProfile")}
           </button>
 
@@ -153,38 +144,25 @@ export default function XpLogsPage() {
                   <div 
                     key={log.id} 
                     className="xp-log-item"
-                    // Added inline styles to guarantee a modern layout without needing a massive CSS rewrite
                     style={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      padding: "16px", 
-                      backgroundColor: "#fafaf9", 
-                      border: "1px solid #e7e5e4",
-                      borderRadius: "12px",
-                      gap: "16px",
+                      display: "flex", alignItems: "center", padding: "16px", 
+                      backgroundColor: "#fafaf9", border: "1px solid #e7e5e4",
+                      borderRadius: "12px", gap: "16px",
                       transition: "transform 0.2s ease, box-shadow 0.2s ease"
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05)"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
                   >
                     
-                    {/* Icon Container */}
                     <div style={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      justifyContent: "center", 
-                      width: "48px", 
-                      height: "48px", 
-                      backgroundColor: "#fff", 
-                      borderRadius: "50%",
-                      border: "1px solid #e7e5e4",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
-                      flexShrink: 0
+                      display: "flex", alignItems: "center", justifyContent: "center", 
+                      width: "48px", height: "48px", backgroundColor: "#fff", 
+                      borderRadius: "50%", border: "1px solid #e7e5e4",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.02)", flexShrink: 0
                     }}>
                       {getActionIcon(log.action_type)}
                     </div>
 
-                    {/* Text Details */}
                     <div className="xp-log-info" style={{ flex: 1 }}>
                       <div className="xp-log-action" style={{ fontWeight: "700", color: "#292524", fontSize: "1.05rem" }}>
                         {formatActionType(log.action_type, t)}
@@ -202,17 +180,13 @@ export default function XpLogsPage() {
                       </div>
                     </div>
 
-                    {/* XP Badge */}
                     <div 
                       className={`xp-log-amount ${log.xp_awarded > 0 ? "xp-positive" : "xp-negative"}`}
                       style={{ 
-                        fontWeight: "800", 
-                        fontSize: "1.1rem", 
+                        fontWeight: "800", fontSize: "1.1rem", 
                         color: log.xp_awarded > 0 ? "#059669" : "#dc2626", 
                         backgroundColor: log.xp_awarded > 0 ? "#d1fae5" : "#fee2e2", 
-                        padding: "8px 16px", 
-                        borderRadius: "20px",
-                        whiteSpace: "nowrap"
+                        padding: "8px 16px", borderRadius: "20px", whiteSpace: "nowrap"
                       }}
                     >
                       {log.xp_awarded > 0 ? "+" : ""}{log.xp_awarded} XP
