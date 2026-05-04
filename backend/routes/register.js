@@ -119,8 +119,8 @@ router.post("/", async (req, res) => {
 
     // Insert user
     const [result] = await db.query(
-      "INSERT INTO user (firstname, lastname, email, password, role, firebase_uid, pdpa_consent, tnc_consent, consent_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())",
-      [firstname, lastname, email, hashedPassword, "member", firebaseUID || null, pdpaconsent ? 1 : 0, tncconsent ? 1 : 0]
+      "INSERT INTO user (firstname, lastname, email, password, role, firebase_uid, pdpa_consent, tnc_consent, consent_date, agreed_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)",
+      [firstname, lastname, email, hashedPassword, "member", firebaseUID || null, pdpaconsent ? 1 : 0, tncconsent ? 1 : 0, 1]
     );
 
     console.log(`User registered: ${email} (ID: ${result.insertId})`);
