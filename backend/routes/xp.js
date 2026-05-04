@@ -27,8 +27,7 @@ router.get('/logs', async (req, res) => {
     const offset = (page - 1) * limit;
 
     // THE FIXED QUERY: 
-    // We use COALESCE to check both the posts table AND the discussion table 
-    // just in case a "POST" action was actually performed on a "Discussion".
+    // Safely checks posts (using p.foodName) AND discussion (using d.content)
     const logsQuery = `
       SELECT 
         x.id,
@@ -39,14 +38,14 @@ router.get('/logs', async (req, res) => {
         CASE 
           WHEN x.action_type LIKE '%RECIPE%' THEN f.name
           WHEN x.action_type LIKE '%POST%' OR x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%' 
-               THEN COALESCE(p.title, CONCAT('"', SUBSTRING(d.content, 1, 30), '..."'))
+               THEN COALESCE(p.foodName, CONCAT('"', SUBSTRING(d.content, 1, 30), '..."'))
           ELSE NULL
         END AS reference_title 
       FROM xp_logs x
-      LEFT JOIN recipe r ON x.reference_id = r.recipeID 
+      LEFT JOIN recipe r ON x.reference_id = r.recipeID AND x.action_type LIKE '%RECIPE%'
       LEFT JOIN food f ON r.foodID = f.foodID
-      LEFT JOIN posts p ON x.reference_id = p.postID 
-      LEFT JOIN discussion d ON x.reference_id = d.discussionID 
+      LEFT JOIN posts p ON x.reference_id = p.postID AND x.action_type LIKE '%POST%'
+      LEFT JOIN discussion d ON x.reference_id = d.discussionID AND (x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%')
       WHERE x.userProfileID = ?
       ORDER BY x.created_at DESC
       LIMIT ${Number(limit)} OFFSET ${Number(offset)}
