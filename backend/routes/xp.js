@@ -31,8 +31,7 @@ router.get('/logs', async (req, res) => {
     const offset = (page - 1) * limit;
 
     // THE FIXED QUERY: 
-    // 1. Properly targets the `posts` table (not community_post).
-    // 2. Uses template literals for LIMIT/OFFSET to prevent MySQL parameter parsing crashes.
+    // Uses p.foodName instead of p.title for the posts table!
     const logsQuery = `
       SELECT 
         x.id,
@@ -42,7 +41,7 @@ router.get('/logs', async (req, res) => {
         x.created_at,
         CASE 
           WHEN x.action_type LIKE '%RECIPE%' THEN f.name
-          WHEN x.action_type LIKE '%POST%' THEN p.title
+          WHEN x.action_type LIKE '%POST%' THEN p.foodName
           WHEN x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%' THEN CONCAT('"', SUBSTRING(d.content, 1, 30), '..."')
           ELSE NULL
         END AS reference_title 
@@ -50,7 +49,7 @@ router.get('/logs', async (req, res) => {
       -- Recipes hop through the food table to get the actual dish name
       LEFT JOIN recipe r ON x.reference_id = r.recipeID AND x.action_type LIKE '%RECIPE%'
       LEFT JOIN food f ON r.foodID = f.foodID
-      -- Fixed: Targets the 'posts' table correctly
+      -- Fixed: Targets the 'posts' table and its 'foodName' column correctly
       LEFT JOIN posts p ON x.reference_id = p.postID AND x.action_type LIKE '%POST%'
       -- Targets 'discussion' table for comments/discussions
       LEFT JOIN discussion d ON x.reference_id = d.discussionID AND (x.action_type LIKE '%DISCUSSION%' OR x.action_type LIKE '%COMMENT%')
