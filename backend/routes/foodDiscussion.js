@@ -541,7 +541,7 @@ router.patch('/:commentId/vote', async (req, res) => {
   }
 });
 
-// Delete a comment (with admin support)
+//Delete a comment (with admin support)
 router.delete('/:commentId', async (req, res) => {
   try {
     const { commentId } = req.params;

@@ -633,7 +633,7 @@
     "ruleNumber": "Number",
     "ruleSpecial": "Special symbol (!@#$)",
     "regSuccessTitle": "Registration Successful",
-    "regSuccessMsg": "Please verify your email to continue. Some email apps automatically scan links in emails for security, which can cause the verification link to appear expired. If this happens, try logging in anyway. It may still work.",
+    "regSuccessMsg": "Please verify your email to continue. Some email apps automatically scan links in emails for security, which can cause the verification link to appear expired or already used. If this happens, your account is likely already verified. Try logging in directly. If you still have trouble, please contact support at info@sarawakeats.com.",
     "close": "Close",
     "cancel": "Cancel",
     "fillAllFields": "Please fill in all fields.",

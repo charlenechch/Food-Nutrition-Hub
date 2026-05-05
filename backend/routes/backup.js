@@ -275,41 +275,7 @@ router.post('/restore', async (req, res) => {
   }
 });
 
-// 5. Delete old backups (cleanup)
-router.delete('/cleanup', async (req, res) => {
-  const { daysToKeep = 30 } = req.body;
-  
-  try {
-    const files = fs.readdirSync(BACKUP_DIR);
-    const now = Date.now();
-    const deletedFiles = [];
-    
-    for (const file of files) {
-      if (file.endsWith('.zip') && file.startsWith('sarawakeats_backup_')) {
-        const filePath = path.join(BACKUP_DIR, file);
-        const stats = fs.statSync(filePath);
-        const fileAge = (now - stats.birthtimeMs) / (1000 * 60 * 60 * 24);
-        
-        if (fileAge > daysToKeep) {
-          fs.unlinkSync(filePath);
-          deletedFiles.push(file);
-        }
-      }
-    }
-    
-    res.json({
-      success: true,
-      message: `Cleaned up ${deletedFiles.length} old backups`,
-      deleted: deletedFiles
-    });
-    
-  } catch (error) {
-    console.error('Cleanup error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// 6. Get last backup info
+// Get last backup info
 router.get('/last-backup', async (req, res) => {
   try {
     const files = fs.readdirSync(BACKUP_DIR);
@@ -335,55 +301,6 @@ router.get('/last-backup', async (req, res) => {
     
   } catch (error) {
     console.error('Get last backup error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// 7. Export specific tables as JSON (alternative to full SQL backup)
-router.post('/export-json', async (req, res) => {
-  const { tables = ['users', 'recipes', 'foods', 'posts', 'comments'] } = req.body;
-  
-  try {
-    const exportData = {};
-    
-    for (const table of tables) {
-      const [rows] = await pool.query(`SELECT * FROM ${table}`);
-      exportData[table] = rows;
-    }
-    
-    const timestamp = Date.now();
-    const jsonFileName = `data_export_${timestamp}.json`;
-    const jsonFilePath = path.join(TEMP_DIR, jsonFileName);
-    
-    fs.writeFileSync(jsonFilePath, JSON.stringify(exportData, null, 2));
-    
-    // Create zip with JSON
-    const zipFileName = `sarawakeats_data_${timestamp}.zip`;
-    const zipFilePath = path.join(BACKUP_DIR, zipFileName);
-    
-    const output = fs.createWriteStream(zipFilePath);
-    const archive = archiver('zip', { zlib: { level: 9 } });
-    
-    await new Promise((resolve, reject) => {
-      output.on('close', resolve);
-      archive.on('error', reject);
-      archive.pipe(output);
-      archive.file(jsonFilePath, { name: jsonFileName });
-      archive.finalize();
-    });
-    
-    // Clean up
-    fs.unlinkSync(jsonFilePath);
-    
-    res.json({
-      success: true,
-      message: 'Data exported successfully',
-      filename: zipFileName,
-      tables_exported: tables
-    });
-    
-  } catch (error) {
-    console.error('JSON export error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
