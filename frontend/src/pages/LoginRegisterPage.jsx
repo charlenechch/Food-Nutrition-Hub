@@ -216,7 +216,7 @@ export default function LoginRegisterPage() {
       await sendEmailVerification(userCredential.user, {
         url: window.location.origin + "/loginregister",
       });
-      setLoginError(checkData.message);
+      setLoginError(t(`auth.${checkData.message}`, checkData.message));
       setShowResendButton(true);
       setStoredPassword("");
     } catch (err) {
@@ -253,7 +253,7 @@ export default function LoginRegisterPage() {
         setUser(data.user);
         navigate(data.user.role === "admin" ? "/admin" : "/home");
       } else {
-        setLoginError(data.message || t("auth.invalidCode"));
+        setLoginError(data.message ? t(`auth.${data.message}`, data.message) : t("auth.invalidCode"));
       }
     } catch (err) {
       setLoginError(t("auth.verificationFailed"));
@@ -279,6 +279,10 @@ export default function LoginRegisterPage() {
       if (res.ok && data.success) {
         setLoginError(t("auth.newCodeSent"));
         setResendCooldown(60); 
+      } else if (res.status === 429) {
+        const remaining = Math.ceil(60 - (data.timeDiff || 0));
+        setResendCooldown(remaining);
+        setLoginError(t("auth.waitSeconds", { seconds: remaining }));
       } else {
         setLoginError(data.message || t("auth.resendCodeFailed"));
       }
@@ -315,6 +319,14 @@ export default function LoginRegisterPage() {
       if (res.status === 429 && data.lockoutRemaining) {
           setServerLockoutTimer(data.lockoutRemaining);
           setLoginError(t("auth.tooManyAttempts", { time: formatTime(data.lockoutRemaining) }));
+          return;
+      }
+      if (res.status === 429 && data.otpThrottled) {
+          setTempUserId(data.tempUserId);
+          setTempRememberMe(data.rememberDevice);
+          setShowOtpInput(true);
+          setOtpCode("");
+          setLoginError("");
           return;
       }
       if (res.status === 403 && data.googleUserBlocked) {
@@ -403,9 +415,9 @@ export default function LoginRegisterPage() {
         }),
       });
       const data = await res.json();
-      await fb.user.delete();
       if (!res.ok) {
-        setRegisterError(data.message || t("auth.registrationFailed"));
+        await fb.user.delete();
+        setRegisterError(data.error ? t(`auth.${data.error}`, data.error) : t("auth.registrationFailed"));
         return;
       }
       await sendEmailVerification(fb.user, {
@@ -420,7 +432,11 @@ export default function LoginRegisterPage() {
       setRegPasswordCriteria({ length: false, upper: false, lower: false, number: false, special: false });
     } catch (err) {
       console.error("Register error:", err);
-      setRegisterError(t("auth.registrationFailed"));
+      if (err.code === "auth/email-already-in-use") {
+        setRegisterError(t("auth.emailAlreadyExists"));
+      } else {
+        setRegisterError(t("auth.registrationFailed"));
+      }
     }
   };
 
@@ -471,7 +487,7 @@ export default function LoginRegisterPage() {
         setUser(data.user);
         navigate(data.user.role === "admin" ? "/admin" : "/home");
       } else if (data.suspended) {
-        setLoginError(data.message);
+        setLoginError(t("auth.accountSuspended", { date: data.suspendedUntil }));
       } else {
         setLoginError(data.message || t("auth.googleLoginFailed"));
       }
@@ -569,7 +585,7 @@ export default function LoginRegisterPage() {
                       {resendCooldown > 0 ? t("auth.resendCodeIn", { seconds: resendCooldown }) : t("auth.resendCode")}
                     </button>
                     
-                    <button onClick={() => setShowOtpInput(false)} className="mh-btn-text-small lrp-no-outline">
+                    <button onClick={() => { setShowOtpInput(false); setLoginError(""); }} className="mh-btn-text-small lrp-no-outline">
                       <FaArrowRight style={{ transform: "rotate(180deg)" }}/> {t("auth.backToLogin")}
                     </button>
                   </div>

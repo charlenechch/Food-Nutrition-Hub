@@ -633,7 +633,7 @@
     "ruleNumber": "Number",
     "ruleSpecial": "Special symbol (!@#$)",
     "regSuccessTitle": "Registration Successful",
-    "regSuccessMsg": "Please verify your email to continue. Some email apps automatically scan links in emails for security, which can cause the verification link to appear expired. If this happens, try logging in anyway. It may still work.",
+    "regSuccessMsg": "Please verify your email to continue. Some email apps automatically scan links in emails for security, which can cause the verification link to appear expired or already used. If this happens, your account is likely already verified. Try logging in directly. If you still have trouble, please contact support at info@sarawakeats.com.",
     "close": "Close",
     "cancel": "Cancel",
     "fillAllFields": "Please fill in all fields.",
@@ -668,7 +668,11 @@
     "tncConsentRequired": "You must agree to the Terms & Conditions to register.",
     "continueWithGoogle": "Continue with Google",
     "googleSignUpNote": "Signing up with Google means you'll need to use Google to sign in every time.",
-    "googleUserBlocked": "You signed up with Google. Please use Google to sign in."
+    "googleUserBlocked": "You signed up with Google. Please use Google to sign in.",
+    "emailAlreadyExists": "This email is already registered. Please use a different email or try logging in.",
+    "resendApproved": "Verification email sent. Please check your inbox for the new link.",
+    "accountSuspended": "Your account is suspended until {{date}}. Please try again after this date.",
+    "invalidOrExpiredCode": "Invalid or expired code."
   },
   
   "emailVerification": {
@@ -1644,7 +1648,7 @@
     "celebrating_top_contributors": "Celebrating our top contributors!",
     "top_recipe_contributors": "Top Recipe Contributors",
     "top_community_posters": "Top Community Posters",
-    "level_leaders": "Level Leaders",
+    "all_time_level_rankings": "All-Time Level Rankings",
     "recipes": "Recipes",
     "posts": "Posts",
     "xp": "XP",

@@ -22,7 +22,8 @@ router.post("/", (req, res) => {
         path: '/',
         httpOnly: true,
         secure: true,
-        sameSite: 'none'
+        sameSite: 'none',
+        domain: '.sarawakeats.site'
       }); 
 
       console.log("Logout successful: Session has been destroyed.");

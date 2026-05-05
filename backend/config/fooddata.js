@@ -7,16 +7,10 @@ const foods = [
     origin: "Melanau",
     category: ["Rice Dish", "Fermented"],
     difficulty: "medium",
-<<<<<<< HEAD
-    dietaryTags: ["gluten-free", "dairy-free", "paleo", "high-protein", "low-fat"],
+    dietaryTags: ["gluten-free", "dairy-free", "high-protein", "low-fat"],
     description: "Linut, also known as sagu in Bidayuh, is a thick, translucent, and glue-like porridge made from sago flour. It has a neutral taste and oftem paired \
                   with the bold, spicy, and tangy flavours of Sarawakian side dishes. Its unique, elastic texture also makes it one of the most distinctive traditional \
                   foods in the region.",
-=======
-    dietaryTags: ["gluten-free", "dairy-free", "high-protein", "low-fat"],
-    description: "Linut is a traditional cuisine that is especially popular among the Indigenous Dayak communities.\
-                  This staple dish is an important part of Dayak cuisine and is frequently served at traditional events and community feasts.",
->>>>>>> 5c1c3418ab152cea5eabe216a608ad0e3ec003b3
     image: "https://img-global.cpcdn.com/steps/1fe46f4ff8152bed/640x640sq80/photo.webp",
     prepTime: 30,
     Energy_kcal: 344.91,

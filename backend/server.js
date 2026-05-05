@@ -40,6 +40,7 @@ const notificationRoutes = require("./routes/notifications");
 const translateRoutes = require("./routes/translation");
 const mapRoutes = require("./routes/map");
 const xpRoutes = require("./routes/xp");
+const leaderboardRoutes = require("./routes/leaderboard");
 const quizContentRoutes = require("./routes/quizContentroutes"); 
 
 // Admin
@@ -239,7 +240,7 @@ app.use(
       sameSite: IS_PROD ? "none" : "lax",
       secure: IS_PROD,
       domain: IS_PROD ? ".sarawakeats.site" : undefined,
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: null,
     }
   })
 );
@@ -343,6 +344,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", requireConsent, notificationRoutes);
 app.use("/api/map", mapRoutes);
 app.use("/api/xp", requireConsent, xpRoutes);
+app.use("/api/leaderboard", requireConsent, leaderboardRoutes);
 app.use("/api/backup", backupRoutes);
 
 // ---------- Static Files ----------

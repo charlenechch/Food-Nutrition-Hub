@@ -5,6 +5,8 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 1.5rem;
+    word-wrap: break-word; 
+    overflow-wrap: break-word; 
 }
 .fdp-topbar { 
     margin-bottom: 1rem;
@@ -27,6 +29,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    min-width: 0;
 }
 
 .fdp-card { 
@@ -252,6 +255,10 @@
 .fdp-user { 
     font-weight:600;
     font-size:.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px; 
 }
 .fdp-time { 
     font-size:.75rem;
@@ -262,6 +269,10 @@
     margin:0;
     color:#555;
     line-height:1.5;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word; 
+    hyphens: auto;
 }
 
 .fdp-badge-origin {

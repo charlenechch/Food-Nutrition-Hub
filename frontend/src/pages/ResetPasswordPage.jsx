@@ -132,7 +132,7 @@ export default function ResetPasswordPage() {
       setTimeout(() => navigate("/loginregister"), 3000);
     } catch (err) {
       console.error(err);
-      setError(err.message || t("resetPassword.genericError"));
+      setError(t("resetPassword.genericError"));
     }
   };
 

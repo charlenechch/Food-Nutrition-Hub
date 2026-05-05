@@ -74,20 +74,20 @@ function sanitizeInput(value) {
 
 // POST /api/register
 router.post("/", async (req, res) => {
-  // ✅ Step 1: Joi validation
+  // Step 1: Joi validation
   const { error, value } = registerSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
   if (error) {
     return res.status(400).json({ error: error.details.map((d) => d.message).join(", ") });
   }
 
-  // ✅ Step 2: sanitize all string fields
+  // Step 2: sanitize all string fields
   const cleanData = Object.fromEntries(
     Object.entries(value).map(([key, val]) => [key, sanitizeInput(val)])
   );
   // AFTER
   const { firstname, lastname, email, password, firebaseUID, pdpaconsent, tncconsent } = cleanData;
 
-  // ✅ Step 3: original required field checks remain for redundancy
+  // Step 3: original required field checks remain for redundancy
   if (!firstname || !lastname || !email || !password) {
     return res.status(400).json({ error: "All fields are required" });
   }
@@ -110,8 +110,7 @@ router.post("/", async (req, res) => {
     if (existing.length > 0) {
       console.log(`Backend: Email already exists in MySQL database: ${email}`);
       return res.status(400).json({
-        error:
-          "This email is already registered. Please use a different email or try logging in.",
+        error: "emailAlreadyExists",
       });
     }
 
@@ -120,14 +119,14 @@ router.post("/", async (req, res) => {
 
     // Insert user
     const [result] = await db.query(
-      "INSERT INTO user (firstname, lastname, email, password, role, firebase_uid, pdpa_consent, tnc_consent, consent_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())",
-      [firstname, lastname, email, hashedPassword, "member", firebaseUID || null, pdpaconsent ? 1 : 0, tncconsent ? 1 : 0]
+      "INSERT INTO user (firstname, lastname, email, password, role, firebase_uid, pdpa_consent, tnc_consent, consent_date, agreed_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)",
+      [firstname, lastname, email, hashedPassword, "member", firebaseUID || null, pdpaconsent ? 1 : 0, tncconsent ? 1 : 0, 1]
     );
 
     console.log(`User registered: ${email} (ID: ${result.insertId})`);
     const userID = result.insertId;
 
-    // ✅ NEW: Automatically create userProfile record (preserved)
+    // Automatically create userProfile record (preserved)
     try {
       await db.execute(
         `INSERT INTO userProfile 

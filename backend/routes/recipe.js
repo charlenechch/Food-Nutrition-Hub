@@ -1168,11 +1168,10 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
 
     const actionType = status === "Approved" ? "recipe_approved" : "recipe_rejected";
-    await logActivity(db, adminID, adminName, actionType, `${status} recipe for food (ID: ${recipeId}).`);
 
     // Fetch User Info & Recipe Details
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, f.name AS recipeName
+      SELECT u.email, u.firstname, r.recipeName
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
@@ -1182,6 +1181,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
 
     if (rows.length > 0) {
       const { email, firstname, recipeName } = rows[0];
+      await logActivity(db, adminID, adminName, actionType, `${status} recipe "${recipeName}" (Recipe ID: ${recipeId}).`);
 
       // Force stats recount and AWARD XP
       let userID = null;
@@ -1347,7 +1347,7 @@ router.patch('/sendFeedback/:id', async (req, res) => {
 
     // 2. Fetch Info AND Status
     const [rows] = await db.query(`
-      SELECT u.email, u.firstname, r.name AS recipeName, r.status, u.userID
+      SELECT u.email, u.firstname, r.recipeName, r.status, u.userID
       FROM recipe r
       JOIN userProfile up ON r.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID

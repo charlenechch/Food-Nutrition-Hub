@@ -72,7 +72,7 @@ router.post("/", async (req, res) => {
     // Return success - Frontend will trigger Firebase resend
     return res.json({ 
       success: true, 
-      message: "Resend approved. Please check your inbox for the new link.",
+      message: "resendApproved",
       cooldownSeconds: 60
     });
 

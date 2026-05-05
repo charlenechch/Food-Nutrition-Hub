@@ -156,7 +156,7 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
 
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-    await logActivity(db, adminID, adminName, "user_deleted", `Deleted user "${userName}" (ID: ${targetUserID}).`);
+    await logActivity(db, adminID, adminName, "user_deleted", `Deleted user "${userName}" (User ID: ${targetUserID}).`);
 
     return res.status(200).json({
       success: true,
@@ -330,7 +330,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
         const adminID = req.session.user.userID;
         const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-        await logActivity(db, adminID, adminName, "user_suspended", `Suspended user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (ID: ${targetUserID}) until ${finalsuspendedUntil}. Reason: ${suspensionReason || "No reason provided."}`);
+        await logActivity(db, adminID, adminName, "user_suspended", `Suspended user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (User ID: ${targetUserID}) until ${finalsuspendedUntil}. Reason: ${suspensionReason || "No reason provided."}`);
     }
 
     // Case B: Account Unsuspended (Manually)
@@ -369,7 +369,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
         const adminID = req.session.user.userID;
         const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-        await logActivity(db, adminID, adminName, "user_unsuspended", `Lifted suspension for user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (ID: ${targetUserID}).`);
+        await logActivity(db, adminID, adminName, "user_unsuspended", `Lifted suspension for user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (User ID: ${targetUserID}).`);
     }
 
     const statusEmailSent = (!wasSuspended && isNowSuspended) || (wasSuspended && !isNowSuspended);
@@ -463,7 +463,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
     if (!wasSuspended && !isNowSuspended && !(!wasSuspended && isNowSuspended) && !(wasSuspended && !isNowSuspended)) {
       const adminID = req.session.user.userID;
       const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-      await logActivity(db, adminID, adminName, "user_updated", `Updated user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (ID: ${targetUserID}). Changes: ${changes.join(", ")}.`);
+      await logActivity(db, adminID, adminName, "user_updated", `Updated user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (User ID: ${targetUserID}). Changes: ${changes.join(", ")}.`);
     }
 
     return res.json({
@@ -615,7 +615,7 @@ router.post("/users", requireAdmin, async (req, res) => {
 
         const adminID = req.session.user.userID;
         const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-        await logActivity(db, adminID, adminName, "user_created", `Created new user "${name}" (${email}) with ${role} role.`);
+        await logActivity(db, adminID, adminName, "user_created", `Created new user "${name}" (User ID: ${newUserID}, ${email}) with ${role} role.`);
 
         return res.status(201).json({
             success: true,

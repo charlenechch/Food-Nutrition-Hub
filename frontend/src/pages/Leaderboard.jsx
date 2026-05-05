@@ -70,9 +70,9 @@ const Leaderboard = () => {
         if (!monthData) return;
 
         const [recipesRes, postsRes, levelRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=recipe&year=${monthData.year}&month=${monthData.month}`, { credentials: "include" }),
-          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=post&year=${monthData.year}&month=${monthData.month}`, { credentials: "include" }),
-          fetch(`${API_BASE_URL}/api/xp/leaderboard?type=level&year=${monthData.year}&month=${monthData.month}`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/api/leaderboard?type=recipe&year=${monthData.year}&month=${monthData.month}`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/api/leaderboard?type=post&year=${monthData.year}&month=${monthData.month}`, { credentials: "include" }),
+          fetch(`${API_BASE_URL}/api/leaderboard?type=level&year=${monthData.year}&month=${monthData.month}`, { credentials: "include" }),
         ]);
 
         const [recipesData, postsData, levelData] = await Promise.all([
@@ -227,12 +227,12 @@ const Leaderboard = () => {
           className={`lrp-no-outline tab-btn ${activeTab === "level" ? "active" : ""}`}
           onClick={() => setActiveTab("level")}
         >
-          ⭐ {t("leaderboard.level_leaders")}
+          ⭐ {t("leaderboard.all_time_level_rankings")}
         </button>
       </div>
 
       <div className="time-filter-row">
-        <div className="time-filter-section">
+        <div className={`time-filter-section ${activeTab === "level" ? "time-filter-hidden" : ""}`}>
           <div className="filter-label">
             <span>{t("leaderboard.time_period")}:</span>
           </div>

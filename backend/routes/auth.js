@@ -213,7 +213,7 @@ router.post("/google-login", async (req, res) => {
         return res.status(403).json({
           success: false,
           suspended: true,
-          message: `Your account is suspended until ${untilString}. Please try again after this date.`,
+          suspendedUntil: untilString,
         });
       }
 

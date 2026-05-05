@@ -281,7 +281,7 @@ export default function RecipesPage() {
 
     const name = form.name.trim();
     const origin = form.origin.trim();
-    if (!name || !origin) {
+    if (!name || !origin || form.category.length === 0 || !form.imageData) {
       showInfo({
         title: t("recipes.missingFields"),
         body: t("recipes.missingFieldsMsg"),
@@ -540,7 +540,7 @@ export default function RecipesPage() {
               </div>
 
               <div className="rp-field">
-                <label>{t("recipes.formCategory")}</label>
+                <label>{t("recipes.formCategory")} *</label>
                 <div className="rp-diet-grid">
                   {CATEGORY_OPTIONS.map(cat => (
                     <label key={cat} className="rp-diet-item">
@@ -561,7 +561,7 @@ export default function RecipesPage() {
                   <textarea name="description" className="rp-desc" value={form.description} onChange={onChangeForm} placeholder={t("recipes.formDescriptionPlaceholder")} required/>
                 </div>
                 <div className="rp-field">
-                  <label>{t("recipes.uploadPhoto")}</label>
+                  <label>{t("recipes.uploadPhoto")} *</label>
                   <div className="upload-box" onClick={() => document.getElementById("recipe-file-input").click()} role="button" tabIndex={0}>
                     {form.imageData ? (
                       <img src={form.imageData} alt="Preview" className="preview-img" />

@@ -4,35 +4,44 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../css/UserProfilePage.css"; 
 import { useTranslation } from "react-i18next";
+import { CheckCircle2, MessageSquare, BookOpen, Star, Award, Trophy, Image as ImageIcon } from "lucide-react";
 
 const formatActionType = (actionType, t) => {
   return t(`profile.action_${actionType}`); 
 };
 
-// Your backend's COALESCE SQL command now sends the title directly inside 'log.reference_title'.
+const getActionIcon = (actionType) => {
+  if (!actionType) return <Trophy size={22} color="#916848" />;
+  
+  // Categories (Every submission type gets its own unique icon)
+  if (actionType.includes("QUIZ")) return <Star size={22} color="#f59e0b" />;
+  if (actionType.includes("RECIPE") || actionType.includes("FOOD")) return <BookOpen size={22} color="#8b5cf6" />;
+  if (actionType.includes("POST")) return <ImageIcon size={22} color="#ec4899" />;
+  if (actionType.includes("DISCUSSION") || actionType.includes("COMMENT")) return <MessageSquare size={22} color="#3b82f6" />;
+  
+  // Generic fallbacks
+  if (actionType.includes("APPROVE") || actionType.includes("COMPLETED")) return <CheckCircle2 size={22} color="#10b981" />;
+
+  return <Award size={22} color="#916848" />;
+};
+
 const getReferenceTitle = (actionType, referenceId, referenceTitle, t) => {
+  // 1. If we have the actual name of the food/post from the database, show it!
   if (referenceTitle) return referenceTitle; 
   
-  // Specific check for Quiz to avoid "Item #" display
-  if (actionType === "QUIZ_COMPLETED") {
-    return t("profile.quizSubtitle"); 
-  }
+  // 2. Friendly fallback descriptions (No more ugly IDs!)
+  // This matches the exact style of the Quiz in your screenshot
+  if (actionType.includes("QUIZ")) return t("profile.quizSubtitle", "Earned by finishing the daily challenge");
+  if (actionType.includes("RECIPE")) return t("profile.recipeFallback", "Earned by sharing a recipe with the community");
+  if (actionType.includes("POST")) return t("profile.postFallback", "Earned by contributing to community stories");
+  if (actionType.includes("DISCUSSION") || actionType.includes("COMMENT")) return t("profile.discussionFallback", "Earned by participating in discussions");
   
-  if (actionType.includes("RECIPE")) {
-    return t("profile.deletedRecipe", { id: referenceId });
-  }
-  if (actionType.includes("POST")) {
-    return t("profile.deletedPost", { id: referenceId });
-  }
-  return t("profile.deletedItem", { id: referenceId });
+  return t("profile.genericActivity", "Earned by participating in the community");
 };
 
 const getPaginationGroup = (currentPage, totalPages, isMobile) => {
   const visibleCount = isMobile ? 3 : 5;
-
-  if (totalPages <= visibleCount) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  }
+  if (totalPages <= visibleCount) return Array.from({ length: totalPages }, (_, i) => i + 1);
 
   const pages = [];
   let startPage, endPage;
@@ -61,7 +70,6 @@ export default function XpLogsPage() {
   const navigate = useNavigate();
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 500);
-  
   const [currentPage, setCurrentPage] = useState(1);
   const [logs, setLogs] = useState([]); 
   const [totalPages, setTotalPages] = useState(1); 
@@ -73,30 +81,21 @@ export default function XpLogsPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // THE API FETCH CALL
   useEffect(() => {
     const fetchXpLogs = async () => {
       setIsLoading(true);
       try {
-        // FIXED: Using Vite's environment variable syntax so it works locally and on Railway
         const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-        
-        // FIXED: Points exactly to the /api/xp/logs route
         const response = await fetch(`${API_BASE_URL}/api/xp/logs?page=${currentPage}`, {
           method: "GET",
           credentials: "include", 
-          headers: {
-            "Content-Type": "application/json"
-          }
+          headers: { "Content-Type": "application/json" }
         });
         
         const data = await response.json();
-        
         if (data.success) {
           setLogs(data.logs);
           setTotalPages(data.totalPages);
-        } else {
-          console.error("Failed to load logs:", data.message);
         }
       } catch (error) {
         console.error("Error fetching live XP logs:", error);
@@ -104,57 +103,86 @@ export default function XpLogsPage() {
         setIsLoading(false);
       }
     };
-
     fetchXpLogs();
   }, [currentPage]);
 
   return (
     <div className="user-profile-page">
       <Header />
-      
       <div className="upp-page">
         <div className="upp-stack xlp-stack">
-          
-          <button 
-            className="lrp-btn lrp-btn-outline xlp-btn" 
-            onClick={() => navigate(-1)}
-          >
+          <button className="lrp-btn lrp-btn-outline xlp-btn" onClick={() => navigate(-1)}>
             {t("profile.backToProfile")}
           </button>
 
           <div className="upp-card">
             <h2 className="upp-card-title xlp-card-title">{t("profile.xpLogsTitle")}</h2>
-            <p className="upp-muted2 xlp-muted2">
+            <p className="upp-muted2 xlp-muted2" style={{ marginBottom: "24px" }}>
                 {t("profile.xpLogsDesc")}
             </p>
 
             {isLoading ? (
-               <div className="loading-spinner" style={{ textAlign: "center", padding: "2rem" }}>
-                 {t("profile.loadingLogs", "Loading your XP history...")}
+               <div className="loading-spinner" style={{ textAlign: "center", padding: "3rem", color: "#916848" }}>
+                 <Trophy size={40} className="spinner-bounce" style={{ marginBottom: "10px", opacity: 0.5 }} />
+                 <p>{t("profile.loadingLogs", "Loading your achievements...")}</p>
                </div>
             ) : logs.length === 0 ? (
-               <div className="no-logs" style={{ textAlign: "center", padding: "2rem", color: "#666" }}>
-                 {t("profile.noLogsYet", "You haven't earned any XP yet. Start participating!")}
+               <div className="no-logs" style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}>
+                 <Award size={48} style={{ marginBottom: "15px", opacity: 0.3 }} />
+                 <h3>{t("profile.noLogsTitle", "No XP Earned Yet")}</h3>
+                 <p>{t("profile.noLogsDesc", "Start participating in the community to earn XP and level up!")}</p>
                </div>
             ) : (
-              <div className="xp-log-list">
+              <div className="xp-log-list" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {logs.map((log) => (
-                  <div key={log.id} className="xp-log-item">
-                    <div className="xp-log-info">
-                      <div className="xp-log-action">{formatActionType(log.action_type, t)}</div>
+                  <div 
+                    key={log.id} 
+                    className="xp-log-item"
+                    style={{ 
+                      display: "flex", alignItems: "center", padding: "16px", 
+                      backgroundColor: "#fafaf9", border: "1px solid #e7e5e4",
+                      borderRadius: "12px", gap: "16px",
+                      transition: "transform 0.2s ease, box-shadow 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
+                  >
+                    
+                    <div style={{ 
+                      display: "flex", alignItems: "center", justifyContent: "center", 
+                      width: "48px", height: "48px", backgroundColor: "#fff", 
+                      borderRadius: "50%", border: "1px solid #e7e5e4",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.02)", flexShrink: 0
+                    }}>
+                      {getActionIcon(log.action_type)}
+                    </div>
+
+                    <div className="xp-log-info" style={{ flex: 1 }}>
+                      <div className="xp-log-action" style={{ fontWeight: "700", color: "#292524", fontSize: "1.05rem" }}>
+                        {formatActionType(log.action_type, t)}
+                      </div>
                       
-                      <div className="xp-log-details">
+                      <div className="xp-log-details" style={{ color: "#57534e", fontSize: "0.9rem", marginTop: "2px", fontWeight: "500" }}>
                         {getReferenceTitle(log.action_type, log.reference_id, log.reference_title, t)}
                       </div>
                       
-                      <div className="upp-muted2">
+                      <div className="upp-muted2" style={{ color: "#a8a29e", fontSize: "0.8rem", marginTop: "4px" }}>
                         {new Date(log.created_at).toLocaleDateString(
                           i18n.language === 'ms' ? 'ms-MY' : 'en-US',
                           { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }
                         )}
                       </div>
                     </div>
-                    <div className={`xp-log-amount ${log.xp_awarded > 0 ? "xp-positive" : "xp-negative"}`}>
+
+                    <div 
+                      className={`xp-log-amount ${log.xp_awarded > 0 ? "xp-positive" : "xp-negative"}`}
+                      style={{ 
+                        fontWeight: "800", fontSize: "1.1rem", 
+                        color: log.xp_awarded > 0 ? "#059669" : "#dc2626", 
+                        backgroundColor: log.xp_awarded > 0 ? "#d1fae5" : "#fee2e2", 
+                        padding: "8px 16px", borderRadius: "20px", whiteSpace: "nowrap"
+                      }}
+                    >
                       {log.xp_awarded > 0 ? "+" : ""}{log.xp_awarded} XP
                     </div>
                   </div>
@@ -163,7 +191,7 @@ export default function XpLogsPage() {
             )}
 
             {totalPages > 1 && !isLoading && (
-              <div className="efp-pagination upp-pagination xlp-pagination">
+              <div className="efp-pagination upp-pagination xlp-pagination" style={{ marginTop: "30px" }}>
                 <button
                   className="efp-btn nav-btn"
                   disabled={currentPage === 1}
@@ -197,11 +225,9 @@ export default function XpLogsPage() {
                 </button>
               </div>
             )}
-            
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );
