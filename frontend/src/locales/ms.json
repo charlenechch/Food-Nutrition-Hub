@@ -633,7 +633,7 @@
     "ruleNumber": "Nombor",
     "ruleSpecial": "Simbol khas (!@#$)",
     "regSuccessTitle": "Pendaftaran Berjaya",
-    "regSuccessMsg": "Sila sahkan e-mel anda untuk meneruskan. Sesetengah aplikasi e-mel mengimbas pautan secara automatik atas sebab keselamatan, yang boleh menyebabkan pautan pengesahan kelihatan telah tamat tempoh. Jika ini berlaku, cuba log masuk dahulu. Ia mungkin masih berfungsi.",
+    "regSuccessMsg": "Sila sahkan e-mel anda untuk meneruskan. Sesetengah aplikasi e-mel mengimbas pautan secara automatik atas sebab keselamatan, yang boleh menyebabkan pautan pengesahan kelihatan telah tamat tempoh atau telah digunakan. Jika ini berlaku, akaun anda berkemungkinan telah disahkan. Cuba log masuk terus. Jika anda masih menghadapi masalah, sila hubungi sokongan di info@sarawakeats.com.",
     "close": "Tutup",
     "cancel": "Batal",
     "fillAllFields": "Sila isi semua medan.",
