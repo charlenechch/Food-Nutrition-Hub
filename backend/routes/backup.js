@@ -276,38 +276,38 @@ router.post('/restore', async (req, res) => {
 });
 
 // 5. Delete old backups (cleanup)
-router.delete('/cleanup', async (req, res) => {
-  const { daysToKeep = 30 } = req.body;
+// router.delete('/cleanup', async (req, res) => {
+//   const { daysToKeep = 30 } = req.body;
   
-  try {
-    const files = fs.readdirSync(BACKUP_DIR);
-    const now = Date.now();
-    const deletedFiles = [];
+//   try {
+//     const files = fs.readdirSync(BACKUP_DIR);
+//     const now = Date.now();
+//     const deletedFiles = [];
     
-    for (const file of files) {
-      if (file.endsWith('.zip') && file.startsWith('sarawakeats_backup_')) {
-        const filePath = path.join(BACKUP_DIR, file);
-        const stats = fs.statSync(filePath);
-        const fileAge = (now - stats.birthtimeMs) / (1000 * 60 * 60 * 24);
+//     for (const file of files) {
+//       if (file.endsWith('.zip') && file.startsWith('sarawakeats_backup_')) {
+//         const filePath = path.join(BACKUP_DIR, file);
+//         const stats = fs.statSync(filePath);
+//         const fileAge = (now - stats.birthtimeMs) / (1000 * 60 * 60 * 24);
         
-        if (fileAge > daysToKeep) {
-          fs.unlinkSync(filePath);
-          deletedFiles.push(file);
-        }
-      }
-    }
+//         if (fileAge > daysToKeep) {
+//           fs.unlinkSync(filePath);
+//           deletedFiles.push(file);
+//         }
+//       }
+//     }
     
-    res.json({
-      success: true,
-      message: `Cleaned up ${deletedFiles.length} old backups`,
-      deleted: deletedFiles
-    });
+//     res.json({
+//       success: true,
+//       message: `Cleaned up ${deletedFiles.length} old backups`,
+//       deleted: deletedFiles
+//     });
     
-  } catch (error) {
-    console.error('Cleanup error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+//   } catch (error) {
+//     console.error('Cleanup error:', error);
+//     res.status(500).json({ success: false, error: error.message });
+//   }
+// });
 
 // 6. Get last backup info
 router.get('/last-backup', async (req, res) => {
