@@ -386,457 +386,457 @@ router.get('/recipes/:id', async (req, res) => {
 
 // POST new recipe 
 router.post('/create/recipes', async (req, res) => {
-console.log('🔍 START: Recipe creation endpoint called');
-console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
+  console.log('🔍 START: Recipe creation endpoint called');
+  console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
 
-try {
-  const {
-    name, origin, difficulty, prepTime, image, description, 
-    category, dietaryTags, cookTime, servings, ingredients, 
-    instructions, funFact, chefTips
-  } = req.body;
+  try {
+    const {
+      name, origin, difficulty, prepTime, image, description, 
+      category, dietaryTags, cookTime, servings, ingredients, 
+      instructions, funFact, chefTips
+    } = req.body;
 
-  // Validate and sanitize (added, no removals)
-  {
-    const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
-    if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
-    const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
-    Object.assign(req.body, cleanData);
-  }
+    // Validate and sanitize (added, no removals)
+    {
+      const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+      if (error) return res.status(400).json({ error: error.details.map(d => d.message).join(", ") });
+      const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
+      Object.assign(req.body, cleanData);
+    }
 
-  // image size validation
-  if (image && image.startsWith('data:image')) {
-    const base64Size = (image.length * 3) / 4; // Base64 size estimate in bytes
-    const maxSize = 10 * 1024 * 1024; // 10MB limit
+    // image size validation
+    if (image && image.startsWith('data:image')) {
+      const base64Size = (image.length * 3) / 4; // Base64 size estimate in bytes
+      const maxSize = 10 * 1024 * 1024; // 10MB limit
+      
+      console.log(`📏 Image size check: ${Math.round(base64Size / 1024)} KB`);
+      
+      if (base64Size > maxSize) {
+        return res.status(400).json({ 
+          error: 'Image too large. Please use an image smaller than 10MB.' 
+        });
+      }
+    }
+
+    // MIME type allowlist + magic bytes validation
+    if (image && image.includes(';base64,')) {
+      const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      const mimeType = image.split(';')[0].split(':')[1];
+
+      if (!allowedMimeTypes.includes(mimeType)) {
+        return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+      }
+
+      const base64Data = image.split(',')[1];
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+      const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+      const isWebp = buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46
+                  && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+
+      if (!isJpeg && !isPng && !isWebp) {
+        return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
+      }
+    }
+
+    console.log('📊 Request data analysis:', {
+      name, 
+      origin, 
+      category,
+      ingredientsType: typeof ingredients,
+      instructionsType: typeof instructions,
+      ingredientsIsArray: Array.isArray(ingredients),
+      instructionsIsArray: Array.isArray(instructions),
+      ingredientsLength: Array.isArray(ingredients) ? ingredients.length : 'N/A',
+      instructionsLength: Array.isArray(instructions) ? instructions.length : 'N/A',
+      imageSize: image ? (image.startsWith('data:image') ? `${Math.round((image.length * 3) / 4 / 1024)} KB` : 'URL') : 'None'
+    });
+
+    // Validate required fields
+    if (!name || !origin) {
+      console.log('❌ Validation failed: missing name or origin');
+      return res.status(400).json({ error: 'Name and origin are required' });
+    }
+
+    // Check authentication
+    if (!req.session || !req.session.user) {
+      console.log('❌ Authentication failed - no session user');
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const userID = req.session.user.userID;
+
+    // ✅ Get userProfileID from database
+    const [profileResult] = await db.query(
+      'SELECT userProfileID FROM userProfile WHERE userID = ?',
+      [userID]
+    );
+
+    if (profileResult.length === 0) {
+      console.log('❌ No userProfile found for user:', userID);
+      return res.status(400).json({ error: 'User profile not found' });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+    console.log('✅ User authenticated - userID:', userID, 'userProfileID:', userProfileID);
+
+    let processedImage = image || 
+    'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
+
+    // CLOUDINARY UPLOAD LOGIC with size protection
+    if (image && image.startsWith('data:image')) {
+      try {
+        console.log('📤 Uploading image to Cloudinary...');
+        const uploadResult = await cloudinary.uploader.upload(image, {
+          folder: 'food-recipes',
+          resource_type: 'image',
+          timeout: 30000 // 30 second timeout
+        });
+        processedImage = uploadResult.secure_url;
+        console.log('✅ Image uploaded to Cloudinary:', processedImage);
+      } catch (uploadError) {
+        console.error('❌ Cloudinary upload failed:', uploadError.message);
+        // Continue with default image - don't fail the entire recipe
+      }
+    } else if (image && image.startsWith('http')) {
+      processedImage = image;
+      console.log('✅ Using existing image URL');
+    }
     
-    console.log(`📏 Image size check: ${Math.round(base64Size / 1024)} KB`);
+    console.log('🚀 About to execute FIRST INSERT (food table)');
+
+    // Insert into food table
+    const foodQuery = `
+      INSERT INTO food (
+        origin, difficulty, prepTime, image, description, 
+        category, dietaryTags, commonIngredients
+      ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
     
-    if (base64Size > maxSize) {
-      return res.status(400).json({ 
-        error: 'Image too large. Please use an image smaller than 10MB.' 
-      });
+    const foodParams = [
+      origin, 
+      difficulty || 'Easy', 
+      prepTime || 0, 
+      processedImage, 
+      description || '', 
+      category || 'Other',
+      Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
+      null
+    ];
+    
+    console.log('📝 Executing food insert with params:', foodParams);
+    
+    // Try using query() instead of execute() to avoid prepared statement issues
+    const [foodResult] = await db.query(foodQuery, foodParams);
+    console.log('✅ Food insert successful - insertId:', foodResult.insertId);
+    
+    const foodId = foodResult.insertId;
+
+    if (!foodId) {
+      throw new Error('Could not retrieve the inserted food ID');
     }
+
+    console.log('🚀 About to execute SECOND INSERT (recipe table)');
+
+    // Insert into recipe table
+    const recipeQuery = `
+      INSERT INTO recipe (
+        foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description, recipeName
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    const recipeParams = [
+      foodId, 
+      userProfileID,
+      Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
+      Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
+      cookTime || 0, 
+      servings || 1,
+      funFact || '', 
+      chefTips || '',
+      'Pending',
+      description || '',
+      name || ''
+    ];
+    
+    console.log('📝 Executing recipe insert with foodID:', foodId);
+    console.log('📋 Recipe params:', recipeParams);
+    
+    await db.query(recipeQuery, recipeParams);
+    
+    console.log('✅ Recipe insert successful');
+    console.log('🎉 Recipe created successfully with ID:', foodId);
+
+    // Force the stats to recount immediately after submission
+    await updateUserStats(userID); 
+    console.log(`✅ User stats recounted on recipe submission for userID: ${userID}`);
+    
+    res.status(201).json({ 
+      message: 'Recipe created successfully', 
+      id: foodId,
+      status: 'Pending'
+    });
+    
+  } catch (error) {
+    console.error('💥 CATCH BLOCK - FULL ERROR DETAILS:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      sql: error.sql,           // show the exact failing SQL command
+      sqlState: error.sqlState,
+      sqlMessage: error.sqlMessage,
+      stack: error.stack
+    });
+    
+    // Send detailed error info to frontend
+    res.status(500).json({ 
+      error: error.message,
+      sqlCommand: error.sql,   
+      code: error.code,
+      details: 'Check backend logs for full error details'
+    });
   }
-
-  // MIME type allowlist + magic bytes validation
-  if (image && image.includes(';base64,')) {
-    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    const mimeType = image.split(';')[0].split(':')[1];
-
-    if (!allowedMimeTypes.includes(mimeType)) {
-      return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
-    }
-
-    const base64Data = image.split(',')[1];
-    const buffer = Buffer.from(base64Data, 'base64');
-
-    const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
-    const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
-    const isWebp = buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46
-                && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
-
-    if (!isJpeg && !isPng && !isWebp) {
-      return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
-    }
-  }
-
-  console.log('📊 Request data analysis:', {
-    name, 
-    origin, 
-    category,
-    ingredientsType: typeof ingredients,
-    instructionsType: typeof instructions,
-    ingredientsIsArray: Array.isArray(ingredients),
-    instructionsIsArray: Array.isArray(instructions),
-    ingredientsLength: Array.isArray(ingredients) ? ingredients.length : 'N/A',
-    instructionsLength: Array.isArray(instructions) ? instructions.length : 'N/A',
-    imageSize: image ? (image.startsWith('data:image') ? `${Math.round((image.length * 3) / 4 / 1024)} KB` : 'URL') : 'None'
-  });
-
-  // Validate required fields
-  if (!name || !origin) {
-    console.log('❌ Validation failed: missing name or origin');
-    return res.status(400).json({ error: 'Name and origin are required' });
-  }
-
-  // Check authentication
-  if (!req.session || !req.session.user) {
-    console.log('❌ Authentication failed - no session user');
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-
-  const userID = req.session.user.userID;
-
-  // ✅ Get userProfileID from database
-  const [profileResult] = await db.query(
-    'SELECT userProfileID FROM userProfile WHERE userID = ?',
-    [userID]
-  );
-
-  if (profileResult.length === 0) {
-    console.log('❌ No userProfile found for user:', userID);
-    return res.status(400).json({ error: 'User profile not found' });
-  }
-
-  const userProfileID = profileResult[0].userProfileID;
-  console.log('✅ User authenticated - userID:', userID, 'userProfileID:', userProfileID);
-
-  let processedImage = image || 
-  'https://res.cloudinary.com/demo/image/upload/v1638752412/placeholder_food.jpg';
-
-  // CLOUDINARY UPLOAD LOGIC with size protection
-  if (image && image.startsWith('data:image')) {
-    try {
-      console.log('📤 Uploading image to Cloudinary...');
-      const uploadResult = await cloudinary.uploader.upload(image, {
-        folder: 'food-recipes',
-        resource_type: 'image',
-        timeout: 30000 // 30 second timeout
-      });
-      processedImage = uploadResult.secure_url;
-      console.log('✅ Image uploaded to Cloudinary:', processedImage);
-    } catch (uploadError) {
-      console.error('❌ Cloudinary upload failed:', uploadError.message);
-      // Continue with default image - don't fail the entire recipe
-    }
-  } else if (image && image.startsWith('http')) {
-    processedImage = image;
-    console.log('✅ Using existing image URL');
-  }
-  
-  console.log('🚀 About to execute FIRST INSERT (food table)');
-
-  // Insert into food table
-  const foodQuery = `
-    INSERT INTO food (
-      origin, difficulty, prepTime, image, description, 
-      category, dietaryTags, commonIngredients
-    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-  
-  const foodParams = [
-    origin, 
-    difficulty || 'Easy', 
-    prepTime || 0, 
-    processedImage, 
-    description || '', 
-    category || 'Other',
-    Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
-    null
-  ];
-  
-  console.log('📝 Executing food insert with params:', foodParams);
-  
-  // Try using query() instead of execute() to avoid prepared statement issues
-  const [foodResult] = await db.query(foodQuery, foodParams);
-  console.log('✅ Food insert successful - insertId:', foodResult.insertId);
-  
-  const foodId = foodResult.insertId;
-
-  if (!foodId) {
-    throw new Error('Could not retrieve the inserted food ID');
-  }
-
-  console.log('🚀 About to execute SECOND INSERT (recipe table)');
-
-  // Insert into recipe table
-  const recipeQuery = `
-    INSERT INTO recipe (
-      foodID, userProfileID, ingredients, steps, cookTime, servings, DidYouKnow, chefTips, status, description, recipeName
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-  
-  const recipeParams = [
-    foodId, 
-    userProfileID,
-    Array.isArray(ingredients) ? ingredients.join('\n') : (ingredients || ''),
-    Array.isArray(instructions) ? instructions.join('\n') : (instructions || ''),
-    cookTime || 0, 
-    servings || 1,
-    funFact || '', 
-    chefTips || '',
-    'Pending',
-    description || '',
-    name || ''
-  ];
-  
-  console.log('📝 Executing recipe insert with foodID:', foodId);
-  console.log('📋 Recipe params:', recipeParams);
-  
-  await db.query(recipeQuery, recipeParams);
-  
-  console.log('✅ Recipe insert successful');
-  console.log('🎉 Recipe created successfully with ID:', foodId);
-
-  // Force the stats to recount immediately after submission
-  await updateUserStats(userID); 
-  console.log(`✅ User stats recounted on recipe submission for userID: ${userID}`);
-  
-  res.status(201).json({ 
-    message: 'Recipe created successfully', 
-    id: foodId,
-    status: 'Pending'
-  });
-  
-} catch (error) {
-  console.error('💥 CATCH BLOCK - FULL ERROR DETAILS:', {
-    message: error.message,
-    code: error.code,
-    errno: error.errno,
-    sql: error.sql,           // show the exact failing SQL command
-    sqlState: error.sqlState,
-    sqlMessage: error.sqlMessage,
-    stack: error.stack
-  });
-  
-  // Send detailed error info to frontend
-  res.status(500).json({ 
-    error: error.message,
-    sqlCommand: error.sql,   
-    code: error.code,
-    details: 'Check backend logs for full error details'
-  });
-}
 });
 
 // ✅ GET recipes by user ID 
 router.get("/user/:userId", async (req, res) => {
-console.log('=== STARTING USER RECIPES FETCH ===');
-console.log('📝 Request params:', req.params);
-console.log('🔍 Query params:', req.query);
+  console.log('=== STARTING USER RECIPES FETCH ===');
+  console.log('📝 Request params:', req.params);
+  console.log('🔍 Query params:', req.query);
 
-try {
-  const { userId } = req.params;
-  
-  console.log(`📖 Fetching recipes for user ID: ${userId}`);
-
-  // ✅ Enhanced validation
-  if (!userId) {
-    console.log('❌ No user ID provided');
-    return res.status(400).json({
-      success: false,
-      error: 'User ID is required'
-    });
-  }
-
-  // Convert to number and validate
-  const numericUserId = parseInt(userId);
-  if (isNaN(numericUserId) || numericUserId <= 0) {
-    console.log('❌ Invalid user ID format:', userId);
-    return res.status(400).json({
-      success: false,
-      error: 'Valid numeric user ID is required'
-    });
-  }
-
-  console.log('🔢 Numeric user ID:', numericUserId);
-
-  // ✅ Check if user exists with better error handling
-  let userCheck;
   try {
-    console.log('👤 Checking if user exists...');
-    [userCheck] = await db.execute(
-      'SELECT userID, firstname, lastname FROM user WHERE userID = ?',
-      [numericUserId]
-    );
-    console.log('✅ User check result:', userCheck);
-  } catch (dbError) {
-    console.error('❌ Database error checking user:', dbError);
-    return res.status(500).json({
-      success: false,
-      error: 'Database error while checking user',
-      details: process.env.NODE_ENV === 'development' ? dbError.message : undefined
-    });
-  }
+    const { userId } = req.params;
+    
+    console.log(`📖 Fetching recipes for user ID: ${userId}`);
 
-  if (userCheck.length === 0) {
-    console.log('❌ User not found with ID:', numericUserId);
-    return res.status(404).json({
-      success: false,
-      error: 'User not found'
-    });
-  }
+    // ✅ Enhanced validation
+    if (!userId) {
+      console.log('❌ No user ID provided');
+      return res.status(400).json({
+        success: false,
+        error: 'User ID is required'
+      });
+    }
 
-  // ✅ Get userProfileID
-  let profileResult;
-  try {
-    console.log('📋 Fetching user profile...');
-    [profileResult] = await db.execute(
-      'SELECT userProfileID FROM userProfile WHERE userID = ?',
-      [numericUserId]
-    );
-    console.log('✅ Profile result:', profileResult);
-  } catch (profileError) {
-    console.error('❌ Database error fetching profile:', profileError);
-    return res.status(500).json({
-      success: false,
-      error: 'Database error while fetching user profile',
-      details: process.env.NODE_ENV === 'development' ? profileError.message : undefined
-    });
-  }
+    // Convert to number and validate
+    const numericUserId = parseInt(userId);
+    if (isNaN(numericUserId) || numericUserId <= 0) {
+      console.log('❌ Invalid user ID format:', userId);
+      return res.status(400).json({
+        success: false,
+        error: 'Valid numeric user ID is required'
+      });
+    }
 
-  if (profileResult.length === 0) {
-    console.log('No user profile found for user:', numericUserId);
-    return res.status(200).json({
+    console.log('🔢 Numeric user ID:', numericUserId);
+
+    // ✅ Check if user exists with better error handling
+    let userCheck;
+    try {
+      console.log('👤 Checking if user exists...');
+      [userCheck] = await db.execute(
+        'SELECT userID, firstname, lastname FROM user WHERE userID = ?',
+        [numericUserId]
+      );
+      console.log('✅ User check result:', userCheck);
+    } catch (dbError) {
+      console.error('❌ Database error checking user:', dbError);
+      return res.status(500).json({
+        success: false,
+        error: 'Database error while checking user',
+        details: process.env.NODE_ENV === 'development' ? dbError.message : undefined
+      });
+    }
+
+    if (userCheck.length === 0) {
+      console.log('❌ User not found with ID:', numericUserId);
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // ✅ Get userProfileID
+    let profileResult;
+    try {
+      console.log('📋 Fetching user profile...');
+      [profileResult] = await db.execute(
+        'SELECT userProfileID FROM userProfile WHERE userID = ?',
+        [numericUserId]
+      );
+      console.log('✅ Profile result:', profileResult);
+    } catch (profileError) {
+      console.error('❌ Database error fetching profile:', profileError);
+      return res.status(500).json({
+        success: false,
+        error: 'Database error while fetching user profile',
+        details: process.env.NODE_ENV === 'development' ? profileError.message : undefined
+      });
+    }
+
+    if (profileResult.length === 0) {
+      console.log('No user profile found for user:', numericUserId);
+      return res.status(200).json({
+        success: true,
+        message: 'No recipes found',
+        data: [],
+        userInfo: {
+          userId: numericUserId,
+          username: `${userCheck[0].firstname} ${userCheck[0].lastname}`,
+          totalRecipes: 0
+        }
+      });
+    }
+
+    const userProfileID = profileResult[0].userProfileID;
+    console.log('✅ User profile ID:', userProfileID);
+
+    let recipes;
+    try {
+      console.log('🍳 Fetching recipes...');
+      const recipeQuery = `
+        SELECT 
+          f.foodID AS id,
+          r.recipeID,
+          r.recipeName AS name, 
+          f.origin AS culturalOrigin,
+          r.status,
+          r.admin_feedback,
+          r.description AS description,
+          f.image AS photos,
+          r.ingredients,
+          r.steps AS instructions,
+          r.createdAt AS created_at,
+          up.userProfileID,
+          up.equippedBadge,
+          CONCAT(u.firstname, ' ', u.lastname) AS author,
+          u.userID,
+          r.cookTime,
+          r.servings,
+          r.DidYouKnow AS funFact,
+          r.chefTips,
+          f.difficulty,
+          f.prepTime,
+          f.category,
+          f.dietaryTags
+        FROM recipe r
+        JOIN food f ON r.foodID = f.foodID
+        JOIN userProfile up ON r.userProfileID = up.userProfileID
+        JOIN user u ON up.userID = u.userID
+        WHERE up.userProfileID = ?
+        ORDER BY r.createdAt DESC
+      `;
+      
+      console.log('📊 Executing query:', recipeQuery);
+      console.log('📋 With parameter:', userProfileID);
+      
+      [recipes] = await db.execute(recipeQuery, [userProfileID]);
+      console.log(`✅ Found ${recipes.length} recipes`);
+      
+    } catch (recipeError) {
+      console.error('❌ Database error fetching recipes:', recipeError);
+      console.error('❌ Error details:', {
+        code: recipeError.code,
+        errno: recipeError.errno,
+        sqlMessage: recipeError.sqlMessage
+      });
+      
+      return res.status(500).json({
+        success: false,
+        error: 'Database error while fetching recipes',
+        details: process.env.NODE_ENV === 'development' ? {
+          message: recipeError.message,
+          code: recipeError.code,
+          sqlMessage: recipeError.sqlMessage
+        } : undefined
+      });
+    }
+
+    // ✅ Format the response data safely for RECIPES
+    const formattedRecipes = recipes.map(recipe => {
+      // Handle potential undefined values
+      let images = [];
+      try {
+        if (recipe.photos && typeof recipe.photos === 'string' && recipe.photos.trim() !== '') {
+          // For recipes, typically one main image, not comma-separated
+          images = [recipe.photos];
+        }
+      } catch (photoError) {
+        console.warn('⚠️ Error processing photos for recipe:', recipe.id, photoError);
+      }
+
+      // Handle ingredients and instructions 
+      let ingredients = [];
+      let instructions = [];
+      
+      if (recipe.ingredients && typeof recipe.ingredients === 'string') {
+        ingredients = recipe.ingredients.split('\n').filter(line => line.trim() !== '');
+      }
+      
+      if (recipe.instructions && typeof recipe.instructions === 'string') {
+        instructions = recipe.instructions.split('\n').filter(line => line.trim() !== '');
+      }
+
+      return {
+        id: recipe.id, 
+        recipeID: recipe.recipeID,
+        name: recipe.name || 'Untitled Recipe',
+        culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
+        status: (recipe.status || 'pending').toLowerCase(),
+        adminFeedback: recipe.admin_feedback || null,
+        description: recipe.description || '',
+        images: images,
+        ingredients: ingredients, 
+        instructions: instructions, 
+        author: recipe.author || 'Unknown Author',
+        userId: recipe.userID,
+        userProfileID: recipe.userProfileID,
+        createdAt: recipe.created_at,
+        cookTime: recipe.cookTime || 0,
+        servings: recipe.servings || 1,
+        funFact: recipe.funFact || '',
+        chefTips: recipe.chefTips || '',
+        difficulty: recipe.difficulty || 'Easy',
+        prepTime: recipe.prepTime || 0,
+        category: recipe.category || 'Other',
+        dietaryTags: recipe.dietaryTags || '',
+      };
+    });
+
+    console.log('✅ Successfully formatted recipes:', formattedRecipes.length);
+    console.log('📊 Sample recipe:', formattedRecipes.length > 0 ? {
+      id: formattedRecipes[0].id,
+      name: formattedRecipes[0].name,
+      status: formattedRecipes[0].status,
+      ingredientsCount: formattedRecipes[0].ingredients?.length,
+      instructionsCount: formattedRecipes[0].instructions?.length
+    } : 'No recipes found');
+
+    res.status(200).json({
       success: true,
-      message: 'No recipes found',
-      data: [],
+      message: `Found ${formattedRecipes.length} recipes`,
+      data: formattedRecipes,
       userInfo: {
         userId: numericUserId,
         username: `${userCheck[0].firstname} ${userCheck[0].lastname}`,
-        totalRecipes: 0
+        totalRecipes: formattedRecipes.length
       }
     });
-  }
 
-  const userProfileID = profileResult[0].userProfileID;
-  console.log('✅ User profile ID:', userProfileID);
-
-  let recipes;
-  try {
-    console.log('🍳 Fetching recipes...');
-    const recipeQuery = `
-      SELECT 
-        f.foodID AS id,
-        r.recipeID,
-        r.recipeName AS name, 
-        f.origin AS culturalOrigin,
-        r.status,
-        r.admin_feedback,
-        r.description AS description,
-        f.image AS photos,
-        r.ingredients,
-        r.steps AS instructions,
-        r.createdAt AS created_at,
-        up.userProfileID,
-        up.equippedBadge,
-        CONCAT(u.firstname, ' ', u.lastname) AS author,
-        u.userID,
-        r.cookTime,
-        r.servings,
-        r.DidYouKnow AS funFact,
-        r.chefTips,
-        f.difficulty,
-        f.prepTime,
-        f.category,
-        f.dietaryTags
-      FROM recipe r
-      JOIN food f ON r.foodID = f.foodID
-      JOIN userProfile up ON r.userProfileID = up.userProfileID
-      JOIN user u ON up.userID = u.userID
-      WHERE up.userProfileID = ?
-      ORDER BY r.createdAt DESC
-    `;
+  } catch (error) {
+    console.error('❌ UNEXPECTED ERROR in user recipes route:', error);
+    console.error('❌ Error stack:', error.stack);
     
-    console.log('📊 Executing query:', recipeQuery);
-    console.log('📋 With parameter:', userProfileID);
-    
-    [recipes] = await db.execute(recipeQuery, [userProfileID]);
-    console.log(`✅ Found ${recipes.length} recipes`);
-    
-  } catch (recipeError) {
-    console.error('❌ Database error fetching recipes:', recipeError);
-    console.error('❌ Error details:', {
-      code: recipeError.code,
-      errno: recipeError.errno,
-      sqlMessage: recipeError.sqlMessage
-    });
-    
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      error: 'Database error while fetching recipes',
+      error: 'Internal server error',
       details: process.env.NODE_ENV === 'development' ? {
-        message: recipeError.message,
-        code: recipeError.code,
-        sqlMessage: recipeError.sqlMessage
+        message: error.message,
+        stack: error.stack
       } : undefined
     });
   }
-
-  // ✅ Format the response data safely for RECIPES
-  const formattedRecipes = recipes.map(recipe => {
-    // Handle potential undefined values
-    let images = [];
-    try {
-      if (recipe.photos && typeof recipe.photos === 'string' && recipe.photos.trim() !== '') {
-        // For recipes, typically one main image, not comma-separated
-        images = [recipe.photos];
-      }
-    } catch (photoError) {
-      console.warn('⚠️ Error processing photos for recipe:', recipe.id, photoError);
-    }
-
-    // Handle ingredients and instructions 
-    let ingredients = [];
-    let instructions = [];
-    
-    if (recipe.ingredients && typeof recipe.ingredients === 'string') {
-      ingredients = recipe.ingredients.split('\n').filter(line => line.trim() !== '');
-    }
-    
-    if (recipe.instructions && typeof recipe.instructions === 'string') {
-      instructions = recipe.instructions.split('\n').filter(line => line.trim() !== '');
-    }
-
-    return {
-      id: recipe.id, 
-      recipeID: recipe.recipeID,
-      name: recipe.name || 'Untitled Recipe',
-      culturalOrigin: recipe.culturalOrigin || 'Unknown Origin',
-      status: (recipe.status || 'pending').toLowerCase(),
-      adminFeedback: recipe.admin_feedback || null,
-      description: recipe.description || '',
-      images: images,
-      ingredients: ingredients, 
-      instructions: instructions, 
-      author: recipe.author || 'Unknown Author',
-      userId: recipe.userID,
-      userProfileID: recipe.userProfileID,
-      createdAt: recipe.created_at,
-      cookTime: recipe.cookTime || 0,
-      servings: recipe.servings || 1,
-      funFact: recipe.funFact || '',
-      chefTips: recipe.chefTips || '',
-      difficulty: recipe.difficulty || 'Easy',
-      prepTime: recipe.prepTime || 0,
-      category: recipe.category || 'Other',
-      dietaryTags: recipe.dietaryTags || '',
-    };
-  });
-
-  console.log('✅ Successfully formatted recipes:', formattedRecipes.length);
-  console.log('📊 Sample recipe:', formattedRecipes.length > 0 ? {
-    id: formattedRecipes[0].id,
-    name: formattedRecipes[0].name,
-    status: formattedRecipes[0].status,
-    ingredientsCount: formattedRecipes[0].ingredients?.length,
-    instructionsCount: formattedRecipes[0].instructions?.length
-  } : 'No recipes found');
-
-  res.status(200).json({
-    success: true,
-    message: `Found ${formattedRecipes.length} recipes`,
-    data: formattedRecipes,
-    userInfo: {
-      userId: numericUserId,
-      username: `${userCheck[0].firstname} ${userCheck[0].lastname}`,
-      totalRecipes: formattedRecipes.length
-    }
-  });
-
-} catch (error) {
-  console.error('❌ UNEXPECTED ERROR in user recipes route:', error);
-  console.error('❌ Error stack:', error.stack);
-  
-  res.status(500).json({
-    success: false,
-    error: 'Internal server error',
-    details: process.env.NODE_ENV === 'development' ? {
-      message: error.message,
-      stack: error.stack
-    } : undefined
-  });
-}
 });
 
 // PUT update recipe
