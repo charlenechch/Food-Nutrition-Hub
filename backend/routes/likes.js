@@ -27,8 +27,9 @@ router.get("/post/:postId", async (req, res) => {
   try {
     const { postId } = req.params;
     
+    // FIX APPLIED HERE: Changed u.username and u.profilePicture to up.username and up.profilePicture
     const [likes] = await db.execute(`
-      SELECT l.*, up.userProfileID, u.username, u.profilePicture 
+      SELECT l.*, up.userProfileID, up.username, up.profilePicture 
       FROM likes l
       JOIN userProfile up ON l.userProfileID = up.userProfileID
       JOIN user u ON up.userID = u.userID
