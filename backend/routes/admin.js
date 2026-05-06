@@ -156,7 +156,7 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
 
     const adminID = req.session.user.userID;
     const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-    await logActivity(db, adminID, adminName, "user_deleted", `Deleted user "${userName}" (User ID: ${targetUserID}).`);
+    await logActivity(db, adminID, adminName, "user_deleted", `Deleted user "${userName}" (User ID: ${targetUserID}, ${userEmail}).`);
 
     return res.status(200).json({
       success: true,
@@ -330,7 +330,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
         const adminID = req.session.user.userID;
         const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-        await logActivity(db, adminID, adminName, "user_suspended", `Suspended user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (User ID: ${targetUserID}) until ${finalsuspendedUntil}. Reason: ${suspensionReason || "No reason provided."}`);
+        await logActivity(db, adminID, adminName, "user_suspended", `Suspended user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (User ID: ${targetUserID}, ${currentUser.email}) until ${finalsuspendedUntil}. Reason: ${suspensionReason || "No reason provided."}`);
     }
 
     // Case B: Account Unsuspended (Manually)
@@ -369,7 +369,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
         const adminID = req.session.user.userID;
         const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
-        await logActivity(db, adminID, adminName, "user_unsuspended", `Lifted suspension for user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (User ID: ${targetUserID}).`);
+        await logActivity(db, adminID, adminName, "user_unsuspended", `Lifted suspension for user "${`${currentUser.firstname} ${currentUser.lastname}`.trim()}" (User ID: ${targetUserID}, ${currentUser.email}).`);
     }
 
     const statusEmailSent = (!wasSuspended && isNowSuspended) || (wasSuspended && !isNowSuspended);

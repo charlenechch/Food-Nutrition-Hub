@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FiActivity, FiSearch, FiChevronLeft, FiChevronRight} from "react-icons/fi";
@@ -78,6 +78,7 @@ export default function AdminActivityLog() {
     });
 
     const [searchInput, setSearchInput] = useState("");
+    const tableRef = useRef(null);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -228,7 +229,7 @@ export default function AdminActivityLog() {
                         <div className="umg-loading-text">{t("adminActivityLog.noLogsFound")}</div>
                     </div>
                 ) : (
-                    <div className="al-table-wrapper">
+                    <div className="al-table-wrapper" ref={tableRef}>
                         <table className="food-table al-table-mobile">
                             <thead>
                                 <tr>
@@ -273,7 +274,7 @@ export default function AdminActivityLog() {
                     <div className="al-pagination">
                         <button
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+                            onClick={() => { setFilters(prev => ({ ...prev, page: prev.page - 1 })); tableRef.current?.scrollIntoView({ behavior: "smooth" }); }}
                             disabled={filters.page === 1}
                         >
                             <FiChevronLeft />
@@ -283,7 +284,7 @@ export default function AdminActivityLog() {
                         </span>
                         <button
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+                            onClick={() => { setFilters(prev => ({ ...prev, page: prev.page + 1 })); tableRef.current?.scrollIntoView({ behavior: "smooth" }); }}
                             disabled={filters.page === totalPages}
                         >
                             <FiChevronRight />

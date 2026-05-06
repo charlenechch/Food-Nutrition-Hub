@@ -1480,7 +1480,7 @@
     "pageTitle": "Admin Activity Log",
     "pageSubtitle": "A record of all admin actions performed on the platform.",
     "backToDashboard": "Back to Dashboard",
-    "searchPlaceholder": "Search by admin or description...",
+    "searchPlaceholder": "Search...",
     "allActions": "All Actions",
     "userCreated": "User Created",
     "userUpdated": "User Updated",

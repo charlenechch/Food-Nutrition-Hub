@@ -2755,6 +2755,8 @@
 .al-reset-btn {
   height: 42px;
   white-space: nowrap;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .al-entries-count {
@@ -2805,6 +2807,7 @@
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
+  display: inline-block;
 }
 
 .al-pagination {
@@ -2906,6 +2909,13 @@
         width: 100%;
         min-width: unset;
         box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .al-search-box input {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
     }
 
     .al-table-wrapper {
@@ -2971,6 +2981,9 @@
     .al-td-description,
     .al-td-admin,
     .al-td-datetime,
+    .al-td-description,
+    .al-td-admin,
+    .al-td-datetime,
     .food-table.al-table-mobile td > span {
         flex: 1; 
         text-align: left;
@@ -2978,8 +2991,28 @@
         min-width: 0;
     }
 
+    .food-table.al-table-mobile td > span.al-badge {
+        white-space: normal;
+        word-break: break-word;
+        display: inline-flex;
+        align-items: center;
+        align-self: flex-start;
+    }
+
     .al-td-description {
         line-height: 1.4;
+    }
+
+    .al-pagination {
+        width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden;
+        justify-content: space-between;
+    }
+
+    .al-reset-btn {
+        width: 100%;
+        justify-content: center;
     }
 
     .activity-log-title-row {
