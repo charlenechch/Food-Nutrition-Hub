@@ -2997,6 +2997,7 @@
         display: inline-flex;
         align-items: center;
         align-self: flex-start;
+        flex: 0 1 auto;
     }
 
     .al-td-description {
@@ -3007,12 +3008,16 @@
         width: 100%;
         box-sizing: border-box;
         overflow-x: hidden;
-        justify-content: space-between;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
     .al-reset-btn {
         width: 100%;
+        display: flex;
         justify-content: center;
+        box-sizing: border-box;
     }
 
     .activity-log-title-row {
