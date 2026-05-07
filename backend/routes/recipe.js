@@ -1073,6 +1073,291 @@ router.put('/revise/recipes/:id', async (req, res) => {
     });
   }
 });
+
+/*
+// =============================
+// GET feedback for a specific recipe
+// =============================
+router.get("/recipes/:id/feedback", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const query = `
+      SELECT f.*, 
+      CONCAT(u.firstname, ' ', u.lastname) AS adminName
+      FROM feedback f
+      LEFT JOIN user u ON f.adminID = u.userID
+      WHERE f.recipeID = ?
+      ORDER BY f.createdAt DESC
+    `;
+
+    const [rows] = await db.query(query, [id]);
+
+    res.json(rows);
+  } catch (error) {
+    console.error("❌ Error fetching feedback:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// =============================
+// POST admin feedback
+// =============================
+router.post("/recipes/:id/feedback", async (req, res) => {
+  try {
+    const { id } = req.params;       // recipeID
+    const { adminID, userID, message } = req.body;
+
+    if (!adminID || !userID || !message) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const query = `
+      INSERT INTO feedback (recipeID, adminID, userID, message)
+      VALUES (?, ?, ?, ?)
+    `;
+
+    await db.query(query, [id, adminID, userID, message]);
+
+    res.json({ success: true, message: "Feedback submitted successfully" });
+  } catch (error) {
+    console.error("❌ Error submitting feedback:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+*/
+
+// Admin update recipe approval status (Approve / Reject)
+router.patch('/updateStatus/:id', async (req, res) => {
+  const recipeId = req.params.id;
+  console.log(`Attempting to update status for ID: ${recipeId}`);
+
+  const { status, feedback } = req.body;
+  const validStatuses = ["Approved", "Rejected", "Pending"];
+
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: `Invalid status. Received: '${status}'` 
+    });
+  }
+
+  // Coerce feedback into a string and trim whitespace
+  const inputFeedback = String(feedback || '').trim();
+
+  // Define the variable for the database (NULL if empty)
+  const dbFeedbackValue = inputFeedback.length > 0 ? inputFeedback : null;
+
+  //
+  const adminID = req.session.user.userID;
+  const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
+
+  // Define the variable for email display (includes the default fallback)
+  const rejectionContent = inputFeedback.length > 0 
+                           ? inputFeedback 
+                           : "No specific feedback provided.";
+
+  try {
+    // Update recipe status
+    const [result] = await db.query(
+      "UPDATE recipe SET status = ?, admin_feedback = ?, approved_by = ?, approved_at = IF(? = 'Approved', NOW(), approved_at) WHERE foodID = ?",
+      [status, dbFeedbackValue, status === "Approved" ? adminName : null, status, recipeId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Recipe not found." });
+    }
+
+
+    const actionType = status === "Approved" ? "recipe_approved" : "recipe_rejected";
+
+    // Fetch User Info & Recipe Details
+    const [rows] = await db.query(`
+      SELECT u.email, u.firstname, r.recipeName
+      FROM recipe r
+      JOIN userProfile up ON r.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      JOIN food f ON r.foodID = f.foodID
+      WHERE r.foodID = ?
+    `, [recipeId]);
+
+    if (rows.length > 0) {
+      const { email, firstname, recipeName } = rows[0];
+      await logActivity(db, adminID, adminName, actionType, `${status} recipe "${recipeName}" (Recipe ID: ${recipeId}).`);
+
+      // Force stats recount and AWARD XP
+      let userID = null;
+      // 1. Notice I added 'recipeID' to this SELECT statement so we can log the exact recipe!
+      const [userResult] = await db.query("SELECT userProfileID, recipeID FROM recipe WHERE foodID = ?", [recipeId]);
+      
+      if (userResult.length > 0) {
+          const userProfileID = userResult[0].userProfileID;
+          const actualRecipeID = userResult[0].recipeID; 
+
+          const [userRow] = await db.query("SELECT userID FROM userProfile WHERE userProfileID = ?", [userProfileID]);
+          userID = userRow[0].userID;
+          await updateUserStats(userID);
+
+          // 2. --- NEW XP TRIGGER LOGIC ---
+          if (status === "Approved") {
+            try {
+              // GUARD: Check if XP was already awarded for this specific recipe
+              const [existingXp] = await db.query(
+                `SELECT id FROM xp_logs WHERE userProfileID = ? AND action_type = 'RECIPE_APPROVED' AND reference_id = ?`,
+                [userProfileID, actualRecipeID]
+              );
+
+              if (existingXp.length === 0) {
+                // Write the receipt to the history log
+                await db.query(
+                  `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) 
+                   VALUES (?, 'RECIPE_APPROVED', ?, 100)`,
+                  [userProfileID, actualRecipeID]
+                );
+
+                // Update the user's total bank balance
+                await db.query(
+                  `UPDATE userProfile 
+                   SET total_xp = COALESCE(total_xp, 0) + 100 
+                   WHERE userProfileID = ?`,
+                  [userProfileID]
+                );
+                
+                console.log(`✅ Awarded 100 XP to userProfileID ${userProfileID} for recipe ${actualRecipeID}`);
+              } else {
+                console.log(`⚠️ Skipped XP: User already received XP for recipe ${actualRecipeID}`);
+              }
+            } catch (xpError) {
+              console.error("❌ Failed to award XP:", xpError);
+            }
+          }
+          // --- END OF NEW XP LOGIC ---
+      }
+
+      // APPROVED Logic
+      if (status === "Approved") {
+        const approvalEmailEnabled = await isEmailNotificationsEnabled(userID, db);
+        if (approvalEmailEnabled) {
+            const approvedHTML = `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                <div style="background-color: #28a745; padding: 20px; text-align: center;">
+                  <h1 style="color: #fff; margin: 0;">Recipe Approved!</h1>
+                </div>
+                <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+                  <h2 style="color: #28a745;">Great news, ${firstname}!</h2>
+                  <p>Your recipe <strong>"${recipeName}"</strong> has been reviewed and approved by our team.</p>
+
+                  <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p style="margin: 0;">It is now live on SarawakEats for the whole community to enjoy!</p>
+                  </div>
+
+                  <p><a href="https://sarawakeats.site/recipes">View Recipes</a></p>
+
+                  <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                    Best regards,<br>The SarawakEats Team
+                  </p>
+                </div>
+              </div>
+            `;
+            sendEmail({
+              to: email,
+              subject: "🎉 Your Recipe Has Been Approved!",
+              html: approvedHTML,
+              text: `Your recipe "${recipeName}" has been approved and is now live on SarawakEats!`
+            });
+            console.log(`📩 Recipe approval email sent to ${email}`);
+        } else {
+            console.log(`📭 Recipe approval email skipped (notifications disabled) for userID: ${userID}`);
+        }
+        await createNotification(userID, "recipe_approved", `Your recipe "${recipeName}" has been approved and is now live on SarawakEats!`, db);
+        console.log(`🔔 Approval notification created for userID: ${userID}`);
+      }
+
+      // REJECTED Logic
+      if (status === "Rejected") {
+        
+        const rejectedHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <div style="background-color: #dc3545; padding: 20px; text-align: center;">
+              <h1 style="color: #fff; margin: 0;">Action Required</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
+              <h2 style="color: #dc3545;">Hello ${firstname},</h2>
+              <p>Thank you for submitting <strong>"${recipeName}"</strong>.</p>
+              <p>Unfortunately, we could not approve it in its current form.</p>
+              
+              <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 15px; margin: 20px 0; border-left: 5px solid #dc3545;">
+                <strong style="color: #856404;">Admin Feedback:</strong><br/>
+                <p style="margin-top: 5px; margin-bottom: 0;">${rejectionContent}</p>
+              </div>
+
+              <p>Please update your recipe based on this feedback so we can reconsider it for approval.</p>
+
+              <p><a href="https://sarawakeats.site/revise/${recipeId}">Edit your recipe</a></p>
+              
+              <p style="margin-top: 30px; font-size: 12px; color: #888; text-align: center;">
+                Best regards,<br>The SarawakEats Team
+              </p>
+            </div>
+          </div>
+        `;
+
+        const rejectionEmailEnabled = await isEmailNotificationsEnabled(userID, db);
+        if (rejectionEmailEnabled) {
+            sendEmail({
+              to: email,
+              subject: `Action Required: Please Revise "${recipeName}"`,
+              html: rejectedHTML,
+              text: `Your recipe "${recipeName}" has been rejected. Admin Feedback: ${rejectionContent}`
+            });
+            console.log(`📩 Recipe rejection email sent to ${email}`);
+        } else {
+            console.log(`📭 Recipe rejection email skipped (notifications disabled) for userID: ${userID}`);
+        }
+        await createNotification(userID, "recipe_rejected", `Your recipe "${recipeName}" was not approved. Admin feedback: ${rejectionContent}`, db);
+        console.log(`🔔 Rejection notification created for userID: ${userID}`);
+      }
+    }
+
+    res.json({ success: true, message: `Recipe marked as ${status}.` });
+
+  } catch (error) {
+    console.error("❌ Error updating recipe status:", error);
+    res.status(500).json({ success: false, message: "Database update failed." });
+  }
+});
+
+// =============================
+// PATCH: Send Admin Feedback Only + Smart Email Notification
+// =============================
+router.patch('/sendFeedback/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const feedback = req.body.feedback || req.body.message;
+
+    if (!feedback) {
+      return res.status(400).json({ error: "Feedback content is required." });
+    }
+
+    // 1. Update database
+    const query = "UPDATE recipe SET admin_feedback = ? WHERE foodID = ?";
+    const [result] = await db.query(query, [feedback, id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Recipe not found." });
+    }
+
+    // 2. Fetch Info AND Status
+    const [rows] = await db.query(`
+      SELECT u.email, u.firstname, r.recipeName, r.status, u.userID
+      FROM recipe r
+      JOIN userProfile up ON r.userProfileID = up.userProfileID
+      JOIN user u ON up.userID = u.userID
+      JOIN food f ON r.foodID = f.foodID
+      WHERE r.foodID = ?
+    `, [id]);
+
+    // 3. Construct Smart Email
     if (rows.length > 0) {
       const { email, firstname, recipeName, status, userID } = rows[0];
 
