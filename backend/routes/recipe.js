@@ -1074,6 +1074,7 @@ router.put('/revise/recipes/:id', async (req, res) => {
   }
 });
 
+/*
 // =============================
 // GET feedback for a specific recipe
 // =============================
@@ -1124,6 +1125,7 @@ router.post("/recipes/:id/feedback", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+*/
 
 // Admin update recipe approval status (Approve / Reject)
 router.patch('/updateStatus/:id', async (req, res) => {
