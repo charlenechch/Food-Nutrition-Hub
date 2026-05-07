@@ -553,7 +553,7 @@ const LinkFoodPage = () => {
             {DIETARY_TAG_OPTIONS.map((tag) => {
               const isSelected = selectedDietary.includes(tag);
               return (
-                <button key={tag} type="button" style={getChipStyle(isSelected)} onClick={() => toggleDietary(tag)}>
+                <button key={tag} type="button" className = "lrp-no-outline" style={getChipStyle(isSelected)} onClick={() => toggleDietary(tag)}>
                   {tag} {isSelected && <FiCheck />}
                 </button>
               );

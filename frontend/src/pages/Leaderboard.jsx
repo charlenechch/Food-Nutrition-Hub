@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -10,7 +10,10 @@ const Leaderboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
-  const [activeTab, setActiveTab] = useState("recipes");
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialTab = ["recipes", "posts", "level"].includes(queryParams.get("tab")) ? queryParams.get("tab") : "recipes";
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [leaderboardData, setLeaderboardData] = useState({
     recipes: [],
     posts: [],
@@ -213,19 +216,19 @@ const Leaderboard = () => {
       <div className="tabs">
         <button
           className={`lrp-no-outline tab-btn ${activeTab === "recipes" ? "active" : ""}`}
-          onClick={() => setActiveTab("recipes")}
+          onClick={() => { setActiveTab("recipes"); navigate("/leaderboard?tab=recipes", { replace: true }); }}
         >
           🍳 {t("leaderboard.top_recipe_contributors")}
         </button>
         <button
           className={`lrp-no-outline tab-btn ${activeTab === "posts" ? "active" : ""}`}
-          onClick={() => setActiveTab("posts")}
+          onClick={() => { setActiveTab("posts"); navigate("/leaderboard?tab=posts", { replace: true }); }}
         >
           💬 {t("leaderboard.top_community_posters")}
         </button>
         <button
           className={`lrp-no-outline tab-btn ${activeTab === "level" ? "active" : ""}`}
-          onClick={() => setActiveTab("level")}
+          onClick={() => { setActiveTab("level"); navigate("/leaderboard?tab=level", { replace: true }); }}
         >
           ⭐ {t("leaderboard.all_time_level_rankings")}
         </button>

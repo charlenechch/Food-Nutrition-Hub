@@ -620,6 +620,7 @@ const AddFoodPage = () => {
               const isSelected = selectedDietary.includes(tag);
               return (
                 <button
+                  className="lrp-no-outline"
                   key={tag}
                   type="button"
                   style={getChipStyle(isSelected)}
