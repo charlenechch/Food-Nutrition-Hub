@@ -2,12 +2,10 @@ const express = require("express");
 const router = express.Router();
 const { pool: db } = require("../config/db");
 
-// ✅ Validation and sanitization imports
 const Joi = require("joi");
 const validator = require("validator");
 const sanitizeHtml = require("sanitize-html");
 
-// ✅ Helper to sanitize strings
 function sanitizeInput(value) {
   if (typeof value === "string") {
     value = sanitizeHtml(value, { allowedTags: [], allowedAttributes: {} });
@@ -16,10 +14,8 @@ function sanitizeInput(value) {
   return value;
 }
 
-// ✅ Joi Schema for like requests
 const likeSchema = Joi.object({
   postID: Joi.number().integer().required(),
-  //userProfileID: Joi.number().integer().required(),
 });
 
 // Get all likes for a specific post
@@ -35,7 +31,7 @@ router.get("/post/:postId", async (req, res) => {
         up.avatar AS profilePicture 
       FROM likes l
       JOIN userProfile up ON l.userProfileID = up.userProfileID
-      JOIN user u ON up.userID = u.userID
+      JOIN \`user\` u ON up.userID = u.userID
       WHERE l.postID = ?
     `, [postId]);
 
@@ -119,9 +115,7 @@ router.get("/check", async (req, res) => {
   }
 });
 
-// ===============================================
-// ⭐️ POST: Add a like (+2 XP to Post Author)
-// ===============================================
+// POST: Add a like (+2 XP to Post Author)
 router.post("/", async (req, res) => {
   try {
     const { postID } = req.body;
@@ -142,14 +136,12 @@ router.post("/", async (req, res) => {
     
     const userProfileID = profileResult[0].userProfileID;
 
-    // Validate and sanitize
     const { error, value } = likeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
     if (error)
       return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
     const cleanData = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, sanitizeInput(v)]));
     Object.assign(req.body, cleanData);
 
-    // Check if like already exists
     const [existingLikes] = await db.execute(`
       SELECT * FROM likes 
       WHERE postID = ? AND userProfileID = ?
@@ -162,21 +154,16 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // Insert new like
     const [result] = await db.execute(`
       INSERT INTO likes (postID, userProfileID) 
       VALUES (?, ?)
     `, [postID, userProfileID]);
 
-    // -----------------------------------------------
-    // ⭐️ DYNAMIC XP SYSTEM (+2 XP to Post Author)
-    // -----------------------------------------------
     const [postRows] = await db.execute('SELECT userProfileID FROM posts WHERE postID = ?', [postID]);
     
     if (postRows.length > 0) {
       const authorProfileID = postRows[0].userProfileID;
       
-      // Anti-Cheat: Prevent users from liking their own post for infinite XP
       if (userProfileID !== authorProfileID) {
         await db.execute(
           `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) VALUES (?, 'POST_LIKED', ?, 2)`,
@@ -192,7 +179,6 @@ router.post("/", async (req, res) => {
         console.log(`🛡️ Anti-Cheat: User liked their own post. No XP awarded.`);
       }
     }
-    // -----------------------------------------------
 
     res.status(201).json({
       success: true,
@@ -209,9 +195,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ===============================================
-// ⭐️ DELETE: Remove a like (-2 XP from Post Author)
-// ===============================================
+// DELETE: Remove a like (-2 XP from Post Author)
 router.delete("/", async (req, res) => {
   try {
     const { postID } = req.body;
@@ -232,7 +216,6 @@ router.delete("/", async (req, res) => {
     
     const userProfileID = profileResult[0].userProfileID;
 
-    // Validate and sanitize
     const { error, value } = likeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
     if (error)
       return res.status(400).json({ success: false, message: error.details.map(d => d.message).join(", ") });
@@ -251,15 +234,11 @@ router.delete("/", async (req, res) => {
       });
     }
 
-    // -----------------------------------------------
-    // ⭐️ DYNAMIC XP SYSTEM (-2 XP from Post Author)
-    // -----------------------------------------------
     const [postRows] = await db.execute('SELECT userProfileID FROM posts WHERE postID = ?', [postID]);
     
     if (postRows.length > 0) {
       const authorProfileID = postRows[0].userProfileID;
       
-      // Only deduct if it wasn't their own like (since they didn't get points for it anyway)
       if (userProfileID !== authorProfileID) {
         await db.execute(
           `INSERT INTO xp_logs (userProfileID, action_type, reference_id, xp_awarded) VALUES (?, 'POST_UNLIKED', ?, -2)`,
@@ -273,7 +252,6 @@ router.delete("/", async (req, res) => {
         console.log(`📉 SUCCESS: Deducted -2 XP from Author ${authorProfileID} for Post Unlike`);
       }
     }
-    // -----------------------------------------------
 
     res.json({
       success: true,
@@ -289,14 +267,11 @@ router.delete("/", async (req, res) => {
   }
 });
 
-// Remove like by likeID
+// Remove like by likeID (Admin use)
 router.delete("/:likeId", async (req, res) => {
   try {
     const { likeId } = req.params;
 
-    // Optional: If you want this route to also deduct XP, you would need to 
-    // fetch the postID and authorProfileID associated with this likeId first.
-    // For now, this just deletes the like (usually used by Admins).
     const [result] = await db.execute(`
       DELETE FROM likes 
       WHERE likeID = ?
