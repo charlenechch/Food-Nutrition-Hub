@@ -1074,57 +1074,6 @@ router.put('/revise/recipes/:id', async (req, res) => {
   }
 });
 
-// =============================
-// GET feedback for a specific recipe
-// =============================
-router.get("/recipes/:id/feedback", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const query = `
-      SELECT f.*, 
-      CONCAT(u.firstname, ' ', u.lastname) AS adminName
-      FROM feedback f
-      LEFT JOIN user u ON f.adminID = u.userID
-      WHERE f.recipeID = ?
-      ORDER BY f.createdAt DESC
-    `;
-
-    const [rows] = await db.query(query, [id]);
-
-    res.json(rows);
-  } catch (error) {
-    console.error("❌ Error fetching feedback:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// =============================
-// POST admin feedback
-// =============================
-router.post("/recipes/:id/feedback", async (req, res) => {
-  try {
-    const { id } = req.params;       // recipeID
-    const { adminID, userID, message } = req.body;
-
-    if (!adminID || !userID || !message) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    const query = `
-      INSERT INTO feedback (recipeID, adminID, userID, message)
-      VALUES (?, ?, ?, ?)
-    `;
-
-    await db.query(query, [id, adminID, userID, message]);
-
-    res.json({ success: true, message: "Feedback submitted successfully" });
-  } catch (error) {
-    console.error("❌ Error submitting feedback:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // Admin update recipe approval status (Approve / Reject)
 router.patch('/updateStatus/:id', async (req, res) => {
   const recipeId = req.params.id;
@@ -1337,7 +1286,7 @@ router.patch('/sendFeedback/:id', async (req, res) => {
       return res.status(400).json({ error: "Feedback content is required." });
     }
 
-    // 1. Update database
+    // 1. Update the recipe table directly
     const query = "UPDATE recipe SET admin_feedback = ? WHERE foodID = ?";
     const [result] = await db.query(query, [feedback, id]);
 
@@ -1355,7 +1304,6 @@ router.patch('/sendFeedback/:id', async (req, res) => {
       WHERE r.foodID = ?
     `, [id]);
 
-    // 3. Construct Smart Email
     if (rows.length > 0) {
       const { email, firstname, recipeName, status, userID } = rows[0];
 
