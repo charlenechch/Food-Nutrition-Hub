@@ -111,7 +111,12 @@ export default function AdminActivityLog() {
     }, [fetchLogs]);
 
     useEffect(() => {
-        window.scrollTo(0, scrollRef.current);
+        const savedScroll = scrollRef.current;
+        const restoreScroll = () => {
+            window.scrollTo({ top: savedScroll, behavior: "instant" });
+        };
+        const frame = requestAnimationFrame(restoreScroll);
+        return () => cancelAnimationFrame(frame);
     }, [filters.page]);
 
     const handleFilterChange = (key, value) => {
