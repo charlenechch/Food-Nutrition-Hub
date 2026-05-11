@@ -79,7 +79,6 @@ export default function AdminActivityLog() {
 
     const [searchInput, setSearchInput] = useState("");
     const tableRef = useRef(null);
-    const isFirstLoad = useRef(true);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -104,13 +103,6 @@ export default function AdminActivityLog() {
             setError(err.message);
         } finally {
             setLoading(false);
-            if (isFirstLoad.current) {
-                isFirstLoad.current = false;
-            } else {
-                setTimeout(() => {
-                    tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }, 50);
-            }
         }
     }, [filters]);
 
@@ -281,9 +273,8 @@ export default function AdminActivityLog() {
                 {totalPages > 1 && (
                     <div className="al-pagination">
                         <button
-                            type="button"
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+                            onClick={() => { setFilters(prev => ({ ...prev, page: prev.page - 1 })); tableRef.current?.scrollIntoView({ behavior: "smooth" }); }}
                             disabled={filters.page === 1}
                         >
                             <FiChevronLeft />
@@ -292,9 +283,8 @@ export default function AdminActivityLog() {
                             {t("adminActivityLog.page", { current: filters.page, total: totalPages })}
                         </span>
                         <button
-                            type="button"
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+                            onClick={() => { setFilters(prev => ({ ...prev, page: prev.page + 1 })); tableRef.current?.scrollIntoView({ behavior: "smooth" }); }}
                             disabled={filters.page === totalPages}
                         >
                             <FiChevronRight />
