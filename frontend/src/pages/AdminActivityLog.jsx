@@ -78,8 +78,7 @@ export default function AdminActivityLog() {
     });
 
     const [searchInput, setSearchInput] = useState("");
-    const scrollRef = useRef(0);
-    const getScroller = () => document.documentElement || document.body;
+    const tableRef = useRef(null);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -112,7 +111,7 @@ export default function AdminActivityLog() {
     }, [fetchLogs]);
 
     useEffect(() => {
-        getScroller().scrollTop = scrollRef.current;
+        tableRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
     }, [filters.page]);
 
     const handleFilterChange = (key, value) => {
@@ -234,7 +233,7 @@ export default function AdminActivityLog() {
                         <div className="umg-loading-text">{t("adminActivityLog.noLogsFound")}</div>
                     </div>
                 ) : (
-                    <div className="al-table-wrapper">
+                    <div className="al-table-wrapper" ref={tableRef}>
                         <table className="food-table al-table-mobile">
                             <thead>
                                 <tr>
@@ -280,8 +279,7 @@ export default function AdminActivityLog() {
                         <button
                             type="button"
                             className="food-database-btn-edit al-pagination-btn"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => { scrollRef.current = getScroller().scrollTop; setFilters(prev => ({ ...prev, page: prev.page - 1 })); }}
+                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
                             disabled={filters.page === 1}
                         >
                             <FiChevronLeft />
@@ -292,8 +290,7 @@ export default function AdminActivityLog() {
                         <button
                             type="button"
                             className="food-database-btn-edit al-pagination-btn"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => { scrollRef.current = getScroller().scrollTop; setFilters(prev => ({ ...prev, page: prev.page + 1 })); }}
+                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
                             disabled={filters.page === totalPages}
                         >
                             <FiChevronRight />
