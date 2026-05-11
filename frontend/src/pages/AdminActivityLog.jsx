@@ -107,10 +107,12 @@ export default function AdminActivityLog() {
     }, [filters]);
 
     useEffect(() => {
-        fetchLogs().then(() => {
-            window.scrollTo(0, scrollRef.current);
-        });
+        fetchLogs();
     }, [fetchLogs]);
+
+    useEffect(() => {
+        window.scrollTo(0, scrollRef.current);
+    }, [filters.page]);
 
     const handleFilterChange = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
