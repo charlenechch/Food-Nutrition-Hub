@@ -79,6 +79,7 @@ export default function AdminActivityLog() {
 
     const [searchInput, setSearchInput] = useState("");
     const scrollRef = useRef(0);
+    const getScroller = () => document.documentElement || document.body;
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -111,12 +112,7 @@ export default function AdminActivityLog() {
     }, [fetchLogs]);
 
     useEffect(() => {
-        const savedScroll = scrollRef.current;
-        const restoreScroll = () => {
-            window.scrollTo({ top: savedScroll, behavior: "instant" });
-        };
-        const frame = requestAnimationFrame(restoreScroll);
-        return () => cancelAnimationFrame(frame);
+        getScroller().scrollTop = scrollRef.current;
     }, [filters.page]);
 
     const handleFilterChange = (key, value) => {
@@ -285,7 +281,7 @@ export default function AdminActivityLog() {
                             type="button"
                             className="food-database-btn-edit al-pagination-btn"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => { scrollRef.current = window.scrollY; setFilters(prev => ({ ...prev, page: prev.page - 1 })); }}
+                            onClick={() => { scrollRef.current = getScroller().scrollTop; setFilters(prev => ({ ...prev, page: prev.page - 1 })); }}
                             disabled={filters.page === 1}
                         >
                             <FiChevronLeft />
@@ -297,7 +293,7 @@ export default function AdminActivityLog() {
                             type="button"
                             className="food-database-btn-edit al-pagination-btn"
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => { scrollRef.current = window.scrollY; setFilters(prev => ({ ...prev, page: prev.page + 1 })); }}
+                            onClick={() => { scrollRef.current = getScroller().scrollTop; setFilters(prev => ({ ...prev, page: prev.page + 1 })); }}
                             disabled={filters.page === totalPages}
                         >
                             <FiChevronRight />
