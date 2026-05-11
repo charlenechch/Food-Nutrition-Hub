@@ -279,6 +279,7 @@ export default function AdminActivityLog() {
                         <button
                             type="button"
                             className="food-database-btn-edit al-pagination-btn"
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => { scrollRef.current = window.scrollY; setFilters(prev => ({ ...prev, page: prev.page - 1 })); }}
                             disabled={filters.page === 1}
                         >
@@ -290,6 +291,7 @@ export default function AdminActivityLog() {
                         <button
                             type="button"
                             className="food-database-btn-edit al-pagination-btn"
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => { scrollRef.current = window.scrollY; setFilters(prev => ({ ...prev, page: prev.page + 1 })); }}
                             disabled={filters.page === totalPages}
                         >
