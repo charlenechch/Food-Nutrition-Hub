@@ -277,6 +277,7 @@ export default function AdminActivityLog() {
                 {totalPages > 1 && (
                     <div className="al-pagination">
                         <button
+                            type="button"
                             className="food-database-btn-edit al-pagination-btn"
                             onClick={() => { scrollRef.current = window.scrollY; setFilters(prev => ({ ...prev, page: prev.page - 1 })); }}
                             disabled={filters.page === 1}
@@ -287,6 +288,7 @@ export default function AdminActivityLog() {
                             {t("adminActivityLog.page", { current: filters.page, total: totalPages })}
                         </span>
                         <button
+                            type="button"
                             className="food-database-btn-edit al-pagination-btn"
                             onClick={() => { scrollRef.current = window.scrollY; setFilters(prev => ({ ...prev, page: prev.page + 1 })); }}
                             disabled={filters.page === totalPages}
