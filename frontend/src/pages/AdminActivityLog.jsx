@@ -107,8 +107,9 @@ export default function AdminActivityLog() {
     }, [filters]);
 
     useEffect(() => {
-        window.scrollTo(0, scrollRef.current);
-        fetchLogs();
+        fetchLogs().then(() => {
+            window.scrollTo(0, scrollRef.current);
+        });
     }, [fetchLogs]);
 
     const handleFilterChange = (key, value) => {
