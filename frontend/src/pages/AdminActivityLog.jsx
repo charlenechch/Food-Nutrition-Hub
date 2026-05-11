@@ -78,7 +78,7 @@ export default function AdminActivityLog() {
     });
 
     const [searchInput, setSearchInput] = useState("");
-    const tableRef = useRef(null);
+    const paginationRef = useRef(null);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -104,7 +104,7 @@ export default function AdminActivityLog() {
         } finally {
             setLoading(false);
             setTimeout(() => {
-                tableRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
+                paginationRef.current?.scrollIntoView({ behavior: "instant", block: "center" });
             }, 50);
         }
     }, [filters]);
@@ -232,7 +232,7 @@ export default function AdminActivityLog() {
                         <div className="umg-loading-text">{t("adminActivityLog.noLogsFound")}</div>
                     </div>
                 ) : (
-                    <div className="al-table-wrapper" ref={tableRef}>
+                    <div className="al-table-wrapper">
                         <table className="food-table al-table-mobile">
                             <thead>
                                 <tr>
@@ -274,7 +274,7 @@ export default function AdminActivityLog() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="al-pagination">
+                    <div className="al-pagination" ref={paginationRef}>
                         <button
                             type="button"
                             className="food-database-btn-edit al-pagination-btn"
