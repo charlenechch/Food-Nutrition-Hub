@@ -20,7 +20,7 @@ async function logActivity(db, adminID, adminName, actionType, description) {
 router.get("/", requireAdmin, async (req, res) => {
   try {
     const { actionType, startDate, endDate, search, page = 1 } = req.query;
-    const limit = 10;
+    const limit = 20;
     const offset = (parseInt(page) - 1) * limit;
 
     const conditions = [];

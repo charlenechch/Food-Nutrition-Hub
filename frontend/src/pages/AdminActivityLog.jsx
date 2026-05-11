@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FiActivity, FiSearch, FiChevronLeft, FiChevronRight} from "react-icons/fi";
@@ -78,7 +78,6 @@ export default function AdminActivityLog() {
     });
 
     const [searchInput, setSearchInput] = useState("");
-    const tableRef = useRef(null);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -229,7 +228,7 @@ export default function AdminActivityLog() {
                         <div className="umg-loading-text">{t("adminActivityLog.noLogsFound")}</div>
                     </div>
                 ) : (
-                    <div className="al-table-wrapper" ref={tableRef}>
+                    <div className="al-table-wrapper">
                         <table className="food-table al-table-mobile">
                             <thead>
                                 <tr>
@@ -246,7 +245,7 @@ export default function AdminActivityLog() {
                                     return (
                                         <tr key={log.logID}>
                                             <td className="al-td-number" data-label={t("adminActivityLog.col_number")}>
-                                                {(filters.page - 1) * 10 + index + 1}
+                                                {(filters.page - 1) * 20 + index + 1}
                                             </td>
                                             <td className="al-td-admin" data-label={t("adminActivityLog.col_admin")}>{log.adminName}</td>
                                             <td data-label={t("adminActivityLog.col_action")}>
@@ -274,7 +273,7 @@ export default function AdminActivityLog() {
                     <div className="al-pagination">
                         <button
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => { setFilters(prev => ({ ...prev, page: prev.page - 1 })); tableRef.current?.scrollIntoView({ behavior: "smooth" }); }}
+                            onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setFilters(prev => ({ ...prev, page: prev.page - 1 })); }}
                             disabled={filters.page === 1}
                         >
                             <FiChevronLeft />
@@ -284,7 +283,7 @@ export default function AdminActivityLog() {
                         </span>
                         <button
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => { setFilters(prev => ({ ...prev, page: prev.page + 1 })); tableRef.current?.scrollIntoView({ behavior: "smooth" }); }}
+                            onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setFilters(prev => ({ ...prev, page: prev.page + 1 })); }}
                             disabled={filters.page === totalPages}
                         >
                             <FiChevronRight />
