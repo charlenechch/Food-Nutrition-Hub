@@ -273,7 +273,7 @@ export default function AdminActivityLog() {
                     <div className="al-pagination">
                         <button
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => { document.documentElement.scrollTop = 0; setFilters(prev => ({ ...prev, page: prev.page - 1 })); }}
+                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
                             disabled={filters.page === 1}
                         >
                             <FiChevronLeft />
@@ -283,7 +283,7 @@ export default function AdminActivityLog() {
                         </span>
                         <button
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => { document.documentElement.scrollTop = 0; setFilters(prev => ({ ...prev, page: prev.page + 1 })); }}
+                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
                             disabled={filters.page === totalPages}
                         >
                             <FiChevronRight />
