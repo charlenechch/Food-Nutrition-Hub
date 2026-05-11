@@ -106,10 +106,6 @@ export default function AdminActivityLog() {
             setLoading(false);
             if (isFirstLoad.current) {
                 isFirstLoad.current = false;
-            } else {
-                setTimeout(() => {
-                    paginationRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-                }, 50);
             }
         }
     }, [filters]);
@@ -283,8 +279,7 @@ export default function AdminActivityLog() {
                         <button
                             type="button"
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
-                            disabled={filters.page === 1}
+                            onClick={() => { paginationRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); setFilters(prev => ({ ...prev, page: prev.page - 1 })); }}
                         >
                             <FiChevronLeft />
                         </button>
@@ -294,8 +289,7 @@ export default function AdminActivityLog() {
                         <button
                             type="button"
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
-                            disabled={filters.page === totalPages}
+                            onClick={() => { paginationRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); setFilters(prev => ({ ...prev, page: prev.page + 1 })); }}
                         >
                             <FiChevronRight />
                         </button>
