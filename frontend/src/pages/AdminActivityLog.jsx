@@ -79,6 +79,7 @@ export default function AdminActivityLog() {
 
     const [searchInput, setSearchInput] = useState("");
     const paginationRef = useRef(null);
+    const isFirstLoad = useRef(true);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -103,9 +104,13 @@ export default function AdminActivityLog() {
             setError(err.message);
         } finally {
             setLoading(false);
-            setTimeout(() => {
-                paginationRef.current?.scrollIntoView({ behavior: "instant", block: "center" });
-            }, 50);
+            if (isFirstLoad.current) {
+                isFirstLoad.current = false;
+            } else {
+                setTimeout(() => {
+                    paginationRef.current?.scrollIntoView({ behavior: "instant", block: "center" });
+                }, 50);
+            }
         }
     }, [filters]);
 
