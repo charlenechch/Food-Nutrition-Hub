@@ -103,16 +103,15 @@ export default function AdminActivityLog() {
             setError(err.message);
         } finally {
             setLoading(false);
+            setTimeout(() => {
+                tableRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
+            }, 50);
         }
     }, [filters]);
 
     useEffect(() => {
         fetchLogs();
     }, [fetchLogs]);
-
-    useEffect(() => {
-        tableRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
-    }, [filters.page]);
 
     const handleFilterChange = (key, value) => {
         setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
