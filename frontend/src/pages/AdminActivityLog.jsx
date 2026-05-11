@@ -108,7 +108,7 @@ export default function AdminActivityLog() {
                 isFirstLoad.current = false;
             } else {
                 setTimeout(() => {
-                    paginationRef.current?.scrollIntoView({ behavior: "instant", block: "center" });
+                    paginationRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
                 }, 50);
             }
         }
