@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FiActivity, FiSearch, FiChevronLeft, FiChevronRight} from "react-icons/fi";
@@ -78,6 +78,7 @@ export default function AdminActivityLog() {
     });
 
     const [searchInput, setSearchInput] = useState("");
+    const scrollRef = useRef(0);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -106,6 +107,7 @@ export default function AdminActivityLog() {
     }, [filters]);
 
     useEffect(() => {
+        window.scrollTo(0, scrollRef.current);
         fetchLogs();
     }, [fetchLogs]);
 
@@ -273,7 +275,7 @@ export default function AdminActivityLog() {
                     <div className="al-pagination">
                         <button
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+                            onClick={() => { scrollRef.current = window.scrollY; setFilters(prev => ({ ...prev, page: prev.page - 1 })); }}
                             disabled={filters.page === 1}
                         >
                             <FiChevronLeft />
@@ -283,7 +285,7 @@ export default function AdminActivityLog() {
                         </span>
                         <button
                             className="food-database-btn-edit al-pagination-btn"
-                            onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+                            onClick={() => { scrollRef.current = window.scrollY; setFilters(prev => ({ ...prev, page: prev.page + 1 })); }}
                             disabled={filters.page === totalPages}
                         >
                             <FiChevronRight />

@@ -15,6 +15,10 @@ export default function PrivacyPolicyPage() {
   const [policyDate, setPolicyDate] = useState("");
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     fetch(`${API_URL}/api/auth/policyversion`)
       .then(res => res.json())
       .then(data => setPolicyDate(i18n.language === "ms" ? data.lastUpdatedMS : data.lastUpdatedEN))

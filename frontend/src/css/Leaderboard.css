@@ -210,6 +210,8 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .table-row {
@@ -412,6 +414,8 @@ body {
   margin: 0;
   font-weight: 600;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sticky-note-icon {
@@ -556,6 +560,10 @@ body {
   .leaderboard-table.level-mode .table-header,
   .leaderboard-table.level-mode .table-row {
     grid-template-columns: 70px 1fr 100px 120px;
+  }
+
+  .sticky-note-header h3 {
+    white-space: normal;
   }
 }
 
