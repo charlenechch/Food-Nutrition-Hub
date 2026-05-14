@@ -638,8 +638,8 @@ const getUserContributions = async (userID) => {
       const [postContributions] = await db.execute(
         `SELECT 
           postID as id,
-          title,
-          image,
+          foodName as title,
+          photos as image,
           status,
           createdAt as submittedDate,
           'post' as type

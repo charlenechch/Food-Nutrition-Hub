@@ -271,7 +271,6 @@ return {
 router.get('/recipes/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Fetching recipe for ID (Recipe or Food):', id); 
 
     // 1. Identify if user is logged in to fetch their specific yellow stars
     let viewerProfileID = null;
@@ -685,7 +684,6 @@ router.get("/user/:userId", async (req, res) => {
       `;
       
       [recipes] = await db.execute(recipeQuery, [userProfileID]);
-      console.log(`✅ Found ${recipes.length} recipes`);
       
     } catch (recipeError) {
       console.error('❌ Database error fetching recipes:', recipeError);

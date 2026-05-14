@@ -299,7 +299,7 @@ router.post('/comments', async (req, res) => {
 
     console.log('✅ Processing comment for:', { userID, userRole });
 
-    // ✅ Get userProfileID
+    // Get userProfileID
     let userProfileID;
     try {
       const [profileResult] = await db.execute(
