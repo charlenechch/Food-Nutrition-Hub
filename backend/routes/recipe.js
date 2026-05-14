@@ -1672,8 +1672,6 @@ router.get('/waiting-recipes', async (req, res) => {
 router.get('/recipes/food/:foodId', async (req, res) => {
   try {
     const { foodId } = req.params;
-    console.log('Fetching recipe for Food ID:', foodId);
-    
     const query = `
       SELECT 
         r.recipeID,
