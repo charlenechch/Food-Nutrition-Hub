@@ -3245,22 +3245,23 @@
 
 @media (max-width: 768px) {
   .aqd-section .food-header {
-    flex-direction: column; 
-    align-items: stretch;
+    flex-direction: column;
+    align-items: stretch; 
     gap: 15px;
   }
 
   .aqd-section .food-actions {
     width: 100%;
+    display: block; 
   }
 
   .aqd-section .admin-food-btn-add {
-    width: 100%;
+    width: 100%; 
     display: flex;
     justify-content: center;
+    align-items: center;
     height: 48px;
-    font-size: 16px;
-    margin: 0;
+    box-sizing: border-box; 
   }
 
   .aqd-section .food-filters {
