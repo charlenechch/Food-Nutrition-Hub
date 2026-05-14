@@ -56,7 +56,7 @@ const pool = mysql.createPool({
 
     // 🧠 Log actual DB info
     const [rows] = await pool.query("SELECT DATABASE() AS db, @@hostname AS host;");
-    console.log("🧠 Connected to DB:", rows[0]);
+    console.log("✅ Connected to DB successfully");
   } catch (err) {
     console.error("❌ MySQL connection test FAILED:", err.message);
   }

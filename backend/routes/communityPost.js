@@ -64,35 +64,9 @@ const upload = multer({
   }
 });
 
-// 🧠 DEBUG: Check session data for troubleshooting
-router.get("/session-debug", (req, res) => {
-  if (req.session) {
-    console.log("Session debug:", req.session);
-    return res.json({
-      success: true,
-      sessionUser: req.session.user || null,
-    });
-  } else {
-    return res.json({ success: false, message: "No session object" });
-  }
-});
-
-
-// ✅ Add database middleware to ensure req.db is available
+// Add database middleware to ensure req.db is available
 router.use((req, res, next) => {
   req.db = db;
-  next();
-});
-
-router.use((req, res, next) => {
-  console.log('🔐 Session Check:', {
-    hasSession: !!req.session,
-    hasUser: !!req.session?.user,
-    user: req.session?.user,
-    sessionID: req.sessionID,
-    path: req.path,
-    method: req.method
-  });
   next();
 });
 
@@ -311,11 +285,9 @@ router.get("/:id", async (req, res) => {
 // POST route to create a new comment 
 router.post('/comments', async (req, res) => {
   console.log('=== COMMENT CREATION STARTED ===');
-  console.log('📦 Request body:', req.body);
-  console.log('🔐 Session user:', req.session?.user);
 
   try {
-    // ✅ Enhanced session validation
+    // Enhanced session validation
     if (!req.session || !req.session.user || !req.session.user.userID) {
       console.log('❌ No valid session user found');
       return res.status(401).json({ 
@@ -631,12 +603,10 @@ router.delete('/comments/:commentId', async (req, res) => {
 // Create new post
 router.post('/create', upload.array('images', 5), async (req, res) => {
   console.log('=== STARTING POST CREATION ===');
-  console.log('📦 Request body:', req.body);
   console.log('📁 Uploaded files:', req.files ? req.files.map(f => f.originalname) : 'No files');
-  console.log('🔐 Session user:', req.session?.user);
   
   try {
-    // ✅ Enhanced session validation
+    // Enhanced session validation
     if (!req.session || !req.session.user || !req.session.user.userID) {
       console.log('❌ No valid session or userID');
       return res.status(401).json({ 
@@ -648,7 +618,7 @@ router.post('/create', upload.array('images', 5), async (req, res) => {
     const userID = req.session.user.userID;
     console.log('👤 User ID from session:', userID);
 
-    // ✅ Get userProfileID with better error handling
+    // Get userProfileID with better error handling
     let userProfileID;
     try {
       const [profileResult] = await db.execute(
