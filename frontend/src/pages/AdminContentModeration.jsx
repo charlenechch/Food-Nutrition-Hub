@@ -82,7 +82,6 @@ const ContentModerationSection = ({ pendingContent = [], onlyApproved = false })
 
     // TODO: Replace with your actual API call for the Food Heritage Management System
     // Example: await api.rejectContent(selectedItem.id, feedback);
-    console.log(`Rejected ID ${selectedItem.id} with feedback: ${feedback}`);
 
     // Reset state and close modal after successful API call
     setShowRejectModal(false);

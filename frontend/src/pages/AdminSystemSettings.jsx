@@ -638,7 +638,6 @@ export default function AdminSystemSettings({
         const data = await response.json();
         
         if (data.success && data.hasBackup) {
-        console.log('Setting last backup:', data.lastBackup);
         setLastBackup(data.lastBackup);
         }
     } catch (error) {

@@ -63,19 +63,16 @@ const AdminFoodDatabase = ({ categories = [] }) => {
 
   // --- Fetch Data ---
   const fetchFoods = async () => {
-    console.log("🔄 Starting fetchFoods...");
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/foods`);
       const data = await res.json();
-      console.log("[AdminFoodDatabase] Response data:", data);
 
       if (data.success) {
         const mapped = data.data.map(f => ({
           ...f,
           lastUpdated: f.updatedAt,
         }));
-        console.log(`✅ Got ${mapped.length} foods`);
         setFoodData(mapped);
 
         const maxCal = Math.max(...mapped.map(f => Number(f.calories) || 0), 0);
@@ -90,13 +87,11 @@ const AdminFoodDatabase = ({ categories = [] }) => {
       console.error("❌ Error fetching foods:", error);
       setFoodData([]);
     } finally {
-      console.log("✅ Setting loading to false");
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    console.log("🔄 [AdminFoodDatabase] useEffect triggered");
     fetchFoods();
   }, []);
 

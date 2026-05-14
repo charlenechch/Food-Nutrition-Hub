@@ -151,7 +151,6 @@ function SessionChecker() {
 
     // Run checkSession every 60 seconds
     const interval = setInterval(() => {
-      console.log("💓 Checking session status...");
       checkSession(); 
     }, 60000);
 

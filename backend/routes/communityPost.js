@@ -73,7 +73,6 @@ router.use((req, res, next) => {
 // Get all approved posts with joined data including like/comment counts
 router.get("/counts", async (req, res) => {
   try {
-    console.log('📥 Fetching all approved posts with counts...');
     
     const query = `
         SELECT 
@@ -115,7 +114,6 @@ router.get("/counts", async (req, res) => {
     `;
 
     const [posts] = await db.execute(query);
-    console.log(`✅ Found ${posts.length} approved posts`);
 
     // Format the response data
     const formattedPosts = posts.map(post => ({
@@ -1109,7 +1107,6 @@ const checkIsAdmin = (req, res, next) => {
 
 // 1 GET ALL PENDING POSTS (For Admin Dashboard)
 router.get("/admin/pending", checkIsAdmin, async (req, res) => {
-  console.log("📥 [ADMIN] Fetching all pending community posts...");
 
   const query = `
     SELECT 
@@ -1127,7 +1124,6 @@ router.get("/admin/pending", checkIsAdmin, async (req, res) => {
 
   try {
     const [rows] = await db.execute(query);
-    console.log(`✅ [ADMIN] Found ${rows.length} pending post(s).`);
 
     const formatted = rows.map((post) => ({
       id: post.postID,
@@ -1149,7 +1145,6 @@ router.get("/admin/pending", checkIsAdmin, async (req, res) => {
 
 // 2 GET ALL REJECTED POSTS (For Admin Dashboard)
 router.get("/admin/rejected", checkIsAdmin, async (req, res) => {
-  console.log("📥 [ADMIN] Fetching all rejected community posts...");
 
   const query = `
     SELECT 
@@ -1168,7 +1163,6 @@ router.get("/admin/rejected", checkIsAdmin, async (req, res) => {
 
   try {
     const [rows] = await db.execute(query);
-    console.log(`✅ [ADMIN] Found ${rows.length} rejected post(s).`);
 
     const formatted = rows.map((post) => ({
       id: post.postID,
