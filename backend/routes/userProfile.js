@@ -645,7 +645,7 @@ const getUserContributions = async (userID) => {
           'post' as type
         FROM posts 
         WHERE userProfileID = ?
-        ORDER BY createdAt DESC`,
+        ORDER BY created_at DESC`,
         [userProfileID]
       );
       allContributions = [...allContributions, ...postContributions];
