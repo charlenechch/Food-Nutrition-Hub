@@ -8,11 +8,8 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
   useEffect(() => {
     // Early return if no data
     if (!data || data.length === 0) {
-      console.log('📊 No data provided to BarChart');
       return;
     }
-    
-    console.log('📊 BarChart received data:', data);
 
     // Clear previous SVG
     d3.select(svgRef.current).selectAll('*').remove();
@@ -55,8 +52,6 @@ const BarChart = ({ data = [], width = 700, height = 350 }) => {
       stories: item.posts || { approved: 0, pending: 0, rejected: 0, total: 0 },
       total: item.total || 0
     }));
-
-    console.log('📊 Transformed data for stacking:', transformedData);
 
     // Single color scale for all statuses
     const statusColorScale = d3.scaleOrdinal()

@@ -7,7 +7,6 @@ const PieChart = ({ data, width = 500, height = 350 }) => {
 
   useEffect(() => {
     if (!data || data.length === 0) {
-      console.log('No data provided to PieChart');
       
       // Clear any existing SVG content
       d3.select(svgRef.current).selectAll('*').remove();
@@ -41,8 +40,6 @@ const PieChart = ({ data, width = 500, height = 350 }) => {
       
       return;
     }
-
-    console.log('PieChart received data:', data);
 
     d3.select(svgRef.current).selectAll('*').remove();
 
