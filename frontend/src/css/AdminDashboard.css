@@ -3245,14 +3245,9 @@
 
 @media (max-width: 768px) {
   .aqd-section .food-header {
-    flex-direction: column;
+    flex-direction: column; 
     align-items: stretch;
     gap: 15px;
-    margin-bottom: 20px;
-  }
-
-  .aqd-section .food-header h2 {
-    font-size: 1.3rem;
   }
 
   .aqd-section .food-actions {
@@ -3261,9 +3256,11 @@
 
   .aqd-section .admin-food-btn-add {
     width: 100%;
+    display: flex;
     justify-content: center;
     height: 48px;
     font-size: 16px;
+    margin: 0;
   }
 
   .aqd-section .food-filters {
