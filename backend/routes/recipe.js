@@ -48,18 +48,12 @@ api_key: process.env.CloudINARY_API_KEY,
 api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-console.log("🔧 Cloudinary configured:", {
-cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? "✅ Set" : "❌ Missing",
-api_key: process.env.CLOUDINARY_API_KEY ? "✅ Set" : "❌ Missing"
-});
-
 
 // GET all recipes (for admin and public)
 router.get('/all/recipes', async (req, res) => {
 try {
 
 const includeAll = req.query.includeAll === 'true';
-console.log(`Fetching ${includeAll ? 'ALL' : 'APPROVED'} recipes...`);
 
 const query = `
 SELECT 
@@ -185,7 +179,6 @@ SELECT
     };
   });
 
-  console.log(`✅ Total recipes sent: ${allRecipes.length}`);
   res.json(allRecipes);
 } catch (error) {
   console.error('Error fetching recipes:', error);
@@ -2062,8 +2055,6 @@ router.post('/publishRecipe/:id', async (req, res) => {
 // ==========================================
 router.post("/:id/rate", async (req, res) => {
   try {
-    console.log(`\n⭐ --- RATING INITIATED --- ⭐`);
-    console.log(`Target ID: ${req.params.id} | Rating Value: ${req.body.rating}`);
 
     // 1. Check Session
     if (!req.session || !req.session.user) {
@@ -2120,7 +2111,6 @@ router.post("/:id/rate", async (req, res) => {
        ON DUPLICATE KEY UPDATE rating = ?`,
       [actualRecipeID, raterProfileID, rating, rating]
     );
-    console.log(`✅ Rating of ${rating} saved successfully!`);
 
     // 7. Dynamic XP System (1 Star = 1 XP) - REWARDS THE AUTHOR
     // Prevent users from rating their own recipes to farm XP
@@ -2144,10 +2134,9 @@ router.post("/:id/rate", async (req, res) => {
           [xpDifference, authorProfileID]
         );
 
-        console.log(`🎁 SUCCESS: Awarded ${xpDifference} XP to Author ${authorProfileID}`);
       }
     } else {
-      console.log(`🛡️ Anti-Cheat: User tried to rate their own recipe. No XP awarded.`);
+      
     }
 
     // 8. Send the new math back to React

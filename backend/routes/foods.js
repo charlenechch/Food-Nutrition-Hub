@@ -15,10 +15,6 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY || process.env.CloudINARY_API_KEY || "",
   api_secret: process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_API_SECRET || "",
 });
-console.log("🔧 Cloudinary configured:", {
-  cloud_name: cloudinary.config().cloud_name ? "✅ Set" : "❌ Missing",
-  api_key: cloudinary.config().api_key ? "✅ Set" : "❌ Missing",
-});
 
 // ============================
 // 🖼️ IMAGE UPLOAD

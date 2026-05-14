@@ -91,11 +91,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-console.log("🔧 Cloudinary configured:", {
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? "✅ Set" : "❌ Missing",
-  api_key: process.env.CLOUDINARY_API_KEY ? "✅ Set" : "❌ Missing"
-});
-
 // Use memory storage for multer
 const storage = multer.memoryStorage();
 const upload = multer({ 

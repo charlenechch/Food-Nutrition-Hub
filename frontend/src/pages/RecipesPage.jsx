@@ -54,14 +54,6 @@ export default function RecipesPage() {
     fetchCsrfToken();
   }, []);
 
-  useEffect(() => {
-    console.log('Recipes data:', recipes);
-    if (recipes && recipes.length > 0) {
-      console.log('First recipe structure:', recipes[0]);
-      console.log('Recipe IDs:', recipes.map(r => r?.id || r?.foodID || 'no-id'));
-    }
-  }, [recipes]);
-
   const [translatedRecipes, setTranslatedRecipes] = useState({});
 
   useEffect(() => {
@@ -85,26 +77,14 @@ export default function RecipesPage() {
   const fetchRecipes = async () => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      console.log('Fetching from:', `${API_BASE_URL}/api/recipe/all/recipes`);
-      
       const res = await fetch(`${API_BASE_URL}/api/recipe/all/recipes`);
-      console.log('Response status:', res.status);
-      console.log('Response ok:', res.ok);
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('Response error:', errorText);
         throw new Error(`Failed to fetch recipes: ${res.status} ${errorText}`);
       }
 
       const data = await res.json();
-      console.log('Received data:', data);
-      console.log('Data type:', typeof data);
-      console.log('Data length:', Array.isArray(data) ? data.length : 'Not array');
-
-      if (Array.isArray(data) && data.length > 0) {
-        console.log('First item structure:', data[0]);
-      }
 
       setRecipes(data);
       setLoading(false);
