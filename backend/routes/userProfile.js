@@ -119,8 +119,6 @@ const upload = multer({
   }
 });
 
-console.log("🔧 Multer configured");
-
 // Cloudinary upload function
 const uploadToCloudinary = (buffer, folder = 'avatars') => {
   return new Promise((resolve, reject) => {
@@ -1454,8 +1452,6 @@ async function updateFirebaseEmail(firebaseUID, newEmail) {
         throw error; // Re-throw to be caught in the admin.js route
     }
 }
-
-console.log("✅ UserProfile router loaded with debug logging");
 
 // Send OTP for account deletion (Google SSO users)
 router.post("/sendDeletionOTP", async (req, res) => {

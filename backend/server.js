@@ -74,10 +74,10 @@ const dbConfig = {
 };
 
 logger.info("🔧 Database Config details initialized", {
-  host: dbConfig.host,
-  port: dbConfig.port,
-  user: dbConfig.user,
-  database: dbConfig.database,
+  host: dbConfig.host ? "✅ Set" : "❌ Missing",
+  port: dbConfig.port ? "✅ Set" : "❌ Missing",
+  user: dbConfig.user ? "✅ Set" : "❌ Missing",
+  database: dbConfig.database ? "✅ Set" : "❌ Missing",
 });
 
 const db = mysql.createPool(dbConfig);
