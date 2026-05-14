@@ -3242,3 +3242,77 @@
 .red-asterisk {
   color: red;
 }
+
+@media (max-width: 768px) {
+  .aqd-section .food-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .aqd-section .food-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .aqd-section .food-actions {
+    width: 100%;
+  }
+
+  .aqd-section .admin-food-btn-add {
+    width: 100%;
+    justify-content: center;
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .aqd-section .food-filters {
+    display: flex;
+    flex-direction: column; 
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 25px;
+  }
+
+  .aqd-section .search-box {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .aqd-section .search-box input {
+    font-size: 16px; 
+    height: 46px;
+  }
+
+  .aqd-section .aqd-select {
+    width: 100%;
+    height: 46px;
+    font-size: 15px;
+    background-position: right 15px center;
+  }
+
+  .aqd-section .aqd-actions-div {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 5px;
+  }
+
+  .aqd-section .food-database-btn-edit, 
+  .aqd-section .food-database-btn-delete {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+    font-size: 20px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .aqd-section .food-header h2 {
+    font-size: 1.1rem;
+  }
+}
