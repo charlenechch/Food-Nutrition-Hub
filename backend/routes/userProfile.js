@@ -641,7 +641,7 @@ const getUserContributions = async (userID) => {
           foodName as title,
           photos as image,
           status,
-          createdAt as submittedDate,
+          created_at as submittedDate,
           'post' as type
         FROM posts 
         WHERE userProfileID = ?
