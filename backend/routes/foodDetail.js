@@ -58,6 +58,8 @@ router.get('/:id', async (req, res) => {
       LIMIT 1
     `;
     
+const [recipeRows] = await db.execute(recipeQuery, [foodId]);
+
     if (recipeRows.length > 0) {
       recipeId = recipeRows[0].recipeID;
       servings = num(recipeRows[0].servings);
