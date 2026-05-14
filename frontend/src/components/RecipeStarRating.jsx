@@ -89,7 +89,7 @@ const RecipeStarRating = ({
         .rdp-star-row {
           display: flex;
           flex-direction: row-reverse;
-          justify-content: flex-start;
+          justify-content: center; 
           gap: 2px;
         }
         .rdp-star-row input {
@@ -140,7 +140,7 @@ const RecipeStarRating = ({
 
       <div
         className="recipe-rating-container"
-        style={{ margin: "20px 0", display: "flex", flexDirection: "column", gap: "5px" }}
+        style={{ margin: "20px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: "5px" }}
       >
         {/* Star row: Removed isGuest from the readonly check so guests can hover */}
         <div
@@ -169,7 +169,7 @@ const RecipeStarRating = ({
         </div>
 
         {/* Prompt / confirmation text */}
-        <div style={{ fontSize: "0.95rem", color: "#666", marginTop: "4px", textAlign: "right" }}>
+        <div style={{ fontSize: "0.95rem", color: "#666", marginTop: "4px", textAlign: "center" }}>
           {rating === 0 ? (
             <span>{t("recipeDetail.ratePrompt")}</span>
           ) : (
