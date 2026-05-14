@@ -137,7 +137,6 @@ const uploadToCloudinary = (buffer, folder = 'avatars') => {
           console.error('❌ Cloudinary upload error:', error);
           reject(error);
         } else {
-          console.log('✅ Cloudinary upload successful:', result.secure_url);
           resolve(result);
         }
       }
@@ -150,7 +149,6 @@ const uploadToCloudinary = (buffer, folder = 'avatars') => {
 // Cloudinary delete function
 const deleteFromCloudinary = async (publicId) => {
   try {
-    console.log(`☁️ Deleting from Cloudinary: ${publicId}`);
     const result = await cloudinary.uploader.destroy(publicId);
     console.log('✅ Cloudinary delete successful');
     return result;
@@ -163,7 +161,6 @@ const deleteFromCloudinary = async (publicId) => {
 // Helper function to ensure userProfile exists
 const ensureUserProfileExists = async (userID) => {
   try {
-    console.log(`🔍 Checking if userProfile exists for user: ${userID}`);
     
     // Check if userProfile exists
     const [existingProfile] = await db.execute(
@@ -171,19 +168,15 @@ const ensureUserProfileExists = async (userID) => {
       [userID]
     );
 
-    console.log(`📊 UserProfile check result:`, existingProfile);
-
     // Inside helper function ensureUserProfileExists
 if (existingProfile.length === 0) {
   // Create new profile with default values
-  console.log(`🆕 Creating new userProfile for user: ${userID}`);
   const [result] = await db.execute(
     `INSERT INTO userProfile 
      (userID, dietaryPreference, allergies, emailNotifications, pushNotifications, profileVisibility, language, equippedBadge) 
      VALUES (?, '[]', '[]', true, true, true, 'en', 'novice')`, 
     [userID]
   );
-  console.log(`✅ Created userProfile with ID: ${result.insertId}`);
   return false; // Profile was created
 }
     console.log(`✅ UserProfile already exists for user: ${userID}`);
@@ -197,8 +190,6 @@ if (existingProfile.length === 0) {
 // Helper function to update user stats in userProfile table
 const updateUserStats = async (userID) => {
   try {
-    console.log(`📈 Starting stats update for user: ${userID}`);
-    
     // First ensure profile exists AND get the userProfileID
     await ensureUserProfileExists(userID);
     
@@ -209,35 +200,31 @@ const updateUserStats = async (userID) => {
     );
     
     if (profileResult.length === 0) {
-      console.log(`❌ No userProfile found for user: ${userID}`);
+      console.error(`❌ No userProfile found for user: ${userID}`);
       return { recipes: 0, posts: 0, likes: 0 };
     }
     
     const userProfileID = profileResult[0].userProfileID;
-    console.log(`✅ Using userProfileID: ${userProfileID} for userID: ${userID}`);
 
     // Count recipes created by user (from recipe table)
-    console.log(`🍳 Counting recipes for userProfileID: ${userProfileID}`);
     const [recipeCount] = await db.execute(
       `SELECT COUNT(*) as count FROM recipe WHERE userProfileID = ? AND status = 'Approved'`,
-      [userProfileID]  // ✅ FIXED: Use userProfileID instead of userID
+      [userProfileID]  // Use userProfileID instead of userID
     );
 
     // Count posts created by user (from posts table)
-    console.log(`📝 Counting posts for userProfileID: ${userProfileID}`);
     const [postCount] = await db.execute(
       `SELECT COUNT(*) as count FROM posts WHERE userProfileID = ? AND status = 'Approved'`, 
-      [userProfileID]  // ✅ FIXED: Use userProfileID instead of userID
+      [userProfileID]  // Use userProfileID instead of userID
     );
 
     // Count likes received by user (from likes table)
-    console.log(`❤️ Counting likes for userProfileID: ${userProfileID}`);
     const [likeCount] = await db.execute(
       `SELECT COUNT(*) as count 
        FROM likes l
        INNER JOIN posts p ON l.postID = p.postID 
        WHERE p.userProfileID = ?`, 
-      [userProfileID]  // ✅ FIXED: Use userProfileID instead of userID
+      [userProfileID]  // Use userProfileID instead of userID
     );
 
     const [totalRecipeCount] = await db.execute(
@@ -254,14 +241,12 @@ const updateUserStats = async (userID) => {
     const likesCount = likeCount[0]?.count || 0;
     const totalSubmissionsCount = (totalPostCount[0]?.count || 0) + (totalRecipeCount[0]?.count || 0);
 
-    console.log(`📊 Stats calculated - Recipes: ${recipesCount}, Posts: ${postsCount}, Likes: ${likesCount}`);
-
     // Update userProfile table with the counts
-    console.log(`💾 Updating userProfile stats in database for userID: ${userID}`);
+    console.log(`💾 Updating userProfile stats in database`);
     const [updateResult] = await db.execute(
       `UPDATE userProfile 
        SET recipes = ?, posts = ?, likes = ?, totalSubmissions = ?
-       WHERE userID = ?`,  // ✅ This one uses userID (correct)
+       WHERE userID = ?`,
       [recipesCount, postsCount, likesCount, totalSubmissionsCount, userID]
     );
 
@@ -405,31 +390,24 @@ async function deleteUser(userID, firebaseUID) {
 
 // Upload avatar to Cloudinary
 router.post("/avatar", upload.single('avatar'), async (req, res) => {
-  console.log("🖼️ Avatar upload request received");
   try {  
     if (!req.session || !req.session.user) {
-      console.log("❌ No session or user found");
+      console.error("❌ No session or user found")
       return res.status(401).json({ error: "Not authenticated" });
     }
 
     if (!req.file) {
-      console.log("❌ No file uploaded");
+      console.error("❌ No file uploaded");
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    // ✅ Added Joi validation + sanitization (lightweight since multer guards file)
+    // Added Joi validation + sanitization (lightweight since multer guards file)
     try {
       const { error } = sessionUserSchema.validate({ userID: req.session.user.userID });
       if (error) return res.status(401).json({ error: "Invalid session" });
     } catch (e) {
       return res.status(401).json({ error: "Invalid session" });
     }
-
-    console.log("📁 File details:", {
-      originalname: req.file.originalname,
-      mimetype: req.file.mimetype,
-      size: req.file.size
-    });
 
     const userID = req.session.user.userID;
     console.log(`👤 Processing avatar for user: ${userID}`);
@@ -467,13 +445,12 @@ router.post("/avatar", upload.single('avatar'), async (req, res) => {
     if (existingProfile.length > 0 && existingProfile[0].avatar) {
       try {
         const oldAvatarUrl = existingProfile[0].avatar;
-        console.log(`🗑️ Found old avatar: ${oldAvatarUrl}`);
         // Extract public_id from Cloudinary URL
         const urlParts = oldAvatarUrl.split('/');
         const filename = urlParts[urlParts.length - 1];
         const publicId = filename.split('.')[0];
         const fullPublicId = `recipe-app/avatars/${publicId}`;
-        console.log(`🗑️ Deleting old avatar with publicId: ${fullPublicId}`);
+        console.log(`🗑️ Deleting old avatar from Cloudinary...`)
         await deleteFromCloudinary(fullPublicId);
       } catch (deleteError) {
         console.error('⚠️ Error deleting old avatar (continuing):', deleteError);
@@ -504,18 +481,18 @@ router.post("/avatar", upload.single('avatar'), async (req, res) => {
   }
 });
 
-// ✅ Avatar Removal Route (DELETE)
+// Avatar Removal Route (DELETE)
 router.delete("/avatar", async (req, res) => {
   console.log("🗑️ Avatar removal request received");
   try {
     console.log("🔐 Checking session...");
     
     if (!req.session || !req.session.user) {
-      console.log("❌ No session or user found");
+      console.error("❌ No session or user found")
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    // ✅ Added Joi validation + sanitization
+    // Added Joi validation + sanitization
     try {
       const { error } = sessionUserSchema.validate({ userID: req.session.user.userID });
       if (error) return res.status(401).json({ error: "Invalid session" });
@@ -537,7 +514,7 @@ router.delete("/avatar", async (req, res) => {
     );
 
     if (existingProfile.length === 0) {
-      console.log("❌ User profile not found");
+      console.error("❌ User profile not found")
       return res.status(404).json({ error: "User profile not found" });
     }
 
@@ -546,13 +523,12 @@ router.delete("/avatar", async (req, res) => {
     // Delete from Cloudinary if exists
     if (currentAvatar) {
       try {
-        console.log(`🗑️ Found current avatar: ${currentAvatar}`);
         // Extract public_id from Cloudinary URL
         const urlParts = currentAvatar.split('/');
         const filename = urlParts[urlParts.length - 1];
         const publicId = filename.split('.')[0];
         const fullPublicId = `recipe-app/avatars/${publicId}`;
-        console.log(`🗑️ Deleting avatar from Cloudinary with publicId: ${fullPublicId}`);
+        console.log(`🗑️ Deleting avatar from Cloudinary...`)
         await deleteFromCloudinary(fullPublicId);
       } catch (deleteError) {
         console.error('⚠️ Error deleting avatar from Cloudinary (continuing):', deleteError);
@@ -623,29 +599,24 @@ router.get("/avatar", async (req, res) => {
 // Enhanced version that includes both recipes and posts
 const getUserContributions = async (userID) => {
   try {
-    console.log(`📝 Fetching contributions for user: ${userID}`);
     
     // First, get the userProfileID for this user
-    console.log(`🔍 Getting userProfileID for user: ${userID}`);
     const [profileResult] = await db.execute(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
       [userID]
     );
 
     if (!profileResult.length) {
-      console.log('❌ No userProfile found for user:', userID);
+      console.error('❌ No userProfile found for user:', userID)
       return [];
     }
 
     const userProfileID = profileResult[0].userProfileID;
-    console.log(`✅ Found userProfileID: ${userProfileID} for user: ${userID}`);
 
     let allContributions = [];
 
     // 1. Get recipe contributions
-    console.log(`🍳 Checking recipe table for contributions...`);
     try {
-      // ✅ MODIFIED: Added r.admin_feedback to the SELECT list
       const [recipeContributions] = await db.execute(
         `SELECT 
           r.recipeID as id,
@@ -662,13 +633,11 @@ const getUserContributions = async (userID) => {
         [userProfileID]
       );
       allContributions = [...allContributions, ...recipeContributions];
-      console.log(`✅ Found ${recipeContributions.length} recipe contributions`);
     } catch (recipeError) {
       console.error('❌ Error fetching recipe contributions:', recipeError.message);
     }
 
     // 2. Get post contributions
-    console.log(`📝 Checking posts table for contributions...`);
     try {
       const [postContributions] = await db.execute(
         `SELECT 
@@ -684,12 +653,9 @@ const getUserContributions = async (userID) => {
         [userProfileID]
       );
       allContributions = [...allContributions, ...postContributions];
-      console.log(`✅ Found ${postContributions.length} post contributions`);
     } catch (postError) {
       console.error('❌ Error fetching post contributions:', postError.message);
     }
-
-    console.log(`📊 Total contributions found: ${allContributions.length}`);
 
     // Format the contributions
     const formattedContributions = allContributions.map(item => ({
@@ -697,13 +663,10 @@ const getUserContributions = async (userID) => {
       title: item.title,
       image: item.image,
       status: item.status,
-      // ✅ MODIFIED: Pass the feedback to the frontend
       adminFeedback: item.admin_feedback || null, 
       submittedDate: item.submittedDate ? new Date(item.submittedDate).toISOString() : new Date().toISOString(),
       type: item.type
     }));
-
-    console.log(`🎯 Formatted contributions:`, formattedContributions);
     return formattedContributions;
 
   } catch (error) {
@@ -714,17 +677,11 @@ const getUserContributions = async (userID) => {
   }
 };
 
-// ✅ Get own profile (/api/userProfile)
+// Get own profile (/api/userProfile)
 router.get("/", async (req, res) => {
-  console.log("👤 GET profile request received");
   try {
-    console.log("🔐 Checking session...");
-    console.log("Session ID:", req.sessionID);
-    console.log("Session data:", req.session);
-    console.log("Session user:", req.session?.user);
     
     if (!req.session || !req.session.user) {
-      console.log("❌ No session or user found - returning guest response");
       return res.status(401).json({
         success: false,
         guest: true,
@@ -732,7 +689,7 @@ router.get("/", async (req, res) => {
       });
     }
 
-    // ✅ Added Joi validation (session sanity)
+    // Added Joi validation (session sanity)
     try {
       const { error } = sessionUserSchema.validate({ userID: req.session.user.userID });
       if (error) return res.status(401).json({ error: "Invalid session" });
@@ -741,17 +698,13 @@ router.get("/", async (req, res) => {
     }
 
     const userID = req.session.user.userID;
-    console.log(`🔍 Fetching profile for userID: ${userID}`);
      
     // Ensure userProfile exists first
-    console.log(`🛠️ Ensuring userProfile exists...`);
     await ensureUserProfileExists(userID);
     
     // Update user stats
-    console.log(`📈 Updating user stats...`);
     const freshStats = await updateUserStats(userID);
 
-    console.log(`📊 Executing profile query for user: ${userID}`);
     const [rows] = await db.execute(
       `SELECT
         u.userID, u.firstname AS firstName, u.lastname AS lastName, u.email, u.role,
@@ -766,10 +719,8 @@ router.get("/", async (req, res) => {
       [userID]
     );
 
-    console.log(`📄 Query returned ${rows.length} rows`);
-
     if (!rows.length) {
-      console.log("❌ No profile found in database");
+      console.error("❌ No profile found in database")
       return res.status(404).json({ error: "Profile not found" });
     }
 
@@ -780,9 +731,7 @@ router.get("/", async (req, res) => {
     );
 
     const userProfileID = profileResult[0].userProfileID;
-    console.log(`✅ Verified userProfileID: ${userProfileID}`);
 
-    console.log(`📚 Fetching saved foods for userProfileID: ${userProfileID}`);
     let savedFoodsData = [];
 
     if (userProfileID) {
@@ -802,9 +751,6 @@ router.get("/", async (req, res) => {
           [userProfileID]
         );
 
-        console.log(`🍴 Saved foods found:`, savedFoodsRows);
-        console.log(`🍴 Number of saved foods: ${savedFoodsRows.length}`);
-
         // Format the data
         savedFoodsData = savedFoodsRows.map(food => ({
           saveId: food.saveID,
@@ -819,16 +765,13 @@ router.get("/", async (req, res) => {
           }) : 'Recently saved'
         }));
 
-        console.log('🍴 Formatted saved foods:', savedFoodsData);
-
       } catch (savedFoodsError) {
         console.error('❌ Error fetching saved foods:', savedFoodsError);
         savedFoodsData = [];
       }
     }
 
-    // ✅ FETCH CONTRIBUTIONS
-    console.log(`📝 Fetching contributions for user: ${userID}`);
+    // Fetch Contributions
     const contributions = await getUserContributions(userID);
 
     
@@ -870,14 +813,6 @@ router.get("/", async (req, res) => {
       },
     };
 
-    // DEBUG LOGS
-    console.log("📤 FINAL RESPONSE - Has savedFoods?", 'savedFoods' in response);
-    console.log("📤 FINAL RESPONSE - Has status?", 'status' in response);
-    console.log("📤 Response keys:", Object.keys(response));
-    console.log("📤 savedFoods content:", response.savedFoods);
-    console.log("📤 status content:", response.status);
-    console.log("📤 stats content:", response.stats);
-    
     res.json(response);
 
   } catch (err) {
@@ -889,7 +824,6 @@ router.get("/", async (req, res) => {
 
 // Update user profile
 router.put("/update", async (req, res) => {
-  console.log("✏️ Profile update request received");
   try {
     if (!req.session || !req.session.user) {
       return res.status(401).json({ error: "Not authenticated" });
@@ -920,8 +854,6 @@ router.put("/update", async (req, res) => {
       profileVisibility, language, equippedBadge, equippedContributorBadge,
       firstName, lastName
     } = value;
-
-    console.log(`💾 Executing profile update query for user: ${userID}`);
     
     const [result] = await db.execute(
       `UPDATE userProfile 
@@ -1094,12 +1026,10 @@ router.put("/mark-badge-seen", async (req, res) => {
 
 // View other user's profile (/api/userProfile/:id) 
 router.get("/:identifier", async (req, res) => {
-  console.log("👥 Other user profile request received");
   try {
     const identifier = req.params.identifier;
-    console.log(`🔍 Fetching profile for identifier: ${identifier}`);
 
-    // ✅ Added Joi validation + sanitization for identifier param
+    // Added Joi validation + sanitization for identifier param
     const [rows] = await db.execute(
       `SELECT 
         u.userID, u.firstname AS firstName, u.lastname AS lastName, u.email, u.role,
@@ -1115,17 +1045,14 @@ router.get("/:identifier", async (req, res) => {
          OR u.firstname = ?`,
       [identifier, identifier, identifier] 
     );
-    
-    console.log(`📄 Query returned ${rows.length} rows`);
 
     if (!rows.length) {
-      console.log("❌ No user found with identifier:", identifier);
+      console.error("❌ No user found with identifier:", identifier)
       return res.status(404).json({ message: "User profile not found" });
     }
 
     const profile = rows[0];
     const userID = profile.userID;
-    console.log(`✅ User found: ${profile.firstName} ${profile.lastName} (ID: ${userID})`);
     
     // Get the current user from the session
     const requesterID = req.session?.user?.userID;
@@ -1142,7 +1069,6 @@ router.get("/:identifier", async (req, res) => {
 
     // Ensure userProfile exists for the requested user
     if (!profile.userProfileID) {
-      console.log(`🛠️ UserProfile missing, creating one...`);
       await ensureUserProfileExists(userID);
     }
     
@@ -1155,7 +1081,6 @@ router.get("/:identifier", async (req, res) => {
     );
 
     const userProfileID = profileResult[0].userProfileID;
-    console.log(`✅ Verified userProfileID for target user: ${userProfileID}`);
         
     let savedFoodsData = [];
     if (userProfileID) {
@@ -1194,7 +1119,6 @@ router.get("/:identifier", async (req, res) => {
       }
     }
 
-    console.log(`📝 Fetching contributions for user: ${userID}`);
     const contributions = await getUserContributions(userID);
 
     // Private profile feature disabled
@@ -1220,7 +1144,6 @@ router.get("/:identifier", async (req, res) => {
     //   });
     // }
     
-    console.log("📤 Sending user profile response");
     const isSensitiveViewer = isOwner || isAdmin;
     res.json({
       userID: profile.userID,
@@ -1261,7 +1184,6 @@ router.get("/:identifier", async (req, res) => {
 
 // Update PDPA Consent
 router.put("/consent", async (req, res) => {
-  console.log("📜 PDPA Consent update request received");
   try {
     if (!req.session || !req.session.user) {
       return res.status(401).json({ error: "Not authenticated" });
@@ -1291,7 +1213,6 @@ router.put("/consent", async (req, res) => {
         console.error("Session save error:", err);
         return res.status(500).json({ error: "Session update failed" });
       }
-      console.log(`✅ PDPA Consent updated for userID: ${userID}`);
       res.json({ success: true, message: "PDPA consent updated successfully." });
     });
 

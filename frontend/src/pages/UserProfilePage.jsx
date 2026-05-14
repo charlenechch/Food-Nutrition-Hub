@@ -6,7 +6,7 @@ import "../css/lrp.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Bell, Eye, EyeOff, Globe, Shield, ExternalLink, OctagonX, Camera, X, AlertTriangle, CheckCircle2, Trash2, Lock } from "lucide-react";
-import LoginPromptModal from "../components/LoginPromptModal"; // ✅ Guest popup
+import LoginPromptModal from "../components/LoginPromptModal"; // Guest popup
 import Modal from "../components/Modal";
 import { useTranslation } from "react-i18next";
 import { TIERS, getTierById } from "../utils/gamificationTiers";
@@ -37,7 +37,6 @@ const normalizePrefs = (data = {}) => {
 
   // Enhanced array normalizer
   const ensureCleanArray = (value) => {
-    console.log("🔄 Raw value to normalize:", value);
     
     let resultArray = [];
     
@@ -72,7 +71,6 @@ const normalizePrefs = (data = {}) => {
       .filter(item => item && typeof item === 'string')
       .map(item => item.substring(0, 60)); // Enforce max length like backend
     
-    console.log("✅ Normalized array result:", finalArray);
     return finalArray;
   };
 
@@ -85,7 +83,6 @@ const normalizePrefs = (data = {}) => {
     language: prefsData.language || "en"
   };
 
-  console.log("🎯 Final normalized prefs:", normalized);
   return normalized;
 };
 
@@ -455,8 +452,6 @@ const handleDeletionOtpSubmit = async () => {
 
 // Toggle individual food selection
 const toggleFoodSelection = (saveId) => {
-  console.log('🔍 Toggling selection for saveId:', saveId);
-  console.log('🔍 saveId type:', typeof saveId);
 
   setExportModal(m => {
     const newSelected = m.selectedFoods.includes(saveId)
@@ -592,8 +587,6 @@ const savePersonal = async () => {
       allergies: prefs.allergies
     };
     
-    console.log("📤 Saving personal info:", updateData);
-    
     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
       method: "PUT",
       headers: { "Content-Type": "application/json",
@@ -603,8 +596,6 @@ const savePersonal = async () => {
       body: JSON.stringify(updateData),
     });
     
-    console.log("📥 Personal info response status:", res.status);
-    
     if (!res.ok) {
       const errorText = await res.text();
       console.error("❌ Personal info update error:", errorText);
@@ -612,7 +603,6 @@ const savePersonal = async () => {
     }
     
     const result = await res.json();
-    console.log("✅ Personal info update result:", result);
     
     if (result.success) {
       openAlert(t("profile.saved"), t("profile.profileUpdated"), <CheckCircle2 />);
@@ -639,8 +629,6 @@ const savePrefs = async () => {
       location: user?.location || "",
       bio: user?.bio || ""
     };
-    
-    console.log("📤 Saving preferences:", preferencesPayload);
 
     const res = await fetch(`${API_BASE_URL}/api/userProfile/update`, {
       method: "PUT",
@@ -651,8 +639,6 @@ const savePrefs = async () => {
       body: JSON.stringify(preferencesPayload),
     });
     
-    console.log("📥 Preferences response status:", res.status);
-    
     if (!res.ok) {
       const errorText = await res.text();
       console.error("❌ Preferences update error:", errorText);
@@ -660,7 +646,6 @@ const savePrefs = async () => {
     }
     
     const result = await res.json();
-    console.log("✅ Preferences update result:", result);
     
     if (result.success) {
       openAlert(t("profile.saved"), t("profile.prefsUpdated"), <CheckCircle2 />);
@@ -701,9 +686,6 @@ const handleExportData = async () => {
       likedPostIds: selectedLikedPosts,
     };
     
-    console.log("📤 Exporting saved foods:", exportPayload);
-    console.log('📤 JSON stringified:', JSON.stringify(exportPayload));
-    
     const res = await fetch(`${API_BASE_URL}/api/export/export/saved-foods`, {
       method: "POST",
       headers: { 
@@ -713,8 +695,6 @@ const handleExportData = async () => {
       credentials: "include",
       body: JSON.stringify(exportPayload),
     });
-
-    console.log('📥 Response status:', res.status);
     
     if (!res.ok) {
       const errorText = await res.text();
@@ -871,7 +851,6 @@ const ContributionRow = ({ c }) => {
           ? `${API_BASE_URL}/api/userProfile/${userProfileID}`
           : `${API_BASE_URL}/api/userProfile`;
 
-        console.log("🔍 Fetching profile from:", endpoint);
       
         const res = await fetch(endpoint, { 
           credentials: "include",
@@ -879,8 +858,6 @@ const ContributionRow = ({ c }) => {
             'Content-Type': 'application/json',
           }
         });
-
-        console.log("🔍 Response status:", res.status);
 
         if (res.status === 401) {
           // Show login popup instead of redirect/logout
@@ -896,10 +873,6 @@ const ContributionRow = ({ c }) => {
         }
 
         const data = await res.json();
-        console.log("🔍 Profile data received:", data);
-
-        console.log("🔍 Does data have savedFoods?", 'savedFoods' in data);
-        console.log("🔍 All keys in data:", Object.keys(data));
         
         if (!data || !data.userID) {
           throw new Error(data?.error || "Profile not found or server error");
@@ -948,17 +921,13 @@ const ContributionRow = ({ c }) => {
       if (tab === 'status' && user) {
         try {
           setIsLoadingRecipes(true);
-          console.log("🔄 Fetching recipe contributions for user:", user.userID);
           
           const res = await fetch(`${API_BASE_URL}/api/recipe/user/${user.userID}`, {
             credentials: "include"
           });
-
-          console.log("📥 Recipe contributions response status:", res.status);
           
           if (res.ok) {
             const data = await res.json();
-            console.log("✅ Recipe contributions data received:", data);
             setRecipeContributions(data.data || []);
           } else {
             console.error("❌ Failed to fetch recipe contributions");
@@ -982,18 +951,12 @@ const ContributionRow = ({ c }) => {
       if (tab === 'status' && user) {
         try {
           setIsLoadingCommunity(true);
-          console.log("🔄 Fetching community posts for user:", user.userID);
           const res = await fetch(`${API_BASE_URL}/api/communityPost/user/${user.userID}`, {
             credentials: "include"
           });
-
-        console.log("📥 Community posts response status:", res.status);
-        console.log("📥 Community posts response ok:", res.ok);
-        console.log("📥 Community posts response headers:", res.headers);
           
           if (res.ok) {
             const data = await res.json();
-            console.log("✅ Community posts data received:", data);
             setCommunityPosts(data);
           }else {
           console.error("❌ Failed to fetch community posts - response not ok");
