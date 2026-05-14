@@ -19,7 +19,7 @@ export const analyticsApi = {
       if (month) params.append('month', month);
       if (params.toString()) url += `?${params.toString()}`;
 
-      console.log('🔍 Fetching from:', url);
+      // console.log('🔍 Fetching from:', url);
       
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);

@@ -94,7 +94,7 @@ router.get('/metrics', async (req, res) => {
     const currentYear = year ? parseInt(year) : new Date().getFullYear();
     const currentMonth = month ? parseInt(month) : null;
     
-    console.log(`📊 Metrics request: year=${currentYear}, month=${currentMonth || 'all'}`);
+    //console.log(`📊 Metrics request: year=${currentYear}, month=${currentMonth || 'all'}`);
     
     // Build queries
     let recipeWhere = "WHERE status = 'Approved'";
@@ -117,7 +117,7 @@ router.get('/metrics', async (req, res) => {
       storyParams.push(currentYear);
     }
 
-    console.log('📊 Recipe query:', recipeWhere, 'Params:', recipeParams);
+    //console.log('📊 Recipe query:', recipeWhere, 'Params:', recipeParams);
     
     // Query for total approved recipes
     const recipeQuery = `SELECT COUNT(*) as count FROM recipe ${recipeWhere}`;
@@ -233,7 +233,7 @@ router.get('/metrics', async (req, res) => {
 router.get('/cultural-origin', async (req, res) => {
   try {
     const { year, month } = req.query;
-    console.log('Received query params:', { year, month });
+    //console.log('Received query params:', { year, month });
 
     let whereConditions = "WHERE f.origin IS NOT NULL AND f.origin != '' AND r.status = 'Approved'";
     const params = [];
@@ -256,12 +256,12 @@ router.get('/cultural-origin', async (req, res) => {
       GROUP BY f.origin
       ORDER BY count DESC
     `;
-    console.log('Executing query:', query);
-    console.log('With params:', params);
+    //console.log('Executing query:', query);
+    //console.log('With params:', params);
 
     const [results] = await db.execute(query, params);
 
-    console.log('Query results:', results);
+    //console.log('Query results:', results);
     
     if (results.length === 0) {
       return res.json({ 
@@ -300,7 +300,7 @@ router.get('/posts-recipes-by-month', async (req, res) => {
     const year = parseInt(req.query.year) || new Date().getFullYear();
     const month = req.query.month ? parseInt(req.query.month) : null;
     
-    console.log(`📊 Fetching data for year: ${year}, month: ${month || 'all months'}`);
+    //(`📊 Fetching data for year: ${year}, month: ${month || 'all months'}`);
     
     if (month) {
       // Validate month
