@@ -179,7 +179,6 @@ if (existingProfile.length === 0) {
   );
   return false; // Profile was created
 }
-    console.log(`✅ UserProfile already exists for user: ${userID}`);
     return true; // Profile already existed
   } catch (error) {
     console.error('❌ Error ensuring userProfile exists:', error);
@@ -242,15 +241,12 @@ const updateUserStats = async (userID) => {
     const totalSubmissionsCount = (totalPostCount[0]?.count || 0) + (totalRecipeCount[0]?.count || 0);
 
     // Update userProfile table with the counts
-    console.log(`💾 Updating userProfile stats in database`);
     const [updateResult] = await db.execute(
       `UPDATE userProfile 
        SET recipes = ?, posts = ?, likes = ?, totalSubmissions = ?
        WHERE userID = ?`,
       [recipesCount, postsCount, likesCount, totalSubmissionsCount, userID]
     );
-
-    console.log(`✅ Stats update completed, rows affected: ${updateResult.affectedRows}`);
 
     return {
       recipes: recipesCount,

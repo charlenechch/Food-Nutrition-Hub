@@ -592,18 +592,12 @@ router.post('/create/recipes', async (req, res) => {
   }
 });
 
-// ✅ GET recipes by user ID 
+// GET recipes by user ID 
 router.get("/user/:userId", async (req, res) => {
-  console.log('=== STARTING USER RECIPES FETCH ===');
-  console.log('📝 Request params:', req.params);
-  console.log('🔍 Query params:', req.query);
-
   try {
     const { userId } = req.params;
-    
-    console.log(`📖 Fetching recipes for user ID: ${userId}`);
 
-    // ✅ Enhanced validation
+    // Enhanced validation
     if (!userId) {
       console.log('❌ No user ID provided');
       return res.status(400).json({
@@ -622,17 +616,13 @@ router.get("/user/:userId", async (req, res) => {
       });
     }
 
-    console.log('🔢 Numeric user ID:', numericUserId);
-
-    // ✅ Check if user exists with better error handling
+    // Check if user exists with better error handling
     let userCheck;
     try {
-      console.log('👤 Checking if user exists...');
       [userCheck] = await db.execute(
         'SELECT userID, firstname, lastname FROM user WHERE userID = ?',
         [numericUserId]
       );
-      console.log('✅ User check result:', userCheck);
     } catch (dbError) {
       console.error('❌ Database error checking user:', dbError);
       return res.status(500).json({
@@ -650,15 +640,13 @@ router.get("/user/:userId", async (req, res) => {
       });
     }
 
-    // ✅ Get userProfileID
+    // Get userProfileID
     let profileResult;
     try {
-      console.log('📋 Fetching user profile...');
       [profileResult] = await db.execute(
         'SELECT userProfileID FROM userProfile WHERE userID = ?',
         [numericUserId]
       );
-      console.log('✅ Profile result:', profileResult);
     } catch (profileError) {
       console.error('❌ Database error fetching profile:', profileError);
       return res.status(500).json({
@@ -683,11 +671,9 @@ router.get("/user/:userId", async (req, res) => {
     }
 
     const userProfileID = profileResult[0].userProfileID;
-    console.log('✅ User profile ID:', userProfileID);
 
     let recipes;
     try {
-      console.log('🍳 Fetching recipes...');
       const recipeQuery = `
         SELECT 
           f.foodID AS id,
@@ -720,9 +706,6 @@ router.get("/user/:userId", async (req, res) => {
         WHERE up.userProfileID = ?
         ORDER BY r.createdAt DESC
       `;
-      
-      console.log('📊 Executing query:', recipeQuery);
-      console.log('📋 With parameter:', userProfileID);
       
       [recipes] = await db.execute(recipeQuery, [userProfileID]);
       console.log(`✅ Found ${recipes.length} recipes`);
@@ -796,15 +779,6 @@ router.get("/user/:userId", async (req, res) => {
         dietaryTags: recipe.dietaryTags || '',
       };
     });
-
-    console.log('✅ Successfully formatted recipes:', formattedRecipes.length);
-    console.log('📊 Sample recipe:', formattedRecipes.length > 0 ? {
-      id: formattedRecipes[0].id,
-      name: formattedRecipes[0].name,
-      status: formattedRecipes[0].status,
-      ingredientsCount: formattedRecipes[0].ingredients?.length,
-      instructionsCount: formattedRecipes[0].instructions?.length
-    } : 'No recipes found');
 
     res.status(200).json({
       success: true,
@@ -1357,7 +1331,7 @@ router.patch('/sendFeedback/:id', async (req, res) => {
       let subjectLine = "";
       let emailBodyHTML = "";
 
-      // 🚨 SCENARIO A: Rejected (Urgent Red)
+      // SCENARIO A: Rejected (Urgent Red)
       if (status === "Rejected") {
         subjectLine = `Action Required: Please Revise "${recipeName}"`;
         emailBodyHTML = `
@@ -1385,7 +1359,7 @@ router.patch('/sendFeedback/:id', async (req, res) => {
           </div>
         `;
       } 
-      // ⚠️ SCENARIO B: Approved/Pending (Standard Yellow)
+      // SCENARIO B: Approved/Pending (Standard Yellow)
       else {
         subjectLine = `New Feedback on "${recipeName}"`;
         emailBodyHTML = `
@@ -1439,11 +1413,10 @@ router.patch('/sendFeedback/:id', async (req, res) => {
   }
 });
 
-// ✅ DELETE RECIPE (Admin Only)
+// DELETE RECIPE (Admin Only)
 router.delete("/admin/delete/:id", async (req, res) => {
   const { id } = req.params;
   console.log(`🗑️ [ADMIN] Deleting recipe ID: ${id}`);
-  console.log(`📝 Request params:`, req.params);
   console.log(`👤 Session user:`, req.session?.user ? {
     userID: req.session.user.userID,
     role: req.session.user.role,
@@ -2136,7 +2109,7 @@ router.post("/:id/rate", async (req, res) => {
 
       }
     } else {
-      
+
     }
 
     // 8. Send the new math back to React

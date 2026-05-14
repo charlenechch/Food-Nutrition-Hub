@@ -175,12 +175,6 @@ export default function RecipeDetailPage() {
 
   const isLoggedIn = () => {
     const loggedIn = user && user.role !== "guest";
-    console.log('🔐 isLoggedIn check:', {
-      loggedIn,
-      user: user,
-      hasUserProfileID: user?.userProfileID,
-      role: user?.role
-    });
     return loggedIn;
   };
 
@@ -189,8 +183,6 @@ export default function RecipeDetailPage() {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const url = `${API_BASE_URL}/api/saveFood/check/${id}?userProfileID=${user?.userID}&type=recipe`;
-      
-      console.log('📤 Checking saved status:', url);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -202,10 +194,8 @@ export default function RecipeDetailPage() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Server response - saved:', data.saved);
         setSaved(data.saved);
       } else if (response.status === 401) {
-        console.log("User not logged in - can't check saved status");
         setSaved(false);
       } else {
         console.error("Failed to check saved status");
@@ -268,8 +258,6 @@ export default function RecipeDetailPage() {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const url = `${API_BASE_URL}/api/saveFood/${id}`;
-      
-      console.log('📤 Making request to:', url);
 
       const response = await fetch(url, {
         method: 'POST',
@@ -284,12 +272,9 @@ export default function RecipeDetailPage() {
         })
       });
 
-      console.log('📊 Save response status:', response.status);
-
       if (response.ok) {
         const data = await response.json();
         setSaved(data.saved);
-        console.log(data.message);
       } else {
         const errorData = await response.json();
         console.error("Failed to save recipe:", errorData.error);
@@ -524,7 +509,6 @@ export default function RecipeDetailPage() {
                     csrfToken={csrfToken}
                     initialUserRating={recipe.userRating || 0}
                     onRateSuccess={(newAvg, newCount) => {
-                      console.log("🔥 RATING SUCCESS TRIGGERED! New Avg:", newAvg, "| New Count:", newCount);
                       setRecipe(prev => ({
                         ...prev,
                         avgRating: newAvg,
