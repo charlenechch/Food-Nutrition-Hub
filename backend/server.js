@@ -96,6 +96,7 @@ app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
     hidePoweredBy: true,
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   })
 );
 
