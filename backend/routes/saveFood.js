@@ -24,8 +24,6 @@ router.get('/check/:id', async (req, res) => {
     
     const finalUserProfileID = profileResult[0].userProfileID;
 
-    console.log('🔍 Check type:', type, 'ID:', id, 'User:', finalUserProfileID);
-
     if (!finalUserProfileID) {
       return res.status(401).json({ 
         success: false, 
@@ -58,8 +56,6 @@ router.get('/check/:id', async (req, res) => {
       foodIdToCheck = recipes.length > 0 ? recipes[0].foodID : null;
     }
 
-    console.log('🔍 Checking - FoodID:', foodIdToCheck, 'RecipeID:', recipeIdToCheck);
-
     // Check if either is saved
     const [saves] = await db.execute(
       `SELECT saveID FROM saveFood 
@@ -67,8 +63,6 @@ router.get('/check/:id', async (req, res) => {
        AND (foodID = ? OR recipeID = ?)`,
       [finalUserProfileID, foodIdToCheck, recipeIdToCheck]
     );
-
-    console.log('💾 Save check result:', saves.length > 0 ? 'SAVED' : 'NOT SAVED');
 
     res.json({
       success: true,
@@ -84,11 +78,6 @@ router.get('/check/:id', async (req, res) => {
 });
 
 router.post('/:id', async (req, res) => {
-  console.log('=== SAVE FOOD/RECIPE REQUEST ===');
-  console.log('Session:', req.session);
-  console.log('Session user:', req.session.user);
-  console.log('Request body:', req.body); 
-  
   try {
     const { id } = req.params;
     const { type = 'food' } = req.body; 
@@ -108,7 +97,6 @@ router.post('/:id', async (req, res) => {
     }
     
     const finalUserProfileID = profileResult[0].userProfileID;
-    console.log('🔍 Save type:', type, 'ID:', id);
 
     if (!req.session.user && !bodyUserProfileID) {
       return res.status(401).json({ 
@@ -124,8 +112,6 @@ router.post('/:id', async (req, res) => {
       });
     }
 
-    console.log('✅ Final User Profile ID to use:', finalUserProfileID);
-
     if (!id || isNaN(id)) {
       return res.status(400).json({
         success: false,
@@ -136,15 +122,13 @@ router.post('/:id', async (req, res) => {
     let foodIdToUse = null;
     let recipeIdToUse = null;
 
-    // ✅ USE THE EXISTING FOODID LINK
+    // Use the existing FoodID link
     if (type === 'food') {
       foodIdToUse = id;
       
       // Find recipe that links to this food
       const [recipes] = await db.execute('SELECT recipeID FROM recipe WHERE foodID = ?', [id]);
       recipeIdToUse = recipes.length > 0 ? recipes[0].recipeID : null;
-      
-      console.log('🔗 Food ID:', foodIdToUse, 'Linked Recipe ID:', recipeIdToUse);
 
     } else if (type === 'recipe') {
       recipeIdToUse = id;
@@ -152,11 +136,7 @@ router.post('/:id', async (req, res) => {
       // Find the food ID that this recipe links to
       const [recipes] = await db.execute('SELECT foodID FROM recipe WHERE recipeID = ?', [id]);
       foodIdToUse = recipes.length > 0 ? recipes[0].foodID : null;
-      
-      console.log('🔗 Recipe ID:', recipeIdToUse, 'Linked Food ID:', foodIdToUse);
     }
-
-    console.log('📊 Final IDs to save - FoodID:', foodIdToUse, 'RecipeID:', recipeIdToUse);
 
     // Check if already saved (check by either ID)
     console.log('🔍 Checking if already saved...');
@@ -167,11 +147,9 @@ router.post('/:id', async (req, res) => {
       [finalUserProfileID, foodIdToUse, recipeIdToUse]
     );
 
-    console.log('📊 Existing saves result:', existingSaves);
-
     if (existingSaves.length > 0) {
-      // Unsave both food and recipe
       console.log('🗑️ Removing existing save...');
+      // Unsave both food and recipe
       await db.execute(
         `DELETE FROM saveFood 
          WHERE userProfileID = ? 
@@ -211,7 +189,7 @@ router.post('/:id', async (req, res) => {
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   } finally {
-    console.log('=== SAVE ITEM REQUEST END ===');
+
   }
 });
 

@@ -379,9 +379,6 @@ router.get('/recipes/:id', async (req, res) => {
 
 // POST new recipe 
 router.post('/create/recipes', async (req, res) => {
-  console.log('🔍 START: Recipe creation endpoint called');
-  console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
-
   try {
     const {
       name, origin, difficulty, prepTime, image, description, 
@@ -401,8 +398,6 @@ router.post('/create/recipes', async (req, res) => {
     if (image && image.startsWith('data:image')) {
       const base64Size = (image.length * 3) / 4; // Base64 size estimate in bytes
       const maxSize = 10 * 1024 * 1024; // 10MB limit
-      
-      console.log(`📏 Image size check: ${Math.round(base64Size / 1024)} KB`);
       
       if (base64Size > maxSize) {
         return res.status(400).json({ 
@@ -432,19 +427,6 @@ router.post('/create/recipes', async (req, res) => {
         return res.status(400).json({ error: 'Invalid image format. Only JPEG, PNG, and WebP are allowed.' });
       }
     }
-
-    console.log('📊 Request data analysis:', {
-      name, 
-      origin, 
-      category,
-      ingredientsType: typeof ingredients,
-      instructionsType: typeof instructions,
-      ingredientsIsArray: Array.isArray(ingredients),
-      instructionsIsArray: Array.isArray(instructions),
-      ingredientsLength: Array.isArray(ingredients) ? ingredients.length : 'N/A',
-      instructionsLength: Array.isArray(instructions) ? instructions.length : 'N/A',
-      imageSize: image ? (image.startsWith('data:image') ? `${Math.round((image.length * 3) / 4 / 1024)} KB` : 'URL') : 'None'
-    });
 
     // Validate required fields
     if (!name || !origin) {
@@ -518,8 +500,6 @@ router.post('/create/recipes', async (req, res) => {
       null
     ];
     
-    console.log('📝 Executing food insert with params:', foodParams);
-    
     // Try using query() instead of execute() to avoid prepared statement issues
     const [foodResult] = await db.query(foodQuery, foodParams);
     console.log('✅ Food insert successful - insertId:', foodResult.insertId);
@@ -552,9 +532,6 @@ router.post('/create/recipes', async (req, res) => {
       description || '',
       name || ''
     ];
-    
-    console.log('📝 Executing recipe insert with foodID:', foodId);
-    console.log('📋 Recipe params:', recipeParams);
     
     await db.query(recipeQuery, recipeParams);
     
@@ -1417,12 +1394,6 @@ router.patch('/sendFeedback/:id', async (req, res) => {
 router.delete("/admin/delete/:id", async (req, res) => {
   const { id } = req.params;
   console.log(`🗑️ [ADMIN] Deleting recipe ID: ${id}`);
-  console.log(`👤 Session user:`, req.session?.user ? {
-    userID: req.session.user.userID,
-    role: req.session.user.role,
-    firstname: req.session.user.firstname,
-    lastname: req.session.user.lastname
-  } : 'No session user');
 
   // 1. Security Check: Ensure user is Admin
   if (req.session?.user?.role !== "admin") {

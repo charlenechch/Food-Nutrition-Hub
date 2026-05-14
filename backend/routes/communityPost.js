@@ -796,7 +796,6 @@ router.get("/liked/:userId", async (req, res) => {
     `;
 
     const [posts] = await db.execute(query, [userProfileID]);
-    console.log(`✅ Found ${posts.length} liked posts for user ${userId}`);
 
     const formattedPosts = posts.map(post => ({
       id: post.id,
@@ -817,11 +816,10 @@ router.get("/liked/:userId", async (req, res) => {
   }
 });
 
-// ✅ GET user's community posts for profile contributions
+// GET user's community posts for profile contributions
 router.get("/user/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log(`📥 Fetching community posts for user: ${userId}`);
 
     // First get userProfileID from userID
     const [profileResult] = await db.execute(
@@ -854,8 +852,6 @@ router.get("/user/:userId", async (req, res) => {
     `;
     
     const [posts] = await db.execute(query, [userProfileID]);
-    
-    console.log(`✅ Found ${posts.length} community posts for user ${userId}`);
 
     // Format posts (take first image only if multiple)
     const formattedPosts = posts.map(post => ({
@@ -981,8 +977,6 @@ router.put("/revise/:id", upload.array('images', 5), async (req, res) => {
               ]
             }
           );
-
-          console.log('✅ Image uploaded to Cloudinary:', cloudinaryResult.secure_url);
           imageUrls.push(cloudinaryResult.secure_url);
         }
 
