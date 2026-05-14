@@ -60,8 +60,6 @@ router.get('/food/:foodId', async (req, res) => {
       }
     }
 
-    console.log("🟢 GET COMMENTS - foodId:", foodId, "userProfileID:", userProfileID);
-
     // First get all comments
     const sql = `
       SELECT 
@@ -90,8 +88,6 @@ router.get('/food/:foodId', async (req, res) => {
     const results = await db.query(sql, [foodId]);
     let comments = firstRows(results);
 
-    console.log("🟢 Raw comments from DB:", comments.length);
-    
     // check user_liked 
     comments = comments.map(comment => {
       let user_liked = false;
@@ -123,8 +119,6 @@ router.get('/food/:foodId', async (req, res) => {
           user_liked = false;
         }
       }
-
-      console.log(`✅ Comment ${comment.id}: user_liked = ${user_liked} (userProfileID: ${userProfileID})`);
 
       return {
         ...comment,
@@ -189,8 +183,6 @@ router.post('/', async (req, res) => {
     const userID = req.session.user.userID;
     const userRole = req.session.user.role; // Get user role
 
-    console.log('👤 User attempting comment:', { userID, userRole });
-
     //Handle both regular users and admins
     let userProfileID;
     let [profileResult] = await db.query(
@@ -199,8 +191,6 @@ router.post('/', async (req, res) => {
     );
     
     if (profileResult.length === 0) {
-      console.log('🆕 Creating userProfile for user:', { userID, userRole });
-      
       // Create userProfile if it doesn't exist (works for both regular users and admins)
       const [createResult] = await db.query(
         `INSERT INTO userProfile 
@@ -224,8 +214,6 @@ router.post('/', async (req, res) => {
     }
     
     userProfileID = profileResult[0].userProfileID;
-    console.log('✅ Using userProfileID:', userProfileID, 'for role:', userRole);
-
     if (!foodID || !userProfileID || !content?.trim()) {
       return res.status(400).json({
         success: false,
@@ -240,8 +228,6 @@ router.post('/', async (req, res) => {
     `;
     const insertResult = await db.query(insertSql, [foodID, userProfileID, content.trim()]);
     const newCommentId = firstRows(insertResult).insertId || insertResult[0]?.insertId;
-
-    console.log("🟢 CREATE COMMENT - New comment ID:", newCommentId);
 
     if (!newCommentId) {
       return res.status(500).json({ success: false, message: 'Failed to create comment' });
@@ -311,8 +297,6 @@ router.post('/:discussionId/replies', async (req, res) => {
     const userID = req.session.user.userID;
     const userRole = req.session.user.role;
 
-    console.log('👤 User attempting reply:', { userID, userRole });
-
     //Handle both regular users and admins
     let userProfileID;
     let [profileResult] = await db.query(
@@ -321,8 +305,6 @@ router.post('/:discussionId/replies', async (req, res) => {
     );
     
     if (profileResult.length === 0) {
-      console.log('🆕 Creating userProfile for user:', { userID, userRole });
-      
       // Create userProfile if it doesn't exist
       const [createResult] = await db.query(
         `INSERT INTO userProfile 
@@ -345,8 +327,6 @@ router.post('/:discussionId/replies', async (req, res) => {
     }
     
     userProfileID = profileResult[0].userProfileID;
-    console.log('✅ Using userProfileID:', userProfileID, 'for role:', userRole);
-
     if (!discussionId || !userProfileID || !reply?.trim()) {
       return res.status(400).json({
         success: false,
@@ -449,9 +429,6 @@ router.patch('/:commentId/vote', async (req, res) => {
     const currentUpvotedBy = existing[0].upvoted_by;
     const currentUpVotes = existing[0].upVotes || 0;
     
-    console.log("🟡 RAW upvoted_by from DB:", currentUpvotedBy);
-    console.log("🟡 Type of upvoted_by:", typeof currentUpvotedBy);
-    
     // Handle different data types for upvoted_by
     if (currentUpvotedBy !== null && currentUpvotedBy !== undefined) {
       try {
@@ -489,8 +466,6 @@ router.patch('/:commentId/vote', async (req, res) => {
     // Convert all IDs to numbers for consistent comparison
     upvotedBy = upvotedBy.map(id => Number(id)).filter(id => !isNaN(id) && id !== null);
     const userProfileIDNum = Number(userProfileID);
-
-    console.log("🟡 PARSED upvotedBy:", upvotedBy, "userProfileID:", userProfileIDNum);
 
     let newUpvotedBy;
     let newUpVotes;
@@ -633,10 +608,6 @@ router.delete('/:commentId', async (req, res) => {
 
 // Delete a reply (with admin support)
 router.delete('/:commentId/replies/:replyId', async (req, res) => {
-  console.log('=== REPLY DELETE DEBUG START ===');
-  console.log('Time:', new Date().toISOString());
-  console.log('Request params:', req.params);
-  console.log('Request body:', JSON.stringify(req.body, null, 2));
   console.log('Session user:', req.session?.user);
 
   try {
@@ -648,7 +619,6 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
     }
     
     const userID = req.session.user.userID;
-    console.log('UserID from session:', userID);
     
     const [profileResult] = await db.query(
       'SELECT userProfileID FROM userProfile WHERE userID = ?',
@@ -673,8 +643,6 @@ router.delete('/:commentId/replies/:replyId', async (req, res) => {
       adminRole 
     });
 
-    // FIXED: Only check the 'reply' table since that's what exists
-    console.log('🔍 Checking reply in "reply" table...');
     const replyCheckSql = 'SELECT userProfileID, discussionID FROM reply WHERE replyID = ?';
     const replyCheckRes = await db.query(replyCheckSql, [replyId]);
     const replyRows = firstRows(replyCheckRes);

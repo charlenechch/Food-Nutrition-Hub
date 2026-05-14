@@ -181,15 +181,12 @@ router.get("/by-recipe/:recipeId", async (req, res) => {
 // CREATE NEW FOOD ROUTE
 // ============================
 router.post("/", requireAuth, requireAdmin, async (req, res) => {
-  console.log("📥 [POST] Received Add Food Request:", req.body);
 
   // Get the admin's userProfileID from database
   let userProfileID;
   try {
     // Get user from session 
     const sessionUser = req.session?.user;
-    
-    console.log("🔍 Session user:", JSON.stringify(sessionUser, null, 2));
     
     if (!sessionUser) {
       console.error("❌ No user found in session");
@@ -229,16 +226,13 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
     
     if (profileResult.length > 0) {
       userProfileID = profileResult[0].userProfileID;
-      console.log(`✅ Found admin's userProfileID: ${userProfileID}`);
     } else {
       // If userProfile doesn't exist, create it
-      console.log(`🛠️ Creating userProfile for admin userID: ${userID}`);
       const [insertResult] = await db.execute(
         'INSERT INTO userProfile (userID) VALUES (?)',
         [userID]
       );
       userProfileID = insertResult.insertId;
-      console.log(`✅ Created userProfileID: ${userProfileID}`);
     }
   } catch (dbError) {
     console.error("❌ Error getting userProfileID:", dbError);
@@ -820,16 +814,12 @@ router.post('/add-food-details', async (req, res) => {
 
 // bulk import function
 router.post("/bulk-import", async (req, res) => {
-  console.log("📥 [BULK IMPORT] Received request body:", req.body);
-  console.log("Body type:", typeof req.body);
   console.log("Is array?", Array.isArray(req.body));
   console.log("Body keys:", Object.keys(req.body));
 
   try {
     let importedData;
     const rawBody = req.body;
-    
-    console.log("Raw body keys:", Object.keys(rawBody));
 
     if (Array.isArray(rawBody)) {
       importedData = rawBody;
@@ -903,7 +893,6 @@ router.post("/bulk-import", async (req, res) => {
       
       if (profileResult.length > 0) {
         userProfileID = profileResult[0].userProfileID;
-        console.log(`✅ Found admin's userProfileID: ${userProfileID}`);
       } else {
         // If userProfile doesn't exist, create it
         console.log(`🛠️ Creating userProfile for admin userID: ${userID}`);

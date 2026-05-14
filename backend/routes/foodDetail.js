@@ -7,7 +7,6 @@ const num = (v) => (v == null ? 0 : Number(v));
 router.get('/:id', async (req, res) => {
   try {
     const foodId = req.params.id;
-    console.log(`Fetching data for food ID: ${foodId}`);
 
     // 1. Fetch food details separately
     // ADDED f.dietaryTags to this SQL query!
@@ -34,11 +33,8 @@ router.get('/:id', async (req, res) => {
       FROM food f
       WHERE f.foodID = ?
     `;
-
-    console.log('Executing food query with ID:', foodId);
     
     const [foodRows] = await db.execute(foodQuery, [foodId]);
-    console.log('Food query result:', foodRows);
 
     if (foodRows.length === 0) {
       console.log('No food found with ID:', foodId);
@@ -49,7 +45,6 @@ router.get('/:id', async (req, res) => {
     }
 
     const food = foodRows[0];
-    console.log('Raw food data from DB:', food);
     
     // 2. Fetch recipe for this specific food ONLY
     let recipeId = null;
@@ -62,9 +57,6 @@ router.get('/:id', async (req, res) => {
       ORDER BY recipeID 
       LIMIT 1
     `;
-    
-    console.log('Executing recipe query for foodID:', foodId);
-    const [recipeRows] = await db.execute(recipeQuery, [foodId]);
     
     if (recipeRows.length > 0) {
       recipeId = recipeRows[0].recipeID;

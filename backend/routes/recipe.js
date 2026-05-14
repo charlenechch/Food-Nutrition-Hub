@@ -478,9 +478,6 @@ router.post('/create/recipes', async (req, res) => {
       processedImage = image;
       console.log('✅ Using existing image URL');
     }
-    
-    console.log('🚀 About to execute FIRST INSERT (food table)');
-
     // Insert into food table
     const foodQuery = `
       INSERT INTO food (
@@ -786,8 +783,6 @@ router.get("/user/:userId", async (req, res) => {
 // PUT update recipe
 router.put('/revise/recipes/:id', async (req, res) => {
   console.log('🔧 START: Recipe update endpoint called');
-  console.log('📦 Full request body:', JSON.stringify(req.body, null, 2));
-
   try {
     const { id } = req.params; 
 
@@ -858,8 +853,6 @@ router.put('/revise/recipes/:id', async (req, res) => {
     }
 
     const foodID = recipeCheck[0].foodID;  
-    console.log('✅ Found recipe - recipeID:', id, 'foodID:', foodID);
-
     // Validate and sanitize input
     const { error, value } = recipeSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
     if (error) {
@@ -935,8 +928,6 @@ router.put('/revise/recipes/:id', async (req, res) => {
       Array.isArray(dietaryTags) ? dietaryTags.join(', ') : (dietaryTags || ''),
       foodID  
     ];
-
-    console.log('📝 Executing FOOD UPDATE with params:', foodParams);
     await db.query(updateFoodQuery, foodParams);
 
     // Update recipe table using recipeID
@@ -1209,12 +1200,10 @@ router.patch('/updateStatus/:id', async (req, res) => {
               html: approvedHTML,
               text: `Your recipe "${recipeName}" has been approved and is now live on SarawakEats!`
             });
-            console.log(`📩 Recipe approval email sent to ${email}`);
         } else {
             console.log(`📭 Recipe approval email skipped (notifications disabled) for userID: ${userID}`);
         }
         await createNotification(userID, "recipe_approved", `Your recipe "${recipeName}" has been approved and is now live on SarawakEats!`, db);
-        console.log(`🔔 Approval notification created for userID: ${userID}`);
       }
 
       // REJECTED Logic
@@ -1393,15 +1382,12 @@ router.patch('/sendFeedback/:id', async (req, res) => {
 // DELETE RECIPE (Admin Only)
 router.delete("/admin/delete/:id", async (req, res) => {
   const { id } = req.params;
-  console.log(`🗑️ [ADMIN] Deleting recipe ID: ${id}`);
 
   // 1. Security Check: Ensure user is Admin
   if (req.session?.user?.role !== "admin") {
     console.log(`❌ Security check failed. User role: ${req.session?.user?.role}`);
     return res.status(403).json({ success: false, message: "Unauthorized: Admin access required." });
   }
-  console.log(`✅ Security check passed - User is admin`);
-
   try {
     // 2. Get recipe details before deletion
     console.log(`🔍 Fetching recipe details for recipeID: ${id}`);
@@ -1409,11 +1395,6 @@ router.delete("/admin/delete/:id", async (req, res) => {
       "SELECT r.recipeName, r.foodID, u.userID, u.email, u.firstname FROM recipe r JOIN userProfile up ON r.userProfileID = up.userProfileID JOIN user u ON up.userID = u.userID WHERE r.recipeID = ?",   
       [id]
     );
-    
-    console.log(`📊 Recipe query result:`, {
-      rowCount: recipeRows.length,
-      recipeData: recipeRows.length > 0 ? recipeRows[0] : 'No data'
-    });
     
     if (recipeRows.length === 0) {
       console.log(`❌ Recipe not found with ID: ${id}`);
@@ -1436,7 +1417,6 @@ router.delete("/admin/delete/:id", async (req, res) => {
     });
 
     // 4. Check if any other recipes use this foodID
-    console.log(`🔍 Checking for other recipes using foodID: ${foodID}`);
     const [otherRecipes] = await db.query(
       "SELECT COUNT(*) as count FROM recipe WHERE foodID = ?", 
       [foodID]

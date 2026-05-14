@@ -310,7 +310,6 @@ router.post('/comments', async (req, res) => {
       console.log('🔍 Profile query result:', profileResult);
       
       if (profileResult.length === 0) {
-        console.log('🆕 Creating userProfile for user:', userID);
         
         // Create userProfile if it doesn't exist
         const [createResult] = await db.execute(

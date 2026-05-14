@@ -174,12 +174,7 @@ router.post("/", async (req, res) => {
           `UPDATE userProfile SET total_xp = COALESCE(total_xp, 0) + 2 WHERE userProfileID = ?`,
           [authorProfileID]
         );
-        console.log(`🎁 SUCCESS: Awarded +2 XP to Author ${authorProfileID} for Post Like`);
-      } else {
-        console.log(`🛡️ Anti-Cheat: User liked their own post. No XP awarded.`);
-      }
-    }
-
+  }}
     res.status(201).json({
       success: true,
       message: "Post liked successfully",
@@ -249,7 +244,6 @@ router.delete("/", async (req, res) => {
           `UPDATE userProfile SET total_xp = COALESCE(total_xp, 0) - 2 WHERE userProfileID = ?`,
           [authorProfileID]
         );
-        console.log(`📉 SUCCESS: Deducted -2 XP from Author ${authorProfileID} for Post Unlike`);
       }
     }
 
