@@ -38,7 +38,7 @@ router.get("/session", async (req, res) => {
 
     // Case B: User is Suspended (Current time < suspendedUntil)
     if (user.suspendedUntil && new Date(user.suspendedUntil) > new Date()) {
-      console.log(`⛔ Blocked suspended user session: ${req.session.user.email}`);
+      console.log(`⛔ Blocked suspended user session for userID: ${req.session.user.userID}`);
       
       // Kill the session immediately
       req.session.destroy((err) => {
@@ -203,13 +203,12 @@ router.post("/google-login", async (req, res) => {
 
     if (users.length > 0) {
       // Case A: Existing User
-      console.log(`✅ Google Login: Found existing user ${email}`);
       user = users[0];
 
       // Check for active suspension
       if (user.suspendedUntil && new Date(user.suspendedUntil) > new Date()) {
         const untilString = new Date(user.suspendedUntil).toISOString().slice(0, 10);
-        console.warn(`🚫 Blocked Google login for suspended user: ${email}. Until: ${untilString}`);
+        console.warn(`🚫 Blocked Google login for suspended user. Until: ${untilString}`);
         return res.status(403).json({
           success: false,
           suspended: true,
@@ -221,7 +220,7 @@ router.post("/google-login", async (req, res) => {
       if (user.status === "Inactive") {
         await db.execute("UPDATE user SET status = 'Active' WHERE userID = ?", [user.userID]);
         user.status = "Active";
-        console.log(`✅ Auto-activated inactive user: ${email}`);
+        console.log(`✅ Auto-activated inactive user (userID: ${user.userID})`);
       }
 
       // Update Firebase UID if it wasn't there before
@@ -247,7 +246,7 @@ router.post("/google-login", async (req, res) => {
 
     } else {
       // Case B: New User (Auto-Register)
-      console.log(`Google Login: Creating new user for ${email}`);
+      console.log(`Google Login: Creating new user`);
 
       // Insert new user with NULL password and Verified = True
       const [result] = await db.execute(
@@ -344,12 +343,9 @@ router.post("/logout", (req, res) => {
 // Update Password (from Firebase Reset)
 
 router.post("/updatePassword", async (req, res) => {
-  // 1️⃣ Define variables first
+  // Define variables first
   const email = req.body.email?.trim();
   const newPassword = req.body.newPassword?.trim();
-
-  // 2️⃣ Log after defining
-  console.log("📩 /updatePassword route hit for user:", email);
 
   if (!email || !newPassword) {
     return res.status(400).json({
@@ -359,7 +355,7 @@ router.post("/updatePassword", async (req, res) => {
   }
 
   try {
-    // 🔍 STEP 1: Fetch the CURRENT password hash first
+    // STEP 1: Fetch the CURRENT password hash first
     const [users] = await db.execute(
       "SELECT password FROM user WHERE email = ?",
       [email]
@@ -373,9 +369,9 @@ router.post("/updatePassword", async (req, res) => {
       if (currentHash) {
         const isSame = await bcrypt.compare(newPassword, currentHash);
         
-        // 🛑 STEP 2: Block if passwords are the same
+        // STEP 2: Block if passwords are the same
         if (isSame) {
-          console.warn(`⚠️ User ${email} tried to use the same password.`);
+          console.warn("⚠️ User tried to use the same password.");
           return res.status(400).json({
             success: false,
             message: "New password cannot be the same as your current password.",
@@ -384,28 +380,28 @@ router.post("/updatePassword", async (req, res) => {
       }
     }
 
-    console.log(`🔑 Hashing new password for: ${email}`);
+    console.log(`🔑 Hashing new password`);
     const hashed = await bcrypt.hash(newPassword, 10);
 
-    console.log(`💾 Updating password in MySQL for: ${email}`);
+    console.log(`💾 Updating password in MySQL`);
     const [result] = await db.execute(
       `UPDATE user SET password = ? WHERE email = ?`,
       [hashed, email]
     );
 
     if (result.affectedRows === 0) {
-      console.log(`ℹ️ No user found in MySQL for: ${email}. Skipping update.`);
+      console.warn("⚠️ No user found in MySQL during password update. Skipping.");
       return res.json({
         success: true,
         message: "No matching MySQL user; skipped update",
       });
     }
 
-    console.log(`✅ Password successfully updated in MySQL for: ${email}`);
+    console.log("✅ Password successfully updated in MySQL");
     return res.json({ success: true, message: "Password updated in MySQL" });
 
   } catch (err) {
-    console.error(`💥 /updatePassword error for ${email}:`, err);
+    console.error("💥 /updatePassword error:", err);
     return res.status(500).json({ 
       success: false, 
       message: "Server error during password update" 
@@ -480,7 +476,7 @@ router.post("/syncEmailVerification", async (req, res) => {
       [email]
     );
 
-    console.log(`✅ Email verified for: ${email}`);
+    console.log("✅ Email verified successfully");
 
     // Send Email Notification
     const successHTML = `

@@ -82,7 +82,6 @@ router.get("/users", requireAdmin, async (req, res) => {
 
 // Admin delete user by ID
 router.delete("/users/:id", requireAdmin, async (req, res) => {
-  console.log("Admin user deletion request received");
   try {
     const targetUserID = parseInt(req.params.id, 10);
     
@@ -118,7 +117,7 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
     const firebaseUID = targetUser.firebase_uid || null;
     const userEmail = targetUser.email;
     const userName = `${targetUser.firstname} ${targetUser.lastname}`;
-    console.log(`Admin deleting user ${targetUserID} (${userName}) with Firebase UID: ${firebaseUID}`);
+    console.log(`Admin deleting user...`);
 
     // Send "Account Removed" Email Notification
     if (userEmail) {
@@ -148,7 +147,6 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
             html: deletionHTML,
             text: "Your account has been removed by an administrator."
         });
-        console.log(`📩 Deletion notification sent to ${userEmail}`);
     }
 
     // Call the helper function
@@ -176,8 +174,6 @@ router.delete("/users/:id", requireAdmin, async (req, res) => {
 
 // Admin update user by ID
 router.put("/users/:id", requireAdmin, async (req, res) => {
-  console.log("Admin user update request received");
-
   try {
     const targetUserID = parseInt(req.params.id, 10);
     
@@ -324,7 +320,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
             html: suspendHTML,
             text: `Your account has been suspended until ${finalsuspendedUntil}. Reason: ${suspensionReason}`
         });
-        console.log(`📩 Suspension email sent to ${currentUser.email}`);
+        console.log(`📩 Suspension email sent for userID: ${targetUserID}`);
         await createNotification(targetUserID, "suspended", `Your account has been suspended until ${finalsuspendedUntil}. Reason: ${suspensionReason || "No specific reason provided."}`, db);
         console.log(`🔔 Suspension notification created for userID: ${targetUserID}`);
 
@@ -363,7 +359,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
             html: unsuspendHTML,
             text: "Your account suspension has been lifted by an admin. You can now log in."
         });
-        console.log(`📩 Unsuspension email sent to ${currentUser.email}`);
+        console.log(`📩 Unsuspension email sent for userID: ${targetUserID}`);
         await createNotification(targetUserID, "unsuspended", "Your account suspension has been lifted. You can now log in.", db);
         console.log(`🔔 Unsuspension notification created for userID: ${targetUserID}`);
 
@@ -410,7 +406,7 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
           html: updateHTML,
           text: "Your account details have been updated by an administrator."
       });
-      console.log(`📩 Account update email sent to ${currentUser.email}`);
+      console.log(`📩 Account update email sent for userID: ${targetUserID}`);
       await createNotification(targetUserID, "account_updated", `Your account details have been updated by an administrator. Changes: ${changes.join(", ")}.`, db);
       console.log(`🔔 Account update notification created for userID: ${targetUserID}`);
     } 
@@ -485,7 +481,6 @@ router.put("/users/:id", requireAdmin, async (req, res) => {
 
 // Admin create new user
 router.post("/users", requireAdmin, async (req, res) => {
-    console.log("Admin user creation request received");
     const connection = await db.getConnection();
 
     try {
@@ -554,8 +549,7 @@ router.post("/users", requireAdmin, async (req, res) => {
         );
 
         await connection.commit();
-        console.log(`✅ User ${email} created successfully with ID: ${newUserID}.`);
-        console.log(`💡 User must use 'Forgot Password' flow to set their initial password.`);
+        console.log(`✅ User created successfully with ID: ${newUserID}.`);
 
         const welcomeHTML = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
@@ -693,7 +687,7 @@ router.post("/announcement", requireAdmin, async (req, res) => {
                         text: message
                     });
                     emailsSent++;
-                    console.log(`📩 Announcement email sent to ${email} (${emailsSent}/${emails.length})`);
+                    console.log(`📩 Announcement email sent (${emailsSent}/${emails.length})`);
                 } catch (emailErr) {
                     console.error(`❌ Failed to send announcement email to ${email}:`, emailErr.message);
                 }
