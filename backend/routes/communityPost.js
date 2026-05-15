@@ -1184,8 +1184,6 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
   const { feedback } = req.body; 
   const feedbackText = feedback || ""; // Default to empty string if no feedback
 
-  console.log(`📥 [ADMIN] Approving post ID: ${id} with feedback: "${feedbackText}"`);
-
   // 2. Update SQL to save the feedback into admin_feedback column
   const adminName = req.session?.user
     ? `${req.session.user.firstname} ${req.session.user.lastname}`.trim()
@@ -1293,19 +1291,13 @@ router.put("/admin/approve/:id", checkIsAdmin, async (req, res) => {
             html: approvedHTML,
             text: `Great news! Your story "${foodName}" has been approved.${feedbackText ? ` Admin Note: ${feedbackText}` : ''}`
           });
-          console.log(`📩 Post approval email sent to ${email}`);
-      } else {
-          console.log(`📭 Post approval email skipped (notifications disabled) for userID: ${userID}`);
-      }
+      } else 
       await createNotification(userID, "post_approved", `Your community story "${foodName}" has been approved and is now live on SarawakEats!`, db);
-      console.log(`🔔 Post approval notification created for userID: ${userID}`);
 
       const adminID = req.session.user.userID;
       const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
       await logActivity(db, adminID, adminName, "post_approved", `Approved community post "${foodName}" (Post ID: ${id}).`);
     }
-
-    console.log(`✅ [ADMIN] Post ${id} approved successfully.`);
 
     res.json({ success: true, message: "Post approved successfully." });
   } catch (err) {
@@ -1325,8 +1317,6 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
   const rejectionEmailContent = feedback && feedback.trim().length > 0 
                              ? feedback 
                              : "No specific feedback provided.";
-  
-  console.log(`📥 [ADMIN] Rejecting post ID: ${id}`);
 
   const updateQuery = `
     UPDATE posts SET status = 'Rejected', admin_feedback = ? WHERE postID = ?;
@@ -1390,19 +1380,12 @@ router.put("/admin/reject/:id", checkIsAdmin, async (req, res) => {
             html: rejectedHTML,
             text: `Your story "${foodName}" has been rejected.`
           });
-          console.log(`📩 Post rejection email sent to ${email}`);
-      } else {
-          console.log(`📭 Post rejection email skipped (notifications disabled) for userID: ${userID}`);
-      }
+      } else 
       await createNotification(userID, "post_rejected", `Your community story "${foodName}" was not approved. Feedback: ${rejectionEmailContent}`, db);
-      console.log(`🔔 Post rejection notification created for userID: ${userID}`);
-
       const adminID = req.session.user.userID;
       const adminName = `${req.session.user.firstname} ${req.session.user.lastname}`.trim();
       await logActivity(db, adminID, adminName, "post_rejected", `Rejected community post "${foodName}" (Post ID: ${id}).`);
     }
-
-    console.log(`✅ [ADMIN] Post ${id} rejected successfully.`);
 
     res.json({ success: true, message: "Post rejected successfully." });
   } catch (err) {
@@ -1437,7 +1420,6 @@ function formatToDate(timestamp) {
 // 4️⃣ GET ANY POST BY ID (Admin Review Access)
 router.get("/admin/:id", checkIsAdmin, async (req, res) => {
   const { id } = req.params;
-  console.log(`📥 [ADMIN] Fetching post ID: ${id}`);
 
   const query = `
     SELECT 
@@ -1471,7 +1453,6 @@ router.get("/admin/:id", checkIsAdmin, async (req, res) => {
     }
 
     const post = rows[0];
-    console.log(`✅ [ADMIN] Loaded post: ${post.foodName}`);
 
     res.json({
       success: true,
@@ -1598,15 +1579,11 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
             html: emailBodyHTML,
             text: `Feedback on "${foodName}": ${feedback}`
           });
-          console.log(`📩 Post feedback email sent to ${email}`);
-      } else {
-          console.log(`📭 Post feedback email skipped (notifications disabled) for userID: ${userID}`);
-      }
+      } 
       const notifMessage = status === "Rejected"
           ? `Your community story "${foodName}" has new admin feedback: ${feedback}`
           : `You have received a new note on your community story "${foodName}": ${feedback}`;
       await createNotification(userID, "post_feedback", notifMessage, db);
-      console.log(`🔔 Post feedback notification created for userID: ${userID}`);
     }
 
     res.json({ success: true, message: "Feedback sent successfully." });
@@ -1619,7 +1596,6 @@ router.patch('/admin/sendFeedback/:id', checkIsAdmin, async (req, res) => {
 // 5. DELETE A POST (Admin Only)
 router.delete("/admin/delete/:id", checkIsAdmin, async (req, res) => {
   const { id } = req.params;
-  console.log(`🗑️ [ADMIN] Deleting post ID: ${id}`);
 
   try {
     // Fetch post name before deletion for logging
@@ -1667,13 +1643,8 @@ router.delete("/admin/delete/:id", checkIsAdmin, async (req, res) => {
               html: html,
               text: `Hello ${ownerFirstname}, your community post "${postName}" has been removed by an administrator. If you have any questions, please contact us at info@sarawakeats.com.`
           });
-          console.log(`📩 Post deletion email sent to: ${ownerEmail}`);
-      } else {
-          console.log(`📭 Post deletion email skipped (notifications disabled) for userID: ${ownerUserID}`);
-      }
+      } 
   }
-
-    console.log(`✅ [ADMIN] Post ${id} deleted successfully.`);
     res.json({ success: true, message: "Post deleted successfully." });
 
   } catch (err) {
