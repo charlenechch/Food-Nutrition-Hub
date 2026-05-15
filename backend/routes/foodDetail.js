@@ -58,10 +58,11 @@ router.get('/:id', async (req, res) => {
       LIMIT 1
     `;
     
+const [recipeRows] = await db.execute(recipeQuery, [foodId]);
+
     if (recipeRows.length > 0) {
       recipeId = recipeRows[0].recipeID;
       servings = num(recipeRows[0].servings);
-      console.log(`✅ Found recipe for food ${foodId}: recipeID=${recipeId}, servings=${servings}`);
     } else {
       console.log(`ℹ️ No approved recipe found for food ${foodId}`);
     }
@@ -127,9 +128,6 @@ router.get('/:id', async (req, res) => {
       fat_ps: Fat_g_ps,
       carbs_ps: Carbohydrates_g_ps,
     };
-
-    console.log(`✅ Food ${foodId} - Recipe ID: ${recipeId}`);
-    console.log(`✅ Food name: ${formattedFood.name}`);
 
     res.json({
       success: true,

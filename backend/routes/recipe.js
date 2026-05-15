@@ -1063,8 +1063,6 @@ router.post("/recipes/:id/feedback", async (req, res) => {
 // Admin update recipe approval status (Approve / Reject)
 router.patch('/updateStatus/:id', async (req, res) => {
   const recipeId = req.params.id;
-  console.log(`Attempting to update status for ID: ${recipeId}`);
-
   const { status, feedback } = req.body;
   const validStatuses = ["Approved", "Rejected", "Pending"];
 
@@ -1198,9 +1196,7 @@ router.patch('/updateStatus/:id', async (req, res) => {
               html: approvedHTML,
               text: `Your recipe "${recipeName}" has been approved and is now live on SarawakEats!`
             });
-        } else {
-            console.log(`📭 Recipe approval email skipped (notifications disabled) for userID: ${userID}`);
-        }
+        } else 
         await createNotification(userID, "recipe_approved", `Your recipe "${recipeName}" has been approved and is now live on SarawakEats!`, db);
       }
 
@@ -1241,12 +1237,8 @@ router.patch('/updateStatus/:id', async (req, res) => {
               html: rejectedHTML,
               text: `Your recipe "${recipeName}" has been rejected. Admin Feedback: ${rejectionContent}`
             });
-            console.log(`📩 Recipe rejection email sent to ${email}`);
-        } else {
-            console.log(`📭 Recipe rejection email skipped (notifications disabled) for userID: ${userID}`);
-        }
+        } 
         await createNotification(userID, "recipe_rejected", `Your recipe "${recipeName}" was not approved. Admin feedback: ${rejectionContent}`, db);
-        console.log(`🔔 Rejection notification created for userID: ${userID}`);
       }
     }
 
@@ -1358,15 +1350,11 @@ router.patch('/sendFeedback/:id', async (req, res) => {
             html: emailBodyHTML,
             text: `Feedback on "${recipeName}": ${feedback}`
           });
-          console.log(`📩 Recipe feedback email sent to ${email}`);
-      } else {
-          console.log(`📭 Recipe feedback email skipped (notifications disabled) for userID: ${userID}`);
-      }
+      } 
       const notifMessage = status === "Rejected"
           ? `Your recipe "${recipeName}" has new admin feedback: ${feedback}`
           : `You have received a new note on your recipe "${recipeName}": ${feedback}`;
       await createNotification(userID, "recipe_feedback", notifMessage, db);
-      console.log(`🔔 Recipe feedback notification created for userID: ${userID}`);
     }
 
     res.json({ success: true, message: "Feedback sent successfully." });
@@ -1445,8 +1433,6 @@ router.delete("/admin/delete/:id", async (req, res) => {
     console.log(`✅ Activity logged successfully`);
     if (ownerUserID) {
       await createNotification(ownerUserID, "recipe_deleted", `Your recipe "${recipeName}" has been removed by an administrator.`, db);
-      console.log(`🔔 Recipe deletion notification created for userID: ${ownerUserID}`);
-
       const emailEnabled = await isEmailNotificationsEnabled(ownerUserID, db);
       if (emailEnabled && ownerEmail) {
           const html = `
@@ -1470,19 +1456,8 @@ router.delete("/admin/delete/:id", async (req, res) => {
               html: html,
               text: `Hello ${ownerFirstname}, your recipe "${recipeName}" has been removed by an administrator. If you have any questions, please contact us at info@sarawakeats.com.`
           });
-          console.log(`📩 Recipe deletion email sent to: ${ownerEmail}`);
-      } else {
-          console.log(`📭 Recipe deletion email skipped (notifications disabled) for userID: ${ownerUserID}`);
-      }
+      } 
   }
-
-    console.log(`✅ [ADMIN] Recipe ${id} deleted successfully. Summary:`, {
-      recipeID: id,
-      recipeName: recipeName,
-      foodID: foodID,
-      foodDeleted: foodDeleted,
-      remainingRecipesForFood: otherRecipes[0].count
-    });
     
     res.json({ 
       success: true, 
@@ -1672,8 +1647,6 @@ router.get('/waiting-recipes', async (req, res) => {
 router.get('/recipes/food/:foodId', async (req, res) => {
   try {
     const { foodId } = req.params;
-    console.log('Fetching recipe for Food ID:', foodId);
-    
     const query = `
       SELECT 
         r.recipeID,

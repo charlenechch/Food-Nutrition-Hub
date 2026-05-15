@@ -86,12 +86,41 @@ const RecipeStarRating = ({
   return (
     <>
       <style>{`
+        /* MOBILE FIRST: Centered Layout */
+        .recipe-rating-container {
+          margin: 20px 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center; 
+          gap: 5px;
+        }
         .rdp-star-row {
           display: flex;
           flex-direction: row-reverse;
-          justify-content: flex-start;
+          justify-content: center; 
           gap: 2px;
         }
+        .rdp-rating-text {
+          font-size: 0.95rem;
+          color: #666;
+          margin-top: 4px;
+          text-align: center;
+        }
+
+        /* DESKTOP (Tablets & Up): Right-Aligned Layout */
+        @media (min-width: 768px) {
+          .recipe-rating-container {
+            align-items: flex-end; 
+          }
+          .rdp-star-row {
+            justify-content: flex-start; /* flex-start on row-reverse pulls to the right */
+          }
+          .rdp-rating-text {
+            text-align: right;
+          }
+        }
+
+        /* Core Star Logic */
         .rdp-star-row input {
           position: absolute;
           appearance: none;
@@ -138,10 +167,7 @@ const RecipeStarRating = ({
         }
       `}</style>
 
-      <div
-        className="recipe-rating-container"
-        style={{ margin: "20px 0", display: "flex", flexDirection: "column", gap: "5px" }}
-      >
+      <div className="recipe-rating-container">
         {/* Star row: Removed isGuest from the readonly check so guests can hover */}
         <div
           className={`rdp-star-row${isSubmitting ? " rdp-star-row--readonly" : ""}`}
@@ -157,7 +183,6 @@ const RecipeStarRating = ({
                 checked={activeValue === star}
                 onChange={() => {}}
               />
-              {/* Removed !isGuest checks here to allow hover and click events to fire */}
               <label
                 htmlFor={`rdp-star-${recipeId}-${star}`}
                 title={`${star} star${star > 1 ? "s" : ""}`}
@@ -169,7 +194,7 @@ const RecipeStarRating = ({
         </div>
 
         {/* Prompt / confirmation text */}
-        <div style={{ fontSize: "0.95rem", color: "#666", marginTop: "4px", textAlign: "right" }}>
+        <div className="rdp-rating-text">
           {rating === 0 ? (
             <span>{t("recipeDetail.ratePrompt")}</span>
           ) : (
