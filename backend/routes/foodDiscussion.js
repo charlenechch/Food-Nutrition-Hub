@@ -608,8 +608,6 @@ router.delete('/:commentId', async (req, res) => {
 
 // Delete a reply (with admin support)
 router.delete('/:commentId/replies/:replyId', async (req, res) => {
-  console.log('Session user:', req.session?.user);
-
   try {
     const { commentId, replyId } = req.params;
     const { isAdminAction, adminRole } = req.body;

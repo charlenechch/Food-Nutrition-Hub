@@ -108,7 +108,6 @@ router.post("/", async (req, res) => {
     // Check if email already exists
     const [existing] = await db.query("SELECT 1 FROM user WHERE email = ? LIMIT 1", [email]);
     if (existing.length > 0) {
-      console.log(`Backend: Email already exists in MySQL database: ${email}`);
       return res.status(400).json({
         error: "emailAlreadyExists",
       });
@@ -123,7 +122,7 @@ router.post("/", async (req, res) => {
       [firstname, lastname, email, hashedPassword, "member", firebaseUID || null, pdpaconsent ? 1 : 0, tncconsent ? 1 : 0, 1]
     );
 
-    console.log(`User registered: ${email} (ID: ${result.insertId})`);
+    console.log(`User registered successfully (userID: ${result.insertId})`);
     const userID = result.insertId;
 
     // Automatically create userProfile record (preserved)

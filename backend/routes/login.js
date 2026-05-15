@@ -55,9 +55,8 @@ router.post("/", async (req, res) => {
 
   const { email, password, rememberDevice } = cleanData;
 
-  // ✔ SAFER LOG — password hidden
+  // Safer log — password hidden
   const safeLog = { ...cleanData, password: "••••••••" };
-  console.log("🧼 Sanitized input:", safeLog);
 
   try {
     // Query user
@@ -67,7 +66,7 @@ router.post("/", async (req, res) => {
     );
 
     if (users.length === 0) {
-      console.warn("❌ No user found for email:", email);
+      console.warn("❌ No user found for provided email");
       return res
         .status(401)
         .json({ success: false, message: "Invalid email or password" });
@@ -82,7 +81,7 @@ router.post("/", async (req, res) => {
         const remainingMs = new Date(user.lockout_until) - new Date();
         const remainingSeconds = Math.ceil(remainingMs / 1000);
         
-        console.warn(`⛔ Locked out user ${email} attempted login. Remaining: ${remainingSeconds}s`);
+        console.warn(`⛔ Locked out user attempted login. Remaining: ${remainingSeconds}s`);
 
         return res.status(429).json({ 
             success: false, 
@@ -98,7 +97,7 @@ router.post("/", async (req, res) => {
     // ❌ HANDLE FAILED PASSWORD & INCREMENT LOCKOUT (New Logic)
     // ---------------------------------------------------------
     if (!isMatch) {
-      console.warn("❌ Incorrect password for:", email);
+      console.warn("❌ Incorrect password attempt");
 
       let newAttempts = (user.failed_attempts || 0) + 1;
       let newLockoutTime = null;
@@ -141,7 +140,7 @@ router.post("/", async (req, res) => {
 
     // Email verification check
     if (user.verified === "False" || user.verified === 0) {
-      console.warn("🚫 Unverified user blocked:", email);
+      console.warn("🚫 Unverified user blocked");
       return res.status(403).json({
         success: false,
         notVerified: true,
@@ -157,7 +156,7 @@ router.post("/", async (req, res) => {
         suspendedUntilDate.setHours(23, 59, 59, 999); // Set to end of day
         const untilString = suspendedUntilDate.toISOString().slice(0, 10);
 
-        console.warn(`🚫 Blocked login for Suspended user: ${email}. Active until: ${untilString}`);
+        console.warn(`🚫 Blocked login for suspended user. Active until: ${untilString}`);
         
         return res.status(403).json({
             success: false,
@@ -168,7 +167,7 @@ router.post("/", async (req, res) => {
 
     // Check account status for INACTIVE users
     if (user.status === "Inactive") {
-      console.log(`✅ Inactive user ${email} is logging in. Auto-activating...`);
+      console.log(`✅ Inactive user (userID: ${user.userID}) logging in. Auto-activating...`);
       
       try {
         // Update database: set status = "Active"
@@ -178,7 +177,7 @@ router.post("/", async (req, res) => {
         );
         // Update local object used for session data
         user.status = "Active"; 
-        console.log(`✅ Status updated to Active for user: ${user.email}`);
+        console.log(`✅ Status updated to Active for userID: ${user.userID}`);
 
       } catch (updateError) {
         console.error("❌ Failed to auto-activate INACTIVE user:", updateError);
@@ -203,7 +202,7 @@ router.post("/", async (req, res) => {
 
             // If an OTP was sent less than 60 seconds ago, STOP.
             if (timeDiff < 60) {
-                console.warn(`⏳ OTP request throttled for ${email}`);
+                console.warn(`⏳ OTP request throttled`);
                 return res.status(429).json({
                     success: false,
                     otpThrottled: true,
@@ -225,7 +224,7 @@ router.post("/", async (req, res) => {
             [user.userID, otpCode, expiresAt]
         );
 
-        console.log(`🔐 2FA Triggered for ${email}.`);
+        console.log(`🔐 2FA Triggered for userID: ${user.userID}`);
 
         // Send Email
         const otpHTML = `
