@@ -5,7 +5,6 @@ let isInitialized = false;
 // Check if Firebase Admin is already initialized (e.g., by another module)
 if (admin.apps.length > 0) {
   isInitialized = true;
-  console.log("Firebase Admin was already initialized.");
 } else {
   // Not initialized, so let's try.
   try {
