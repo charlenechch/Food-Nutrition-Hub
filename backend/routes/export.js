@@ -22,9 +22,7 @@ function getMonthName(monthNumber) {
 
 // to get available years from database
 router.get('/available-years', async (req, res) => {
-  try {
-    console.log('📅 Getting available years from database...');
-    
+  try {    
     // Query to get distinct years from all relevant tables
     const query = `
       SELECT DISTINCT YEAR(created_at) as year 
@@ -49,8 +47,6 @@ router.get('/available-years', async (req, res) => {
     const [yearsResult] = await db.execute(query);
     
     const years = yearsResult.map(row => row.year).filter(year => year);
-    
-    console.log('📅 Available years from database:', years);
     
     res.json({ 
       success: true, 
@@ -79,8 +75,6 @@ router.get('/available-months', async (req, res) => {
       });
     }
     
-    console.log(`📅 Getting available months for year ${year}...`);
-    
     const query = `
       SELECT DISTINCT MONTH(created_at) as month 
       FROM posts
@@ -107,8 +101,6 @@ router.get('/available-months', async (req, res) => {
     const [monthsResult] = await db.execute(query, [year, year, year]);
     
     const months = monthsResult.map(row => row.month).filter(month => month);
-    
-    console.log(`📅 Available months for year ${year}:`, months);
     
     res.json({ 
       success: true, 
@@ -843,34 +835,22 @@ async function exportAsPDF(res, data, period) {
 
 //User - data export (saved foods)
 
-// ✅ Export Saved Foods Endpoint
+// Export Saved Foods Endpoint
 router.post('/export/saved-foods', async (req, res) => {
   let connection;
   
   try {
-    console.log('='.repeat(60));
-    console.log('🚨 EXPORT ROUTE HIT!');
-    console.log('🚨 Request method:', req.method);
-    console.log('🚨 Request URL:', req.url);
-    console.log('🚨 Request path:', req.path);
-    console.log('🚨 Request originalUrl:', req.originalUrl);
-    console.log('🚨 Request headers:', req.headers['content-type']);
-    console.log('🚨 Request body RAW:', req.body);
-    console.log('🚨 Request body TYPE:', typeof req.body);
     
     // Try to manually parse body if it's a string
     if (typeof req.body === 'string') {
-      console.log('🚨 Body is string, attempting manual parse...');
+
       try {
         req.body = JSON.parse(req.body);
-        console.log('🚨 Manually parsed body:', req.body);
+
       } catch (e) {
-        console.log('🚨 Failed to parse:', e.message);
+
       }
     }
-    
-    console.log('🚨 Session user:', req.session?.user);
-    console.log('='.repeat(60));
     
     connection = await db.getConnection();
     

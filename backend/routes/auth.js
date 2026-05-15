@@ -241,7 +241,6 @@ router.post("/google-login", async (req, res) => {
              WHERE userID = ? AND (avatar IS NULL OR avatar = '')`, 
             [googlePhotoUrl, user.userID]
          );
-         console.log(`🖼️ Updated avatar for existing user ${user.userID}`);
       }
 
     } else {
