@@ -49,7 +49,7 @@ router.get('/', async (req, res) => {
           console.log(`✅ Using snapshot for recipe leaderboard ${requestedMonthStr}`);
           rows = snapshotRows;
         } else {
-          console.log(`⚠️ No snapshot found for ${requestedMonthStr}, falling back to on-the-fly calculation`);
+          console.warn(`⚠️ No snapshot found for ${requestedMonthStr} (possibly no eligible recipes that month), falling back to on-the-fly calculation`);
         }
       }
 
@@ -121,7 +121,7 @@ router.get('/', async (req, res) => {
           console.log(`✅ Using snapshot for post leaderboard ${requestedMonthStr}`);
           rows = snapshotRows;
         } else {
-          console.log(`⚠️ No snapshot found for ${requestedMonthStr}, falling back to on-the-fly calculation`);
+          console.warn(`⚠️ No snapshot found for ${requestedMonthStr} (possibly no eligible posts that month), falling back to on-the-fly calculation`);
         }
       }
 

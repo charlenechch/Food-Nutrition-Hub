@@ -81,7 +81,7 @@ router.post("/sendLogin", async (req, res) => {
         [userID, otpCode, expiresAt]
     );
 
-    console.log(`🔄 OTP resent for ${user.email}`);
+    console.log(`🔄 OTP resent for userID: ${userID}`);
 
     // Send Email
     const otpHTML = `
@@ -174,7 +174,6 @@ router.post("/verifyLogin", async (req, res) => {
             req.session.cookie.maxAge = sevenDays;
             req.session.cookie.expires = new Date(Date.now() + sevenDays);
             req.session.rememberMe = true;
-            console.log("🕒 OTP Login: Remember Me active → 7 Days");
         } else {
             req.session.cookie.maxAge = null;
             req.session.cookie.expires = false;
@@ -184,7 +183,7 @@ router.post("/verifyLogin", async (req, res) => {
         // Update Last Login in DB
         await db.query("UPDATE user SET lastLogin = ? WHERE userID = ?", [new Date(), user.userID]);
 
-        console.log(`✅ 2FA Verification successful for user: ${user.email}`);
+        console.log(`✅ 2FA Verification successful for userID: ${user.userID}`);
 
         // --- FORCE SAVE ---
         // Ensure the new session is written to DB before replying to the user
