@@ -21,7 +21,7 @@ router.post("/sync", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    console.log(`Email verified and synced for: ${email}`);
+    console.log(`Email verified and synced successfully`);
     
     return res.json({ 
       success: true, 
