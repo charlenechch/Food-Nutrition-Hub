@@ -318,45 +318,53 @@ export default function Header() {
 
         {/* Desktop Actions */}
         <div className="navbar-actions">
-          <button className="lang-btn" onClick={toggleLanguage}>
-            <FaGlobe className="icon" /> {currentLang}
-          </button>
+          <div className="tooltip-wrapper" data-tooltip={t("nav.tooltip.language")}></div>
+            <button className="lang-btn" onClick={toggleLanguage}>
+              <FaGlobe className="icon" /> {currentLang}
+            </button>
+          </div>
 
           {/* Desktop Quiz Button */}
           {user && user.role !== "guest" && quizState && (
-            <button className="quiz-nav-btn" onClick={() => navigate("/daily-quiz")}>
-              <div className="quiz-icon-wrapper">
-                <Brain size={18} />
-                {/* Red dot nudge if not played today */}
-                {quizState !== "safe" && <span className="quiz-red-dot"></span>}
-              </div>
+            <div className="tooltip-wrapper" data-tooltip={t("nav.tooltip.quiz")}>
+              <button className="quiz-nav-btn" onClick={() => navigate("/daily-quiz")}>
+                <div className="quiz-icon-wrapper">
+                  <Brain size={18} />
+                  {/* Red dot nudge if not played today */}
+                  {quizState !== "safe" && <span className="quiz-red-dot"></span>}
+                </div>
 
-              {/* Show flame only if streak > 0 */}
-              {quizState !== "none" && (
-                <span className={`quiz-flame ${quizState === "safe" ? "active" : "warning"}`}>
-                  <Flame 
-                    size={16} 
-                    fill={quizState === "safe" ? "#f97316" : "none"} 
-                    color={quizState === "safe" ? "#f97316" : "#6b7280"} 
-                  />
-                  <span className="h-quiz-state-span">{quizData.currentStreak}</span>
-                </span>
-              )}
-            </button>
+                {/* Show flame only if streak > 0 */}
+                {quizState !== "none" && (
+                  <span className={`quiz-flame ${quizState === "safe" ? "active" : "warning"}`}>
+                    <Flame 
+                      size={16} 
+                      fill={quizState === "safe" ? "#f97316" : "none"} 
+                      color={quizState === "safe" ? "#f97316" : "#6b7280"} 
+                    />
+                    <span className="h-quiz-state-span">{quizData.currentStreak}</span>
+                  </span>
+                )}
+              </button>
+            </div>
           )}
 
-          <button className="leaderboard-btn" onClick={handleLeaderboardClick}>
-            <FaTrophy className="icon" /> 
-          </button>
+          <div className="tooltip-wrapper" data-tooltip={t("nav.tooltip.leaderboard")}>
+            <button className="leaderboard-btn" onClick={handleLeaderboardClick}>
+              <FaTrophy className="icon" /> 
+            </button>
+          </div>
 
           {user && user.role !== "guest" && (
             <div className="notification-wrapper" ref={notificationRef}>
-              <button className="bell-btn" onClick={handleBellClick}>
-                <Bell size={18} />
-                {unreadCount > 0 && (
-                  <span className="notification-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
-                )}
-              </button>
+              <div className="tooltip-wrapper" data-tooltip={t("nav.tooltip.notifications")}>
+                <button className="bell-btn" onClick={handleBellClick}>
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="notification-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+                  )}
+                </button>
+              </div>
 
               {showNotifications && (
                 <div className="notification-panel">

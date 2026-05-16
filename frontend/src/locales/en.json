@@ -13,7 +13,13 @@
     "markAllRead": "Mark all as read",
     "noNotifications": "No notifications yet.",
     "leaderboard": "Leaderboard",
-    "dailyQuiz": "Daily Quiz"
+    "dailyQuiz": "Daily Quiz",
+    "tooltip": {
+      "language": "Switch language to Malay",
+      "quiz": "Play Daily Quiz & maintain your streak!",
+      "leaderboard": "View top foodies leaderboard",
+      "notifications": "View your notifications"
+    }
   },
 
   "footer": {

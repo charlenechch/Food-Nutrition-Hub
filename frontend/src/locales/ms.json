@@ -13,7 +13,13 @@
     "markAllRead": "Tandakan semua sebagai dibaca",
     "noNotifications": "Tiada pemberitahuan lagi.",
     "leaderboard": "Papan Pendahulu",
-    "dailyQuiz": "Kuiz Harian"
+    "dailyQuiz": "Kuiz Harian",
+    "tooltip": {
+      "language": "Tukar bahasa ke Inggeris",
+      "quiz": "Main Kuiz Harian & kekalkan rekod anda!",
+      "leaderboard": "Lihat carta pendahulu SarawakEats",
+      "notifications": "Lihat notifikasi anda"
+    }
   },
 
   "footer": {
