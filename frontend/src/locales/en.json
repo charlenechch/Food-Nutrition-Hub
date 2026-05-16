@@ -1199,6 +1199,8 @@
     "suspendedUntil": "Until: {{date}}",
     "prevPage": "‹ Prev",
     "nextPage": "Next ›",
+    "umgprevPage": "Prev",
+    "umgnextPage": "Next",
     "createUserTitle": "Create User",
     "editUserTitle": "Edit User",
     "nameLabel": "Name",

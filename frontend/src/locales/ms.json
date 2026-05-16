@@ -1199,6 +1199,8 @@
     "suspendedUntil": "Sehingga: {{date}}",
     "prevPage": "‹ Sebelum",
     "nextPage": "Seterusnya ›",
+    "umgprevPage": "Sebelum",
+    "umgnextPage": "Seterusnya",
     "createUserTitle": "Cipta Pengguna",
     "editUserTitle": "Edit Pengguna",
     "nameLabel": "Nama",
