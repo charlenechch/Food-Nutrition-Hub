@@ -1305,6 +1305,12 @@
   margin-top: -2px;
 }
 
+.user-mgmt .admin-pagination button.umg-prev-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 @media (max-width: 540px) {
   .umg-modal {
     width: 96vw;
