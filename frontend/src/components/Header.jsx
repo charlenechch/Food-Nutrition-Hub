@@ -57,14 +57,6 @@ export default function Header() {
   };
 
   useEffect(() => {
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    
-    if (scrollbarWidth > 0) {
-      document.documentElement.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
-    }
-  }, []);
-
-  useEffect(() => {
     fetchQuizStatus();
   }, [user, location.pathname]); // Refreshes when user navigates around the app
 
