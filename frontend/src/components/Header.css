@@ -556,9 +556,53 @@
   transform: translateX(-50%) scale(1);
 }
 
-@media (max-width: 1144px) {
-  .tooltip-wrapper::after,
-  .tooltip-wrapper::before {
+@media (min-width: 1145px) and (max-width: 1380px) {
+  .navbar-actions > .tooltip-wrapper,
+  .navbar-actions > button {
     display: none;
+  }
+  
+  .hamburger {
+    display: flex;
+    margin-left: 15px;
+  }
+  
+  .mobile-menu a {
+    display: none;
+  }
+
+  .notification-panel {
+    position: fixed; 
+    top: 60px; 
+    right: 10px; 
+    left: 10px; 
+    width: auto; 
+    max-width: 400px; 
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 1144px) {
+  .navbar-links {
+    display: none;
+  }
+  
+  .navbar-actions > .tooltip-wrapper,
+  .navbar-actions > button {
+    display: none;
+  }
+  
+  .hamburger {
+    display: flex;
+  }
+
+  .notification-panel {
+    position: fixed; 
+    top: 60px; 
+    right: 10px; 
+    left: 10px; 
+    width: auto; 
+    max-width: 400px; 
+    margin: 0 auto;
   }
 }
