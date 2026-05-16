@@ -318,7 +318,7 @@ export default function Header() {
 
         {/* Desktop Actions */}
         <div className="navbar-actions">
-          <div className="tooltip-wrapper" data-tooltip={t("nav.tooltip.language")}></div>
+          <div className="tooltip-wrapper" data-tooltip={t("nav.tooltip.language")}>
             <button className="lang-btn" onClick={toggleLanguage}>
               <FaGlobe className="icon" /> {currentLang}
             </button>
