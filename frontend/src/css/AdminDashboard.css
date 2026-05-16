@@ -1369,19 +1369,29 @@
 
   .user-mgmt .admin-pagination {
     display: flex;
-    flex-wrap: wrap; /* Changed from 'nowrap' to allow wrapping if screen is too small */
-    justify-content: center; 
+    flex-wrap: nowrap;
+    justify-content: flex-start; 
     align-items: center;
-    gap: 8px; /* Increased gap slightly for wrapped layout */
+    gap: 6px; 
     margin-top: 24px;
     margin-bottom: 24px;
     max-width: 100%;
     box-sizing: border-box;
-    padding: 0;
+    padding-bottom: 8px; 
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .user-mgmt .admin-pagination::-webkit-scrollbar {
+    height: 4px;
+  }
+  .user-mgmt .admin-pagination::-webkit-scrollbar-thumb {
+    background-color: #eadfd3;
+    border-radius: 4px;
   }
 
   .user-mgmt .admin-pagination button {
-    flex: 0 1 auto; 
+    flex: 0 0 auto;
     min-width: 32px; 
     height: 36px;
     padding: 0;
@@ -1392,7 +1402,7 @@
   }
 
   .user-mgmt .admin-pagination button.umg-prev-next {
-    padding: 0 10px;
+    padding: 0 12px;
     min-width: auto;
     font-size: 13px;
     white-space: nowrap;
