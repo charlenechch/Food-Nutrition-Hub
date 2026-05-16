@@ -3,8 +3,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 clamp(1rem, 4vw, 2rem);
-  padding-right: calc(clamp(1rem, 4vw, 2rem) + 0.5rem);
+  padding-left: clamp(1rem, 4vw, 2rem);
+  padding-right: calc(clamp(1rem, 4vw, 2rem) + 16px);
   height: 75px; 
   box-sizing: border-box; 
   background-color: #fff;
@@ -13,8 +13,6 @@
   top: 0;
   left: 0;
   right: 0;
-  width: 100vw;
-  max-width: 100%;
   z-index: 1000;
   transition: all 0.3s ease;
   line-height: 1; 
