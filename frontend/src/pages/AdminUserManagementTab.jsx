@@ -702,7 +702,7 @@ export default function UserManagement() {
             {totalPages > 1 && (
               <div className="admin-pagination">
                 <button onClick={goPrev} disabled={page === 1} className="umg-prev-next">
-                  <span className="umg-page-arrow">‹</span>
+                  <span className="umg-page-arrow">‹ </span>
                   <span className="umg-page-text">{t("adminUser.umgprevPage")}</span>
                 </button>
                 
@@ -710,7 +710,7 @@ export default function UserManagement() {
                 
                 <button onClick={goNext} disabled={page === totalPages} className="umg-prev-next">
                   <span className="umg-page-text">{t("adminUser.umgnextPage")}</span>
-                  <span className="umg-page-arrow">›</span>
+                  <span className="umg-page-arrow"> ›</span>
                 </button>
               </div>
             )}
