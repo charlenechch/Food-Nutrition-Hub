@@ -1297,6 +1297,14 @@
   background: #f7f2ec; 
 }
 
+.user-mgmt .umg-page-arrow {
+  font-size: 1.4em;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  margin-top: -2px;
+}
+
 @media (max-width: 540px) {
   .umg-modal {
     width: 96vw;
