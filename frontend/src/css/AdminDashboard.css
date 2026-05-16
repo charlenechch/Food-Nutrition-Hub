@@ -1419,7 +1419,9 @@
 
 @media (max-width: 768px) {
   .umg-table th,
-  .umg-table td[data-label="Activity"],
+  .umg-table td[data-label="Contributions"],
+  .umg-table td[data-label="Sumbangan"],
+  .umg-table td[data-label="Log Masuk Terakhir"],
   .umg-table td[data-label="Last Login"],
   .umg-city-desktop,
   .umg-mobile-email {
