@@ -1408,7 +1408,7 @@
   }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 440px) {
   .user-mgmt .admin-pagination button.umg-prev-next {
     padding: 0 14px; 
   }
