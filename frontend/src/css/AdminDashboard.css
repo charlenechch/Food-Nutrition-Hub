@@ -1370,41 +1370,31 @@
   .user-mgmt .admin-pagination {
     display: flex;
     flex-wrap: nowrap;
-    justify-content: flex-start; 
+    justify-content: center;
     align-items: center;
-    gap: 6px; 
-    margin-top: 24px;
-    margin-bottom: 24px;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding-bottom: 8px; 
-    overflow-x: auto; 
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .user-mgmt .admin-pagination::-webkit-scrollbar {
-    height: 4px;
-  }
-  .user-mgmt .admin-pagination::-webkit-scrollbar-thumb {
-    background-color: #eadfd3;
-    border-radius: 4px;
+    gap: 4px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
   }
 
   .user-mgmt .admin-pagination button {
-    flex: 0 0 auto;
-    min-width: 32px; 
-    height: 36px;
+    flex: 0 1 auto;
+    min-width: 28px;
+    height: 32px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 12px; 
   }
 
   .user-mgmt .admin-pagination button.umg-prev-next {
-    padding: 0 12px;
+    padding: 0 6px; 
     min-width: auto;
-    font-size: 13px;
+    font-size: 12px;
     white-space: nowrap;
   }
 
@@ -1412,8 +1402,27 @@
     background: transparent;
     border: none;
     color: #8d6a46;
-    min-width: 16px; 
+    min-width: 12px; 
+    padding: 0;
     cursor: default;
+  }
+}
+
+@media (max-width: 360px) {
+  .user-mgmt .admin-pagination {
+    gap: 2px;
+  }
+  
+  .user-mgmt .admin-pagination button {
+    min-width: 24px;
+    height: 28px;
+    font-size: 11px;
+  }
+  
+  .user-mgmt .admin-pagination button.umg-prev-next {
+    padding: 0 4px;
+    font-size: 11px;
+    letter-spacing: -0.5px;
   }
 }
 
