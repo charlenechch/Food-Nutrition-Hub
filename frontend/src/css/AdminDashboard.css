@@ -1366,6 +1366,45 @@
     min-height: 44px; 
     font-size: 16px;
   }
+
+  .user-mgmt .admin-pagination {
+    display: flex;
+    flex-wrap: wrap; /* Changed from 'nowrap' to allow wrapping if screen is too small */
+    justify-content: center; 
+    align-items: center;
+    gap: 8px; /* Increased gap slightly for wrapped layout */
+    margin-top: 24px;
+    margin-bottom: 24px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+  }
+
+  .user-mgmt .admin-pagination button {
+    flex: 0 1 auto; 
+    min-width: 32px; 
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+  }
+
+  .user-mgmt .admin-pagination button.umg-prev-next {
+    padding: 0 10px;
+    min-width: auto;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .user-mgmt .admin-pagination button.umg-dots {
+    background: transparent;
+    border: none;
+    color: #8d6a46;
+    min-width: 16px; 
+    cursor: default;
+  }
 }
 
 .umg-specific-list { 
