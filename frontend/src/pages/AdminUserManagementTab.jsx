@@ -594,7 +594,7 @@ export default function UserManagement() {
                 ) : (
                   pageUsers.map(u => (
                     <tr key={u.id}>
-                      <td data-label="User">
+                      <td data-label={t("adminUser.tableHeaderName")}>
                         <div className="umg-mobile-content">
                           <div className="umg-name">{u.name}</div>
                           <div className="umg-subline umg-mobile-email">{u.email}</div>
@@ -613,19 +613,19 @@ export default function UserManagement() {
                         </div>
                       </td>
 
-                      <td data-label="Email" className="umg-mobile-only-row">
+                      <td data-label={t("adminUser.emailLabel")} className="umg-mobile-only-row">
                         <div className="umg-mobile-content umg-truncate-email" title={u.email}>
                           {u.email}
                         </div>
                       </td>
 
-                      <td data-label="Role">
+                      <td data-label={t("adminUser.tableHeaderRole")}>
                         <div className="umg-mobile-content">
                           <span className="umg-pill umg-pill-role">{u.role}</span>
                         </div>
                       </td>
 
-                      <td data-label="Status">
+                      <td data-label={t("adminUser.tableHeaderStatus")}>
                         <div className="umg-mobile-content">
                           <div className="umg-status-stack">
                             {u.status === "Active" && (
@@ -651,16 +651,16 @@ export default function UserManagement() {
                         </div>
                       </td>
 
-                      <td data-label="Activity">
+                      <td data-label={t("adminUser.tableHeaderContributions")}>
                         <div className="umg-submissions">
                           {t("adminUser.submissions", { count: u.submissions })}
                         </div>
                         <div className="umg-subline">{t("adminUser.approved", { count: u.approved })}</div>
                       </td>
 
-                      <td data-label="Last Login">{u.lastLogin}</td>
+                      <td data-label={t("adminUser.tableHeaderLastLogin")}>{u.lastLogin}</td>
 
-                      <td className="umg-ellipsis-td umg-mobile-action-row" data-label="Actions">
+                      <td className="umg-ellipsis-td umg-mobile-action-row" data-label={t("adminUser.tableHeaderActions")}>
                         {(u.suspendedUntil && new Date(u.suspendedUntil) > new Date()) ? (
                           <button
                             className="umg-ellipsis umg-unsuspend-btn"
