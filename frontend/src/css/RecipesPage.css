@@ -128,23 +128,28 @@
 @media (max-width: 760px) {
   .rp-grid-2, 
   .rp-grid-3 { 
+    grid-template-columns: 1fr; 
+  }
+
+  .recipes-page .rp-grid-2, 
+  .recipes-page .rp-grid-3 { 
     grid-template-columns: 100%; 
   }
 
-  .rp-actions {
+  .recipes-page .rp-actions {
     flex-direction: column;
     gap: 10px; 
   }
 
-  .rp-actions .rp-btn, 
-  .rp-actions .rp-submit, 
-  .rp-actions .rp-btn-muted {
+  .recipes-page .rp-actions .rp-btn, 
+  .recipes-page .rp-actions .rp-submit, 
+  .recipes-page .rp-actions .rp-btn-muted {
     width: 100%;
     margin-left: 0; 
     text-align: center;
   }
 
-  .rp-diet-grid {
+  .recipes-page .rp-diet-grid {
     grid-template-columns: 100%;
   }
 }
