@@ -519,6 +519,7 @@
 
 .upp-row-card .upp-row-top .upp-chip {
     margin-left: auto;
+    margin-top: 4px;
 }
 .upp-row-meta {
     display: flex;
@@ -756,7 +757,7 @@
 
   .upp-row-body {
     width: 100%;
-    padding: 16px 0;
+    padding: 8px 4px 4px;
   }
 
   .upp-row-top {
