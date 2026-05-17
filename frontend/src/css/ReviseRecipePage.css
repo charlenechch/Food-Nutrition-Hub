@@ -2,7 +2,23 @@
 .revise-recipe-page {
   margin-top: 70px;
   background: #fdfbf9;
+  width: 100%;
+  overflow-x: hidden;
 }
+
+.revise-recipe-page *, 
+.revise-recipe-page *::before, 
+.revise-recipe-page *::after {
+  box-sizing: border-box;
+}
+
+.revise-recipe-page input,
+.revise-recipe-page textarea,
+.revise-recipe-page select {
+  width: 100%;
+  max-width: 100%;
+}
+
 /* Admin Feedback Alert */
 .rcp-admin-alert {
   background: linear-gradient(135deg, #fffaf0 0%, #fff5e6 100%);
@@ -111,13 +127,13 @@
 
 .revise-recipe-page .rp-grid-2 {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
 .revise-recipe-page .rp-grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -173,7 +189,7 @@
 
   .revise-recipe-page .rp-grid-2,
   .revise-recipe-page .rp-grid-3 {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
 
