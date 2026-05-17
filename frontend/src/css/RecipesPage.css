@@ -1,9 +1,16 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 /* Page shell */
 .recipes-page {
   font-family: "Poppins", sans-serif;
   background: #fdfbf9;
   color: #3d2b1f;
   padding: 120px 5% 80px;
+  box-sizing: border-box; 
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .rp-header {
@@ -133,7 +140,7 @@
 
   .recipes-page .rp-grid-2, 
   .recipes-page .rp-grid-3 { 
-    grid-template-columns: 100%; 
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .recipes-page .rp-actions {
