@@ -204,10 +204,12 @@ export default function DailyQuizPage() {
 
   useEffect(() => {
     if (isFinished) {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'auto'
+        });
+      }, 50);
     }
   }, [isFinished]);
 
