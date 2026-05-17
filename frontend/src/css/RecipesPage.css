@@ -132,6 +132,10 @@
   gap: 14px;
 }
 
+.recipes-page .upload-box {
+  min-width: 0;
+}
+
 @media (max-width: 760px) {
   .rp-grid-2, 
   .rp-grid-3 { 
