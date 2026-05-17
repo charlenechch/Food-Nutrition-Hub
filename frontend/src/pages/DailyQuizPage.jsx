@@ -202,6 +202,15 @@ export default function DailyQuizPage() {
     submitResults();
   }, [isFinished, score, user, csrfToken, hasCompletedToday]);
 
+  useEffect(() => {
+    if (isFinished) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  }, [isFinished]);
+
   const handleNextQuestion = (wasCorrect) => {
     if (wasCorrect) {
       setScore(prevScore => prevScore + 1);
