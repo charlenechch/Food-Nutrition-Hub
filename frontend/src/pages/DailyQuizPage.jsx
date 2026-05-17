@@ -269,28 +269,32 @@ export default function DailyQuizPage() {
     const totalXP = baseXP + perfectBonus;
 
     return (
-      <div className="quiz-results-card dqp-div">
-        <h2>{t('quiz.completed', 'Quiz Complete!')}</h2>
-        <h1 className="dqp-h1">{score} / {translatedQuiz.length}</h1> 
-        
-        {score === translatedQuiz.length ? (
-          <p className="quiz-perfect-score">
-            {t('quiz.perfectScore', { baseXP, bonusXP: perfectBonus, totalXP })}
-          </p>
-        ) : (
-          <p className="quiz-normal-score">
-            {t('quiz.normalScore', { score, totalXP })}
-          </p>
-        )}
+      <>
+        <Header />
+        <div className="quiz-results-card dqp-div">
+          <h2>{t('quiz.completed', 'Quiz Complete!')}</h2>
+          <h1 className="dqp-h1">{score} / {translatedQuiz.length}</h1> 
+          
+          {score === translatedQuiz.length ? (
+            <p className="quiz-perfect-score">
+              {t('quiz.perfectScore', { baseXP, bonusXP: perfectBonus, totalXP })}
+            </p>
+          ) : (
+            <p className="quiz-normal-score">
+              {t('quiz.normalScore', { score, totalXP })}
+            </p>
+          )}
 
-        <button 
-          onClick={() => navigate('/')}
-          className="lrp-no-outline quiz-btn-primary dqp-div-btn"
-          disabled={isSubmitting} 
-        >
-          {isSubmitting ? t('quiz.saving', 'Saving Results...') : t('quiz.returnBtn', 'Return Home')}
-        </button>
-      </div>
+          <button 
+            onClick={() => navigate('/')}
+            className="lrp-no-outline quiz-btn-primary dqp-div-btn"
+            disabled={isSubmitting} 
+          >
+            {isSubmitting ? t('quiz.saving', 'Saving Results...') : t('quiz.returnBtn', 'Return Home')}
+          </button>
+        </div>
+        <Footer />
+      </>
     );
   }
 
