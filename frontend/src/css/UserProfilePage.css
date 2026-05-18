@@ -805,8 +805,14 @@
   }
 
   .upp-row.between {
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-direction: column;
+    text-align: center;
+    align-items: center; 
+    gap: 12px;
+  }
+
+  .upp-row.between .upp-switch {
+    margin: 0 auto;
   }
 
   .upp-row.between > div:first-child {
@@ -814,17 +820,6 @@
     min-width: 0;
     padding-right: 0;
     margin-bottom: 4px;
-  }
-
-  .upp-row.between .upp-switch {
-    flex: 0 0 auto;
-    margin-top: 0; 
-    margin-left: 0;
-  }
-
-  .upp-row.between .upp-switch {
-    flex: 0 0 auto;
-    margin-top: 0; 
   }
 
   .upp-row.between .upp-btn {
