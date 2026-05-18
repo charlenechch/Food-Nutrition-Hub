@@ -370,13 +370,14 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
       </div>
 
       {totalPages > 1 && (
-        <div className="admin-pagination" style={{ marginBottom: "20px" }}>
+        <div className="admin-pagination cpd-pagination">
           <button
             className="umg-prev-next"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
-            ‹ {t("explore.prev")}
+            <span className="page-arrow">‹</span>
+            <span className="page-text">{t("explore.prev")}</span>
           </button>
 
           {renderPageNumbers()}
@@ -386,7 +387,8 @@ const RecipeDatabaseSection = ({ recipes: recipesProp = [], categories = [], sec
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
-            {t("explore.next")} ›
+            <span className="page-text">{t("explore.next")}</span>
+            <span className="page-arrow">›</span>
           </button>
         </div>
       )}

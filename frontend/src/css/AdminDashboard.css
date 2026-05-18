@@ -3388,3 +3388,31 @@
     font-size: 1.1rem;
   }
 }
+
+.cpd-pagination {
+  margin-bottom: 20px;
+}
+
+.admin-pagination .page-arrow {
+  display: none;
+}
+.admin-pagination .page-text {
+  display: inline;
+}
+
+@media (max-width: 540px) {
+  .admin-pagination .page-arrow {
+    display: inline;
+    font-size: 20px;
+    line-height: 1;
+    font-weight: 500;
+  }
+  
+  .admin-pagination .page-text {
+    display: none;
+  }
+  
+  .admin-pagination button.umg-prev-next {
+    padding: 0 14px; 
+  }
+}

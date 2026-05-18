@@ -341,13 +341,14 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
       </div>
 
       {totalPages > 1 && (
-        <div className="admin-pagination" style={{ marginBottom: "20px" }}>
+        <div className="admin-pagination cpd-pagination">
           <button
             className="umg-prev-next"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
-            ‹ {t("explore.prev", "Prev")}
+            <span className="page-arrow">‹</span>
+            <span className="page-text">{t("explore.prev")}</span>
           </button>
 
           {renderPageNumbers()}
@@ -357,7 +358,8 @@ const AdminCommunityPostDatabase = ({ posts: postsProp = [], sectionType = "appr
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
-            {t("explore.next", "Next")} ›
+            <span className="page-text">{t("explore.next", "Next")}</span>
+            <span className="page-arrow">›</span>
           </button>
         </div>
       )}
