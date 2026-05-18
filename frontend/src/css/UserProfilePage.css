@@ -270,7 +270,7 @@
   outline: none;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 690px) {
   .upp-tabs {
     flex-direction: column;
     align-items: stretch; 
@@ -792,7 +792,7 @@
     margin-right: 0;
     width: 100%;
   }
-  
+
   .upp-switch-status {
     display: block; 
   }
