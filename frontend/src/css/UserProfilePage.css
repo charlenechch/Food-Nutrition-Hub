@@ -810,8 +810,16 @@
   }
 
   .upp-row.between > div:first-child {
-    flex: 1 1 0%;
+    flex: 1 1 100%; 
     min-width: 0;
+    padding-right: 0;
+    margin-bottom: 4px;
+  }
+
+  .upp-row.between .upp-switch {
+    flex: 0 0 auto;
+    margin-top: 0; 
+    margin-left: 0;
   }
 
   .upp-row.between .upp-switch {
