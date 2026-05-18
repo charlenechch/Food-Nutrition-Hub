@@ -513,7 +513,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="community-pagination">
+          <div className="efp-pagination">
             <button 
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1} 
