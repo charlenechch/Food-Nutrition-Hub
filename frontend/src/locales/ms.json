@@ -593,7 +593,9 @@
     "adminAccess": "Akses Pentadbir",
     "accountDeletion": "Pemadaman Akaun",
     "firstNameRequired": "Nama pertama tidak boleh kosong.",
-    "lastNameRequired": "Nama belakang tidak boleh kosong."
+    "lastNameRequired": "Nama belakang tidak boleh kosong.",
+    "statusOn": "Aktif",
+    "statusOff": "Tidak Aktif"
   },
 
   "auth": {

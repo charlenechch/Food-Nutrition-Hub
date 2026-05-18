@@ -2066,7 +2066,7 @@ const handleDeleteAccount = async () => {
                     </div>
                     <div className="upp-switch-container">
                       <span className={`upp-switch-status ${prefs.emailNotifications ? 'is-on' : ''}`}>
-                        {prefs.emailNotifications ? t("profile.statusOn", "On") : t("profile.statusOff", "Off")}
+                        {prefs.emailNotifications ? t("profile.statusOn") : t("profile.statusOff")}
                       </span>
                       <label className="upp-switch">
                         <input

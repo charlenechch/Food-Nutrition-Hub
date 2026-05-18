@@ -592,8 +592,10 @@
     "privacy": "Privacy",
     "adminAccess": "Admin Access",
     "accountDeletion": "Account Deletion",
-        "firstNameRequired": "First name cannot be empty.",
-    "lastNameRequired": "Last name cannot be empty."
+    "firstNameRequired": "First name cannot be empty.",
+    "lastNameRequired": "Last name cannot be empty.",
+    "statusOn": "On",
+    "statusOff": "Off"
   },
  
   "auth": {

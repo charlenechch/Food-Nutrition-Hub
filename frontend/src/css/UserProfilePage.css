@@ -754,6 +754,7 @@
   font-weight: 600;
   color: #8c7f72; 
   transition: color 0.2s ease;
+  display: none;
 }
 
 .upp-switch-status.is-on {
@@ -790,6 +791,10 @@
     gap: 12px;
     margin-right: 0;
     width: 100%;
+  }
+  
+  .upp-switch-status {
+    display: block; 
   }
 
   .upp-row-card .upp-row-top .upp-chip {
