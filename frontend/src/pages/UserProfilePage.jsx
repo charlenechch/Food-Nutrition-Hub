@@ -2064,14 +2064,19 @@ const handleDeleteAccount = async () => {
                       <div className="upp-strong">{t("profile.emailNotifications")}</div>
                       <div className="upp-muted2">{t("profile.receiveUpdates")}</div>
                     </div>
-                    <label className="upp-switch">
-                      <input
-                        type="checkbox"
-                        checked={prefs.emailNotifications}
-                        onChange={(e) => toggleSetting('emailNotifications', e.target.checked)}
-                      />
-                      <span />
-                    </label>
+                    <div className="upp-switch-container">
+                      <span className={`upp-switch-status ${prefs.emailNotifications ? 'is-on' : ''}`}>
+                        {prefs.emailNotifications ? t("profile.statusOn", "On") : t("profile.statusOff", "Off")}
+                      </span>
+                      <label className="upp-switch">
+                        <input
+                          type="checkbox"
+                          checked={prefs.emailNotifications}
+                          onChange={(e) => toggleSetting('emailNotifications', e.target.checked)}
+                        />
+                        <span />
+                      </label>
+                    </div>
                   </div>
                   {/* Push Notifications toggle (commented out for now)
                   <hr className="upp-sep" />
