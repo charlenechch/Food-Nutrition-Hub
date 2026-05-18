@@ -846,6 +846,19 @@
     height: 32px;
     font-size: 0.85rem;
   }
+
+  .upp-btn {
+    min-width: 0; 
+  }
+
+  .upp-page {
+    padding: 16px 12px; 
+  }
+  
+  .upp-tab-constrained {
+    box-sizing: border-box;
+    width: 100%;
+  }
 }
 
 /* Private Profile View */
