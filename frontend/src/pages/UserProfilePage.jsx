@@ -1981,7 +1981,7 @@ const handleDeleteAccount = async () => {
 
             {/* ===== Preferences ===== */}
             {tab === "prefs" && !userProfileID && (
-              <div className="upp-stack">
+              <div className="upp-stack upp-tab-constrained">
                 {/* Dietary Card */}
                 <div className="upp-card">
                   <h3 className="upp-card-title">{t("profile.dietaryPrefs")}</h3>
@@ -2056,7 +2056,7 @@ const handleDeleteAccount = async () => {
 
             {/* ===== Settings ===== */}
             {tab === "settings" && !userProfileID && (
-              <div className="upp-stack">
+              <div className="upp-stack upp-tab-constrained">
                 <div className="upp-card">
                   <h3 className="upp-card-title"><Bell className="rdp-sec-icon" color={"#6a4a2f"} /> {t("profile.notifications")}</h3>
                   <div className="upp-row between">
