@@ -517,7 +517,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
             <button 
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1} 
-              className="efp-btn nav-btn"
+              className="community-page-btn nav-btn lrp-no-outline"
             >
               <span className="nav-arrow">←</span>
               <span className="nav-text">{t("explore.prev")}</span>
@@ -533,7 +533,7 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
             <button 
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages} 
-              className="efp-btn nav-btn"
+              className="community-page-btn nav-btn lrp-no-outline"
             >
               <span className="nav-text">{t("explore.next")}</span>
               <span className="nav-arrow">→</span>
