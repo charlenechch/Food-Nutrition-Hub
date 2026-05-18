@@ -514,9 +514,13 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="community-pagination">
-            <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1} className="community-page-btn nav-btn lrp-no-outline">
-              ← {t("explore.prev")}
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1} 
+              className="efp-btn nav-btn"
+            >
+              <span className="nav-arrow">←</span>
+              <span className="nav-text">{t("explore.prev")}</span>
             </button>
             <div className="page-numbers">
               {[...Array(totalPages)].map((_, i) => (
@@ -526,9 +530,13 @@ export default function ExploreFoodPage({ onFoodSelect = () => {} }) {
                 </button>
               ))}
             </div>
-            <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages} className="community-page-btn nav-btn lrp-no-outline">
-              {t("explore.next")} →
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages} 
+              className="efp-btn nav-btn"
+            >
+              <span className="nav-text">{t("explore.next")}</span>
+              <span className="nav-arrow">→</span>
             </button>
           </div>
         )}

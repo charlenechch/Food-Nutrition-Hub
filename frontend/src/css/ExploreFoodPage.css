@@ -730,3 +730,30 @@
   overflow: hidden;
   line-height: 1.4em;
 }
+
+.efp-pagination .nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px; 
+}
+
+@media (max-width: 540px) {
+  .efp-pagination .nav-text {
+    display: none; 
+  }
+  
+  .efp-pagination .nav-arrow {
+    font-size: 18px;
+    line-height: 1;
+  }
+  
+  .efp-pagination .nav-btn {
+    min-width: auto;
+    padding: 0 16px; 
+  }
+  
+  .efp-pagination {
+    gap: 8px;
+  }
+}
