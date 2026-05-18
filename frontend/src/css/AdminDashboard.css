@@ -792,7 +792,7 @@
 /* Summary cards */
 .umg-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(5, minmax(0,1fr));
   gap: 26px;
   margin: 12px 0 16px;
 }
@@ -800,7 +800,7 @@
   background: #fff;
   border: 1px solid #eadfd3;
   border-radius: 12px;
-  padding: 22px;
+  padding: 22px 64px 22px 22px;
   position: relative;
 }
 .umg-card-title { color: #7b6148; font-size: 14px; }
