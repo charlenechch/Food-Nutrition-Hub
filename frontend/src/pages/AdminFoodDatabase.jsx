@@ -837,11 +837,33 @@ const AdminFoodDatabase = ({ categories = [] }) => {
 
       {totalPages > 1 && (
         <div className="admin-pagination fdt-pagination">
-          <button onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>‹ {t("explore.prev")}</button>
+          <button 
+            className="umg-prev-next" 
+            onClick={() => setCurrentPage(currentPage - 1)} 
+            disabled={currentPage === 1}
+          >
+            <span className="page-arrow">‹</span>
+            <span className="page-text">{t("explore.prev")}</span>
+          </button>
+          
           {[...Array(totalPages)].map((_, i) => (
-            <button key={i} onClick={() => setCurrentPage(i + 1)} className={currentPage === i + 1 ? "active" : ""}>{i + 1}</button>
+            <button 
+              key={i} 
+              onClick={() => setCurrentPage(i + 1)} 
+              className={currentPage === i + 1 ? "active" : ""}
+            >
+              {i + 1}
+            </button>
           ))}
-          <button onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === totalPages}>{t("explore.next")} ›</button>
+          
+          <button 
+            className="umg-prev-next" 
+            onClick={() => setCurrentPage(currentPage + 1)} 
+            disabled={currentPage === totalPages}
+          >
+            <span className="page-text">{t("explore.next")}</span>
+            <span className="page-arrow">›</span>
+          </button>
         </div>
       )}
     </div>

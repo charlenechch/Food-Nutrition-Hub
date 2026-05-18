@@ -387,16 +387,32 @@ const AdminQuizDatabase = () => {
 
       {totalPages > 1 && (
         <div className="admin-pagination fdt-pagination aqd-pagination">
-          <button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>
-            ‹ Prev
+          <button 
+            className="umg-prev-next"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
+            disabled={currentPage === 1}
+          >
+            <span className="page-arrow">‹</span>
+            <span className="page-text">{t("explore.prev", "Prev")}</span>
           </button>
+
           {[...Array(totalPages)].map((_, i) => (
-            <button key={i} onClick={() => setCurrentPage(i + 1)} className={currentPage === i + 1 ? "active" : ""}>
+            <button 
+              key={i} 
+              onClick={() => setCurrentPage(i + 1)} 
+              className={currentPage === i + 1 ? "active" : ""}
+            >
               {i + 1}
             </button>
           ))}
-          <button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages}>
-            Next ›
+
+          <button 
+            className="umg-prev-next"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
+            disabled={currentPage === totalPages}
+          >
+            <span className="page-text">{t("explore.next", "Next")}</span>
+            <span className="page-arrow">›</span>
           </button>
         </div>
       )}
