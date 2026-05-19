@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "../css/NutritionAnalyzer.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -27,6 +27,7 @@ export default function NutritionAnalyzerPage() {
   const [showModal, setShowModal] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
   const [warning, setWarning] = useState("");
+  const [activeTab, setActiveTab] = useState("input"); // "input" | "result"
 
   const requireLogin = () => {
     if (isGuest) { setShowModal(true); return true; }
@@ -78,8 +79,10 @@ export default function NutritionAnalyzerPage() {
             : [],
           tips: translatedTips,
         });
+        setActiveTab("result");
       } else {
         setError("Could not load nutrition for this food.");
+        setActiveTab("result");
       }
     } catch {
       setError(t("analyzer.errorGeneral"));
@@ -103,7 +106,7 @@ export default function NutritionAnalyzerPage() {
     setError("");
     setResult(null);
     setSuggestions([]);
-    setWarning(""); // ADDED: clear warning on each new analyze
+    setWarning("");
 
     try {
       // Image path
@@ -204,6 +207,7 @@ export default function NutritionAnalyzerPage() {
       setError(t("analyzer.errorGeneral"));
     } finally {
       setLoading(false);
+      setActiveTab("result");
     }
   };
 
@@ -224,8 +228,25 @@ export default function NutritionAnalyzerPage() {
       <p className="page-subtitle">{t("analyzer.subtitle")}</p>
 
       <div className="analyzer-container">
+        {/* MOBILE/TABLET TAB BAR */}
+        <div className="analyzer-tabs">
+          <button
+            className={`analyzer-tab ${activeTab === "input" ? "active" : ""}`}
+            onClick={() => setActiveTab("input")}
+          >
+            {t("analyzer.tabInput") || "Input"}
+          </button>
+          <button
+            className={`analyzer-tab ${activeTab === "result" ? "active" : ""}${(result || error || suggestions.length > 0) ? " has-content" : ""}`}
+            onClick={() => setActiveTab("result")}
+          >
+            {t("analyzer.tabResults") || "Results"}
+            {(result || error || suggestions.length > 0) && <span className="tab-dot" />}
+          </button>
+        </div>
+
         {/* LEFT PANEL */}
-        <div className="left-column">
+        <div className={`left-column${activeTab !== "input" ? " tab-hidden" : ""}`}>
           <form className="food-form" onSubmit={handleAnalyze}>
             <div className="food-input-card">
               <h3 className="section-title">
@@ -271,7 +292,7 @@ export default function NutritionAnalyzerPage() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div className={`result-card ${result ? "has-result" : "empty"}`}>
+        <div className={`result-card ${result ? "has-result" : "empty"}${activeTab !== "result" ? " tab-hidden" : ""}`}>
           {suggestions.length > 0 && (
             <>
               <p style={{ marginBottom: 8 }}>{t("analyzer.didYouMean")}</p>
@@ -281,13 +302,6 @@ export default function NutritionAnalyzerPage() {
                 ))}
               </div>
             </>
-          )}
-
-          {/* ADDED: warning banner for moderate confidence matches */}
-          {warning && (
-            <div className="confidence-warning">
-              ⚠️ {warning}
-            </div>
           )}
 
           {error && <div className="error-text">{error}</div>}
@@ -307,6 +321,9 @@ export default function NutritionAnalyzerPage() {
             <div className="nap-results">
               <div className="analysis-container">
                 <h2 className="analysis-title">{result.food_name}</h2>
+                {warning && (
+                  <div className="confidence-warning">⚠️ {warning}</div>
+                )}
 
                 {result.nutrition && (
                   <div className="nutrition-section">
