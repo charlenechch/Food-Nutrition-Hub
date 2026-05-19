@@ -567,7 +567,7 @@ html, body {
   }
 
   .nutrition-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
 }
@@ -638,6 +638,10 @@ html, body {
   .result-card .analysis-container {
     padding: 1rem;
     margin: 0;
+  }
+
+  .analysis-title {
+    font-size: 17px;
   }
 
   .upload-card {
@@ -732,11 +736,6 @@ html, body {
   .nutri-card {
     padding: 8px 6px;
   }
-
-  .nutrition-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
 }
 .blur-sm {
   filter: blur(4px);
@@ -773,18 +772,6 @@ html, body {
   .nutrition-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
-  }
-
-  .nutri-value {
-    font-size: 13px;
-  }
-
-  .nutri-label {
-    font-size: 11px;
-  }
-
-  .nutri-card {
-    padding: 10px 8px;
   }
 }
 
