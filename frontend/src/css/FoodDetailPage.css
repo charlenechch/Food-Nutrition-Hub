@@ -53,10 +53,6 @@
     .fdp-hero-media { 
         height: 340px;  
     }
-    .mobile-actions {
-        margin-top: 0;
-        margin-bottom:0;
-    }
 }
 .fdp-hero-media img { 
     width:100%;
@@ -312,8 +308,8 @@
     flex-direction: column;
     gap: 0.5rem;
     width: 100%;
-    margin-top: -1rem;
-    margin-bottom: -1rem;
+    margin-top: -.75rem;
+    margin-bottom: -.75rem;
 }
 
 .fdp-recipe-btn {
