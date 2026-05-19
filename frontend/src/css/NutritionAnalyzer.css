@@ -84,6 +84,7 @@ html, body {
 /* FORM INPUTS */
 .food-input-card label {
   font-size: clamp(0.85rem, 1vw, 0.95rem);
+  margin-top: 20px;
   display: block;
   color: #333;
   text-align: left;
@@ -311,16 +312,14 @@ html, body {
   min-width: 0;
 }
 
-/* ===============================
-   ADDED: CONFIDENCE WARNING BANNER
-=============================== */
+/* CONFIDENCE WARNING BANNER */
 .confidence-warning {
   width: 100%;
   background: #fff8e1;
   border: 1px solid #f5c518;
   border-radius: 10px;
   padding: 10px 14px;
-  margin-bottom: 12px;
+  margin-bottom: 5px;
   color: #7a5c00;
   font-size: 0.88rem;
   font-weight: 500;
@@ -564,10 +563,7 @@ html, body {
   }
 }
 
-/* ===============================
-   MODAL & BACKGROUND BLUR
-=============================== */
-
+/* MODAL & BACKGROUND BLUR */
 .blur-sm {
   filter: blur(4px);
   pointer-events: none;
@@ -598,88 +594,6 @@ html, body {
   margin-bottom: clamp(60px, 6vw, 100px);     
 }
 
-/* ===============================
-   PIECHART
-=============================== */
-
-.pie-chart-container {
-  background-color: #fffdfb;
-  border: 1px solid #e8dccf;
-  border-radius: 12px;
-  padding: 20px 20px 20px 20px;
-  margin-top: 20px;
-  margin-left: auto;
-  margin-right: 0;
-  width: 100%;
-  max-width: 500px;  
-  height: auto;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.pie-chart-container canvas {
-  max-width: 450px;  
-  max-height: 450px;
-  width: 100%;
-  height: auto;
-  margin-left: auto;
-}
-
-.pie-chart-container .chartjs-legend {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin-left: 15px !important;
-  padding: 0 !important;
-}
-
-.pie-chart-container .chartjs-legend ul {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.pie-chart-container .chartjs-legend li {
-  display: flex;
-  align-items: center;
-  margin: 0 !important;
-  padding: 0 !important;
-  white-space: nowrap;
-  font-size: 14px;  
-}
-
-.pie-chart-container .chartjs-legend li::before {
-  content: "";
-  display: inline-block;
-  width: 16px;
-  height: 12px;
-  border-radius: 2px;
-  margin-right: 8px;
-  background-color: currentColor;
-  flex-shrink: 0;
-}
-
-.pie-chart-placeholder {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-  background: #f5f5f5;
-  border-radius: 12px;
-  font-style: italic;
-  width: 100%;
-}
-
-.pie-chart-wrapper {
-  flex: 1;
-  min-width: 450px;
-  max-width: 550px;
-  display: flex;
-  justify-content: center;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .pie-chart-container {
@@ -696,5 +610,34 @@ html, body {
   
   .pie-chart-wrapper {
     min-width: 100%;
+  }
+}
+
+@media (max-width: 350px) {
+  .analyzer-container {
+    padding: 0 0.5rem;
+  }
+
+  .food-input-card,
+  .upload-card {
+    padding: 0.75rem;
+  }
+
+  .upload-box {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .upload-box p {
+    font-size: 0.8rem;
+    word-break: break-word;
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+  }
+
+  .analyze-btn {
+    font-size: 0.85rem;
+    padding: 0.65rem;
   }
 }
