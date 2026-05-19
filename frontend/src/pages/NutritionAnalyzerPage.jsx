@@ -27,7 +27,7 @@ export default function NutritionAnalyzerPage() {
   const [showModal, setShowModal] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
   const [warning, setWarning] = useState("");
-  const [activeTab, setActiveTab] = useState("input"); // "input" | "result"
+  const [activeTab, setActiveTab] = useState("input");
 
   const requireLogin = () => {
     if (isGuest) { setShowModal(true); return true; }
@@ -106,7 +106,7 @@ export default function NutritionAnalyzerPage() {
     setError("");
     setResult(null);
     setSuggestions([]);
-    setWarning("");
+    setWarning(""); // ADDED: clear warning on each new analyze
 
     try {
       // Image path
@@ -228,7 +228,7 @@ export default function NutritionAnalyzerPage() {
       <p className="page-subtitle">{t("analyzer.subtitle")}</p>
 
       <div className="analyzer-container">
-        {/* MOBILE/TABLET TAB BAR */}
+        {/* MOBILE/TABLET TAB BAR — hidden on desktop via CSS */}
         <div className="analyzer-tabs">
           <button
             className={`analyzer-tab ${activeTab === "input" ? "active" : ""}`}
@@ -237,7 +237,7 @@ export default function NutritionAnalyzerPage() {
             {t("analyzer.tabInput") || "Input"}
           </button>
           <button
-            className={`analyzer-tab ${activeTab === "result" ? "active" : ""}${(result || error || suggestions.length > 0) ? " has-content" : ""}`}
+            className={`analyzer-tab ${activeTab === "result" ? "active" : ""}`}
             onClick={() => setActiveTab("result")}
           >
             {t("analyzer.tabResults") || "Results"}
@@ -245,8 +245,8 @@ export default function NutritionAnalyzerPage() {
           </button>
         </div>
 
-        {/* LEFT PANEL */}
-        <div className={`left-column${activeTab !== "input" ? " tab-hidden" : ""}`}>
+        {/* LEFT PANEL — data-tab used by CSS to hide on mobile only */}
+        <div className="left-column" data-tab={activeTab === "input" ? "active" : "inactive"}>
           <form className="food-form" onSubmit={handleAnalyze}>
             <div className="food-input-card">
               <h3 className="section-title">
@@ -292,7 +292,10 @@ export default function NutritionAnalyzerPage() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div className={`result-card ${result ? "has-result" : "empty"}${activeTab !== "result" ? " tab-hidden" : ""}`}>
+        <div
+          className={`result-card ${result ? "has-result" : "empty"}`}
+          data-tab={activeTab === "result" ? "active" : "inactive"}
+        >
           {suggestions.length > 0 && (
             <>
               <p style={{ marginBottom: 8 }}>{t("analyzer.didYouMean")}</p>
@@ -324,19 +327,18 @@ export default function NutritionAnalyzerPage() {
                 {warning && (
                   <div className="confidence-warning">⚠️ {warning}</div>
                 )}
-
                 {result.nutrition && (
                   <div className="nutrition-section">
                     <h3 className="section-header">{t("analyzer.nutritionPerPortion")}</h3>
                     <div className="nutrition-content">
                       <div className="nutrition-grid">
-                      {nutritionRows.map(([label, val, unit], i) => (
-                        <div className="nutri-card" key={i}>
-                          <span className="nutri-value">{val ?? "—"} {val != null ? unit : ""}</span>
-                          <span className="nutri-label">{label}</span>
-                        </div>
-                      ))}
-                    </div>
+                        {nutritionRows.map(([label, val, unit], i) => (
+                          <div className="nutri-card" key={i}>
+                            <span className="nutri-value">{val ?? "—"} {val != null ? unit : ""}</span>
+                            <span className="nutri-label">{label}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
