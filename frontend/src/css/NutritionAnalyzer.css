@@ -62,7 +62,7 @@ html, body {
 
 .food-input-card {
   background: #fff;
-  padding: clamp(1rem, 2vw, 1.5rem);
+  padding: clamp(1rem, 2vw, 1.2rem);
   border-radius: 12px;
   border: 1px solid #e9c8a6;
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
