@@ -261,7 +261,8 @@ html, body {
   border: 1px solid #e9c8a6;
   box-shadow: 0px 3px 6px rgba(0,0,0,0.06);
   margin-top: 20px;
-  min-height: 320px;
+  margin-bottom: 2rem;
+  min-height: 300px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -653,11 +654,16 @@ html, body {
   .food-input-card,
   .upload-card {
     padding: 0.75rem;
+    overflow: hidden;        /* ← clips the child box to card boundary */
+    box-sizing: border-box;
   }
 
   .upload-box {
     padding: 0.6rem 0.4rem;
     overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .upload-box p {
@@ -677,6 +683,7 @@ html, body {
   .upload-box-wrapper {
     overflow: hidden;
     max-width: 100%;
+    box-sizing: border-box;
   }
 
   .page-title {
