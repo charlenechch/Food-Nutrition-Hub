@@ -135,22 +135,23 @@
 
 /* Chips */
 .fdp-chip-grid { 
-    display:grid;
-    grid-template-columns: repeat(2, minmax(0,1fr));
-    gap:.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
-@media (min-width: 640px){ 
-    .fdp-chip-grid { 
-    grid-template-columns: repeat(3, minmax(0,1fr));
-} }
+
 .fdp-chip { 
-    display:inline-block;
-    text-align:center;
-    padding:.5rem .75rem;
-    background:#f7f2ed;
-    border:1px solid #dbcebc;
-    border-radius:999px;
-    font-size:.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.5rem 1rem;
+    background: #f7f2ed;
+    border: 1px solid #dbcebc;
+    border-radius: 2rem; 
+    font-size: 0.9rem;
+    line-height: 1.3;
+    word-break: break-word;
 }
 
 /* Actions */
