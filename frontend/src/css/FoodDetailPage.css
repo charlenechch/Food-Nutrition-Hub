@@ -311,7 +311,12 @@
     gap: 1.25rem; /* This matches the exact spacing of desktop-actions */
     width: 100%;
 }
-
+@media (max-width: 769px){
+    .mobile-actions {
+        margin-top: -1rem;
+        margin-bottom: -1rem;
+    }
+}
 .fdp-recipe-btn {
     width: 100%;
     flex: 1;
