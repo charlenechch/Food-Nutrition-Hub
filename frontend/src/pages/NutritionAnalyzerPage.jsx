@@ -298,10 +298,7 @@ export default function NutritionAnalyzerPage() {
 
           {result?.notFound && (
             <div className="no-match-card">
-              <span className="no-match-icon">🍽️</span>
-              <p className="no-match-title">
-                {t("analyzer.noMatchTitle", { name: result.searchedName })}
-              </p>
+              <p className="no-match-title">⚠ {t("analyzer.noMatchTitle")}</p>
               <p className="no-match-body">{t("analyzer.noMatchBody")}</p>
             </div>
           )}
