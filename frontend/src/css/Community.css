@@ -1487,3 +1487,21 @@
     font-size: 1.8rem;
   }
 }
+
+@media (max-width: 355px) {
+  .community-pagination {
+    gap: 8px;
+    margin: 30px 0;
+  }
+
+  .community-page-btn.nav-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  .community-page-btn.page-num {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+  }
+}
