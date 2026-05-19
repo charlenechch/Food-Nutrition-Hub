@@ -732,11 +732,6 @@ html, body {
   .nutri-card {
     padding: 8px 6px;
   }
-
-  .nutrition-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
 }
 .blur-sm {
   filter: blur(4px);
@@ -769,17 +764,10 @@ html, body {
 }
 
 
-/* @media (max-width: 409px) {
-  .nutri-value {
-    font-size: 13px;
+@media (max-width: 409px) {
+  .nutrition-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
-
-  .nutri-label {
-    font-size: 11px;
-  }
-
-  .nutri-card {
-    padding: 10px 8px;
-  }
-} */
+}
 
