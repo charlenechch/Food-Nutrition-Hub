@@ -410,7 +410,7 @@ html, body {
 .nutrition-grid {
   margin-top: 10px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -519,6 +519,11 @@ html, body {
   color: #fff;
 }
 
+.analyzer-tab:focus, .analyzer-tab:focus-visible, .analyzer-tab:active {
+  outline: none; 
+  border: none;
+}
+
 .tab-dot {
   width: 6px;
   height: 6px;
@@ -561,7 +566,7 @@ html, body {
   }
 
   .nutrition-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 12px;
   }
 }
