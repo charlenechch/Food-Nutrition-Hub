@@ -309,13 +309,12 @@
     width: 100%;
 }
 
-@media (min-width: 640px) {
-    .mobile-actions {
-        flex-direction: row;
-    }
-    .mobile-actions .fdp-actions {
-        flex: 1; 
-    }
+.mobile-actions .fdp-actions:last-child {
+    width: 100%;
+}
+
+.mobile-actions .fdp-actions:last-child button {
+    width: 100%;
 }
 
 @media (min-width: 1024px) {
