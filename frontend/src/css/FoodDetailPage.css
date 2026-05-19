@@ -308,15 +308,10 @@
     flex-direction: column;
     gap: 0.5rem;
     width: 100%;
-    margin-top: -.75rem;
-    margin-bottom: -.75rem;
+    gap: 1.25rem; /* This matches the exact spacing of desktop-actions */
+    width: 100%;
 }
-@media (max-width: 769px){
-    .mobile-actions {
-        margin-top: -.75rem;
-        margin-bottom: -.75rem;
-    }
-}
+
 .fdp-recipe-btn {
     width: 100%;
     flex: 1;
