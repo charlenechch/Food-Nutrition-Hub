@@ -358,7 +358,8 @@
     "trackPost": "Semak Status",
     "close": "Tutup",
     "submitError": "Ralat Penghantaran",
-    "submitErrorMsg": "Sesuatu telah berlaku. Sila cuba lagi."
+    "submitErrorMsg": "Sesuatu telah berlaku. Sila cuba lagi.", 
+    "filters": "Tapis"
   },
 
   "communityPost": {

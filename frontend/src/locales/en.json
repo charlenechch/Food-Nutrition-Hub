@@ -358,7 +358,8 @@
     "trackPost": "Track My Post",
     "close": "Close",
     "submitError": "Submission Error",
-    "submitErrorMsg": "Something went wrong. Please try again."
+    "submitErrorMsg": "Something went wrong. Please try again.",
+    "filters": "Filters"
   },
 
   "communityPost": {

@@ -1418,13 +1418,13 @@
 
   /* Hide filter group by default, show when open */
   .filter-group {
-    display: none;
+    display: none !important;
     width: 100%;
     gap: 10px;
   }
 
   .filter-group.open {
-    display: flex;
+    display: flex !important;
   }
 
   .search-pill {
