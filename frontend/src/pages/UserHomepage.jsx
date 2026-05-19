@@ -9,65 +9,12 @@ import { translateTexts } from "../hooks/useAITranslation";
 import LoginFood from "../assets/LoginFood.png";
 import KoloImg from "../assets/kolomee.jpg";
 
-import {
-  FaSearch,
-  FaDice,
-  FaBookOpen,
-  FaMapMarkedAlt,
-  FaLeaf,
-  FaHeartbeat,
-  FaComments,
-  FaChartPie
-} from "react-icons/fa";
+import { FaSearch, FaStar, FaLightbulb, FaSyncAlt, FaUserEdit, FaDice } from "react-icons/fa";
 import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
 
 import { useAuth } from "../context/AuthContext";
 
 const HERO_IMAGES = [LoginFood, KoloImg];
-
-const HUB_PATHWAYS = [
-  {
-    icon: FaUtensils,
-    label: "Explore Foods",
-    text: "Browse traditional dishes by origin, category, and cultural roots.",
-    route: "/foods",
-  },
-  {
-    icon: FaChartPie,
-    label: "Analyze Nutrition",
-    text: "Understand calories, protein, fibre, and healthier choices.",
-    route: "/analyzer",
-  },
-  {
-    icon: FaMapMarkedAlt,
-    label: "Food Map",
-    text: "Find places nearby that serve Sarawak's traditional flavours.",
-    route: "/map",
-  },
-];
-
-const HUB_FEATURES = [
-  {
-    icon: FaHeartbeat,
-    title: "Nutrition insight",
-    text: "Turn familiar dishes into clear nutrition knowledge for everyday choices.",
-  },
-  {
-    icon: FaBookOpen,
-    title: "Cultural records",
-    text: "Preserve ingredients, origins, recipes, and stories before they fade.",
-  },
-  {
-    icon: FaComments,
-    title: "Community memory",
-    text: "Let Sarawakians contribute lived knowledge from homes and kampungs.",
-  },
-  {
-    icon: FaLeaf,
-    title: "Healthier heritage",
-    text: "Celebrate tradition while helping communities make informed meals.",
-  },
-];
 
 // ── Dish Spotlight Component — DB driven ──
 function DishSpotlight({ allFoods, navigate, t, translatedFoods = {} }) {
@@ -106,8 +53,6 @@ function DishSpotlight({ allFoods, navigate, t, translatedFoods = {} }) {
   const dishId = dish.foodID || dish.id;
   const dishCategory = dish.category || "Traditional";
   const dishOrigin = dish.ethnicity || dish.origin || "Sarawak";
-  const dishType = dish.foodType || dish.type || dishCategory;
-  const dishCalories = dish.calories || dish.calorie || dish.kcal;
 
   return (
     <section className="home-dish-spotlight-section">
@@ -117,7 +62,6 @@ function DishSpotlight({ allFoods, navigate, t, translatedFoods = {} }) {
           <span className="home-dish-origin-badge">{dishOrigin}</span>
         </div>
         <div className="home-dish-spotlight-content">
-          <p className="home-section-kicker">{t("home.spotlightEyebrow", "Dish spotlight")}</p>
           <span className="home-dish-tag-pill">
             {t(`explore.cat_${dishCategory.toLowerCase().replace(" ", "_")}`, dishCategory)}
           </span>
@@ -127,20 +71,6 @@ function DishSpotlight({ allFoods, navigate, t, translatedFoods = {} }) {
           <p className="home-dish-spotlight-quote">
             {translatedFoods[`desc_${dish.foodID}`] || dish.description || t("home.dishDefaultDesc")}
           </p>
-          <div className="home-dish-meta-grid">
-            <div>
-              <span>{t("home.metaOrigin", "Origin")}</span>
-              <strong>{dishOrigin}</strong>
-            </div>
-            <div>
-              <span>{t("home.metaType", "Type")}</span>
-              <strong>{dishType}</strong>
-            </div>
-            <div>
-              <span>{t("home.metaNutrition", "Nutrition")}</span>
-              <strong>{dishCalories ? `${dishCalories} kcal` : t("home.metaAvailable", "Available")}</strong>
-            </div>
-          </div>
           <div className="home-dish-spotlight-actions">
             <button
               className="home-dish-btn-primary lrp-no-outline"
@@ -151,10 +81,6 @@ function DishSpotlight({ allFoods, navigate, t, translatedFoods = {} }) {
             <button className="home-dish-btn-link lrp-no-outline" 
             onClick={() => navigate(dishId ? `/recipes/${dishId}` : `/recipes?search=${encodeURIComponent(dish.name)}`)}>
               {t("home.viewNutrition", "View Recipe →")}
-            </button>
-            <button className="home-dish-btn-link lrp-no-outline" 
-            onClick={() => navigate(`/map?q=${encodeURIComponent(dish.name)}`)}>
-              {t("home.findOnMap", "Find on map")}
             </button>
           </div>
           <div className="home-dish-dots">
@@ -416,7 +342,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
           <h1 className="hero-title">{getWelcomeTitle()}</h1>
           {!isLoggedInUser && (
-            <p className="hero-subtitle">{t("home.heroSubtitle", "Explore traditional dishes, cultural stories, and nutrition knowledge from Sarawak's communities.")}</p>
+            <p className="hero-subtitle">{t("home.heroSubtitle")}</p>
           )}
 
           <div className="hero-search-container" ref={searchRef}>
@@ -442,23 +368,6 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
             <button className="randomizer-btn" onClick={handleRandomize} type="button">
               <FaDice className="dice-icon" /> {t("home.randomizerBtn")}
             </button>
-
-            <div className="home-hero-pathways" aria-label="SarawakEats quick actions">
-              {HUB_PATHWAYS.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.route}
-                    type="button"
-                    className="home-hero-pathway lrp-no-outline"
-                    onClick={() => navigate(item.route)}
-                  >
-                    <Icon />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
 
             {showSuggestions && suggestions.length > 0 && (
               <div className="search-dropdown">
@@ -501,37 +410,14 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
         </div>
       </header>
 
-      {/* ── SECTION 2: Knowledge Hub ── */}
+      {/* ── SECTION 2: Stats ── */}
       <section className="home-snap-section home-stats-section">
         <div className="home-stats-inner">
-          <div className="home-hub-layout">
-            <div className="home-stats-intro">
-              <p className="home-stats-eyebrow">{t("home.statsEyebrow", "What is SarawakEats?")}</p>
-              <h2 className="home-stats-headline">{t("home.statsHeadline", "Where nutrition meets heritage preservation.")}</h2>
-              <p className="home-stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's traditional foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
-              <div className="home-hub-actions">
-                <button type="button" className="home-hub-primary lrp-no-outline" onClick={() => navigate("/foods")}>
-                  {t("home.startExploring", "Start exploring")}
-                </button>
-                <button type="button" className="home-hub-secondary lrp-no-outline" onClick={() => navigate("/community")}>
-                  {t("home.shareStory", "Share a story")}
-                </button>
-              </div>
-            </div>
-            <div className="home-hub-feature-grid">
-              {HUB_FEATURES.map((feature) => {
-                const Icon = feature.icon;
-                return (
-                  <article className="home-hub-feature" key={feature.title}>
-                    <div className="home-hub-feature-icon"><Icon /></div>
-                    <h3>{feature.title}</h3>
-                    <p>{feature.text}</p>
-                  </article>
-                );
-              })}
-            </div>
+          <div className="home-stats-intro">
+            <p className="home-stats-eyebrow">{t("home.statsEyebrow", "What is SarawakEats?")}</p>
+            <h2 className="home-stats-headline">{t("home.statsHeadline", "Where food becomes a story worth preserving.")}</h2>
+            <p className="home-stats-subtext">{t("home.statsSubtext", "SarawakEats is a centralised, community-driven platform that documents, analyses, and celebrates the nutritional heritage of Sarawak's foods by supporting healthier communities and the cultural identity of Borneo's people.")}</p>
           </div>
-
           <div className="home-stats-grid" ref={statsGridRef}>
             <div className="home-stat-item">
               <span className="home-stat-num">27+</span>
