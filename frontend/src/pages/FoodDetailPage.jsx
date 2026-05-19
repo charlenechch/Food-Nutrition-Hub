@@ -308,7 +308,7 @@ export default function FoodDetailPage() {
                   {savedLoading ? "..." : saved ? `✓ ${t("foodDetail.saved")}` : `❤ ${t("foodDetail.saveFood")}`}
                 </button>
                 <button type="button" className="lrp-btn lrp-btn-outline fdp-share-expanded" onClick={handleShare} aria-label="Share this food" title="Share">
-                  <Share2 size="21" className="rdp-sec-icon" /> Share
+                  <Share2 size="21" className="rdp-sec-icon" /> {t("foodDetail.share")}
                 </button>
               </div>
             </div>
@@ -379,7 +379,7 @@ export default function FoodDetailPage() {
                   {savedLoading ? "..." : saved ? `✓ ${t("foodDetail.saved")}` : `❤ ${t("foodDetail.saveFood")}`}
                 </button>
                 <button type="button" className="lrp-btn lrp-btn-outline fdp-share-expanded" onClick={handleShare} aria-label="Share this food" title="Share">
-                  <Share2 size="21" className="rdp-sec-icon" /> Share
+                  <Share2 size="21" className="rdp-sec-icon" /> {t("foodDetail.share")}
                 </button>
               </div>
             </div>

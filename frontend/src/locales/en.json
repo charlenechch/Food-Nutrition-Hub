@@ -182,7 +182,8 @@
     "alertSpicy": "Spicy dish.",
     "alertVegetarian": "Vegetarian-friendly.",
     "alertHighVitC": "Rich in Vitamin C.",
-    "alertSourceVitC": "Good source of Vitamin C."
+    "alertSourceVitC": "Good source of Vitamin C.",
+    "share": "Share"
   },
 
   "foodDiscussion": {
