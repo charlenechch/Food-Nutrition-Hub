@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "../css/NutritionAnalyzer.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -27,6 +27,7 @@ export default function NutritionAnalyzerPage() {
   const [showModal, setShowModal] = useState(false);
   const [csrfToken, setCsrfToken] = useState("");
   const [warning, setWarning] = useState("");
+  const [activeTab, setActiveTab] = useState("input");
 
   const requireLogin = () => {
     if (isGuest) { setShowModal(true); return true; }
@@ -78,8 +79,10 @@ export default function NutritionAnalyzerPage() {
             : [],
           tips: translatedTips,
         });
+        setActiveTab("result");
       } else {
         setError("Could not load nutrition for this food.");
+        setActiveTab("result");
       }
     } catch {
       setError(t("analyzer.errorGeneral"));
@@ -204,6 +207,7 @@ export default function NutritionAnalyzerPage() {
       setError(t("analyzer.errorGeneral"));
     } finally {
       setLoading(false);
+      setActiveTab("result");
     }
   };
 
@@ -224,8 +228,25 @@ export default function NutritionAnalyzerPage() {
       <p className="page-subtitle">{t("analyzer.subtitle")}</p>
 
       <div className="analyzer-container">
-        {/* LEFT PANEL */}
-        <div className="left-column">
+        {/* MOBILE/TABLET TAB BAR — hidden on desktop via CSS */}
+        <div className="analyzer-tabs">
+          <button
+            className={`analyzer-tab ${activeTab === "input" ? "active" : ""}`}
+            onClick={() => setActiveTab("input")}
+          >
+            {t("analyzer.tabInput") || "Input"}
+          </button>
+          <button
+            className={`analyzer-tab ${activeTab === "result" ? "active" : ""}`}
+            onClick={() => setActiveTab("result")}
+          >
+            {t("analyzer.tabResults") || "Results"}
+            {(result || error || suggestions.length > 0) && <span className="tab-dot" />}
+          </button>
+        </div>
+
+        {/* LEFT PANEL — data-tab used by CSS to hide on mobile/tablet only */}
+        <div className="left-column" data-tab={activeTab === "input" ? "active" : "inactive"}>
           <form className="food-form" onSubmit={handleAnalyze}>
             <div className="food-input-card">
               <h3 className="section-title">
@@ -271,7 +292,10 @@ export default function NutritionAnalyzerPage() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div className={`result-card ${result ? "has-result" : "empty"}`}>
+        <div
+          className={`result-card ${result ? "has-result" : "empty"}`}
+          data-tab={activeTab === "result" ? "active" : "inactive"}
+        >
           {suggestions.length > 0 && (
             <>
               <p style={{ marginBottom: 8 }}>{t("analyzer.didYouMean")}</p>
@@ -299,9 +323,7 @@ export default function NutritionAnalyzerPage() {
           {result && !result.notFound && (
             <>
               {warning && (
-                <div className="confidence-warning">
-                  ⚠️ {warning}
-                </div>
+                <div className="confidence-warning">⚠️ {warning}</div>
               )}
               <div className="nap-results">
                 <div className="analysis-container">
