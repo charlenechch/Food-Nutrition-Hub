@@ -674,10 +674,10 @@ html, body {
   }
 
   .upload-box {
-    padding: 0.5rem;
-    min-height: 60px;
+    padding: 0.3rem;
+    min-height: 45px;
     overflow: hidden;
-    width: 100%;
+    width: calc(100% - 4px);
     max-width: 100%;
     box-sizing: border-box;
     min-width: 0;
@@ -732,6 +732,11 @@ html, body {
   .nutri-card {
     padding: 8px 6px;
   }
+
+  .nutrition-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
 }
 .blur-sm {
   filter: blur(4px);
@@ -764,7 +769,7 @@ html, body {
 }
 
 
-@media (max-width: 409px) {
+/* @media (max-width: 409px) {
   .nutri-value {
     font-size: 13px;
   }
@@ -776,18 +781,5 @@ html, body {
   .nutri-card {
     padding: 10px 8px;
   }
-}
+} */
 
-@media (max-width: 344px) {
-  .nutri-value {
-    font-size: 12px;
-  }
-
-  .nutri-label {
-    font-size: 11px;
-  }
-
-  .nutri-card {
-    padding: 8px 6px;
-  }
-}
