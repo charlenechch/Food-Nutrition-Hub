@@ -662,7 +662,7 @@ html, body {
     padding: 0.3rem;
     overflow: hidden;
     width: 100%;
-    max-width: 100%;
+    max-width: 90%;
     box-sizing: border-box;
   }
 
@@ -682,7 +682,7 @@ html, body {
 
   .upload-box-wrapper {
     overflow: hidden;
-    max-width: 100%;
+    max-width: 90%;
     box-sizing: border-box;
   }
 
