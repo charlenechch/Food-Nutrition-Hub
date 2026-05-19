@@ -23,10 +23,22 @@
 }
 @media (min-width: 1024px){ 
     .fdp-grid { 
-    grid-template-columns: 2fr 1fr;
-} }
+        grid-template-columns: 2fr 1fr;
+    } 
+    
+    .fdp-left {
+        grid-column: 1 / 2; 
+        grid-row: 1;
+    }
 
-.fdp-left, .fdp-right { 
+    .fdp-right {
+        grid-column: 2 / 3;
+        grid-row: 1;
+        align-self: start;
+    }
+}
+
+.fdp-left { 
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -34,6 +46,13 @@
     min-width: 0;
     align-self: flex-start;
     height: fit-content;
+}
+
+.fdp-right { 
+    display: grid; 
+    align-content: start;
+    gap: 1.25rem;
+    min-width: 0;
 }
 
 .fdp-card { 
