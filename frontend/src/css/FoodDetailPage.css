@@ -309,12 +309,17 @@
     width: 100%;
 }
 
-.mobile-actions .fdp-actions:last-child {
+.fdp-recipe-btn {
     width: 100%;
+    flex: 1;
 }
 
-.mobile-actions .fdp-actions:last-child button {
-    width: 100%;
+.fdp-share-expanded {
+    flex: 1 1 auto; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 @media (min-width: 1024px) {

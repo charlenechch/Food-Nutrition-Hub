@@ -298,18 +298,17 @@ export default function FoodDetailPage() {
 
             <div className="mobile-actions">
               <div className="fdp-actions">
-                <button type="button" className={`lrp-btn lrp-btn-primary fdp-save ${saved ? "saved" : ""}`}
-                  onClick={handleSaveFood} disabled={savedLoading}>
-                  {savedLoading ? "..." : saved ? `✓ ${t("foodDetail.saved")}` : `❤ ${t("foodDetail.saveFood")}`}
-                </button>
-                <button type="button" className="lrp-btn lrp-btn-outline fdp-share"
-                  onClick={handleShare} aria-label="Share this food" title="Share">
-                  <Share2 size="21" className="rdp-sec-icon" />
+                <button type="button" className="lrp-btn lrp-btn-primary fdp-recipe-btn" onClick={goToRecipe} disabled={jumping}>
+                  <ScrollText className="rdp-sec-icon" /> {jumping ? t("foodDetail.findingRecipe") : t("foodDetail.goToRecipe")}
                 </button>
               </div>
+
               <div className="fdp-actions">
-                <button type="button" className="lrp-btn lrp-btn-outline" onClick={goToRecipe} disabled={jumping}>
-                  <ScrollText className="rdp-sec-icon" /> {jumping ? t("foodDetail.findingRecipe") : t("foodDetail.goToRecipe")}
+                <button type="button" className={`lrp-btn lrp-btn-outline fdp-save ${saved ? "saved" : ""}`} onClick={handleSaveFood} disabled={savedLoading}>
+                  {savedLoading ? "..." : saved ? `✓ ${t("foodDetail.saved")}` : `❤ ${t("foodDetail.saveFood")}`}
+                </button>
+                <button type="button" className="lrp-btn lrp-btn-outline fdp-share-expanded" onClick={handleShare} aria-label="Share this food" title="Share">
+                  <Share2 size="21" className="rdp-sec-icon" /> Share
                 </button>
               </div>
             </div>
@@ -370,18 +369,17 @@ export default function FoodDetailPage() {
           <div className="fdp-right">
             <div className="desktop-actions">
               <div className="fdp-actions">
-                <button type="button" className={`lrp-btn lrp-btn-primary fdp-save ${saved ? "saved" : ""}`}
-                  onClick={handleSaveFood} disabled={savedLoading}>
-                  {savedLoading ? "..." : saved ? `✓ ${t("foodDetail.saved")}` : `❤ ${t("foodDetail.saveFood")}`}
-                </button>
-                <button type="button" className="lrp-btn lrp-btn-outline fdp-share"
-                  onClick={handleShare} aria-label="Share this food" title="Share">
-                  <Share2 size="21" className="rdp-sec-icon" />
+                <button type="button" className="lrp-btn lrp-btn-primary fdp-recipe-btn" onClick={goToRecipe} disabled={jumping}>
+                  <ScrollText className="rdp-sec-icon" /> {jumping ? t("foodDetail.findingRecipe") : t("foodDetail.goToRecipe")}
                 </button>
               </div>
+
               <div className="fdp-actions">
-                <button type="button" className="lrp-btn lrp-btn-outline" onClick={goToRecipe} disabled={jumping}>
-                  <ScrollText className="rdp-sec-icon" /> {jumping ? t("foodDetail.findingRecipe") : t("foodDetail.goToRecipe")}
+                <button type="button" className={`lrp-btn lrp-btn-outline fdp-save ${saved ? "saved" : ""}`} onClick={handleSaveFood} disabled={savedLoading}>
+                  {savedLoading ? "..." : saved ? `✓ ${t("foodDetail.saved")}` : `❤ ${t("foodDetail.saveFood")}`}
+                </button>
+                <button type="button" className="lrp-btn lrp-btn-outline fdp-share-expanded" onClick={handleShare} aria-label="Share this food" title="Share">
+                  <Share2 size="21" className="rdp-sec-icon" /> Share
                 </button>
               </div>
             </div>
