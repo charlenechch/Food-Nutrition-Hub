@@ -771,3 +771,6 @@ html, body {
   }
 }
 
+.upload-box-wrapper .upload-box {
+  min-width: 0;
+}
