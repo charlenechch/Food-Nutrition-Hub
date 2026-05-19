@@ -19,7 +19,7 @@
 .lrp-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none !important;
+  transform: none;
 }
 
 .lrp-btn:active:not(:disabled) {
@@ -39,12 +39,12 @@
 }
 
 .lrp-btn-primary {
-  background-color: #8B4513;  
+  background-color: #8b5e3c;  
   color: #ffffff;
 }
 
 .lrp-btn-primary:hover:not(:disabled) {
-  background-color: #5A2D0C; 
+  background-color: #6b3e26; 
   color: #ffffff;
 }
 
