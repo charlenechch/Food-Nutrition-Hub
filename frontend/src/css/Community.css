@@ -1345,10 +1345,13 @@
 
 /* Filter bar top row */
 .filter-bar-top {
+  display: contents;
+}
+
+.filter-group {
   display: flex;
+  gap: 10px;
   align-items: center;
-  gap: 15px;
-  width: 100%;
 }
 
 /* Filter toggle button — hidden on desktop */
