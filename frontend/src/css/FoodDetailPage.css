@@ -311,7 +311,12 @@
     margin-top: -.75rem;
     margin-bottom: -.75rem;
 }
-
+@media (max-width: 769px){
+    .mobile-actions {
+        margin-top: -.75rem;
+        margin-bottom: -.75rem;
+    }
+}
 .fdp-recipe-btn {
     width: 100%;
     flex: 1;
