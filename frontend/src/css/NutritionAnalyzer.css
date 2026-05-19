@@ -729,3 +729,18 @@ html, body {
 .nap-results {
   margin-bottom: clamp(60px, 6vw, 100px);     
 }
+
+
+@media (max-width: 409px) {
+  .nutri-value {
+    font-size: 13px;
+  }
+
+  .nutri-label {
+    font-size: 11px;
+  }
+
+  .nutri-card {
+    padding: 10px 8px;
+  }
+}
