@@ -729,3 +729,7 @@ html, body {
 .nap-results {
   margin-bottom: clamp(60px, 6vw, 100px);     
 }
+
+.upload-box-wrapper .upload-box {
+  min-width: 0;
+}
