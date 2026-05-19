@@ -265,6 +265,10 @@
   border: none; outline: none; flex: 1; 
   font-size: 1rem; color: #333; background: transparent; 
   padding: 0; margin: 0; height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .filter-group { 
@@ -1339,38 +1343,111 @@
   }
 }
 
+/* Filter bar top row */
+.filter-bar-top {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+}
+
+/* Filter toggle button — hidden on desktop */
+.filter-toggle-btn {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 50px;
+  border-radius: 50px;
+  border: 1px solid #eee;
+  background: white;
+  color: #444;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.filter-toggle-btn.active,
+.filter-toggle-btn:hover {
+  border-color: #916848;
+  color: #916848;
+}
+
+.filter-toggle-btn.has-active {
+  background: #fdf5ee;
+  border-color: #b8926a;
+  color: #916848;
+}
+
+.filter-active-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e05252;
+  flex-shrink: 0;
+}
+
+.filter-toggle-btn .chevron {
+  transition: transform 0.2s;
+  font-size: 0.75rem;
+}
+
+.filter-toggle-btn .chevron.rotate {
+  transform: rotate(180deg);
+}
+
 @media (max-width: 900px) {
   .sticky-filter-bar {
-    flex-direction: column; 
-    align-items: stretch;   
+    flex-direction: column;
+    align-items: stretch;
     padding: 15px;
-    gap: 15px;
+    gap: 10px;
+  }
+
+  .filter-bar-top {
+    gap: 10px;
+  }
+
+  /* Show toggle button */
+  .filter-toggle-btn {
+    display: flex;
+  }
+
+  /* Hide filter group by default, show when open */
+  .filter-group {
+    display: none;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .filter-group.open {
+    display: flex;
   }
 
   .search-pill {
     width: 100%;
-  }
-
-  .filter-group {
-    width: 100%;
-    display: flex;
-    gap: 10px;
+    flex: 1;
+    min-width: 0;
   }
 
   .custom-dropdown-wrapper {
     flex: 1;
-    min-width: unset; 
+    min-width: unset;
   }
 
   .community-filter-select {
     width: 100%;
-    padding-left: 30px; 
+    padding-left: 30px;
     font-size: 0.85rem;
   }
-  
+
   .filter-icon {
     left: 10px;
   }
+
   .post-layout {
     grid-template-columns: 1fr;
     gap: 40px;
@@ -1378,29 +1455,29 @@
   }
 
   .post-right {
-    position: relative; 
+    position: relative;
     top: 0;
     width: 100%;
     margin-top: 10px;
   }
 
   .post-left {
-    padding: 25px; 
+    padding: 25px;
   }
 
   .image-carousel {
-    width: calc(100% + 50px); 
+    width: calc(100% + 50px);
     margin-left: -25px;
     margin-top: -25px;
-    border-radius: 16px 16px 0 0; 
+    border-radius: 16px 16px 0 0;
     margin-bottom: 25px;
   }
-  
+
   .post-img-small {
     height: 250px;
   }
 
   .post-info h1 {
-    font-size: 1.8rem; 
+    font-size: 1.8rem;
   }
 }

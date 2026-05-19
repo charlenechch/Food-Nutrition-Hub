@@ -36,6 +36,7 @@ export default function Community() {
   const postsPerPage = 9;
   const [originDropdownOpen, setOriginDropdownOpen] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [modal, setModal] = useState({ open: false, title: "", message: "", icon: null, primaryText: "OK", onPrimary: null, secondaryText: null, onSecondary: null });
 
   const closeModal = () => setModal((prev) => ({ ...prev, open: false, onPrimary: null, onSecondary: null }));
@@ -274,11 +275,23 @@ export default function Community() {
 
         {/* Search Sort and Filter */}
         <div className="sticky-filter-bar" id="posts-anchor">
-          <div className="search-pill">
-            <FaSearch className="search-icon" />
-            <input type="text" placeholder={t("community.searchPlaceholder")} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <div className="filter-bar-top">
+            <div className="search-pill">
+              <FaSearch className="search-icon" />
+              <input type="text" placeholder={t("community.searchPlaceholder")} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            </div>
+            <button
+              className={`filter-toggle-btn ${filtersOpen ? "active" : ""}${(selectedOrigin !== "all" || sortOption !== "newest") ? " has-active" : ""}`}
+              onClick={() => setFiltersOpen(!filtersOpen)}
+            >
+              <FaFilter />
+              <span>{t("community.filters") || "Filters"}</span>
+              {(selectedOrigin !== "all" || sortOption !== "newest") && <span className="filter-active-dot" />}
+              <FaChevronDown className={`chevron ${filtersOpen ? "rotate" : ""}`} />
+            </button>
           </div>
-          <div className="filter-group">
+
+          <div className={`filter-group${filtersOpen ? " open" : ""}`}>
             <div className="custom-dropdown-wrapper">
               <button className={`dropdown-trigger ${originDropdownOpen ? "active" : ""}`}
                 onClick={() => { setOriginDropdownOpen(!originDropdownOpen); setSortDropdownOpen(false); }}>
@@ -292,9 +305,9 @@ export default function Community() {
                     <div key={origin}
                       className={`dropdown-item ${selectedOrigin === (origin === "All" ? "all" : origin) ? "selected" : ""}`}
                       onClick={() => { setSelectedOrigin(origin === "All" ? "all" : origin); setOriginDropdownOpen(false); }}>
-                      {origin === "All" ? t("explore.allOrigins") : 
-                        i18n.exists(`explore.origin_${origin.toLowerCase()}`) 
-                          ? t(`explore.origin_${origin.toLowerCase()}`) 
+                      {origin === "All" ? t("explore.allOrigins") :
+                        i18n.exists(`explore.origin_${origin.toLowerCase()}`)
+                          ? t(`explore.origin_${origin.toLowerCase()}`)
                           : origin}
                     </div>
                   ))}
