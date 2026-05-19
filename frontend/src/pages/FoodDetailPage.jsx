@@ -296,7 +296,7 @@ export default function FoodDetailPage() {
               </div>
             </div>
 
-            <div className="fdp-action-group">
+            <div className="mobile-actions">
               <div className="fdp-actions">
                 <button type="button" className={`lrp-btn lrp-btn-primary fdp-save ${saved ? "saved" : ""}`}
                   onClick={handleSaveFood} disabled={savedLoading}>
@@ -368,6 +368,21 @@ export default function FoodDetailPage() {
 
           {/* Right column */}
           <div className="fdp-right">
+            <div className="fdp-actions">
+              <button type="button" className={`lrp-btn lrp-btn-primary fdp-save ${saved ? "saved" : ""}`}
+                onClick={handleSaveFood} disabled={savedLoading}>
+                {savedLoading ? "..." : saved ? `✓ ${t("foodDetail.saved")}` : `❤ ${t("foodDetail.saveFood")}`}
+              </button>
+              <button type="button" className="lrp-btn lrp-btn-outline fdp-share"
+                onClick={handleShare} aria-label="Share this food" title="Share">
+                <Share2 size="21" className="rdp-sec-icon" />
+              </button>
+            </div>
+            <div className="fdp-actions">
+              <button type="button" className="lrp-btn lrp-btn-outline" onClick={goToRecipe} disabled={jumping}>
+                <ScrollText className="rdp-sec-icon" /> {jumping ? t("foodDetail.findingRecipe") : t("foodDetail.goToRecipe")}
+              </button>
+            </div>
             <div className="fdp-card">
               <h3 className="rdp-sec-title">
                 <Cross className="rdp-sec-icon" color="#6a4a2f" /> {t("foodDetail.nutritionalInfo")}
