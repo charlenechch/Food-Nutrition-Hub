@@ -1487,3 +1487,18 @@
     font-size: 1.8rem;
   }
 }
+
+@media (max-width: 355px) {
+  .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .pagination button,
+  .pagination .page-btn {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    min-width: unset;
+  }
+}
