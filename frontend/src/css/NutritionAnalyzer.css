@@ -559,6 +559,11 @@ html, body {
   .analyze-btn {
     margin-bottom: 1rem;
   }
+
+  .nutrition-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
 }
 
 /* Mobile */
@@ -604,16 +609,16 @@ html, body {
   }
 
   .nutrition-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .nutri-value {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .nutri-label {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .file-remove-btn {
