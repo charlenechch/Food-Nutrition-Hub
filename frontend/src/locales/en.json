@@ -317,7 +317,7 @@
     "errorGeneral": "Something went wrong.",
     "confidenceWarning": "Match confidence is moderate. Please verify the food name.",
     "dbScopeHint": "Currently supports Sarawakian dishes in our database.",
-    "noMatchTitle": "No results found for \"{{name}}\"",
+    "noMatchTitle": "No results found",
     "noMatchBody": "Try dishes like Laksa, Manok Pansoh, or Umai — or browse Explore Foods for what's documented."
   },
 

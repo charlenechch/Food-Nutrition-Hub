@@ -240,13 +240,6 @@ export default function NutritionAnalyzerPage() {
                 onChange={(e) => { if (!requireLogin()) setFoodName(e.target.value); }}
               />
               <p className="input-helper-text">{t("analyzer.dbScopeHint")}</p>
-
-              <label>{t("analyzer.ingredients")}</label>
-              <textarea
-                value={ingredients}
-                placeholder={t("analyzer.ingredientsPlaceholder")}
-                onChange={(e) => { if (!requireLogin()) setIngredients(e.target.value); }}
-              />
             </div>
 
             {/* UPLOAD */}
