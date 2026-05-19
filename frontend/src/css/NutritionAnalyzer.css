@@ -74,7 +74,7 @@ html, body {
 .section-title {
   font-size: clamp(0.9rem, 1vw, 1rem);
   font-weight: 600;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.55rem;
   color: #916848;
   display: flex;
   align-items: center;
