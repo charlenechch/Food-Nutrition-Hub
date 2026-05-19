@@ -659,7 +659,7 @@ html, body {
   }
 
   .upload-box {
-    padding: 0.6rem 0.4rem;
+    padding: 0.5rem;
     overflow: hidden;
     width: 100%;
     max-width: 100%;
@@ -728,23 +728,4 @@ html, body {
 
 .nap-results {
   margin-bottom: clamp(60px, 6vw, 100px);     
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .pie-chart-container {
-    max-width: 100%;
-    flex-direction: column;
-  }
-  
-  .pie-chart-container canvas {
-    max-width: 350px;  
-    max-height: 350px;
-    margin-right: 0;
-    margin-bottom: 15px;
-  }
-  
-  .pie-chart-wrapper {
-    min-width: 100%;
-  }
 }
