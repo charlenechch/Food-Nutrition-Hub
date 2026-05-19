@@ -649,21 +649,43 @@ html, body {
 @media (max-width: 350px) {
   .analyzer-container {
     padding: 0 0.5rem;
+    overflow: hidden;
+  }
+
+  .left-column {
+    overflow: hidden;
+    max-width: 100%;
   }
 
   .food-input-card,
   .upload-card {
     padding: 0.75rem;
-    overflow: hidden;        /* ← clips the child box to card boundary */
+    overflow: hidden;
+    box-sizing: border-box;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .upload-box-wrapper {
+    overflow: hidden;
+    max-width: 100%;
+    width: 100%;
     box-sizing: border-box;
   }
 
   .upload-box {
-    padding: 0.3rem;
+    padding: 0.5rem;
+    min-height: 60px;
     overflow: hidden;
     width: 100%;
-    max-width: 90%;
+    max-width: 100%;
     box-sizing: border-box;
+    min-width: 0;
+  }
+
+  .upload-box input[type="file"] {
+    width: 100%;
+    max-width: 100%;
   }
 
   .upload-box p {
@@ -676,14 +698,8 @@ html, body {
   }
 
   .upload-box svg {
-    width: 20px !important;
-    height: 20px !important;
-  }
-
-  .upload-box-wrapper {
-    overflow: hidden;
-    max-width: 90%;
-    box-sizing: border-box;
+    width: 18px !important;
+    height: 18px !important;
   }
 
   .page-title {
@@ -693,11 +709,28 @@ html, body {
   .analyze-btn {
     font-size: 0.85rem;
     padding: 0.65rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .food-form {
+    gap: 0.75rem;
   }
 
   .analyzer-tab {
     font-size: 0.8rem;
     padding: 0.5rem;
+  }
+
+  .nutri-value {
+    font-size: 12px;
+  }
+
+  .nutri-label {
+    font-size: 10px;
+  }
+
+  .nutri-card {
+    padding: 8px 6px;
   }
 }
 .blur-sm {
