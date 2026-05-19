@@ -315,7 +315,10 @@
     "errorFetch": "Failed to fetch item.",
     "errorAI": "Could not analyze using AI.",
     "errorGeneral": "Something went wrong.",
-    "confidenceWarning": "Match confidence is moderate. Please verify the food name."
+    "confidenceWarning": "Match confidence is moderate. Please verify the food name.",
+    "analyzer.dbScopeHint": "Currently supports Sarawakian dishes in our database.",
+    "analyzer.noMatchTitle": "No results found for \"{{name}}\"",
+    "analyzer.noMatchBody": "Try dishes like Laksa, Manok Pansoh, or Umai — or browse Explore Foods for what's documented."
   },
 
   "community": {

@@ -315,7 +315,10 @@
     "errorFetch": "Gagal memuatkan maklumat.",
     "errorAI": "Analisis AI tidak dapat dijalankan.",
     "errorGeneral": "Ralat telah berlaku.",
-    "confidenceWarning": "Tahap ketepatan adalah sederhana. Sila sahkan nama makanan tersebut."
+    "confidenceWarning": "Tahap ketepatan adalah sederhana. Sila sahkan nama makanan tersebut.",
+    "analyzer.dbScopeHint": "Kami hanya menyokong hidangan Sarawak dalam pangkalan data kami buat masa ini.",
+"analyzer.noMatchTitle": "Tiada hasil carian ditemui untuk \"{{name}}\"",
+"analyzer.noMatchBody": "Cuba hidangan seperti Laksa, Manok Pansoh, atau Umai — atau layari 'Explore Foods' untuk melihat apa yang direkodkan."
   },
 
   "community": {

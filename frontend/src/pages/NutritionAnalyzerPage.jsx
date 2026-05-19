@@ -198,7 +198,7 @@ export default function NutritionAnalyzerPage() {
         return;
       }
       if (aiData.suggestions?.length) { setSuggestions(aiData.suggestions); return; }
-      setError(aiData.message || t("analyzer.errorAI"));
+      setResult({ food_name: null, nutrition: null, alternatives: [], tips: [], notFound: true, searchedName: foodName });
 
     } catch {
       setError(t("analyzer.errorGeneral"));
@@ -239,6 +239,7 @@ export default function NutritionAnalyzerPage() {
                 placeholder={t("analyzer.foodNamePlaceholder")}
                 onChange={(e) => { if (!requireLogin()) setFoodName(e.target.value); }}
               />
+              <p className="input-helper-text">{t("analyzer.dbScopeHint")}</p>
 
               <label>{t("analyzer.ingredients")}</label>
               <textarea
@@ -302,7 +303,17 @@ export default function NutritionAnalyzerPage() {
             <p>{t("analyzer.getStarted")}</p>
           )}
 
-          {result && (
+          {result?.notFound && (
+            <div className="no-match-card">
+              <span className="no-match-icon">🍽️</span>
+              <p className="no-match-title">
+                {t("analyzer.noMatchTitle", { name: result.searchedName })}
+              </p>
+              <p className="no-match-body">{t("analyzer.noMatchBody")}</p>
+            </div>
+          )}
+
+          {result && !result.notFound && (
             <div className="nap-results">
               <div className="analysis-container">
                 <h2 className="analysis-title">{result.food_name}</h2>
