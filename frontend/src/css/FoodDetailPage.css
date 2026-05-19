@@ -19,6 +19,7 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 1.25rem;
+    align-items: start;
 }
 @media (min-width: 1024px){ 
     .fdp-grid { 
@@ -28,6 +29,7 @@
 .fdp-left, .fdp-right { 
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
     gap: 1.25rem;
     min-width: 0;
 }
