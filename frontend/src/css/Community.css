@@ -1411,12 +1411,21 @@
   }
 
   .filter-bar-top {
+    display: flex;
+    align-items: center;
     gap: 10px;
+    width: 100%;
+  }
+
+  .search-pill {
+    flex: 1;
+    min-width: 0;
   }
 
   /* Show toggle button */
   .filter-toggle-btn {
     display: flex;
+    flex-shrink: 0;
   }
 
   /* Hide filter group by default, show when open */
@@ -1428,12 +1437,6 @@
 
   .filter-group.open {
     display: flex !important;
-  }
-
-  .search-pill {
-    width: 100%;
-    flex: 1;
-    min-width: 0;
   }
 
   .custom-dropdown-wrapper {
