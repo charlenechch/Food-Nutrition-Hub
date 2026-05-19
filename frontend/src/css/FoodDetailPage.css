@@ -329,3 +329,9 @@
         gap: 1.25rem;
     }
 }
+
+@media (max-width: 1024px) {
+    .desktop-actions {
+        display: none;
+    }
+}
