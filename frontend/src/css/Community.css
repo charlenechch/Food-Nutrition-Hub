@@ -1428,7 +1428,7 @@
     flex-shrink: 0;
   }
 
-  /* Hide filter group by default, show when open */
+  
   .filter-group {
     display: none !important;
     width: 100%;
