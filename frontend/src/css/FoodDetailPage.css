@@ -297,3 +297,19 @@
     padding-top: 0.4rem;
     padding-bottom: 0.4rem;
 }
+
+.fdp-action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; 
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .fdp-action-group {
+        flex-direction: row;
+    }
+    .fdp-action-group .fdp-actions {
+        flex: 1; 
+    }
+}
