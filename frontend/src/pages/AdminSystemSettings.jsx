@@ -53,6 +53,27 @@ export default function AdminSystemSettings({
         }).format(new Date());
     }
 
+    const formatDate = (dateInput) => {
+        if (!dateInput) return "";
+        return new Intl.DateTimeFormat("en-MY", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        }).format(new Date(dateInput));
+    };
+
+    const formatDateTime = (dateInput) => {
+        if (!dateInput) return "";
+        return new Intl.DateTimeFormat("en-MY", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        }).format(new Date(dateInput));
+    };
+
     // function fillTokens(str) {
     //     if (!str) return "";
     //     const now = formatNowKuching();
@@ -720,7 +741,7 @@ export default function AdminSystemSettings({
                             <p className="muted">
                                 {lastBackup ? (
                                 <>
-                                    {new Date(lastBackup.created_at).toLocaleString()}
+                                    {formatDateTime(lastBackup.created_at)}
                                     <br />
                                     <small>({(lastBackup.size / 1024 / 1024).toFixed(2)} MB)</small>
                                 </>
@@ -764,7 +785,7 @@ export default function AdminSystemSettings({
                                     {backupList.slice(0, 3).map(backup => (
                                         <div key={backup.filename} className="recent-backup-item">
                                             <span className="recent-backup-date">
-                                                {new Date(backup.created_at).toLocaleDateString()}
+                                                {formatDate(backup.created_at)}
                                             </span>
                                             <span className="recent-backup-size">
                                                 {backup.size_mb} MB
@@ -1319,7 +1340,7 @@ export default function AdminSystemSettings({
                                                     <div className="backup-meta">
                                                         <span className="backup-date">
                                                             <Calendar size={12} />
-                                                            {new Date(backup.created_at).toLocaleString()}
+                                                            {formatDateTime(backup.created_at)}
                                                         </span>
                                                         <span className="backup-size">
                                                             <Download size={12} />
