@@ -637,7 +637,7 @@ export default function RecipeDetailPage() {
                     className={`lrp-btn lrp-btn-outline fdp-save ${saved ? "saved" : ""}`}
                     onClick={handleSaveRecipe}
                   >
-                    {saved ? `✓ ${t("recipeDetail.saved")}` : `❤ ${t("recipeDetail.saveRecipe")}`}
+                    {saved ? `${t("recipeDetail.saved")}` : `${t("recipeDetail.saveRecipe")}`}
                   </button>
                   <button
                     type="button"
