@@ -229,10 +229,10 @@ export default function HomePageV6() {
               {t("homeV6.heroLine2", "edible")}<br />
               {t("homeV6.heroLine3", "heritage.")}
             </h1>
-            <div className="v6-hero-rules">
+            {/* <div className="v6-hero-rules">
               <span className="v6-rule v6-rule-long" />
               <span className="v6-rule v6-rule-short" />
-            </div>
+            </div> */}
             <p className="v6-hero-subtitle">
               {t("homeV6.heroSubtitle", "A living archive of Borneo cuisine — recipes, stories, photos and voice notes from the 27 peoples who built this kitchen.")}
             </p>
@@ -245,9 +245,8 @@ export default function HomePageV6() {
               </button>
             </div>
             <div className="v6-hero-sdgs">
-              <span className="v6-sdg-chip">🌿 {t("homeV6.sdg3", "SDG 3")}</span>
-              <span className="v6-sdg-chip">🏙️ {t("homeV6.sdg11", "SDG 11")}</span>
-              <span className="v6-sdg-chip">🍲 {t("homeV6.sdg12", "SDG 12")}</span>
+              <span className="v6-sdg-chip">🌿 {t("homeV6.sdg3", "SDG 3 · Good Health")}</span>
+              <span className="v6-sdg-chip">🏙️ {t("homeV6.sdg11", "SDG 11 · Sustainable Cities")}</span>
             </div>
           </div>
 
