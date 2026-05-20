@@ -197,34 +197,36 @@ const Comment = React.memo(function Comment({
         </div>
       <div className="fd-disc-body">
         <div className="fd-disc-meta">
-          <span 
-            className="fd-disc-user"
-            onClick={() => onProfileClick && onProfileClick(commentUserId)}
-            style={{ cursor: "pointer", textDecoration: "underline transparent", transition: "text-decoration 0.2s" }}
-            onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
-            onMouseLeave={(e) => e.target.style.textDecoration = "underline transparent"}
-            title={`View ${username}'s profile`}
-          >
-            {username}
+          <div className="fd-disc-info">
+            <span 
+              className="fd-disc-user"
+              onClick={() => onProfileClick && onProfileClick(commentUserId)}
+              style={{ cursor: "pointer", textDecoration: "underline transparent", transition: "text-decoration 0.2s" }}
+              onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+              onMouseLeave={(e) => e.target.style.textDecoration = "underline transparent"}
+              title={`View ${username}'s profile`}
+            >
+              {username}
 
-            {item.equippedBadge && item.equippedBadge !== 'null' && (
-              <span className="user-badge-inline">
-                {getTierById(item.equippedBadge).icon}
-                <span className="badge-tooltip-mini" style={{ color: getTierById(item.equippedBadge).color }}>
-                  {getTierById(item.equippedBadge).title}
+              {item.equippedBadge && item.equippedBadge !== 'null' && (
+                <span className="user-badge-inline">
+                  {getTierById(item.equippedBadge).icon}
+                  <span className="badge-tooltip-mini" style={{ color: getTierById(item.equippedBadge).color }}>
+                    {getTierById(item.equippedBadge).title}
+                  </span>
                 </span>
-              </span>
+                )}
+              {item.contributorBadgeType && (
+                <span className="user-badge-inline">
+                  {getTierById(item.contributorBadgeType).icon}
+                  <span className="badge-tooltip-mini" style={{ color: getTierById(item.contributorBadgeType).color }}>
+                    {getTierById(item.contributorBadgeType).title} — {item.contributorBadgeMonth}
+                  </span>
+                </span>
               )}
-            {item.contributorBadgeType && (
-              <span className="user-badge-inline">
-                {getTierById(item.contributorBadgeType).icon}
-                <span className="badge-tooltip-mini" style={{ color: getTierById(item.contributorBadgeType).color }}>
-                  {getTierById(item.contributorBadgeType).title} — {item.contributorBadgeMonth}
-                </span>
-              </span>
-            )}
-          </span>
-          <span className="fd-disc-time">• {getTimeAgo(timestamp, i18n.language)}</span>
+            </span>
+            <span className="fd-disc-time">• {getTimeAgo(timestamp, i18n.language)}</span>
+          </div>
           
           {/* UPDATED DELETE BUTTON - Show for owners AND admins */}
           {canDelete && (

@@ -224,13 +224,20 @@
   transform: scale(1.05);
 }
 
-/* Make sure comment meta properly shows all elements */
 .fd-disc-meta {
   display: flex;
-  align-items: center;
+  justify-content: space-between; 
+  align-items: flex-start; 
   gap: 8px;
-  position: relative;
-  flex-wrap: nowrap;
+}
+
+.fd-disc-info {
+  display: flex;
+  flex-wrap: wrap; 
+  align-items: center;
+  column-gap: 8px; 
+  row-gap: 2px; 
+  min-width: 0; 
 }
 
 .fd-disc-user {
@@ -238,9 +245,20 @@
   color: #333;
   overflow-wrap: break-word;
   word-break: break-all;
-  min-width: 0;
 }
 
+.fd-delete-btn {
+  background: none;
+  border: none;
+  color: #8B4513;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
 .fd-disc-time {
   color: #666;
   font-size: 0.9em;
