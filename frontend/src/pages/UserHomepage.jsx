@@ -13,6 +13,7 @@ import { FaSearch, FaStar, FaLightbulb, FaSyncAlt, FaUserEdit, FaDice } from "re
 import { FaAnglesDown, FaUtensils, FaWandMagicSparkles } from "react-icons/fa6";
 
 import { useAuth } from "../context/AuthContext";
+import LoginPromptModal from "../components/LoginPromptModal";
 
 const HERO_IMAGES = [LoginFood, KoloImg];
 
@@ -98,10 +99,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
+  const isGuest = !user || user?.role === "guest";
   const [translatedFoods, setTranslatedFoods] = useState({});
   const [isTranslating, setIsTranslating] = useState(false);
 
   const [modalMessage, setModalMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [allFoods, setAllFoods] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -184,6 +187,21 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
   // True when a real named user is logged in (not guest)
   const isLoggedInUser = user && user.role !== "guest" && user.firstname;
+
+  // Guard guest users from accessing login-only features
+  const requireLogin = (message = "") => {
+    if (isGuest) {
+      setModalMessage(message);
+      setShowModal(true);
+      return true;
+    }
+    return false;
+  };
+
+  const handleDailyQuiz = () => {
+    if (requireLogin(t("modal.loginQuizMessage", "Please log in to access the Daily Quiz."))) return;
+    navigate("/daily-quiz");
+  };
 
   const getWelcomeTitle = () => {
     if (isLoggedInUser) return t("home.heroUser", { name: user.firstname });
@@ -375,7 +393,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
 
               <button
                 className="randomizer-btn daily-quiz-btn"
-                onClick={() => navigate("/quiz")}
+                onClick={handleDailyQuiz}
                 type="button"
               >
                 <FaLightbulb className="dice-icon" /> {t("home.dailyQuizBtn", "Daily Quiz")}
@@ -512,6 +530,12 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           </div>
         </div>
       )}
+
+      <LoginPromptModal
+        show={showModal}
+        message={modalMessage}
+        onClose={() => setShowModal(false)}
+      />
     </div>
   );
 }
