@@ -134,19 +134,24 @@
   margin: 0 0 20px 0;
 }
 
+/* SDG chips at top — replaces volume eyebrow */
+.v6-hero-sdgs-top {
+  margin: 0 0 28px 0;
+}
+
 .v6-hero-headline {
   font-size: clamp(3rem, 7vw, 5.5rem);
   line-height: 1.02;
   color: var(--v6-dark);
   font-weight: 600;
-  margin-bottom: 28px;
+  margin-bottom: 100px;
 }
 
 .v6-hero-rules {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 28px;
+  margin-bottom: 40px;
 }
 .v6-rule {
   display: block;
@@ -161,7 +166,7 @@
   font-size: 1rem;
   line-height: 1.65;
   color: var(--v6-text-muted);
-  margin: 0 0 32px 0;
+  margin: 0 0 36px 0;
   max-width: 480px;
 }
 

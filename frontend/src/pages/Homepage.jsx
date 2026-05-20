@@ -221,20 +221,17 @@ export default function HomePageV6() {
       <section className="v6-hero">
         <div className="v6-hero-inner">
           <div className="v6-hero-text">
-            <p className="v6-hero-volume">
-              {t("homeV6.heroVolume", "Vol. 12 · The Borneo Issue")}
-            </p>
+            <div className="v6-hero-sdgs v6-hero-sdgs-top">
+              <span className="v6-sdg-chip">🌿 {t("homeV6.sdg3", "SDG 3 · Good Health")}</span>
+              <span className="v6-sdg-chip">🏙️ {t("homeV6.sdg11", "SDG 11 · Sustainable Cities")}</span>
+            </div>
             <h1 className="v6-hero-headline">
               {t("homeV6.heroLine1", "Sarawak's")}<br />
               {t("homeV6.heroLine2", "edible")}<br />
               {t("homeV6.heroLine3", "heritage.")}
             </h1>
-            <div className="v6-hero-rules">
-              <span className="v6-rule v6-rule-long" />
-              <span className="v6-rule v6-rule-short" />
-            </div>
             <p className="v6-hero-subtitle">
-              {t("homeV6.heroSubtitle", "A living archive of Borneo cuisine — recipes, stories, photos and voice notes from the 27 peoples who built this kitchen.")}
+              {t("homeV6.heroSubtitle", "A living archive of Borneo cuisine — recipes, stories, photos and voice notes from the 27 ethnics groups who built this kitchen.")}
             </p>
             <div className="v6-hero-actions">
               <button className="v6-btn v6-btn-dark lrp-no-outline" onClick={handleStartExploring}>
@@ -243,11 +240,6 @@ export default function HomePageV6() {
               <button className="v6-btn v6-btn-outline lrp-no-outline" onClick={handleRandomize}>
                 <FaDice /> {t("homeV6.imHungry", "I'm feeling hungry")}
               </button>
-            </div>
-            <div className="v6-hero-sdgs">
-              <span className="v6-sdg-chip">🌿 {t("homeV6.sdg3", "SDG 3")}</span>
-              <span className="v6-sdg-chip">🏙️ {t("homeV6.sdg11", "SDG 11")}</span>
-              <span className="v6-sdg-chip">🍲 {t("homeV6.sdg12", "SDG 12")}</span>
             </div>
           </div>
 
@@ -260,7 +252,7 @@ export default function HomePageV6() {
               }}
             />
             <span className="v6-hero-stamp">
-              {t("homeV6.heroStamp", "SARAWAK · EST. 2024")}
+              {t("homeV6.heroStamp", "SARAWAK · EST. 2025")}
             </span>
           </div>
         </div>

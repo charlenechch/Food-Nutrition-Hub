@@ -326,6 +326,7 @@ function AppRoutes() {
           <Route path="/" element={<UserHomepage />} />
           <Route path="/home" element={<UserHomepage />} />
           <Route path="/home-v6" element={<HomePageV6 />} />
+          
 
         {/* === Auth Routes === */}
           <Route path="/loginregister" element={<LoginRegisterPage />} />
