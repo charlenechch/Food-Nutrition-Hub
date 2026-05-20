@@ -378,14 +378,13 @@
     "addComment": "Add a comment...",
     "posting": "Posting...",
     "postComment": "Post Comment",
-    "noComments": "No comments yet. Be the first!",
+    "noComments": "No comments yet. Be the first to comment!",
     "loading": "Loading...",
     "error": "Error",
     "notFound": "Post not found",
     "unknownChef": "Unknown Chef",
-    "translate": "Translate",
-    "showOriginal": "Show Original"
-  },
+    "translate": "Translate"
+    },
 
   "map": {
     "searchPlaceholder": "Search Sarawak food… e.g. Umai, Linut, Kolo Mee",
