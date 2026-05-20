@@ -33,6 +33,8 @@ import XpLogs from "./pages/XpLogsPage";
 import Leaderboard from "./pages/Leaderboard";
 import DailyQuizPage from './pages/DailyQuizPage';
 
+import HomePageV6 from "./pages/Homepage";
+
 // // === Admin Pages ===
 import AdminHomepage from "./pages/AdminHomepage";
 import AdminActivityLog from "./pages/AdminActivityLog";
@@ -323,6 +325,7 @@ function AppRoutes() {
         {/* === Default Landing (GUEST FIRST) === */}
           <Route path="/" element={<UserHomepage />} />
           <Route path="/home" element={<UserHomepage />} />
+          <Route path="/home-v6" element={<HomePageV6 />} />
 
         {/* === Auth Routes === */}
           <Route path="/loginregister" element={<LoginRegisterPage />} />
