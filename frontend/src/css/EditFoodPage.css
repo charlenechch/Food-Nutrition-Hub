@@ -756,7 +756,7 @@
   margin-top: auto;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1262px) {
   .aligned-nutrition-grid {
     grid-template-columns: repeat(3, 1fr);
   }
