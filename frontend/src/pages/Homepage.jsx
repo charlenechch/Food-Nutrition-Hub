@@ -221,20 +221,16 @@ export default function HomePageV6() {
       <section className="v6-hero">
         <div className="v6-hero-inner">
           <div className="v6-hero-text">
-            <p className="v6-hero-volume">
+            {/* <p className="v6-hero-volume">
               {t("homeV6.heroVolume", "Vol. 12 · The Borneo Issue")}
-            </p>
+            </p> */}
             <h1 className="v6-hero-headline">
               {t("homeV6.heroLine1", "Sarawak's")}<br />
               {t("homeV6.heroLine2", "edible")}<br />
               {t("homeV6.heroLine3", "heritage.")}
             </h1>
-            {/* <div className="v6-hero-rules">
-              <span className="v6-rule v6-rule-long" />
-              <span className="v6-rule v6-rule-short" />
-            </div> */}
             <p className="v6-hero-subtitle">
-              {t("homeV6.heroSubtitle", "A living archive of Borneo cuisine — recipes, stories, photos and voice notes from the 27 peoples who built this kitchen.")}
+              {t("homeV6.heroSubtitle", "A living archive of Borneo cuisine — recipes, stories, photos and voice notes from the 27 ethnics groups who built this kitchen.")}
             </p>
             <div className="v6-hero-actions">
               <button className="v6-btn v6-btn-dark lrp-no-outline" onClick={handleStartExploring}>
