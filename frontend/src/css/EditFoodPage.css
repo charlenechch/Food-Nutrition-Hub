@@ -388,6 +388,16 @@
   gap: 30px;
 }
 
+.nutrition-grid > div {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.nutrition-grid .edit-food-input {
+  margin-top: auto;
+}
+
 .edit-food-additional-info-card {
   margin-bottom: 40px;
 }
