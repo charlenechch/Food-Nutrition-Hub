@@ -276,6 +276,20 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Pill row — holds randomizer + daily quiz pills side by side */
+.hero-pill-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.hero-pill-row .randomizer-btn {
+  margin-top: 0;
+}
+
 /* Randomizer button */
 .randomizer-btn {
   background: rgba(255,255,255,0.15);

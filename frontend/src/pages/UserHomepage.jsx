@@ -346,6 +346,8 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
           )}
 
           <div className="hero-search-container" ref={searchRef}>
+            {/* SEARCH BAR — temporarily disabled */}
+            {/*
             <form className="hero-search-form" onSubmit={handleSearchSubmit}>
               <div className="unified-search-pill">
                 <FaSearch className="search-icon" />
@@ -364,11 +366,24 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
                 <button type="submit" className="search-button lrp-no-outline">{t("home.searchBtn")}</button>
               </div>
             </form>
+            */}
 
-            <button className="randomizer-btn" onClick={handleRandomize} type="button">
-              <FaDice className="dice-icon" /> {t("home.randomizerBtn")}
-            </button>
+            <div className="hero-pill-row">
+              <button className="randomizer-btn" onClick={handleRandomize} type="button">
+                <FaDice className="dice-icon" /> {t("home.randomizerBtn")}
+              </button>
 
+              <button
+                className="randomizer-btn daily-quiz-btn"
+                onClick={() => navigate("/quiz")}
+                type="button"
+              >
+                <FaLightbulb className="dice-icon" /> {t("home.dailyQuizBtn", "Daily Quiz")}
+              </button>
+            </div>
+
+            {/* SEARCH SUGGESTIONS — disabled with search bar */}
+            {/*
             {showSuggestions && suggestions.length > 0 && (
               <div className="search-dropdown">
                 {suggestions.map((food) => (
@@ -386,6 +401,7 @@ export default function UserHomepage({ recentFoods = [], stats = {} }) {
                 ))}
               </div>
             )}
+            */}
           </div>
         </div>
 
