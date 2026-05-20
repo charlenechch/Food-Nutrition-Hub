@@ -573,7 +573,7 @@ const AddFoodPage = () => {
           <h3 className="edit-food-section-title">
             {t("addFood.nutritionalInfo")} <span className="serving-note">({t("addFood.perServing")})</span>
           </h3>
-          <div className="nutrition-grid">
+          <div className="aligned-nutrition-grid">
             {[
               { labelKey: "addFood.calories",      name: "calories",  placeholderKey: "addFood.calPlace" },
               { labelKey: "addFood.protein",       name: "protein",   placeholderKey: "addFood.proPlace" },
