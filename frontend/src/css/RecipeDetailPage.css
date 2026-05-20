@@ -251,20 +251,48 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-@media (max-width: 1024px) {
-  .rdp-aside { gap: 14px; }
-  .rdp-note { order: 1; }
-  .fdp-actions { order: 2; }
+.recipe-detail-page .fdp-actions { 
+    display:flex;
+    gap:.5rem;
+    align-items: stretch;
 }
-.rdp-main-actions {
-  display: flex;
-  gap: 0.75rem;
-  align-items: stretch;
-  justify-content: flex-start;
+.recipe-detail-page .fdp-save { 
+  flex: 1 1 auto; 
+}
+.recipe-detail-page .fdp-share-expanded {
+    flex: 1 1 auto; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
-@media (max-width: 600px) {
-  .rdp-main-actions {
+.recipe-detail-page .desktop-actions {
+    display: none;
+}
+
+.recipe-detail-page .mobile-actions {
+    display: flex;
     flex-direction: column;
-  }
+    gap: 1.25rem;
+    width: 100%;
+}
+
+@media (min-width: 1025px) {
+    .recipe-detail-page .mobile-actions {
+        display: none;
+    }
+    
+    .recipe-detail-page .desktop-actions {
+        display: flex;
+        flex-direction: column; 
+        gap: 1.25rem;
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 1024px) {
+    .recipe-detail-page .desktop-actions {
+        display: none;
+    }
 }

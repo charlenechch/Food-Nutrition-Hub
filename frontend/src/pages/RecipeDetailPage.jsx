@@ -563,6 +563,26 @@ export default function RecipeDetailPage() {
               </div>
             </div>
 
+            <div className="mobile-actions">
+              <div className="fdp-actions">
+                <button
+                  type="button"
+                  className={`lrp-btn lrp-btn-outline fdp-save ${saved ? "saved" : ""}`}
+                  onClick={handleSaveRecipe}
+                >
+                  {saved ? `${t("recipeDetail.saved")}` : `${t("recipeDetail.saveRecipe")}`}
+                </button>
+                <button
+                  type="button"
+                  className="lrp-btn lrp-btn-outline fdp-share-expanded"
+                  onClick={handleShare}
+                  title="Share"
+                >
+                  <Share2 size="21" className="rdp-sec-icon" /> {t("recipeDetail.share")}
+                </button>
+              </div>
+            </div>
+
             {tags.length > 0 && (
               <div className="rdp-tags">
                 {tags.map((tag) => (
@@ -572,25 +592,6 @@ export default function RecipeDetailPage() {
                       : tag.replace("-", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                   </span>
                 ))}
-              </div>
-            )}
-
-            {!hasSideNotes && (
-              <div className="rdp-card3 rdp-main-actions">
-                <button
-                  type="button"
-                  className="lrp-btn lrp-btn-primary fdp-save"
-                  onClick={handleSaveRecipe}
-                >
-                  {saved ? t("recipeDetail.saved") : t("recipeDetail.saveRecipe")}
-                </button>
-                <button
-                  type="button"
-                  className="lrp-btn lrp-btn-outline fdp-share"
-                  onClick={handleShare}
-                >
-                  <Share2 className="rdp-sec-icon" />
-                </button>
               </div>
             )}
 
@@ -629,21 +630,24 @@ export default function RecipeDetailPage() {
           {/* RIGHT: sidebar */}
           {hasSideNotes && (
             <aside className="rdp-aside">
-              <div className="fdp-actions">
-                <button
-                  type="button"
-                  className={`lrp-btn lrp-btn-primary fdp-save ${saved ? "saved" : ""}`}
-                  onClick={handleSaveRecipe}
-                >
-                  {saved ? t("recipeDetail.saved") : t("recipeDetail.saveRecipe")}
-                </button>
-                <button
-                  type="button"
-                  className="lrp-btn lrp-btn-outline fdp-share"
-                  onClick={handleShare}
-                >
-                  <Share2 className="rdp-sec-icon" />
-                </button>
+              <div className="desktop-actions">
+                <div className="fdp-actions">
+                  <button
+                    type="button"
+                    className={`lrp-btn lrp-btn-outline fdp-save ${saved ? "saved" : ""}`}
+                    onClick={handleSaveRecipe}
+                  >
+                    {saved ? `${t("recipeDetail.saved")}` : `${t("recipeDetail.saveRecipe")}`}
+                  </button>
+                  <button
+                    type="button"
+                    className="lrp-btn lrp-btn-outline fdp-share-expanded"
+                    onClick={handleShare}
+                    title="Share"
+                  >
+                    <Share2 size="21" className="rdp-sec-icon" /> {t("recipeDetail.share")}
+                  </button>
+                </div>
               </div>
               {recipe.funFact && (
                 <div className="rdp-card3 rdp-note rdp-note-warm">

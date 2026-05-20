@@ -290,7 +290,8 @@
     "userRating": "You rated this {{rating}} out of 5",
     "rateLoginRequired": "Please log in to rate this recipe.",
     "rateError": "Failed to submit rating",
-    "rateAlertError": "Failed to submit rating. Please try refreshing the page."
+    "rateAlertError": "Failed to submit rating. Please try refreshing the page.",
+    "share": "Share"
   }, 
 
   "analyzer": {
