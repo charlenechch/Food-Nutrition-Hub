@@ -263,6 +263,14 @@
 .fd-disc-time {
   color: #666;
   font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  gap: 8px; 
+}
+
+.fd-disc-time::before {
+  content: "•";
+  color: #666;
 }
 
 /* ✅ Card-style Modal (Matching Login Prompt Style) */
@@ -379,6 +387,11 @@
   .fd-disc-user {
     white-space: normal; 
     word-break: break-all;
+  }
+  
+  .fd-disc-time::before {
+    content: none; 
+    display: none;
   }
 }
 

@@ -225,7 +225,7 @@ const Comment = React.memo(function Comment({
                 </span>
               )}
             </span>
-            <span className="fd-disc-time">• {getTimeAgo(timestamp, i18n.language)}</span>
+            <span className="fd-disc-time">{getTimeAgo(timestamp, i18n.language)}</span>
           </div>
           
           {/* UPDATED DELETE BUTTON - Show for owners AND admins */}
