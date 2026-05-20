@@ -221,9 +221,10 @@ export default function HomePageV6() {
       <section className="v6-hero">
         <div className="v6-hero-inner">
           <div className="v6-hero-text">
-            {/* <p className="v6-hero-volume">
-              {t("homeV6.heroVolume", "Vol. 12 · The Borneo Issue")}
-            </p> */}
+            <div className="v6-hero-sdgs v6-hero-sdgs-top">
+              <span className="v6-sdg-chip">🌿 {t("homeV6.sdg3", "SDG 3 · Good Health")}</span>
+              <span className="v6-sdg-chip">🏙️ {t("homeV6.sdg11", "SDG 11 · Sustainable Cities")}</span>
+            </div>
             <h1 className="v6-hero-headline">
               {t("homeV6.heroLine1", "Sarawak's")}<br />
               {t("homeV6.heroLine2", "edible")}<br />
@@ -240,10 +241,6 @@ export default function HomePageV6() {
                 <FaDice /> {t("homeV6.imHungry", "I'm feeling hungry")}
               </button>
             </div>
-            <div className="v6-hero-sdgs">
-              <span className="v6-sdg-chip">🌿 {t("homeV6.sdg3", "SDG 3 · Good Health")}</span>
-              <span className="v6-sdg-chip">🏙️ {t("homeV6.sdg11", "SDG 11 · Sustainable Cities")}</span>
-            </div>
           </div>
 
           <div className="v6-hero-photo-wrap">
@@ -255,7 +252,7 @@ export default function HomePageV6() {
               }}
             />
             <span className="v6-hero-stamp">
-              {t("homeV6.heroStamp", "SARAWAK · EST. 2024")}
+              {t("homeV6.heroStamp", "SARAWAK · EST. 2025")}
             </span>
           </div>
         </div>
