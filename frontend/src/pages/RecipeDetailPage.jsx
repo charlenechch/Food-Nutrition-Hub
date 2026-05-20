@@ -425,32 +425,10 @@ export default function RecipeDetailPage() {
               </div>
 
               {/* NEW: AUTHOR & RATING SUMMARY BAR */}
-              <div 
-                className="rdp-summary-bar"
-                style={{ 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  alignItems: "center", 
-                  flexWrap: "wrap",
-                  gap: "16px",
-                  padding: "24px 20px 16px 20px", 
-                  borderBottom: "1px solid #f0f0f0", 
-                  backgroundColor: "#fff"
-                }}
-              >
-                {/* Left Side: Clickable Author */}
+              <div className="rdp-summary-bar">
                 <div 
                   className="rdp-author-section"
                   onClick={(e) => handleProfileClick(e, recipe.authorProfileID)}
-                  style={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: "12px", 
-                    cursor: "pointer",
-                    transition: "opacity 0.2s"
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
                   title={`View ${recipe.authorName}'s profile`}
                 >
                   <img 
@@ -491,17 +469,7 @@ export default function RecipeDetailPage() {
                   </div>
                 </div>
 
-                {/* Right Side: Recipe Rating */}
-                <div 
-                  className="rdp-rating-section"
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-end",
-                    justifyContent: "center",
-                    gap: "6px" // Keeps the stars and text perfectly spaced
-                  }}
-                >
+                <div className="rdp-rating-section">
                   <RecipeStarRating 
                     recipeId={id} 
                     initialAvg={recipe.avgRating || 0} 
@@ -517,16 +485,15 @@ export default function RecipeDetailPage() {
                     }}
                   />
                   
-                  {/* Clean, pill-shaped badge that only shows when there are actual reviews */}
                   {recipe.totalRatings > 0 && (
                     <div style={{ 
                       display: "inline-flex", 
                       alignItems: "center",
-                      backgroundColor: "#fcf8f5", // Very soft, warm background matching your theme
+                      backgroundColor: "#fcf8f5", 
                       border: "1px solid #efe5dc",
-                      color: "#6a4a2f", // Your theme's dark brown
+                      color: "#6a4a2f", 
                       padding: "4px 12px", 
-                      borderRadius: "20px", // Makes it a sleek pill shape
+                      borderRadius: "20px", 
                       fontSize: "0.85rem", 
                       fontWeight: "700",
                       boxShadow: "0 1px 2px rgba(0,0,0,0.02)"

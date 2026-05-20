@@ -295,3 +295,47 @@
         display: none;
     }
 }
+
+.rdp-summary-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 24px 20px 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    background-color: #fff;
+}
+
+.rdp-author-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.rdp-author-section:hover {
+    opacity: 0.7;
+}
+
+.rdp-rating-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 6px;
+}
+
+@media (max-width: 600px) {
+    .rdp-summary-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .rdp-rating-section {
+        align-items: flex-start;
+        width: 100%;
+        padding-top: 8px; 
+    }
+}
