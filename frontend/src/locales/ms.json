@@ -290,7 +290,8 @@
     "userRating": "Anda menilai ini {{rating}} daripada 5",
     "rateLoginRequired": "Sila log masuk untuk menilai resipi ini.",
     "rateError": "Gagal menghantar penilaian",
-    "rateAlertError": "Gagal menghantar penilaian. Sila cuba muat semula halaman ini."
+    "rateAlertError": "Gagal menghantar penilaian. Sila cuba muat semula halaman ini.",
+    "share": "Kongsi"
     },
 
   "analyzer": {

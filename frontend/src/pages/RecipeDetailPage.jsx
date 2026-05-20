@@ -570,7 +570,7 @@ export default function RecipeDetailPage() {
                   className={`lrp-btn lrp-btn-outline fdp-save ${saved ? "saved" : ""}`}
                   onClick={handleSaveRecipe}
                 >
-                  {saved ? `✓ ${t("recipeDetail.saved")}` : `❤ ${t("recipeDetail.saveRecipe")}`}
+                  {saved ? `${t("recipeDetail.saved")}` : `${t("recipeDetail.saveRecipe")}`}
                 </button>
                 <button
                   type="button"
@@ -578,7 +578,7 @@ export default function RecipeDetailPage() {
                   onClick={handleShare}
                   title="Share"
                 >
-                  <Share2 size="21" className="rdp-sec-icon" /> {t("recipeDetail.share") || "Share"}
+                  <Share2 size="21" className="rdp-sec-icon" /> {t("recipeDetail.share")}
                 </button>
               </div>
             </div>
@@ -645,7 +645,7 @@ export default function RecipeDetailPage() {
                     onClick={handleShare}
                     title="Share"
                   >
-                    <Share2 size="21" className="rdp-sec-icon" /> {t("recipeDetail.share") || "Share"}
+                    <Share2 size="21" className="rdp-sec-icon" /> {t("recipeDetail.share")}
                   </button>
                 </div>
               </div>
