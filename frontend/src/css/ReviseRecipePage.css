@@ -1,243 +1,224 @@
-/* Revise Recipe Page Styles */
-.revise-recipe-page {
-  margin-top: 70px;
-  background: #fdfbf9;
-  width: 100%;
-  overflow-x: hidden;
-}
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
+import LoginPromptModal from "./LoginPromptModal";
 
-.revise-recipe-page *, 
-.revise-recipe-page *::before, 
-.revise-recipe-page *::after {
-  box-sizing: border-box;
-}
+const RecipeStarRating = ({
+  recipeId,
+  initialAvg = 0,
+  initialCount = 0,
+  initialUserRating = 0,
+  csrfToken,
+  onRateSuccess,
+}) => {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const isGuest = !user || user.role === "guest";
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-.revise-recipe-page input,
-.revise-recipe-page textarea,
-.revise-recipe-page select {
-  width: 100%;
-  max-width: 100%;
-}
+  const [rating, setRating] = useState(initialUserRating);
+  const [hover, setHover] = useState(0);
+  const [avg, setAvg] = useState(initialAvg);
+  const [count, setCount] = useState(initialCount);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-/* Admin Feedback Alert */
-.rcp-admin-alert {
-  background: linear-gradient(135deg, #fffaf0 0%, #fff5e6 100%);
-  border: 2px solid #ffa502;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 32px;
-  box-shadow: 0 4px 15px rgba(255, 165, 2, 0.15);
-}
+  React.useEffect(() => {
+    setRating(initialUserRating);
+  }, [initialUserRating]);
 
-.rcp-alert-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
+  React.useEffect(() => {
+    setAvg(initialAvg);
+    setCount(initialCount);
+  }, [initialAvg, initialCount]);
 
-.rcp-alert-header h3 {
-  color: #e67e22;
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 700;
-}
+  const handleRate = async (selectedRating) => {
+    // The onClick event now successfully reaches this point for guests!
+    if (isGuest) {
+      setShowLoginPrompt(true);
+      return;
+    }
 
-.rcp-alert-icon {
-  color: #e67e22;
-  font-size: 1.5rem;
-}
+    setIsSubmitting(true);
+    setRating(selectedRating);
 
-.rcp-alert-content {
-  color: #5c4b37;
-  line-height: 1.6;
-}
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const response = await fetch(`${API_BASE_URL}/api/recipe/${recipeId}/rate`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+        },
+        body: JSON.stringify({ rating: selectedRating }),
+      });
 
-.rcp-feedback-message {
-  background: rgba(230, 126, 34, 0.1);
-  padding: 16px;
-  border-radius: 8px;
-  border-left: 4px solid #e67e22;
-  margin-bottom: 16px;
-  font-weight: 500;
-}
+      let data;
+      try {
+        data = await response.json();
+      } catch (err) {
+        throw new Error("Server returned non-JSON response");
+      }
 
-.rcp-issues-list {
-  background: rgba(52, 152, 219, 0.1);
-  padding: 16px;
-  border-radius: 8px;
-  border-left: 4px solid #3498db;
-  margin-bottom: 16px;
-}
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || t("recipeDetail.rateError"));
+      }
 
-.rcp-issues-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #2980b9;
-}
+      if (data.avgRating !== undefined) {
+        setAvg(data.avgRating);
+        setCount(data.totalRatings);
+        if (onRateSuccess) {
+          onRateSuccess(data.avgRating, data.totalRatings);
+        }
+      }
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      alert(t("recipeDetail.rateAlertError"));
+      setRating(initialUserRating);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-.rcp-issues-list ul {
-  margin: 0;
-  padding-left: 20px;
-}
+  // Active highlight: hover > user's own rating > rounded avg (read-only display)
+  const activeValue = hover || rating || Math.round(avg);
 
-.rcp-issues-list li {
-  margin-bottom: 4px;
-  color: #2c3e50;
-}
+  return (
+    <>
+      <style>{`
+        /* MOBILE FIRST: Left-Aligned Layout for Reading Flow */
+        .recipe-rating-container {
+          margin: 12px 0;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start; /* Changed from center to align with author info */
+          gap: 4px;
+        }
+        .rdp-star-row {
+          display: flex;
+          flex-direction: row-reverse;
+          justify-content: flex-end; /* Pulls to the left when row-reversed */
+          gap: 2px;
+        }
+        .rdp-rating-text {
+          font-size: 0.85rem; /* Slightly smaller */
+          color: #71717a; /* Modern muted gray */
+          font-weight: 500;
+          margin-top: 2px;
+          text-align: left;
+        }
 
-/* Field Issue Styling */
-.rp-field.needs-fix {
-  border: 2px solid #e74c3c !important;
-  border-radius: 8px;
-  padding: 16px;
-  background: rgba(231, 76, 60, 0.03);
-}
+        /* DESKTOP (Tablets & Up): Right-Aligned Layout */
+        @media (min-width: 768px) {
+          .recipe-rating-container {
+            align-items: flex-end; 
+            margin: 0; /* Remove top/bottom margin to sit inline better */
+          }
+          .rdp-star-row {
+            justify-content: flex-start; /* Pulls to the right when row-reversed */
+          }
+          .rdp-rating-text {
+            text-align: right;
+          }
+        }
 
-.rp-field.needs-fix label {
-  color: #e74c3c;
-  font-weight: 600;
-}
+        /* Core Star Logic */
+        .rdp-star-row input {
+          position: absolute;
+          appearance: none;
+          pointer-events: none;
+        }
+        .rdp-star-row label {
+          font-size: 26px; /* Scaled down slightly from 30px */
+          color: #e4e4e7; /* Slightly softer unselected gray */
+          cursor: pointer;
+          transition: color 0.2s ease, transform 0.1s ease-in-out; /* Added smooth scale */
+          line-height: 1;
+          user-select: none;
+        }
+        .rdp-star-row label::before {
+          content: '★';
+        }
+        
+        /* Interaction States */
+        .rdp-star-row label:hover {
+          transform: scale(1.15); /* Tactile pop on hover */
+        }
+        .rdp-star-row label:hover,
+        .rdp-star-row label:hover ~ label {
+          color: #ffb020; 
+        }
+        .rdp-star-row input:checked ~ label {
+          color: #f59e0b;
+        }
+        .rdp-star-row input:checked + label:hover,
+        .rdp-star-row input:checked + label:hover ~ label,
+        .rdp-star-row input:checked ~ label:hover,
+        .rdp-star-row input:checked ~ label:hover ~ label,
+        .rdp-star-row label:hover ~ input:checked ~ label {
+          color: #d97706;
+        }
+        
+        /* Read-only state (submitting) */
+        .rdp-star-row--readonly label {
+          cursor: default;
+        }
+        .rdp-star-row--readonly label:hover {
+          transform: none; /* Disable pop when submitting */
+        }
+        .rdp-star-row--readonly label:hover,
+        .rdp-star-row--readonly label:hover ~ label {
+          color: #e4e4e7;
+        }
+        .rdp-star-row--readonly input:checked ~ label {
+          color: #f59e0b;
+        }
+      `}</style>
 
-.field-issue-hint {
-  color: #e74c3c;
-  font-size: 0.8rem;
-  margin-top: 6px;
-  font-style: italic;
-}
+      <div className="recipe-rating-container">
+        {/* Star row: Removed isGuest from the readonly check so guests can hover */}
+        <div
+          className={`rdp-star-row${isSubmitting ? " rdp-star-row--readonly" : ""}`}
+          onMouseLeave={() => setHover(0)}
+        >
+          {[5, 4, 3, 2, 1].map((star) => (
+            <React.Fragment key={star}>
+              <input
+                type="radio"
+                id={`rdp-star-${recipeId}-${star}`}
+                name={`rdp-rating-${recipeId}`}
+                value={star}
+                checked={activeValue === star}
+                onChange={() => {}}
+              />
+              <label
+                htmlFor={`rdp-star-${recipeId}-${star}`}
+                title={`${star} star${star > 1 ? "s" : ""}`}
+                onMouseEnter={() => !isSubmitting && setHover(star)}
+                onClick={() => !isSubmitting && handleRate(star)}
+              />
+            </React.Fragment>
+          ))}
+        </div>
 
-.revise-recipe-page .rcp-wrap {
-  max-width: 900px;
-  margin: 1rem auto 0;
-  padding: 1.75rem 1.5rem;
-  background: #fff;
-  border: 1px solid #eee3d8;
-  border-radius: 12px;
-  box-sizing: border-box;
-}
+        {/* Prompt / confirmation text */}
+        <div className="rdp-rating-text">
+          {rating === 0 ? (
+            <span>{t("recipeDetail.ratePrompt")}</span>
+          ) : (
+            <span>{t("recipeDetail.userRating", { rating })}</span>
+          )}
+        </div>
 
-.revise-recipe-page .rp-form {
-  margin-top: 10px;
-  display: grid;
-  gap: 14px;
-}
+        {showLoginPrompt && (
+          <LoginPromptModal
+            message={t("recipeDetail.rateLoginRequired")}
+            onClose={() => setShowLoginPrompt(false)}
+          />
+        )}
+      </div>
+    </>
+  );
+};
 
-.revise-recipe-page .rp-grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.revise-recipe-page .rp-grid-3 {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.revise-recipe-page .upload-box {
-  border: 2px dashed #b58a64;
-  border-radius: 10px;
-  padding: 1.25rem;
-  width: 100%;
-  min-width: 0;
-  min-height: 140px;
-  background: #fefcfb;
-  color: #7a4d2a;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: background 0.25s ease;
-  box-sizing: border-box;
-}
-
-.revise-recipe-page .preview-img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 8px;
-}
-
-.revise-recipe-page .rp-actions {
-  display: flex;
-  gap: 0.75rem;
-  align-items: stretch;
-}
-
-.revise-recipe-page .rp-actions .rp-submit {
-  flex: 1 1 auto;
-}
-
-.revise-recipe-page .rp-diet-other {
-  margin-top: 10px;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 10px;
-}
-
-@media (max-width: 768px) {
-  .revise-recipe-page .upp-page {
-    padding: 16px;
-  }
-
-  .revise-recipe-page .rcp-wrap {
-    padding: 1.25rem 1rem;
-  }
-
-  .revise-recipe-page .rp-grid-2,
-  .revise-recipe-page .rp-grid-3 {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
-  }
-
-  .revise-recipe-page .rp-field {
-    width: 100%;
-  }
-
-  .revise-recipe-page .upload-box {
-    padding: 1rem;
-    min-height: 120px;
-  }
-
-  .revise-recipe-page .preview-img {
-    width: 100%;
-    height: auto;
-    max-height: 220px;
-  }
-
-  .revise-recipe-page .rp-actions {
-    flex-direction: column;
-  }
-
-  .revise-recipe-page .rp-actions .rp-submit,
-  .revise-recipe-page .rp-actions .rp-btn-muted {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .revise-recipe-page .rp-diet-other {
-    grid-template-columns: 1fr;
-  }
-
-  .revise-recipe-page .rcp-admin-alert {
-    padding: 16px;
-  }
-  .revise-recipe-page .rcp-alert-icon {
-    display: none;
-  }
-  .revise-recipe-page .rcp-alert-header {
-    gap: 0;
-  }
-  .revise-recipe-page .rcp-issues-title svg {
-    display: none;
-  }
-
-  .revise-recipe-page .rp-diet-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr); 
-    gap: 12px;
-  }
-}
+export default RecipeStarRating;
