@@ -86,34 +86,36 @@ const RecipeStarRating = ({
   return (
     <>
       <style>{`
-        /* MOBILE FIRST: Centered Layout */
+        /* MOBILE FIRST: Left-Aligned Layout for Reading Flow */
         .recipe-rating-container {
-          margin: 20px 0;
+          margin: 12px 0;
           display: flex;
           flex-direction: column;
-          align-items: center; 
-          gap: 5px;
+          align-items: flex-start; /* Changed from center to align with author info */
+          gap: 4px;
         }
         .rdp-star-row {
           display: flex;
           flex-direction: row-reverse;
-          justify-content: center; 
+          justify-content: flex-end; /* Pulls to the left when row-reversed */
           gap: 2px;
         }
         .rdp-rating-text {
-          font-size: 0.95rem;
-          color: #666;
-          margin-top: 4px;
-          text-align: center;
+          font-size: 0.85rem; /* Slightly smaller */
+          color: #71717a; /* Modern muted gray */
+          font-weight: 500;
+          margin-top: 2px;
+          text-align: left;
         }
 
         /* DESKTOP (Tablets & Up): Right-Aligned Layout */
         @media (min-width: 768px) {
           .recipe-rating-container {
             align-items: flex-end; 
+            margin: 0; /* Remove top/bottom margin to sit inline better */
           }
           .rdp-star-row {
-            justify-content: flex-start; /* flex-start on row-reverse pulls to the right */
+            justify-content: flex-start; /* Pulls to the right when row-reversed */
           }
           .rdp-rating-text {
             text-align: right;
@@ -127,43 +129,49 @@ const RecipeStarRating = ({
           pointer-events: none;
         }
         .rdp-star-row label {
-          font-size: 30px;
-          color: #ccc;
+          font-size: 26px; /* Scaled down slightly from 30px */
+          color: #e4e4e7; /* Slightly softer unselected gray */
           cursor: pointer;
-          transition: color 0.15s;
+          transition: color 0.2s ease, transform 0.1s ease-in-out; /* Added smooth scale */
           line-height: 1;
           user-select: none;
         }
         .rdp-star-row label::before {
           content: '★';
         }
-        /* Hover: light this star and all higher ones (siblings to the right) */
+        
+        /* Interaction States */
+        .rdp-star-row label:hover {
+          transform: scale(1.15); /* Tactile pop on hover */
+        }
         .rdp-star-row label:hover,
         .rdp-star-row label:hover ~ label {
-          color: #ff9e0b;
+          color: #ffb020; 
         }
-        /* Checked: colour all stars up to the selected one */
         .rdp-star-row input:checked ~ label {
-          color: #ffa723;
+          color: #f59e0b;
         }
-        /* Checked + hover blended colour */
         .rdp-star-row input:checked + label:hover,
         .rdp-star-row input:checked + label:hover ~ label,
         .rdp-star-row input:checked ~ label:hover,
         .rdp-star-row input:checked ~ label:hover ~ label,
         .rdp-star-row label:hover ~ input:checked ~ label {
-          color: #e58e09;
+          color: #d97706;
         }
-        /* Read-only state (only for submitting now): freeze hover colours */
+        
+        /* Read-only state (submitting) */
         .rdp-star-row--readonly label {
           cursor: default;
         }
+        .rdp-star-row--readonly label:hover {
+          transform: none; /* Disable pop when submitting */
+        }
         .rdp-star-row--readonly label:hover,
         .rdp-star-row--readonly label:hover ~ label {
-          color: #ccc;
+          color: #e4e4e7;
         }
         .rdp-star-row--readonly input:checked ~ label {
-          color: #ffa723;
+          color: #f59e0b;
         }
       `}</style>
 
