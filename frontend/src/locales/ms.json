@@ -275,8 +275,8 @@
     "cookTime": "Masa Memasak",
     "servings": "Hidangan",
     "difficulty": "Tahap Kesukaran",
-    "saved": "✓ Disimpan",
-    "saveRecipe": "❤ Simpan Resipi",
+    "saved": "✓ Kegemaran",
+    "saveRecipe": "❤ Simpan ke Kegemaran",
     "description": "Penerangan",
     "ingredients": "Bahan-bahan",
     "instructions": "Cara Memasak",
@@ -290,7 +290,8 @@
     "userRating": "Anda menilai ini {{rating}} daripada 5",
     "rateLoginRequired": "Sila log masuk untuk menilai resipi ini.",
     "rateError": "Gagal menghantar penilaian",
-    "rateAlertError": "Gagal menghantar penilaian. Sila cuba muat semula halaman ini."
+    "rateAlertError": "Gagal menghantar penilaian. Sila cuba muat semula halaman ini.",
+    "share": "Kongsi"
     },
 
   "analyzer": {

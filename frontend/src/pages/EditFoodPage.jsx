@@ -716,7 +716,7 @@ const handleSaveAttempt = () => {
               </h3>
               <span className="serving-note">{t("editFood.perServing")}</span>
             </div>
-            <div className="nutrition-grid">
+            <div className="aligned-nutrition-grid">
               {[
                 { label: t("editFood.calories"), name: "Energy_kcal" },
                 { label: t("editFood.protein"), name: "Protein_g" },

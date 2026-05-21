@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -75,6 +75,8 @@ export default function XpLogsPage() {
   const [totalPages, setTotalPages] = useState(1); 
   const [isLoading, setIsLoading] = useState(true);
 
+  const cardTopRef = useRef(null);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 500);
     window.addEventListener('resize', handleResize);
@@ -97,6 +99,9 @@ export default function XpLogsPage() {
           setLogs(data.logs);
           setTotalPages(data.totalPages);
         }
+        if (cardTopRef.current) {
+          cardTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       } catch (error) {
         console.error("Error fetching live XP logs:", error);
       } finally {
@@ -115,7 +120,7 @@ export default function XpLogsPage() {
             {t("profile.backToProfile")}
           </button>
 
-          <div className="upp-card">
+          <div className="upp-card" ref={cardTopRef}>
             <h2 className="upp-card-title xlp-card-title">{t("profile.xpLogsTitle")}</h2>
             <p className="upp-muted2 xlp-muted2" style={{ marginBottom: "24px" }}>
                 {t("profile.xpLogsDesc")}
