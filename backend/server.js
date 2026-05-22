@@ -250,6 +250,7 @@ app.use(
 const csrfProtection = csrf();
 const csrfExclude = [
   '/api/ai/gpt/nutrition',
+  '/api/ai/cnn-predict',
   '/api/nutrition/analyze-image',
   '/api/login',     
   '/api/register',

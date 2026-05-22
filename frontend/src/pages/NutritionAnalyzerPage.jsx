@@ -187,13 +187,6 @@ export default function NutritionAnalyzerPage() {
         }
 
         // Step 2: GPT fallback (open-set, handles dishes outside 7 CNN classes)
-        const base64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(selectedFile);
-        });
-
         const data = await tryGPT(base64, ingredients, csrfToken);
 
         if (data.ok && data.data) {

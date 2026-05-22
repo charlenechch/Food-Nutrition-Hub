@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const FormData = require("form-data");
 
 // maps DB row → JSON used by UI
 function mapRow(row) {
@@ -19,6 +18,8 @@ function mapRow(row) {
     culturalSignificance: row.culturalSignificance,
     traditionalPreparation: row.traditionalPreparation,
     commonIngredients: row.commonIngredients,
+    alternative: row.alternative,
+    altDescription: row.altDescription,
     healthTips: row.healthTips,
     Energy_kcal: row.Energy_kcal,
     Protein_g: row.Protein_g,
@@ -28,7 +29,6 @@ function mapRow(row) {
     VitaminC_mg: row.VitaminC_mg,
     likes_count: row.likes_count,
     liked_by: row.liked_by,
-    gram_per_serving: row.gram_per_serving,
   };
 }
 
@@ -76,27 +76,44 @@ router.get("/cnn-wake", async (req, res) => {
 });
 
 // POST /api/ai/cnn-predict — proxy image to CNN service
-// Frontend sends multipart form with "file" field
-// Node forwards it to the Python CNN service (no CSP issues)
+// Accepts { imageBase64 } — same pattern as GPT route, no extra dependencies
 router.post("/cnn-predict", async (req, res) => {
   try {
-    if (!req.files || !req.files.file) {
-      return res.json({ pred_class: null, confidence: 0, error: "No file received" });
+    const { imageBase64 } = req.body;
+    if (!imageBase64) {
+      return res.json({ pred_class: null, confidence: 0, error: "No image received" });
     }
 
-    const file = req.files.file;
-    const cnnUrl = process.env.CNN_API_URL || "https://ai-production-e158.up.railway.app/";
+    // Convert base64 data URL to raw buffer
+    const matches = imageBase64.match(/^data:image\/([a-zA-Z]+);base64,(.+)$/);
+    if (!matches) {
+      return res.json({ pred_class: null, confidence: 0, error: "Invalid base64 format" });
+    }
+    const mimeType = `image/${matches[1]}`;
+    const buffer = Buffer.from(matches[2], "base64");
 
-    const form = new FormData();
-    form.append("file", file.data, {
-      filename: file.name,
-      contentType: file.mimetype,
-    });
+    const cnnUrl = (process.env.CNN_API_URL || "https://ai-production-e158.up.railway.app").replace(/\/$/, "");
 
-    const cnnRes = await fetch(`${cnnUrl.replace(/\/$/, "")}/predict`, {
+    // Build multipart form for the Python FastAPI /predict endpoint
+    const boundary = "----FormBoundary" + Date.now();
+    const CRLF = "\r\n";
+    const body = Buffer.concat([
+      Buffer.from(
+        `--${boundary}${CRLF}` +
+        `Content-Disposition: form-data; name="file"; filename="food.jpg"${CRLF}` +
+        `Content-Type: ${mimeType}${CRLF}${CRLF}`
+      ),
+      buffer,
+      Buffer.from(`${CRLF}--${boundary}--${CRLF}`),
+    ]);
+
+    const cnnRes = await fetch(`${cnnUrl}/predict`, {
       method: "POST",
-      body: form,
-      headers: form.getHeaders(),
+      headers: {
+        "Content-Type": `multipart/form-data; boundary=${boundary}`,
+        "Content-Length": body.length,
+      },
+      body,
       signal: AbortSignal.timeout(15000),
     });
 
