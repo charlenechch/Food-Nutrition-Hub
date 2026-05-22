@@ -241,7 +241,7 @@ app.use(
       sameSite: IS_PROD ? "none" : "lax",
       secure: IS_PROD,
       domain: IS_PROD ? ".sarawakeats.site" : undefined,
-      maxAge: null,
+      maxAge: 24 * 60 * 60 * 1000,
     }
   })
 );

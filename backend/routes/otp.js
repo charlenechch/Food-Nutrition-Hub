@@ -175,8 +175,8 @@ router.post("/verifyLogin", async (req, res) => {
             req.session.cookie.expires = new Date(Date.now() + sevenDays);
             req.session.rememberMe = true;
         } else {
-            req.session.cookie.maxAge = null;
-            req.session.cookie.expires = false;
+            req.session.cookie.maxAge = 24 * 60 * 60 * 1000;
+            req.session.cookie.expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
             req.session.rememberMe = false;
         }
 
