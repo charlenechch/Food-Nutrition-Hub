@@ -11,8 +11,6 @@ import { useTranslation } from "react-i18next";
 import { translateTexts } from "../hooks/useAITranslation";
 
 const API_URL = import.meta.env.VITE_API_URL;
-const CNN_URL = import.meta.env.VITE_CNN_URL || "https://ai-production-e158.up.railway.app";
-
 export default function NutritionAnalyzerPage() {
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
@@ -105,14 +103,21 @@ export default function NutritionAnalyzerPage() {
   // 2. If CNN returns no confident prediction → fall back to GPT
   // 3. Either way, nutrition always comes from DB — never AI
   // ─────────────────────────────────────────────────────────────
-  const tryCNN = async (file) => {
+  const tryCNN = async (file, csrfToken) => {
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      // Proxy through our own backend to avoid CSP issues
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-      const res = await fetch(`${CNN_URL}/predict`, {
+      const res = await fetch(`${API_URL}/api/ai/cnn-predict`, {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        credentials: "include",
+        body: JSON.stringify({ imageBase64: base64 }),
       });
 
       if (!res.ok) return null;
@@ -123,7 +128,7 @@ export default function NutritionAnalyzerPage() {
 
       return data.pred_class;
     } catch (err) {
-      // CNN service unreachable — silently fall through to GPT
+      // CNN proxy unreachable — silently fall through to GPT
       console.warn("CNN unavailable, falling back to GPT:", err.message);
       return null;
     }
@@ -153,7 +158,7 @@ export default function NutritionAnalyzerPage() {
       if (selectedFile) {
 
         // Step 1: try CNN first
-        const cnnName = await tryCNN(selectedFile);
+        const cnnName = await tryCNN(selectedFile, csrfToken);
 
         if (cnnName) {
           // CNN confident — look up nutrition from DB

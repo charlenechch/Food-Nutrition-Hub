@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const FormData = require("form-data");
 
 // maps DB row → JSON used by UI
 function mapRow(row) {
@@ -18,8 +19,6 @@ function mapRow(row) {
     culturalSignificance: row.culturalSignificance,
     traditionalPreparation: row.traditionalPreparation,
     commonIngredients: row.commonIngredients,
-    alternative: row.alternative,
-    altDescription: row.altDescription,
     healthTips: row.healthTips,
     Energy_kcal: row.Energy_kcal,
     Protein_g: row.Protein_g,
@@ -29,6 +28,7 @@ function mapRow(row) {
     VitaminC_mg: row.VitaminC_mg,
     likes_count: row.likes_count,
     liked_by: row.liked_by,
+    gram_per_serving: row.gram_per_serving,
   };
 }
 
@@ -40,7 +40,6 @@ router.get("/lookup", async (req, res) => {
   try {
     const db = req.app.get("dbPool");
 
-    // exact match first
     const [exact] = await db.execute(
       "SELECT * FROM food WHERE LOWER(name)=LOWER(?) LIMIT 1",
       [name]
@@ -49,7 +48,6 @@ router.get("/lookup", async (req, res) => {
       return res.json({ found: true, item: mapRow(exact[0]) });
     }
 
-    // else suggest
     const [rows] = await db.execute(
       "SELECT name FROM food WHERE name LIKE ? ORDER BY name LIMIT 8",
       [`%${name}%`]
@@ -64,6 +62,7 @@ router.get("/lookup", async (req, res) => {
   }
 });
 
+// GET /api/ai/cnn-wake — wakes the CNN service and checks health
 router.get("/cnn-wake", async (req, res) => {
   try {
     const response = await fetch(`${process.env.CNN_API_URL}/health`, {
@@ -73,6 +72,44 @@ router.get("/cnn-wake", async (req, res) => {
     res.json({ ok: true, cnn: data });
   } catch (err) {
     res.json({ ok: false, message: err.message });
+  }
+});
+
+// POST /api/ai/cnn-predict — proxy image to CNN service
+// Frontend sends multipart form with "file" field
+// Node forwards it to the Python CNN service (no CSP issues)
+router.post("/cnn-predict", async (req, res) => {
+  try {
+    if (!req.files || !req.files.file) {
+      return res.json({ pred_class: null, confidence: 0, error: "No file received" });
+    }
+
+    const file = req.files.file;
+    const cnnUrl = process.env.CNN_API_URL || "https://ai-production-e158.up.railway.app/";
+
+    const form = new FormData();
+    form.append("file", file.data, {
+      filename: file.name,
+      contentType: file.mimetype,
+    });
+
+    const cnnRes = await fetch(`${cnnUrl.replace(/\/$/, "")}/predict`, {
+      method: "POST",
+      body: form,
+      headers: form.getHeaders(),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (!cnnRes.ok) {
+      return res.json({ pred_class: null, confidence: 0, error: "CNN service error" });
+    }
+
+    const data = await cnnRes.json();
+    return res.json(data);
+
+  } catch (err) {
+    console.warn("CNN proxy error (falling back to GPT):", err.message);
+    return res.json({ pred_class: null, confidence: 0, error: err.message });
   }
 });
 
@@ -92,7 +129,6 @@ router.post("/analyze", async (req, res) => {
         return res.json({ found: true, item: mapRow(rows[0]) });
       }
 
-      // no exact match → give suggestions
       const [sug] = await db.execute(
         "SELECT name FROM food WHERE name LIKE ? ORDER BY name LIMIT 8",
         [`%${foodName}%`]
