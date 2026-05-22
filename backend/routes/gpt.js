@@ -138,7 +138,7 @@ Prefer Sarawak/Malaysian interpretation.
       return res.status(500).json({ error: "Nutrition values returned by model (not allowed)." });
 
     if ((gpt.food_name || "").toLowerCase().trim() === "not_food")
-      return res.json({ ok: false, error: "No food detected in the image." });
+      return res.json({ ok: false, error: "Food not recognised. Please try a clearer image or type the food name manually." });
 
     // ============================================
     // STEP 2: ENSEMBLE EMBEDDING SEARCH
