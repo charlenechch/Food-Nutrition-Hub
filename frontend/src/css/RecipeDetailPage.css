@@ -330,18 +330,25 @@
 @media (max-width: 600px) {
     .rdp-summary-bar {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center; 
+        text-align: center;
+        gap: 20px; 
     }
     
+    .rdp-author-section {
+        justify-content: center; 
+        width: 100%;
+    }
+
     .rdp-rating-section {
-        align-items: flex-start;
-        width: auto; 
-        padding-top: 8px; 
+        align-items: center; 
+        width: 100%;
+        padding-top: 0; 
     }
 
     .rdp-rating-section > div:first-child,
     .rdp-rating-section > span:first-child {
-        justify-content: flex-start !important;
-        margin-left: 0 !important;
+        justify-content: center !important;
+        margin: 0 auto !important;
     }
 }
