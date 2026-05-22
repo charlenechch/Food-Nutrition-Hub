@@ -98,7 +98,7 @@
   line-height: 1.6;
 }
 
-/* --- 4. Glass Form Card (FIXED SIZE) --- */
+/* --- 4. Glass Form Card --- */
 .mh-form-card {
   flex: 0 0 440px;
   background: var(--mh-glass);
@@ -112,16 +112,14 @@
   
   display: flex;
   flex-direction: column;
-  
-  /* --- STRICT HEIGHT FIX --- */
   height: 680px;
   min-height: 680px;
   justify-content: center;
-  /* ----------------------- */
   
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(92, 58, 33, 0.3) transparent;
+  box-sizing: border-box;
 }
 .mh-form-card--register {
   justify-content: flex-start;
@@ -132,16 +130,13 @@
 .mh-form-card::-webkit-scrollbar {
   width: 4px;
 }
-
 .mh-form-card::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .mh-form-card::-webkit-scrollbar-thumb {
   background: rgba(92, 58, 33, 0.3);
   border-radius: 10px;
 }
-
 .mh-form-card::-webkit-scrollbar-thumb:hover {
   background: rgba(92, 58, 33, 0.6);
 }
@@ -161,6 +156,8 @@
   font-size: 0.9rem;
   color: #666;
   margin: 5px 0 0;
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* --- Tabs --- */
@@ -227,7 +224,6 @@
   box-shadow: 0 4px 20px rgba(198, 168, 124, 0.2);
 }
 
-/* --- Fixed Icon Positions --- */
 .mh-input-group .mh-icon {
   position: absolute !important;
   left: 15px !important;
@@ -388,11 +384,9 @@
   margin-bottom: 25px; 
   width: 100%;
 }
-
 .mh-password-wrapper .mh-input-group {
   margin-bottom: 5px !important; 
 }
-
 .mh-password-wrapper .mh-password-hints {
   margin-top: 0 !important;
   margin-bottom: 5px;
@@ -411,19 +405,16 @@
   width: 100%;
   animation: fadeIn 0.4s ease;
 }
-
 .mh-otp-label {
   color: #666;
   font-size: 0.95rem;
   margin-bottom: 20px;
   text-align: center;
 }
-
 .mh-otp-input-wrapper {
   width: 100%;
   margin-bottom: 20px;
 }
-
 .mh-otp-input {
   width: 100%;
   padding: 15px;
@@ -437,14 +428,12 @@
   color: var(--mh-brown);
   transition: all 0.3s;
 }
-
 .mh-otp-input:focus {
   outline: none;
   border-color: var(--mh-gold);
   background: white;
   box-shadow: 0 5px 15px rgba(198, 168, 124, 0.2);
 }
-
 .mh-otp-input::placeholder {
   color: #ddd;
   letter-spacing: 12px;
@@ -463,14 +452,9 @@
   gap: 6px;
   transition: color 0.2s;
 }
-.mh-btn-text-small:hover {
-  color: var(--mh-brown);
-}
+.mh-btn-text-small:hover { color: var(--mh-brown); }
 
-.mh-google-wrapper {
-  margin-top: 15px;
-}
-
+.mh-google-wrapper { margin-top: 15px; }
 .mh-btn-google {
   width: 100%;
   padding: 12px;
@@ -489,7 +473,6 @@
   transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
-
 .mh-btn-google:hover {
   background: #fdfdfd;
   border-color: var(--mh-gold);
@@ -497,93 +480,36 @@
   box-shadow: 0 8px 15px rgba(0,0,0,0.08);
   color: #333;
 }
+.mh-google-icon { width: 20px; height: 20px; }
 
-.mh-google-icon {
-  width: 20px;
-  height: 20px;
-}
-
-/* --- Mobile Responsive --- */
-@media (max-width: 900px) {
+/* --- Enhanced Tablet & Mobile Responsive Queries --- */
+@media (max-width: 1024px) {
   .mh-content-wrapper {
     flex-direction: column;
     justify-content: center;
-    width: 100%;
+    width: 95%;
     padding: 20px;
-    height: auto;
+    height: auto !important;
     min-height: 100vh;
   }
-  .mh-brand-section {
-    text-align: center;
-    padding-right: 0;
-    margin-bottom: 30px;
+  
+  .mh-form-card {
+    width: 100%;
+    max-width: 460px; /* Widened to avoid text crunching */
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    padding: 30px;
   }
-  .mh-title { font-size: 3rem; }
-  .mh-divider { margin: 15px auto; }
-  .mh-form-card { width: 100%; max-width: 400px; padding: 25px; height: auto; min-height: auto; }
-}
 
-/* --- Animations --- */
-@keyframes fadeSlideRight {
-  from { opacity: 0; transform: translateX(-30px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-@keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.mh-checkbox-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  position: relative; 
-}
-
-.mh-info-icon {
-  color: #aaa;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  font-size: 0.9rem;
-  transition: color 0.3s;
-}
-
-.mh-info-icon:hover {
-  color: var(--mh-brown);
-}
-
-.mh-custom-tooltip {
-  position: absolute;
-  bottom: 140%;         
-  left: 50%;             
-  transform: translateX(-50%);
-  background-color: #333;
-  color: #fff;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  white-space: nowrap;  
-  z-index: 100;        
-  pointer-events: none;  
-  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-}
-
-.mh-custom-tooltip::after {
-  content: " ";
-  position: absolute;
-  top: 100%; 
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #333 transparent transparent transparent;
+  .mh-tab-btn {
+    white-space: nowrap; /* Enforces 'Log Masuk' on one clean line */
+    font-size: 0.95rem;
+    padding: 0 5px;
+  }
 }
 
 @media (max-width: 900px) {
-
   .modern-heritage-page {
     display: block;              
     height: auto !important;    
@@ -591,13 +517,11 @@
     overflow-y: auto !important; 
     padding-top: 20px;     
   }
-
   .mh-background {
     position: fixed;
     height: 100vh;
     width: 100vw;
   }
-
   .mh-content-wrapper {
     display: flex;
     flex-direction: column;      
@@ -607,7 +531,6 @@
     width: 100%;
     padding: 0 20px 60px 20px;  
   }
-
   .mh-brand-section {
     width: 100%;
     padding-right: 0;
@@ -615,10 +538,7 @@
     margin-bottom: 20px;         
     flex: none;                 
   }
-  
-  .mh-title {
-    font-size: 2.5rem;          
-  }
+  .mh-title { font-size: 2.5rem; }
 
   .mh-form-card {
     width: 100%;
@@ -642,37 +562,76 @@
     margin-bottom: 15px;
     width: 100%;
   }
-
   .mh-checkbox {
     width: auto;
     font-size: 1rem;
     justify-content: center;
     margin: 0;
   }
-
   .mh-forgot {
     width: auto;
     text-align: center;
     font-size: 0.95rem;
-    color: var(--mh-brown);
     border-bottom: 1px solid transparent;
     padding-bottom: 2px;
   }
 }
 
 @media (max-width: 450px) {
-
   .mh-otp-input {
     font-size: 1.5rem !important;   
     letter-spacing: 5px !important; 
     padding: 10px !important;      
     width: 100%;                   
   }
-
   .mh-otp-input::placeholder {
     letter-spacing: 5px !important; 
     font-size: 1.5rem !important;
   }
+}
+
+.mh-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative; 
+}
+.mh-info-icon {
+  color: #aaa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+.mh-info-icon:hover { color: var(--mh-brown); }
+
+.mh-custom-tooltip {
+  position: absolute;
+  bottom: 140%;         
+  left: 50%;             
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;  
+  z-index: 100;        
+  pointer-events: none;  
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+.mh-custom-tooltip::after {
+  content: " ";
+  position: absolute;
+  top: 100%; 
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
 }
 
 /* --- PDPA Checkbox --- */
@@ -682,7 +641,6 @@
   align-items: flex-start;
   width: 100%;
 }
-
 .pdpa-checkbox-label {
   display: flex;
   align-items: center;
@@ -690,24 +648,19 @@
   cursor: pointer;
   text-align: left;
 }
-
 .pdpa-checkbox-text {
   font-size: 0.85rem;
   line-height: 1.4;
   color: #555;
   font-family: 'Poppins', sans-serif;
 }
-
 .pdpa-link {
   color: var(--mh-brown);
   text-decoration: underline;
   font-weight: 600;
   transition: color 0.2s ease;
 }
-
-.pdpa-link:hover {
-  color: var(--mh-gold);
-}
+.pdpa-link:hover { color: var(--mh-gold); }
 
 .mh-google-note {
   font-size: 0.78rem;
