@@ -103,16 +103,9 @@ export default function NutritionAnalyzerPage() {
   // 2. If CNN returns no confident prediction → fall back to GPT
   // 3. Either way, nutrition always comes from DB — never AI
   // ─────────────────────────────────────────────────────────────
-  const tryCNN = async (file, csrfToken) => {
+  const tryCNN = async (file, base64, csrfToken) => {
     try {
-      // Proxy through our own backend to avoid CSP issues
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
+      // Proxy through backend to avoid CSP — reuses base64 already computed
       const res = await fetch(`${API_URL}/api/ai/cnn-predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
@@ -158,7 +151,7 @@ export default function NutritionAnalyzerPage() {
       if (selectedFile) {
 
         // Step 1: try CNN first
-        const cnnName = await tryCNN(selectedFile, csrfToken);
+        const cnnName = await tryCNN(selectedFile, base64, csrfToken);
 
         if (cnnName) {
           // CNN confident — look up nutrition from DB
