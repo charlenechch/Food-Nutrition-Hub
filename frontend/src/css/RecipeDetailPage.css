@@ -342,7 +342,7 @@
 
     .rdp-rating-section > div:first-child,
     .rdp-rating-section > span:first-child {
-        justify-content: center !important;
-        margin: 0 auto !important;
+        justify-content: center;
+        margin: 0 auto;
     }
 }
