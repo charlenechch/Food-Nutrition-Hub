@@ -86,33 +86,34 @@ const RecipeStarRating = ({
   return (
     <>
       <style>{`
-        /* MOBILE FIRST: Left-Aligned Layout for Reading Flow */
+        /* MOBILE FIRST (Below 600px): Centered Layout */
         .recipe-rating-container {
           margin: 12px 0;
           display: flex;
           flex-direction: column;
-          align-items: flex-start; /* Changed from center to align with author info */
+          align-items: center; /* Perfectly centered */
           gap: 4px;
         }
         .rdp-star-row {
           display: flex;
           flex-direction: row-reverse;
-          justify-content: flex-end; /* Pulls to the left when row-reversed */
+          justify-content: center; /* Perfectly centered */
           gap: 2px;
+          width: 100%;
         }
         .rdp-rating-text {
-          font-size: 0.85rem; /* Slightly smaller */
-          color: #71717a; /* Modern muted gray */
+          font-size: 0.85rem; 
+          color: #71717a; 
           font-weight: 500;
           margin-top: 2px;
-          text-align: left;
+          text-align: center; /* Perfectly centered */
         }
 
-        /* DESKTOP (Tablets & Up): Right-Aligned Layout */
-        @media (min-width: 768px) {
+        /* DESKTOP (600px & Up): Right-Aligned Layout */
+        @media (min-width: 600px) {
           .recipe-rating-container {
-            align-items: flex-end; 
-            margin: 0; /* Remove top/bottom margin to sit inline better */
+            align-items: flex-end; /* Right aligned */
+            margin: 0; 
           }
           .rdp-star-row {
             justify-content: flex-start; /* Pulls to the right when row-reversed */
