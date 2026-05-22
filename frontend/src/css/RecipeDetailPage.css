@@ -335,7 +335,13 @@
     
     .rdp-rating-section {
         align-items: flex-start;
-        width: 100%;
+        width: auto; 
         padding-top: 8px; 
+    }
+
+    .rdp-rating-section > div:first-child,
+    .rdp-rating-section > span:first-child {
+        justify-content: flex-start !important;
+        margin-left: 0 !important;
     }
 }
