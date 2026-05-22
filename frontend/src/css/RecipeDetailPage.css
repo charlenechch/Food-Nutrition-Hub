@@ -330,20 +330,14 @@
 @media (max-width: 600px) {
     .rdp-summary-bar {
         flex-direction: column;
-        align-items: center; 
-        text-align: center;
-        gap: 20px; 
+        align-items: flex-start; 
+        gap: 16px;
     }
     
-    .rdp-author-section {
-        justify-content: center; 
-        width: 100%;
-    }
-
     .rdp-rating-section {
-        align-items: center; 
+        align-items: center;
         width: 100%;
-        padding-top: 0; 
+        padding-top: 8px; 
     }
 
     .rdp-rating-section > div:first-child,
