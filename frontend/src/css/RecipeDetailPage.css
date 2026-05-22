@@ -322,20 +322,27 @@
 .rdp-rating-section {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-end; 
     justify-content: center;
     gap: 6px;
+}
+
+.rdp-rating-section > div:first-child,
+.rdp-rating-section > span:first-child {
+    justify-content: flex-end !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
 }
 
 @media (max-width: 600px) {
     .rdp-summary-bar {
         flex-direction: column;
-        align-items: flex-start; 
+        align-items: flex-start;
         gap: 16px;
     }
     
     .rdp-rating-section {
-        align-items: center;
+        align-items: center; 
         width: 100%;
         padding-top: 8px; 
     }
@@ -344,14 +351,5 @@
     .rdp-rating-section > span:first-child {
         justify-content: center;
         margin: 0 auto;
-    }
-}
-
-@media (max-width: 768px) {
-    .rdp-rating-section > div:first-child,
-    .rdp-rating-section > span:first-child {
-        justify-content: flex-end;
-        margin-left: auto;
-        margin-right: 0;
     }
 }
