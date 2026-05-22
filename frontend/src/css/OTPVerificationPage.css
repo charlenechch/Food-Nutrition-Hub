@@ -5,6 +5,8 @@
     justify-content:center;
     background: linear-gradient(to bottom right, #f9fafb, #e9f2ef);
     padding:2rem;
+    overflow-y: auto; /* Fixed: allows scrolling */
+    box-sizing: border-box;
 }
 .otp-card {
     width:100%;
@@ -15,6 +17,8 @@
     box-shadow:0 6px 18px rgba(0,0,0,.08);
     padding:2rem;
     box-sizing:border-box;
+    max-height: 95vh; /* Fixed: prevents overflow */
+    overflow-y: auto;
 }
 .otp-center {
     text-align:center;
@@ -85,6 +89,7 @@
   border:1px solid #ddd;
     border-radius:10px;
     background:#f7f2ed;
+    box-sizing: border-box;
 }
 .otp-input:focus {
     border-color:#8B4513;
@@ -107,6 +112,7 @@
     gap:.5rem;
     align-items:stretch;
     text-align:center;
+    margin-top: 1rem;
 }
 
 .otp-success-icon {
@@ -124,4 +130,11 @@
 }
 .otp-actions .lrp-btn-outline{
     margin-top:.8rem;
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+  .otp-container {
+    height: auto;
+    padding: 20px 0;
+  }
 }
