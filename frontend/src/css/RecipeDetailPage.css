@@ -322,7 +322,7 @@
 .rdp-rating-section {
     display: flex;
     flex-direction: column;
-    align-items: flex-end; 
+    align-items: flex-end;
     justify-content: center;
     gap: 6px;
 }
@@ -349,7 +349,8 @@
 
     .rdp-rating-section > div:first-child,
     .rdp-rating-section > span:first-child {
-        justify-content: center;
-        margin: 0 auto;
+        justify-content: center !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
 }
