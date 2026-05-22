@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { translateTexts } from "../hooks/useAITranslation";
 
 const API_URL = import.meta.env.VITE_API_URL;
+const CNN_URL = import.meta.env.VITE_CNN_URL || "https://ai-production-e158.up.railway.app";
 
 export default function NutritionAnalyzerPage() {
   const { user } = useAuth();
@@ -52,7 +53,6 @@ export default function NutritionAnalyzerPage() {
 
   const handleRemoveFile = () => setSelectedFile(null);
 
-  // FIXED - sets the name then immediately fetches nutrition from DB
   const handleSuggestionClick = async (name) => {
     setFoodName(name);
     setSuggestions([]);
@@ -99,6 +99,46 @@ export default function NutritionAnalyzerPage() {
     return tips.map((_, i) => translated[`tip_${i}`] || tips[i]);
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // CNN-primary image detection with GPT fallback
+  // 1. Try CNN /predict (fast, local model, 7 Sarawakian classes)
+  // 2. If CNN returns no confident prediction → fall back to GPT
+  // 3. Either way, nutrition always comes from DB — never AI
+  // ─────────────────────────────────────────────────────────────
+  const tryCNN = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`${CNN_URL}/predict`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) return null;
+      const data = await res.json();
+
+      // pred_class is null when confidence < 0.60 (unsupported dish)
+      if (!data.pred_class) return null;
+
+      return data.pred_class;
+    } catch (err) {
+      // CNN service unreachable — silently fall through to GPT
+      console.warn("CNN unavailable, falling back to GPT:", err.message);
+      return null;
+    }
+  };
+
+  const tryGPT = async (base64, ingredients, csrfToken) => {
+    const res = await fetch(`${API_URL}/api/ai/gpt/nutrition`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+      credentials: "include",
+      body: JSON.stringify({ imageBase64: base64, ingredients }),
+    });
+    return res.json();
+  };
+
   const handleAnalyze = async (e) => {
     e.preventDefault();
     if (requireLogin()) return;
@@ -106,11 +146,42 @@ export default function NutritionAnalyzerPage() {
     setError("");
     setResult(null);
     setSuggestions([]);
-    setWarning(""); // ADDED: clear warning on each new analyze
+    setWarning("");
 
     try {
-      // Image path
+      // ── IMAGE PATH ──────────────────────────────────────────
       if (selectedFile) {
+
+        // Step 1: try CNN first
+        const cnnName = await tryCNN(selectedFile);
+
+        if (cnnName) {
+          // CNN confident — look up nutrition from DB
+          const lookupRes = await fetch(
+            `${API_URL}/api/ai/lookup?name=${encodeURIComponent(cnnName)}`,
+            { credentials: "include" }
+          );
+          const lookupData = await lookupRes.json();
+
+          if (lookupData.found && lookupData.item) {
+            const item = lookupData.item;
+            const tips = item.healthTips ? [item.healthTips] : [];
+            const translatedTips = await translateTips(tips);
+            setResult({
+              food_name: item.name,
+              nutrition: item,
+              alternatives: item.alternative
+                ? [{ title: item.alternative, description: item.altDescription }]
+                : [],
+              tips: translatedTips,
+              detectedBy: "cnn",
+            });
+            return;
+          }
+          // CNN named it but DB has no record — fall through to GPT
+        }
+
+        // Step 2: GPT fallback (open-set, handles dishes outside 7 CNN classes)
         const base64 = await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result);
@@ -118,16 +189,9 @@ export default function NutritionAnalyzerPage() {
           reader.readAsDataURL(selectedFile);
         });
 
-        const res = await fetch(`${API_URL}/api/ai/gpt/nutrition`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
-          credentials: "include",
-          body: JSON.stringify({ imageBase64: base64, ingredients }),
-        });
-        const data = await res.json();
+        const data = await tryGPT(base64, ingredients, csrfToken);
 
         if (data.ok && data.data) {
-          // ADDED: capture warning for low confidence matches
           if (data.data.confidence_level === "low") {
             setWarning(data.warning ? t("analyzer.confidenceWarning") : "");
           } else {
@@ -148,11 +212,11 @@ export default function NutritionAnalyzerPage() {
               food_name: item.name,
               nutrition: item,
               tips: translatedTips,
+              detectedBy: "gpt",
             });
             return;
           }
 
-          // GPT found it but no DB nutrition — show name at least
           setResult({ food_name: data.data.food_name, nutrition: null, alternatives: [], tips: [] });
           return;
         }
@@ -162,7 +226,7 @@ export default function NutritionAnalyzerPage() {
         return;
       }
 
-      // Text path — try DB first
+      // ── TEXT PATH (unchanged) ───────────────────────────────
       const dbRes = await fetch(`${API_URL}/api/ai/lookup?name=${encodeURIComponent(foodName)}`, {
         credentials: "include",
       });
@@ -181,7 +245,6 @@ export default function NutritionAnalyzerPage() {
       }
       if (dbData.suggestions?.length) { setSuggestions(dbData.suggestions); return; }
 
-      // Fallback to AI analyze
       const aiRes = await fetch(`${API_URL}/api/ai/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
@@ -228,7 +291,6 @@ export default function NutritionAnalyzerPage() {
       <p className="page-subtitle">{t("analyzer.subtitle")}</p>
 
       <div className="analyzer-container">
-        {/* MOBILE/TABLET TAB BAR — hidden on desktop via CSS */}
         <div className="analyzer-tabs">
           <button
             className={`analyzer-tab ${activeTab === "input" ? "active" : ""}`}
@@ -245,7 +307,6 @@ export default function NutritionAnalyzerPage() {
           </button>
         </div>
 
-        {/* LEFT PANEL — data-tab used by CSS to hide on mobile/tablet only */}
         <div className="left-column" data-tab={activeTab === "input" ? "active" : "inactive"}>
           <form className="food-form" onSubmit={handleAnalyze}>
             <div className="food-input-card">
@@ -263,7 +324,6 @@ export default function NutritionAnalyzerPage() {
               <p className="input-helper-text">{t("analyzer.dbScopeHint")}</p>
             </div>
 
-            {/* UPLOAD */}
             <div className="upload-card">
               <h3 className="section-title">
                 <IoCameraOutline /> {t("analyzer.uploadTitle")}
@@ -291,7 +351,6 @@ export default function NutritionAnalyzerPage() {
           </form>
         </div>
 
-        {/* RIGHT PANEL */}
         <div
           className={`result-card ${result ? "has-result" : "empty"}`}
           data-tab={activeTab === "result" ? "active" : "inactive"}

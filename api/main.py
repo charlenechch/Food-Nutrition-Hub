@@ -1,4 +1,4 @@
-# main.py — Food Recognition API (EfficientNet)
+# main.py — Food Recognition API (EfficientNet primary, GPT fallback)
 
 import os
 import io
@@ -21,7 +21,6 @@ import mysql.connector
 # ENVIRONMENT VARIABLES
 # -------------------------------------------------
 AI_MODEL_PATH = os.getenv("MODEL_PATH")
-AI_MODEL2_PATH = os.getenv("SECOND_MODEL_PATH")      # optional
 LABELS_PATH = os.getenv("LABELS_PATH", "/app/labels.json")
 
 DB_CFG = {
@@ -33,7 +32,7 @@ DB_CFG = {
 }
 
 IMG_SIZE = (224, 224)
-THRESHOLD = 0.0  # confidence threshold
+THRESHOLD = 0.60  # below this → no confident prediction → frontend falls back to GPT
 
 
 # -------------------------------------------------
@@ -88,8 +87,9 @@ def load_model_safely(path: Optional[str], flavor: str):
         return None
 
 
+# EfficientNet as primary detector — ResNet slot unused (res_model stays None)
 eff_model = load_model_safely(AI_MODEL_PATH, "eff")
-res_model = load_model_safely(AI_MODEL2_PATH, "rn")
+res_model = None
 print(f"Models Loaded → EfficientNet: {eff_model is not None}, ResNet: {res_model is not None}")
 
 
@@ -177,7 +177,6 @@ class PredictOut(BaseModel):
     foodType: Optional[str] = None
     difficulty: Optional[str] = None
     alternative: Optional[str] = None
-    altDescription: Optional[str] = None
     commonIngredients: Optional[str] = None
 
 
@@ -186,12 +185,11 @@ class PredictOut(BaseModel):
 # -------------------------------------------------
 def pil_to_array(img: Image.Image) -> np.ndarray:
     img = img.convert("RGB").resize(IMG_SIZE)
-    # If your model already has a Lambda( eff_pre ), keep raw floats:
+    # Preprocessing is baked inside the model as a Lambda layer — feed raw pixels
     return np.array(img).astype("float32")
 
 
 def run_models(arr: np.ndarray):
-    # If preprocessing is inside the model, do NOT call eff_pre here.
     x = arr[None, ...]  # shape (1, 224, 224, 3)
 
     preds = []
@@ -246,7 +244,7 @@ async def predict(
         pred_name, conf = run_models(arr)
 
         if not pred_name:
-            # no confident prediction
+            # Confidence below threshold → frontend falls back to GPT
             return PredictOut(pred_class=None, confidence=conf)
 
         info = fetch_nutrition(pred_name)
@@ -272,11 +270,10 @@ async def predict(
             foodType=info.get("foodType") if info else None,
             difficulty=info.get("difficulty") if info else None,
             alternative=info.get("alternative") if info else None,
-            altDescription=info.get("altDescription") if info else None,
             commonIngredients=info.get("commonIngredients") if info else None,
         )
 
-    # 2) NO IMAGE → optional typed food name lookup
+    # 2) NO IMAGE → typed food name lookup
     if food_name and food_name.strip():
         info = fetch_nutrition(food_name.strip())
         if info:
@@ -299,7 +296,6 @@ async def predict(
                 foodType=info.get("foodType") if info else None,
                 difficulty=info.get("difficulty") if info else None,
                 alternative=info.get("alternative") if info else None,
-                altDescription=info.get("altDescription") if info else None,
                 commonIngredients=info.get("commonIngredients") if info else None,
             )
 
