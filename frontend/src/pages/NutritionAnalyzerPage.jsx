@@ -150,6 +150,14 @@ export default function NutritionAnalyzerPage() {
       // ── IMAGE PATH ──────────────────────────────────────────
       if (selectedFile) {
 
+        // Convert to base64 once — reused by both CNN and GPT paths
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(selectedFile);
+        });
+
         // Step 1: try CNN first
         const cnnName = await tryCNN(selectedFile, base64, csrfToken);
 
