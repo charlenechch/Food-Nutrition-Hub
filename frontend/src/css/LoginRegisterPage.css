@@ -495,7 +495,7 @@
   
   .mh-form-card {
     width: 100%;
-    max-width: 460px; /* Widened to avoid text crunching */
+    max-width: 460px;
     height: auto !important;
     min-height: auto !important;
     max-height: none !important;
@@ -503,7 +503,7 @@
   }
 
   .mh-tab-btn {
-    white-space: nowrap; /* Enforces 'Log Masuk' on one clean line */
+    white-space: nowrap;
     font-size: 0.95rem;
     padding: 0 5px;
   }
@@ -587,6 +587,30 @@
   .mh-otp-input::placeholder {
     letter-spacing: 5px !important; 
     font-size: 1.5rem !important;
+  }
+}
+
+/* --- Ultra-Compact Mobile Optimization (320px - 360px) --- */
+@media (max-width: 360px) {
+  .mh-form-card {
+    padding: 25px 15px !important;
+  }
+
+  .mh-tabs {
+    padding: 3px !important;
+    height: 44px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .mh-tab-pill {
+    width: calc(50% - 3px) !important;
+    height: calc(100% - 6px) !important;
+  }
+
+  .mh-tab-btn {
+    font-size: 0.85rem !important;
+    letter-spacing: 0px !important;
+    padding: 0 2px !important;
   }
 }
 
