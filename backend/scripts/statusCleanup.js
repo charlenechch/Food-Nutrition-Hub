@@ -310,14 +310,14 @@ async function runDailyMaintenance() {
             // Guard: check if XP already awarded for last month
             const [existing] = await db.query(
                 `SELECT id FROM xp_logs 
-                 WHERE userProfileID = ? AND action_type = ? AND reference_id = ?
-                 AND MONTH(created_at) = ? AND YEAR(created_at) = ?`,
+                WHERE userProfileID = ? AND action_type = ? AND reference_id = ?
+                AND MONTH(created_at) = ? AND YEAR(created_at) = ?`,
                 [userProfileID, actionType, referenceId, lastMonth, lastMonthYear]
             );
 
             if (existing.length > 0) {
                 console.log(`⚠️ XP already awarded for ${actionType} to userProfileID ${userProfileID}, skipping...`);
-                return;
+                return false;
             }
 
             await db.query(
@@ -330,6 +330,7 @@ async function runDailyMaintenance() {
                 [xpAmount, userProfileID]
             );
             console.log(`✅ Awarded ${xpAmount} XP to userProfileID ${userProfileID} for ${actionType}`);
+            return true;
         };
 
         // Snapshot + Recipe Leaderboard Rewards
@@ -410,14 +411,16 @@ async function runDailyMaintenance() {
             const xp = RECIPE_XP[rank];
             const actionType = `LEADERBOARD_RECIPE_RANK_${rank}`;
 
-            await awardXP(user.userProfileID, actionType, rank, xp);
-            await createNotification(
-                user.userID,
-                "leaderboard_reward",
-                `Congratulations! You ranked #${rank} on the Recipe Leaderboard for ${lastMonthStr} and earned ${xp} XP!`,
-                db
-            );
-            console.log(`🔔 Notification sent to userID ${user.userID} for recipe rank ${rank}`);
+            const xpAwarded = await awardXP(user.userProfileID, actionType, rank, xp);
+            if (xpAwarded) {
+                await createNotification(
+                    user.userID,
+                    "leaderboard_reward",
+                    `Congratulations! You ranked #${rank} on the Recipe Leaderboard for ${lastMonthStr} and earned ${xp} XP!`,
+                    db
+                );
+                console.log(`🔔 Notification sent to userID ${user.userID} for recipe rank ${rank}`);
+            }
         }
 
         // Badge for recipe rank 1
@@ -518,14 +521,16 @@ async function runDailyMaintenance() {
             const xp = POST_XP[rank];
             const actionType = `LEADERBOARD_POST_RANK_${rank}`;
 
-            await awardXP(user.userProfileID, actionType, rank, xp);
-            await createNotification(
-                user.userID,
-                "leaderboard_reward",
-                `Congratulations! You ranked #${rank} on the Community Post Leaderboard for ${lastMonthStr} and earned ${xp} XP!`,
-                db
-            );
-            console.log(`🔔 Notification sent to userID ${user.userID} for post rank ${rank}`);
+            const xpAwarded = await awardXP(user.userProfileID, actionType, rank, xp);
+            if (xpAwarded) {
+                await createNotification(
+                    user.userID,
+                    "leaderboard_reward",
+                    `Congratulations! You ranked #${rank} on the Community Post Leaderboard for ${lastMonthStr} and earned ${xp} XP!`,
+                    db
+                );
+                console.log(`🔔 Notification sent to userID ${user.userID} for post rank ${rank}`);
+            }
         }
 
         // Badge for post rank 1
