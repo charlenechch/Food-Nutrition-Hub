@@ -14,8 +14,8 @@
 .modern-heritage-page {
   position: relative;
   width: 100vw;
-  min-height: 100vh; 
-  overflow-x: hidden;
+  height: 100vh;
+  overflow: hidden;
   font-family: 'Poppins', sans-serif;
   display: flex;
   align-items: center;
@@ -25,11 +25,11 @@
 
 /* --- 1. Immersive Background --- */
 .mh-background {
-  position: fixed; 
+  position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   z-index: 0;
 }
 
@@ -55,31 +55,30 @@
   to { transform: scale(1.1); }
 }
 
-/* --- 2. Layout Container (DYNAMIC SIZING) --- */
+/* --- 2. Layout Container --- */
 .mh-content-wrapper {
   position: relative;
   z-index: 2;
   display: flex;
-  width: 92%; /* Slightly wider to utilize space */
+  width: 90%;
   max-width: 1200px;
+  height: 90vh; 
   align-items: center;
   justify-content: space-between;
-  padding: 40px 0;
-  gap: clamp(20px, 4vw, 60px); /* Dynamic gap based on screen width */
 }
 
-/* --- 3. Left Brand Section (DYNAMIC TYPOGRAPHY) --- */
+/* --- 3. Left Brand Section --- */
 .mh-brand-section {
   color: white;
-  flex: 1 1 auto; /* Allow to grow and shrink smoothly */
+  flex: 1;
+  padding-right: 50px;
   animation: fadeSlideRight 0.8s ease-out;
 }
 
 .mh-title {
   font-family: 'Playfair Display', serif;
-  /* Rubber band effect: Min 2.5rem, prefer dynamic viewport size, Max 5rem */
-  font-size: clamp(2.5rem, 5vw + 1rem, 5rem);
-  line-height: 1.1;
+  font-size: 5rem;
+  line-height: 1;
   font-weight: 700;
   margin: 0;
   text-shadow: 0 4px 10px rgba(0,0,0,0.5);
@@ -89,37 +88,32 @@
   width: 80px;
   height: 4px;
   background: var(--mh-gold);
-  margin: clamp(15px, 2vw, 25px) 0; /* Dynamic margin */
+  margin: 20px 0;
 }
 
 .mh-subtitle {
-  /* Fluid subtitle size */
-  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+  font-size: 1.1rem;
   font-weight: 300;
   opacity: 0.9;
   line-height: 1.6;
 }
 
-/* --- 4. Glass Form Card (FLEXIBLE SHRINK) --- */
+/* --- 4. Glass Form Card --- */
 .mh-form-card {
-  /* 0 1 allows the card to shrink slightly on scaled laptops instead of breaking */
-  flex: 0 1 440px; 
-  width: 100%;
+  flex: 0 0 440px;
   background: var(--mh-glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--mh-glass-border);
   border-radius: 24px;
-  padding: clamp(25px, 3vw, 40px); /* Dynamic padding */
+  padding: 40px;
   box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   animation: fadeSlideUp 0.8s ease-out 0.2s backwards;
   
   display: flex;
   flex-direction: column;
-  
-  height: auto;
-  min-height: 500px;
-  max-height: 85vh; 
+  height: 680px;
+  min-height: 680px;
   justify-content: center;
   
   overflow-y: auto;
@@ -127,9 +121,10 @@
   scrollbar-color: rgba(92, 58, 33, 0.3) transparent;
   box-sizing: border-box;
 }
-
 .mh-form-card--register {
   justify-content: flex-start;
+  max-height: 85vh;
+  overflow-y: auto;
 }
 
 .mh-form-card::-webkit-scrollbar {
@@ -487,35 +482,75 @@
 }
 .mh-google-icon { width: 20px; height: 20px; }
 
-/* ========================================= */
-/* --- NEW LOW BREAKPOINT TABLET STACK --- */
-/* ========================================= */
-/* Dropped to 850px. This guarantees iPads (768px) stack perfectly, 
-   but prevents laptops (even heavily zoomed/scaled) from stacking */
-@media (max-width: 850px) {
+/* --- Enhanced Tablet & Mobile Responsive Queries --- */
+@media (max-width: 1024px) {
   .mh-content-wrapper {
-    flex-direction: column;      
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
-    width: 100%;
-    max-width: 500px;
-    gap: 40px; 
-    margin: 0 auto;
-    padding-top: 40px;
+    width: 95%;
+    padding: 20px;
+    height: auto !important;
+    min-height: 100vh;
   }
   
+  .mh-form-card {
+    width: 100%;
+    max-width: 460px;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    padding: 30px;
+  }
+
+  .mh-tab-btn {
+    white-space: nowrap;
+    font-size: 0.95rem;
+    padding: 0 5px;
+  }
+}
+
+@media (max-width: 900px) {
+  .modern-heritage-page {
+    display: block;              
+    height: auto !important;    
+    min-height: 100vh;           
+    overflow-y: auto !important; 
+    padding-top: 20px;     
+  }
+  .mh-background {
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+  }
+  .mh-content-wrapper {
+    display: flex;
+    flex-direction: column;      
+    justify-content: flex-start; 
+    align-items: center;
+    height: auto !important;   
+    width: 100%;
+    padding: 0 20px 60px 20px;  
+  }
   .mh-brand-section {
     width: 100%;
+    padding-right: 0;
     text-align: center;
+    margin-bottom: 20px;         
+    flex: none;                 
   }
-  
-  .mh-divider { margin: 15px auto; }
+  .mh-title { font-size: 2.5rem; }
 
   .mh-form-card {
-    width: 100%;           
-    height: auto;    
-    min-height: auto;
-    max-height: none;         
+    width: 100%;
+    max-width: 400px;            
+    height: auto !important;    
+    min-height: auto !important;
+    max-height: none !important;         
+    margin-top: 0;
+    margin-bottom: 40px;
+    overflow: visible !important;
+    justify-content: flex-start; 
+    padding-top: 30px;           
   }
 
   .mh-actions {
@@ -542,10 +577,7 @@
   }
 }
 
-/* --- Mobile Specific Tweaks --- */
 @media (max-width: 450px) {
-  .mh-content-wrapper { padding: 20px; gap: 20px; }
-
   .mh-otp-input {
     font-size: 1.5rem !important;   
     letter-spacing: 5px !important; 
@@ -563,15 +595,18 @@
   .mh-form-card {
     padding: 25px 15px !important;
   }
+
   .mh-tabs {
     padding: 3px !important;
     height: 44px !important;
     margin-bottom: 20px !important;
   }
+
   .mh-tab-pill {
     width: calc(50% - 3px) !important;
     height: calc(100% - 6px) !important;
   }
+
   .mh-tab-btn {
     font-size: 0.85rem !important;
     letter-spacing: 0px !important;
@@ -579,7 +614,6 @@
   }
 }
 
-/* --- Checkboxes & Tooltips --- */
 .mh-checkbox-wrapper {
   display: flex;
   align-items: center;
