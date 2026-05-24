@@ -14,7 +14,7 @@
 .modern-heritage-page {
   position: relative;
   width: 100vw;
-  min-height: 100vh; /* Changed from fixed 100vh */
+  min-height: 100vh; 
   overflow-x: hidden;
   font-family: 'Poppins', sans-serif;
   display: flex;
@@ -25,7 +25,7 @@
 
 /* --- 1. Immersive Background --- */
 .mh-background {
-  position: fixed; /* Fixed so it covers screen even when scrolling */
+  position: fixed; 
   top: 0;
   left: 0;
   width: 100vw;
@@ -55,29 +55,30 @@
   to { transform: scale(1.1); }
 }
 
-/* --- 2. Layout Container --- */
+/* --- 2. Layout Container (DYNAMIC SIZING) --- */
 .mh-content-wrapper {
   position: relative;
   z-index: 2;
   display: flex;
-  width: 90%;
+  width: 92%; /* Slightly wider to utilize space */
   max-width: 1200px;
   align-items: center;
   justify-content: space-between;
   padding: 40px 0;
+  gap: clamp(20px, 4vw, 60px); /* Dynamic gap based on screen width */
 }
 
-/* --- 3. Left Brand Section --- */
+/* --- 3. Left Brand Section (DYNAMIC TYPOGRAPHY) --- */
 .mh-brand-section {
   color: white;
-  flex: 1;
-  padding-right: 50px;
+  flex: 1 1 auto; /* Allow to grow and shrink smoothly */
   animation: fadeSlideRight 0.8s ease-out;
 }
 
 .mh-title {
   font-family: 'Playfair Display', serif;
-  font-size: 5rem;
+  /* Rubber band effect: Min 2.5rem, prefer dynamic viewport size, Max 5rem */
+  font-size: clamp(2.5rem, 5vw + 1rem, 5rem);
   line-height: 1.1;
   font-weight: 700;
   margin: 0;
@@ -88,32 +89,34 @@
   width: 80px;
   height: 4px;
   background: var(--mh-gold);
-  margin: 20px 0;
+  margin: clamp(15px, 2vw, 25px) 0; /* Dynamic margin */
 }
 
 .mh-subtitle {
-  font-size: 1.1rem;
+  /* Fluid subtitle size */
+  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
   font-weight: 300;
   opacity: 0.9;
   line-height: 1.6;
 }
 
-/* --- 4. Glass Form Card (FIXED FOR LAPTOP ZOOM) --- */
+/* --- 4. Glass Form Card (FLEXIBLE SHRINK) --- */
 .mh-form-card {
-  flex: 0 0 440px;
+  /* 0 1 allows the card to shrink slightly on scaled laptops instead of breaking */
+  flex: 0 1 440px; 
+  width: 100%;
   background: var(--mh-glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--mh-glass-border);
   border-radius: 24px;
-  padding: 40px;
+  padding: clamp(25px, 3vw, 40px); /* Dynamic padding */
   box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   animation: fadeSlideUp 0.8s ease-out 0.2s backwards;
   
   display: flex;
   flex-direction: column;
   
-  /* FLUID HEIGHT FIX */
   height: auto;
   min-height: 500px;
   max-height: 85vh; 
@@ -485,32 +488,27 @@
 .mh-google-icon { width: 20px; height: 20px; }
 
 /* ========================================= */
-/* --- NEW UNIFIED RESPONSIVE QUERY --- */
+/* --- NEW LOW BREAKPOINT TABLET STACK --- */
 /* ========================================= */
-/* By changing to 950px, smaller laptops (1024px width) stay side-by-side.
-   iPads in portrait (768px width) stack vertically in a flex container, 
-   perfectly centered with a defined gap, removing the awkward top/bottom empty space.
-*/
-@media (max-width: 950px) {
+/* Dropped to 850px. This guarantees iPads (768px) stack perfectly, 
+   but prevents laptops (even heavily zoomed/scaled) from stacking */
+@media (max-width: 850px) {
   .mh-content-wrapper {
     flex-direction: column;      
-    justify-content: center; /* Centers title and card vertically */
+    justify-content: center;
     align-items: center;
     width: 100%;
-    max-width: 500px; /* Constrains width on tablets so it doesn't stretch too far */
-    gap: 40px; /* Controls exact spacing between the title and the card */
+    max-width: 500px;
+    gap: 40px; 
     margin: 0 auto;
+    padding-top: 40px;
   }
   
   .mh-brand-section {
     width: 100%;
-    padding-right: 0;
     text-align: center;
-    margin-bottom: 0; /* Handled perfectly by the gap property above */
-    flex: none;                 
   }
   
-  .mh-title { font-size: 3rem; }
   .mh-divider { margin: 15px auto; }
 
   .mh-form-card {
@@ -518,8 +516,6 @@
     height: auto;    
     min-height: auto;
     max-height: none;         
-    padding: 30px;
-    margin: 0;           
   }
 
   .mh-actions {
@@ -548,7 +544,6 @@
 
 /* --- Mobile Specific Tweaks --- */
 @media (max-width: 450px) {
-  .mh-title { font-size: 2.2rem; }
   .mh-content-wrapper { padding: 20px; gap: 20px; }
 
   .mh-otp-input {
