@@ -32,6 +32,11 @@ a:hover {
 }
 
 /* ===== Button base style ===== */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
 button {
   -webkit-appearance: none;
   -moz-appearance: none;
